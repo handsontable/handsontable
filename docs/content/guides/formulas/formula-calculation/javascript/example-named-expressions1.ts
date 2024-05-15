@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import { HyperFormula } from 'hyperformula';
 import 'handsontable/dist/handsontable.full.min.css';
 import {Formulas} from 'handsontable/plugins'
@@ -12,7 +11,7 @@ const data: (string | number)[][] = [
 ];
 
 const container = document.querySelector('#example-named-expressions1');
-const hotNamedExpressions: Core = new Handsontable(container, {
+const hotNamedExpressions: Handsontable.Core = new Handsontable(container, {
   data,
   colHeaders: true,
   rowHeaders: true,

@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const triggerBtn = document.querySelector('#triggerBtn');
@@ -14,7 +13,7 @@ const data: string[][] = new Array(100) // number of rows
     .map((_, column) => `${row}, ${column}`)
   );
 
-const hot: Core = new Handsontable(example, {
+const hot: Handsontable.Core = new Handsontable(example, {
   data,
   rowHeaders: true,
   colHeaders: true,

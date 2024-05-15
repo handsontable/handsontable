@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import {DetailedSettings} from 'handsontable/plugins/contextMenu';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -73,7 +72,7 @@ const contextMenuSettings: DetailedSettings = {
 }
 
 const container = document.querySelector('#example3');
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],

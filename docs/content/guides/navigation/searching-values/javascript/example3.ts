@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 import {Search} from 'handsontable/plugins'
 
@@ -17,7 +16,7 @@ function onlyExactMatch(queryStr, value) {
   return queryStr.toString() === value.toString();
 }
 
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data,
   colHeaders: true,
   // enable the `Search` plugin

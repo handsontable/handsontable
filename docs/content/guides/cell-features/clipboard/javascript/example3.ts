@@ -1,12 +1,11 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example3');
 const copyBtn = document.querySelector('#copy');
 const cutBtn = document.querySelector('#cut');
 
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   data: [

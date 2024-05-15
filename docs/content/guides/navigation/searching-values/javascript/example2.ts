@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 import {Search} from 'handsontable/plugins'
 
@@ -12,7 +11,7 @@ const data: (string | number)[][] = [
   ['Volvo', 2020, 'yellow', 'gray']
 ];
 
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data,
   colHeaders: true,
   // enable the `Search` plugin

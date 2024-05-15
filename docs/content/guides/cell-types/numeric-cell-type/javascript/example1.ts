@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import numbro from 'numbro';
 import deDE from 'numbro/languages/de-DE';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -8,7 +7,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 numbro.registerLanguage(deDE);
 
 const container = document.querySelector('#example1');
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, price_usd: 7000, price_eur: 7000 },
     { car: 'Citroen C4 Coupe', year: 2018, price_usd: 8330, price_eur: 8330 },

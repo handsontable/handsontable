@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const colors: string[] = ['yellow', 'red', 'orange', 'green', 'blue',
@@ -7,7 +6,7 @@ const colors: string[] = ['yellow', 'red', 'orange', 'green', 'blue',
 const cars: string[] = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
 
 const container = document.querySelector('#example2');
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],
