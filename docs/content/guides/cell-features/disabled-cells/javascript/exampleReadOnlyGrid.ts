@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleReadOnlyGrid');
-const hot: Handsontable.Core = new Handsontable(container, {
+new Handsontable(container, {
   data: [
     { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
     { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },

@@ -10,7 +10,7 @@ const data: string[][] = new Array(200) // number of rows
   );
 
 const container = document.querySelector('#example1');
-const hot: Handsontable.Core = new Handsontable(container, {
+new Handsontable(container, {
   data,
   width: '100%',
   height: 320,
