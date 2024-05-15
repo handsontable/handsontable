@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import {DetailedSettings} from 'handsontable/plugins/contextMenu';
+import { DetailedSettings } from 'handsontable/plugins/contextMenu';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const contextMenuSettings: DetailedSettings = {
@@ -27,7 +27,7 @@ const contextMenuSettings: DetailedSettings = {
       },
       hidden() { // `hidden` can be a boolean or a function
         // Hide the option when the first column was clicked
-        return this.getSelectedLast()[1] == 0; // `this` === hot
+        return this.getSelectedLast()?.[1] == 0; // `this` === hot
       },
       callback(key, selection, clickEvent) { // Callback for specific option
         setTimeout(() => {
@@ -71,8 +71,9 @@ const contextMenuSettings: DetailedSettings = {
   }
 }
 
-const container = document.querySelector('#example3');
-const hot: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#example3')!;
+
+new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],

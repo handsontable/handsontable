@@ -4,6 +4,7 @@ import jaJP from 'numbro/languages/ja-JP';
 import trTR from 'numbro/languages/tr-TR';
 import 'handsontable/dist/handsontable.full.min.css';
 
+// TODO: fix type
 // register the languages you need
 numbro.registerLanguage(jaJP);
 numbro.registerLanguage(trTR);
@@ -19,8 +20,9 @@ const formatTR = {
   culture: 'tr-TR',
 };
 
-const container = document.querySelector('#example3');
-const hot: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#example3')!;
+
+new Handsontable(container, {
   data: [
     {
       productName: 'Product A',

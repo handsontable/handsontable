@@ -1,8 +1,9 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#exampleExcludeRowsFromSorting');
-const handsontableInstance: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#exampleExcludeRowsFromSorting')!;
+
+const hot: Handsontable.Core = new Handsontable(container, {
   data: [
     {
       brand: 'Brand',
@@ -171,14 +172,15 @@ const handsontableInstance: Handsontable.Core = new Handsontable(container, {
   columnSorting: true,
   // `afterColumnSort()` is a Handsontable hook: it's fired after each sorting
   afterColumnSort() {
-    const lastRowIndex = handsontableInstance.countRows() - 1;
+    const lastRowIndex = hot.countRows() - 1;
 
     // after each sorting, take row 1 and change its index to 0
-    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
+    hot.rowIndexMapper.moveIndexes(hot.toVisualRow(0), 0);
 
     // after each sorting, take row 16 and change its index to 15
-    handsontableInstance.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(lastRowIndex), lastRowIndex);
+    hot.rowIndexMapper.moveIndexes(hot.toVisualRow(lastRowIndex), lastRowIndex);
   },
+  // TODO: fix type
   cells(row, col, prop) {
     const lastRowIndex = this.instance.countRows() - 1;
 

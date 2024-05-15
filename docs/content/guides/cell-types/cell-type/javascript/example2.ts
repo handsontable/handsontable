@@ -1,8 +1,9 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example2');
-const hot: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#example2')!;
+
+new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['empty string', '', '', '', '', ''],

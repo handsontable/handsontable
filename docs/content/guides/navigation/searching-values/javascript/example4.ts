@@ -1,10 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-import {Search} from 'handsontable/plugins'
-
-const container = document.querySelector('#example4');
-const searchField = document.querySelector('#search_field4');
-const output = document.querySelector('#output');
+import { Search } from 'handsontable/plugins'
 
 let searchResultCount = 0;
 
@@ -16,8 +12,8 @@ const data: (string | number)[][] = [
 ];
 
 // define your custom callback function
-function searchResultCounter(instance, row, col, value, result) {
-  const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
+function searchResultCounter(_instance, _row, _col, _value, result) {
+  const DEFAULT_CALLBACK = function(instance, row, col, _data, testResult) {
     instance.getCellMeta(row, col).isSearchResult = testResult;
   };
 
@@ -27,6 +23,8 @@ function searchResultCounter(instance, row, col, value, result) {
     searchResultCount++;
   }
 }
+
+const container = document.querySelector('#example4')!;
 
 const hot: Handsontable.Core = new Handsontable(container, {
   data,
@@ -42,13 +40,16 @@ const hot: Handsontable.Core = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
+const searchField = document.querySelector('#search_field4')!;
+const output = document.querySelector('#output')!;
+
 searchField.addEventListener('keyup', (event) => {
   searchResultCount = 0;
 
   const search: Search = hot.getPlugin('search');
-  const queryResult = search.query(event.target.value);
+  const queryResult = search.query((event.target as HTMLInputElement).value);
 
   console.log(queryResult);
-  output.innerText = `${searchResultCount} results`;
+  (output as HTMLElement).innerText = `${searchResultCount} results`;
   hot.render();
 });

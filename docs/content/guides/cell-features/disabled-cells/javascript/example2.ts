@@ -1,7 +1,8 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example2');
+const container = document.querySelector('#example2')!;
+
 const hot: Handsontable.Core = new Handsontable(container, {
   data: [
     { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
@@ -21,7 +22,7 @@ hot.updateSettings({
     const cellProperties = {};
 
     if (hot.getData()[row][col] === 'Nissan') {
-      cellProperties.readOnly = true;
+      (cellProperties as Handsontable.CellProperties).readOnly = true;
     }
 
     return cellProperties;

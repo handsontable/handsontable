@@ -486,7 +486,7 @@ const countries = data.reduce<string[]>((acc, curr) => {
 /* end:skip-in-preview */
 
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
-const app = document.getElementById('example1');
+const app = document.getElementById('example1')!;
 
 // Define configuration options for the Handsontable
 const hotOptions: Handsontable.GridSettings = {
@@ -545,7 +545,7 @@ const hotOptions: Handsontable.GridSettings = {
 };
 
 // Initialize the Handsontable instance with the specified configuration options
-let hotInstance: Handsontable.Core = new Handsontable(app as Element, hotOptions);
+let hot: Handsontable.Core = new Handsontable(app, hotOptions);
 
 // Helper function to set up checkbox event handling
 const setupCheckbox = (element, callback) =>
@@ -558,12 +558,12 @@ const setupCheckbox = (element, callback) =>
 // Checkbox: Enable/Disable Tab Navigation
 setupCheckbox(document.querySelector('#enable-tab-navigation'), (checked) => {
   hotOptions.tabNavigation = checked;
-  hotInstance.updateSettings({
+  hot.updateSettings({
     tabNavigation: hotOptions.tabNavigation,
   });
   console.log(
     'Updated setting: tabNavigation to',
-    hotInstance.getSettings().tabNavigation
+    hot.getSettings().tabNavigation
   );
 });
 
@@ -572,12 +572,12 @@ setupCheckbox(
   document.querySelector('#enable-header-navigation'),
   (checked) => {
     hotOptions.navigableHeaders = checked;
-    hotInstance.updateSettings({
+    hot.updateSettings({
       navigableHeaders: hotOptions.navigableHeaders,
     });
     console.log(
       'Updated setting: navigableHeaders to',
-      hotInstance.getSettings().navigableHeaders
+      hot.getSettings().navigableHeaders
     );
   }
 );
@@ -586,15 +586,15 @@ setupCheckbox(
 setupCheckbox(
   document.querySelector('#enable-cell-virtualization'),
   (checked) => {
-    hotInstance.destroy();
-    hotInstance = new Handsontable(document.getElementById('example1') as Element, {
+    hot.destroy();
+    hot = new Handsontable(document.getElementById('example1')!, {
       ...hotOptions,
       renderAllRows: !checked,
       renderAllColumns: !checked,
     });
     console.log('Updated virtualization settings:', {
-      renderAllRows: hotInstance.getSettings().renderAllRows,
-      renderAllColumns: hotInstance.getSettings().renderAllColumns,
+      renderAllRows: hot.getSettings().renderAllRows,
+      renderAllColumns: hot.getSettings().renderAllColumns,
     });
   }
 );
@@ -604,12 +604,12 @@ setupCheckbox(
   document.querySelector('#enable-cell-enter-editing'),
   (checked) => {
     hotOptions.enterBeginsEditing = checked;
-    hotInstance.updateSettings({
+    hot.updateSettings({
       enterBeginsEditing: hotOptions.enterBeginsEditing,
     });
     console.log(
       'Updated setting: enable-cell-enter-editing to',
-      hotInstance.getSettings().enterBeginsEditing
+      hot.getSettings().enterBeginsEditing
     );
   }
 );
@@ -619,12 +619,12 @@ setupCheckbox(
   document.querySelector('#enable-arrow-rl-first-last-column'),
   (checked) => {
     hotOptions.autoWrapRow = checked;
-    hotInstance.updateSettings({
+    hot.updateSettings({
       autoWrapRow: hotOptions.autoWrapRow,
     });
     console.log(
       'Updated setting: autoWrapRow to',
-      hotInstance.getSettings().autoWrapRow
+      hot.getSettings().autoWrapRow
     );
   }
 );
@@ -634,12 +634,12 @@ setupCheckbox(
   document.querySelector('#enable-arrow-td-first-last-column'),
   (checked) => {
     hotOptions.autoWrapCol = checked;
-    hotInstance.updateSettings({
+    hot.updateSettings({
       autoWrapCol: hotOptions.autoWrapCol,
     });
     console.log(
       'Updated setting: autoWrapCol to',
-      hotInstance.getSettings().autoWrapCol
+      hot.getSettings().autoWrapCol
     );
   }
 );
@@ -649,12 +649,12 @@ setupCheckbox(
   document.querySelector('#enable-enter-focus-editing'),
   (checked) => {
     hotOptions.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
-    hotInstance.updateSettings({
+    hot.updateSettings({
       enterMoves: hotOptions.enterMoves,
     });
     console.log(
       'Updated setting: enterMoves to',
-      hotInstance.getSettings().enterMoves
+      hot.getSettings().enterMoves
     );
   }
 );

@@ -1,8 +1,9 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const selectOption = document.querySelector('#selectOption');
-const container = document.querySelector('#example1');
+
+const container = document.querySelector('#example1')!;
+
 const hot: Handsontable.Core = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
@@ -27,9 +28,11 @@ const hot: Handsontable.Core = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-selectOption.addEventListener('change', (event) => {
-  const value = event.target.value;
-  const first = value.split(' ')[0].toLowerCase();
+const selectOption = document.querySelector('#selectOption')!;
+
+selectOption.addEventListener('change', (event: Event) => {
+  const value = (event.target as HTMLSelectElement).value;
+  const first = value.split(' ')[0].toLowerCase() as Handsontable.GridSettings['selectionMode'];
 
   hot.updateSettings({
     selectionMode: first

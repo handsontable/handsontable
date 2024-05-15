@@ -12,8 +12,9 @@ const customStylesRenderer: BaseRenderer = (hotInstance, TD, ...rest) => {
 
 Handsontable.renderers.registerRenderer('customStylesRenderer', customStylesRenderer);
 
-const container = document.querySelector('#example2');
-const hot: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#example2')!;
+
+new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
     ['A2', 'B2', 'C2', 'D2', 'E2'],

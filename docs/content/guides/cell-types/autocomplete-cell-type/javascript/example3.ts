@@ -1,8 +1,9 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example3');
-const hot: Handsontable.Core = new Handsontable(container, {
+const container = document.querySelector('#example3')!;
+
+new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],
@@ -11,7 +12,6 @@ const hot: Handsontable.Core = new Handsontable(container, {
     ['Volvo', 2020, 'white', 'gray']
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
-  licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {
       type: 'autocomplete',
