@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const triggerBtn = document.querySelector('#triggerBtn');
-const example = document.querySelector('#example');
+const example = document.querySelector('#example')!;
 const exampleParent = document.querySelector('#exampleParent');
 
 // generate an array of arrays with dummy data

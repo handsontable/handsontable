@@ -4,7 +4,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 registerLanguageDictionary(deDE);
 
-const container: Element = document.querySelector('#example1') as Element;
+const container: Element = document.querySelector('#example1')!;
 const data: [string, string, string, string, string, number][] = [
   ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
   ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],

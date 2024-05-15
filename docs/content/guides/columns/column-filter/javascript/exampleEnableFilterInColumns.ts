@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#exampleEnableFilterInColumns');
+const container = document.querySelector('#exampleEnableFilterInColumns')!;
 new Handsontable(container, {
   data: [
     {

@@ -52,7 +52,7 @@ const coverRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellPr
 };
 
 
-const container = document.querySelector('#example4');
+const container = document.querySelector('#example4')!;
 new Handsontable(container, {
   data,
   colWidths: [200, 200, 200, 80],

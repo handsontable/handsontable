@@ -9,9 +9,9 @@ const data: string[][] = new Array(100) // number of rows
     .map((_, column) => `${row}, ${column}`)
   );
 
-const container = document.querySelector('#example1');
+const container = document.querySelector('#example1')!;
 
-new Handsontable(container!, {
+new Handsontable(container, {
   data,
   height: 320,
   colWidths: 47,

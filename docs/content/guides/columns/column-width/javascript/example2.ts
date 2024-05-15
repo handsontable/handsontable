@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example2');
+const container = document.querySelector('#example2')!;
 new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
