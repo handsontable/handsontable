@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // generate an array of arrays with dummy data
@@ -11,7 +10,7 @@ const data: string[][] = new Array(100) // number of rows
   );
 
 const container = document.querySelector('#example1');
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data,
   colWidths: 100,
   width: '100%',

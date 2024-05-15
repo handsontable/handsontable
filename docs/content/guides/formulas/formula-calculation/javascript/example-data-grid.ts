@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import { HyperFormula } from 'hyperformula';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -109,7 +108,7 @@ const data: (string | number)[][] = [
 ];
 
 const container = document.querySelector('#example-data-grid');
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data,
   formulas: {
     engine: HyperFormula,

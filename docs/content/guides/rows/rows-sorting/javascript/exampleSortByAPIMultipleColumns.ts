@@ -1,11 +1,10 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 import {MultiColumnSorting} from 'handsontable/plugins'
 
 const container = document.querySelector('#exampleSortByAPIMultipleColumns');
 const buttonSort = document.querySelector('#sort');
-const handsontableInstance: Core = new Handsontable(container, {
+const handsontableInstance: Handsontable.Core = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',

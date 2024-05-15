@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 import { BaseRenderer } from 'handsontable/renderers';
 
@@ -17,7 +16,7 @@ const customRenderer: BaseRenderer = (instance, td, ...rest) => {
   }
 };
 
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   height: 'auto',
   columns: [
     {},

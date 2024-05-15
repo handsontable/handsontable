@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example10');
@@ -19,6 +18,6 @@ const settings = {
   licenseKey: 'non-commercial-and-evaluation'
 };
 
-const hot: Core = new Handsontable(container, settings);
+const hot: Handsontable.Core = new Handsontable(container, settings);
 
 hot.setDataAtCell(0, 1, 'Ford');

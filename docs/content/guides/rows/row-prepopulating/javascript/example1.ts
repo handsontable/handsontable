@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 import {CellProperties} from 'handsontable/settings';
 import {BaseRenderer} from 'handsontable/renderers';
@@ -37,7 +36,7 @@ const defaultValueRenderer: BaseRenderer = (instance, td, row, col, prop, value,
   Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
 }
 
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,

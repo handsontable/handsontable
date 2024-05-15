@@ -95,7 +95,7 @@ function log_events(event, data) {
 }
 
 const example1 = document.querySelector('#example1');
-const hot: Core = new Handsontable(example1, config);
+const hot: Handsontable.Core = new Handsontable(example1, config);
 
 document.querySelector('#check_select_all').addEventListener('click', function() {
   const state = this.checked;

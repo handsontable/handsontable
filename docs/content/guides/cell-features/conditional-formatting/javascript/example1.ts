@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import {BaseRenderer} from 'handsontable/renderers';
 import 'handsontable/dist/handsontable.full.min.css';
 import {CellProperties} from 'handsontable/settings'
@@ -42,7 +41,7 @@ const negativeValueRenderer: BaseRenderer = (instance, td, row, col, prop, value
 // maps function to a lookup string
 Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data,
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',

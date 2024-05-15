@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example1');
@@ -30,7 +29,7 @@ const data3: (string | number)[] = [
   [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
 ];
 
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data: data1,
   width: 'auto',
   height: 'auto',

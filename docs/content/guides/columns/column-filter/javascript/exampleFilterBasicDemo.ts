@@ -1,10 +1,9 @@
 // to import filtering as an individual module, see the 'Import the filtering module' section of this page
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleFilterBasicDemo');
-const handsontableInstance: Core = new Handsontable(container, {
+const handsontableInstance: Handsontable.Core = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',

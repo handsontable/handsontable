@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import 'handsontable/dist/handsontable.full.min.css';
 
 interface Manufacturer {
@@ -19,7 +18,7 @@ const manufacturerData: Manufacturer[] = [
   { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' }
 ];
 
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['Tesla', 2017, 'black', 'black'],

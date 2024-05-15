@@ -1,5 +1,4 @@
 import Handsontable from 'handsontable';
-import Core from 'handsontable/core';
 import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -14,7 +13,7 @@ const data: [string, string, string, string, string, number][] = [
   ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
 ];
 
-const hot: Core = new Handsontable(container, {
+const hot: Handsontable.Core = new Handsontable(container, {
   data,
   contextMenu: true,
   height: 'auto',
