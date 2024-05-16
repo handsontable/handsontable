@@ -2,9 +2,9 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example1')!;
-const buttonWithout = document.querySelector('#buttonWithout');
-const buttonWith = document.querySelector('#buttonWith');
-const output = document.querySelector('#output');
+const buttonWithout = document.querySelector('#buttonWithout')!;
+const buttonWith = document.querySelector('#buttonWith')!;
+const output = document.querySelector('#output')!;
 
 const data1: (string | number)[] = [
   [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],

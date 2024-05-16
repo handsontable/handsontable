@@ -556,7 +556,7 @@ const setupCheckbox = (element, callback) =>
 // the flexibility of Handsontable in configuring according to your needs.
 
 // Checkbox: Enable/Disable Tab Navigation
-setupCheckbox(document.querySelector('#enable-tab-navigation'), (checked) => {
+setupCheckbox(document.querySelector('#enable-tab-navigation')!, (checked) => {
   hotOptions.tabNavigation = checked;
   hot.updateSettings({
     tabNavigation: hotOptions.tabNavigation,
@@ -569,7 +569,7 @@ setupCheckbox(document.querySelector('#enable-tab-navigation'), (checked) => {
 
 // Checkbox: Enable/Disable Header Navigation
 setupCheckbox(
-  document.querySelector('#enable-header-navigation'),
+  document.querySelector('#enable-header-navigation')!,
   (checked) => {
     hotOptions.navigableHeaders = checked;
     hot.updateSettings({
@@ -584,7 +584,7 @@ setupCheckbox(
 
 // Checkbox: Enable/Disable Cell Virtualization
 setupCheckbox(
-  document.querySelector('#enable-cell-virtualization'),
+  document.querySelector('#enable-cell-virtualization')!,
   (checked) => {
     hot.destroy();
     hot = new Handsontable(document.getElementById('example1')!, {
@@ -601,7 +601,7 @@ setupCheckbox(
 
 // Checkbox: Enable/Disable Cell Enter Editing
 setupCheckbox(
-  document.querySelector('#enable-cell-enter-editing'),
+  document.querySelector('#enable-cell-enter-editing')!,
   (checked) => {
     hotOptions.enterBeginsEditing = checked;
     hot.updateSettings({
@@ -616,7 +616,7 @@ setupCheckbox(
 
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Row
 setupCheckbox(
-  document.querySelector('#enable-arrow-rl-first-last-column'),
+  document.querySelector('#enable-arrow-rl-first-last-column')!,
   (checked) => {
     hotOptions.autoWrapRow = checked;
     hot.updateSettings({
@@ -631,7 +631,7 @@ setupCheckbox(
 
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Column
 setupCheckbox(
-  document.querySelector('#enable-arrow-td-first-last-column'),
+  document.querySelector('#enable-arrow-td-first-last-column')!,
   (checked) => {
     hotOptions.autoWrapCol = checked;
     hot.updateSettings({
@@ -646,7 +646,7 @@ setupCheckbox(
 
 // Checkbox: Enable/Disable Enter Key Focus for Editing
 setupCheckbox(
-  document.querySelector('#enable-enter-focus-editing'),
+  document.querySelector('#enable-enter-focus-editing')!,
   (checked) => {
     hotOptions.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
     hot.updateSettings({

@@ -119,7 +119,7 @@ new Handsontable(container, {
   afterGetColHeader(col, TH) {
     // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
     if (col > 1) {
-      const button = TH.querySelector('.changeType');
+      const button = TH.querySelector('.changeType')!;
 
       if (!button) {
         return;

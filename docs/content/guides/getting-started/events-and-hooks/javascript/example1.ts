@@ -1,4 +1,7 @@
-const config = {
+import Handsontable from 'handsontable';
+import numbro from 'numbro';
+
+const config: Handsontable.GridSettings = {
   data: [
     ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
     ['2017', 0, 2941, 4303, 354, 5814],
@@ -14,12 +17,11 @@ const config = {
   autoWrapRow: true,
   colHeaders: true,
   contextMenu: true,
-  autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation'
 };
-const example1Events = document.getElementById('example1_events');
-const hooksList = document.getElementById('hooksList');
+const example1Events = document.getElementById('example1_events')!;
+const hooksList = document.getElementById('hooksList')!;
 const hooks = Handsontable.hooks.getRegistered();
 
 hooks.forEach((hook) => {
@@ -32,7 +34,7 @@ hooks.forEach((hook) => {
   hooksList.innerHTML += `<li><label><input type="checkbox" ${checked} id="check_${hook}"> ${hook}</label></li>`;
   config[hook] = function() {
     log_events(hook, arguments);
-  };
+  } as any;
 });
 
 const start = (new Date()).getTime();
@@ -44,7 +46,7 @@ let timer;
  * @param data
  */
 function log_events(event, data) {
-  if (document.getElementById(`check_${event}`).checked) {
+  if ((document.getElementById(`check_${event}`) as HTMLInputElement).checked) {
     const now = (new Date()).getTime();
     const diff = now - start;
     let str;
@@ -95,9 +97,9 @@ function log_events(event, data) {
 }
 
 const example1 = document.querySelector('#example1')!;
-const hot = new Handsontable(example1, config);
+new Handsontable(example1, config);
 
-document.querySelector('#check_select_all').addEventListener('click', function() {
+document.querySelector('#check_select_all')!.addEventListener('click', function() {
   const state = this.checked;
   const inputs = document.querySelectorAll('#hooksList input[type=checkbox]');
 
@@ -106,8 +108,8 @@ document.querySelector('#check_select_all').addEventListener('click', function()
   });
 });
 
-document.querySelector('#hooksList input[type=checkbox]').addEventListener('click', function() {
+document.querySelector('#hooksList input[type=checkbox]')!.addEventListener('click', function() {
   if (!this.checked) {
-    document.getElementById('check_select_all').checked = false;
+    (document.getElementById('check_select_all') as HTMLInputElement).checked = false;
   }
 });
