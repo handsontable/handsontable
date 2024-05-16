@@ -21,21 +21,18 @@ new Handsontable(container, {
   height: 'auto',
   width: 'auto',
   columns(column) {
-    let columnMeta: Handsontable.ColumnSettings = {};
-
-    if (column === 0) {
-      columnMeta.data = 'id';
-    } else if (column === 1) {
-      columnMeta.data = 'name.first';
-    } else if (column === 2) {
-      columnMeta.data = 'name.last';
-    } else if (column === 3) {
-      columnMeta.data = 'address';
-    } else {
-      columnMeta = null as unknown as Handsontable.ColumnSettings;
+    switch (column) {
+      case 0:
+        return { data: 'id' };
+      case 1:
+        return { data: 'name.first' };
+      case 2:
+        return { data: 'name.last' };
+      case 3:
+        return { data: 'address' };
+      default:
+        return {};
     }
-
-    return columnMeta;
   },
   minSpareRows: 1,
   autoWrapRow: true,
