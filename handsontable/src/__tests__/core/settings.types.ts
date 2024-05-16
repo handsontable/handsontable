@@ -188,6 +188,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   ]),
   data: oneOf([{}, {}, {}], [[], [], []]),
+  dataDotNotation: oneOf(true),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
   datePickerConfig: {
