@@ -41,9 +41,10 @@ new Handsontable(container, {
   cells(row, col) {
     if (row === 0 && col === 0) {
       this.renderer = greenRenderer;
+      return { renderer: this.renderer };
     }
     
-    return { renderer: this.renderer };
+    return {};
   },
   autoWrapRow: true,
   autoWrapCol: true,
