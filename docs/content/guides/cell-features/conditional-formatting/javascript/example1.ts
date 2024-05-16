@@ -56,7 +56,7 @@ new Handsontable(container, {
     }
   },
   cells(row, col) {
-    const cellProperties: Partial<Handsontable.CellProperties> = {};
+    const cellProperties: Handsontable.CellMeta = {};
     const data = this.instance.getData();
 
     if (row === 0 || data[row] && data[row][col] === 'readOnly') {
@@ -65,7 +65,6 @@ new Handsontable(container, {
 
     if (row === 0) {
       cellProperties.renderer = firstRowRenderer; // uses function directly
-
     } else {
       cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
     }

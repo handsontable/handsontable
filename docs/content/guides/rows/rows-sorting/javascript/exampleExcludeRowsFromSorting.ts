@@ -180,7 +180,7 @@ const hot = new Handsontable(container, {
     // after each sorting, take row 16 and change its index to 15
     hot.rowIndexMapper.moveIndexes(hot.toVisualRow(lastRowIndex), lastRowIndex);
   },
-  cells(row, col, prop) {
+  cells(row) {
     const lastRowIndex = this.instance.countRows() - 1;
 
     if (row === 0) {
