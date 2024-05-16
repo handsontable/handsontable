@@ -102,6 +102,7 @@ module.exports = {
       `
       window.sentryOnLoad = function () {
         Sentry.init({
+          environment: '${buildMode || 'testing'}',
           tracesSampleRate: 0,
           profilesSampleRate: 0,
           replaysSessionSampleRate: 0,
