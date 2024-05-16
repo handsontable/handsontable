@@ -100,11 +100,11 @@ const hot = new Handsontable(container, {
 // add a filter input listener
 filterField.addEventListener('keyup', (event) => {
   const filters: Filters = hot.getPlugin('filters');
-  const columnSelector = document.getElementById('columns')!;
-  const columnValue = columnSelector.value;
+  const columnSelector = document.getElementById('columns') as HTMLInputElement;
+  const columnValue = columnSelector.value as unknown as number;
 
   filters.removeConditions(columnValue);
-  filters.addCondition(columnValue, 'contains', [event.target.value]);
+  filters.addCondition(columnValue, 'contains', [(event.target as HTMLInputElement).value]);
   filters.filter();
 
   hot.render();
