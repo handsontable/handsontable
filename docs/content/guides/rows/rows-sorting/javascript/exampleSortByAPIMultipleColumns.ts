@@ -4,7 +4,7 @@ import {MultiColumnSorting} from 'handsontable/plugins'
 
 const container = document.querySelector('#exampleSortByAPIMultipleColumns')!;
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',

@@ -4,7 +4,6 @@ import jaJP from 'numbro/languages/ja-JP';
 import trTR from 'numbro/languages/tr-TR';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// TODO: fix type
 // register the languages you need
 numbro.registerLanguage(jaJP);
 numbro.registerLanguage(trTR);

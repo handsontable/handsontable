@@ -4,7 +4,7 @@ import { ColumnSorting } from 'handsontable/plugins'
 
 const container = document.querySelector('#exampleSortByAPI')!;
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',

@@ -11,7 +11,7 @@ const data: (string | number)[][] = [
   ['2019', 30, 15, 12, 13]
 ];
 
-function isEmptyRow(instance) {
+function isEmptyRow(instance, _row) {
   const rowData = instance.countRows();
 
   for (let i = 0, ilen = rowData.length; i < ilen; i++) {
@@ -37,7 +37,7 @@ const defaultValueRenderer: BaseRenderer = (instance, td, row, col, prop, value,
 
 const container = document.querySelector('#example1')!;
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,
@@ -56,14 +56,15 @@ const hot: Handsontable.Core = new Handsontable(container, {
     const columns = instance.countCols();
     const rowColumnSeen = {};
     const rowsToFill = {};
-    // TODO: fix type
+    const ch = changes === null ? [] : changes as Handsontable.CellChange;
+
     for (let i = 0; i < changes.length; i++) {
       // if oldVal is empty
-      if (changes && changes[i][2] === null && changes[i][3] !== null) {
-        if (isEmptyRow(instance, changes[i][0])) {
+      if (ch[i][2] === null && ch[i][3] !== null) {
+        if (isEmptyRow(instance, ch[i][0])) {
           // add this row/col combination to the cache so it will not be overwritten by the template
-          rowColumnSeen[`${changes[i][0]}/${changes[i][1]}`] = true;
-          rowsToFill[changes[i][0]] = true;
+          rowColumnSeen[`${ch[i][0]}/${ch[i][1]}`] = true;
+          rowsToFill[ch[i][0]] = true;
         }
       }
     }
@@ -73,7 +74,7 @@ const hot: Handsontable.Core = new Handsontable(container, {
         for (let c = 0; c < columns; c++) {
           // if it is not provided by user in this change set, take the value from the template
           if (!rowColumnSeen[`${r}/${c}`]) {
-            changes.push([r, c, null, templateValues[c]]);
+            changes.push([Number(r), c, null, templateValues[c]]);
           }
         }
       }

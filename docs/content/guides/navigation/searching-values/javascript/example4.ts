@@ -26,7 +26,7 @@ function searchResultCounter(_instance, _row, _col, _value, result) {
 
 const container = document.querySelector('#example4')!;
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   // enable the `Search` plugin

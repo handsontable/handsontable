@@ -3,7 +3,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleExcludeRowsFromSorting')!;
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {
       brand: 'Brand',
@@ -180,7 +180,6 @@ const hot: Handsontable.Core = new Handsontable(container, {
     // after each sorting, take row 16 and change its index to 15
     hot.rowIndexMapper.moveIndexes(hot.toVisualRow(lastRowIndex), lastRowIndex);
   },
-  // TODO: fix type
   cells(row, col, prop) {
     const lastRowIndex = this.instance.countRows() - 1;
 
@@ -196,6 +195,10 @@ const hot: Handsontable.Core = new Handsontable(container, {
         type: 'numeric',
         className: 'htCenter',
       };
+    }
+
+    return {
+      type: 'text'
     }
   },
   columnSummary: [

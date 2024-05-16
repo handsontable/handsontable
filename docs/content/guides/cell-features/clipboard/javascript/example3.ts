@@ -3,7 +3,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example3')!;
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   data: [
@@ -20,22 +20,22 @@ const hot: Handsontable.Core = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-const copyBtn = document.querySelector('#copy');
+const copyBtn = document.querySelector('#copy')!;
 
-copyBtn!.addEventListener('mousedown', () => {
+copyBtn.addEventListener('mousedown', () => {
   hot.selectCell(1, 1);
 });
 
-copyBtn!.addEventListener('click', () => {
+copyBtn.addEventListener('click', () => {
   document.execCommand('copy');
 });
 
-const cutBtn = document.querySelector('#cut');
+const cutBtn = document.querySelector('#cut')!;
 
-cutBtn!.addEventListener('mousedown', () => {
+cutBtn.addEventListener('mousedown', () => {
   hot.selectCell(1, 1);
 });
 
-cutBtn!.addEventListener('click', () => {
+cutBtn.addEventListener('click', () => {
   document.execCommand('cut');
 });
