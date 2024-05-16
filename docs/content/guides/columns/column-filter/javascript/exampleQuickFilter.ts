@@ -3,7 +3,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 import {Filters} from 'handsontable/plugins'
 
 const container = document.querySelector('#exampleQuickFilter')!;
-const filterField = document.querySelector('#filterField');
+const filterField = document.querySelector('#filterField')!;
 
 const hot = new Handsontable(container, {
   data: [
@@ -100,7 +100,7 @@ const hot = new Handsontable(container, {
 // add a filter input listener
 filterField.addEventListener('keyup', (event) => {
   const filters: Filters = hot.getPlugin('filters');
-  const columnSelector = document.getElementById('columns');
+  const columnSelector = document.getElementById('columns')!;
   const columnValue = columnSelector.value;
 
   filters.removeConditions(columnValue);

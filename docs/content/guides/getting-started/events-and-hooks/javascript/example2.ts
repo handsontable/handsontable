@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-let lastChange = null;
+let lastChange: (Handsontable.CellChange | null)[] | null = null;
 const container = document.querySelector('#example2')!;
 const hot = new Handsontable(container, {
   data: [
@@ -14,7 +14,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   height: 'auto',
   minSpareRows: 1,
-  beforeChange(changes, source) {
+  beforeChange(changes) {
     lastChange = changes;
   },
   autoWrapRow: true,
@@ -24,7 +24,7 @@ const hot = new Handsontable(container, {
 
 hot.updateSettings({
   beforeKeyDown(e) {
-    const selection = hot.getSelected()[0];
+    const selection = hot.getSelected()![0]!;
 
     console.log(selection);
 
@@ -38,7 +38,7 @@ hot.updateSettings({
     // ENTER
     else if (e.keyCode === 13) {
       // if last change affected a single cell and did not change it's values
-      if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) {
+      if (lastChange && lastChange.length === 1 && lastChange[0]![2] == lastChange[0]![3]) {
         e.stopImmediatePropagation();
         hot.spliceCol(selection[1], selection[0], 0, '');
         // add new cell
