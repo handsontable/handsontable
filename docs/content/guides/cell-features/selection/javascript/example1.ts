@@ -32,9 +32,7 @@ const selectOption = document.querySelector('#selectOption')!;
 
 selectOption.addEventListener('change', (event: Event) => {
   const value = (event.target as HTMLSelectElement).value;
-  const first = value.split(' ')[0].toLowerCase() as Handsontable.GridSettings['selectionMode'];
+  const first = value.split(' ')[0]!.toLowerCase();
 
-  hot.updateSettings({
-    selectionMode: first
-  });
+  hot.updateSettings({ selectionMode: first } as Handsontable.GridSettings);
 });
