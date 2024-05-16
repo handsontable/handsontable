@@ -45,7 +45,7 @@ new Handsontable(container, {
   data,
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',
-  afterSelection(row, col, row2, col2) {
+  afterSelection(_row, _col, row2, col2) {
     const meta = this.getCellMeta(row2, col2);
 
     if (meta.readOnly) {
