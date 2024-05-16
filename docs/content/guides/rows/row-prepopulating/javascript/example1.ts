@@ -45,11 +45,7 @@ const hot = new Handsontable(container, {
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   cells() {
-    const cellProperties: Partial<Handsontable.CellProperties> = {};
-
-    cellProperties.renderer = defaultValueRenderer;
-
-    return cellProperties;
+    return { renderer: defaultValueRenderer };
   },
   beforeChange(changes) {
     const instance = hot;

@@ -20,8 +20,8 @@ const hot = new Handsontable(container, {
   // apply only to each cell of rows 1 and 4, as specified in the function's body
   cells(row) {
     return (row === 1 || row === 4)
-      ? { readOnly: true } as Handsontable.CellMeta
-      : {} as Handsontable.CellMeta;
+      ? { readOnly: true }
+      : {};
   },
   autoWrapRow: true,
   autoWrapCol: true,

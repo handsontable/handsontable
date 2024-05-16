@@ -19,15 +19,8 @@ const hot = new Handsontable(container, {
 
 hot.updateSettings({
   cells(row, _col, prop) {
-    const cellProperties = {};
-
-    if (hot.getDataAtRowProp(row, prop as string) === 'Nissan') {
-      (cellProperties as Handsontable.CellProperties).editor = false;
-
-    } else {
-      (cellProperties as Handsontable.CellProperties).editor = 'text';
-    }
-
-    return cellProperties;
+    return (hot.getDataAtRowProp(row, prop as string) === 'Nissan')
+      ? { editor: false }
+      : { editor: 'text' };
   }
 });
