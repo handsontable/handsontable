@@ -258,7 +258,9 @@ describe('CopyPaste', () => {
         outsideClickDeselects: false,
       });
 
-      const testElement = spec().$container.wrap('<div id="testElement">Test</div>');
+      const testElement = $('<div id="testElement">Test</div>');
+
+      spec().$container.after(testElement);
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
