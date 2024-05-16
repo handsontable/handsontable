@@ -19,11 +19,9 @@ const hot: Handsontable.Core = new Handsontable(container, {
   // the `cells` options overwrite all other options
   // apply only to each cell of rows 1 and 4, as specified in the function's body
   cells(row) {
-    if (row === 1 || row === 4) {
-      return {
-        readOnly: true,
-      };
-    }
+    return (row === 1 || row === 4)
+      ? { readOnly: true } as Handsontable.CellMeta
+      : {} as Handsontable.CellMeta;
   },
   autoWrapRow: true,
   autoWrapCol: true,

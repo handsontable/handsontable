@@ -1,6 +1,13 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
+interface Person {
+  id: number | undefined;
+  name: string | undefined;
+  address: string | undefined;
+  attr: (attr: string, val?: Handsontable.CellValue) => keyof Person | Person;
+}
+
 const container = document.querySelector('#example7')!;
 new Handsontable(container, {
   data: [
@@ -25,21 +32,22 @@ new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-function model(opts) {
-  const _pub = {
+function model(person: Partial<Person>) {
+  const _pub: Person = {
     id: undefined,
     name: undefined,
-    address: undefined
+    address: undefined,
+    attr: () => _pub
   };
-  const _priv = {};
+  const _priv: Partial<Person> = {};
 
-  for (const i in opts) {
-    if (opts.hasOwnProperty(i)) {
-      _priv[i] = opts[i];
+  for (const prop in person) {
+    if (person.hasOwnProperty(prop)) {
+      _priv[prop] = person[prop];
     }
   }
 
-  _pub.attr = function(attr, val) {
+  _pub.attr = (attr, val) => {
     if (typeof val === 'undefined') {
       window.console && console.log('GET the', attr, 'value of', _pub);
 
@@ -55,8 +63,6 @@ function model(opts) {
   return _pub;
 }
 
-function property(attr) {
-  return function(row, value) {
-    return row.attr(attr, value);
-  };
+function property(attr: string) {
+  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) => (row as Person).attr(attr, value);
 }

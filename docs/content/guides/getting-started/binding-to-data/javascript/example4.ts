@@ -21,7 +21,7 @@ new Handsontable(container, {
   height: 'auto',
   width: 'auto',
   columns(column) {
-    let columnMeta = {};
+    let columnMeta: Handsontable.ColumnSettings = {};
 
     if (column === 0) {
       columnMeta.data = 'id';
@@ -32,7 +32,7 @@ new Handsontable(container, {
     } else if (column === 3) {
       columnMeta.data = 'address';
     } else {
-      columnMeta = null;
+      columnMeta = null as unknown as Handsontable.ColumnSettings;
     }
 
     return columnMeta;
