@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-import { Search } from 'handsontable/plugins'
+import { Search } from 'handsontable/plugins';
 
 let searchResultCount = 0;
 
@@ -12,12 +12,12 @@ const data: (string | number)[][] = [
 ];
 
 // define your custom callback function
-function searchResultCounter(_instance, _row, _col, _value, result) {
+function searchResultCounter(instance: Handsontable.Core, row: number, column: number, value: Handsontable.CellValue, result: boolean): void {
   const DEFAULT_CALLBACK = function(instance, row, col, _data, testResult) {
     instance.getCellMeta(row, col).isSearchResult = testResult;
   };
 
-  DEFAULT_CALLBACK.apply(this, arguments);
+  DEFAULT_CALLBACK.apply(this, [instance, row, column, value, result]);
 
   if (result) {
     searchResultCount++;
