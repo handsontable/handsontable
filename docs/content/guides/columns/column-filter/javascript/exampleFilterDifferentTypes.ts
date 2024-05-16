@@ -1,9 +1,9 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#exampleFilterDifferentTypes');
-const handsontableInstance: Handsontable.Core =   data: [
-    {
+const container = document.querySelector('#exampleFilterDifferentTypes')!;
+new Handsontable(container, {
+  data: [    {
       model: 'Racing Socks',
       size: 'S',
       price: 30,
