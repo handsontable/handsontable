@@ -9,6 +9,7 @@ react:
   id: rw3lzobe
   metaTitle: Custom context menu - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Custom context menu example in Vue 3
@@ -34,14 +35,22 @@ The following example implements the `@handsontable/vue3` component, adding a cu
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Adding comments via the context menu](@/guides/cell-features/comments/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack/icon-pack.md)
 
+</div>
+
 ### Related blog articles
 
+<div class="boxes-list">
+
 - [Customize Handsontable context menu](https://handsontable.com/blog/customize-handsontable-context-menu)
+
+</div>
 
 ### Related API reference
 

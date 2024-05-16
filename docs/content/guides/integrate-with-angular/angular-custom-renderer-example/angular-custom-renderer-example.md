@@ -9,6 +9,7 @@ react:
   id: ntsul6e8
   metaTitle: Custom cell renderer - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Custom renderer in Angular
@@ -33,7 +34,11 @@ The following example is an implementation of `@handsontable/angular` with a cus
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
+
+</div>
 
 ### Related API reference
 

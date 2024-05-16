@@ -7,6 +7,7 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
 const { addCodeForPreset } = require('./add-code-for-preset');
+const { codesandbox } = require('./codesandbox');
 const { jsfiddle } = require('./jsfiddle');
 const { stackblitz } = require('./stackblitz');
 
@@ -46,34 +47,6 @@ const tab = (tabName, token, id) => {
       hidden: false,
     },
   ];
-};
-
-const getPreviewTab = (id, cssContent, htmlContent, code) => {
-  const renderElement = `$parent.$parent.isScriptLoaderActivated('${id}')`;
-
-  return {
-    type: 'html_block',
-    tag: '',
-    attrs: null,
-    map: [],
-    nesting: 0,
-    level: 1,
-    children: null,
-    content: `
-      <tab name="Preview" id="preview-tab-${id}">
-        <style v-pre>${cssContent}</style>
-        <template v-if="${renderElement}">
-          <div v-pre>${htmlContent}</div>
-        </template>
-        <ScriptLoader v-if="${renderElement}" code="${code}"></ScriptLoader>
-      </tab>
-    `,
-    markup: '',
-    info: '',
-    meta: null,
-    block: true,
-    hidden: false,
-  };
 };
 
 module.exports = function(docsVersion, base) {
@@ -156,7 +129,6 @@ module.exports = function(docsVersion, base) {
         });
 
         const newTokens = [
-          getPreviewTab(id, cssContent, htmlContentRoot, encodedCode),
           ...tab('Code', jsToken, id),
           ...tab('HTML', htmlToken, id),
           ...tab('CSS', cssToken, id),
@@ -164,25 +136,63 @@ module.exports = function(docsVersion, base) {
 
         tokens.splice(index + 1, 0, ...newTokens);
         const isAngular = /angular(-.*)?/.test(preset);
+        const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
+        const isReact = /react(-.*)?/.test(preset);
 
         const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
+        const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
+
         return `
+          <div class="example-container" >
+            <template v-if="${isActive}">
+              <style v-pre>${cssContent}</style>
+              <div v-pre>${htmlContentRoot}</div>
+              <ScriptLoader code="${encodedCode}"></ScriptLoader>
+            </template>
+          </div>
           <div class="tabs-button-wrapper">
-            <div class="tabs-button-list">
-              ${Boolean(!noEdit) && stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset)}
-              ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
+            <div class="tabs-button-list" ${isRTL ? 'div="rtl"' : ''}>
+              <button class="show-code" @click="$parent.$parent.showCodeButton($event)">
+                <i class="ico i-code"></i>Source code
+              </button>
+              <div class="example-controls">
+                ${Boolean(!noEdit) && stackblitz(
+    id,
+    htmlContent,
+    codeToCompileSandbox,
+    cssContent,
+    docsVersion,
+    preset
+  )}
+  ${!noEdit && !isReact
+    ? codesandbox(
+      id,
+      htmlContent,
+      codeToCompileSandbox,
+      cssContent,
+      docsVersion,
+      preset
+    ) : ''}
+                ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
+                <button
+                  aria-label="Reset the demo"
+                  @click="$parent.$parent.resetDemo('${id}')"
+                  :disabled="$parent.$parent.isButtonInactive"
+                >
+                  <i class="ico i-refresh"></i>
+                </button>
+              </div>
             </div>
-            <tabs
-              :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
-              :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
-              cache-lifetime="0"
-              @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
-            >
+            <div class="example-container-code">
+              <tabs
+                :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
+                cache-lifetime="0"
+              >
           `;
       } else {
         // close preview
-        return '</tabs></div>';
+        return '</tabs></div></div>';
       }
     },
   };

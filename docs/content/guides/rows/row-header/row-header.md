@@ -13,6 +13,7 @@ react:
   id: prlcpqk8
   metaTitle: Row headers - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Row headers
@@ -67,7 +68,11 @@ A tree grid enables you to represent the nested data structures within the data 
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Row parent-child](@/guides/rows/row-parent-child/row-parent-child.md)
+
+</div>
 
 ### Related API reference
 

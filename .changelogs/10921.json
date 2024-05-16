@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Prevented the react wrapper from throwing errors on updating component props when the component had any init-only settings pre-declared.",
+  "type": "fixed",
+  "issueOrPR": 10921,
+  "breaking": false,
+  "framework": "react"
+}

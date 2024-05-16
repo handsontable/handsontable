@@ -73,6 +73,7 @@ const ExampleComponent = () => {
 
         return endpoints;
       }}
+      height="auto"
     />
   );
 };

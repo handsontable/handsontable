@@ -1,6 +1,5 @@
 import { addClass, getScrollbarWidth } from '../../../helpers/dom/element';
 import { clone, extend } from '../../../helpers/object';
-import { arrayFilter, arrayMap, arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { partial } from '../../../helpers/function';
 import { dataRowToChangesArray } from '../../../helpers/data';
@@ -231,11 +230,19 @@ export class MultipleSelectUI extends BaseUI {
         beforeOnCellMouseUp: () => {
           this.#itemsBox.listen();
         },
+        modifyColWidth: (width) => {
+          const minWidth = this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument);
+
+          if (width !== undefined && width < minWidth) {
+            return minWidth;
+          }
+
+          return width;
+        },
+        hiddenRows: true,
         maxCols: 1,
         autoWrapCol: true,
         height: 110,
-        // Workaround for #151.
-        colWidths: () => this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument),
         copyPaste: false,
         disableVisualSelection: 'area',
         fillHandle: false,
@@ -329,16 +336,19 @@ export class MultipleSelectUI extends BaseUI {
    */
   #onInput(event) {
     const value = event.target.value.toLocaleLowerCase(this.getLocale());
-    let filteredItems;
+    const hiddenRows = this.#itemsBox.getPlugin('hiddenRows');
 
-    if (value === '') {
-      filteredItems = [...this.#items];
-    } else {
-      filteredItems = arrayFilter(this.#items,
-        item => (`${item.value}`).toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0);
-    }
+    hiddenRows.showRows(hiddenRows.getHiddenRows());
+    this.#items.forEach((item, index) => {
+      item.checked = `${item.value}`.toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0;
 
-    this.#itemsBox.loadData(filteredItems);
+      if (!item.checked) {
+        hiddenRows.hideRow(index);
+      }
+    });
+
+    this.#itemsBox.view.adjustElementsSize();
+    this.#itemsBox.render();
   }
 
   /**
@@ -368,7 +378,8 @@ export class MultipleSelectUI extends BaseUI {
     const changes = [];
 
     event.preventDefault();
-    arrayEach(this.#itemsBox.getSourceData(), (row, rowIndex) => {
+
+    this.#itemsBox.getSourceData().forEach((row, rowIndex) => {
       row.checked = true;
 
       changes.push(dataRowToChangesArray(row, rowIndex)[0]);
@@ -386,7 +397,7 @@ export class MultipleSelectUI extends BaseUI {
     const changes = [];
 
     event.preventDefault();
-    arrayEach(this.#itemsBox.getSourceData(), (row, rowIndex) => {
+    this.#itemsBox.getSourceData().forEach((row, rowIndex) => {
       row.checked = false;
 
       changes.push(dataRowToChangesArray(row, rowIndex)[0]);
@@ -408,7 +419,7 @@ export default MultipleSelectUI;
 function valueToItems(availableItems, selectedValue) {
   const arrayAssertion = createArrayAssertion(selectedValue);
 
-  return arrayMap(availableItems, (item) => {
+  return availableItems.map((item) => {
     item.checked = arrayAssertion(item.value);
 
     return item;
@@ -424,7 +435,7 @@ function valueToItems(availableItems, selectedValue) {
 function itemsToValue(availableItems) {
   const items = [];
 
-  arrayEach(availableItems, (item) => {
+  availableItems.forEach((item) => {
     if (item.checked) {
       items.push(item.value);
     }

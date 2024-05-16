@@ -9,6 +9,7 @@ react:
   id: g5mksyu1
   metaTitle: Row moving - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Row moving

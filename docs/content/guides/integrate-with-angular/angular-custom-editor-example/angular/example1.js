@@ -26,6 +26,7 @@ export class AppComponent {
     colWidths: 200,
     autoWrapRow: true,
     autoWrapCol: true,
+    height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
 }

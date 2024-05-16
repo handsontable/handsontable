@@ -9,7 +9,7 @@ const babelPresetConfig = () => ({
   debug: false,
   useBuiltIns: 'usage',
   corejs: {
-    version: '3.31'
+    version: '3.37'
   }
 });
 

@@ -68,6 +68,7 @@ const ExampleComponent = () => {
           }
         }
       ]}
+      height="auto"
     />
   );
 };

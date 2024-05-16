@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem where the autocomplete dropdown was not displayed with the right dimensions after previously filtering out all the choices.",
+  "type": "fixed",
+  "issueOrPR": 10977,
+  "breaking": false,
+  "framework": "none"
+}

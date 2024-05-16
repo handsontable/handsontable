@@ -9,6 +9,7 @@ react:
   id: e6zmmawj
   metaTitle: Numeric cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Numeric cell type
@@ -150,8 +151,9 @@ you edit a numeric cell:
 ## Related articles
 
 ### Related guides
-
+<div class="boxes-list gray">
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
+</div>
 
 ### Related API reference
 

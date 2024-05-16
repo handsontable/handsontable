@@ -22,6 +22,9 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div className="controls">
+        <button onClick={selectCell}>Select cell B2</button>
+      </div>
       <HotTable
         ref={hotTableComponentRef}
         data={data}
@@ -31,9 +34,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button onClick={selectCell}>Select cell B2</button>
-      </div>
     </>
   );
 }

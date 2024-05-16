@@ -52,10 +52,8 @@ const ExampleComponentContent = () => {
             {...hotSettings}
           />
         </div>
-
-        <div id="redux-preview" className="table-container">
-          <h3>Redux store dump</h3>
-
+        <h3>Redux store dump</h3>
+        <pre id="redux-preview" className="table-container">
           {isHotData && (
             <div>
               <strong>data:</strong>
@@ -81,7 +79,7 @@ const ExampleComponentContent = () => {
               ))}
             </tbody>
           </table>
-        </div>
+        </pre>
 
       </div>
     </div>
