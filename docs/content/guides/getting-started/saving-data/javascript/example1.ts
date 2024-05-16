@@ -2,10 +2,10 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example1')!;
-const exampleConsole = document.querySelector('#output');
-const autosave = document.querySelector('#autosave');
-const load = document.querySelector('#load');
-const save = document.querySelector('#save');
+const exampleConsole = document.querySelector('#output') as HTMLElement;
+const autosave = document.querySelector('#autosave') as HTMLInputElement;
+const load = document.querySelector('#load')!;
+const save = document.querySelector('#save')!;
 
 const hot = new Handsontable(container, {
   startRows: 8,
@@ -17,6 +17,10 @@ const hot = new Handsontable(container, {
   afterChange(change, source) {
     if (source === 'loadData') {
       return; // don't save this change
+    }
+
+    if (!change) {
+      return;
     }
 
     if (!autosave.checked) {
@@ -31,7 +35,7 @@ const hot = new Handsontable(container, {
       },
       body: JSON.stringify({ data: change })
     })
-      .then((response) => {
+      .then(() => {
         exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
         console.log('The POST request is only used here for the demo purposes');
       });
@@ -60,7 +64,7 @@ save.addEventListener('click', () => {
     },
     body: JSON.stringify({ data: hot.getData() })
   })
-    .then((response) => {
+    .then(() => {
       exampleConsole.innerText = 'Data saved';
       console.log('The POST request is only used here for the demo purposes');
     });

@@ -101,9 +101,9 @@ new Handsontable(example1, config);
 
 document.querySelector('#check_select_all')!.addEventListener('click', function() {
   const state = this.checked;
-  const inputs = document.querySelectorAll('#hooksList input[type=checkbox]');
+  const inputs = document.querySelectorAll('#hooksList input[type=checkbox]') as NodeListOf<HTMLInputElement>
 
-  Array.prototype.forEach.call(inputs, (input) => {
+  Array.prototype.forEach.call(inputs, (input: HTMLInputElement) => {
     input.checked = state;
   });
 });
