@@ -30,13 +30,13 @@ const data: Book[] = [
   }
 ];
 
-const safeHtmlRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+const safeHtmlRenderer: BaseRenderer = (_instance, td, _row, _col, _prop, value) => {
   // WARNING: Be sure you only allow certain HTML tags to avoid XSS threats.
   // Sanitize the "value" before passing it to the innerHTML property.
   td.innerHTML = value;
 };
 
-const coverRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+const coverRenderer: BaseRenderer = (_instance, td, _row, _col, _prop, value) => {
   const img = document.createElement('img');
 
   img.src = value;
