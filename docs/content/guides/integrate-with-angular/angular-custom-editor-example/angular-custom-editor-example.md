@@ -9,6 +9,7 @@ react:
   id: q5mi9bqw
   metaTitle: Custom cell editor - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Custom editor example in Angular
@@ -33,7 +34,11 @@ The following is an implementation of the `@handsontable/angular` component with
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
+
+</div>
 
 ### Related API reference
 

@@ -9,6 +9,7 @@ react:
   id: 5sootj6b
   metaTitle: Setting up a translation - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Setting up a translation in Vue 3
@@ -35,9 +36,13 @@ The following example shows a Handsontable instance with translations set up in 
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Language](@/guides/internationalization/language/language.md)
 - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
 - [Locale](@/guides/internationalization/locale/locale.md)
+
+</div>
 
 ### Related API reference
 

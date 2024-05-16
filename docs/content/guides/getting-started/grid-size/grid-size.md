@@ -14,6 +14,7 @@ react:
   id: cifepxzs
   metaTitle: Grid size - React Data Grid | Handsontable
 searchCategory: Guides
+category: Getting started
 ---
 
 # Grid size
@@ -167,8 +168,12 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 
 ## Related articles
 
+<div class="boxes-list gray">
+
 - [Column widths](@/guides/columns/column-width/column-width.md)
 - [Row heights](@/guides/rows/row-height/row-height.md)
+
+</div>
 
 **Related API reference**
 

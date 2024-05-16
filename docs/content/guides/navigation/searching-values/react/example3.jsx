@@ -38,8 +38,10 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="controls">
-        <input id="search_field3" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
+      <div class="example-controls-container">
+        <div className="controls">
+          <input id="search_field3" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
+        </div>
       </div>
       <HotTable
         ref={hotRef}

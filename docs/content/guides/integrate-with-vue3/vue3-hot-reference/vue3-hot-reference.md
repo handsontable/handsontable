@@ -9,6 +9,7 @@ react:
   id: h1s6hk2m
   metaTitle: Referencing Handsontable - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Referencing the Handsontable instance in Vue 3

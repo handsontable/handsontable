@@ -7,6 +7,9 @@
     <div class="nav-item">
       <NavLink :item="apiLink"/>
     </div>
+    <div class="nav-item roadmap">
+      <NavLink :item="roadmapLink"/>
+    </div>
   </nav>
 </template>
 
@@ -26,15 +29,22 @@ export default {
     guideLink() {
       return {
         link: `${this.frameworkUrlPrefix}/`,
-        text: 'Guides'
+        text: 'Docs'
       };
     },
     apiLink() {
       return {
         link: `${this.frameworkUrlPrefix}/api/`,
-        text: 'API reference'
+        text: 'API'
       };
-    }
+    },
+    roadmapLink() {
+      return {
+        link: `${this.frameworkUrlPrefix}/roadmap/`,
+        text: 'Roadmap'
+      };
+    },
   }
 };
+
 </script>

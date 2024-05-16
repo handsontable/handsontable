@@ -9,6 +9,7 @@ react:
   id: h8zg4ign
   metaTitle: Security - React Data Grid | Handsontable
 searchCategory: Guides
+category: Security
 ---
 
 # Security

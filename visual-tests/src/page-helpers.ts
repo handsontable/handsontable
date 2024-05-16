@@ -160,8 +160,10 @@ export async function clickWithPosition(cell: Locator) {
 /**
  * @param {Locator} cell Cell locator.
  */
-export async function clickCell(cell: Locator) {
-  await cell.click();
+export async function clickCell(cell:Locator) {
+
+  await cell
+    .click();
 }
 
 /**

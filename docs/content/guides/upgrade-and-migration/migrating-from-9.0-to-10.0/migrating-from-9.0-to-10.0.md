@@ -10,6 +10,7 @@ react:
   id: oh5ffbjc
   metaTitle: Migrate from 9.0 to 10.0 - React Data Grid | Handsontable
 searchCategory: Guides
+category: Upgrade and migration
 ---
 
 # Migrate from 9.0 to 10.0

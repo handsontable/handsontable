@@ -37,7 +37,7 @@ const stackblitz = (id, html, js, css, docsVersion, preset) => {
     <input type="hidden" name="project[template]" value="${getTemplate()}"/>
     
     <div class="js-stackblitz-link">
-      <button type="submit" aria-label="Edit stackblitz">
+      <button type="submit" aria-label="Edit in StackBlitz">
         <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"
         width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound">
           <path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"/>

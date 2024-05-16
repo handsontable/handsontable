@@ -13,6 +13,7 @@ react:
   id: mlctr1ri
   metaTitle: Clipboard - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Clipboard

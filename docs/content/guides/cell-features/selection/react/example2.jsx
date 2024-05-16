@@ -35,6 +35,17 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div class="example-controls-container">
+        <div className="controls">
+          <button
+            id="getButton"
+            onClick={(...args) => getButtonClickCallback(...args)}
+          >
+            Get data
+          </button>
+        </div>
+        <output className="console" id="output">{output}</output>
+      </div>
       <HotTable
         ref={hotRef}
         data={[
@@ -60,15 +71,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <output className="console" id="output">{output}</output>
-      <div className="controls">
-        <button
-          id="getButton"
-          onClick={(...args) => getButtonClickCallback(...args)}
-        >
-          Get data
-        </button>
-      </div>
     </>
   );
 };
