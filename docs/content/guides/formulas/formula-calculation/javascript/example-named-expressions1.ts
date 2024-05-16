@@ -32,9 +32,9 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const input = document.getElementById('named-expressions-input');
+const input = document.getElementById('named-expressions-input')!;
 const formulasPlugin: Formulas = hot.getPlugin('formulas');
-const button = document.getElementById('named-expressions-button');
+const button = document.getElementById('named-expressions-button')!;
 
 button!.addEventListener('click', () => {
   formulasPlugin.engine?.changeNamedExpression('ADDITIONAL_COST', (input as HTMLInputElement).value);
