@@ -3,7 +3,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 import {Filters} from 'handsontable/plugins'
 
 const container = document.querySelector('#exampleFilterThroughAPI1')!;
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',

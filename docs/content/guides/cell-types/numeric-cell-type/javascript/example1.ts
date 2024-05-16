@@ -3,7 +3,6 @@ import numbro from 'numbro';
 import deDE from 'numbro/languages/de-DE';
 import 'handsontable/dist/handsontable.full.min.css';
 
-//TODO: fix type
 // register the languages you need
 numbro.registerLanguage(deDE);
 

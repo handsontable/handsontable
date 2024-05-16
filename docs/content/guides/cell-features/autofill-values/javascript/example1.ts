@@ -12,7 +12,7 @@ const data: (string | number)[][] = [
 
 const container = document.querySelector('#example1')!;
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   fillHandle: true, // possible values: true, false, "horizontal", "vertical",
