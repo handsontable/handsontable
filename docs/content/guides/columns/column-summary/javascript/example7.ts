@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import {DetailedSettings} from 'handsontable/plugins/columnSummary'
 
 // generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
@@ -27,14 +28,14 @@ new Handsontable(container, {
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   // set the `columnSummary` configuration option to a function
   columnSummary() {
-    const configArray = [];
-    const summaryTypes: string[] = ['sum', 'min', 'max', 'count', 'average'];
+    const configArray: DetailedSettings[] = [];
+    const summaryTypes: ('sum' | 'min' | 'max' | 'count' | 'average')[] = ['sum', 'min', 'max', 'count', 'average'];
 
     for (let i = 0; i < this.hot.countCols(); i++) { // iterate over visible columns
       // for each visible column, add a column summary with a configuration
       configArray.push({
         sourceColumn: i,
-        type: summaryTypes[i],
+        type: summaryTypes[i]!,
         // count row coordinates backward
         reversedRowCoords: true,
         // display the column summary in the bottom row (because of the reversed row coordinates)

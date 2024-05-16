@@ -174,7 +174,7 @@ new Handsontable(container, {
   dropdownMenu: true,
   afterFilter() {
     const filtersPlugin: Filters = (this as Handsontable).getPlugin('filters');
-    const filtersRowsMap = filtersPlugin.filtersRowsMap;
+    const filtersRowsMap = filtersPlugin['filtersRowsMap'];
 
     filtersRowsMap.setValueAtIndex(0, false);
     filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);

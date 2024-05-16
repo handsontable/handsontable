@@ -3,10 +3,10 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 // generate an array of arrays with dummy data
 const data: string[][] = new Array(1000) // number of rows
-  .fill()
+  .fill(null)
   .map((_, row) =>
     new Array(1000) // number of columns
-      .fill()
+      .fill(null)
       .map((_, column) => `${row}, ${column}`)
   );
 

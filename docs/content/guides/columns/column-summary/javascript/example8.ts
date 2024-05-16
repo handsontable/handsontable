@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 import {NestedRows} from 'handsontable/plugins'
+import {DetailedSettings} from 'handsontable/plugins/columnSummary'
 
 const container = document.querySelector('#example8')!;
 new Handsontable(container, {
@@ -29,40 +30,42 @@ new Handsontable(container, {
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   columnSummary() {
-    const endpoints = [];
+    const endpoints: DetailedSettings[] = [];
     const nestedRowsPlugin: NestedRows = this.hot.getPlugin('nestedRows');
-    const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(nestedRowsPlugin.dataManager);
+    const getRowIndex = nestedRowsPlugin['dataManager']!.getRowIndex.bind(nestedRowsPlugin['dataManager']);
     const resultColumn = 0;
 
-    let tempEndpoint = null;
-    let nestedRowsCache = null;
+    let nestedRowsCache: any = null;
 
     if (nestedRowsPlugin.isEnabled()) {
-      nestedRowsCache = nestedRowsPlugin.dataManager.cache;
+      nestedRowsCache = nestedRowsPlugin['dataManager']!.cache;
     } else {
-      return;
+      return [];
+    }
+
+    if (!nestedRowsCache) {
+      return [];
     }
 
     for (let i = 0; i < nestedRowsCache.levels[0].length; i++) {
-      tempEndpoint = {};
-
       if (!nestedRowsCache.levels[0][i].__children || nestedRowsCache.levels[0][i].__children.length === 0) {
         continue;
       }
 
-      tempEndpoint.destinationColumn = resultColumn;
-      tempEndpoint.destinationRow = getRowIndex(nestedRowsCache.levels[0][i]);
-      tempEndpoint.type = 'sum';
-      tempEndpoint.forceNumeric = true;
-      tempEndpoint.ranges = [];
+      const tempEndpoint: DetailedSettings = {
+        destinationColumn: resultColumn,
+        destinationRow: getRowIndex(nestedRowsCache.levels[0][i]),
+        type: 'sum',
+        forceNumeric: true,
+        ranges: [],
+      };
 
-      tempEndpoint.ranges.push([
+      tempEndpoint.ranges!.push([
         getRowIndex(nestedRowsCache.levels[0][i].__children[0]),
         getRowIndex(nestedRowsCache.levels[0][i].__children[nestedRowsCache.levels[0][i].__children.length - 1])
       ]);
 
       endpoints.push(tempEndpoint);
-      tempEndpoint = null;
     }
 
     return endpoints;

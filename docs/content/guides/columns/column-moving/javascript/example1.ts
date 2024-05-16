@@ -3,9 +3,9 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 // generate an array of arrays with dummy data
 const data: string[][] = new Array(200) // number of rows
-  .fill()
+  .fill(null)
   .map((_, row) => new Array(20) // number of columns
-    .fill()
+    .fill(null)
     .map((_, column) => `${row}, ${column}`)
   );
 
