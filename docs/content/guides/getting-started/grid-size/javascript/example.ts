@@ -3,7 +3,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const triggerBtn = document.querySelector('#triggerBtn')!;
 const example = document.querySelector('#example')!;
-const exampleParent = document.querySelector('#exampleParent')!;
+const exampleParent = document.querySelector('#exampleParent') as HTMLElement;
 
 // generate an array of arrays with dummy data
 const data: string[][] = new Array(100) // number of rows
