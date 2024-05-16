@@ -281,6 +281,10 @@
         }
     }
 
+    table {
+        text-size-adjust: none;
+    }
+
     table.htCore {
         display: table
     }
@@ -375,11 +379,16 @@
     @media (max-width: $large) {
         margin: 80px 32px 0
 
+
         table:not(.htCore) { 
             display: block
             overflow-x: auto
+
+            td { 
+                font-size: 16px;
+                white-space: nowrap;
+            }
         }
-        
         .theme-default-content {
 
             h1 { 
