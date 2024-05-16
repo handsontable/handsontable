@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { arAR } from 'handsontable/i18n';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // constants.js
@@ -1220,7 +1221,7 @@ const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
 const randomPhrase = () =>
   `${randomCountry()} ${randomName()} ${randomNumber()}`;
 const randomOrderId = () =>
-  `${randomNumber(100000, 999999).toString().match(/.{1,3}/g).join('-')}`;
+  `${randomNumber(100000, 999999).toString().match(/.{1,3}/g)!.join('-')}`;
 
 function generateArabicData() {
   return Array.from({ length: 50 }, () => [
@@ -1254,7 +1255,7 @@ const headerAlignments = new Map([
   ['12', 'htCenter']
 ]);
 
-export function addClassesToRows(TD, row, column, prop, value, cellProperties) {
+export function addClassesToRows(TD: HTMLTableCellElement, row: number, column: number, _prop: string | number, _value: Handsontable.CellValue, cellProperties: Handsontable.CellProperties): void {
   // Adding classes to `TR` just while rendering first visible `TD` element
   if (column !== 0) {
     return;
@@ -1281,24 +1282,24 @@ export function addClassesToRows(TD, row, column, prop, value, cellProperties) {
   }
 }
 
-export function alignHeaders(column, TH) {
+export function alignHeaders(column: number, TH: HTMLTableHeaderCellElement): void {
   if (column < 0) {
     return;
   }
 
-  const alignmentClass = this.isRtl() ? 'htRight' : 'htLeft';
+  const alignmentClass = (this as Handsontable).isRtl() ? 'htRight' : 'htLeft';
 
   if (TH.firstChild) {
     if (headerAlignments.has(column.toString())) {
-      Handsontable.dom.removeClass(TH.firstChild, alignmentClass);
-      Handsontable.dom.addClass(TH.firstChild, headerAlignments.get(column.toString()));
+      Handsontable.dom.removeClass(TH.firstChild as HTMLElement, alignmentClass);
+      Handsontable.dom.addClass(TH.firstChild as HTMLElement, headerAlignments.get(column.toString())!);
     } else {
-      Handsontable.dom.addClass(TH.firstChild, alignmentClass);
+      Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
     }
   }
 }
 
-const example = document.getElementById('example');
+const example = document.getElementById('example')!;
 
 new Handsontable(example, {
   data: generateExampleData(),
