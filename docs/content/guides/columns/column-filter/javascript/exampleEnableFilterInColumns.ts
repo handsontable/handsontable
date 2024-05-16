@@ -97,19 +97,19 @@ new Handsontable(container, {
       filter_by_value: {
         // hide the 'Filter by value' list from all columns but the first one
         hidden() {
-          return this.getSelectedRangeLast().to.col > 0;
+          return this.getSelectedRangeLast()!.to.col > 0;
         },
       },
       filter_action_bar: {
         // hide the 'OK' and 'Cancel' buttons from all columns but the first one
         hidden() {
-          return this.getSelectedRangeLast().to.col > 0;
+          return this.getSelectedRangeLast()!.to.col > 0;
         },
       },
       clear_column: {
         // hide the 'Clear column' menu item from the first column
         hidden() {
-          return this.getSelectedRangeLast().to.col < 1;
+          return this.getSelectedRangeLast()!.to.col < 1;
         },
       },
     },
@@ -125,7 +125,7 @@ new Handsontable(container, {
         return;
       }
 
-      button.parentElement.removeChild(button);
+      button.parentElement!.removeChild(button);
     }
   },
   height: 'auto',
@@ -133,4 +133,4 @@ new Handsontable(container, {
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
-});
+} as Handsontable.GridSettings);
