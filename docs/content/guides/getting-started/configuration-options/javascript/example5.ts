@@ -19,11 +19,9 @@ new Handsontable(container, {
   // the `cells` option overwrites the top-level grid options
   // apply only to cells selected by your custom logic
   cells(row, col) {
-    if ((row === 1 || row === 3) && col === 1) {
-      return {
-        readOnly: true,
-      };
-    }
+    return ((row === 1 || row === 3) && col === 1)
+      ? { readOnly: true }
+      : {};
   },
   autoWrapRow: true,
   autoWrapCol: true,

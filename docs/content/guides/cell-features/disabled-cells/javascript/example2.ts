@@ -19,12 +19,8 @@ const hot = new Handsontable(container, {
 
 hot.updateSettings({
   cells(row, col) {
-    const cellProperties = {};
-
-    if (hot.getData()[row][col] === 'Nissan') {
-      (cellProperties as Handsontable.CellProperties).readOnly = true;
-    }
-
-    return cellProperties;
+    return (hot.getData()[row][col] === 'Nissan')
+      ? { readOnly: true }
+      : {};
   }
 });
