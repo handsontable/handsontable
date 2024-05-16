@@ -33,15 +33,13 @@ const output = document.querySelector('#output')!;
 
 getButton.addEventListener('click', () => {
   const selected = hot.getSelected() || [];
-  let data: any[] = [];
+  let data: Handsontable.CellValue[] = [];
 
   if (selected.length === 1) {
-  	data = hot.getData(...selected[0]);
+  	data = hot.getData(...selected[0]!);
   } else {
     for (let i = 0; i < selected.length; i += 1) {
-      const item = selected[i];
-
-      data.push(hot.getData(...item));
+      data.push(hot.getData(...selected[i]!));
     }
   }
 

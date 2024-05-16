@@ -36,7 +36,7 @@ button.addEventListener('click', () => {
   hot.suspendRender();
 
   for (let index = 0; index < selected.length; index += 1) {
-    const [row1, column1, row2, column2] = selected[index];
+    const [row1, column1, row2, column2] = selected[index]!;
     const startRow = Math.max(Math.min(row1, row2), 0);
     const endRow = Math.max(row1, row2);
     const startCol = Math.max(Math.min(column1, column2), 0);
