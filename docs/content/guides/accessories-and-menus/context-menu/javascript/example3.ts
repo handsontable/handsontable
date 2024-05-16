@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import { DetailedSettings } from 'handsontable/plugins/contextMenu';
+import { DetailedSettings, MenuItemConfig } from 'handsontable/plugins/contextMenu';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const contextMenuSettings: DetailedSettings = {
@@ -17,7 +17,7 @@ const contextMenuSettings: DetailedSettings = {
     // A separator line can also be added like this:
     // 'sp1': { name: '---------' }
     // and the key has to be unique
-    sp1: '---------',
+    sp1: '---------' as MenuItemConfig,
     row_below: {
       name: 'Click to add row below' // Set custom text for predefined option
     },
@@ -29,7 +29,7 @@ const contextMenuSettings: DetailedSettings = {
         // Hide the option when the first column was clicked
         return this.getSelectedLast()?.[1] == 0; // `this` === hot
       },
-      callback(key, selection, clickEvent) { // Callback for specific option
+      callback() { // Callback for specific option
         setTimeout(() => {
           alert('Hello world!'); // Fire alert after menu close (with timeout)
         }, 0);
@@ -44,7 +44,7 @@ const contextMenuSettings: DetailedSettings = {
             // Key must be in the form 'parent_key:child_key'
             key: 'colors:red',
             name: 'Red',
-            callback(key, selection, clickEvent) {
+            callback() {
               setTimeout(() => {
                 alert('You clicked red!');
               }, 0);
@@ -57,7 +57,7 @@ const contextMenuSettings: DetailedSettings = {
     },
     credits: { // Own custom property
       // Custom rendered element in the context menu
-      renderer(hot, wrapper, row, col, prop, itemValue) {
+      renderer() {
         const elem = document.createElement('marquee');
 
         elem.style.cssText = 'background: lightgray;';
