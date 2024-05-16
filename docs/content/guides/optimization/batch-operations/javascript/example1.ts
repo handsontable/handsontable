@@ -29,7 +29,7 @@ const data3: (string | number)[] = [
   [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
 ];
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: data1,
   width: 'auto',
   height: 'auto',

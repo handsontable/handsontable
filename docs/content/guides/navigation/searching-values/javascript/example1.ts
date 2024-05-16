@@ -11,7 +11,7 @@ const data: (string | number)[][] = [
 
 const container = document.querySelector('#example1')!;
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   // enable the `Search` plugin

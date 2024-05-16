@@ -545,7 +545,7 @@ const hotOptions: Handsontable.GridSettings = {
 };
 
 // Initialize the Handsontable instance with the specified configuration options
-let hot: Handsontable.Core = new Handsontable(app, hotOptions);
+let hot = new Handsontable(app, hotOptions);
 
 // Helper function to set up checkbox event handling
 const setupCheckbox = (element, callback) =>
