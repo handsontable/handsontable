@@ -3,11 +3,6 @@
   padding: 0;
 }
 
-.selectColumn {
-  color: white;
-  mix-blend-mode: exclusion;
-}
-
 #filterField {
   margin: 20px 0px;
   padding: 2px 5px;

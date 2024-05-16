@@ -9,6 +9,7 @@ react:
   id: 5rt8dyg9
   metaTitle: Third-party licenses - React Data Grid | Handsontable
 searchCategory: Guides
+category: Technical specification
 ---
 
 # Third-party licenses
@@ -18,6 +19,8 @@ Learn about the licensing terms of Handsontable's software dependencies.
 [[toc]]
 
 ## Open-source software components
+
+<div class="boxes-list gray">
 
 - **numbro.js** (handles numeric data)<br>
     Author: Benjamin Van Ryseghem<br>
@@ -49,9 +52,13 @@ Learn about the licensing terms of Handsontable's software dependencies.
     License: Open source (Apache 2.0)<br>
     [https://github.com/cure53/DOMPurify](https://github.com/cure53/DOMPurify)
 
+</div>
+
 ### Dependencies of the [`Formulas`](@/api/formulas.md) plugin
 
 The dependencies below apply only if you use the [`Formulas`](@/api/formulas.md) [calculation plugin](@/guides/formulas/formula-calculation/formula-calculation.md):
+
+<div class="boxes-list gray">
 
 - **bessel**<br>
     Author: SheetJS<br>
@@ -82,3 +89,5 @@ The dependencies below apply only if you use the [`Formulas`](@/api/formulas.md)
     Author: Matsuza, Bjarke Walling<br>
     License: Open source (MIT)<br>
     [https://github.com/walling/unorm](https://github.com/walling/unorm)
+
+</div>

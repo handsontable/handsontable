@@ -9,6 +9,7 @@ react:
   id: psozke11
   metaTitle: Installation - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 2
 ---
 
 # Installation in Vue 2

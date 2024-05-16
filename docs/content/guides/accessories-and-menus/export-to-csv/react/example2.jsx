@@ -33,6 +33,9 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div className="controls">
+        <button id="export-blob" onClick={(...args) => buttonClickCallback(...args)}>Export as a Blob</button>
+      </div>
       <HotTable
         ref={hotRef}
         data={[
@@ -53,9 +56,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button id="export-blob" onClick={(...args) => buttonClickCallback(...args)}>Export as a Blob</button>
-      </div>
     </>
   );
 };

@@ -9,6 +9,7 @@ react:
   id: pulol8bw
   metaTitle: Modules - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Modules in Angular
@@ -105,5 +106,9 @@ export class AppModule { }
 
 ## Related guides
 
+<div class="boxes-list gray">
+
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
+
+</div>

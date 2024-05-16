@@ -48,6 +48,7 @@ const ExampleComponent = () => {
         { row: 1, col: 0, renderer: greenRenderer }
       ]}
       cells={cells}
+      height="auto"
     />
   );
 };

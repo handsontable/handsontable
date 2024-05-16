@@ -9,6 +9,7 @@ react:
   id: 959g5cbf
   metaTitle: Text alignment - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Text alignment

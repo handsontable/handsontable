@@ -18,6 +18,7 @@ react:
   id: vo8uukt2
   metaTitle: Row parent-child - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Row parent-child
@@ -126,7 +127,11 @@ When you use the parent-child row structure, the following Handsontable features
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Row header](@/guides/rows/row-header/row-header.md)
+
+</div>
 
 ### Related API reference
 

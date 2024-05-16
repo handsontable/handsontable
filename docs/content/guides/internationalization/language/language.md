@@ -15,6 +15,7 @@ react:
   id: qz0qgi9f
   metaTitle: Language - React Data Grid | Handsontable
 searchCategory: Guides
+category: Internationalization
 ---
 
 # Language
@@ -348,9 +349,13 @@ Contains: `Object`
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
 - [Locale](@/guides/internationalization/locale/locale.md)
 - [IME support](@/guides/internationalization/ime-support/ime-support.md)
+
+</div>
 
 ### Related API reference
 

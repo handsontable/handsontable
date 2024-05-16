@@ -9,6 +9,7 @@ react:
   id: vevcltww
   metaTitle: HotColumn component - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Using the `HotColumn` component in Vue 3
