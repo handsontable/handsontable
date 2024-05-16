@@ -11,7 +11,7 @@ const contextMenuSettings: DetailedSettings = {
     row_above: {
       disabled() { // `disabled` can be a boolean or a function
         // Disable option when first row was clicked
-        return this.getSelectedLast()[0] === 0; // `this` === hot
+        return this.getSelectedLast()?.[0] === 0; // `this` === hot
       }
     },
     // A separator line can also be added like this:

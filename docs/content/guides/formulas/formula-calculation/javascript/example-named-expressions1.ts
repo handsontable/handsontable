@@ -12,7 +12,7 @@ const data: (string | number)[][] = [
 
 const container = document.querySelector('#example-named-expressions1')!;
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   rowHeaders: true,

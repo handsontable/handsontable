@@ -16,7 +16,7 @@ const customRenderer: BaseRenderer = (instance, td, ...rest) => {
   }
 };
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   height: 'auto',
   columns: [
     {},

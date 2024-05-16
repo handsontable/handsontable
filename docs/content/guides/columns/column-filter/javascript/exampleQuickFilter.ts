@@ -5,7 +5,7 @@ import {Filters} from 'handsontable/plugins'
 const container = document.querySelector('#exampleQuickFilter')!;
 const filterField = document.querySelector('#filterField');
 
-const hot: Handsontable.Core = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
