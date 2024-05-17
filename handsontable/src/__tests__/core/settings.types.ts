@@ -14,6 +14,8 @@ enum SortDirection { asc = 'asc', desc = 'desc' }
 const contextMenuDemo: Handsontable.plugins.ContextMenu.Settings = {
   callback(key, selection, clickEvent) { },
   items: {
+    sep1: '---------',
+    row_above: 'row_above',
     item: {
       name() {
         return '';
