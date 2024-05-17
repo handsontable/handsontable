@@ -263,6 +263,35 @@ html.theme-dark {
                 }
             }   
         }
+
+        @media (max-width: $xLarge) {
+            .mobile-nav {
+                border-bottom: 1px solid $borderColor
+
+
+                .nav-frameworks {
+                    .nav-dropdown { 
+                        background: $sideColor
+                    }
+                }
+
+                /* active item */
+                .i-react + .nav-item .nav-dropdown .dropdown-item:nth-child(2) a,
+                .i-javascript + .nav-item .nav-dropdown .dropdown-item:nth-child(1) a  {
+                    background: $borderColor
+                }
+
+                .nav-links {
+                    a { 
+                        color: $text2Color
+
+                        &.active { 
+                            color: $textColor
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /* Navbar 
