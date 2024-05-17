@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.2.0
- * Release date: 06/03/2024 (built at 15/05/2024 08:52:40)
+ * Release date: 06/03/2024 (built at 16/05/2024 22:43:26)
  */
 @charset "UTF-8";
 .handsontable {
@@ -38,6 +38,9 @@
   --hot-header-active-background-color: var(--hot-border-color);
   --hot-link-accent-color: #104acc;
   --hot-invalid-background-color: #ffbeba;
+  --hot-mobile-focus-color: #5292f7;
+  --hot-column-resizer-color: #34a9db;
+  --hot-column-resizer-guide-color: #777777;
   --hot-link-color: var(--hot-link-accent-color);
   --hot-border-horizontal-size: 1px;
   --hot-border-vertical-size: 1px;
@@ -58,6 +61,9 @@
   --hot-col-width: 50px ;
 }
 
+/*
+	Walkontable Foundation
+*/
 .handsontable {
   position: relative;
   /* It removes double right border from first column header when row headers are disabled */
@@ -131,54 +137,51 @@
 .handsontable th, .handsontable td {
   border-top-width: 0;
   border-inline-start-width: 0;
-  border-inline-end: var(--hot-border-vertical-size) solid var(--hot-border-color);
-  border-bottom: var(--hot-border-horizontal-size) solid var(--hot-border-color);
+  border-inline-end-width: var(--hot-border-vertical-size);
+  border-bottom-width: var(--hot-border-horizontal-size);
+  border-style: solid;
   height: var(--hot-cell-height);
   empty-cells: show;
   line-height: var(--hot-cell-line-height);
   padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
   /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
-  background-color: var(--hot-background-color);
   vertical-align: top;
   overflow: hidden;
   outline: none;
   outline-width: 0;
   white-space: pre-wrap;
 }
+.handsontable th {
+  border-style: solid;
+}
 .handsontable th:last-child {
   /*Foundation framework fix*/
-  border-inline-start: none;
-  border-inline-end: var(--hot-border-vertical-size) solid var(--hot-border-color);
-  border-bottom: var(--hot-border-horizontal-size) solid var(--hot-border-color);
+  border-inline-start-width: 0;
+  border-inline-end-width: var(--hot-border-vertical-size);
+  border-bottom-width: var(--hot-border-horizontal-size);
 }
 .handsontable th:first-child, .handsontable th:nth-child(2), .handsontable th:first-of-type {
-  border-inline-start: var(--hot-border-vertical-size) solid var(--hot-border-color);
+  border-inline-start-width: var(--hot-border-vertical-size);
 }
 .handsontable .ht_clone_top th:nth-child(2) {
   border-inline-start-width: 0;
-  border-inline-end: var(--hot-border-vertical-size) solid var(--hot-border-color);
+  border-inline-end-width: var(--hot-border-vertical-size);
 }
 .handsontable.htRowHeaders thead tr th:nth-child(2) {
-  border-inline-start: var(--hot-border-vertical-size) solid var(--hot-border-color);
+  border-inline-start-width: var(--hot-border-vertical-size);
 }
-.handsontable tr:first-child th,
-.handsontable tr:first-child td {
-  border-top: var(--hot-border-horizontal-size) solid var(--hot-border-color);
+.handsontable tr:first-child th, .handsontable tr:first-child td {
+  border-top-width: var(--hot-border-horizontal-size);
 }
-.handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable tbody tr th,
-.handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
+.handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable tbody tr th, .handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
   border-inline-end-width: 0;
-  border-inline-start: var(--hot-border-vertical-size) solid var(--hot-border-color);
+  border-inline-start-width: var(--hot-border-vertical-size);
 }
-.handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th,
-.handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
-.handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th,
-.handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
+.handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th, .handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
+.handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th, .handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 .handsontable th {
-  background-color: var(--hot-header-background-color);
-  color: var(--hot-header-foreground-color);
   text-align: center;
   font-weight: normal;
   white-space: nowrap;
@@ -204,7 +207,9 @@
   display: none;
 }
 
-/* Selection */
+/*
+	Walkontable Selectio
+*/
 .handsontable .wtBorder {
   position: absolute;
   font-size: 0;
@@ -228,6 +233,9 @@
   cursor: crosshair;
 }
 
+/*
+	Walkontable Elevation
+*/
 .ht_clone_master {
   z-index: 100;
 }
@@ -252,6 +260,9 @@
   z-index: 180;
 }
 
+/*
+	Walkontable Foundation
+*/
 .ht_master,
 .ht_clone_inline_start,
 .ht_clone_top,
@@ -275,6 +286,9 @@
   visibility: hidden;
 }
 
+/*
+	Handsontable Foundation
+*/
 .handsontable {
   touch-action: manipulation;
   font-weight: normal;
@@ -294,6 +308,10 @@
   position: absolute;
   top: -99000px;
 }
+.handsontable td, .handsontable th {
+  border-color: var(--hot-border-color);
+  /*background-color: var(--hot-background-color); // moved into wtHider */
+}
 .handsontable td.invisibleSelection, .handsontable th.invisibleSelection {
   outline: none;
 }
@@ -307,6 +325,12 @@
 .handsontable td.htNoWrap {
   white-space: nowrap;
 }
+.handsontable th {
+  border-color: var(--hot-border-color);
+  background-color: var(--hot-header-background-color);
+  color: var(--hot-header-foreground-color);
+  border-color: var(--hot-border-color);
+}
 .handsontable .htFocusCatcher {
   position: absolute;
   z-index: -1;
@@ -316,129 +340,6 @@
   padding: 0;
   width: 0;
   height: 0;
-}
-
-/* plugins */
-.handsontable .columnSorting {
-  position: relative;
-}
-
-.handsontable .columnSorting.sortAction:hover {
-  text-decoration: underline;
-  cursor: pointer;
-} /* Arrow position */
-.handsontable span.colHeader.columnSorting::before {
-  /* Centering start */
-  top: 50%;
-  /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
-  margin-top: -6px;
-  /* Centering end */
-  /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
-  padding-inline-start: 8px;
-  padding-inline-end: 0;
-  position: absolute;
-  inset-inline-end: -9px;
-  inset-inline-start: unset;
-  content: "";
-  height: 10px;
-  width: 5px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position-x: inline-end;
-}
-
-.handsontable span.colHeader.columnSorting.ascending::before {
-  /* arrow up; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC);
-}
-
-.handsontable span.colHeader.columnSorting.descending::before {
-  /* arrow down; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=);
-}
-
-.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
-  content: "*";
-  display: inline-block;
-  position: relative;
-  /* The multi-line header and header with longer text need more padding to not hide arrow,
-  we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
-  padding-right: 20px;
-}
-
-.handsontable td.area,
-.handsontable td.area-1,
-.handsontable td.area-2,
-.handsontable td.area-3,
-.handsontable td.area-4,
-.handsontable td.area-5,
-.handsontable td.area-6,
-.handsontable td.area-7 {
-  position: relative;
-}
-
-.handsontable td.area:before,
-.handsontable td.area-1:before,
-.handsontable td.area-2:before,
-.handsontable td.area-3:before,
-.handsontable td.area-4:before,
-.handsontable td.area-5:before,
-.handsontable td.area-6:before,
-.handsontable td.area-7:before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  /* Fix for IE9 to spread the ":before" pseudo element to 100% height of the parent element */
-  bottom: -100% \9 ;
-  background: #005eff;
-}
-
-/* Fix for IE10 and IE11 to spread the ":before" pseudo element to 100% height of the parent element */
-@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
-  .handsontable td.area:before,
-  .handsontable td.area-1:before,
-  .handsontable td.area-2:before,
-  .handsontable td.area-3:before,
-  .handsontable td.area-4:before,
-  .handsontable td.area-5:before,
-  .handsontable td.area-6:before,
-  .handsontable td.area-7:before {
-    bottom: -100%;
-  }
-}
-.handsontable td.area:before {
-  opacity: 0.1;
-}
-
-.handsontable td.area-1:before {
-  opacity: 0.2;
-}
-
-.handsontable td.area-2:before {
-  opacity: 0.27;
-}
-
-.handsontable td.area-3:before {
-  opacity: 0.35;
-}
-
-.handsontable td.area-4:before {
-  opacity: 0.41;
-}
-
-.handsontable td.area-5:before {
-  opacity: 0.47;
-}
-
-.handsontable td.area-6:before {
-  opacity: 0.54;
-}
-
-.handsontable td.area-7:before {
-  opacity: 0.58;
 }
 
 .handsontable tbody th.current,
@@ -643,6 +544,9 @@ TextRenderer placeholder value
   text-align: center;
 }
 
+/*
+	Handsontable License info
+*/
 .hot-display-license-info {
   font-family: var(--hot-font-family);
   font-size: calc(var(--hot-base-font-size) - 3px);
@@ -656,7 +560,10 @@ TextRenderer placeholder value
   font-size: 10px;
 }
 
-/* row + column resizer*/
+/* 
+    Element / Manual Resizer
+    row + column resizer
+*/
 .handsontable .manualColumnResizer {
   position: absolute;
   top: 0;
@@ -665,42 +572,88 @@ TextRenderer placeholder value
   width: var(--hot-resizer-width);
   height: calc(var(--hot-cell-height) + var(--hot-header-horizontal-padding));
 }
-
-.handsontable .manualColumnResizer:hover,
-.handsontable .manualColumnResizer.active,
-.handsontable .manualRowResizer:hover,
-.handsontable .manualRowResizer.active {
-  background-color: #34a9db;
+.handsontable .manualColumnResizer:hover, .handsontable .manualColumnResizer.active {
+  background-color: var(--hot-column-resizer-color);
 }
-
+.handsontable .manualRowResize:hover, .handsontable .manualRowResize.active {
+  background-color: var(--hot-column-resizer-color);
+}
 .handsontable .manualColumnResizerGuide {
   position: absolute;
   inset-inline-end: unset;
   top: 0;
-  background-color: #34a9db;
+  background-color: var(--hot-column-resizer-color);
   display: none;
   width: 0;
-  border-inline-end: 1px dashed #777;
+  border-inline-end: var(--hot-border-vertical-size) dashed var(--hot-column-resizer-guide-color);
   border-inline-start: none;
-  margin-inline-start: 5px;
+  margin-inline-start: var(--hot-resizer-width);
   margin-inline-end: unset;
 }
-
 .handsontable .manualRowResizerGuide {
   position: absolute;
   left: 0;
   bottom: 0;
-  background-color: #34a9db;
+  background-color: var(--hot-column-resizer-color);
   display: none;
   height: 0;
-  border-bottom: 1px dashed #777;
-  margin-top: 5px;
+  border-bottom: var(--hot-border-vertical-size) dashed var(--hot-column-resizer-guide-color);
+  margin-top: var(--hot-resizer-width);
 }
-
 .handsontable .manualColumnResizerGuide.active,
 .handsontable .manualRowResizerGuide.active {
   display: block;
   z-index: 209;
+}
+
+/* 
+    Element / Column Sorting
+*/
+.handsontable {
+  /* Arrow position */
+}
+.handsontable .columnSorting {
+  position: relative;
+}
+.handsontable .columnSorting.sortAction:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.handsontable span.colHeader.columnSorting::before {
+  /* Centering start */
+  top: 50%;
+  /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
+  margin-top: -6px;
+  /* Centering end */
+  /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
+  padding-inline-start: 8px;
+  padding-inline-end: 0;
+  position: absolute;
+  inset-inline-end: -9px;
+  inset-inline-start: unset;
+  content: "";
+  height: 10px;
+  width: 5px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position-x: right;
+}
+.handsontable span.colHeader.columnSorting.ascending::before {
+  /* arrow up; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC);
+}
+.handsontable span.colHeader.columnSorting.descending::before {
+  /* arrow down; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=);
+}
+
+.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
+  content: "*";
+  display: inline-block;
+  position: relative;
+  /* The multi-line header and header with longer text need more padding to not hide arrow,
+  we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
+  padding-right: 20px;
 }
 
 /*# sourceMappingURL=handsontable.css.map*/

@@ -4,5 +4,8 @@
 @use "./elements/foundation";
 @use "./elements/licenseInfo";
 
-@use "./elements/plugins/manualColumnResizer";
+@use "./elements/manualColumnResizer";
+@use "./elements/columnSorting";
+
+
 //@use "./elements/mobile";
