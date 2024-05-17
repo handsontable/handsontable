@@ -1,7 +1,7 @@
 <template>
   <nav class="nav-links">
     <!-- user links -->
-    <div class="nav-item">
+    <div :class="{'nav-item': true, 'no-active': isRoadmapLinkActive}">
       <NavLink :item="guideLink"/>
     </div>
     <div class="nav-item">
@@ -44,6 +44,9 @@ export default {
         text: 'Roadmap'
       };
     },
+    isRoadmapLinkActive() {
+      return this.$route.path.includes('/roadmap');
+    }
   }
 };
 
