@@ -57,13 +57,15 @@ Double click on a cell to open the editor and preview the formula.
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --css 2 --js 3
+::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.html)
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.css)
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.js)
+
+@[code](@/content/guides/formulas/formula-calculation/javascript/example1.ts)
 
 :::
 
@@ -88,9 +90,11 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 ::: only-for javascript
 
-::: example #example-data-grid
+::: example #example-data-grid --js 1 --ts 2
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.js)
+
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.ts)
 
 :::
 
@@ -448,11 +452,13 @@ pass an array with `name` and `expression` to your `formulas` configuration obje
 
 ::: only-for javascript
 
-::: example #example-named-expressions1 --html 1 --js 2
+::: example #example-named-expressions1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example-named-expressions1.html)
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example-named-expressions1.js)
+
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-named-expressions1.ts)
 
 :::
 

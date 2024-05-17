@@ -1,5 +1,5 @@
 /**
- * Matches into: `example #ID .class :preset --css 2 --html 0 --js 1 --no-edit`.
+ * Matches into: `example #ID .class :preset --css 2 --html 0 --js 1 --ts 3 --no-edit`.
  *
  * @type {RegExp}
  */
@@ -49,10 +49,47 @@ const tab = (tabName, token, id) => {
   ];
 };
 
+const parsePreview = (content, base) => {
+  if (!content) return '';
+
+  return content
+    .replaceAll('{{$basePath}}', base)
+    // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
+    .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '')
+    // Remove the code between "/* start:skip-in-preview */" and "/* end:skip-in-preview */" expressions
+    .replace(/\/\*(\s+)?start:skip-in-preview(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-preview(\s+)?\*\/\n/msg, '')
+    // Remove /* end-file */
+    .replace(/\/\* end-file \*\//gm, '')
+    .trim();
+};
+
+const parseCode = (content) => {
+  if (!content) return '';
+
+  return content
+    // Remove the all "/* start:skip-in-preview */" and "/* end:skip-in-preview */" comments
+    .replace(/\/\*(\s+)?(start|end):skip-in-preview(\s+)?\*\/\n/gm, '')
+    // Remove the code between "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" expressions
+    // eslint-disable-next-line max-len
+    .replace(/\/\*(\s+)?start:skip-in-compilation(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-compilation(\s+)?\*\/\n/msg, '')
+    // Remove /* end-file */
+    .replace(/\/\* end-file \*\//gm, '');
+};
+
+const parseCodeSandbox = (content) => {
+  if (!content) return '';
+
+  return content
+    // Remove the all "/* start:skip-in-preview */" and "/* end:skip-in-preview */" comments
+    .replace(/\/\*(\s+)?(start|end):skip-in-preview(\s+)?\*\/\n/gm, '')
+    // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
+    .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '');
+};
+
 module.exports = function(docsVersion, base) {
   return {
     type: 'example',
-    render(tokens, index, opts, env) {
+    render(tokens, index, _opts, env) {
       const token = tokens[index];
       const m = token.info.trim().match(EXAMPLE_REGEX);
 
@@ -82,35 +119,22 @@ module.exports = function(docsVersion, base) {
         const jsIndex = index + Number.parseInt(jsPos, 10);
         const jsToken = tokens[jsIndex];
 
-        jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base);
+        const tsPos = args.match(/--ts (\d*)/)?.[1];
+        const tsIndex = tsPos ? index + Number.parseInt(tsPos, 10) : 0;
+        const tsToken = tsPos ? tokens[tsIndex] : undefined;
 
-        const codeToCompile = jsToken.content
-          // Remove the all "/* start:skip-in-preview */" and "/* end:skip-in-preview */" comments
-          .replace(/\/\*(\s+)?(start|end):skip-in-preview(\s+)?\*\/\n/gm, '')
-          // Remove the code between "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" expressions
-          // eslint-disable-next-line max-len
-          .replace(/\/\*(\s+)?start:skip-in-compilation(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-compilation(\s+)?\*\/\n/msg, '')
-          // Remove /* end-file */
-          .replace(/\/\* end-file \*\//gm, '');
+        // Parse code
+        const codeToCompile = parseCode(jsToken.content);
+        const codeToCompileSandbox = parseCodeSandbox(jsToken.content);
+        const codeToPreview = parsePreview(jsToken.content, base);
+        const tsCodeToPreview = parsePreview(tsToken?.content, base);
 
-        const codeToPreview = jsToken.content
-          // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
-          .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '')
-          // Remove the code between "/* start:skip-in-preview */" and "/* end:skip-in-preview */" expressions
-          .replace(/\/\*(\s+)?start:skip-in-preview(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-preview(\s+)?\*\/\n/msg, '')
-          // Remove /* end-file */
-          .replace(/\/\* end-file \*\//gm, '')
-          .trim();
+        // Replace token content
+        if (jsToken) jsToken.content = codeToPreview;
 
-        const codeToCompileSandbox = jsToken.content
-          // Remove the all "/* start:skip-in-preview */" and "/* end:skip-in-preview */" comments
-          .replace(/\/\*(\s+)?(start|end):skip-in-preview(\s+)?\*\/\n/gm, '')
-          // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
-          .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '');
+        if (tsToken) tsToken.content = tsCodeToPreview;
 
-        jsToken.content = codeToPreview;
-
-        const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
+        const activeTab = `${args.match(/--tab (code|typescript|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
 
         const codeForPreset = addCodeForPreset(codeToCompile, preset, id);
@@ -120,27 +144,28 @@ module.exports = function(docsVersion, base) {
           codeForPreset,
           env.relativePath
         );
+
         const encodedCode = encodeURI(
           `useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`
         );
 
-        [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
+        [htmlIndex, jsIndex, tsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
           tokens.splice(x, 1);
         });
 
         const newTokens = [
-          ...tab('Code', jsToken, id),
+          ...tab('TS', tsToken, id),
+          ...tab('JS', jsToken, id),
           ...tab('HTML', htmlToken, id),
           ...tab('CSS', cssToken, id),
         ];
 
         tokens.splice(index + 1, 0, ...newTokens);
+
         const isAngular = /angular(-.*)?/.test(preset);
         const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
-
-        const displayJsFiddle = Boolean(!noEdit && !isAngular);
-
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
+        const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
         return `
           <div class="example-container" >
@@ -156,22 +181,8 @@ module.exports = function(docsVersion, base) {
                 <i class="ico i-code"></i>Source code
               </button>
               <div class="example-controls">
-                ${Boolean(!noEdit) && stackblitz(
-    id,
-    htmlContent,
-    codeToCompileSandbox,
-    cssContent,
-    docsVersion,
-    preset
-  )}
-                ${Boolean(!noEdit) && codesandbox(
-    id,
-    htmlContent,
-    codeToCompileSandbox,
-    cssContent,
-    docsVersion,
-    preset
-  )}
+                ${!noEdit ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
+                ${!noEdit ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
                 ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
                 <button 
                   aria-label="Reset the demo" 

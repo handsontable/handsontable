@@ -40,9 +40,11 @@ Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" st
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example1.js)
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example1.ts)
 
 :::
 

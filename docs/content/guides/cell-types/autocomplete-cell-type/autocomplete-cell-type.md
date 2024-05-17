@@ -31,9 +31,11 @@ This example uses the `autocomplete` feature in the default flexible mode. In th
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example1.js)
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example1.ts)
 
 :::
 

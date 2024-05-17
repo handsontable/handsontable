@@ -108,13 +108,15 @@ Check out the interactive demo below to see how various Handsontable settings im
 
 ::: only-for javascript angular vue
 
-::: example #example1 --html 1 --css 2 --js 3
+::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.html)
 
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.css)
 
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.js)
+
+@[code](@/content/guides/accessibility/accessibility/javascript/example1.ts)
 
 :::
 
