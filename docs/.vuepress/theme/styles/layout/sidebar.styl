@@ -570,6 +570,92 @@
     }
 }
 
+@media (max-width: $xLarge) {
+  .mobile-nav {
+    border-bottom: 1px solid $borderColor
+    margin-bottom: 12px
+    padding-bottom: 12px
+    display: block !important;
+
+
+    .nav-frameworks {
+        button, 
+        .ico {
+            display: none
+        }
+        
+        .nav-dropdown { 
+            display: flex !important
+            margin: 16px
+            padding: 4px
+            border-radius: $radius-xl
+            background: $sideColor
+
+            li {
+                display: block
+                width 100%
+            }
+            a { 
+                padding: 7px
+                display: block
+                text-align: center
+                border-radius: $radius
+            }
+        }
+    }
+
+    /* active item */
+    .i-react + .nav-item .nav-dropdown .dropdown-item:nth-child(2) a,
+    .i-javascript + .nav-item .nav-dropdown .dropdown-item:nth-child(1) a  {
+        background: $borderColor
+    }
+
+    .nav-links {
+        &:not(.nav-frameworks) {
+            div:first-child {
+                display: none
+            }
+        }
+
+        a { 
+            display: flex
+            gap: 8px
+            align-items: center
+            padding: 12px 32px
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+            font-weight: 400
+            color: $text2Color
+            transition all $t ease
+            cursor: pointer
+            border: none
+
+            span {
+                width: 100%
+            }
+
+            i {
+                opacity .7
+                transition all $t ease
+                background-size: 18px 
+            }
+            
+            .i-arrow { 
+                opacity: .5    
+            }
+
+            &.active { 
+                color: $textColor
+                i { opacity: 1}
+                .i-arrow { 
+                    transform: rotate(180deg)
+                }
+            }
+        }
+    }
+}
+}
+
 @media (max-width: $large) {
     .sidebar{
         z-index: 100
@@ -593,90 +679,6 @@
 
         div > .sidebar-links {
             padding-bottom: 32px
-        }
-
-        .mobile-nav {
-            border-bottom: 1px solid $borderColor
-            margin-bottom: 12px
-            padding-bottom: 12px
-            display: block
-
-
-            .nav-frameworks {
-                button, 
-                .ico {
-                    display: none
-                }
-                
-                .nav-dropdown { 
-                    display: flex !important
-                    margin: 16px
-                    padding: 4px
-                    border-radius: $radius-xl
-                    background: $sideColor
-
-                    li {
-                        display: block
-                        width 100%
-                    }
-                    a { 
-                        padding: 7px
-                        display: block
-                        text-align: center
-                        border-radius: $radius
-                    }
-                }
-            }
-
-            /* active item */
-            .i-react + .nav-item .nav-dropdown .dropdown-item:nth-child(2) a,
-            .i-javascript + .nav-item .nav-dropdown .dropdown-item:nth-child(1) a  {
-                background: $borderColor
-            }
-
-            .nav-links {
-                &:not(.nav-frameworks) {
-                    div:first-child {
-                        display: none
-                    }
-                }
-
-                a { 
-                    display: flex
-                    gap: 8px
-                    align-items: center
-                    padding: 12px 32px
-                    font-size: $font-size-xs
-                    line-height: $line-height-xs
-                    font-weight: 400
-                    color: $text2Color
-                    transition all $t ease
-                    cursor: pointer
-                    border: none
-
-                    span {
-                        width: 100%
-                    }
-
-                    i {
-                        opacity .7
-                        transition all $t ease
-                        background-size: 18px 
-                    }
-                    
-                    .i-arrow { 
-                        opacity: .5    
-                    }
-
-                    &.active { 
-                        color: $textColor
-                        i { opacity: 1}
-                        .i-arrow { 
-                            transform: rotate(180deg)
-                        }
-                    }
-                }
-            }
         }
     }
 
