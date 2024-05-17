@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved typings for the ContextMenu plugin.",
+  "type": "fixed",
+  "issueOrPR": 10984,
+  "breaking": false,
+  "framework": "none"
+}
