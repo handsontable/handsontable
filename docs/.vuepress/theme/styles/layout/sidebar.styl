@@ -339,212 +339,214 @@
         }
     }
 
-    .mobile-show {
         
-        .nav-links {
-            display: flex
-            flex-direction: column
+    .nav-links {
+        display: flex
+        flex-direction: column
 
-            .nav-item {
-                a, button { 
-                    font-size: $font-size-xs
-                    line-height: $font-size-xs
-                    color: $text2Color
-                    padding: 16px 32px
-                    display: block
-                    display: flex
-                    white-space: nowrap
-                    gap:8px
-                    font-weight: 400
-
-                    &.router-link-active { 
-                        color: $textColor
-                    }
-                }
-
-                button { 
-                    background:none
-                    border: none
-                    display: flex
-                    color: $text2Color
-                    align-items: center
-                }
-
-                .nav-dropdown {
-                    a { padding: 4px 8px}    
-                }
-            }
-        }
-
-        .framework-and-version { 
-            display: flex
-
-            > nav > i {
-                margin-right -16px
-                z-index 1
-                position relative
-            } 
-            
-            .nav-frameworks { 
-                padding-left: 24px
-                display: flex
-                align-items: center
-                flex-direction: row
-                gap: 8px
-
-                .dropdown-wrapper > button { 
-                    display: flex
-                    gap: 8px
-                    padding-left: 48px
-                    margin-left:-32px
-
-                    + .nav-dropdown { 
-                        left: -16px
-                    }
-                }
-            }
-        }
-
-        .dropdown-wrapper { 
-            position: relative
-            height: auto
-
-            > button { 
-                display: flex
-                padding: 24px 16px
-                display: flex
-                gap: 8px
-                background: none
-                border:0
-                cursor pointer
-                transition all $t ease
-                text-transform: capitalize
-
-                .title {
-                    display: flex; gap: 8px
-                }
-
-                i { 
-                    transition all $t ease
-                }
-            }
-
-            &.open { 
-                > button { 
-                        i { 
-                            transform:rotate(-180deg)
-                        }
-
-                        & + .nav-dropdown {
-                            visibility: visible
-                            opacity 1
-                        }
-                    }
-            }
-            @media (hover: hover) {
-                &:hover { 
-                    > button { 
-                        i { 
-                            transform:rotate(-180deg)
-                        }
-
-                        & + .nav-dropdown {
-                            visibility: visible
-                            opacity 1
-                        }
-                    }
-                }
-            }
-
-            .nav-dropdown { 
-                transition all $t ease
-                display:block !important
-                visibility: hidden
-                opacity 0
-                position absolute
-                top: 48px
-                left: 0
-                background: $sideColor
-                padding: 8px 8px
-                border-radius: $radius
-                //right: 0
-                min-width: 96px
-
-                a { 
-                    color: $text2Color
-                    font-size: $font-size-xs
-                    line-height: $line-height-xs
-                    padding: 4px 8px 
-                    border:0
-                    position: relative
-                    transition all $t ease
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    z-index 1
-
-                    &:before { 
-                        content: ''
-                        display: block
-                        position absolute
-                        inset: 0 0
-                        background: $bgColor
-                        z-index -1
-                        border-radius: $radius
-                        opacity: 0
-                        transition all $t ease
-                    }
-
-                    @media (hover: hover) {
-                        &:hover { 
-                            color: $textColor
-
-                            &:before {
-                                opacity: 1
-                            }
-                        }
-                    }
-                    
-                    &.active { 
-                        color: $textColor
-                        font-weight: 400
-                        
-                        &:before { 
-                            opacity: 1    
-                        }
-                    }  
-                }
-            }
-        } 
-
-        //Icons
-        .icons-nav {
-            display: flex
-            padding: 12px
-            
-            a {
+        .nav-item {
+            a, button { 
+                font-size: $font-size-xs
+                line-height: $font-size-xs
+                color: $text2Color
+                padding: 16px 32px
                 display: block
-                padding: 12px
+                display: flex
+                white-space: nowrap
+                gap:8px
+                font-weight: 400
+
+                &.router-link-active { 
+                    color: $textColor
+                }
             }
 
             button { 
-                cursor pointer
-                background: none
+                background:none
                 border: none
-                padding: 12px
+                display: flex
+                color: $text2Color
+                align-items: center
             }
 
-            a, button, label {
-                border-radius: $radius*4
+            .nav-dropdown {
+                a { padding: 4px 8px}    
+            }
+        }
+    }
 
-                @media (hover: hover) {
-                    &:hover { 
-                        background: $borderColor
+    .framework-and-version { 
+        .ico {
+          display: none;
+        }
+        display: flex
+
+        > nav > i {
+            margin-right -16px
+            z-index 1
+            position relative
+        } 
+        
+        .nav-frameworks { 
+            padding-left: 24px
+            display: flex
+            align-items: center
+            flex-direction: row
+            gap: 8px
+
+            .dropdown-wrapper > button { 
+                display: flex
+                gap: 8px
+                padding-left: 48px
+                margin-left:-32px
+
+                + .nav-dropdown { 
+                    left: -16px
+                }
+            }
+        }
+    }
+
+    .dropdown-wrapper { 
+        position: relative
+        height: auto
+
+        > button { 
+            display: flex
+            padding: 24px 16px
+            display: flex
+            gap: 8px
+            background: none
+            border:0
+            cursor pointer
+            transition all $t ease
+            text-transform: capitalize
+
+            .title {
+                display: flex; gap: 8px
+            }
+
+            i { 
+                transition all $t ease
+            }
+        }
+
+        &.open { 
+            > button { 
+                    i { 
+                        transform:rotate(-180deg)
+                    }
+
+                    & + .nav-dropdown {
+                        visibility: visible
+                        opacity 1
+                    }
+                }
+        }
+        @media (hover: hover) {
+            &:hover { 
+                > button { 
+                    i { 
+                        transform:rotate(-180deg)
+                    }
+
+                    & + .nav-dropdown {
+                        visibility: visible
+                        opacity 1
                     }
                 }
             }
-        }      
-    }
+        }
+
+        .nav-dropdown { 
+            transition all $t ease
+            display:block !important
+            visibility: hidden
+            opacity 0
+            position absolute
+            top: 48px
+            left: 0
+            background: $sideColor
+            padding: 8px 8px
+            border-radius: $radius
+            //right: 0
+            min-width: 96px
+
+            a { 
+                color: $text2Color
+                font-size: $font-size-xs
+                line-height: $line-height-xs
+                padding: 4px 8px 
+                border:0
+                position: relative
+                transition all $t ease
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                z-index 1
+
+                &:before { 
+                    content: ''
+                    display: block
+                    position absolute
+                    inset: 0 0
+                    background: $bgColor
+                    z-index -1
+                    border-radius: $radius
+                    opacity: 0
+                    transition all $t ease
+                }
+
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+
+                        &:before {
+                            opacity: 1
+                        }
+                    }
+                }
+                
+                &.active { 
+                    color: $textColor
+                    font-weight: 400
+                    
+                    &:before { 
+                        opacity: 1    
+                    }
+                }  
+            }
+        }
+    } 
+
+    //Icons
+    .icons-nav {
+        display: flex
+        padding: 12px
+        
+        a {
+            display: block
+            padding: 12px
+        }
+
+        button { 
+            cursor pointer
+            background: none
+            border: none
+            padding: 12px
+        }
+
+        a, button, label {
+            border-radius: $radius*4
+
+            @media (hover: hover) {
+                &:hover { 
+                    background: $borderColor
+                }
+            }
+        }
+    }      
+    
 
     
     @media (max-width: $large) {

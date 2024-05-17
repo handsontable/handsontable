@@ -13,7 +13,6 @@
         <div class="top-bar_left">
           <div class="framework-and-version">
             <FrameworksDropdown/>
-            <!--<VersionsDropdown></VersionsDropdown>-->
           </div>
         </div>
 
