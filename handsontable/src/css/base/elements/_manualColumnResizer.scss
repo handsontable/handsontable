@@ -1,0 +1,57 @@
+/* 
+    Element / Manual Resizer
+    row + column resizer
+*/
+
+.handsontable {
+    .manualColumnResizer {
+        position: absolute;
+        top: 0;
+        cursor: col-resize;
+        z-index: 210;
+        width: var(--hot-resizer-width);
+        height: calc(var(--hot-cell-height) + var(--hot-header-horizontal-padding));
+
+        &:hover, 
+        &.active {
+            background-color: var(--hot-column-resizer-color);
+        }
+    }
+
+    .manualRowResize {
+        &:hover, 
+        &.active {
+            background-color: var(--hot-column-resizer-color);
+        }
+    }
+
+    .manualColumnResizerGuide {
+        position: absolute;
+        inset-inline-end: unset;
+        top: 0;
+        background-color: var(--hot-column-resizer-color);
+        display: none;
+        width: 0;
+        border-inline-end: var(--hot-border-vertical-size) dashed var(--hot-column-resizer-guide-color);
+        border-inline-start: none;
+        margin-inline-start: var(--hot-resizer-width);
+        margin-inline-end: unset;
+    }
+
+    .manualRowResizerGuide {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        background-color: var(--hot-column-resizer-color);
+        display: none;
+        height: 0;
+        border-bottom: var(--hot-border-vertical-size) dashed var(--hot-column-resizer-guide-color);
+        margin-top: var(--hot-resizer-width);
+    }
+
+    .manualColumnResizerGuide.active,
+    .manualRowResizerGuide.active {
+        display: block;
+        z-index: 209;
+    }
+}
