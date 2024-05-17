@@ -4,6 +4,10 @@
     <slot name="top" />
 
     <div class="sidebar-nav">
+      <div class="mobile-nav">
+        <FrameworksDropdown/>
+        <NavLinks/>
+      </div>
       <SidebarLinks :depth="0" :items="items" />
     </div>
     <slot name="bottom" />
