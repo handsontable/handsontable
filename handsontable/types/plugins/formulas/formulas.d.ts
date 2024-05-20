@@ -2,10 +2,19 @@ import {
   CellType as HyperFormulaCellType,
   ConfigParams,
   HyperFormula,
+  RawCellContent,
+  NamedExpressionOptions,
 } from 'hyperformula';
 import Core from '../../core';
 import { CellValue } from '../../common';
 import { BasePlugin } from '../base';
+
+type NamedExpressions = {
+  name: string;
+  expression: RawCellContent;
+  scope?: number;
+  options?: NamedExpressionOptions;
+}
 
 export interface HyperFormulaSettings extends Partial<ConfigParams> {
   hyperformula: typeof HyperFormula | HyperFormula;
@@ -13,6 +22,7 @@ export interface HyperFormulaSettings extends Partial<ConfigParams> {
 export interface DetailedSettings {
   engine: typeof HyperFormula | HyperFormula | HyperFormulaSettings;
   sheetName?: string;
+  namedExpressions?: NamedExpressions[],
 }
 
 export type Settings = DetailedSettings;
