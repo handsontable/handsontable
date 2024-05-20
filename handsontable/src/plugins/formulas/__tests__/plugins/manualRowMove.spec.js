@@ -1,18 +1,16 @@
 import HyperFormula from 'hyperformula';
 
-const dataset = [
-  [1, 2, 3, 4, 5],
-  ['=A1+10', '=B1+10', '=C1+10', '=D1+10', '=E1+10'],
-  ['=A2+100', '=B2+100', '=C2+100', '=D2+100', '=E2+100'],
-  ['=A3+1000', '=B3+1000', '=C3+1000', '=D3+1000', '=E3+1000'],
-  ['=A4+1000000', '=B4+1000000', '=C4+1000000', '=D4+1000000', '=E4+1000000'],
-];
-
 describe('Formulas', () => {
-  const id = 'testContainer';
+  const dataset = [
+    [1, 2, 3, 4, 5],
+    ['=A1+10', '=B1+10', '=C1+10', '=D1+10', '=E1+10'],
+    ['=A2+100', '=B2+100', '=C2+100', '=D2+100', '=E2+100'],
+    ['=A3+1000', '=B3+1000', '=C3+1000', '=D3+1000', '=E3+1000'],
+    ['=A4+1000000', '=B4+1000000', '=C4+1000000', '=D4+1000000', '=E4+1000000'],
+  ];
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
