@@ -1,11 +1,23 @@
 @use "variables";
 @use "../ht/index";
+@use "./reset/reset";
 
 @use "./elements/foundation";
 @use "./elements/licenseInfo";
-
 @use "./elements/manualColumnResizer";
-@use "./elements/columnSorting";
+@use "./elements/columnSorting";            // TO DO Icons & Sizing
+@use "./elements/area";
+@use "./elements/hotInput";
+@use "./elements/submenu";                  // TO DO - what is that? TO DO Icons & Sizing
+@use "./elements/cellText";   
+@use "./elements/listbox";   
 
+/* Plugins */
+@use "./elements/plugins/hiddenColumns";    // TO DO Icons & Sizing
+@use "./elements/plugins/contextMenu";
+@use "./elements/plugins/filters";          // TO DO
+@use "./elements/plugins/dropdownMenu";     // TO DO Icons & Sizing
+@use "./elements/plugins/comments";
 
-//@use "./elements/mobile";
+/* Mobile */
+@use "./elements/mobile";

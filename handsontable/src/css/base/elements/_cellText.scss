@@ -1,0 +1,40 @@
+/*
+    Cell Text
+*/   
+
+.handsontable {
+    /* TextRenderer placeholder value */
+    .htPlaceholder {
+        color: var(--hot-placeholder-text);
+    }
+
+    /* TextRenderer placeholder value */
+    .htDimmed {
+        color: var(--hot-read-only-text);
+    }
+
+    /* TextRenderer horizontal alignment */
+    .htLeft {
+        text-align: left;
+    }
+    .htCenter {
+        text-align: center;
+    }
+    .htRight {
+        text-align: right;
+    }
+    .htJustify {
+        text-align: justify;
+    }
+
+    /* TextRenderer placeholder value */
+    .htTop {
+        vertical-align: top;
+    }
+    .htMiddle {
+        vertical-align: middle;
+    }
+    .htBottom {
+        vertical-align: bottom;
+    }
+}

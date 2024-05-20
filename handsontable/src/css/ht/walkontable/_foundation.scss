@@ -84,6 +84,7 @@
         height: var(--hot-cell-height);
         empty-cells: show;
         line-height: var(--hot-cell-line-height);
+        font-size: var( --hot-base-font-size);
         padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
         /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
         vertical-align: top;
@@ -96,6 +97,10 @@
     // Header Cell
     th { 
         border-style: solid;
+        text-align: center;
+        font-weight: normal;
+        white-space: nowrap;
+        
         &:last-child {
             /*Foundation framework fix*/
             border-inline-start-width: 0;
@@ -104,7 +109,11 @@
         }
 
         &:first-child,
-        &:nth-child(2),
+        &:nth-child(2) {
+            border-inline-start-width: var(--hot-border-vertical-size);
+        }
+    }
+    td {
         &:first-of-type {
             border-inline-start-width: var(--hot-border-vertical-size);
         }
@@ -147,18 +156,8 @@
         }
     }
 
-    th {
-        text-align: center;
-        font-weight: normal;
-        white-space: nowrap;
-    }
-
     thead th {
         padding: 0;
-
-        &.active {
-            background-color: var(--hot-header-active-background-color);
-        }
 
         .relative {
             padding: var(--hot-header-vertical-padding) var(--hot-header-horizontal-padding);

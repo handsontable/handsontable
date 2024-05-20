@@ -1,6 +1,7 @@
 /*
 	Handsontable Mobile Text Editor stylesheet
 */
+@import "../../ht/mixins";
 
 .handsontable {
 	&.mobile {
@@ -11,7 +12,7 @@
 		}
 
 		.handsontableInput:focus {
-			@include $box-shadow(0 0 0 2px var(--hot-mobile-focus-color) inset);
+			box-shadow: 0 0 2px var(--hot-mobile-focus-color) inset;
 			-webkit-appearance: none;
 		}
 	}

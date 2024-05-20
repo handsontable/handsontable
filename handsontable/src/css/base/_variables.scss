@@ -1,23 +1,70 @@
 @use "sass:color";
 
-.handsontable {
+:root {
     --hot-foreground-color: #373737;
+    --hot-foreground-color-active: #000000;
+    --hot-read-only-text: #777777;
+    --hot-placeholder-text: #999999;
     --hot-background-color: #ffffff;
     --hot-border-color: #cccccc;
-    --hot-header-background-color: #f0f0f0;
-    --hot-header-foreground-color: #222222;
-    --hot-header-active-background-color: var(--hot-border-color);
-    --hot-link-accent-color: #104acc;
-    --hot-invalid-background-color: #ffbeba;
-    --hot-mobile-focus-color: #5292f7;
-    --hot-column-resizer-color: #34a9db;
-    --hot-column-resizer-guide-color: #777777;
-
-    --hot-link-color: var(--hot-link-accent-color);
-
     --hot-border-horizontal-size: 1px;
     --hot-border-vertical-size: 1px;
     --hot-base-padding: 4px;
+    --hot-separator-color: #e6e6e6;
+    --hot-header-background-color: #f0f0f0;
+    --hot-header-foreground-color: #222222;
+    --hot-header-active-background-color: var(--hot-border-color);
+    --hot-header-active-text-color: var(--hot-foreground-color-active);
+    --hot-header-heighlight-background-color: #dcdcdc; 
+    --hot-header-heighlight-active-background-color: #8eb0e7;
+    --hot-header-current-color: #4b89ff;
+    --hot-input-border-color: #5292F7;
+    --hot-link-accent-color: #104acc;
+    --hot-invalid-background-color: #ffbeba;
+    --hot-mobile-focus-color: var(--hot-input-border-color);
+    --hot-column-resizer-color: #34a9db;
+    --hot-column-resizer-guide-color: #777777;
+    --hot-area-color: #005eff;
+    --hot-link-color: var(--hot-link-accent-color);
+    --hot-editor-text-color: var(--hot-foreground-color-active);
+    --hot-editor-background-color: var(--hot-background-color);
+    --hot-search-highlight-color: #583707;
+    --hot-search-highlight-background-color: #fcedd9;
+    --hot-lsitbox-border-color: var(--hot-border-color);
+    --hot-lsitbox-background-color: var(--hot-background-color);
+    --hot-lsitbox-background-current-color: #eeeeee;
+    --hot-lsitbox-border-size: 1px;
+    --hot-contextmenu-border-color: var(--hot-border-color);
+    --hot-contextmenu-border-width: 1px 2px 2px 1px;
+    --hot-contextmenu-background-color: var(--hot-background-color);
+    --hot-contextmenu-item-padding:4px 6px 0 6px;
+    --hot-contextmenu-item-inner-padding: 10px 6px; //left&right
+    --hot-contextmenu-item-current-background-color:f3f3f3;
+    --hot-contextmenu-separator-color: var(--hot-separator-color);
+    --hot-contextmenu-separator-size: var(--hot-border-horizontal-size);
+    --hot-dropdown-button-background: #eeeeee;
+    --hot-dropdown-button-color:#bbbbbb;
+    --hot-dropdown-button-hover-color: #777777;
+    --hot-dropdown-button-border-size: 1px;
+    --hot-dropdown-button-border-color: #bbbbbb;
+    --hot-dropdown-button-radius: 2px;
+    --hot-dropdown-button-padding: 2px;
+    --hot-dropdown-button-margin: 3px 1px 0 5px;
+    --hot-dropdown-border-color: var(--hot-border-color);
+    --hot-dropdown-border-width: 1px 2px 2px 1px;
+    --hot-dropdown-menu-background: var(--hot-background-color);
+    --hot-dropdown-menu-item-padding: 4px 6px 0 6px;
+    --hot-dropdown-menu-item-inner-padding: 10px; //left&right
+    --hot-dropdown-menu-item-active:#e9e9e9;
+    --hot-dropdown-separator-color: var(--hot-separator-color);
+    --hot-dropdown-separator-size: 1px;
+    --hot-filters-menu-background: var(--hot-background-color);
+    --hot-filters-border-color: #bbbbbb;
+    --hot-filters-border-width: 1px 2px 2px 1px;
+    --hot-filters-menu-item-active: #e9e9e9;
+    --hot-filters-separator-color: var(--hot-separator-color);
+    --hot-filters-separator-size: 1px;
+    --hot-filters-menu-item-inner-padding: 10px; //left&right
 
     --hot-base-font-size: 13px;
     --hot-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;

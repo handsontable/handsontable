@@ -1,0 +1,38 @@
+.handsontableInputHolder {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    .handsontableInput {
+        border: none;
+        outline-width: 0;
+        margin: 0;
+        padding: var(--hot-border-vertical-size) calc(1px + var(--hot-cell-horizontal-padding)) 0;
+        font-family: inherit;
+        line-height: var(--hot-cell-line-height);
+        font-size: inherit;
+        box-shadow: 0 0 0 calc(var(--hot-border-horizontal-size) * 2) var(--hot-input-border-color) inset;
+        resize: none;
+        /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
+        display: block;
+        color: var(--hot-editor-text-color);
+        border-radius: 0;
+        background-color: var(--hot-editor-background-color);
+        /*overwrite styles potentionally made by a framework*/
+
+        &:focus {
+            outline: none;
+        }
+    }
+}
+  
+.htSelectEditor {
+    -webkit-appearance: menulist-button !important;
+    position: absolute;
+    width: auto;
+
+    &:focus {
+        outline: none;
+    }
+}
+  

@@ -46,6 +46,11 @@
 		&.htNoWrap {
 			white-space: nowrap;
 		}
+
+        &.htSearchResult {
+            background: var(--hot-search-highlight-background-color);
+            color: var(--hot-search-highlight-color);
+        }
 	}
 
     th{ 
@@ -65,193 +70,38 @@
 		width: 0;
 		height: 0;
 	}
+    
+    tbody,
+    thead {
+        th {
+            &.active {
+                background-color: var(--hot-header-heighlight-background-color);
+            }
+            &.current {
+                box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 2) var(--hot-header-current-color);
+            }
+            &.ht__highlight {
+                background-color: var(--hot-header-heighlight-background-color);
+            }
+            &.ht__active_highlight {
+                background-color: var(--hot-header-heighlight-active-background-color);
+                color: var(--hot-header-active-text-color);
+            }
+        }
+    }
 }
 
-  
-
-
-
-
-  
-  .handsontable tbody th.current,
-  .handsontable thead th.current {
-    box-shadow: inset 0 0 0 2px #4b89ff;
-  }
-  
-  .handsontable tbody th.ht__highlight,
-  .handsontable thead th.ht__highlight {
-    background-color: #dcdcdc;
-  }
-  
-  .handsontable tbody th.ht__active_highlight,
-  .handsontable thead th.ht__active_highlight {
-    background-color: #8eb0e7;
-    color: #000;
-  }
-  
-  .handsontableInput {
-    border: none;
-    outline-width: 0;
-    margin: 0;
-    padding: 1px 5px 0 5px;
-    font-family: inherit;
-    line-height: 21px;
-    font-size: inherit;
-    box-shadow: 0 0 0 2px #5292F7 inset;
-    resize: none;
-    /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
-    display: block;
-    color: #000;
-    border-radius: 0;
-    background-color: #FFF;
-    /*overwrite styles potentionally made by a framework*/
-  }
-  
-  .handsontableInput:focus {
-    outline: none;
-  }
-  
-  .handsontableInputHolder {
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-  
-  .htSelectEditor {
-    -webkit-appearance: menulist-button !important;
-    position: absolute;
-    width: auto;
-  }
-  
-  .htSelectEditor:focus {
-    outline: none;
-  }
-  
-  /*
-  TextRenderer readOnly cell
-  */
-  
-  .handsontable .htDimmed {
-    color: #777;
-  }
-  
-  .handsontable .htSubmenu {
-    position: relative;
-  }
-  
-  .handsontable .htSubmenu :after {
-    content: '\25B6'; // right-pointing triangle
-    color: #777;
-    position: absolute;
-    right: 5px;
-    font-size: 9px;
-  }
-  
-  [dir=rtl].handsontable .htSubmenu :after {
-    content: '';
-  }
-  
-  [dir=rtl].handsontable .htSubmenu :before {
-    content: '\25C0'; // left-pointing triangle
-    color: #777;
-    position: absolute;
-    left: 5px;
-    font-size: 9px;
-  }
-  
-  /*
-  TextRenderer horizontal alignment
-  */
-  .handsontable .htLeft {
-    text-align: left;
-  }
-  .handsontable .htCenter {
-    text-align: center;
-  }
-  .handsontable .htRight {
-    text-align: right;
-  }
-  .handsontable .htJustify {
-    text-align: justify;
-  }
-  /*
-  TextRenderer vertical alignment
-  */
-  .handsontable .htTop {
-    vertical-align: top;
-  }
-  .handsontable .htMiddle {
-    vertical-align: middle;
-  }
-  .handsontable .htBottom {
-    vertical-align: bottom;
-  }
-  
-  /*
-  TextRenderer placeholder value
-  */
-  
-  .handsontable .htPlaceholder {
-    color: #999;
-  }
-  
-  /**
-   * Handsontable listbox theme
-   */
-  
-  .handsontable.listbox {
-    margin: 0;
-  }
-  
-  .handsontable.listbox .ht_master table {
-    border: 1px solid #ccc;
-    border-collapse: separate;
-    background: white;
-  }
-  
-  .handsontable.listbox th,
-  .handsontable.listbox tr:first-child th,
-  .handsontable.listbox tr:last-child th,
-  .handsontable.listbox tr:first-child td,
-  .handsontable.listbox td {
-    border-color: transparent !important;
-  }
-  
-  .handsontable.listbox th,
-  .handsontable.listbox td {
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  
-  .handsontable.listbox td.htDimmed {
-    cursor: default;
-    color: inherit;
-    font-style: inherit;
-  }
-  
-  .handsontable.listbox .wtBorder {
-    visibility: hidden;
-  }
-  
-  .handsontable.listbox tr td.current,
-  .handsontable.listbox tr:hover td {
-    background: #eee;
-  }
-  
-  .ht_editor_hidden {
+/* TODO SCSS Refactoring
+--------------- */
+.ht_editor_hidden {
     z-index: -1;
-  }
-  
-  .ht_editor_visible {
+}
+
+.ht_editor_visible {
     z-index: 200;
-  }
-  
-  .handsontable td.htSearchResult {
-    background: #fcedd9;
-    color: #583707;
-  }
-  
-  .handsontable .collapsibleIndicator {
+}
+    
+.handsontable .collapsibleIndicator {
     position: absolute;
     top: 50%;
     transform: translate(0% ,-50%);
@@ -270,4 +120,4 @@
     box-shadow: 0 0 0 3px rgba(238,238,238,1);
     background: #eee;
     text-align: center;
-  }  
+}  
