@@ -1,3 +1,25 @@
+const specContext = {};
+
+beforeEach(function() {
+  specContext.spec = this;
+});
+afterEach(() => {
+  specContext.spec = null;
+});
+
+beforeAll(() => {
+  // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').hide();
+  }
+});
+afterAll(() => {
+  // After the test are finished show the test suite dots
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').show();
+  }
+});
+
 /**
  * @param {number} [delay=100] The delay in ms after which the Promise is resolved.
  * @returns {Promise}
@@ -139,28 +161,6 @@ export const updateSettings = handsontableMethodFactory('updateSettings');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
 export const unlisten = handsontableMethodFactory('unlisten');
-
-const specContext = {};
-
-beforeEach(function() {
-  specContext.spec = this;
-});
-afterEach(() => {
-  specContext.spec = null;
-});
-
-beforeAll(() => {
-  // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
-  if (!process.env.JEST_WORKER_ID) {
-    $('.jasmine_html-reporter').hide();
-  }
-});
-afterAll(() => {
-  // After the test are finished show the test suite dots
-  if (!process.env.JEST_WORKER_ID) {
-    $('.jasmine_html-reporter').show();
-  }
-});
 
 /**
  * @returns {object} Returns the spec object for currently running test.
