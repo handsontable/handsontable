@@ -9,5 +9,8 @@
 @use "sass:math";
 */
 
-@use "themes/theme-classic-dark";
 @use "base/index";
+
+@use "themes/theme-classic-dark";
+@use "themes/theme-funky";
+@use "themes/theme-modern";

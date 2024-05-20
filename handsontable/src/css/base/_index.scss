@@ -2,7 +2,7 @@
 @use "../ht/index";
 @use "./reset/reset";
 
-@use "./elements/foundation";
+@use "./elements/foundation";               // TO DO
 @use "./elements/licenseInfo";
 @use "./elements/manualColumnResizer";
 @use "./elements/columnSorting";            // TO DO Icons & Sizing
@@ -17,7 +17,7 @@
 @use "./elements/plugins/contextMenu";
 @use "./elements/plugins/filters";          // TO DO
 @use "./elements/plugins/dropdownMenu";     // TO DO Icons & Sizing
-@use "./elements/plugins/comments";
+@use "./elements/plugins/comments";         // TO DO
 
 /* Mobile */
 @use "./elements/mobile";

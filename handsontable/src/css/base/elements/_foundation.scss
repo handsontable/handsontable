@@ -26,6 +26,7 @@
 
 	td, th {
         border-color:  var(--hot-border-color);
+        color: var(--hot-foreground-color);
         /*background-color: var(--hot-background-color); // moved into wtHider */
 
 		&.invisibleSelection {
@@ -75,16 +76,16 @@
     thead {
         th {
             &.active {
-                background-color: var(--hot-header-heighlight-background-color);
+                background-color: var(--hot-header-highlight-background-color);
             }
             &.current {
                 box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 2) var(--hot-header-current-color);
             }
             &.ht__highlight {
-                background-color: var(--hot-header-heighlight-background-color);
+                background-color: var(--hot-header-highlight-background-color);
             }
             &.ht__active_highlight {
-                background-color: var(--hot-header-heighlight-active-background-color);
+                background-color: var(--hot-header-highlight-active-background-color);
                 color: var(--hot-header-active-text-color);
             }
         }

@@ -1,0 +1,80 @@
+.handsontable.theme-modern {
+    --hot-foreground-color: #2c3e50; /* Dark slate gray */
+    --hot-foreground-color-active: #34495e; /* Dark blue-gray */
+    --hot-read-only-text: #95a5a6; /* Light grayish */
+    --hot-placeholder-text: #bdc3c7; /* Very light gray */
+    --hot-background-color: #ecf0f1; /* Very light gray */
+    --hot-border-color: #dfe6e9; /* Light blue-gray */
+    --hot-border-horizontal-size: 1px;
+    --hot-border-vertical-size: 1px;
+    --hot-base-padding: 4px;
+    --hot-separator-color: #dcdde1; /* Very light gray-blue */
+    --hot-header-background-color: #f1f2f6; /* Very light gray-blue */
+    --hot-header-foreground-color: #2c3e50; /* Dark slate gray */
+    --hot-header-active-background-color: var(--hot-border-color);
+    --hot-header-active-text-color: var(--hot-foreground-color-active);
+    --hot-header-highlight-background-color: #dfe6e9; /* Light blue-gray */
+    --hot-header-highlight-active-background-color: #74b9ff; /* Light sky blue */
+    --hot-header-current-color: #0984e3; /* Bright blue */
+    --hot-input-border-color: #74b9ff; /* Light sky blue */
+    --hot-link-accent-color: #0984e3; /* Bright blue */
+    --hot-invalid-background-color: #fab1a0; /* Soft peach */
+    --hot-mobile-focus-color: var(--hot-input-border-color);
+    --hot-column-resizer-color: #00cec9; /* Bright turquoise */
+    --hot-column-resizer-guide-color: #95a5a6; /* Light grayish */
+    --hot-area-color: #55efc4; /* Mint green */
+    --hot-link-color: var(--hot-link-accent-color);
+    --hot-editor-text-color: var(--hot-foreground-color-active);
+    --hot-editor-background-color: var(--hot-background-color);
+    --hot-search-highlight-color: #f39c12; /* Vivid orange */
+    --hot-search-highlight-background-color: #ffefd5; /* Pale peach */
+    --hot-lsitbox-border-color: var(--hot-border-color);
+    --hot-lsitbox-background-color: var(--hot-background-color);
+    --hot-lsitbox-background-current-color: #dfe6e9; /* Light blue-gray */
+    --hot-lsitbox-border-size: 1px;
+    --hot-contextmenu-border-color: var(--hot-border-color);
+    --hot-contextmenu-border-width: 1px 2px 2px 1px;
+    --hot-contextmenu-background-color: var(--hot-background-color);
+    --hot-contextmenu-item-padding: 4px 6px 0 6px;
+    --hot-contextmenu-item-inner-padding: 10px 6px; /* left & right */
+    --hot-contextmenu-item-current-background-color: #dfe6e9; /* Light blue-gray */
+    --hot-contextmenu-separator-color: var(--hot-separator-color);
+    --hot-contextmenu-separator-size: var(--hot-border-horizontal-size);
+    --hot-dropdown-button-background: #dfe6e9; /* Light blue-gray */
+    --hot-dropdown-button-color: #7f8c8d; /* Medium gray */
+    --hot-dropdown-button-hover-color: #95a5a6; /* Light grayish */
+    --hot-dropdown-button-border-size: 1px;
+    --hot-dropdown-button-border-color: #7f8c8d; /* Medium gray */
+    --hot-dropdown-button-radius: 2px;
+    --hot-dropdown-button-padding: 2px;
+    --hot-dropdown-button-margin: 3px 1px 0 5px;
+    --hot-dropdown-border-color: var(--hot-border-color);
+    --hot-dropdown-border-width: 1px 2px 2px 1px;
+    --hot-dropdown-menu-background: var(--hot-background-color);
+    --hot-dropdown-menu-item-padding: 4px 6px 0 6px;
+    --hot-dropdown-menu-item-inner-padding: 10px; /* left & right */
+    --hot-dropdown-menu-item-active: #ecf0f1; /* Very light gray */
+    --hot-dropdown-separator-color: var(--hot-separator-color);
+    --hot-dropdown-separator-size: 1px;
+    --hot-filters-menu-background: var(--hot-background-color);
+    --hot-filters-border-color: #7f8c8d; /* Medium gray */
+    --hot-filters-border-width: 1px 2px 2px 1px;
+    --hot-filters-menu-item-active: #ecf0f1; /* Very light gray */
+    --hot-filters-separator-color: var(--hot-separator-color);
+    --hot-filters-separator-size: 1px;
+    --hot-filters-menu-item-inner-padding: 10px; /* left & right */
+
+    --hot-base-font-size: 14px;
+    --hot-font-family: 'Helvetica Neue', Arial, sans-serif;
+
+    --hot-cell-height: 24px;
+    --hot-cell-line-height: 23px;
+    --hot-cell-horizontal-padding: var(--hot-base-padding);
+    --hot-cell-vertical-padding: 2px;
+
+    --hot-header-horizontal-padding: var(--hot-cell-horizontal-padding);
+    --hot-header-vertical-padding: 4px;
+    --hot-header-line-height: 1.2;
+
+    --hot-resizer-width: 5px;
+}

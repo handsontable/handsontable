@@ -11,13 +11,15 @@
     --hot-border-vertical-size: 1px;
     --hot-base-padding: 4px;
     --hot-separator-color: #e6e6e6;
+
     --hot-header-background-color: #f0f0f0;
     --hot-header-foreground-color: #222222;
     --hot-header-active-background-color: var(--hot-border-color);
     --hot-header-active-text-color: var(--hot-foreground-color-active);
-    --hot-header-heighlight-background-color: #dcdcdc; 
-    --hot-header-heighlight-active-background-color: #8eb0e7;
+    --hot-header-highlight-background-color: #dcdcdc;  /// check
+    --hot-header-highlight-active-background-color: #8eb0e7; ///check
     --hot-header-current-color: #4b89ff;
+
     --hot-input-border-color: #5292F7;
     --hot-link-accent-color: #104acc;
     --hot-invalid-background-color: #ffbeba;
@@ -34,14 +36,7 @@
     --hot-lsitbox-background-color: var(--hot-background-color);
     --hot-lsitbox-background-current-color: #eeeeee;
     --hot-lsitbox-border-size: 1px;
-    --hot-contextmenu-border-color: var(--hot-border-color);
-    --hot-contextmenu-border-width: 1px 2px 2px 1px;
-    --hot-contextmenu-background-color: var(--hot-background-color);
-    --hot-contextmenu-item-padding:4px 6px 0 6px;
-    --hot-contextmenu-item-inner-padding: 10px 6px; //left&right
-    --hot-contextmenu-item-current-background-color:f3f3f3;
-    --hot-contextmenu-separator-color: var(--hot-separator-color);
-    --hot-contextmenu-separator-size: var(--hot-border-horizontal-size);
+
     --hot-dropdown-button-background: #eeeeee;
     --hot-dropdown-button-color:#bbbbbb;
     --hot-dropdown-button-hover-color: #777777;
@@ -58,6 +53,16 @@
     --hot-dropdown-menu-item-active:#e9e9e9;
     --hot-dropdown-separator-color: var(--hot-separator-color);
     --hot-dropdown-separator-size: 1px;
+
+    --hot-contextmenu-border-color: var(--hot-border-color);
+    --hot-contextmenu-border-width: 1px 2px 2px 1px;
+    --hot-contextmenu-background-color: var(--hot-background-color);
+    --hot-contextmenu-item-padding:4px 6px 0 6px;
+    --hot-contextmenu-item-inner-padding: 10px 6px; //left&right
+    --hot-contextmenu-item-current-background-color:f3f3f3;
+    --hot-contextmenu-separator-color: var(--hot-separator-color);
+    --hot-contextmenu-separator-size: var(--hot-border-horizontal-size);
+
     --hot-filters-menu-background: var(--hot-background-color);
     --hot-filters-border-color: #bbbbbb;
     --hot-filters-border-width: 1px 2px 2px 1px;
