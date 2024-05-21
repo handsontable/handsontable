@@ -403,7 +403,8 @@ export class AutocompleteEditor extends HandsontableEditor {
       height = tempHeight - lastRowHeight;
 
       if (this.htEditor.flipped) {
-        this.htEditor.rootElement.style.top = `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`; // eslint-disable-line max-len
+        this.htEditor.rootElement.style.top =
+        `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
       }
 
       this.setDropdownHeight(tempHeight - lastRowHeight);

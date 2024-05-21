@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem, where trying to render a hidden instance made it render all of its rows by disabling the rendering for hidden instances.",
+  "type": "fixed",
+  "issueOrPR": 10989,
+  "breaking": false,
+  "framework": "none"
+}

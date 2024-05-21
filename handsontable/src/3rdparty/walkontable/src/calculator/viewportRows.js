@@ -85,6 +85,10 @@ export class ViewportRowsCalculator {
     } = this.#options;
     const zeroBasedScrollOffset = Math.max(this.#options.scrollOffset, 0);
     const horizontalScrollbarHeight = this.#options.horizontalScrollbarHeight || 0;
+    const innerViewportHeight =
+      zeroBasedScrollOffset +
+      viewportHeight -
+      horizontalScrollbarHeight;
     let sum = 0;
     let needReverse = true;
     const startPositions = [];
@@ -105,7 +109,10 @@ export class ViewportRowsCalculator {
         firstVisibleRowHeight = rowHeight;
       }
 
-      if (sum >= zeroBasedScrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? rowHeight : 0) <= zeroBasedScrollOffset + viewportHeight - horizontalScrollbarHeight) { // eslint-disable-line max-len
+      if (
+        sum >= zeroBasedScrollOffset &&
+        sum + (calculationType === FULLY_VISIBLE_TYPE ? rowHeight : 0) <= innerViewportHeight
+      ) {
         if (this.startRow === null) {
           this.startRow = i;
 
@@ -121,7 +128,7 @@ export class ViewportRowsCalculator {
       if (calculationType !== FULLY_VISIBLE_TYPE) {
         this.endRow = i;
       }
-      if (sum >= zeroBasedScrollOffset + viewportHeight - horizontalScrollbarHeight) {
+      if (sum >= innerViewportHeight) {
         needReverse = false;
         break;
       }
