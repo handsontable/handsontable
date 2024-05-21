@@ -577,4 +577,24 @@ describe('WalkontableTable', () => {
     expect($('.ht_clone_inline_start')[0]).toHaveClass('ht_clone_left');
     expect($('.ht_clone_bottom_inline_start_corner')[0]).toHaveClass('ht_clone_bottom_left_corner');
   });
+
+  it('should not re-render the full table when the table has `display: none` declared', () => {
+    const cellRenderer = jasmine.createSpy('cellRenderer');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer
+    });
+
+    wt.draw();
+
+    expect(cellRenderer).toHaveBeenCalledTimes(18);
+
+    spec().$wrapper.css('display', 'none');
+
+    wt.draw();
+
+    expect(cellRenderer).toHaveBeenCalledTimes(18);
+  });
 });
