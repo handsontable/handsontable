@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 14.3.0
- * Release date: 16/04/2024 (built at 11/04/2024 13:12:29)
+ * Version: 14.4.0
+ * Release date: 28/05/2024 (built at 21/05/2024 10:57:39)
  */
 /**
  * Fix for bootstrap styles
@@ -203,12 +203,11 @@
 }
 
 .handsontable th:first-child,
-.handsontable th:nth-child(2),
 .handsontable td:first-of-type {
   border-left: 1px solid #ccc;
 }
 
-[dir=rtl].handsontable th:first-child, [dir=rtl].handsontable th:nth-child(2), [dir=rtl].handsontable td:first-of-type {
+[dir=rtl].handsontable th:first-child, [dir=rtl].handsontable td:first-of-type {
   border-right: 1px solid #ccc;
 }
 
@@ -1645,7 +1644,7 @@ textarea.HandsontableCopyPaste {
 }
 
 .htUIMultipleSelect .ht_master .wtHolder {
-  overflow-y: scroll;
+  overflow: auto;
 }
 
 .handsontable .htFiltersActive .changeType {

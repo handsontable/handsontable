@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where the table scrolled all the way right after inserting a new row over a table-wide selection.",
-  "type": "fixed",
-  "issueOrPR": 10965,
-  "breaking": false,
-  "framework": "none"
-}

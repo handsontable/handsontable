@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Improved editor's behavior after dataset altering",
-  "type": "changed",
-  "issueOrPR": 10963,
-  "breaking": false,
-  "framework": "none"
-}
