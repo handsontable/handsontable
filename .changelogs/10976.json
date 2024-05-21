@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug that prevents copy/cut/paste from outside elements",
+  "type": "fixed",
+  "issueOrPR": 10976,
+  "breaking": false,
+  "framework": "none"
+}

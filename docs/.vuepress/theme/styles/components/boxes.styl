@@ -6,6 +6,8 @@
     #introduction ~ .boxes-list,
     #open-source-software-components ~ .boxes-list
     #handsontable-api-reference  ~ .boxes-list  {
+        padding: 0
+
         ul {
             margin-top: 24px
             margin-bottom: 24px
@@ -68,7 +70,7 @@
                     border-radius: $radius
                     padding: 12px
                     box-sizing: border-box
-                    background-size: 16px
+                    background-size: 20px
                     background-position: center
                     background-repeat: no-repeat
                     margin-bottom: 16px
@@ -83,14 +85,13 @@
                         top: 24px
                         left: 24px
                         border-radius: $radius
-                        background-color: $sideColor
+                        background-color: $borderColor
                     }
                 }
 
                 a { 
-                    font-weight: 600
+                    font-weight: 500
                     font-size: $font-size-s
-                    letter-spacing: $letter-spacing-s
                     color: $textColor
 
                     &:after {
@@ -167,6 +168,31 @@
 
         @media (max-width: $medium) {
             ul li {
+                width: 100%
+            }
+            &.small {
+                li {
+                    gap: 12px
+
+                    i + a:before {
+                        top: 12px
+                        left: 12px
+                    }
+                }
+            }
+            &.col3 {
+                li {
+                    width: calc(50% - 8px)
+                    padding: 12px
+
+                    a { 
+                        font-size: 12px
+                    }
+                }
+            }
+        }
+        @media (max-width: 360px) {
+            &.col3 li {
                 width: 100%
             }
         }
@@ -259,7 +285,9 @@
         flex-wrap: wrap
         gap: 24px
         margin: 24px 0
-
+        @media (max-width: $medium) {
+            gap: 10px
+        }
         > div  { 
             position: relative
             width: calc((100% / 4) - 18px)
@@ -267,7 +295,10 @@
             border-radius: $radius
             padding: 40px 20px 40px 20px
             box-sizing: border-box
-
+            @media (max-width: $medium) {
+                width: calc((100% / 3) - 7px)
+                padding: 20px 5px 40px 5px
+            }
             svg { 
                 display: block
                 height: 32px
@@ -286,6 +317,9 @@
                 bottom: 8px
                 left 12px
                 right: 12px
+                @media (max-width: $medium) {
+                    line-height: 1.05
+                }
             }
         }
     }

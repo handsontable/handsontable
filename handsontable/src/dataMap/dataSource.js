@@ -118,6 +118,7 @@ class DataSource {
    */
   getAtRow(row, startColumn, endColumn, toArray = false) {
     const getAllProps = startColumn === undefined && endColumn === undefined;
+    const { dataDotNotation } = this.hot.getSettings();
     let dataRow = null;
     let newDataRow = null;
 
@@ -158,15 +159,24 @@ class DataSource {
             if (toArray) {
               newDataRow.push(cellValue);
 
-            } else {
+            } else if (dataDotNotation) {
               setProperty(newDataRow, prop, cellValue);
+
+            } else {
+              newDataRow[prop] = cellValue;
             }
           }
         });
 
       } else {
         objectEach(dataRow, (value, prop) => {
-          setProperty(newDataRow, prop, this.getAtPhysicalCell(row, prop, dataRow));
+          const cellValue = this.getAtPhysicalCell(row, prop, dataRow);
+
+          if (dataDotNotation) {
+            setProperty(newDataRow, prop, cellValue);
+          } else {
+            newDataRow[prop] = cellValue;
+          }
         });
       }
     }
@@ -220,7 +230,9 @@ class DataSource {
 
     if (dataRow) {
       if (typeof column === 'string') {
-        result = getProperty(dataRow, column);
+        const { dataDotNotation } = this.hot.getSettings();
+
+        result = dataDotNotation ? getProperty(dataRow, column) : dataRow[column];
 
       } else if (typeof column === 'function') {
         result = column(dataRow);

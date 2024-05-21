@@ -12,11 +12,15 @@
             border: 1px solid $borderColor
             background: $borderColor
             transition: all $ts ease-in-out
+            outline: 0 !important
 
             @media (hover: hover) {
                 &:hover { 
                     border: 1px solid $accentColor
                 }
+            }
+            &:focus-visible  { 
+                border: 1px solid $accentColor
             }
 
             .DocSearch-Search-Icon { 
@@ -128,11 +132,17 @@ html {
     }
     .DocSearch-Hit-source { 
         padding: 8px 4px 4px
+        position: static
     }
+
     .DocSearch-Footer {
         border-radius: 0 0 $radius-l $radius-l
     }
     
+    .DocSearch--active {
+        overflow: auto !important
+    }
+
     @media (max-width: $large) {
         .DocSearch-Container {
             position fixed

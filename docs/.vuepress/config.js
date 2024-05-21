@@ -71,7 +71,7 @@ module.exports = {
       {
         rel: 'icon',
         media: '(prefers-color-scheme: light)',
-        href: `${getDocsBaseFullUrl()}/favicon.png`,
+        href: `${getDocsBaseFullUrl()}/img/favicon.png`,
       },
     ],
     [
@@ -79,7 +79,7 @@ module.exports = {
       {
         rel: 'icon',
         media: '(prefers-color-scheme: dark)',
-        href: `${getDocsBaseFullUrl()}/favicon-dark.png`,
+        href: `${getDocsBaseFullUrl()}/img/favicon-dark.png`,
       },
     ],
     [
@@ -102,6 +102,7 @@ module.exports = {
       `
       window.sentryOnLoad = function () {
         Sentry.init({
+          environment: '${buildMode || 'testing'}',
           tracesSampleRate: 0,
           profilesSampleRate: 0,
           replaysSessionSampleRate: 0,

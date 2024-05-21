@@ -85,7 +85,7 @@
                         }
                     }
                     
-                    &:not(.roadmap) {
+                    &:not(.no-active) {
                         a, button {
                             &.router-link-active { 
                                 position relative
@@ -124,7 +124,13 @@
                         gap:6px
                         font-weight: 400
                         border-radius: $radius
-                        transition: all $t ease-in-out 
+                        transition: all $ts ease-in-out 
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+                            }
+                        }
                     }
 
                     button { 
@@ -213,7 +219,7 @@
                 background: none
                 border:0
                 cursor pointer
-                transition all $t ease
+                transition all $ts ease
                 text-transform: capitalize
                 font-size: $font-size-xs
                 line-height: $line-height-xs
@@ -223,7 +229,7 @@
                 }
 
                 i { 
-                    transition all $t ease
+                    transition all $ts ease
 
                     &.i-arrow { 
                         opacity .64
@@ -251,7 +257,7 @@
             }
 
             .nav-dropdown { 
-                transition all $t ease
+                transition all $ts ease
                 display:block !important
                 visibility: hidden
                 opacity 0
@@ -271,7 +277,7 @@
                     padding: 6px 8px 
                     border:0
                     position: relative
-                    transition all $t ease
+                    transition all $ts ease
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
@@ -288,7 +294,7 @@
                         z-index -1
                         border-radius: $radius
                         opacity: 0
-                        transition all $t ease
+                        transition all $ts ease
                     }
 
                     @media (hover: hover) {

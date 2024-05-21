@@ -5,12 +5,11 @@ import plPL from 'hyperformula/es/i18n/languages/plPL';
 
 describe('Formulas general', () => {
   const debug = false;
-  const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-    this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
-    this.$container3 = $(`<div id="${id}-3"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+    this.$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
+    this.$container3 = $('<div id="testContainer-3"></div>').appendTo('body');
   });
 
   afterEach(function() {

@@ -1,3 +1,28 @@
+/**
+ * Test context object.
+ *
+ * @type {object}
+ */
+const specContext = {};
+
+beforeEach(function() {
+  specContext.spec = this;
+});
+
+afterEach(() => {
+  specContext.spec = null;
+  window.scrollTo(0, 0);
+});
+
+beforeAll(() => {
+  // Make the test more predictable by hiding the test suite dots
+  $('.jasmine_html-reporter').hide();
+});
+afterAll(() => {
+  // After the test are finished show the test suite dots
+  $('.jasmine_html-reporter').show();
+});
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The function allows you to run the test suites based on different parameters (object configuration, datasets etc).
@@ -45,13 +70,6 @@ export function sleep(delay = 100) {
     }
   });
 }
-
-/**
- * Test context object.
- *
- * @type {object}
- */
-const specContext = {};
 
 /**
  * Get the test case context.
@@ -154,24 +172,6 @@ export function getTotalColumns() {
 export function wheelOnElement(elem, deltaX = 0, deltaY = 0) {
   elem.dispatchEvent(new WheelEvent('wheel', { deltaX, deltaY }));
 }
-
-beforeEach(function() {
-  specContext.spec = this;
-});
-
-afterEach(() => {
-  specContext.spec = null;
-  window.scrollTo(0, 0);
-});
-
-beforeAll(() => {
-  // Make the test more predictable by hiding the test suite dots
-  $('.jasmine_html-reporter').hide();
-});
-afterAll(() => {
-  // After the test are finished show the test suite dots
-  $('.jasmine_html-reporter').show();
-});
 
 /**
  * Returns the table width.

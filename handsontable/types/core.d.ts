@@ -25,8 +25,8 @@ type AlterActions = 'insert_row_above' | 'insert_row_below' |
                     'remove_row' | 'remove_col';
 
 export default class Core {
-  addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
-  addHookOnce<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
+  addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, orderIndex?: number): void;
+  addHookOnce<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, orderIndex?: number): void;
   alter(action: AlterActions, index?: number | Array<[number, number]>, amount?: number, source?: string, keepEmptyRows?: boolean): void;
   batch<R>(wrappedOperations: () => R): R;
   batchExecution<R>(wrappedOperations: () => R, forceFlushChanges: boolean): R;

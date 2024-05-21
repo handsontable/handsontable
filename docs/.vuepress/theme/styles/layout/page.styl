@@ -11,7 +11,7 @@
 .header-framework {display: none !important}
 .page { 
     opacity 1
-    margin: 96px 380px 0
+    margin: 80px 380px 0
     padding: 0 0 24px 0
     position: relative
     z-index: 1
@@ -59,6 +59,18 @@
             padding: 0
             font-family: $font
             font-weight: 600
+
+            @media (max-width: $large) {
+                margin-left: 0
+            }
+        }
+
+        .instalationPage h2 {
+            font-size:  $font-size
+        }
+
+        .instalationPage .example-container {
+            padding: 16px 0 0
         }
 
         h1, h2, h3, h4, h5, h6 {
@@ -97,20 +109,26 @@
             line-height: $line-height-xl
             font-weight: 400
             margin:0!important
-            padding: 48px 0 0
+            padding: 40px 0 0
             position: relative
             
+            @media (max-width: $medium) {
+                font-size: $font-size-l
+                line-height: $line-height-l
+            }
+
             + p {
                 border-bottom: 1px solid $lightBorderColor
                 padding-bottom: 24px
-                margin-bottom: 24px
+                margin-bottom: 16px
                 display: block
             }
+            
         }
 
         h2 { 
             padding-top: 32px
-            padding-bottom: 8px
+            padding-bottom: 0px
             font-size: $font-size-l
             line-height: $line-height-l
             margin: 0
@@ -119,7 +137,7 @@
 
         h3 { 
             padding-top: 24px
-            padding-bottom: 8px
+            padding-bottom: 0px
             font-size: $font-size
             line-height: $line-height
             margin: 0
@@ -159,6 +177,10 @@
 
             a { 
                 text-decoration-color: none
+
+                &[rel="noopener"] {
+                    white-space nowrap
+                }
             }
 
             &:empty { 
@@ -168,6 +190,7 @@
             > img {
                 margin: 16px 0
             }
+            
         }
         
         li {
@@ -255,6 +278,10 @@
         }
     }
 
+    table {
+        text-size-adjust: none;
+    }
+
     table.htCore {
         display: table
     }
@@ -267,7 +294,10 @@
         width: 100% //calc(100% + 32px)
         box-shadow: 0 0 0 1px $borderColor 
         border-radius: $radius
-        overflow: hidden
+        overflow: auto
+        display: table
+        table-layout: fixed;
+        overflow-wrap: break-word;
 
         img {
             max-height: 80px
@@ -352,6 +382,7 @@
             overflow-x: auto
 
             td { 
+                font-size: 16px;
                 white-space: nowrap;
             }
         }
@@ -363,17 +394,11 @@
 
             pre {
                 padding: 16px 16px
-                margin: 22px -16px 0
+                margin: 22px 0 0
                 border-radius: $radius
             }
 
             .theme-code-group {
-                margin: 0 -32px
-
-                .theme-code-group__nav {
-                    padding: 8px 32px 16px
-                    border-radius: 0
-                }
 
                 pre { 
                     border-radius: 0 

@@ -14,19 +14,15 @@ category: Getting started
 
 # Introduction
 
-Handsontable is an popular JavaScript data grid component that brings the well-known look and feel of spreadsheets to your application. You can use Handsontable for all types of data-rich, accessible applications, empowering users to enter, edit, validate, and cleanse the data from remote sources such as databases and APIs or from HTML documents, Excel files, Google Sheets, and manual input.
+Handsontable is a popular JavaScript data grid component that brings the well-known look and feel of spreadsheets to your application.
 
-```md
-[![npm](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
-[![npm](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
-```
+You can use Handsontable for all types of data-rich, accessible applications, empowering users to enter, edit, validate, and process data from various sources, including remote sources like databases and APIs, as well as HTML documents, Excel files, Google Sheets, and manual input.
 
 [[toc]]
 
 ## Getting started 🚀
 
-Use Handsontable with pure JavaScript or a framework of your choice. The guides will walk you through the basics, from installation to creating your first data grid.
+Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. This guide will walk you through the basics, from installation to creating your first data grid.
 
 <div class="boxes-list gray small col3">
 
@@ -37,37 +33,38 @@ Use Handsontable with pure JavaScript or a framework of your choice. The guides 
 - <i class="ico i-angular"></i> 
 [Angular](@/guides/integrate-with-angular/angular-installation/angular-installation.md)
 - <i class="ico i-vue"></i> 
-[Vue 3](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
+[Vue 2](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
 - <i class="ico i-vue"></i> 
-[Vue 2](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
+[Vue 3](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
 
 </div>
 
-### Examples with SSR
+## Examples with SSR
 
 <div class="boxes-list gray col3">
 
-- [Astro SSR](http://codesandbox.io)
-- [Node.js SSR](http://codesandbox.io) 
-- [Gatsby SSR](http://codesandbox.io)
-- [Remix SSR](http://codesandbox.io)
-- [Nuxt SSR](http://codesandbox.io)
+- [Next.js](https://stackblitz.com/edit/stackblitz-starters-ie1h3d?file=README.md)
+- [Astro](https://stackblitz.com/edit/withastro-astro-1dnjnf?file=README.md) 
+- [Remix](https://stackblitz.com/edit/remix-run-remix-yewmxd?file=README.md)
+- [Nuxt](https://stackblitz.com/edit/nuxt-starter-zqydax?file=README.md)
 
 </div>
 
 ## What can I use Handsontable for?
 
-Think of Handsontable as an extensible framework that lets you quickly build tabular, data-oriented user interfaces. Handsontable helps developers solve real-life problems.
+Think of Handsontable as an extensible framework that empowers you to quickly build tabular, data-oriented user interfaces tailored to your specific needs. With Handsontable, developers can efficiently tackle real-life problems by leveraging its flexibility and customization options.
 
-- In an internal financial application, an editable, Handsontable-based grid simplifies importing hand-picked data from Excel and Google Sheets.
+Examples include:
+
+- In an internal financial application, an editable Handsontable-based grid simplifies importing hand-picked data from Excel and Google Sheets.
 - In a construction company's software, an interactive data table built with Handsontable helps users modify codes and standards tables.
 - At a hospital, Handsontable helps track and manage supplies.
-- A mobile game company uses Handsontable to streamline certain aspects of the development.
-- In project management software, Handsontable allows managers to collect weekly feedback from the team and customers.
+- A mobile game company uses Handsontable to streamline certain aspects of development.
+- In project management software, Handsontable allows for managers to collect weekly feedback from the team and customers.
 
 Discover more about how Handsontable is used in different industries by visiting our [Successful Customers](https://handsontable.com/customers/) page.
 
-### Types of software
+## Types of software
 
 Handsontable's built-in features make it a perfect fit for applications across different types of software.
 
@@ -83,7 +80,11 @@ Handsontable's built-in features make it a perfect fit for applications across d
 
 ## Join our Community 🙌
 
-You are welcome to join our GitHub community. Discuss new releases, propose features, and report bugs on [GitHub Discussions](https://github.com/handsontable/handsontable/discussions), [Developers' forum](https://forum.handsontable.com/), [Twitter](https://twitter.com/handsontable), or [Stack Overflow](https://stackoverflow.com/tags/handsontable).
+You are welcome to join our GitHub community. Discuss new releases, propose features, and report bugs on:
+- [GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
+- [Developers' forum](https://forum.handsontable.com/)
+- [Twitter](https://twitter.com/handsontable)
+- [Stack Overflow](https://stackoverflow.com/tags/handsontable)
 
 ## Technical support
 
@@ -91,7 +92,7 @@ Implementing Handsontable requires a certain level of front-end development skil
 
 ## Stay in the loop
 
-- [Roadmap](@/guides/upgrade-and-migration/release-notes/roadmap.md)
+- [Roadmap](@/guides/upgrade-and-migration/roadmap/roadmap.md)
 - [Release notes](@/guides/upgrade-and-migration/release-notes/release-notes.md)
 - [Blog](https://handsontable.com/blog)
 - [Twitter](https://twitter.com/handsontable)
