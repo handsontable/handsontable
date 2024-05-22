@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.4.0
- * Release date: 28/05/2024 (built at 21/05/2024 12:18:54)
+ * Release date: 28/05/2024 (built at 22/05/2024 12:56:05)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -107,7 +107,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "21/05/2024 12:18:54";
+Handsontable.buildDate = "22/05/2024 12:56:05";
 Handsontable.version = "14.4.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -70945,7 +70945,6 @@ class MultipleSelectUI extends _base.BaseUI {
           }
           return width;
         },
-        hiddenRows: true,
         maxCols: 1,
         autoWrapCol: true,
         height: 110,
@@ -71035,16 +71034,13 @@ class MultipleSelectUI extends _base.BaseUI {
 exports.MultipleSelectUI = MultipleSelectUI;
 function _onInput(event) {
   const value = event.target.value.toLocaleLowerCase(this.getLocale());
-  const hiddenRows = _classPrivateFieldGet(_itemsBox, this).getPlugin('hiddenRows');
-  hiddenRows.showRows(hiddenRows.getHiddenRows());
-  _classPrivateFieldGet(_items, this).forEach((item, index) => {
-    item.checked = `${item.value}`.toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0;
-    if (!item.checked) {
-      hiddenRows.hideRow(index);
-    }
-  });
-  _classPrivateFieldGet(_itemsBox, this).view.adjustElementsSize();
-  _classPrivateFieldGet(_itemsBox, this).render();
+  let filteredItems;
+  if (value === '') {
+    filteredItems = [..._classPrivateFieldGet(_items, this)];
+  } else {
+    filteredItems = _classPrivateFieldGet(_items, this).filter(item => `${item.value}`.toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0);
+  }
+  _classPrivateFieldGet(_itemsBox, this).loadData(filteredItems);
 }
 /**
  * 'keydown' event listener for input element.
