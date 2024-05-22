@@ -6,7 +6,6 @@
     bottom: 0
     border:0
     z-index: 100
-    //border-radius: $radius-xxl
     padding: 24px 0
     background: transparent
     overflow: hidden
@@ -14,16 +13,16 @@
     display: flex
 
     .os-scrollbar {
-        //top: 24px !important
 
         .os-scrollbar-handle { 
             background: $borderColor
         }
     }
-    
-    .sidebar-nav{
+
+    .mobile-nav {
+        display: none
     }
-    
+
     .home-link { 
         display: block;
         padding: 24px
@@ -340,7 +339,6 @@
     }
 
     .mobile-show {
-        
         .nav-links {
             display: flex
             flex-direction: column
@@ -441,6 +439,7 @@
                         }
                     }
             }
+
             @media (hover: hover) {
                 &:hover { 
                     > button { 
@@ -571,12 +570,100 @@
     }
 }
 
-@media (max-width: $large) {
-    .sidebar{
-        .sidebar-links:first-child {
-            margin-top: 16px
+@media (max-width: $xLarge) {
+  .mobile-nav {
+    border-bottom: 1px solid $borderColor
+    margin-bottom: 12px
+    padding-bottom: 12px
+    display: block !important;
+
+
+    .nav-frameworks {
+        button, 
+        .ico {
+            display: none
+        }
+        
+        .nav-dropdown { 
+            display: flex !important
+            margin: 16px
+            padding: 4px
+            border-radius: $radius-xl
+            background: $sideColor
+
+            li {
+                display: block
+                width 100%
+            }
+            a { 
+                padding: 7px
+                display: block
+                text-align: center
+                border-radius: $radius
+            }
+        }
+    }
+
+    /* active item */
+    .i-react + .nav-item .nav-dropdown .dropdown-item:nth-child(2) a,
+    .i-javascript + .nav-item .nav-dropdown .dropdown-item:nth-child(1) a  {
+        background: $borderColor
+    }
+
+    .nav-links {
+        .roadmap { 
+            display: none
         }
 
+        &:not(.nav-frameworks) {
+            div:first-child {
+                display: none
+            }
+        }
+
+        a { 
+            display: flex
+            gap: 8px
+            align-items: center
+            padding: 12px 32px
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+            font-weight: 400
+            color: $text2Color
+            transition all $t ease
+            cursor: pointer
+            border: none
+
+            span {
+                width: 100%
+            }
+
+            i {
+                opacity .7
+                transition all $t ease
+                background-size: 18px 
+            }
+            
+            .i-arrow { 
+                opacity: .5    
+            }
+
+            &.active { 
+                color: $textColor
+                i { opacity: 1}
+                .i-arrow { 
+                    transform: rotate(180deg)
+                }
+            }
+
+            
+        }
+    }
+}
+}
+
+@media (max-width: $large) {
+    .sidebar{
         z-index: 100
         background: $bgColor
         margin: 0
@@ -587,6 +674,10 @@
         padding-bottom: 0
         width: 100%
         max-width: 100vw
+
+        .sidebar-links:first-child {
+            margin-top: 16px
+        }
 
         .info-box { 
             margin-top: 16px

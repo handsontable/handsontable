@@ -1,11 +1,8 @@
 import HyperFormula from 'hyperformula';
 
 describe('Formulas general', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
     this.hfInstance = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
   });
 

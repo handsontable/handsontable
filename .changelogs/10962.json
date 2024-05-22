@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Synchronized the `rollup` version between the wrappers and updated the `rollup` plugin dependencies. ",
+  "type": "changed",
+  "issueOrPR": 10962,
+  "breaking": false,
+  "framework": "react"
+}

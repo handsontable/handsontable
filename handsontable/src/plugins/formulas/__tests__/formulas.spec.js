@@ -13,10 +13,9 @@ const autofill = (endRow, endCol) => {
 
 describe('Formulas general', () => {
   const debug = false;
-  const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -717,6 +716,24 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(3)).toEqual([2012, 6033, 8049, '#REF!', 12, '=SUM(E5)']);
     });
 
+    it('should correctly remove rows with bigger index than 10 (#dev-1841)', () => {
+      handsontable({
+        data: createSpreadsheetData(20, 5),
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const engine = getPlugin('formulas').engine;
+
+      spyOn(engine, 'removeRows').and.callThrough();
+      alter('remove_row', 9, 3);
+
+      expect(engine.removeRows.calls.argsFor(0)).toEqual([0, [11, 1]]);
+      expect(engine.removeRows.calls.argsFor(1)).toEqual([0, [10, 1]]);
+      expect(engine.removeRows.calls.argsFor(2)).toEqual([0, [9, 1]]);
+    });
+
     it('should not throw an error after removing all rows', () => {
       expect(() => {
         handsontable({
@@ -885,6 +902,24 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(2)).toEqual([2010, 2905, 2867, 2016, '#REF!']);
       expect(hot.getDataAtRow(3)).toEqual([2011, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(4)).toEqual([2012, '#REF!', '#REF!', 12, '=SUM(E5)']);
+    });
+
+    it('should correctly remove columns with bigger index than 10 (#dev-1841)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 20),
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const engine = getPlugin('formulas').engine;
+
+      spyOn(engine, 'removeColumns').and.callThrough();
+      alter('remove_col', 9, 3);
+
+      expect(engine.removeColumns.calls.argsFor(0)).toEqual([0, [11, 1]]);
+      expect(engine.removeColumns.calls.argsFor(1)).toEqual([0, [10, 1]]);
+      expect(engine.removeColumns.calls.argsFor(2)).toEqual([0, [9, 1]]);
     });
 
     it('should recalculate table and replace coordinates in formula expressions into #REF! ' +

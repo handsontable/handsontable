@@ -5,7 +5,12 @@
 </template>
 
 <script lang="ts">
+// eslint-disable-next-line  @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import { defineComponent, VNode, markRaw } from 'vue';
+// TODO: The line above is ts-ignored because rollup-plugin-typescript2 throws an error otherwise.
+// It's most probably caused by outdated rollup-plugin-vue which is no longer maintained.
+
 import Handsontable from 'handsontable/base';
 import {
   HOT_DESTROYED_WARNING,

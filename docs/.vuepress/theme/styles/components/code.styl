@@ -69,6 +69,11 @@
                     border-color: $linkColor
                 }
             }
+
+            @media (max-width: $medium) {
+                position static
+                float none
+            }
         }
 
         pre { 
@@ -251,6 +256,10 @@
                 opacity 1
             }
         }
+
+        @media (hover: none) {
+            opacity 1
+        }
     }
 
     .report {
@@ -317,6 +326,10 @@ output.console {
     background: $sideColor
     white-space: pre-line;
     display: inline-block
+    overflow-y: auto
+    br { 
+        display: block
+    }
 
     &:last-child {
         margin-bottom: 0
