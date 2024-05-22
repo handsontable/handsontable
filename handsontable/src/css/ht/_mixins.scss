@@ -15,6 +15,20 @@
     -webkit-overflow-scrolling: touch;
 }
 
+@mixin coursor-grab {
+    cursor: move;
+	cursor: -moz-grab;
+	cursor: -webkit-grab;
+	cursor: grab;
+}
+
+@mixin coursor-grabbing {
+	cursor: move;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+    cursor: grabbing;
+}
+
 @mixin box-shadow($box-shadow) {
     -webkit-box-shadow: $box-shadow;
 	   -moz-box-shadow: $box-shadow;

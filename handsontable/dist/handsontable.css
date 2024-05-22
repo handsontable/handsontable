@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.2.0
- * Release date: 06/03/2024 (built at 20/05/2024 13:21:43)
+ * Release date: 06/03/2024 (built at 22/05/2024 16:17:41)
  */
 @charset "UTF-8";
 /*
@@ -196,7 +196,7 @@
   --hot-hidden-dimension-indicator-margin-column: 1px;
   --hot-hidden-dimension-indicator-margin-row: 2px;
   --hot-hidden-dimension-indicator-color: #bbbbbb;
-  --hot-hidden-dimension-indicator-color-highlighted: #bbbbbb;
+  --hot-hidden-dimension-indicator-color-highlighted: #eeeeee;
 }
 
 .handsontable {
@@ -1603,6 +1603,57 @@
   box-shadow: var(--hot-comment-textarea-focus-shadow);
   border-inline-start: var(--hot-comment-textarea-border-size) solid var(--hot-comment-textarea-focus-color);
   border-inline-end: none;
+}
+
+/*
+    Handsontable Column Freeze
+*/
+.htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone_top_inline_start_corner th:nth-child(2), .htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone_inline_start td:first-of-type {
+  border-left: 0 none;
+}
+
+/*
+    Handsontable Column Move
+*/
+.handsontable .wtHider {
+  position: relative;
+}
+.handsontable .ht__manualColumnMove.after-selection--columns thead th.ht__highlight {
+  cursor: move;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+.handsontable .ht__manualColumnMove.on-moving--columns *,
+.handsontable .ht__manualColumnMove.on-moving--columns thead th.ht__highlight {
+  @incluse coursor-grabbing;
+}
+.handsontable .ht__manualColumnMove.on-moving--columns .manualColumnResizer {
+  display: none;
+}
+.handsontable .ht__manualColumnMove--guideline, .handsontable .ht__manualColumnMove--backlight {
+  position: absolute;
+  height: 100%;
+  display: none;
+}
+.handsontable .ht__manualColumnMove--guideline {
+  background: #757575;
+  width: 2px;
+  top: 0;
+  margin-inline-start: -1px;
+  margin-inline-end: 0;
+  z-index: 205;
+}
+.handsontable .ht__manualColumnMove--backlight {
+  background: #343434;
+  background: rgba(52, 52, 52, 0.25);
+  display: none;
+  z-index: 205;
+  pointer-events: none;
+}
+.handsontable.on-moving--columns.show-ui .ht__manualColumnMove--guideline,
+.handsontable.on-moving--columns .ht__manualColumnMove--backlight {
+  display: block;
 }
 
 /* Mobile */

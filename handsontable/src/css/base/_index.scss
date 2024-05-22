@@ -15,11 +15,14 @@
 
 /* Plugins */
 @use "./elements/plugins/hiddenColumns";    // TO DO Icons & Sizing
-@use "./elements/plugins/hiddenRows";       // TO DO 
+@use "./elements/plugins/hiddenRows";       // TO DO Icons & Sizing
 @use "./elements/plugins/contextMenu";
 @use "./elements/plugins/filters";          
 @use "./elements/plugins/dropdownMenu";     // TO DO Icons & Sizing
 @use "./elements/plugins/comments";         
+@use "./elements/plugins/manualColumnFreeze";
+@use "./elements/plugins/manualColumnMove"; // TODO
+
 
 /* Mobile */
 @use "./elements/mobile";
