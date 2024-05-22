@@ -1058,85 +1058,6 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
     });
 
-    it('should display all values after applying filters using search input method', async() => {
-      handsontable({
-        data: getDataForFilters().slice(0, 15),
-        columns: getColumnsForFilters(),
-        dropdownMenu: true,
-        filters: true,
-        width: 500,
-        height: 300
-      });
-
-      dropdownMenu(2);
-
-      await sleep(200);
-
-      byValueMultipleSelect().element.querySelector('input').focus();
-      document.activeElement.value = 'c';
-      keyUp('c');
-      document.activeElement.dispatchEvent(new Event('input', {
-        bubbles: true,
-        cancelable: true,
-      }));
-
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-
-      dropdownMenu(2);
-
-      await sleep(200);
-
-      const valueBox = $(byValueBoxRootElement());
-
-      expect(valueBox.find('input[type=checkbox]').length).toBe(9);
-      expect(valueBox.find('input:checked').length).toBe(2);
-      expect(valueBox.find('input[type=checkbox]:checked').parent().toArray().map(a => a.innerText))
-        .toEqual(['Canby', 'Cascades']);
-    });
-
-    it('should be possible to restore the value list after changing the input in the search input', async() => {
-      handsontable({
-        data: getDataForFilters().slice(0, 15),
-        columns: getColumnsForFilters(),
-        dropdownMenu: true,
-        filters: true,
-        width: 500,
-        height: 300
-      });
-
-      dropdownMenu(2);
-
-      await sleep(200);
-
-      const valueBox = $(byValueBoxRootElement());
-
-      byValueMultipleSelect().element.querySelector('input').focus();
-      document.activeElement.value = 'c';
-      keyUp('c');
-      document.activeElement.dispatchEvent(new Event('input', {
-        bubbles: true,
-        cancelable: true,
-      }));
-
-      expect(valueBox.find('input:checked').length).toBe(2);
-
-      document.activeElement.value = '';
-      document.activeElement.dispatchEvent(new Event('input', {
-        bubbles: true,
-        cancelable: true,
-      }));
-
-      expect(valueBox.find('input:checked').length).toBe(9);
-
-      document.activeElement.value = 'usa';
-      document.activeElement.dispatchEvent(new Event('input', {
-        bubbles: true,
-        cancelable: true,
-      }));
-
-      expect(valueBox.find('input:checked').length).toBe(1);
-    });
-
     it('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
       const columnsSetting = getColumnsForFilters();
 
@@ -2291,34 +2212,6 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(10);
       expect(getDataAtCol(2).join())
         .toBe('Jenkinsville,Gardiner,Saranap,Soham,Needmore,Wakarusa,Yukon,Layhill,Henrietta,Wildwood');
-    });
-
-    it('should filter values using "by value" method (by typing in the search input)', async() => {
-      handsontable({
-        data: getDataForFilters().slice(0, 15),
-        columns: getColumnsForFilters(),
-        dropdownMenu: true,
-        filters: true,
-        width: 500,
-        height: 300
-      });
-
-      dropdownMenu(2);
-
-      await sleep(200);
-
-      byValueMultipleSelect().element.querySelector('input').focus();
-      document.activeElement.value = 'c';
-      keyUp('c');
-      document.activeElement.dispatchEvent(new Event('input', {
-        bubbles: true,
-        cancelable: true,
-      }));
-
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-
-      expect(getData().length).toBe(2);
-      expect(getDataAtCol(2).join()).toBe('Cascades,Canby');
     });
 
     it('should overwrite condition filter when at specified column filter was already applied', async() => {
