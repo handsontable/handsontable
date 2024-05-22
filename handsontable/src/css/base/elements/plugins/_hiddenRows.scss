@@ -1,0 +1,44 @@
+
+/*
+    Handsontable HiddenRows
+*/
+
+.handsontable {
+    th.beforeHiddenRow,
+    th.afterHiddenRow {
+        position: relative;
+
+        &:before,
+        &:after {
+            color: var(--hot-hidden-dimension-indicator-color);
+            font-size: 6pt;
+            line-height: 6pt;
+            position: absolute;
+            left: var(--hot-hidden-dimension-indicator-margin-row);
+        }
+    }
+
+    th.beforeHiddenRow::before {
+        content: '\25B2';
+        bottom: var(--hot-hidden-dimension-indicator-margin-row);
+    }
+
+    th.afterHiddenRow::after {
+        content: '\25BC';
+        top: var(--hot-hidden-dimension-indicator-margin-row);
+    }
+
+    &.ht__selection--rows tbody {
+        th.beforeHiddenRow.ht__highlight:before,
+        th.afterHiddenRow.ht__highlight:after {
+            color: var(--hot-hidden-dimension-indicator-color-highlighted);
+        }
+    }
+
+    td,
+    th {
+        &.afterHiddenRow.firstVisibleRow {
+            border-top: var(--hot-border-horizontal-size) solid var(--hot-border-color);
+        }
+    }
+}

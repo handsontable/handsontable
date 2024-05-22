@@ -22,8 +22,13 @@
 			border: var(--hot-dropdown-button-border-size) solid var(--hot-dropdown-button-hover-color);
 			color: var(--hot-dropdown-button-hover-color);
 			cursor: pointer;
-		}
+		} 
   	}
+	.htFiltersActive .changeType {
+		border: var(--hot-dropdown-button-border-size) solid var(--hot-dropdown-button-border-active-color);
+		color: var(--hot-dropdown-button-background-active-color);
+		background-color: var(--hot-dropdown-button-background-active);
+	}
 }
 
 .htDropdownMenu {
@@ -63,7 +68,7 @@
 	table tbody tr td {
 		background: var(--hot-dropdown-menu-background);
 		border-width: 0;
-		padding: --hot-dropdown-menu-item-padding;
+		padding: var(--hot-dropdown-menu-item-padding);
 		cursor: pointer;
 		overflow: hidden;
 		white-space: nowrap;

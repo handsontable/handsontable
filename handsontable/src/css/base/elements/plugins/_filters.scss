@@ -1,6 +1,9 @@
 /*
     Handsontable Filters
- */
+*/
+
+@import "../../../ht/mixins";
+
 
 /* Conditions menu */
 .htFiltersConditionsMenu {
@@ -85,217 +88,76 @@
 		}
 	}
 }
-  
-/* TODO */
-  .handsontable .htMenuFiltering {
-    border-bottom: 1px dotted #ccc;
-    height: 135px;
-    overflow: hidden;
-  }
-  
-  .handsontable .ht_master table td.htCustomMenuRenderer {
-    background-color: #fff;
-    cursor: auto;
-  }
-  
-  /* Menu label */
-  .handsontable .htFiltersMenuLabel {
-    font-size: 0.75em;
-  }
-  
-  /* Component action bar */
-  .handsontable .htFiltersMenuActionBar {
-    text-align: center;
-    padding-top: 10px;
-    padding-bottom: 3px;
-  }
-  
-  /* Component filter by conditional */
-  .handsontable .htFiltersMenuCondition.border {
-    border-bottom: 1px dotted #ccc !important;
-  }
-  .handsontable .htFiltersMenuCondition .htUIInput {
-    padding: 0 0 5px 0;
-  }
-  
-  /* Component filter by value */
-  .handsontable .htFiltersMenuValue {
-    border-bottom: 1px dotted #ccc !important;
-  }
-  .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch {
-    padding: 0;
-  }
-  .handsontable .htFiltersMenuCondition .htUIInput input,
-  .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
-    font-family: inherit;
-    font-size: 0.75em;
-    padding: 4px;
-    box-sizing: border-box;
-    width: 100%;
-  }
-  
-  .htUIMultipleSelect .ht_master .wtHolder {
-    overflow-y: scroll;
-  }
-  
-  .handsontable .htFiltersActive .changeType {
-    border: 1px solid #509272;
-    color: #18804e;
-    background-color: #d2e0d9;
-  }
-  
-  .handsontable .htUISelectAll {
-    margin-inline-start: 0;
-    margin-inline-end: 10px;
-  }
-  
-  .handsontable .htUIClearAll, .handsontable .htUISelectAll {
-    display: inline-block;
-  }
-  
-  .handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
-    font-size: 0.75em;
-  }
-  
-  .handsontable .htUISelectionControls {
-    text-align: inline-end;
-  }
-  
-  .handsontable .htCheckboxRendererInput {
-    margin-top: 0;
-    margin-inline-end: 5px;
-    margin-bottom: 0;
-    margin-inline-start: 0;
-    vertical-align: middle;
-    height: 1em;
-  }
-  
-  /* UI elements */
-  /* Input */
-  .handsontable .htUIInput {
-    padding: 3px 0 7px 0;
-    position: relative;
-    text-align: center;
-  }
-  .handsontable .htUIInput input {
-    border-radius: 2px;
-    border: 1px solid #d2d1d1;
-  }
-  .handsontable .htUIInputIcon {
-    position: absolute;
-  }
-  
-  /* Button */
-  .handsontable .htUIInput.htUIButton {
-    cursor: pointer;
-    display: inline-block;
-  }
-  .handsontable .htUIInput.htUIButton input {
-    background-color: #eee;
-    color: #000;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 0.75em;
-    font-weight: bold;
-    height: 19px;
-    min-width: 64px;
-  }
-  .handsontable .htUIInput.htUIButton input:hover {
-    border-color: #b9b9b9;
-  }
-  
-  .handsontable .htUIInput.htUIButtonOK {
-    margin-inline-start: 0;
-    margin-inline-end: 10px;
-  }
-  
-  .handsontable .htUIInput.htUIButtonOK input {
-    background-color: #0f9d58;
-    border-color: #18804e;
-    color: #fff;
-  }
-  
-  .handsontable .htUIInput.htUIButtonOK input:focus-visible {
-    background-color: #92dd8d;
-    border-color: #7cb878;
-    color: #000;
-  }
-  
-  .handsontable .htUIInput.htUIButtonOK input:hover {
-    border-color: #1a6f46;
-  }
-  
-  /* Select */
-  .handsontable .htUISelect {
-    cursor: pointer;
-    margin-bottom: 7px;
-    position: relative;
-  }
-  .handsontable .htUISelectCaption {
-    background-color: #e8e8e8;
-    border-radius: 2px;
-    border: 1px solid #d2d1d1;
-    font-family: inherit;
-    font-size: 0.75em;
-    font-weight: bold;
-    padding: 3px 20px 3px 10px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-  .handsontable .htUISelectCaption:hover {
-    background-color: #e8e8e8;
-    border: 1px solid #b9b9b9;
-  }
-  .handsontable .htUISelectDropdown:after {
-    content: '\25B2';
-    font-size: 7px;
-    position: absolute;
-    right: 10px;
-    top: 0;
-  }
-  .handsontable .htUISelectDropdown:before {
-    content: '\25BC';
-    font-size: 7px;
-    position: absolute;
-    right: 10px;
-    top: 8px;
-  }
-  
-  /* SelectMultiple */
-  .handsontable .htUIMultipleSelect .handsontable .htCore {
-    border: none;
-  }
-  .handsontable .htUIMultipleSelect .handsontable .htCore td:hover {
-    background-color: #F5F5F5;
-  }
-  
-  .handsontable .htUIMultipleSelectSearch input {
-    border-radius: 2px;
-    border: 1px solid #d2d1d1;
-    padding: 3px;
-  }
-  
-  .handsontable .htUIRadio {
-    display: inline-block;
-    margin-inline-start: 0;
-    margin-inline-end: 5px;
-    height: 100%;
-  }
-  
-  .handsontable .htUIRadio:last-child {
-    margin-right: 0;
-  }
-  
-  .handsontable .htUIRadio > input[type=radio] {
-    margin-inline-start: 0;
-    margin-inline-end: 0.5ex;
-  }
-  
-  .handsontable .htUIRadio label {
-    vertical-align: middle;
-  }
-  
-  .handsontable .htFiltersMenuOperators {
-    padding-bottom: 5px;
-  }
+
+.handsontable {
+
+    /* Menu filtering*/
+    .htMenuFiltering {
+        border-bottom: var(--hot-filters-menu-filtering-border-width) var(--hot-filters-menu-filtering-border-style) var(--hot-filters-menu-filtering-border-color); //#ccc;
+        height: var(--hot-filters-menu-filtering-height);
+        overflow: hidden;
+    }
+    .ht_master table td.htCustomMenuRenderer {
+        background-color: var(--hot-filters-menu-background);
+        cursor: auto;
+    }
+
+    /* Menu label */
+    .htFiltersMenuLabel {
+        font-size: var(--hot-filters-menu-label-font-size);
+        line-height: var(--hot-filters-menu-label-line-height);
+        padding: var(--hot-filters-menu-label-padding);
+    }
+
+    /* Component action bar */
+    .htFiltersMenuActionBar {
+        text-align: var(--hot-filters-menu-action-bar-align);
+        padding: var(--hot-filters-menu-action-bar-padding);
+    }
+
+    /* Component filter by conditional */
+    .htFiltersMenuCondition.border {
+        border-bottom: var(--hot-filters-menu-conditional-border-width) var(--hot-filters-menu-conditional-border-style) var(--hot-filters-menu-conditional-border-color) !important;
+    }
+    .htFiltersMenuCondition .htUIInput {
+        padding: var(--hot-filters-menu-conditional-input-padding);
+    }
+    .htFiltersMenuValue {
+        border-bottom: var(--hot-filters-menu-value-border-width) var(--hot-filters-menu-value-border-style) var(--hot-filters-menu-value-border-color) !important;
+
+        .htUIMultipleSelectSearch {
+            padding: var(--hot-filters-menu-value-search-padding);
+        }
+    }
+
+    .htFiltersMenuCondition .htUIInput input,
+    .htFiltersMenuValue .htUIMultipleSelectSearch input {
+        @include box-sizing(border-box);
+        font-family: inherit;
+        font-size: var(--hot-filters-menu-input-font-size);
+        padding: var(--hot-filters-menu-input-padding);
+        width: 100%;
+    }
+
+    .htUISelectionControls {
+        text-align: inline-end;
+    }
+
+    .htFiltersMenuOperators {
+        padding: var(--hot-filters-menu-operators-padding);
+    }
+
+    /* Filter Links */
+    .htUIClearAll, .htUISelectAll {
+        display: inline-block;
+
+        a {
+            font-size: var(--hot-button-font-size);
+        }
+    }
+    .htUISelectAll {
+        margin-inline-start: 0;
+        margin-inline-end: var(--hot-button-margin);
+    }
+
+}

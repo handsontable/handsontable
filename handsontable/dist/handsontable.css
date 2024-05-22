@@ -48,6 +48,20 @@
   --hot-border-vertical-size: 1px;
   --hot-base-padding: 4px;
   --hot-separator-color: #e6e6e6;
+  --hot-base-font-size: 13px;
+  --hot-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+  --hot-input-border-color: #5292F7;
+  --hot-link-accent-color: #104acc;
+  --hot-link-color: var(--hot-link-accent-color);
+  --hot-mobile-focus-color: var(--hot-input-border-color);
+  --hot-area-color: #005eff;
+  --hot-column-resizer-color: #34a9db;
+  --hot-column-resizer-guide-color: #777777;
+  --hot-editor-text-color: var(--hot-foreground-color-active);
+  --hot-editor-background-color: var(--hot-background-color);
+  --hot-search-highlight-color: #583707;
+  --hot-search-highlight-background-color: #fcedd9;
+  --hot-invalid-background-color: #ffbeba;
   --hot-header-background-color: #f0f0f0;
   --hot-header-foreground-color: #222222;
   --hot-header-active-background-color: var(--hot-border-color);
@@ -55,23 +69,11 @@
   --hot-header-highlight-background-color: #dcdcdc;
   --hot-header-highlight-active-background-color: #8eb0e7;
   --hot-header-current-color: #4b89ff;
-  --hot-input-border-color: #5292F7;
-  --hot-link-accent-color: #104acc;
-  --hot-invalid-background-color: #ffbeba;
-  --hot-mobile-focus-color: var(--hot-input-border-color);
-  --hot-column-resizer-color: #34a9db;
-  --hot-column-resizer-guide-color: #777777;
-  --hot-area-color: #005eff;
-  --hot-link-color: var(--hot-link-accent-color);
-  --hot-editor-text-color: var(--hot-foreground-color-active);
-  --hot-editor-background-color: var(--hot-background-color);
-  --hot-search-highlight-color: #583707;
-  --hot-search-highlight-background-color: #fcedd9;
   --hot-lsitbox-border-color: var(--hot-border-color);
   --hot-lsitbox-background-color: var(--hot-background-color);
   --hot-lsitbox-background-current-color: #eeeeee;
   --hot-lsitbox-border-size: 1px;
-  --hot-dropdown-button-background: #eeeeee;
+  --hot-dropdown-button-background: var(--hot-button-background-color);
   --hot-dropdown-button-color:#bbbbbb;
   --hot-dropdown-button-hover-color: #777777;
   --hot-dropdown-button-border-size: 1px;
@@ -79,10 +81,13 @@
   --hot-dropdown-button-radius: 2px;
   --hot-dropdown-button-padding: 2px;
   --hot-dropdown-button-margin: 3px 1px 0 5px;
+  --hot-dropdown-button-background-active: #d2e0d9;
+  --hot-dropdown-button-background-active-color: #18804e;
+  --hot-dropdown-button-border-active-color: #509272;
   --hot-dropdown-border-color: var(--hot-border-color);
   --hot-dropdown-border-width: 1px 2px 2px 1px;
   --hot-dropdown-menu-background: var(--hot-background-color);
-  --hot-dropdown-menu-item-padding: 4px 6px 0 6px;
+  --hot-dropdown-menu-item-padding: 4px 6px 0;
   --hot-dropdown-menu-item-inner-padding: 10px;
   --hot-dropdown-menu-item-active:#e9e9e9;
   --hot-dropdown-separator-color: var(--hot-separator-color);
@@ -102,8 +107,26 @@
   --hot-filters-separator-color: var(--hot-separator-color);
   --hot-filters-separator-size: 1px;
   --hot-filters-menu-item-inner-padding: 10px;
-  --hot-base-font-size: 13px;
-  --hot-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+  --hot-filters-menu-filtering-border-width: 1px;
+  --hot-filters-menu-filtering-border-color: var(--hot-border-color);
+  --hot-filters-menu-filtering-border-style: dotted;
+  --hot-filters-menu-filtering-height: 135px;
+  --hot-filters-menu-label-font-size: .75em;
+  --hot-filters-menu-label-line-height: auto;
+  --hot-filters-menu-label-padding: 0;
+  --hot-filters-menu-action-bar-padding: 10px 0 3px 0;
+  --hot-filters-menu-action-bar-align: center;
+  --hot-filters-menu-conditional-input-padding: 0 0 5px 0;
+  --hot-filters-menu-conditional-border-width: 1px;
+  --hot-filters-menu-conditional-border-color: var(--hot-border-color);
+  --hot-filters-menu-conditional-border-style: dotted;
+  --hot-filters-menu-value-border-width: var(--hot-filters-menu-conditional-border-width);
+  --hot-filters-menu-value-border-color: var(--hot-filters-menu-conditional-border-color);
+  --hot-filters-menu-value-border-style: var(--hot-filters-menu-conditional-border-style);
+  --hot-filters-menu-value-search-padding: 0;
+  --hot-filters-menu-input-font-size: var(--hot-button-font-size);
+  --hot-filters-menu-input-padding: var(--hot-base-padding);
+  --hot-filters-menu-operators-padding: 4px 6px 5px;
   --hot-cell-height: 22px;
   --hot-cell-line-height: 21px;
   --hot-cell-horizontal-padding: var(--hot-base-padding);
@@ -111,7 +134,69 @@
   --hot-header-horizontal-padding: var(--hot-cell-horizontal-padding);
   --hot-header-vertical-padding: 2px;
   --hot-header-line-height: 1.1;
-  --hot-resizer-width: 5px ;
+  --hot-resizer-width: 5px;
+  --hot-comment-indicator-size: 6px;
+  --hot-comment-indicator-color: var(--hot-foreground-color-active);
+  --hot-comment-textarea-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px;
+  --hot-comment-textarea-border-color: var(--hot-border-color);
+  --hot-comment-textarea-border-size: 3px;
+  --hot-comment-textarea-background-color: var(--hot-background-color);
+  --hot-comment-textarea-padding: 5px;
+  --hot-comment-textarea-height: 90px;
+  --hot-comment-textarea-width: 215px;
+  --hot-comment-textarea-font-size: calc(var(--hot-base-font-size) - 1px);
+  --hot-comment-textarea-font-family: monospace;
+  --hot-comment-textarea-focus-color: var(--hot-input-border-color);
+  --hot-comment-textarea-focus-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px var(--hot-input-border-color);
+  --hot-checkbox-margin-top: 0;
+  --hot-checkbox-margin-bottom: 0;
+  --hot-checkbox-margin-bottom-start: 0;
+  --hot-checkbox-margin-bottom-end: 5px;
+  --hot-checkbox-height: 1em;
+  --hot-input-wrapper-padding: 3px 0 7px 0;
+  --hot-input-radius: 2px;
+  --hot-input-border-color: #d2d1d1;
+  --hot-input-border-size: 1px;
+  --hot-button-background-color: #eeeeee;
+  --hot-button-text-color: var(--hot-foreground-color-active);
+  --hot-button-font-size: .75em;
+  --hot-button-font-weight: bold;
+  --hot-button-height: 19px;
+  --hot-button-width: 64px;
+  --hot-button-radius: var(--hot-input-radius);
+  --hot-button-border-color: var(--hot-input-border-color);
+  --hot-button-border-size: var(--hot-input-border-size);
+  --hot-button-hover-border-color: #b9b9b9;
+  --hot-button-hover-background-color: var(--hot-button-background-color);
+  --hot-button-hover-text-color: var(--hot-button-text-color);
+  --hot-button-margin: 10px;
+  --hot-button-primary-border-color: #0f9d58;
+  --hot-button-primary-background-color: #18804e;
+  --hot-button-primary-text-color: #fff;
+  --hot-button-primary-hover-border-color: #1a6f46;
+  --hot-button-primary-hover-background-color: var(--hot-button-primary-background-color);
+  --hot-button-primary-hover-text-color: var(--hot-button-primary-text-color);
+  --hot-button-primary-focus-border-color: #7cb878;
+  --hot-button-primary-focus-background-color: #92dd8d;
+  --hot-button-primary-focus-text-color: #000;
+  --hot-select-wrapper-margin: 0 0 7px;
+  --hot-select-background-color: #e8e8e8;
+  --hot-select-radius: var(--hot-input-radius);
+  --hot-select-border-color: var(--hot-input-border-color);
+  --hot-select-border-size: var(--hot-input-border-size);
+  --hot-select-font-size: var(--hot-button-font-size);
+  --hot-select-padding: 3px 20px 3px 10px;
+  --hot-select-font-weight: bold;
+  --hot-select-hover-border-color: var(--hot-button-hover-border-color);
+  --hot-select-hover-background-color: var(--hot-select-background-color);
+  --hot-select-hover-text-color: var(--hot-button-text-color);
+  --hot-select-text-color: var(--hot-foreground-color);
+  --hot-radio-wrapper-margin: 5px;
+  --hot-radio-margin: 0.5ex;
+  --hot-hidden-dimension-indicator-margin-column: 1px;
+  --hot-hidden-dimension-indicator-margin-row: 2px;
+  --hot-hidden-dimension-indicator-color: #bbbbbb;
+  --hot-hidden-dimension-indicator-color-highlighted: #bbbbbb;
 }
 
 .handsontable {
@@ -342,9 +427,9 @@
   visibility: hidden;
 }
 
-/**
- * Fix for bootstrap styles
- */
+/*
+    Fix for bootstrap styles
+*/
 .handsontable {
   /* table-bordered */
 }
@@ -405,7 +490,7 @@
   font-size: var(--hot-base-font-size);
   color: var(--hot-foreground-color);
 }
-.handsontable .wtHider {
+.handsontable .htCore {
   background: var(--hot-background-color);
 }
 .handsontable a {
@@ -420,7 +505,7 @@
 .handsontable td, .handsontable th {
   border-color: var(--hot-border-color);
   color: var(--hot-foreground-color);
-  /*background-color: var(--hot-background-color); // moved into wtHider */
+  /*background-color: var(--hot-background-color); // moved into htCore */
 }
 .handsontable td.invisibleSelection, .handsontable th.invisibleSelection {
   outline: none;
@@ -502,6 +587,151 @@
   box-shadow: 0 0 0 3px rgb(238, 238, 238);
   background: #eee;
   text-align: center;
+}
+
+/* 
+    UI elements 
+    - Checkbox
+    - Input
+    - Search
+    - Select
+    - Radio
+*/
+.handsontable {
+  /* Checkbox */
+  /* Input */
+  /* Button */
+  /* Select */
+  /* Select Icon */
+  /* SelectMultiple */
+  /* Search */
+  /* Radio */
+}
+.handsontable .htCheckboxRendererInput {
+  margin-top: var(--hot-checkbox-margin-bottom-top);
+  margin-inline-end: var(--hot-checkbox-margin-bottom-end);
+  margin-bottom: var(--hot-checkbox-margin-bottom-bottom);
+  margin-inline-start: var(--hot-checkbox-margin-bottom-start);
+  vertical-align: middle;
+  height: var(--hot-checkbox-height);
+}
+.handsontable .htUIInput {
+  padding: var(--hot-input-wrapper-padding);
+  position: relative;
+  text-align: center;
+}
+.handsontable .htUIInput input {
+  border-radius: var(--hot-input-radius);
+  border: var(--hot-input-border-size) solid var(--hot-input-border-color);
+}
+.handsontable .htUIInputIcon {
+  position: absolute;
+}
+.handsontable .htUIInput.htUIButton {
+  cursor: pointer;
+  display: inline-block;
+}
+.handsontable .htUIInput.htUIButton input {
+  border-radius: var(--hot-button-radius);
+  border: var(--hot-button-border-size) solid var(--hot-button-border-color);
+  background-color: var(--hot-button-background-color);
+  color: var(--hot-button-text-color);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--hot-button-font-size);
+  font-weight: var(--hot-button-font-weight);
+  height: var(--hot-button-height);
+  min-width: var(--hot-button-width);
+}
+.handsontable .htUIInput.htUIButton input:hover {
+  border-color: var(--hot-button-hover-border-color);
+  background-color: var(--hot-button-hover-background-color);
+  color: var(--hot-button-hover-text-color);
+}
+.handsontable .htUIInput.htUIButtonOK {
+  margin-inline-start: 0;
+  margin-inline-end: var(--hot-button-margin);
+}
+.handsontable .htUIInput.htUIButtonOK input {
+  border-color: var(--hot-button-primary-border-color);
+  background-color: var(--hot-button-primary-background-color);
+  color: var(--hot-button-primary-text-color);
+}
+.handsontable .htUIInput.htUIButtonOK input:focus-visible {
+  background-color: var(--hot-button-primary-focus-background-color);
+  border-color: var(--hot-button-primary-focus-border-color);
+  color: var(--hot-button-primary-focus-text-color);
+}
+.handsontable .htUIInput.htUIButtonOK input:hover {
+  border-color: var(--hot-button-primary-hover-border-color);
+  background-color: var(--hot-button-primary-hover-background-color);
+  color: var(--hot-button-primary-hover-text-color);
+}
+.handsontable .htUISelect {
+  cursor: pointer;
+  margin: var(--hot-select-wrapper-margin);
+  position: relative;
+}
+.handsontable .htUISelectCaption {
+  background-color: var(--hot-select-background-color);
+  border-radius: var(--hot-select-radius);
+  color: var(--hot-select-text-color);
+  border: var(--hot-select-border-size) solid var(--hot-select-border-color);
+  font-family: inherit;
+  font-size: var(--hot-select-font-size);
+  font-weight: var(--hot-select-font-weight);
+  padding: var(--hot-select-padding);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.handsontable .htUISelectCaption:hover {
+  background-color: var(--hot-select-hover-background-color);
+  border: var(--hot-select-border-size) solid var(--hot-select-hover-border-color);
+  color: var(--hot-select-text-color);
+}
+.handsontable .htUISelectDropdown:after {
+  content: "▲";
+  font-size: 7px;
+  position: absolute;
+  right: 10px;
+  top: 0;
+}
+.handsontable .htUISelectDropdown:before {
+  content: "▼";
+  font-size: 7px;
+  position: absolute;
+  right: 10px;
+  top: 8px;
+}
+.handsontable .htUIMultipleSelect .ht_master .wtHolder {
+  overflow-y: scroll;
+}
+.handsontable .htUIMultipleSelect .handsontable .htCore {
+  border: none;
+}
+.handsontable .htUIMultipleSelect .handsontable .htCore td:hover {
+  background-color: var(--hot-dropdown-menu-item-active);
+}
+.handsontable .htUIMultipleSelectSearch input {
+  border-radius: var(--hot-input-radius);
+  border: var(--hot-input-border-size) solid var(--hot-input-border-color);
+}
+.handsontable .htUIRadio {
+  display: inline-block;
+  margin-inline-start: 0;
+  margin-inline-end: var(--hot-radio-wrapper-margin);
+  height: 100%;
+}
+.handsontable .htUIRadio:last-child {
+  margin-right: 0;
+}
+.handsontable .htUIRadio > input[type=radio] {
+  margin-inline-start: 0;
+  margin-inline-end: var(--hot-radio-margin);
+}
+.handsontable .htUIRadio label {
+  vertical-align: middle;
 }
 
 /*
@@ -947,32 +1177,70 @@
 .handsontable th.afterHiddenColumn {
   position: relative;
 }
-.handsontable th.beforeHiddenColumn:after,
-.handsontable th.afterHiddenColumn:after {
-  color: #bbb;
+.handsontable th.beforeHiddenColumn:after, .handsontable th.beforeHiddenColumn:before,
+.handsontable th.afterHiddenColumn:after,
+.handsontable th.afterHiddenColumn:before {
+  color: var(--hot-hidden-dimension-indicator-color);
   position: absolute;
   top: 50%;
   font-size: 5pt;
   transform: translateY(-50%);
 }
 .handsontable th.beforeHiddenColumn::after {
-  right: 1px;
+  right: var(--hot-hidden-dimension-indicator-margin-column);
   content: "◀"; /* left arrow */
 }
 .handsontable th.afterHiddenColumn::before {
-  left: 1px;
+  left: var(--hot-hidden-dimension-indicator-margin-column);
   content: "▶"; /* right arrow */
+}
+.handsontable.ht__selection--columns th.beforeHiddenColumn.ht__highlight:after,
+.handsontable.ht__selection--columns th.afterHiddenColumn.ht__highlight:before {
+  color: var(--hot-hidden-dimension-indicator-color-highlighted);
 }
 
 [dir=rtl].handsontable th.beforeHiddenColumn::after {
   right: initial;
-  left: 1px;
+  left: var(--hot-hidden-dimension-indicator-margin-column);
   content: "▶"; /* right arrow */
 }
 [dir=rtl].handsontable th.afterHiddenColumn::before {
-  right: 1px;
+  right: var(--hot-hidden-dimension-indicator-margin-column);
   left: initial;
   content: "◀"; /* left arrow */
+}
+
+/*
+    Handsontable HiddenRows
+*/
+.handsontable th.beforeHiddenRow,
+.handsontable th.afterHiddenRow {
+  position: relative;
+}
+.handsontable th.beforeHiddenRow:before, .handsontable th.beforeHiddenRow:after,
+.handsontable th.afterHiddenRow:before,
+.handsontable th.afterHiddenRow:after {
+  color: var(--hot-hidden-dimension-indicator-color);
+  font-size: 6pt;
+  line-height: 6pt;
+  position: absolute;
+  left: var(--hot-hidden-dimension-indicator-margin-row);
+}
+.handsontable th.beforeHiddenRow::before {
+  content: "▲";
+  bottom: var(--hot-hidden-dimension-indicator-margin-row);
+}
+.handsontable th.afterHiddenRow::after {
+  content: "▼";
+  top: var(--hot-hidden-dimension-indicator-margin-row);
+}
+.handsontable.ht__selection--rows tbody th.beforeHiddenRow.ht__highlight:before,
+.handsontable.ht__selection--rows tbody th.afterHiddenRow.ht__highlight:after {
+  color: var(--hot-hidden-dimension-indicator-color-highlighted);
+}
+.handsontable td.afterHiddenRow.firstVisibleRow,
+.handsontable th.afterHiddenRow.firstVisibleRow {
+  border-top: var(--hot-border-horizontal-size) solid var(--hot-border-color);
 }
 
 /*!
@@ -1057,7 +1325,7 @@
 
 /*
     Handsontable Filters
- */
+*/
 /* Conditions menu */
 .htFiltersConditionsMenu .ht_master .wtHolder {
   overflow: hidden;
@@ -1126,230 +1394,68 @@
   left: var(--hot-base-padding);
 }
 
-/* TODO */
+.handsontable {
+  /* Menu filtering*/
+  /* Menu label */
+  /* Component action bar */
+  /* Component filter by conditional */
+  /* Filter Links */
+}
 .handsontable .htMenuFiltering {
-  border-bottom: 1px dotted #ccc;
-  height: 135px;
+  border-bottom: var(--hot-filters-menu-filtering-border-width) var(--hot-filters-menu-filtering-border-style) var(--hot-filters-menu-filtering-border-color);
+  height: var(--hot-filters-menu-filtering-height);
   overflow: hidden;
 }
-
 .handsontable .ht_master table td.htCustomMenuRenderer {
-  background-color: #fff;
+  background-color: var(--hot-filters-menu-background);
   cursor: auto;
 }
-
-/* Menu label */
 .handsontable .htFiltersMenuLabel {
-  font-size: 0.75em;
+  font-size: var(--hot-filters-menu-label-font-size);
+  line-height: var(--hot-filters-menu-label-line-height);
+  padding: var(--hot-filters-menu-label-padding);
 }
-
-/* Component action bar */
 .handsontable .htFiltersMenuActionBar {
-  text-align: center;
-  padding-top: 10px;
-  padding-bottom: 3px;
+  text-align: var(--hot-filters-menu-action-bar-align);
+  padding: var(--hot-filters-menu-action-bar-padding);
 }
-
-/* Component filter by conditional */
 .handsontable .htFiltersMenuCondition.border {
-  border-bottom: 1px dotted #ccc !important;
+  border-bottom: var(--hot-filters-menu-conditional-border-width) var(--hot-filters-menu-conditional-border-style) var(--hot-filters-menu-conditional-border-color) !important;
 }
-
 .handsontable .htFiltersMenuCondition .htUIInput {
-  padding: 0 0 5px 0;
+  padding: var(--hot-filters-menu-conditional-input-padding);
 }
-
-/* Component filter by value */
 .handsontable .htFiltersMenuValue {
-  border-bottom: 1px dotted #ccc !important;
+  border-bottom: var(--hot-filters-menu-value-border-width) var(--hot-filters-menu-value-border-style) var(--hot-filters-menu-value-border-color) !important;
 }
-
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch {
-  padding: 0;
+  padding: var(--hot-filters-menu-value-search-padding);
 }
-
 .handsontable .htFiltersMenuCondition .htUIInput input,
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
-  font-family: inherit;
-  font-size: 0.75em;
-  padding: 4px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
+  font-family: inherit;
+  font-size: var(--hot-filters-menu-input-font-size);
+  padding: var(--hot-filters-menu-input-padding);
   width: 100%;
 }
-
-.htUIMultipleSelect .ht_master .wtHolder {
-  overflow-y: scroll;
-}
-
-.handsontable .htFiltersActive .changeType {
-  border: 1px solid #509272;
-  color: #18804e;
-  background-color: #d2e0d9;
-}
-
-.handsontable .htUISelectAll {
-  margin-inline-start: 0;
-  margin-inline-end: 10px;
-}
-
-.handsontable .htUIClearAll, .handsontable .htUISelectAll {
-  display: inline-block;
-}
-
-.handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
-  font-size: 0.75em;
-}
-
 .handsontable .htUISelectionControls {
   text-align: inline-end;
 }
-
-.handsontable .htCheckboxRendererInput {
-  margin-top: 0;
-  margin-inline-end: 5px;
-  margin-bottom: 0;
-  margin-inline-start: 0;
-  vertical-align: middle;
-  height: 1em;
-}
-
-/* UI elements */
-/* Input */
-.handsontable .htUIInput {
-  padding: 3px 0 7px 0;
-  position: relative;
-  text-align: center;
-}
-
-.handsontable .htUIInput input {
-  border-radius: 2px;
-  border: 1px solid #d2d1d1;
-}
-
-.handsontable .htUIInputIcon {
-  position: absolute;
-}
-
-/* Button */
-.handsontable .htUIInput.htUIButton {
-  cursor: pointer;
-  display: inline-block;
-}
-
-.handsontable .htUIInput.htUIButton input {
-  background-color: #eee;
-  color: #000;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.75em;
-  font-weight: bold;
-  height: 19px;
-  min-width: 64px;
-}
-
-.handsontable .htUIInput.htUIButton input:hover {
-  border-color: #b9b9b9;
-}
-
-.handsontable .htUIInput.htUIButtonOK {
-  margin-inline-start: 0;
-  margin-inline-end: 10px;
-}
-
-.handsontable .htUIInput.htUIButtonOK input {
-  background-color: #0f9d58;
-  border-color: #18804e;
-  color: #fff;
-}
-
-.handsontable .htUIInput.htUIButtonOK input:focus-visible {
-  background-color: #92dd8d;
-  border-color: #7cb878;
-  color: #000;
-}
-
-.handsontable .htUIInput.htUIButtonOK input:hover {
-  border-color: #1a6f46;
-}
-
-/* Select */
-.handsontable .htUISelect {
-  cursor: pointer;
-  margin-bottom: 7px;
-  position: relative;
-}
-
-.handsontable .htUISelectCaption {
-  background-color: #e8e8e8;
-  border-radius: 2px;
-  border: 1px solid #d2d1d1;
-  font-family: inherit;
-  font-size: 0.75em;
-  font-weight: bold;
-  padding: 3px 20px 3px 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.handsontable .htUISelectCaption:hover {
-  background-color: #e8e8e8;
-  border: 1px solid #b9b9b9;
-}
-
-.handsontable .htUISelectDropdown:after {
-  content: "▲";
-  font-size: 7px;
-  position: absolute;
-  right: 10px;
-  top: 0;
-}
-
-.handsontable .htUISelectDropdown:before {
-  content: "▼";
-  font-size: 7px;
-  position: absolute;
-  right: 10px;
-  top: 8px;
-}
-
-/* SelectMultiple */
-.handsontable .htUIMultipleSelect .handsontable .htCore {
-  border: none;
-}
-
-.handsontable .htUIMultipleSelect .handsontable .htCore td:hover {
-  background-color: #F5F5F5;
-}
-
-.handsontable .htUIMultipleSelectSearch input {
-  border-radius: 2px;
-  border: 1px solid #d2d1d1;
-  padding: 3px;
-}
-
-.handsontable .htUIRadio {
-  display: inline-block;
-  margin-inline-start: 0;
-  margin-inline-end: 5px;
-  height: 100%;
-}
-
-.handsontable .htUIRadio:last-child {
-  margin-right: 0;
-}
-
-.handsontable .htUIRadio > input[type=radio] {
-  margin-inline-start: 0;
-  margin-inline-end: 0.5ex;
-}
-
-.handsontable .htUIRadio label {
-  vertical-align: middle;
-}
-
 .handsontable .htFiltersMenuOperators {
-  padding-bottom: 5px;
+  padding: var(--hot-filters-menu-operators-padding);
+}
+.handsontable .htUIClearAll, .handsontable .htUISelectAll {
+  display: inline-block;
+}
+.handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
+  font-size: var(--hot-button-font-size);
+}
+.handsontable .htUISelectAll {
+  margin-inline-start: 0;
+  margin-inline-end: var(--hot-button-margin);
 }
 
 /*
@@ -1373,6 +1479,11 @@
   border: var(--hot-dropdown-button-border-size) solid var(--hot-dropdown-button-hover-color);
   color: var(--hot-dropdown-button-hover-color);
   cursor: pointer;
+}
+.handsontable .htFiltersActive .changeType {
+  border: var(--hot-dropdown-button-border-size) solid var(--hot-dropdown-button-border-active-color);
+  color: var(--hot-dropdown-button-background-active-color);
+  background-color: var(--hot-dropdown-button-background-active);
 }
 
 .htDropdownMenu .ht_master .wtHolder {
@@ -1405,7 +1516,7 @@
 .htDropdownMenu table tbody tr td {
   background: var(--hot-dropdown-menu-background);
   border-width: 0;
-  padding: --hot-dropdown-menu-item-padding;
+  padding: var(--hot-dropdown-menu-item-padding);
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
@@ -1461,9 +1572,9 @@
   top: 0;
   inset-inline-end: 0;
   inset-inline-start: unset;
-  border-inline-start: 6px solid transparent;
+  border-inline-start: var(--hot-comment-indicator-size) solid transparent;
   border-inline-end: none;
-  border-top: 6px solid black;
+  border-top: var(--hot-comment-indicator-size) solid var(--hot-comment-indicator-color);
 }
 
 .htCommentsContainer .htComments {
@@ -1472,24 +1583,25 @@
   position: absolute;
 }
 .htCommentsContainer .htCommentTextArea {
-  box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+  box-shadow: var(--hot-comment-textarea-shadow);
   border: none;
-  border-inline-start: 3px solid #ccc;
+  border-inline-start: var(--hot-comment-textarea-border-size) solid var(--hot-comment-textarea-border-color);
   border-inline-end: none;
-  background-color: #fff;
-  width: 215px;
-  height: 90px;
-  font-size: 12px;
-  padding: 5px;
+  background-color: var(--hot-comment-textarea-background-color);
+  width: var(--hot-comment-textarea-width);
+  height: var(--hot-comment-textarea-height);
+  font-size: var(--hot-comment-textarea-font-size);
+  font-family: var(--hot-comment-textarea-font-family);
+  padding: var(--hot-comment-textarea-padding);
   outline: 0px !important;
   -webkit-appearance: none;
 }
 .htCommentsContainer .htCommentTextArea:focus {
-  box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px #5292f7;
-  border-inline-start: 3px solid #5292f7;
+  box-shadow: var(--hot-comment-textarea-focus-shadow);
+  border-inline-start: var(--hot-comment-textarea-border-size) solid var(--hot-comment-textarea-focus-color);
   border-inline-end: none;
 }
 

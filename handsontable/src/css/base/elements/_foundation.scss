@@ -9,7 +9,7 @@
 	font-size: var(--hot-base-font-size);
 	color: var(--hot-foreground-color);
 
-	.wtHider {
+	.htCore {
 		background: var(--hot-background-color);
 	}
 
@@ -27,7 +27,7 @@
 	td, th {
         border-color:  var(--hot-border-color);
         color: var(--hot-foreground-color);
-        /*background-color: var(--hot-background-color); // moved into wtHider */
+        /*background-color: var(--hot-background-color); // moved into htCore */
 
 		&.invisibleSelection {
 			outline: none;

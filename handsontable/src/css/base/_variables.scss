@@ -11,33 +11,36 @@
     --hot-border-vertical-size: 1px;
     --hot-base-padding: 4px;
     --hot-separator-color: #e6e6e6;
+    --hot-base-font-size: 13px;
+    --hot-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+    --hot-input-border-color: #5292F7; //htInput
+    --hot-link-accent-color: #104acc;
+    --hot-link-color: var(--hot-link-accent-color);
+    --hot-mobile-focus-color: var(--hot-input-border-color);
+    --hot-area-color: #005eff;
+    --hot-column-resizer-color: #34a9db;
+    --hot-column-resizer-guide-color: #777777;
+    --hot-editor-text-color: var(--hot-foreground-color-active);
+    --hot-editor-background-color: var(--hot-background-color);
+
+    --hot-search-highlight-color: #583707;
+    --hot-search-highlight-background-color: #fcedd9;
+    --hot-invalid-background-color: #ffbeba;
 
     --hot-header-background-color: #f0f0f0;
     --hot-header-foreground-color: #222222;
     --hot-header-active-background-color: var(--hot-border-color);
     --hot-header-active-text-color: var(--hot-foreground-color-active);
-    --hot-header-highlight-background-color: #dcdcdc;  /// check
-    --hot-header-highlight-active-background-color: #8eb0e7; ///check
+    --hot-header-highlight-background-color: #dcdcdc; 
+    --hot-header-highlight-active-background-color: #8eb0e7; 
     --hot-header-current-color: #4b89ff;
 
-    --hot-input-border-color: #5292F7;
-    --hot-link-accent-color: #104acc;
-    --hot-invalid-background-color: #ffbeba;
-    --hot-mobile-focus-color: var(--hot-input-border-color);
-    --hot-column-resizer-color: #34a9db;
-    --hot-column-resizer-guide-color: #777777;
-    --hot-area-color: #005eff;
-    --hot-link-color: var(--hot-link-accent-color);
-    --hot-editor-text-color: var(--hot-foreground-color-active);
-    --hot-editor-background-color: var(--hot-background-color);
-    --hot-search-highlight-color: #583707;
-    --hot-search-highlight-background-color: #fcedd9;
     --hot-lsitbox-border-color: var(--hot-border-color);
     --hot-lsitbox-background-color: var(--hot-background-color);
     --hot-lsitbox-background-current-color: #eeeeee;
     --hot-lsitbox-border-size: 1px;
 
-    --hot-dropdown-button-background: #eeeeee;
+    --hot-dropdown-button-background: var(--hot-button-background-color);
     --hot-dropdown-button-color:#bbbbbb;
     --hot-dropdown-button-hover-color: #777777;
     --hot-dropdown-button-border-size: 1px;
@@ -45,10 +48,14 @@
     --hot-dropdown-button-radius: 2px;
     --hot-dropdown-button-padding: 2px;
     --hot-dropdown-button-margin: 3px 1px 0 5px;
+    --hot-dropdown-button-background-active: #d2e0d9;
+    --hot-dropdown-button-background-active-color: #18804e;
+    --hot-dropdown-button-border-active-color: #509272;
+
     --hot-dropdown-border-color: var(--hot-border-color);
     --hot-dropdown-border-width: 1px 2px 2px 1px;
     --hot-dropdown-menu-background: var(--hot-background-color);
-    --hot-dropdown-menu-item-padding: 4px 6px 0 6px;
+    --hot-dropdown-menu-item-padding: 4px 6px 0;
     --hot-dropdown-menu-item-inner-padding: 10px; //left&right
     --hot-dropdown-menu-item-active:#e9e9e9;
     --hot-dropdown-separator-color: var(--hot-separator-color);
@@ -70,9 +77,26 @@
     --hot-filters-separator-color: var(--hot-separator-color);
     --hot-filters-separator-size: 1px;
     --hot-filters-menu-item-inner-padding: 10px; //left&right
-
-    --hot-base-font-size: 13px;
-    --hot-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+    --hot-filters-menu-filtering-border-width: 1px;
+    --hot-filters-menu-filtering-border-color: var(--hot-border-color);
+    --hot-filters-menu-filtering-border-style: dotted;
+    --hot-filters-menu-filtering-height: 135px;
+    --hot-filters-menu-label-font-size: .75em;
+    --hot-filters-menu-label-line-height: auto;
+    --hot-filters-menu-label-padding: 0;
+    --hot-filters-menu-action-bar-padding: 10px 0 3px 0;
+    --hot-filters-menu-action-bar-align: center;
+    --hot-filters-menu-conditional-input-padding: 0 0 5px 0;
+    --hot-filters-menu-conditional-border-width: 1px;
+    --hot-filters-menu-conditional-border-color: var(--hot-border-color);
+    --hot-filters-menu-conditional-border-style: dotted;
+    --hot-filters-menu-value-border-width: var(--hot-filters-menu-conditional-border-width);
+    --hot-filters-menu-value-border-color: var(--hot-filters-menu-conditional-border-color);
+    --hot-filters-menu-value-border-style: var(--hot-filters-menu-conditional-border-style);
+    --hot-filters-menu-value-search-padding: 0;
+    --hot-filters-menu-input-font-size: var(--hot-button-font-size);
+    --hot-filters-menu-input-padding: var(--hot-base-padding);
+    --hot-filters-menu-operators-padding: 4px 6px 5px;
 
     --hot-cell-height: 22px;
     --hot-cell-line-height: 21px;
@@ -83,5 +107,74 @@
     --hot-header-vertical-padding: 2px;
     --hot-header-line-height: 1.1;
 
-    --hot-resizer-width: 5px
+    --hot-resizer-width: 5px;
+
+    --hot-comment-indicator-size: 6px;
+    --hot-comment-indicator-color: var(--hot-foreground-color-active);
+    --hot-comment-textarea-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px;
+    --hot-comment-textarea-border-color: var(--hot-border-color);
+    --hot-comment-textarea-border-size: 3px;
+    --hot-comment-textarea-background-color: var(--hot-background-color);
+    --hot-comment-textarea-padding: 5px;
+    --hot-comment-textarea-height: 90px;
+    --hot-comment-textarea-width: 215px;
+    --hot-comment-textarea-font-size: calc(var(--hot-base-font-size) - 1px);
+    --hot-comment-textarea-font-family: monospace;
+    --hot-comment-textarea-focus-color: var(--hot-input-border-color);
+    --hot-comment-textarea-focus-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px var(--hot-input-border-color);
+
+    --hot-checkbox-margin-top: 0;
+    --hot-checkbox-margin-bottom: 0;
+    --hot-checkbox-margin-bottom-start: 0;
+    --hot-checkbox-margin-bottom-end: 5px;
+    --hot-checkbox-height: 1em;
+
+    --hot-input-wrapper-padding: 3px 0 7px 0;
+    --hot-input-radius: 2px;
+    --hot-input-border-color: #d2d1d1;
+    --hot-input-border-size: 1px;
+
+    --hot-button-background-color: #eeeeee;
+    --hot-button-text-color: var(--hot-foreground-color-active);
+    --hot-button-font-size: .75em;
+    --hot-button-font-weight: bold;
+    --hot-button-height: 19px;
+    --hot-button-width: 64px;
+    --hot-button-radius: var(--hot-input-radius);
+    --hot-button-border-color: var(--hot-input-border-color);
+    --hot-button-border-size: var(--hot-input-border-size);
+    --hot-button-hover-border-color: #b9b9b9;
+    --hot-button-hover-background-color: var(--hot-button-background-color);
+    --hot-button-hover-text-color: var(--hot-button-text-color);
+    --hot-button-margin: 10px;
+    --hot-button-primary-border-color: #0f9d58;
+    --hot-button-primary-background-color: #18804e;
+    --hot-button-primary-text-color: #fff;
+    --hot-button-primary-hover-border-color: #1a6f46;
+    --hot-button-primary-hover-background-color: var(--hot-button-primary-background-color);
+    --hot-button-primary-hover-text-color: var(--hot-button-primary-text-color);
+    --hot-button-primary-focus-border-color: #7cb878;
+    --hot-button-primary-focus-background-color: #92dd8d;
+    --hot-button-primary-focus-text-color: #000;
+
+    --hot-select-wrapper-margin: 0 0 7px;
+    --hot-select-background-color: #e8e8e8;
+    --hot-select-radius: var(--hot-input-radius);
+    --hot-select-border-color: var(--hot-input-border-color);
+    --hot-select-border-size: var(--hot-input-border-size);
+    --hot-select-font-size: var(--hot-button-font-size);
+    --hot-select-padding: 3px 20px 3px 10px;
+    --hot-select-font-weight: bold;
+    --hot-select-hover-border-color: var(--hot-button-hover-border-color);
+    --hot-select-hover-background-color: var(--hot-select-background-color);
+    --hot-select-hover-text-color: var(--hot-button-text-color);
+    --hot-select-text-color: var(--hot-foreground-color);
+
+    --hot-radio-wrapper-margin: 5px;
+    --hot-radio-margin: 0.5ex;
+
+    --hot-hidden-dimension-indicator-margin-column: 1px;
+    --hot-hidden-dimension-indicator-margin-row: 2px;
+    --hot-hidden-dimension-indicator-color: #bbbbbb;
+    --hot-hidden-dimension-indicator-color-highlighted: #bbbbbb;
 }

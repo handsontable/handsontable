@@ -7,8 +7,9 @@
     th.afterHiddenColumn {
         position: relative;
 
-        &:after {
-            color: #bbb;
+        &:after, 
+        &:before {
+            color: var(--hot-hidden-dimension-indicator-color);
             position: absolute;
             top: 50%;
             font-size: 5pt;
@@ -17,25 +18,32 @@
     }
 
     th.beforeHiddenColumn::after {
-        right: 1px;
+        right: var(--hot-hidden-dimension-indicator-margin-column);
         content: '\25C0'; /* left arrow */
     }
 
     th.afterHiddenColumn::before {
-        left: 1px;
+        left: var(--hot-hidden-dimension-indicator-margin-column);
         content: '\25B6'; /* right arrow */
+    }
+
+    &.ht__selection--columns {
+        th.beforeHiddenColumn.ht__highlight:after,
+        th.afterHiddenColumn.ht__highlight:before {
+            color: var(--hot-hidden-dimension-indicator-color-highlighted);
+        }
     }
 }
 
 [dir=rtl].handsontable {
     th.beforeHiddenColumn::after {
         right: initial;
-        left: 1px;
+        left: var(--hot-hidden-dimension-indicator-margin-column);
         content: '\25B6'; /* right arrow */
     }
 
     th.afterHiddenColumn::before {
-        right: 1px;
+        right: var(--hot-hidden-dimension-indicator-margin-column);
         left: initial;
         content: '\25C0'; /* left arrow */
     }
