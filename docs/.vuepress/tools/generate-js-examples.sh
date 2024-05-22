@@ -1,4 +1,4 @@
- #!/usr/bin/sh 
+ #!/usr/bin/bash
 
 # This script generates the JS files for all the TS code examples. It skips the examples that already have a JS file.
 
