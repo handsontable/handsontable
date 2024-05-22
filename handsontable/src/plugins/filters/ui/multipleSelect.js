@@ -230,7 +230,15 @@ export class MultipleSelectUI extends BaseUI {
         beforeOnCellMouseUp: () => {
           this.#itemsBox.listen();
         },
-        colWidths: () => this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument),
+        modifyColWidth: (width) => {
+          const minWidth = this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument);
+
+          if (width !== undefined && width < minWidth) {
+            return minWidth;
+          }
+
+          return width;
+        },
         maxCols: 1,
         autoWrapCol: true,
         height: 110,
