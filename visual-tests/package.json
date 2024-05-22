@@ -9,7 +9,7 @@
     "build": "node ./scripts/build.mjs",
     "test": "node ./scripts/run-tests.mjs",
     "upload": "node ./scripts/upload.mjs",
-    "serve-example-preview": "npm --prefix ../examples/visual-tests/js/demo run serve -- --port=8085",
+    "serve-example-preview": "npm --prefix ../examples/next/visual-tests/js/demo run serve -- --port=8085",
     "install-system-dependencies": "npx --no playwright install --with-deps",
     "publish-package": "echo \"There is nothing to publish. Skipped.\"",
     "clean": "rimraf ./screenshots ./playwright-report"
