@@ -306,40 +306,43 @@ export class MergeCells extends BasePlugin {
    * @param {Array|boolean} settings The settings provided to the plugin.
    */
   generateFromSettings(settings) {
-    if (Array.isArray(settings)) {
-      const populatedNulls = [];
-
-      arrayEach(settings, (setting) => {
-        if (!this.validateSetting(setting)) {
-          return;
-        }
-
-        const highlight = this.hot._createCellCoords(setting.row, setting.col);
-        const rangeEnd = this.hot._createCellCoords(setting.row + setting.rowspan - 1,
-          setting.col + setting.colspan - 1);
-        const mergeRange = this.hot._createCellRange(highlight, highlight, rangeEnd);
-
-        // Merging without data population.
-        this.mergeRange(mergeRange, true, true);
-
-        rangeEach(setting.row, setting.row + setting.rowspan - 1, (rowIndex) => {
-          rangeEach(setting.col, setting.col + setting.colspan - 1, (columnIndex) => {
-            // Not resetting a cell representing a merge area's value.
-            if ((rowIndex === setting.row && columnIndex === setting.col) === false) {
-              populatedNulls.push([rowIndex, columnIndex, null]);
-            }
-          });
-        });
-      });
-
-      // There are no merged cells. Thus, no data population is needed.
-      if (populatedNulls.length === 0) {
-        return;
-      }
-
-      // TODO: Change the `source` argument to a more meaningful value, e.g. `${this.pluginName}.clearCells`.
-      this.hot.setDataAtCell(populatedNulls, undefined, undefined, this.pluginName);
+    if (!Array.isArray(settings)) {
+      return;
     }
+
+    const validSettings = settings
+      .filter((mergeCellInfo) => this.validateSetting(mergeCellInfo));
+    const nonOverlappingSettings = this.mergedCellsCollection
+      .filterOverlappingMergeCells(validSettings);
+
+    const populatedNulls = [];
+
+    nonOverlappingSettings.forEach((mergeCellInfo) => {
+      const { row, col, rowspan, colspan } = mergeCellInfo;
+      const from = this.hot._createCellCoords(row, col);
+      const to = this.hot._createCellCoords(row + rowspan - 1, col + colspan - 1);
+      const mergeRange = this.hot._createCellRange(from, from, to);
+
+      // Merging without data population.
+      this.mergeRange(mergeRange, true, true);
+
+      for (let r = row; r < row + rowspan; r++) {
+        for (let c = col; c < col + colspan; c++) {
+          // Not resetting a cell representing a merge area's value.
+          if (r !== row || c !== col) {
+            populatedNulls.push([r, c, null]);
+          }
+        }
+      }
+    });
+
+    // There are no merged cells. Thus, no data population is needed.
+    if (populatedNulls.length === 0) {
+      return;
+    }
+
+    // TODO: Change the `source` argument to a more meaningful value, e.g. `${this.pluginName}.clearCells`.
+    this.hot.setDataAtCell(populatedNulls, undefined, undefined, this.pluginName);
   }
 
   /**
@@ -449,7 +452,7 @@ export class MergeCells extends BasePlugin {
 
     this.hot.setCellMeta(mergeParent.row, mergeParent.col, 'spanned', true);
 
-    const mergedCellAdded = this.mergedCellsCollection.add(mergeParent);
+    const mergedCellAdded = this.mergedCellsCollection.add(mergeParent, auto);
 
     if (mergedCellAdded) {
       if (preventPopulation) {
@@ -903,10 +906,10 @@ export class MergeCells extends BasePlugin {
    */
   #onAfterRenderer(TD, row, col) {
     const mergedCell = this.mergedCellsCollection.get(row, col);
-    // We shouldn't override data in the collection.
-    const mergedCellCopy = isObject(mergedCell) ? clone(mergedCell) : undefined;
 
-    if (isObject(mergedCellCopy)) {
+    if (isObject(mergedCell)) {
+      // We shouldn't override data in the collection.
+      const mergedCellCopy = clone(mergedCell);
       const { rowIndexMapper: rowMapper, columnIndexMapper: columnMapper } = this.hot;
       const { row: mergeRow, col: mergeColumn, colspan, rowspan } = mergedCellCopy;
       const [lastMergedRowIndex, lastMergedColumnIndex] = this
@@ -926,9 +929,12 @@ export class MergeCells extends BasePlugin {
       mergedCellCopy.rowspan = Math.min(mergedCellCopy.rowspan, maxRowSpan);
       // The `colSpan` property for a `TD` element should be at most equal to number of rendered columns in the merge area.
       mergedCellCopy.colspan = Math.min(mergedCellCopy.colspan, maxColSpan);
-    }
 
-    applySpanProperties(TD, mergedCellCopy, row, col);
+      applySpanProperties(TD, mergedCellCopy, row, col);
+
+    } else {
+      applySpanProperties(TD, null, row, col);
+    }
   }
 
   /**
