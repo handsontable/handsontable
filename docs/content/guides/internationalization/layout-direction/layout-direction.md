@@ -52,7 +52,7 @@ To try out Handsontable's RTL support, check out the demo below:
 
 ::: only-for javascript
 
-::: example #example1 :hot-lang
+::: example #example1 :hot-lang --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example1.js)
 @[code](@/content/guides/internationalization/layout-direction/javascript/example1.ts)
