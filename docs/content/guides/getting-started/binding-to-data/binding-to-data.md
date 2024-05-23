@@ -409,7 +409,7 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 ::: only-for javascript
 
-::: example #example11 --js 1 --ts 2
+::: example #example11
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
