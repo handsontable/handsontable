@@ -39,7 +39,7 @@ In this example we set the same width of `100px` for all columns across the enti
 
 ::: only-for javascript
 
-::: example #example1 --js 1 --ts 3
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/javascript/example1.js)
 @[code](@/content/guides/columns/column-width/javascript/example1.ts)
@@ -64,7 +64,7 @@ In this example, the width is only set for the first four columns. Each addition
 
 ::: only-for javascript
 
-::: example #example2 --js 1 --ts 3
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/javascript/example2.js)
 @[code](@/content/guides/columns/column-width/javascript/example2.ts)
@@ -89,7 +89,7 @@ In this example, the size of all columns is set using a function by taking a col
 
 ::: only-for javascript
 
-::: example #example3 --js 1 --ts 3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/javascript/example3.js)
 @[code](@/content/guides/columns/column-width/javascript/example3.ts)
@@ -116,7 +116,7 @@ You can adjust the size of one or multiple columns simultaneously, even if the s
 
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 3
+::: example #example4 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/javascript/example4.js)
 @[code](@/content/guides/columns/column-width/javascript/example4.ts)
@@ -151,7 +151,7 @@ This example fits all columns to the container's width equally by setting the op
 
 ::: only-for javascript
 
-::: example #example5 --js 1 --ts 3
+::: example #example5 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/javascript/example5.js)
 @[code](@/content/guides/columns/column-width/javascript/example5.ts)
@@ -176,7 +176,7 @@ In this example, the first three columns are set to be 80px wide, and the last c
 
 ::: only-for javascript
 
-::: example #example6 --js 1 --ts 3
+::: example #example6 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/javascript/example6.js)
 @[code](@/content/guides/columns/column-width/javascript/example6.ts)

@@ -138,7 +138,7 @@ and set it to `'rtl'`:
 
 ::: only-for javascript
 
-::: example #example3 --js 1 --ts 3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example3.js)
 @[code](@/content/guides/internationalization/layout-direction/javascript/example3.ts)
@@ -166,7 +166,7 @@ and set it to `'ltr'`:
 
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 3
+::: example #example4 --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example4.js)
 @[code](@/content/guides/internationalization/layout-direction/javascript/example4.ts)
@@ -193,7 +193,7 @@ In the example below, some columns are explicitly aligned to the left, center, o
 
 ::: only-for javascript
 
-::: example #example5 --js 1 --ts 3
+::: example #example5 --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example5.js)
 @[code](@/content/guides/internationalization/layout-direction/javascript/example5.ts)

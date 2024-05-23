@@ -43,7 +43,7 @@ This example calculates and displays five different column summaries:
 
 ::: only-for javascript
 
-::: example #example1 --js 1 --ts 3
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/javascript/example1.js)
 @[code](@/content/guides/columns/column-summary/javascript/example1.ts)
@@ -364,7 +364,7 @@ To reverse row coordinates for your column summary, set the [`reversedRowCoords`
 
 ::: only-for javascript
 
-::: example #example2 --js 1 --ts 3
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/javascript/example2.js)
 @[code](@/content/guides/columns/column-summary/javascript/example2.ts)
@@ -396,7 +396,7 @@ The example below sets up five different column summaries. To do this, it:
 
 ::: only-for javascript
 
-::: example #example7 --js 1 --ts 3
+::: example #example7 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/javascript/example7.js)
 @[code](@/content/guides/columns/column-summary/javascript/example7.ts)
@@ -419,7 +419,7 @@ Using a function to provide a column summary configuration lets you set up all s
 
 ::: only-for javascript
 
-::: example #example8 --js 1 --ts 3
+::: example #example8 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/javascript/example8.js)
 @[code](@/content/guides/columns/column-summary/javascript/example8.ts)
@@ -517,7 +517,7 @@ This example implements a function that counts the number of even values in a co
 
 ::: only-for javascript
 
-::: example #example9 --js 1 --ts 3
+::: example #example9 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/javascript/example9.js)
 @[code](@/content/guides/columns/column-summary/javascript/example9.ts)
@@ -545,7 +545,7 @@ See the following example:
 
 ::: only-for javascript
 
-::: example #example12 --js 1 --ts 3
+::: example #example12 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/javascript/example12.js)
 @[code](@/content/guides/columns/column-summary/javascript/example12.ts)
@@ -601,7 +601,7 @@ To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option 
 
 ::: only-for javascript
 
-::: example #example10 --js 1 --ts 3
+::: example #example10 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/javascript/example10.js)
 @[code](@/content/guides/columns/column-summary/javascript/example10.ts)

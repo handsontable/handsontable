@@ -204,7 +204,7 @@ As a result, each cell in the grid is read-only:
 
 ::: only-for javascript
 
-::: example #example1 --js 1 --ts 3
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example1.js)
 @[code](@/content/guides/getting-started/configuration-options/javascript/example1.ts)
@@ -280,7 +280,7 @@ As a result, each cell in the third and ninth columns is read-only:
 
 ::: only-for javascript
 
-::: example #example2 --js 1 --ts 3
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example2.js)
 @[code](@/content/guides/getting-started/configuration-options/javascript/example2.ts)
@@ -363,7 +363,7 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 ::: only-for javascript
 
-::: example #example3 --js 1 --ts 3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example3.js)
 @[code](@/content/guides/getting-started/configuration-options/javascript/example3.ts)
@@ -441,7 +441,7 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 3
+::: example #example4 --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example4.js)
 @[code](@/content/guides/getting-started/configuration-options/javascript/example4.ts)
@@ -657,7 +657,7 @@ In the example below, the modified [`cells`](@/api/options.md#cells) options ove
 
 ::: only-for javascript
 
-::: example #example5 --js 1 --ts 3
+::: example #example5 --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example5.js)
 @[code](@/content/guides/getting-started/configuration-options/javascript/example5.ts)
@@ -699,7 +699,7 @@ In the example below, some cells are read-only, and some cells are editable:
 
 ::: only-for javascript
 
-::: example #example6 --js 1 --ts 3
+::: example #example6 --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example6.js)
 @[code](@/content/guides/getting-started/configuration-options/javascript/example6.ts)

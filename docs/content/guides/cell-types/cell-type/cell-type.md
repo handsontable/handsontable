@@ -426,7 +426,7 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 
 ::: only-for javascript
 
-::: example #example1 --js 1 --ts 3
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/cell-type/javascript/example1.js)
 @[code](@/content/guides/cell-types/cell-type/javascript/example1.ts)
@@ -458,7 +458,7 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 
 ::: only-for javascript
 
-::: example #example2 --js 1 --ts 3
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/cell-type/javascript/example2.js)
 @[code](@/content/guides/cell-types/cell-type/javascript/example2.ts)

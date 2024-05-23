@@ -44,7 +44,7 @@ We set the same height of `40px` for all rows across the entire grid in this exa
 
 ::: only-for javascript
 
-::: example #example1 --js 1 --ts 3
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-height/javascript/example1.js)
 @[code](@/content/guides/rows/row-height/javascript/example1.ts)
@@ -69,7 +69,7 @@ In this example, the height is only set for the first rows. Each additional row 
 
 ::: only-for javascript
 
-::: example #example2 --js 1 --ts 3
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-height/javascript/example2.js)
 @[code](@/content/guides/rows/row-height/javascript/example2.ts)
@@ -94,7 +94,7 @@ The row height can be set using a function. In this example, the size of all row
 
 ::: only-for javascript
 
-::: example #example3 --js 1 --ts 3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-height/javascript/example3.js)
 @[code](@/content/guides/rows/row-height/javascript/example3.ts)
@@ -121,7 +121,7 @@ You can adjust the size of one or multiple rows simultaneously, even if the sele
 
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 3
+::: example #example4 --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-height/javascript/example4.js)
 @[code](@/content/guides/rows/row-height/javascript/example4.ts)

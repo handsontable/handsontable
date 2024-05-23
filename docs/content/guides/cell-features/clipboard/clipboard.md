@@ -55,7 +55,7 @@ You can use them in the same way as the rest of the predefined items in the [con
 
 ::: only-for javascript
 
-::: example #example1 --js 1 --ts 3
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example1.js)
 @[code](@/content/guides/cell-features/clipboard/javascript/example1.ts)
@@ -151,7 +151,7 @@ Right-click on a cell to try it out:
 
 ::: only-for javascript
 
-::: example #example2 --js 1 --ts 3
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example2.js)
 @[code](@/content/guides/cell-features/clipboard/javascript/example2.ts)

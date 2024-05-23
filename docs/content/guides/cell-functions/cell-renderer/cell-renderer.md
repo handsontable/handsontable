@@ -296,7 +296,7 @@ This example shows how to use custom cell renderers to display HTML content in a
 
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 3
+::: example #example4 --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/javascript/example4.js)
 @[code](@/content/guides/cell-functions/cell-renderer/javascript/example4.ts)

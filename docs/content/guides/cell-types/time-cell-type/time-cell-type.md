@@ -39,7 +39,7 @@ By default, the values entered into the time-type column are not validated, so i
 
 ::: only-for javascript
 
-::: example #example1 --js 1 --ts 3
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/time-cell-type/javascript/example1.js)
 @[code](@/content/guides/cell-types/time-cell-type/javascript/example1.ts)

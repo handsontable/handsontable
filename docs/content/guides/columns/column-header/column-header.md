@@ -30,7 +30,7 @@ Setting the [`colHeaders`](@/api/options.md#colheaders) option to `true` enables
 
 ::: only-for javascript
 
-::: example #example1 --js 1 --ts 3
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/javascript/example1.js)
 @[code](@/content/guides/columns/column-header/javascript/example1.ts)
@@ -54,7 +54,7 @@ An array of labels can be used to set the [`colHeaders`](@/api/options.md#colhea
 
 ::: only-for javascript
 
-::: example #example2 --js 1 --ts 3
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/javascript/example2.js)
 @[code](@/content/guides/columns/column-header/javascript/example2.ts)
@@ -78,7 +78,7 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 ::: only-for javascript
 
-::: example #example3 --js 1 --ts 3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/javascript/example3.js)
 @[code](@/content/guides/columns/column-header/javascript/example3.ts)
