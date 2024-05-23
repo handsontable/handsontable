@@ -105,7 +105,7 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 
 ::: only-for javascript
 
-::: example #example4 .custom-class
+::: example #example4 .custom-class --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example4.js)
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example4.ts)
