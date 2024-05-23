@@ -45,6 +45,7 @@ To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowsw
 ::: example #example1
 
 @[code](@/content/guides/rows/row-header/javascript/example1.js)
+@[code](@/content/guides/rows/row-header/javascript/example1.ts)
 
 :::
 

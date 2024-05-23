@@ -31,7 +31,7 @@ This example uses the `autocomplete` feature in the default flexible mode. In th
 
 ::: only-for javascript
 
-::: example #example1 --js 1 --ts 2 --css 3
+::: example #example1 --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example1.js)
 
@@ -71,6 +71,7 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 ::: example #example2 --js 1 --css 2
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example2.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example2.ts)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example2.css)
 
 :::
@@ -97,6 +98,7 @@ Autocomplete can also be used with Ajax data sources. In the example below, sugg
 ::: example #example3 --js 1 --css 2
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example3.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example3.ts)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example3.css)
 
 :::

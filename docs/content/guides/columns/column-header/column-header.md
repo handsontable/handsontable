@@ -33,6 +33,7 @@ Setting the [`colHeaders`](@/api/options.md#colheaders) option to `true` enables
 ::: example #example1
 
 @[code](@/content/guides/columns/column-header/javascript/example1.js)
+@[code](@/content/guides/columns/column-header/javascript/example1.ts)
 
 :::
 
@@ -56,6 +57,7 @@ An array of labels can be used to set the [`colHeaders`](@/api/options.md#colhea
 ::: example #example2
 
 @[code](@/content/guides/columns/column-header/javascript/example2.js)
+@[code](@/content/guides/columns/column-header/javascript/example2.ts)
 
 :::
 
@@ -79,6 +81,7 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 ::: example #example3
 
 @[code](@/content/guides/columns/column-header/javascript/example3.js)
+@[code](@/content/guides/columns/column-header/javascript/example3.ts)
 
 :::
 

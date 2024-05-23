@@ -65,6 +65,7 @@ nestedHeaders={[
 ::: example #example1
 
 @[code](@/content/guides/columns/column-groups/javascript/example1.js)
+@[code](@/content/guides/columns/column-groups/javascript/example1.ts)
 
 :::
 
@@ -125,6 +126,7 @@ collapsibleColumns={[
 ::: example #example2
 
 @[code](@/content/guides/columns/column-groups/javascript/example2.js)
+@[code](@/content/guides/columns/column-groups/javascript/example2.ts)
 
 :::
 

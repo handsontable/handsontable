@@ -33,6 +33,7 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example1.html)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example1.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example1.ts)
 
 :::
 
@@ -59,6 +60,7 @@ Open a console in browser developer tools to see the result for the below exampl
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example2.html)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example2.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example2.ts)
 
 :::
 
@@ -84,6 +86,7 @@ Open a console in browser developer tools to see the result for the below exampl
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example3.html)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example3.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example3.ts)
 
 :::
 

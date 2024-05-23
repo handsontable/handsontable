@@ -60,6 +60,7 @@ this behavior, set
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterBasicDemo.html)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterBasicDemo.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterBasicDemo.ts)
 
 :::
 
@@ -122,6 +123,7 @@ the configuration.
 @[code](@/content/guides/columns/column-filter/javascript/exampleShowFilterItemsOnly.html)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleShowFilterItemsOnly.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleShowFilterItemsOnly.ts)
 
 :::
 
@@ -151,6 +153,7 @@ useful items in the menu such as **Clear column**.
 @[code](@/content/guides/columns/column-filter/javascript/exampleEnableFilterInColumns.html)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleEnableFilterInColumns.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleEnableFilterInColumns.ts)
 
 :::
 
@@ -180,6 +183,7 @@ each data type.
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterDifferentTypes.html)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterDifferentTypes.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterDifferentTypes.ts)
 
 :::
 
@@ -220,6 +224,7 @@ with a pre-applied filter to display only items priced less than $200.
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterOnInitialization.html)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterOnInitialization.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterOnInitialization.ts)
 
 :::
 
@@ -252,6 +257,7 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 @[code](@/content/guides/columns/column-filter/javascript/exampleQuickFilter.html)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleQuickFilter.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleQuickFilter.ts)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleQuickFilter.css)
 
@@ -284,6 +290,7 @@ down icon.
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton.html)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton.ts)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton.css)
 
@@ -313,6 +320,7 @@ over the header, apply additional styling to `th .relative:hover .changeType`.
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton2.html)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton2.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton2.ts)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton2.css)
 
@@ -358,6 +366,7 @@ filtering doesn't affect them.
 @[code](@/content/guides/columns/column-filter/javascript/exampleExcludeRowsFromFiltering.html)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleExcludeRowsFromFiltering.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleExcludeRowsFromFiltering.ts)
 
 :::
 
@@ -396,6 +405,7 @@ filters is logged to the console.
 @[code](@/content/guides/columns/column-filter/javascript/exampleServerSideFilter.html)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleServerSideFilter.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleServerSideFilter.ts)
 
 :::
 
@@ -539,6 +549,7 @@ Mind that before you apply new filter conditions, you need to clear the previous
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterThroughAPI1.html)
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterThroughAPI1.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleFilterThroughAPI1.ts)
 
 :::
 

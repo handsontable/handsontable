@@ -33,6 +33,7 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 ::: example #example1
 
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example1.js)
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example1.ts)
 
 :::
 
@@ -57,6 +58,7 @@ The following example shows how you would use the array of arrays with a selecti
 ::: example #example2
 
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example2.js)
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example2.ts)
 
 :::
 
@@ -81,6 +83,7 @@ An array of objects can be used as a data source as follows:
 ::: example #example3
 
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example3.js)
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example3.ts)
 
 :::
 
@@ -105,6 +108,7 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 ::: example #example4 .custom-class
 
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example4.js)
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example4.ts)
 
 :::
 
@@ -129,6 +133,7 @@ In a scenario where you have nested objects, you can use them as the data source
 ::: example #example5
 
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example5.js)
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example5.ts)
 
 :::
 
@@ -155,6 +160,7 @@ In a scenario where you start with an empty data source, you will need to provid
 ::: example #example6
 
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example6.js)
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example6.ts)
 
 :::
 
@@ -181,6 +187,7 @@ The example below shows how to use such objects:
 ::: example #example7
 
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example7.js)
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example7.ts)
 
 :::
 
@@ -205,6 +212,7 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 ::: example #example9
 
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example9.js)
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example9.ts)
 
 :::
 
@@ -246,6 +254,7 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 ::: example #example10
 
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example10.js)
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example10.ts)
 
 :::
 

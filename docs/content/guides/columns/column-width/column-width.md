@@ -42,6 +42,7 @@ In this example we set the same width of `100px` for all columns across the enti
 ::: example #example1
 
 @[code](@/content/guides/columns/column-width/javascript/example1.js)
+@[code](@/content/guides/columns/column-width/javascript/example1.ts)
 
 :::
 
@@ -66,6 +67,7 @@ In this example, the width is only set for the first four columns. Each addition
 ::: example #example2
 
 @[code](@/content/guides/columns/column-width/javascript/example2.js)
+@[code](@/content/guides/columns/column-width/javascript/example2.ts)
 
 :::
 
@@ -90,6 +92,7 @@ In this example, the size of all columns is set using a function by taking a col
 ::: example #example3
 
 @[code](@/content/guides/columns/column-width/javascript/example3.js)
+@[code](@/content/guides/columns/column-width/javascript/example3.ts)
 
 :::
 
@@ -116,6 +119,7 @@ You can adjust the size of one or multiple columns simultaneously, even if the s
 ::: example #example4
 
 @[code](@/content/guides/columns/column-width/javascript/example4.js)
+@[code](@/content/guides/columns/column-width/javascript/example4.ts)
 
 :::
 
@@ -150,6 +154,7 @@ This example fits all columns to the container's width equally by setting the op
 ::: example #example5
 
 @[code](@/content/guides/columns/column-width/javascript/example5.js)
+@[code](@/content/guides/columns/column-width/javascript/example5.ts)
 
 :::
 
@@ -174,6 +179,7 @@ In this example, the first three columns are set to be 80px wide, and the last c
 ::: example #example6
 
 @[code](@/content/guides/columns/column-width/javascript/example6.js)
+@[code](@/content/guides/columns/column-width/javascript/example6.ts)
 
 :::
 

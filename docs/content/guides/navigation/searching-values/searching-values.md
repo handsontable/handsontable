@@ -105,6 +105,7 @@ The example below:
 
 @[code](@/content/guides/navigation/searching-values/javascript/example1.html)
 @[code](@/content/guides/navigation/searching-values/javascript/example1.js)
+@[code](@/content/guides/navigation/searching-values/javascript/example1.ts)
 
 :::
 
@@ -136,6 +137,7 @@ The example below highlights its search results in bold red. To do this, it:
 @[code](@/content/guides/navigation/searching-values/javascript/example2.css)
 @[code](@/content/guides/navigation/searching-values/javascript/example2.html)
 @[code](@/content/guides/navigation/searching-values/javascript/example2.js)
+@[code](@/content/guides/navigation/searching-values/javascript/example2.ts)
 
 :::
 
@@ -167,6 +169,7 @@ The example below searches only for exact search query matches. To do this, it:
 
 @[code](@/content/guides/navigation/searching-values/javascript/example3.html)
 @[code](@/content/guides/navigation/searching-values/javascript/example3.js)
+@[code](@/content/guides/navigation/searching-values/javascript/example3.ts)
 
 :::
 
@@ -197,6 +200,7 @@ The example below displays the number of matching search results. To do this, it
 
 @[code](@/content/guides/navigation/searching-values/javascript/example4.html)
 @[code](@/content/guides/navigation/searching-values/javascript/example4.js)
+@[code](@/content/guides/navigation/searching-values/javascript/example4.ts)
 
 :::
 

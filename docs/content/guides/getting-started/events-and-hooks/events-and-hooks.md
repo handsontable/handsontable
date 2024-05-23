@@ -142,6 +142,7 @@ Note that some callbacks are checked on this page by default.
 @[code](@/content/guides/getting-started/events-and-hooks/javascript/example1.html)
 @[code](@/content/guides/getting-started/events-and-hooks/javascript/example1.css)
 @[code](@/content/guides/getting-started/events-and-hooks/javascript/example1.js)
+@[code](@/content/guides/getting-started/events-and-hooks/javascript/example1.ts)
 
 :::
 
@@ -210,6 +211,7 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 ::: example #example2
 
 @[code](@/content/guides/getting-started/events-and-hooks/javascript/example2.js)
+@[code](@/content/guides/getting-started/events-and-hooks/javascript/example2.ts)
 
 :::
 

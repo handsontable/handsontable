@@ -36,6 +36,7 @@ In this example, we add a custom class `custom-cell` to the cell in the top left
 @[code](@/content/guides/cell-features/formatting-cells/javascript/example1.css)
 
 @[code](@/content/guides/cell-features/formatting-cells/javascript/example1.js)
+@[code](@/content/guides/cell-features/formatting-cells/javascript/example1.ts)
 
 :::
 
@@ -62,6 +63,7 @@ You can apply inline styles directly to the DOM element using its `style` proper
 ::: example #example2
 
 @[code](@/content/guides/cell-features/formatting-cells/javascript/example2.js)
+@[code](@/content/guides/cell-features/formatting-cells/javascript/example2.ts)
 
 :::
 
@@ -90,6 +92,7 @@ In the names of the API properties, the words `start` and `end` refer to the sta
 ::: example #example3
 
 @[code](@/content/guides/cell-features/formatting-cells/javascript/example3.js)
+@[code](@/content/guides/cell-features/formatting-cells/javascript/example3.ts)
 
 :::
 

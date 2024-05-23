@@ -34,6 +34,7 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 ::: example #example1
 
 @[code](@/content/guides/columns/column-menu/javascript/example1.js)
+@[code](@/content/guides/columns/column-menu/javascript/example1.ts)
 
 :::
 
@@ -58,6 +59,7 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 ::: example #example2
 
 @[code](@/content/guides/columns/column-menu/javascript/example2.js)
+@[code](@/content/guides/columns/column-menu/javascript/example2.ts)
 
 :::
 

@@ -43,6 +43,7 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**C
 ::: example #example
 
 @[code](@/content/guides/accessories-and-menus/undo-redo/javascript/example.js)
+@[code](@/content/guides/accessories-and-menus/undo-redo/javascript/example.ts)
 
 :::
 

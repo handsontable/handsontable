@@ -95,6 +95,7 @@ In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 ::: example #example1
 
 @[code](@/content/guides/cell-features/comments/javascript/example1.js)
+@[code](@/content/guides/cell-features/comments/javascript/example1.ts)
 
 :::
 
@@ -119,6 +120,7 @@ By default, all comments are editable. To change this, set the [`readOnly`](@/ap
 ::: example #example2
 
 @[code](@/content/guides/cell-features/comments/javascript/example2.js)
+@[code](@/content/guides/cell-features/comments/javascript/example2.ts)
 
 :::
 
@@ -143,6 +145,7 @@ To set the width and height of a comment box, use the [`style`](@/api/options.md
 ::: example #example3
 
 @[code](@/content/guides/cell-features/comments/javascript/example3.js)
+@[code](@/content/guides/cell-features/comments/javascript/example3.ts)
 
 :::
 
@@ -167,6 +170,7 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 ::: example #example4
 
 @[code](@/content/guides/cell-features/comments/javascript/example4.js)
+@[code](@/content/guides/cell-features/comments/javascript/example4.ts)
 
 :::
 

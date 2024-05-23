@@ -38,6 +38,7 @@ This demo shows how to use the cell type renderer feature to make some condition
 @[code](@/content/guides/cell-features/conditional-formatting/javascript/example1.css)
 
 @[code](@/content/guides/cell-features/conditional-formatting/javascript/example1.js)
+@[code](@/content/guides/cell-features/conditional-formatting/javascript/example1.ts)
 
 :::
 

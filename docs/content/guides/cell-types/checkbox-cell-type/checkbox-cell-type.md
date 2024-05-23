@@ -37,6 +37,7 @@ This is the default usage scenario where column data has a `true` or `false` val
 ::: example #example1
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example1.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example1.ts)
 
 :::
 
@@ -61,6 +62,7 @@ If you want to use values other than `true` and `false`, you have to provide thi
 ::: example #example2
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example2.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example2.ts)
 
 :::
 
@@ -85,6 +87,7 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 ::: example #example3
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example3.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example3.ts)
 
 :::
 

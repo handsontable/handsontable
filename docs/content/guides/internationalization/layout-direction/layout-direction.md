@@ -55,6 +55,7 @@ To try out Handsontable's RTL support, check out the demo below:
 ::: example #example1 :hot-lang
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example1.js)
+@[code](@/content/guides/internationalization/layout-direction/javascript/example1.ts)
 
 :::
 
@@ -112,6 +113,7 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example2.html)
 @[code](@/content/guides/internationalization/layout-direction/javascript/example2.js)
+@[code](@/content/guides/internationalization/layout-direction/javascript/example2.ts)
 
 :::
 
@@ -139,6 +141,7 @@ and set it to `'rtl'`:
 ::: example #example3
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example3.js)
+@[code](@/content/guides/internationalization/layout-direction/javascript/example3.ts)
 
 :::
 
@@ -166,6 +169,7 @@ and set it to `'ltr'`:
 ::: example #example4
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example4.js)
+@[code](@/content/guides/internationalization/layout-direction/javascript/example4.ts)
 
 :::
 
@@ -192,6 +196,7 @@ In the example below, some columns are explicitly aligned to the left, center, o
 ::: example #example5
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example5.js)
+@[code](@/content/guides/internationalization/layout-direction/javascript/example5.ts)
 
 :::
 

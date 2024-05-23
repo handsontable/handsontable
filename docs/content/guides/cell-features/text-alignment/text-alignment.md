@@ -56,6 +56,7 @@ The following code sample configures the grid to use `htCenter` and configures i
 ::: example #example1
 
 @[code](@/content/guides/cell-features/text-alignment/javascript/example1.js)
+@[code](@/content/guides/cell-features/text-alignment/javascript/example1.ts)
 
 :::
 

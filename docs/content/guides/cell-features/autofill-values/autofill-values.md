@@ -35,6 +35,7 @@ Using the tiny square known as the 'fill handle' in the corner of the selected c
 ::: example #example1
 
 @[code](@/content/guides/cell-features/autofill-values/javascript/example1.js)
+@[code](@/content/guides/cell-features/autofill-values/javascript/example1.ts)
 
 :::
 
@@ -59,6 +60,7 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 ::: example #example2
 
 @[code](@/content/guides/cell-features/autofill-values/javascript/example2.js)
+@[code](@/content/guides/cell-features/autofill-values/javascript/example2.ts)
 
 :::
 

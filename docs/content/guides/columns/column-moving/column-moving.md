@@ -29,6 +29,7 @@ A draggable move handle appears above the selected column header. You can click 
 ::: example #example1
 
 @[code](@/content/guides/columns/column-moving/javascript/example1.js)
+@[code](@/content/guides/columns/column-moving/javascript/example1.ts)
 
 :::
 
@@ -53,6 +54,7 @@ When you move columns, the default column headers (A, B, C) stay in place.
 ::: example #example2
 
 @[code](@/content/guides/columns/column-moving/javascript/example2.js)
+@[code](@/content/guides/columns/column-moving/javascript/example2.ts)
 
 :::
 
@@ -75,6 +77,7 @@ But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option wit
 ::: example #example3
 
 @[code](@/content/guides/columns/column-moving/javascript/example3.js)
+@[code](@/content/guides/columns/column-moving/javascript/example3.ts)
 
 :::
 

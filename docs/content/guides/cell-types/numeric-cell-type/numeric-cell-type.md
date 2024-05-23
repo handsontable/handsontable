@@ -35,6 +35,7 @@ Click on the column names to sort them.
 ::: example #example1 :hot-numbro
 
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.js)
+@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.ts)
 
 :::
 
@@ -120,6 +121,7 @@ In the following demo, columns **Price in Japan** and **Price in Turkey** use tw
 ::: example #example3 :hot-numbro
 
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example3.js)
+@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example3.ts)
 
 :::
 

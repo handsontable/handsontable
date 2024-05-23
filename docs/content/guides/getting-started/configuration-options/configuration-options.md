@@ -207,6 +207,7 @@ As a result, each cell in the grid is read-only:
 ::: example #example1
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example1.js)
+@[code](@/content/guides/getting-started/configuration-options/javascript/example1.ts)
 
 :::
 
@@ -282,6 +283,7 @@ As a result, each cell in the third and ninth columns is read-only:
 ::: example #example2
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example2.js)
+@[code](@/content/guides/getting-started/configuration-options/javascript/example2.ts)
 
 :::
 
@@ -364,6 +366,7 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 ::: example #example3
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example3.js)
+@[code](@/content/guides/getting-started/configuration-options/javascript/example3.ts)
 
 :::
 
@@ -441,6 +444,7 @@ The modified [`cell`](@/api/options.md#cell) options:
 ::: example #example4
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example4.js)
+@[code](@/content/guides/getting-started/configuration-options/javascript/example4.ts)
 
 :::
 
@@ -656,6 +660,7 @@ In the example below, the modified [`cells`](@/api/options.md#cells) options ove
 ::: example #example5
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example5.js)
+@[code](@/content/guides/getting-started/configuration-options/javascript/example5.ts)
 
 :::
 
@@ -697,6 +702,7 @@ In the example below, some cells are read-only, and some cells are editable:
 ::: example #example6
 
 @[code](@/content/guides/getting-started/configuration-options/javascript/example6.js)
+@[code](@/content/guides/getting-started/configuration-options/javascript/example6.ts)
 
 :::
 

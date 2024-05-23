@@ -34,6 +34,7 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.html)
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.js)
+@[code](@/content/guides/getting-started/saving-data/javascript/example1.ts)
 
 :::
 

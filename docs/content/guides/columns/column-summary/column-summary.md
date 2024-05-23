@@ -46,6 +46,7 @@ This example calculates and displays five different column summaries:
 ::: example #example1
 
 @[code](@/content/guides/columns/column-summary/javascript/example1.js)
+@[code](@/content/guides/columns/column-summary/javascript/example1.ts)
 
 :::
 
@@ -366,6 +367,7 @@ To reverse row coordinates for your column summary, set the [`reversedRowCoords`
 ::: example #example2
 
 @[code](@/content/guides/columns/column-summary/javascript/example2.js)
+@[code](@/content/guides/columns/column-summary/javascript/example2.ts)
 
 :::
 
@@ -397,6 +399,7 @@ The example below sets up five different column summaries. To do this, it:
 ::: example #example7
 
 @[code](@/content/guides/columns/column-summary/javascript/example7.js)
+@[code](@/content/guides/columns/column-summary/javascript/example7.ts)
 
 :::
 
@@ -419,6 +422,7 @@ Using a function to provide a column summary configuration lets you set up all s
 ::: example #example8
 
 @[code](@/content/guides/columns/column-summary/javascript/example8.js)
+@[code](@/content/guides/columns/column-summary/javascript/example8.ts)
 
 :::
 
@@ -516,6 +520,7 @@ This example implements a function that counts the number of even values in a co
 ::: example #example9
 
 @[code](@/content/guides/columns/column-summary/javascript/example9.js)
+@[code](@/content/guides/columns/column-summary/javascript/example9.ts)
 
 :::
 
@@ -543,6 +548,7 @@ See the following example:
 ::: example #example12
 
 @[code](@/content/guides/columns/column-summary/javascript/example12.js)
+@[code](@/content/guides/columns/column-summary/javascript/example12.ts)
 
 :::
 
@@ -598,6 +604,7 @@ To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option 
 ::: example #example10
 
 @[code](@/content/guides/columns/column-summary/javascript/example10.js)
+@[code](@/content/guides/columns/column-summary/javascript/example10.ts)
 
 :::
 
@@ -624,6 +631,7 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 ::: example #example11 --tab code
 
 @[code](@/content/guides/columns/column-summary/javascript/example11.js)
+@[code](@/content/guides/columns/column-summary/javascript/example11.ts)
 
 :::
 

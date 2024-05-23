@@ -27,6 +27,7 @@ Play around with a demo of Handsontable, in your favorite framework.
 @[code](@/content/guides/getting-started/demo/javascript/example.html)
 @[code](@/content/guides/getting-started/demo/javascript/example.css)
 @[code](@/content/guides/getting-started/demo/javascript/example.js)
+@[code](@/content/guides/getting-started/demo/javascript/example.ts)
 :::
 :::
 

@@ -83,6 +83,7 @@ Note that the second, third, and sixth rows are missing in the following example
 ::: example #example1
 
 @[code](@/content/guides/rows/row-trimming/javascript/example1.js)
+@[code](@/content/guides/rows/row-trimming/javascript/example1.ts)
 
 :::
 

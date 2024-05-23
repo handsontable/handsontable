@@ -42,6 +42,7 @@ By default, the values entered into the time-type column are not validated, so i
 ::: example #example1
 
 @[code](@/content/guides/cell-types/time-cell-type/javascript/example1.js)
+@[code](@/content/guides/cell-types/time-cell-type/javascript/example1.ts)
 
 :::
 

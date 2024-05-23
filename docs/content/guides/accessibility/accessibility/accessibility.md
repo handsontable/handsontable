@@ -115,7 +115,6 @@ Check out the interactive demo below to see how various Handsontable settings im
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.css)
 
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.js)
-
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.ts)
 
 :::

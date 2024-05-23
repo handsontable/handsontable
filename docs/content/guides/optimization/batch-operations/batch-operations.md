@@ -197,6 +197,7 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 @[code](@/content/guides/optimization/batch-operations/javascript/example1.html)
 @[code](@/content/guides/optimization/batch-operations/javascript/example1.js)
+@[code](@/content/guides/optimization/batch-operations/javascript/example1.ts)
 
 :::
 

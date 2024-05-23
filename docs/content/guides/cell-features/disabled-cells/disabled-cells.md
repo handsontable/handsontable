@@ -44,6 +44,7 @@ You can make the entire grid read-only by setting [`readOnly`](@/api/options.md#
 ::: example #exampleReadOnlyGrid
 
 @[code](@/content/guides/cell-features/disabled-cells/javascript/exampleReadOnlyGrid.js)
+@[code](@/content/guides/cell-features/disabled-cells/javascript/exampleReadOnlyGrid.ts)
 
 :::
 
@@ -70,6 +71,7 @@ To make a column read-only, declare it in the [`columns`](@/api/options.md#colum
 ::: example #example1
 
 @[code](@/content/guides/cell-features/disabled-cells/javascript/example1.js)
+@[code](@/content/guides/cell-features/disabled-cells/javascript/example1.ts)
 
 :::
 
@@ -94,6 +96,7 @@ This example makes cells that contain the word "Nissan" read-only. It forces all
 ::: example #example2
 
 @[code](@/content/guides/cell-features/disabled-cells/javascript/example2.js)
+@[code](@/content/guides/cell-features/disabled-cells/javascript/example2.ts)
 
 :::
 
@@ -122,6 +125,7 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 ::: example #example3
 
 @[code](@/content/guides/cell-features/disabled-cells/javascript/example3.js)
+@[code](@/content/guides/cell-features/disabled-cells/javascript/example3.ts)
 
 :::
 
@@ -146,6 +150,7 @@ The following example shows the table with non-editable cells containing the wor
 ::: example #example4
 
 @[code](@/content/guides/cell-features/disabled-cells/javascript/example4.js)
+@[code](@/content/guides/cell-features/disabled-cells/javascript/example4.ts)
 
 :::
 

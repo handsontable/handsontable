@@ -69,6 +69,7 @@ Here's an example:
 ::: example #example1
 
 @[code](@/content/guides/rows/row-parent-child/javascript/example1.js)
+@[code](@/content/guides/rows/row-parent-child/javascript/example1.ts)
 
 :::
 

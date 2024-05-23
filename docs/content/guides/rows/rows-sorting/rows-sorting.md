@@ -63,6 +63,7 @@ Click on one of the column names to sort the values in ascending (↑) or descen
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingDemo.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingDemo.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingDemo.ts)
 
 :::
 
@@ -114,6 +115,7 @@ the following example, only columns **Model**, **Date** and **In stock** are sor
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleEnableSortingForColumns.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleEnableSortingForColumns.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleEnableSortingForColumns.ts)
 
 :::
 
@@ -227,6 +229,7 @@ You can configure the following types:
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortDifferentTypes.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortDifferentTypes.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortDifferentTypes.ts)
 
 :::
 
@@ -261,6 +264,7 @@ To try out sorting by multiple columns, see the following demo:
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByMultipleColumns.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByMultipleColumns.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByMultipleColumns.ts)
 
 :::
 
@@ -359,6 +363,7 @@ In the following demo, the data is initially sorted:
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleInitialSortOrder.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleInitialSortOrder.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleInitialSortOrder.ts)
 
 :::
 
@@ -470,6 +475,7 @@ The default sort icons (↑↓) are encoded in Base64. You can replace them by c
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons.ts)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons.css)
 
@@ -498,6 +504,7 @@ You can also replace the sort icons by changing `content` for the same pseudo-el
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.ts)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.css)
 
@@ -528,6 +535,7 @@ subsequent pseudo-elements:
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons3.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons3.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons3.ts)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons3.css)
 
@@ -664,6 +672,7 @@ For example, if you [freeze](@/guides/rows/row-freezing/row-freezing.md) a row a
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.ts)
 
 :::
 
@@ -850,6 +859,7 @@ To see how it works, try out the following demo:
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPI.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPI.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPI.ts)
 
 :::
 
@@ -945,6 +955,7 @@ To see how it works, try out the following demo:
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPIMultipleColumns.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPIMultipleColumns.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPIMultipleColumns.ts)
 
 :::
 

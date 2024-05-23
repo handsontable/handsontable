@@ -58,6 +58,7 @@ You can use them in the same way as the rest of the predefined items in the [con
 ::: example #example1
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example1.js)
+@[code](@/content/guides/cell-features/clipboard/javascript/example1.ts)
 
 :::
 
@@ -107,6 +108,7 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and
 @[code](@/content/guides/cell-features/clipboard/javascript/example3.html)
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example3.js)
+@[code](@/content/guides/cell-features/clipboard/javascript/example3.ts)
 
 :::
 
@@ -152,6 +154,7 @@ Right-click on a cell to try it out:
 ::: example #example2
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example2.js)
+@[code](@/content/guides/cell-features/clipboard/javascript/example2.ts)
 
 :::
 

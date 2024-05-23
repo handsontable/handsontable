@@ -35,6 +35,7 @@ To enable row hiding, use the [`hiddenRows`](@/api/options.md#hiddenrows) option
 ::: example #example1
 
 @[code](@/content/guides/rows/row-hiding/javascript/example1.js)
+@[code](@/content/guides/rows/row-hiding/javascript/example1.ts)
 
 :::
 
@@ -67,6 +68,7 @@ Now, those rows are hidden by default:
 ::: example #example2
 
 @[code](@/content/guides/rows/row-hiding/javascript/example2.js)
+@[code](@/content/guides/rows/row-hiding/javascript/example2.ts)
 
 :::
 
@@ -93,6 +95,7 @@ To enable the UI indicators, in the `hiddenRows` object, set the `indicators` pr
 ::: example #example3
 
 @[code](@/content/guides/rows/row-hiding/javascript/example3.js)
+@[code](@/content/guides/rows/row-hiding/javascript/example3.ts)
 
 :::
 
@@ -119,6 +122,7 @@ Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenRow
 ::: example #example4
 
 @[code](@/content/guides/rows/row-hiding/javascript/example4.js)
+@[code](@/content/guides/rows/row-hiding/javascript/example4.ts)
 
 :::
 
@@ -141,6 +145,7 @@ You can also add the row hiding menu items individually, by adding the [`hidden_
 ::: example #example5
 
 @[code](@/content/guides/rows/row-hiding/javascript/example5.js)
+@[code](@/content/guides/rows/row-hiding/javascript/example5.ts)
 
 :::
 
@@ -167,6 +172,7 @@ To exclude hidden rows from copying and pasting, in the `hiddenRows` object, set
 ::: example #example6
 
 @[code](@/content/guides/rows/row-hiding/javascript/example6.js)
+@[code](@/content/guides/rows/row-hiding/javascript/example6.ts)
 
 :::
 

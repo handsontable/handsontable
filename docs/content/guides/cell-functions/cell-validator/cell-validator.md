@@ -169,6 +169,7 @@ Callback console log:
 
 @[code](@/content/guides/cell-functions/cell-validator/javascript/example1.html)
 @[code](@/content/guides/cell-functions/cell-validator/javascript/example1.js)
+@[code](@/content/guides/cell-functions/cell-validator/javascript/example1.ts)
 
 :::
 

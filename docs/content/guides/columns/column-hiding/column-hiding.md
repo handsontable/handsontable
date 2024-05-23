@@ -40,6 +40,7 @@ To enable column hiding, use the [`hiddenColumns`](@/api/options.md#hiddencolumn
 ::: example #example1
 
 @[code](@/content/guides/columns/column-hiding/javascript/example1.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example1.ts)
 
 :::
 
@@ -74,6 +75,7 @@ Now, those columns are hidden by default:
 ::: example #example2
 
 @[code](@/content/guides/columns/column-hiding/javascript/example2.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example2.ts)
 
 :::
 
@@ -110,6 +112,7 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the
 ::: example #example3
 
 @[code](@/content/guides/columns/column-hiding/javascript/example3.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example3.ts)
 
 :::
 
@@ -139,6 +142,7 @@ additional items for hiding and unhiding columns.
 ::: example #example4
 
 @[code](@/content/guides/columns/column-hiding/javascript/example4.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example4.ts)
 
 :::
 
@@ -165,6 +169,7 @@ strings to the[ `contextMenu`](@/api/contextMenu.md) parameter:
 ::: example #example5
 
 @[code](@/content/guides/columns/column-hiding/javascript/example5.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example5.ts)
 
 :::
 
@@ -192,6 +197,7 @@ object, set the [`copyPasteEnabled`](@/api/hiddenColumns.md) property to `false`
 ::: example #example6
 
 @[code](@/content/guides/columns/column-hiding/javascript/example6.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example6.ts)
 
 :::
 

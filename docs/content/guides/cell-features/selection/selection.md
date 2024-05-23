@@ -47,6 +47,7 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 @[code](@/content/guides/cell-features/selection/javascript/example1.html)
 @[code](@/content/guides/cell-features/selection/javascript/example1.js)
+@[code](@/content/guides/cell-features/selection/javascript/example1.ts)
 
 :::
 
@@ -72,6 +73,7 @@ To retrieve the selected cells as an array of arrays, you use the [`getSelected(
 
 @[code](@/content/guides/cell-features/selection/javascript/example2.html)
 @[code](@/content/guides/cell-features/selection/javascript/example2.js)
+@[code](@/content/guides/cell-features/selection/javascript/example2.ts)
 
 :::
 
@@ -98,6 +100,7 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 @[code](@/content/guides/cell-features/selection/javascript/example3.html)
 @[code](@/content/guides/cell-features/selection/javascript/example3.css)
 @[code](@/content/guides/cell-features/selection/javascript/example3.js)
+@[code](@/content/guides/cell-features/selection/javascript/example3.ts)
 
 :::
 
