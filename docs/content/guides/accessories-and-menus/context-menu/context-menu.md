@@ -35,10 +35,9 @@ To see the context menu, right-click on a cell:
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/context-menu/javascript/example1.js)
-@[code](@/content/guides/accessories-and-menus/context-menu/javascript/example1.ts)
 @[code](@/content/guides/accessories-and-menus/context-menu/javascript/example1.ts)
 
 :::
@@ -101,7 +100,7 @@ To see the context menu, right-click on a cell:
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/context-menu/javascript/example2.js)
 @[code](@/content/guides/accessories-and-menus/context-menu/javascript/example2.ts)
@@ -150,7 +149,7 @@ To see the context menu, right-click on a cell:
 
 ::: only-for javascript
 
-::: example #example3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/context-menu/javascript/example3.js)
 @[code](@/content/guides/accessories-and-menus/context-menu/javascript/example3.ts)
