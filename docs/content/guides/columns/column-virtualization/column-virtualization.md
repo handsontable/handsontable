@@ -49,7 +49,7 @@ The demo below presents a data grid displaying one million cells (1000 rows x 10
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 3
 
 @[code](@/content/guides/columns/column-virtualization/javascript/example1.js)
 @[code](@/content/guides/columns/column-virtualization/javascript/example1.ts)

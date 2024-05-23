@@ -296,7 +296,7 @@ This example shows how to use custom cell renderers to display HTML content in a
 
 ::: only-for javascript
 
-::: example #example4
+::: example #example4 --js 1 --ts 3
 
 @[code](@/content/guides/cell-functions/cell-renderer/javascript/example4.js)
 @[code](@/content/guides/cell-functions/cell-renderer/javascript/example4.ts)
@@ -331,7 +331,7 @@ You can also put HTML into row and column headers. If you need to attach events 
 
 ::: only-for javascript
 
-::: example #example5 --js 2 --html 1
+::: example #example5 --js 2 --ts 3 --html 1
 
 @[code](@/content/guides/cell-functions/cell-renderer/javascript/example5.html)
 @[code](@/content/guides/cell-functions/cell-renderer/javascript/example5.js)

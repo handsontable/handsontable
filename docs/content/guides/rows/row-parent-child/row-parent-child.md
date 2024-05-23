@@ -66,7 +66,7 @@ Here's an example:
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 3
 
 @[code](@/content/guides/rows/row-parent-child/javascript/example1.js)
 @[code](@/content/guides/rows/row-parent-child/javascript/example1.ts)

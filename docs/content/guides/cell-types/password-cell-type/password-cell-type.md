@@ -24,7 +24,7 @@ The password cell type behaves like a text cell, the only difference being that 
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 3
 
 @[code](@/content/guides/cell-types/password-cell-type/javascript/example1.js)
 @[code](@/content/guides/cell-types/password-cell-type/javascript/example1.ts)
@@ -49,7 +49,7 @@ By default, every hash has a length equal to the length of its corresponding val
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 3
 
 @[code](@/content/guides/cell-types/password-cell-type/javascript/example2.js)
 @[code](@/content/guides/cell-types/password-cell-type/javascript/example2.ts)
@@ -74,7 +74,7 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 
 ::: only-for javascript
 
-::: example #example3
+::: example #example3 --js 1 --ts 3
 
 @[code](@/content/guides/cell-types/password-cell-type/javascript/example3.js)
 @[code](@/content/guides/cell-types/password-cell-type/javascript/example3.ts)

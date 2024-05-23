@@ -145,7 +145,7 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 
 ::: only-for javascript
 
-::: example #example --html 1 --css 2 --js 3
+::: example #example --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/getting-started/grid-size/javascript/example.html)
 @[code](@/content/guides/getting-started/grid-size/javascript/example.css)

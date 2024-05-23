@@ -165,7 +165,7 @@ Callback console log:
 
 ::: only-for javascript
 
-::: example #example1 --js 2 --html 1
+::: example #example1 --js 2 --ts 3 --html 1
 
 @[code](@/content/guides/cell-functions/cell-validator/javascript/example1.html)
 @[code](@/content/guides/cell-functions/cell-validator/javascript/example1.js)

@@ -158,7 +158,7 @@ const hot = new Handsontable(container, {
 
 ### Preview the result
 
-::: example #example
+::: example #example --js 1 --ts 3
 
 @[code](@/content/guides/getting-started/installation/javascript/example.js)
 @[code](@/content/guides/getting-started/installation/javascript/example.ts)

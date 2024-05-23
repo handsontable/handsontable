@@ -26,7 +26,7 @@ A draggable move handle appears above the selected row header. You can click and
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 3
 
 @[code](@/content/guides/rows/row-moving/javascript/example1.js)
 @[code](@/content/guides/rows/row-moving/javascript/example1.ts)

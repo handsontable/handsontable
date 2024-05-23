@@ -42,7 +42,7 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 
 ::: only-for javascript
 
-::: example #example1 --js 1 --css 2
+::: example #example1 --js 1 --ts 2 --css 3
 
 @[code](@/content/guides/cell-types/handsontable-cell-type/javascript/example1.js)
 @[code](@/content/guides/cell-types/handsontable-cell-type/javascript/example1.ts)

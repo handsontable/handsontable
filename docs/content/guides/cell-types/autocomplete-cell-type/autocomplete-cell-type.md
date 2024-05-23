@@ -68,7 +68,7 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 ::: only-for javascript
 
-::: example #example2 --js 1 --css 2
+::: example #example2 --js 1 --ts 2 --css 3
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example2.js)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example2.ts)
@@ -95,7 +95,7 @@ Autocomplete can also be used with Ajax data sources. In the example below, sugg
 
 ::: only-for javascript
 
-::: example #example3 --js 1 --css 2
+::: example #example3 --js 1 --ts 2 --css 3
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example3.js)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example3.ts)

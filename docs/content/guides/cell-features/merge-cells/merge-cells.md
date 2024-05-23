@@ -46,7 +46,7 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 3
 
 @[code](@/content/guides/cell-features/merge-cells/javascript/example1.js)
 @[code](@/content/guides/cell-features/merge-cells/javascript/example1.ts)

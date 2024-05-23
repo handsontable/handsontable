@@ -39,7 +39,7 @@ If your [layout direction](@/guides/internationalization/layout-direction/layout
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 3
 
 @[code](@/content/guides/columns/column-freezing/javascript/example1.js)
 @[code](@/content/guides/columns/column-freezing/javascript/example1.ts)
@@ -66,7 +66,7 @@ Mind that when you unfreeze a frozen column, it doesn't go back to the original 
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 3
 
 @[code](@/content/guides/columns/column-freezing/javascript/example2.js)
 @[code](@/content/guides/columns/column-freezing/javascript/example2.ts)

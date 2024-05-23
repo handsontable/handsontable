@@ -55,7 +55,7 @@ this behavior, set
 
 ::: only-for javascript
 
-::: example #exampleFilterBasicDemo --html 1 --js 2
+::: example #exampleFilterBasicDemo --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterBasicDemo.html)
 
@@ -118,7 +118,7 @@ the configuration.
 
 ::: only-for javascript
 
-::: example #exampleShowFilterItemsOnly --html 1 --js 2
+::: example #exampleShowFilterItemsOnly --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleShowFilterItemsOnly.html)
 
@@ -148,7 +148,7 @@ useful items in the menu such as **Clear column**.
 
 ::: only-for javascript
 
-::: example #exampleEnableFilterInColumns --html 1 --js 2
+::: example #exampleEnableFilterInColumns --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleEnableFilterInColumns.html)
 
@@ -178,7 +178,7 @@ each data type.
 
 ::: only-for javascript
 
-::: example #exampleFilterDifferentTypes --html 1 --js 2
+::: example #exampleFilterDifferentTypes --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterDifferentTypes.html)
 
@@ -219,7 +219,7 @@ To do this, you can use Handsontable's [`afterInit()`](@/api/hooks.md#afterinit)
 the API provided by the Filters plugin. For instance, the demo below demonstrates how you can start
 with a pre-applied filter to display only items priced less than $200.
 
-::: example #exampleFilterOnInitialization --html 1 --js 2
+::: example #exampleFilterOnInitialization --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterOnInitialization.html)
 
@@ -252,7 +252,7 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 
 ::: only-for javascript
 
-::: example #exampleQuickFilter --html 1 --js 2 --css 3
+::: example #exampleQuickFilter --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleQuickFilter.html)
 
@@ -285,7 +285,7 @@ down icon.
 
 ::: only-for javascript
 
-::: example #exampleCustomFilterButton --html 1 --js 2 --css 3
+::: example #exampleCustomFilterButton --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton.html)
 
@@ -315,7 +315,7 @@ over the header, apply additional styling to `th .relative:hover .changeType`.
 
 ::: only-for javascript
 
-::: example #exampleCustomFilterButton2 --html 1 --js 2 --css 3
+::: example #exampleCustomFilterButton2 --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton2.html)
 
@@ -361,7 +361,7 @@ filtering doesn't affect them.
 
 ::: only-for javascript
 
-::: example #exampleExcludeRowsFromFiltering --html 1 --js 2
+::: example #exampleExcludeRowsFromFiltering --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleExcludeRowsFromFiltering.html)
 
@@ -400,7 +400,7 @@ filters is logged to the console.
 
 ::: only-for javascript
 
-::: example #exampleServerSideFilter --html 1 --js 2
+::: example #exampleServerSideFilter --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleServerSideFilter.html)
 
@@ -544,7 +544,7 @@ Mind that before you apply new filter conditions, you need to clear the previous
 
 ::: only-for javascript
 
-::: example #exampleFilterThroughAPI1 --html 1 --js 2
+::: example #exampleFilterThroughAPI1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterThroughAPI1.html)
 

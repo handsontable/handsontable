@@ -30,7 +30,7 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2
+::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.html)
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.js)

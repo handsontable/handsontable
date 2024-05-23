@@ -34,7 +34,7 @@ The following example specifies two fixed rows with `fixedRowsTop: 2`. Horizonta
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 3
 
 @[code](@/content/guides/rows/row-freezing/javascript/example1.js)
 @[code](@/content/guides/rows/row-freezing/javascript/example1.ts)

@@ -193,7 +193,7 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2
+::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/optimization/batch-operations/javascript/example1.html)
 @[code](@/content/guides/optimization/batch-operations/javascript/example1.js)

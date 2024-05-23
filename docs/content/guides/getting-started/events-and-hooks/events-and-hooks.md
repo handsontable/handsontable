@@ -208,7 +208,7 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 3
 
 @[code](@/content/guides/getting-started/events-and-hooks/javascript/example2.js)
 @[code](@/content/guides/getting-started/events-and-hooks/javascript/example2.ts)

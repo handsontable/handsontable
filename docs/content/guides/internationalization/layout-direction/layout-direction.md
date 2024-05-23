@@ -109,7 +109,7 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 ::: only-for javascript
 
-::: example #example2 --html 1 --js 2
+::: example #example2 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example2.html)
 @[code](@/content/guides/internationalization/layout-direction/javascript/example2.js)
@@ -138,7 +138,7 @@ and set it to `'rtl'`:
 
 ::: only-for javascript
 
-::: example #example3
+::: example #example3 --js 1 --ts 3
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example3.js)
 @[code](@/content/guides/internationalization/layout-direction/javascript/example3.ts)
@@ -166,7 +166,7 @@ and set it to `'ltr'`:
 
 ::: only-for javascript
 
-::: example #example4
+::: example #example4 --js 1 --ts 3
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example4.js)
 @[code](@/content/guides/internationalization/layout-direction/javascript/example4.ts)
@@ -193,7 +193,7 @@ In the example below, some columns are explicitly aligned to the left, center, o
 
 ::: only-for javascript
 
-::: example #example5
+::: example #example5 --js 1 --ts 3
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example5.js)
 @[code](@/content/guides/internationalization/layout-direction/javascript/example5.ts)

@@ -29,7 +29,7 @@ The example below shows how cell renderers can be used to populate the template 
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 3
 
 @[code](@/content/guides/rows/row-prepopulating/javascript/example1.js)
 @[code](@/content/guides/rows/row-prepopulating/javascript/example1.ts)

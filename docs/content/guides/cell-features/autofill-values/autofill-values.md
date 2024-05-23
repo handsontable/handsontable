@@ -32,7 +32,7 @@ Using the tiny square known as the 'fill handle' in the corner of the selected c
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 3
 
 @[code](@/content/guides/cell-features/autofill-values/javascript/example1.js)
 @[code](@/content/guides/cell-features/autofill-values/javascript/example1.ts)
@@ -57,7 +57,7 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 3
 
 @[code](@/content/guides/cell-features/autofill-values/javascript/example2.js)
 @[code](@/content/guides/cell-features/autofill-values/javascript/example2.ts)

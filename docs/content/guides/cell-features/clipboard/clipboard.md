@@ -55,7 +55,7 @@ You can use them in the same way as the rest of the predefined items in the [con
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 3
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example1.js)
 @[code](@/content/guides/cell-features/clipboard/javascript/example1.ts)
@@ -103,7 +103,7 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and
 
 ::: only-for javascript
 
-::: example #example3 --html 1 --js 2
+::: example #example3 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example3.html)
 
@@ -151,7 +151,7 @@ Right-click on a cell to try it out:
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 3
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example2.js)
 @[code](@/content/guides/cell-features/clipboard/javascript/example2.ts)

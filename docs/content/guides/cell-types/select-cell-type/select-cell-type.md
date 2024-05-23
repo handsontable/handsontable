@@ -28,7 +28,7 @@ The select editor should be considered an example of how to write editors rather
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 3
 
 @[code](@/content/guides/cell-types/select-cell-type/javascript/example1.js)
 @[code](@/content/guides/cell-types/select-cell-type/javascript/example1.ts)
