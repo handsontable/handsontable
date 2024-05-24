@@ -1,80 +1,103 @@
 .handsontable.theme-modern {
-    --hot-foreground-color: #2c3e50; /* Dark slate gray */
-    --hot-foreground-color-active: #34495e; /* Dark blue-gray */
-    --hot-read-only-text: #95a5a6; /* Light grayish */
-    --hot-placeholder-text: #bdc3c7; /* Very light gray */
-    --hot-background-color: #ecf0f1; /* Very light gray */
-    --hot-border-color: #dfe6e9; /* Light blue-gray */
-    --hot-border-horizontal-size: 1px;
-    --hot-border-vertical-size: 1px;
-    --hot-base-padding: 4px;
-    --hot-separator-color: #dcdde1; /* Very light gray-blue */
-    --hot-header-background-color: #f1f2f6; /* Very light gray-blue */
-    --hot-header-foreground-color: #2c3e50; /* Dark slate gray */
-    --hot-header-active-background-color: var(--hot-border-color);
-    --hot-header-active-text-color: var(--hot-foreground-color-active);
-    --hot-header-highlight-background-color: #dfe6e9; /* Light blue-gray */
-    --hot-header-highlight-active-background-color: #74b9ff; /* Light sky blue */
-    --hot-header-current-color: #0984e3; /* Bright blue */
-    --hot-input-border-color: #74b9ff; /* Light sky blue */
-    --hot-link-accent-color: #0984e3; /* Bright blue */
-    --hot-invalid-background-color: #fab1a0; /* Soft peach */
-    --hot-mobile-focus-color: var(--hot-input-border-color);
-    --hot-column-resizer-color: #00cec9; /* Bright turquoise */
-    --hot-column-resizer-guide-color: #95a5a6; /* Light grayish */
-    --hot-area-color: #55efc4; /* Mint green */
-    --hot-link-color: var(--hot-link-accent-color);
-    --hot-editor-text-color: var(--hot-foreground-color-active);
-    --hot-editor-background-color: var(--hot-background-color);
-    --hot-search-highlight-color: #f39c12; /* Vivid orange */
-    --hot-search-highlight-background-color: #ffefd5; /* Pale peach */
-    --hot-lsitbox-border-color: var(--hot-border-color);
-    --hot-lsitbox-background-color: var(--hot-background-color);
-    --hot-lsitbox-background-current-color: #dfe6e9; /* Light blue-gray */
-    --hot-lsitbox-border-size: 1px;
-    --hot-contextmenu-border-color: var(--hot-border-color);
-    --hot-contextmenu-border-width: 1px 2px 2px 1px;
-    --hot-contextmenu-background-color: var(--hot-background-color);
-    --hot-contextmenu-item-padding: 4px 6px 0 6px;
-    --hot-contextmenu-item-inner-padding: 10px 6px; /* left & right */
-    --hot-contextmenu-item-current-background-color: #dfe6e9; /* Light blue-gray */
-    --hot-contextmenu-separator-color: var(--hot-separator-color);
-    --hot-contextmenu-separator-size: var(--hot-border-horizontal-size);
-    --hot-dropdown-button-background: #dfe6e9; /* Light blue-gray */
-    --hot-dropdown-button-color: #7f8c8d; /* Medium gray */
-    --hot-dropdown-button-hover-color: #95a5a6; /* Light grayish */
-    --hot-dropdown-button-border-size: 1px;
-    --hot-dropdown-button-border-color: #7f8c8d; /* Medium gray */
-    --hot-dropdown-button-radius: 2px;
-    --hot-dropdown-button-padding: 2px;
-    --hot-dropdown-button-margin: 3px 1px 0 5px;
-    --hot-dropdown-border-color: var(--hot-border-color);
-    --hot-dropdown-border-width: 1px 2px 2px 1px;
-    --hot-dropdown-menu-background: var(--hot-background-color);
-    --hot-dropdown-menu-item-padding: 4px 6px 0 6px;
-    --hot-dropdown-menu-item-inner-padding: 10px; /* left & right */
-    --hot-dropdown-menu-item-active: #ecf0f1; /* Very light gray */
-    --hot-dropdown-separator-color: var(--hot-separator-color);
-    --hot-dropdown-separator-size: 1px;
-    --hot-filters-menu-background: var(--hot-background-color);
-    --hot-filters-border-color: #7f8c8d; /* Medium gray */
-    --hot-filters-border-width: 1px 2px 2px 1px;
-    --hot-filters-menu-item-active: #ecf0f1; /* Very light gray */
-    --hot-filters-separator-color: var(--hot-separator-color);
-    --hot-filters-separator-size: 1px;
-    --hot-filters-menu-item-inner-padding: 10px; /* left & right */
+    /* Base Colors */
+    --hot-foreground-color: #2b2b2b;
+    --hot-foreground-color-active: #1a1a1a;
+    --hot-read-only-text: #666666;
+    --hot-placeholder-text: #888888;
+    --hot-background-color: #f7f7f7;
+    --hot-border-color: #dcdcdc;
+    --hot-separator-color: #e0e0e0;
 
-    --hot-base-font-size: 14px;
-    --hot-font-family: 'Helvetica Neue', Arial, sans-serif;
+    /* Sizing */
+    --hot-base-padding: 6px;
 
+    /* Cell */
     --hot-cell-height: 24px;
     --hot-cell-line-height: 23px;
-    --hot-cell-horizontal-padding: var(--hot-base-padding);
     --hot-cell-vertical-padding: 2px;
 
-    --hot-header-horizontal-padding: var(--hot-cell-horizontal-padding);
-    --hot-header-vertical-padding: 4px;
-    --hot-header-line-height: 1.2;
+    /* Font */
+    --hot-font-family: "Helvetica Neue", Arial, sans-serif;
+    --hot-base-font-size: 14px;
 
-    --hot-resizer-width: 5px;
+    /* Input Fields */
+    --hot-input-border-color: #007bff;
+
+    /* Links */
+    --hot-link-accent-color: #007bff;
+
+    /* Highlights */
+    --hot-area-color: #0056b3;
+    --hot-column-resizer-color: #50b6f7;
+
+    /* Header */
+    --hot-header-background-color: #f5f5f5;
+    --hot-header-foreground-color: #2b2b2b;
+    --hot-header-highlight-background-color: #e5e5e5; 
+    --hot-header-highlight-active-background-color: #aad4ff; 
+    --hot-header-current-color: #409eff;
+    --hot-header-vertical-padding: 3px;
+    --hot-header-line-height: var(--hot-cell-line-height);
+
+    --hot-resizer-width: 6px;
+
+    /* Listbox */
+    --hot-listbox-background-current-color: #f0f0f0;
+
+    /* Dropdown */
+    --hot-dropdown-button-color: #888888;
+    --hot-dropdown-button-hover-color: #555555;
+    --hot-dropdown-button-radius: 3px;
+    --hot-dropdown-button-padding: 4px;
+    --hot-dropdown-button-background-active: #c8e6c9;
+    --hot-dropdown-button-background-active-color: #2e7d32;
+    --hot-dropdown-button-border-active-color: #66bb6a;
+
+    /* Dropdown Menu */
+    --hot-dropdown-menu-item-padding: 5px 8px 0;
+    --hot-dropdown-menu-item-inner-padding: 12px;
+    --hot-dropdown-menu-item-active: #e0e0e0;
+
+    /* Context Menu */
+    --hot-contextmenu-item-inner-padding: 12px 8px;
+    --hot-contextmenu-item-current-background-color: #ececec;
+
+    /* Comments */
+    --hot-comment-indicator-size: 7px;
+    --hot-comment-textarea-shadow: rgba(0, 0, 0, 0.1) 0 2px 4px, rgba(0, 0, 0, 0.2) 0 1px 2px;
+    --hot-comment-textarea-border-size: 2px;
+    --hot-comment-textarea-padding: 6px;
+    --hot-comment-textarea-height: 100px;
+    --hot-comment-textarea-width: 220px;
+
+    /* Input */
+    --hot-form-input-wrapper-padding: 4px 0 8px 0;
+    --hot-form-input-radius: 3px;
+    --hot-form-input-border-color: #c4c4c4;
+
+    /* Button */
+    --hot-button-background-color: #f1f1f1;
+    --hot-button-font-size: .8em;
+    --hot-button-height: 20px;
+    --hot-button-width: 70px;
+    --hot-button-hover-border-color: #b9b9b9;
+
+    --hot-button-primary-border-color: #0d6efd;
+    --hot-button-primary-background-color: #0d6efd;
+    --hot-button-primary-hover-border-color: #0b5ed7;
+    --hot-button-primary-focus-border-color: #5c9eff;
+    --hot-button-primary-focus-background-color: #86b6ff;
+    --hot-button-primary-focus-text-color: #000;
+
+    /* Select */
+    --hot-select-wrapper-margin: 0 0 8px;
+    --hot-select-background-color: #f8f9fa;
+    --hot-select-padding: 4px 20px 4px 10px;
+
+    /* Checkbox */
+    --hot-checkbox-margin-bottom-end: 6px;
+
+    /* Hidden Dimensions */
+    --hot-hidden-dimension-indicator-margin-row: 3px;
+    --hot-hidden-dimension-indicator-color-highlighted: #f0f0f0;
 }

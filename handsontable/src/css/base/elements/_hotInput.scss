@@ -7,7 +7,10 @@
         border: none;
         outline-width: 0;
         margin: 0;
-        padding: var(--hot-border-vertical-size) calc(1px + var(--hot-cell-horizontal-padding)) 0;
+        padding-top:    calc( var(--hot-cell-vertical-padding) + var(--hot-border-vertical-size) );
+        padding-bottom:  var(--hot-cell-vertical-padding) ;
+        padding-left:   calc( var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size) );
+        padding-right:  calc( var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size) );
         font-family: inherit;
         line-height: var(--hot-cell-line-height);
         font-size: inherit;
@@ -19,7 +22,7 @@
         border-radius: 0;
         background-color: var(--hot-editor-background-color);
         /*overwrite styles potentionally made by a framework*/
-
+        height: calc( var(--hot-border-vertical-size) + var(--hot-cell-line-height) ) !important;
         &:focus {
             outline: none;
         }

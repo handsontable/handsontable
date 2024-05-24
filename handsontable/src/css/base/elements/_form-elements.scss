@@ -20,13 +20,13 @@
     
     /* Input */
     .htUIInput {
-        padding: var(--hot-input-wrapper-padding);
+        padding: var(--hot-form-input-wrapper-padding);
         position: relative;
         text-align: center;
     
         input {
-            border-radius: var(--hot-input-radius);
-            border: var(--hot-input-border-size) solid var(--hot-input-border-color);
+            border-radius: var(--hot-form-input-radius);
+            border: var(--hot-form-input-border-size) solid var(--hot-form-input-border-color);
         }
     }
   
@@ -145,8 +145,8 @@
 
     /* Search */
     .htUIMultipleSelectSearch input {
-        border-radius: var(--hot-input-radius);
-        border: var(--hot-input-border-size) solid var(--hot-input-border-color);
+        border-radius: var(--hot-form-input-radius);
+        border: var(--hot-form-input-border-size) solid var(--hot-form-input-border-color);
     }
 
     /* Radio */

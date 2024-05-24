@@ -38,18 +38,27 @@
 @use "sass:math";
 */
 :root {
+  /* Base Colors */
   --hot-foreground-color: #373737;
   --hot-foreground-color-active: #000000;
   --hot-read-only-text: #777777;
   --hot-placeholder-text: #999999;
   --hot-background-color: #ffffff;
   --hot-border-color: #cccccc;
+  --hot-separator-color: #e6e6e6;
+  /* Sizing */
   --hot-border-horizontal-size: 1px;
   --hot-border-vertical-size: 1px;
   --hot-base-padding: 4px;
-  --hot-separator-color: #e6e6e6;
-  --hot-base-font-size: 13px;
+  /* Cell */
+  --hot-cell-height: 22px;
+  --hot-cell-line-height: 21px;
+  --hot-cell-horizontal-padding: var(--hot-base-padding);
+  --hot-cell-vertical-padding: 0px;
+  /* Font */
   --hot-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+  --hot-base-font-size: 13px;
+  /* Input Fields */
   --hot-input-border-color: #5292F7;
   --hot-link-accent-color: #104acc;
   --hot-link-color: var(--hot-link-accent-color);
@@ -59,9 +68,11 @@
   --hot-column-resizer-guide-color: #777777;
   --hot-editor-text-color: var(--hot-foreground-color-active);
   --hot-editor-background-color: var(--hot-background-color);
+  /* Search */
   --hot-search-highlight-color: #583707;
   --hot-search-highlight-background-color: #fcedd9;
   --hot-invalid-background-color: #ffbeba;
+  /* Header */
   --hot-header-background-color: #f0f0f0;
   --hot-header-foreground-color: #222222;
   --hot-header-active-background-color: var(--hot-border-color);
@@ -69,10 +80,16 @@
   --hot-header-highlight-background-color: #dcdcdc;
   --hot-header-highlight-active-background-color: #8eb0e7;
   --hot-header-current-color: #4b89ff;
+  --hot-header-horizontal-padding: var(--hot-cell-horizontal-padding);
+  --hot-header-vertical-padding: 2px;
+  --hot-header-line-height: var(--hot-cell-line-height);
+  --hot-resizer-width: 5px;
+  /* Listbox */
   --hot-lsitbox-border-color: var(--hot-border-color);
   --hot-lsitbox-background-color: var(--hot-background-color);
   --hot-lsitbox-background-current-color: #eeeeee;
   --hot-lsitbox-border-size: 1px;
+  /* Dropdown */
   --hot-dropdown-button-background: var(--hot-button-background-color);
   --hot-dropdown-button-color:#bbbbbb;
   --hot-dropdown-button-hover-color: #777777;
@@ -92,21 +109,23 @@
   --hot-dropdown-menu-item-active:#e9e9e9;
   --hot-dropdown-separator-color: var(--hot-separator-color);
   --hot-dropdown-separator-size: 1px;
-  --hot-contextmenu-border-color: var(--hot-border-color);
-  --hot-contextmenu-border-width: 1px 2px 2px 1px;
-  --hot-contextmenu-background-color: var(--hot-background-color);
-  --hot-contextmenu-item-padding:4px 6px 0 6px;
+  /* Context Menu */
+  --hot-contextmenu-border-color: var(--hot-dropdown-border-color);
+  --hot-contextmenu-border-width: var(--hot-dropdown-border-width);
+  --hot-contextmenu-background-color: var(--hot-dropdown-menu-background);
+  --hot-contextmenu-item-padding: var(--hot-dropdown-menu-item-padding);
   --hot-contextmenu-item-inner-padding: 10px 6px;
   --hot-contextmenu-item-current-background-color:f3f3f3;
-  --hot-contextmenu-separator-color: var(--hot-separator-color);
-  --hot-contextmenu-separator-size: var(--hot-border-horizontal-size);
-  --hot-filters-menu-background: var(--hot-background-color);
-  --hot-filters-border-color: #bbbbbb;
-  --hot-filters-border-width: 1px 2px 2px 1px;
-  --hot-filters-menu-item-active: #e9e9e9;
-  --hot-filters-separator-color: var(--hot-separator-color);
-  --hot-filters-separator-size: 1px;
-  --hot-filters-menu-item-inner-padding: 10px;
+  --hot-contextmenu-separator-color: var(--hot-dropdown-separator-color);
+  --hot-contextmenu-separator-size: var(--hot-dropdown-separator-size);
+  /* Filters */
+  --hot-filters-menu-background: var(--hot-dropdown-menu-background);
+  --hot-filters-border-color: var(--hot-dropdown-button-border-color);
+  --hot-filters-border-width: var(--hot-dropdown-border-width);
+  --hot-filters-menu-item-active: var(--hot-dropdown-menu-item-active);
+  --hot-filters-separator-color: var(--hot-dropdown-separator-color);
+  --hot-filters-separator-size: var(--hot-dropdown-separator-size);
+  --hot-filters-menu-item-inner-padding: var(--hot-dropdown-menu-item-inner-padding);
   --hot-filters-menu-filtering-border-width: 1px;
   --hot-filters-menu-filtering-border-color: var(--hot-border-color);
   --hot-filters-menu-filtering-border-style: dotted;
@@ -127,20 +146,13 @@
   --hot-filters-menu-input-font-size: var(--hot-button-font-size);
   --hot-filters-menu-input-padding: var(--hot-base-padding);
   --hot-filters-menu-operators-padding: 4px 6px 5px;
-  --hot-cell-height: 22px;
-  --hot-cell-line-height: 21px;
-  --hot-cell-horizontal-padding: var(--hot-base-padding);
-  --hot-cell-vertical-padding: 0;
-  --hot-header-horizontal-padding: var(--hot-cell-horizontal-padding);
-  --hot-header-vertical-padding: 2px;
-  --hot-header-line-height: 1.1;
-  --hot-resizer-width: 5px;
+  /* Comments */
   --hot-comment-indicator-size: 6px;
   --hot-comment-indicator-color: var(--hot-foreground-color-active);
+  --hot-comment-textarea-background-color: var(--hot-background-color);
   --hot-comment-textarea-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px;
   --hot-comment-textarea-border-color: var(--hot-border-color);
   --hot-comment-textarea-border-size: 3px;
-  --hot-comment-textarea-background-color: var(--hot-background-color);
   --hot-comment-textarea-padding: 5px;
   --hot-comment-textarea-height: 90px;
   --hot-comment-textarea-width: 215px;
@@ -148,15 +160,12 @@
   --hot-comment-textarea-font-family: monospace;
   --hot-comment-textarea-focus-color: var(--hot-input-border-color);
   --hot-comment-textarea-focus-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px var(--hot-input-border-color);
-  --hot-checkbox-margin-top: 0;
-  --hot-checkbox-margin-bottom: 0;
-  --hot-checkbox-margin-bottom-start: 0;
-  --hot-checkbox-margin-bottom-end: 5px;
-  --hot-checkbox-height: 1em;
-  --hot-input-wrapper-padding: 3px 0 7px 0;
-  --hot-input-radius: 2px;
-  --hot-input-border-color: #d2d1d1;
-  --hot-input-border-size: 1px;
+  /* Input */
+  --hot-form-input-wrapper-padding: 3px 0 7px 0;
+  --hot-form-input-radius: 2px;
+  --hot-form-input-border-color: #d2d1d1;
+  --hot-form-input-border-size: 1px;
+  /* Button */
   --hot-button-background-color: #eeeeee;
   --hot-button-text-color: var(--hot-foreground-color-active);
   --hot-button-font-size: .75em;
@@ -179,11 +188,12 @@
   --hot-button-primary-focus-border-color: #7cb878;
   --hot-button-primary-focus-background-color: #92dd8d;
   --hot-button-primary-focus-text-color: #000;
+  /* Select */
   --hot-select-wrapper-margin: 0 0 7px;
   --hot-select-background-color: #e8e8e8;
-  --hot-select-radius: var(--hot-input-radius);
-  --hot-select-border-color: var(--hot-input-border-color);
-  --hot-select-border-size: var(--hot-input-border-size);
+  --hot-select-radius: var(--hot-form-input-radius);
+  --hot-select-border-color: var(--hot-form-input-border-color);
+  --hot-select-border-size: var(--hot-form-input-border-size);
   --hot-select-font-size: var(--hot-button-font-size);
   --hot-select-padding: 3px 20px 3px 10px;
   --hot-select-font-weight: bold;
@@ -191,18 +201,28 @@
   --hot-select-hover-background-color: var(--hot-select-background-color);
   --hot-select-hover-text-color: var(--hot-button-text-color);
   --hot-select-text-color: var(--hot-foreground-color);
+  /* Radio */
   --hot-radio-wrapper-margin: 5px;
   --hot-radio-margin: 0.5ex;
+  /* Checkbox */
+  --hot-checkbox-margin-top: 0;
+  --hot-checkbox-margin-bottom: 0;
+  --hot-checkbox-margin-bottom-start: 0;
+  --hot-checkbox-margin-bottom-end: 5px;
+  --hot-checkbox-height: 1em;
+  /* Hidden Dimensions */
   --hot-hidden-dimension-indicator-margin-column: 1px;
   --hot-hidden-dimension-indicator-margin-row: 2px;
   --hot-hidden-dimension-indicator-color: #bbbbbb;
   --hot-hidden-dimension-indicator-color-highlighted: #eeeeee;
+  /* Manual Move */
   --hot-manualMove-guideline-color: #757575;
   --hot-manualMove-guideline-size: 2px;
   --hot-manualMove-backlight-color: rgba(52, 52, 52, 0.2);
+  /* Nested Rows */
   --hot-nestedrows-start: 7px;
   --hot-nestedrows-levels-padding: 11px;
-  /*Renderers*/
+  /* Renderer Autocomplete Arrow */
   --hot-AutocompleteArrow-color: #bbbbbb;
   --hot-AutocompleteArrow-hover-color: #777;
   --hot-AutocompleteArrow-invalid-color: #555555;
@@ -627,13 +647,13 @@
   height: var(--hot-checkbox-height);
 }
 .handsontable .htUIInput {
-  padding: var(--hot-input-wrapper-padding);
+  padding: var(--hot-form-input-wrapper-padding);
   position: relative;
   text-align: center;
 }
 .handsontable .htUIInput input {
-  border-radius: var(--hot-input-radius);
-  border: var(--hot-input-border-size) solid var(--hot-input-border-color);
+  border-radius: var(--hot-form-input-radius);
+  border: var(--hot-form-input-border-size) solid var(--hot-form-input-border-color);
 }
 .handsontable .htUIInputIcon {
   position: absolute;
@@ -725,8 +745,8 @@
   background-color: var(--hot-dropdown-menu-item-active);
 }
 .handsontable .htUIMultipleSelectSearch input {
-  border-radius: var(--hot-input-radius);
-  border: var(--hot-input-border-size) solid var(--hot-input-border-color);
+  border-radius: var(--hot-form-input-radius);
+  border: var(--hot-form-input-border-size) solid var(--hot-form-input-border-color);
 }
 .handsontable .htUIRadio {
   display: inline-block;
@@ -1057,7 +1077,10 @@
   border: none;
   outline-width: 0;
   margin: 0;
-  padding: var(--hot-border-vertical-size) calc(1px + var(--hot-cell-horizontal-padding)) 0;
+  padding-top: calc(var(--hot-cell-vertical-padding) + var(--hot-border-vertical-size));
+  padding-bottom: var(--hot-cell-vertical-padding);
+  padding-left: calc(var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size));
+  padding-right: calc(var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size));
   font-family: inherit;
   line-height: var(--hot-cell-line-height);
   font-size: inherit;
@@ -1069,6 +1092,7 @@
   border-radius: 0;
   background-color: var(--hot-editor-background-color);
   /*overwrite styles potentionally made by a framework*/
+  height: calc(var(--hot-border-vertical-size) + var(--hot-cell-line-height)) !important;
 }
 .handsontableInputHolder .handsontableInput:focus {
   outline: none;
@@ -1961,200 +1985,218 @@
 }
 
 .handsontable.theme-dark {
-  --hot-foreground-color: #cccccc;
-  --hot-foreground-color-active: #ffffff;
-  --hot-read-only-text: #aaaaaa;
-  --hot-placeholder-text: #888888;
-  --hot-background-color: #222222;
-  --hot-border-color: #444444;
-  --hot-separator-color: #555555;
-  --hot-header-background-color: #333333;
-  --hot-header-foreground-color: #dddddd;
-  --hot-header-active-background-color: var(--hot-border-color);
-  --hot-header-active-text-color: var(--hot-foreground-color-active);
-  --hot-header-highlight-background-color: #444444;
-  --hot-header-highlight-active-background-color: #3a4b69;
-  --hot-header-current-color: #6bafff;
-  --hot-input-border-color: #9abfff;
-  --hot-link-accent-color: #66aaff;
-  --hot-invalid-background-color: #ff6666;
-  --hot-mobile-focus-color: var(--hot-input-border-color);
-  --hot-column-resizer-color: #56b0db;
-  --hot-column-resizer-guide-color: #999999;
-  --hot-area-color: #3399ff;
-  --hot-link-color: var(--hot-link-accent-color);
-  --hot-editor-text-color: var(--hot-foreground-color-active);
+  /* Base Colors */
+  --hot-foreground-color: #ffffff;
+  --hot-background-color: #1e1e1e;
+  --hot-border-color: #555555;
+  --hot-separator-color: #444444;
+  /* Cell */
+  --hot-cell-height: 22px;
+  --hot-cell-line-height: 21px;
+  /* Input Fields */
+  --hot-input-border-color: #888888;
+  /* Link */
+  --hot-link-accent-color: #d4af37;
+  /* Area */
+  --hot-area-color: #005eff;
+  /* Column Resizer */
+  --hot-column-resizer-color: #666666;
+  /* Editor */
+  --hot-editor-text-color: var(--hot-foreground-color);
   --hot-editor-background-color: var(--hot-background-color);
-  --hot-search-highlight-color: #e0ac8d;
-  --hot-search-highlight-background-color: #4a3a2d;
-  --hot-lsitbox-border-color: var(--hot-border-color);
-  --hot-lsitbox-background-color: var(--hot-background-color);
-  --hot-lsitbox-background-current-color: #555555;
-  --hot-contextmenu-border-color: var(--hot-border-color);
-  --hot-contextmenu-background-color: var(--hot-background-color);
-  --hot-contextmenu-item-current-background-color: #666666;
-  --hot-dropdown-button-background: #555555;
+  /* Search */
+  --hot-search-highlight-color: #ffd700;
+  --hot-search-highlight-background-color: #333333;
+  --hot-invalid-background-color: #ff0000;
+  /* Header */
+  --hot-header-background-color: #333333;
+  --hot-header-foreground-color: #ffffff;
+  --hot-header-active-background-color: var(--hot-border-color);
+  --hot-header-active-text-color: var(--hot-foreground-color);
+  --hot-header-highlight-background-color: #444444;
+  --hot-header-highlight-active-background-color: #8eb0e7;
+  --hot-header-current-color: #d4af37;
+  /* Dropdown */
+  --hot-dropdown-button-background: var(--hot-button-background-color);
   --hot-dropdown-button-color: #bbbbbb;
-  --hot-dropdown-button-hover-color: #dddddd;
-  --hot-dropdown-button-border-color: #666666;
-  --hot-dropdown-menu-background: var(--hot-background-color);
-  --hot-dropdown-menu-item-active: #555555;
-  --hot-filters-menu-background: var(--hot-background-color);
-  --hot-filters-border-color: #666666;
+  --hot-dropdown-button-hover-color: #ffffff;
+  --hot-dropdown-button-border-color: #bbbbbb;
+  --hot-dropdown-button-background-active: #333333;
+  --hot-dropdown-button-background-active-color: #d4af37;
+  --hot-dropdown-button-border-active-color: #d4af37;
+  --hot-dropdown-border-color: var(--hot-border-color);
+  /* Context Menu */
+  --hot-contextmenu-border-color: var(--hot-dropdown-border-color);
+  --hot-contextmenu-background-color: var(--hot-dropdown-menu-background);
+  --hot-contextmenu-item-current-background-color: #555555;
+  /* Filters */
+  --hot-filters-menu-background: var(--hot-dropdown-menu-background);
+  --hot-filters-border-color: var(--hot-dropdown-button-border-color);
+  --hot-filters-menu-item-active: #555555;
+  /* Button */
+  --hot-button-background-color: #555555;
+  --hot-button-text-color: var(--hot-foreground-color);
+  --hot-button-hover-background-color: #777777;
+  --hot-button-hover-text-color: var(--hot-button-text-color);
+  --hot-button-primary-border-color: #d4af37;
+  --hot-button-primary-background-color: #666666;
+  --hot-button-primary-text-color: #ffffff;
+  --hot-button-primary-hover-background-color: #777777;
+  /* Select */
+  --hot-select-background-color: #444444;
+  --hot-select-border-color: #777777;
+  --hot-select-hover-border-color: #ffffff;
+  --hot-select-text-color: #ffffff;
 }
 
 .handsontable.theme-funky {
-  --hot-foreground-color: #ff69b4; /* Hot pink */
-  --hot-foreground-color-active: #ff4500; /* Orange red */
-  --hot-read-only-text: #dda0dd; /* Plum */
-  --hot-placeholder-text: #8a2be2; /* Blue violet */
-  --hot-background-color: #ffffe0; /* Light yellow */
-  --hot-border-color: #ff1493; /* Deep pink */
-  --hot-border-horizontal-size: 2px;
-  --hot-border-vertical-size: 2px;
-  --hot-base-padding: 6px;
-  --hot-separator-color: #ffa500; /* Orange */
-  --hot-header-background-color: #7fffd4; /* Aquamarine */
-  --hot-header-foreground-color: #4b0082; /* Indigo */
-  --hot-header-active-background-color: var(--hot-border-color);
-  --hot-header-active-text-color: var(--hot-foreground-color-active);
-  --hot-header-highlight-background-color: #ff00ff; /* Fuchsia */
-  --hot-header-highlight-active-background-color: #00ff7f; /* Spring green */
-  --hot-header-current-color: #00ffff; /* Cyan */
-  --hot-input-border-color: #00ced1; /* Dark turquoise */
-  --hot-link-accent-color: #ff6347; /* Tomato */
-  --hot-invalid-background-color: #ffb6c1; /* Light pink */
-  --hot-mobile-focus-color: var(--hot-input-border-color);
-  --hot-column-resizer-color: #ff4500; /* Orange red */
-  --hot-column-resizer-guide-color: #dda0dd; /* Plum */
-  --hot-area-color: #1e90ff; /* Dodger blue */
-  --hot-link-color: var(--hot-link-accent-color);
-  --hot-editor-text-color: var(--hot-foreground-color-active);
+  /* Base Colors */
+  --hot-foreground-color: #000000;
+  --hot-background-color: #f5f5f5;
+  --hot-border-color: #666666;
+  --hot-separator-color: #999999;
+  /* Cell */
+  --hot-cell-height: 22px;
+  --hot-cell-line-height: 21px;
+  /* Input Fields */
+  --hot-input-border-color: #888888;
+  /* Link */
+  --hot-link-accent-color: #ff4136;
+  /* Area */
+  --hot-area-color: #0074d9;
+  /* Column Resizer */
+  --hot-column-resizer-color: #777777;
+  /* Editor */
+  --hot-editor-text-color: var(--hot-foreground-color);
   --hot-editor-background-color: var(--hot-background-color);
-  --hot-search-highlight-color: #d2691e; /* Chocolate */
-  --hot-search-highlight-background-color: #ffe4b5; /* Moccasin */
-  --hot-lsitbox-border-color: var(--hot-border-color);
-  --hot-lsitbox-background-color: var(--hot-background-color);
-  --hot-lsitbox-background-current-color: #ffdab9; /* Peach puff */
-  --hot-lsitbox-border-size: 2px;
-  --hot-contextmenu-border-color: var(--hot-border-color);
-  --hot-contextmenu-border-width: 2px 3px 3px 2px;
-  --hot-contextmenu-background-color: var(--hot-background-color);
-  --hot-contextmenu-item-padding: 6px 8px 2px 8px;
-  --hot-contextmenu-item-inner-padding: 12px 8px; /* left & right */
-  --hot-contextmenu-item-current-background-color: #f08080; /* Light coral */
-  --hot-contextmenu-separator-color: var(--hot-separator-color);
-  --hot-contextmenu-separator-size: var(--hot-border-horizontal-size);
-  --hot-dropdown-button-background: #ffdab9; /* Peach puff */
-  --hot-dropdown-button-color: #ffa07a; /* Light salmon */
-  --hot-dropdown-button-hover-color: #8b4513; /* Saddle brown */
-  --hot-dropdown-button-border-size: 2px;
-  --hot-dropdown-button-border-color: #ffa07a; /* Light salmon */
-  --hot-dropdown-button-radius: 4px;
-  --hot-dropdown-button-padding: 4px;
-  --hot-dropdown-button-margin: 4px 2px 0 6px;
+  /* Search */
+  --hot-search-highlight-color: #ff851b;
+  --hot-search-highlight-background-color: #dddddd;
+  --hot-invalid-background-color: #ff4136;
+  /* Header */
+  --hot-header-background-color: #dddddd;
+  --hot-header-foreground-color: #000000;
+  --hot-header-active-background-color: var(--hot-border-color);
+  --hot-header-active-text-color: var(--hot-foreground-color);
+  --hot-header-highlight-background-color: #eeeeee;
+  --hot-header-highlight-active-background-color: #8eb0e7;
+  --hot-header-current-color: #ff4136;
+  /* Dropdown */
+  --hot-dropdown-button-background: var(--hot-button-background-color);
+  --hot-dropdown-button-color: #666666;
+  --hot-dropdown-button-hover-color: #000000;
+  --hot-dropdown-button-border-color: #666666;
+  --hot-dropdown-button-background-active: #dddddd;
+  --hot-dropdown-button-background-active-color: #ff4136;
+  --hot-dropdown-button-border-active-color: #ff4136;
   --hot-dropdown-border-color: var(--hot-border-color);
-  --hot-dropdown-border-width: 2px 3px 3px 2px;
-  --hot-dropdown-menu-background: var(--hot-background-color);
-  --hot-dropdown-menu-item-padding: 6px 8px 2px 8px;
-  --hot-dropdown-menu-item-inner-padding: 12px; /* left & right */
-  --hot-dropdown-menu-item-active: #ffe4e1; /* Misty rose */
-  --hot-dropdown-separator-color: var(--hot-separator-color);
-  --hot-dropdown-separator-size: 2px;
-  --hot-filters-menu-background: var(--hot-background-color);
-  --hot-filters-border-color: #ffa07a; /* Light salmon */
-  --hot-filters-border-width: 2px 3px 3px 2px;
-  --hot-filters-menu-item-active: #ffe4e1; /* Misty rose */
-  --hot-filters-separator-color: var(--hot-separator-color);
-  --hot-filters-separator-size: 2px;
-  --hot-filters-menu-item-inner-padding: 12px; /* left & right */
-  --hot-base-font-size: 14px;
-  --hot-font-family: "Comic Sans MS", cursive, sans-serif;
-  --hot-cell-height: 24px;
-  --hot-cell-line-height: 23px;
-  --hot-cell-horizontal-padding: var(--hot-base-padding);
-  --hot-cell-vertical-padding: 2px;
-  --hot-header-horizontal-padding: var(--hot-cell-horizontal-padding);
-  --hot-header-vertical-padding: 4px;
-  --hot-header-line-height: 1.2;
-  --hot-resizer-width: 7px;
+  /* Context Menu */
+  --hot-contextmenu-border-color: var(--hot-dropdown-border-color);
+  --hot-contextmenu-background-color: var(--hot-dropdown-menu-background);
+  --hot-contextmenu-item-current-background-color: #aaaaaa;
+  /* Filters */
+  --hot-filters-menu-background: var(--hot-dropdown-menu-background);
+  --hot-filters-border-color: var(--hot-dropdown-button-border-color);
+  --hot-filters-menu-item-active: #aaaaaa;
+  /* Button */
+  --hot-button-background-color: #aaaaaa;
+  --hot-button-text-color: var(--hot-foreground-color);
+  --hot-button-hover-background-color: #cccccc;
+  --hot-button-hover-text-color: var(--hot-button-text-color);
+  --hot-button-primary-border-color: #ff4136;
+  --hot-button-primary-background-color: #aaaaaa;
+  --hot-button-primary-text-color: #000000;
+  --hot-button-primary-hover-background-color: #cccccc;
+  /* Select */
+  --hot-select-background-color: #cccccc;
+  --hot-select-border-color: #777777;
+  --hot-select-hover-border-color: #000000;
+  --hot-select-text-color: #000000;
 }
 
 .handsontable.theme-modern {
-  --hot-foreground-color: #2c3e50; /* Dark slate gray */
-  --hot-foreground-color-active: #34495e; /* Dark blue-gray */
-  --hot-read-only-text: #95a5a6; /* Light grayish */
-  --hot-placeholder-text: #bdc3c7; /* Very light gray */
-  --hot-background-color: #ecf0f1; /* Very light gray */
-  --hot-border-color: #dfe6e9; /* Light blue-gray */
-  --hot-border-horizontal-size: 1px;
-  --hot-border-vertical-size: 1px;
-  --hot-base-padding: 4px;
-  --hot-separator-color: #dcdde1; /* Very light gray-blue */
-  --hot-header-background-color: #f1f2f6; /* Very light gray-blue */
-  --hot-header-foreground-color: #2c3e50; /* Dark slate gray */
-  --hot-header-active-background-color: var(--hot-border-color);
-  --hot-header-active-text-color: var(--hot-foreground-color-active);
-  --hot-header-highlight-background-color: #dfe6e9; /* Light blue-gray */
-  --hot-header-highlight-active-background-color: #74b9ff; /* Light sky blue */
-  --hot-header-current-color: #0984e3; /* Bright blue */
-  --hot-input-border-color: #74b9ff; /* Light sky blue */
-  --hot-link-accent-color: #0984e3; /* Bright blue */
-  --hot-invalid-background-color: #fab1a0; /* Soft peach */
-  --hot-mobile-focus-color: var(--hot-input-border-color);
-  --hot-column-resizer-color: #00cec9; /* Bright turquoise */
-  --hot-column-resizer-guide-color: #95a5a6; /* Light grayish */
-  --hot-area-color: #55efc4; /* Mint green */
-  --hot-link-color: var(--hot-link-accent-color);
-  --hot-editor-text-color: var(--hot-foreground-color-active);
-  --hot-editor-background-color: var(--hot-background-color);
-  --hot-search-highlight-color: #f39c12; /* Vivid orange */
-  --hot-search-highlight-background-color: #ffefd5; /* Pale peach */
-  --hot-lsitbox-border-color: var(--hot-border-color);
-  --hot-lsitbox-background-color: var(--hot-background-color);
-  --hot-lsitbox-background-current-color: #dfe6e9; /* Light blue-gray */
-  --hot-lsitbox-border-size: 1px;
-  --hot-contextmenu-border-color: var(--hot-border-color);
-  --hot-contextmenu-border-width: 1px 2px 2px 1px;
-  --hot-contextmenu-background-color: var(--hot-background-color);
-  --hot-contextmenu-item-padding: 4px 6px 0 6px;
-  --hot-contextmenu-item-inner-padding: 10px 6px; /* left & right */
-  --hot-contextmenu-item-current-background-color: #dfe6e9; /* Light blue-gray */
-  --hot-contextmenu-separator-color: var(--hot-separator-color);
-  --hot-contextmenu-separator-size: var(--hot-border-horizontal-size);
-  --hot-dropdown-button-background: #dfe6e9; /* Light blue-gray */
-  --hot-dropdown-button-color: #7f8c8d; /* Medium gray */
-  --hot-dropdown-button-hover-color: #95a5a6; /* Light grayish */
-  --hot-dropdown-button-border-size: 1px;
-  --hot-dropdown-button-border-color: #7f8c8d; /* Medium gray */
-  --hot-dropdown-button-radius: 2px;
-  --hot-dropdown-button-padding: 2px;
-  --hot-dropdown-button-margin: 3px 1px 0 5px;
-  --hot-dropdown-border-color: var(--hot-border-color);
-  --hot-dropdown-border-width: 1px 2px 2px 1px;
-  --hot-dropdown-menu-background: var(--hot-background-color);
-  --hot-dropdown-menu-item-padding: 4px 6px 0 6px;
-  --hot-dropdown-menu-item-inner-padding: 10px; /* left & right */
-  --hot-dropdown-menu-item-active: #ecf0f1; /* Very light gray */
-  --hot-dropdown-separator-color: var(--hot-separator-color);
-  --hot-dropdown-separator-size: 1px;
-  --hot-filters-menu-background: var(--hot-background-color);
-  --hot-filters-border-color: #7f8c8d; /* Medium gray */
-  --hot-filters-border-width: 1px 2px 2px 1px;
-  --hot-filters-menu-item-active: #ecf0f1; /* Very light gray */
-  --hot-filters-separator-color: var(--hot-separator-color);
-  --hot-filters-separator-size: 1px;
-  --hot-filters-menu-item-inner-padding: 10px; /* left & right */
-  --hot-base-font-size: 14px;
-  --hot-font-family: "Helvetica Neue", Arial, sans-serif;
+  /* Base Colors */
+  --hot-foreground-color: #2b2b2b;
+  --hot-foreground-color-active: #1a1a1a;
+  --hot-read-only-text: #666666;
+  --hot-placeholder-text: #888888;
+  --hot-background-color: #f7f7f7;
+  --hot-border-color: #dcdcdc;
+  --hot-separator-color: #e0e0e0;
+  /* Sizing */
+  --hot-base-padding: 6px;
+  /* Cell */
   --hot-cell-height: 24px;
   --hot-cell-line-height: 23px;
-  --hot-cell-horizontal-padding: var(--hot-base-padding);
   --hot-cell-vertical-padding: 2px;
-  --hot-header-horizontal-padding: var(--hot-cell-horizontal-padding);
-  --hot-header-vertical-padding: 4px;
-  --hot-header-line-height: 1.2;
-  --hot-resizer-width: 5px;
+  /* Font */
+  --hot-font-family: "Helvetica Neue", Arial, sans-serif;
+  --hot-base-font-size: 14px;
+  /* Input Fields */
+  --hot-input-border-color: #007bff;
+  /* Links */
+  --hot-link-accent-color: #007bff;
+  /* Highlights */
+  --hot-area-color: #0056b3;
+  --hot-column-resizer-color: #50b6f7;
+  /* Header */
+  --hot-header-background-color: #f5f5f5;
+  --hot-header-foreground-color: #2b2b2b;
+  --hot-header-highlight-background-color: #e5e5e5;
+  --hot-header-highlight-active-background-color: #aad4ff;
+  --hot-header-current-color: #409eff;
+  --hot-header-vertical-padding: 3px;
+  --hot-header-line-height: var(--hot-cell-line-height);
+  --hot-resizer-width: 6px;
+  /* Listbox */
+  --hot-listbox-background-current-color: #f0f0f0;
+  /* Dropdown */
+  --hot-dropdown-button-color: #888888;
+  --hot-dropdown-button-hover-color: #555555;
+  --hot-dropdown-button-radius: 3px;
+  --hot-dropdown-button-padding: 4px;
+  --hot-dropdown-button-background-active: #c8e6c9;
+  --hot-dropdown-button-background-active-color: #2e7d32;
+  --hot-dropdown-button-border-active-color: #66bb6a;
+  /* Dropdown Menu */
+  --hot-dropdown-menu-item-padding: 5px 8px 0;
+  --hot-dropdown-menu-item-inner-padding: 12px;
+  --hot-dropdown-menu-item-active: #e0e0e0;
+  /* Context Menu */
+  --hot-contextmenu-item-inner-padding: 12px 8px;
+  --hot-contextmenu-item-current-background-color: #ececec;
+  /* Comments */
+  --hot-comment-indicator-size: 7px;
+  --hot-comment-textarea-shadow: rgba(0, 0, 0, 0.1) 0 2px 4px, rgba(0, 0, 0, 0.2) 0 1px 2px;
+  --hot-comment-textarea-border-size: 2px;
+  --hot-comment-textarea-padding: 6px;
+  --hot-comment-textarea-height: 100px;
+  --hot-comment-textarea-width: 220px;
+  /* Input */
+  --hot-form-input-wrapper-padding: 4px 0 8px 0;
+  --hot-form-input-radius: 3px;
+  --hot-form-input-border-color: #c4c4c4;
+  /* Button */
+  --hot-button-background-color: #f1f1f1;
+  --hot-button-font-size: .8em;
+  --hot-button-height: 20px;
+  --hot-button-width: 70px;
+  --hot-button-hover-border-color: #b9b9b9;
+  --hot-button-primary-border-color: #0d6efd;
+  --hot-button-primary-background-color: #0d6efd;
+  --hot-button-primary-hover-border-color: #0b5ed7;
+  --hot-button-primary-focus-border-color: #5c9eff;
+  --hot-button-primary-focus-background-color: #86b6ff;
+  --hot-button-primary-focus-text-color: #000;
+  /* Select */
+  --hot-select-wrapper-margin: 0 0 8px;
+  --hot-select-background-color: #f8f9fa;
+  --hot-select-padding: 4px 20px 4px 10px;
+  /* Checkbox */
+  --hot-checkbox-margin-bottom-end: 6px;
+  /* Hidden Dimensions */
+  --hot-hidden-dimension-indicator-margin-row: 3px;
+  --hot-hidden-dimension-indicator-color-highlighted: #f0f0f0;
 }
 
 /*# sourceMappingURL=handsontable.css.map*/
