@@ -1,0 +1,25 @@
+/*
+    CheckboxRenderer
+*/
+
+.handsontable {
+    .htCheckboxRendererInput {
+        display: inline-block;
+    
+        &.noValue {
+            opacity: 0.5;
+        }
+    }
+  
+    .htCheckboxRendererLabel {
+        font-size: inherit;
+        vertical-align: middle;
+        cursor: pointer;
+        display: inline-block;
+    
+        &.fullWidth {
+            width: 100%;
+        }
+    }
+}
+  

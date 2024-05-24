@@ -197,6 +197,17 @@
   --hot-hidden-dimension-indicator-margin-row: 2px;
   --hot-hidden-dimension-indicator-color: #bbbbbb;
   --hot-hidden-dimension-indicator-color-highlighted: #eeeeee;
+  --hot-manualMove-guideline-color: #757575;
+  --hot-manualMove-guideline-size: 2px;
+  --hot-manualMove-backlight-color: rgba(52, 52, 52, 0.2);
+  --hot-nestedrows-start: 7px;
+  --hot-nestedrows-levels-padding: 11px;
+  /*Renderers*/
+  --hot-AutocompleteArrow-color: #bbbbbb;
+  --hot-AutocompleteArrow-hover-color: #777;
+  --hot-AutocompleteArrow-invalid-color: #555555;
+  --hot-AutocompleteArrow-invalid-hover-color: #1a1a1a;
+  --hot-AutocompleteArrow-area-color: #d3d3d3;
 }
 
 .handsontable {
@@ -237,9 +248,9 @@
 .handsontable input,
 .handsontable textarea,
 .handsontable div {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
 }
 .handsontable input,
 .handsontable textarea {
@@ -1626,7 +1637,10 @@
 }
 .handsontable .ht__manualColumnMove.on-moving--columns *,
 .handsontable .ht__manualColumnMove.on-moving--columns thead th.ht__highlight {
-  @incluse coursor-grabbing;
+  cursor: move;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
 }
 .handsontable .ht__manualColumnMove.on-moving--columns .manualColumnResizer {
   display: none;
@@ -1637,16 +1651,15 @@
   display: none;
 }
 .handsontable .ht__manualColumnMove--guideline {
-  background: #757575;
-  width: 2px;
+  background: var(--hot-manualMove-guideline-color);
+  width: var(--hot-manualMove-guideline-size);
   top: 0;
-  margin-inline-start: -1px;
+  margin-inline-start: calc(var(--hot-manualMove-guideline-size) * -0.5);
   margin-inline-end: 0;
   z-index: 205;
 }
 .handsontable .ht__manualColumnMove--backlight {
-  background: #343434;
-  background: rgba(52, 52, 52, 0.25);
+  background: var(--hot-manualMove-backlight-color);
   display: none;
   z-index: 205;
   pointer-events: none;
@@ -1654,6 +1667,243 @@
 .handsontable.on-moving--columns.show-ui .ht__manualColumnMove--guideline,
 .handsontable.on-moving--columns .ht__manualColumnMove--backlight {
   display: block;
+}
+
+/*
+    Handsontable Row Move
+*/
+.handsontable .wtHider {
+  position: relative;
+}
+.handsontable .ht__manualRowMove.after-selection--rows tbody th.ht__highlight {
+  cursor: move;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+.handsontable .ht__manualRowMove.on-moving--rows *,
+.handsontable .ht__manualRowMove.on-moving--rows tbody th.ht__highlight {
+  cursor: move;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+.handsontable .ht__manualRowMove.on-moving--rows .manualRowResizer {
+  display: none;
+}
+.handsontable .ht__manualRowMove--guideline, .handsontable .ht__manualRowMove--backlight {
+  position: absolute;
+  width: 100%;
+  display: none;
+}
+.handsontable .ht__manualRowMove--guideline {
+  background: var(--hot-manualMove-guideline-color);
+  height: var(--hot-manualMove-guideline-size);
+  left: 0;
+  margin-top: calc(var(--hot-manualMove-guideline-size) * -0.5);
+  z-index: 205;
+}
+.handsontable .ht__manualRowMove--backlight {
+  background: var(--hot-manualMove-backlight-color);
+  display: none;
+  z-index: 205;
+  pointer-events: none;
+}
+.handsontable.on-moving--rows.show-ui .ht__manualRowMove--guideline,
+.handsontable.on-moving--rows .ht__manualRowMove--backlight {
+  display: block;
+}
+
+/*
+    Handsontable Narge Cells
+*/
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-0]:before {
+  opacity: 0.1;
+}
+
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-1]:before {
+  opacity: 0.17;
+}
+
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-2]:before {
+  opacity: 0.24;
+}
+
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-3]:before {
+  opacity: 0.31;
+}
+
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-4]:before {
+  opacity: 0.38;
+}
+
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-5]:before {
+  opacity: 0.45;
+}
+
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-6]:before {
+  opacity: 0.52;
+}
+
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-7]:before {
+  opacity: 0.59;
+}
+
+/*
+    Handsontable Multi Column Sorting
+*/
+.handsontable {
+  /* Column's number position */
+}
+.handsontable span.colHeader.columnSorting {
+  /* We support up to 7 numeric indicators, describing order of column in sorted columns queue */
+  /* Numeric indicators */
+}
+.handsontable span.colHeader.columnSorting::after {
+  /* Centering start */
+  top: 50%;
+  /* Two extra pixels (-2 instead of -4) for purpose of proper positioning of numeric indicators, when `font-size` set to default */
+  margin-top: -2px;
+  /* Centering end */
+  position: absolute;
+  inset-inline-end: -15px;
+  padding-inline-start: 5px;
+  font-size: calc(var(--hot-base-font-size) - 5px);
+  height: calc(var(--hot-base-font-size) - 5px);
+  line-height: var(--hot-header-line-height);
+  /* Workaround for IE9 - IE11, https://stackoverflow.com/a/21902566, https://stackoverflow.com/a/32120247 */
+  text-decoration: none;
+}
+.handsontable span.colHeader.columnSorting[class^=sort-]::after, .handsontable span.colHeader.columnSorting[class*=" sort-"]::after {
+  content: "+";
+}
+.handsontable span.colHeader.columnSorting.sort-1::after {
+  content: "1";
+}
+.handsontable span.colHeader.columnSorting.sort-2::after {
+  content: "2";
+}
+.handsontable span.colHeader.columnSorting.sort-3::after {
+  content: "3";
+}
+.handsontable span.colHeader.columnSorting.sort-4::after {
+  content: "4";
+}
+.handsontable span.colHeader.columnSorting.sort-5::after {
+  content: "5";
+}
+.handsontable span.colHeader.columnSorting.sort-6::after {
+  content: "6";
+}
+.handsontable span.colHeader.columnSorting.sort-7::after {
+  content: "7";
+}
+
+/* Drop-down menu */
+.htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {
+  padding-right: 5px;
+}
+
+/*
+    Handsontable Nested Headers
+*/
+.handsontable thead th.hiddenHeader:not(:first-of-type) {
+  display: none;
+}
+
+/*
+    Handsontable Nested Rows
+*/
+.handsontable th.ht_nestingLevels {
+  text-align: inline-start;
+  padding-inline-start: var(--hot-nestedrows-start);
+}
+.handsontable th div.ht_nestingLevels {
+  display: inline-block;
+  position: absolute;
+  inset-inline-start: var(--hot-nestedrows-levels-padding);
+  inset-inline-end: unset;
+}
+.handsontable th span.ht_nestingLevel {
+  display: inline-block;
+}
+.handsontable th span.ht_nestingLevel_empty {
+  display: inline-block;
+  width: 10px;
+  height: 1px;
+  float: inline-start;
+}
+.handsontable th span.ht_nestingLevel::after {
+  content: "┐";
+  font-size: 9px;
+  display: inline-block;
+  position: relative;
+  bottom: 3px;
+}
+.handsontable th div.ht_nestingButton {
+  display: inline-block;
+  position: absolute;
+  inset-inline-end: -2px;
+  inset-inline-start: unset;
+  cursor: pointer;
+}
+.handsontable th div.ht_nestingButton.ht_nestingExpand::after {
+  content: "+";
+}
+.handsontable th div.ht_nestingButton.ht_nestingCollapse::after {
+  content: "-";
+}
+.handsontable.innerBorderInlineStart th div.ht_nestingLevels, .handsontable.innerBorderInlineStart ~ .handsontable th div.ht_nestingLevels {
+  inset-inline-end: 10px;
+  inset-inline-start: unset;
+}
+.handsontable.innerBorderInlineStart th div.ht_nestingButton, .handsontable.innerBorderInlineStart ~ .handsontable th div.ht_nestingButton {
+  inset-inline-end: 0;
+  inset-inline-start: unset;
+}
+
+/* Renderers */
+/*
+    AutocompleteRenderer down arrow
+*/
+.handsontable .htAutocompleteArrow {
+  float: inline-end;
+  font-size: 10px;
+  color: var(--hot-AutocompleteArrow-color);
+  cursor: default;
+  width: 16px;
+  text-align: center;
+}
+.handsontable td.htInvalid .htAutocompleteArrow {
+  color: var(--hot-AutocompleteArrow-invalid-color);
+}
+.handsontable td.htInvalid .htAutocompleteArrow:hover {
+  color: var(--hot-AutocompleteArrow-invalid-hover-color);
+}
+.handsontable td .htAutocompleteArrow:hover {
+  color: var(--hot-AutocompleteArrow-hover-color);
+}
+.handsontable td.area .htAutocompleteArrow {
+  color: var(--hot-AutocompleteArrow-area-color);
+}
+
+/*
+    CheckboxRenderer
+*/
+.handsontable .htCheckboxRendererInput {
+  display: inline-block;
+}
+.handsontable .htCheckboxRendererInput.noValue {
+  opacity: 0.5;
+}
+.handsontable .htCheckboxRendererLabel {
+  font-size: inherit;
+  vertical-align: middle;
+  cursor: pointer;
+  display: inline-block;
+}
+.handsontable .htCheckboxRendererLabel.fullWidth {
+  width: 100%;
 }
 
 /* Mobile */

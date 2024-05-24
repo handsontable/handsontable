@@ -21,8 +21,16 @@
 @use "./elements/plugins/dropdownMenu";     // TO DO Icons & Sizing
 @use "./elements/plugins/comments";         
 @use "./elements/plugins/manualColumnFreeze";
-@use "./elements/plugins/manualColumnMove"; // TODO
+@use "./elements/plugins/manualColumnMove"; 
+@use "./elements/plugins/manualRowMove";    
+@use "./elements/plugins/margeCells";       
+@use "./elements/plugins/multiColumnSorting"; 
+@use "./elements/plugins/nestedHeaders";
+@use "./elements/plugins/nestedRows";       // TO DO Icons & Sizing
 
+/* Renderers */
+@use "./elements/renderers/autocompleteRenderer"; 
+@use "./elements/renderers/checkboxRenderer"; 
 
 /* Mobile */
 @use "./elements/mobile";

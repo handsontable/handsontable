@@ -1,0 +1,14 @@
+/*
+    Handsontable Narge Cells
+*/
+
+@mixin fullySelectedMergedCell-opacity($index) {
+    $opacity: 0.1 + ($index * 0.07);
+    .handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-#{$index}"]:before {
+        opacity: $opacity;
+    }
+}
+  
+@for $i from 0 through 7 {
+    @include fullySelectedMergedCell-opacity($i);
+}

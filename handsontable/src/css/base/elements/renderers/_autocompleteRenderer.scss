@@ -1,0 +1,34 @@
+
+/*
+    AutocompleteRenderer down arrow
+*/
+
+.handsontable {
+    .htAutocompleteArrow {
+      float: inline-end;
+      font-size: 10px;
+      color: var(--hot-AutocompleteArrow-color);
+      cursor: default;
+      width: 16px;
+      text-align: center;
+    }
+  
+    td {
+      &.htInvalid .htAutocompleteArrow {
+        color: var(--hot-AutocompleteArrow-invalid-color);
+  
+        &:hover {
+          color: var(--hot-AutocompleteArrow-invalid-hover-color);
+        }
+      }
+  
+      .htAutocompleteArrow:hover {
+        color: var(--hot-AutocompleteArrow-hover-color);
+      }
+  
+      &.area .htAutocompleteArrow {
+        color: var(--hot-AutocompleteArrow-area-color);
+      }
+    }
+  }
+  

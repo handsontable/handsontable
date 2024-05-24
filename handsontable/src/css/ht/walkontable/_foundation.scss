@@ -32,7 +32,7 @@
     input,
     textarea,
     div {
-        @include box-sizing(border-box);
+        @include box-sizing(content-box);
     }
     input,
     textarea {

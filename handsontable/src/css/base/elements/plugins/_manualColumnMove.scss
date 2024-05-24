@@ -15,16 +15,14 @@
 		&.on-moving--columns {
 			& *,
 			thead th.ht__highlight {
-				@incluse coursor-grabbing;
+				@include coursor-grabbing;
 			}
 
 			.manualColumnResizer {
 				display: none;
 			}
 		}
-	}
-
-	.ht__manualColumnMove {
+		
 		&--guideline,
 		&--backlight {
 			position: absolute;
@@ -33,17 +31,16 @@
 		}
 
 		&--guideline {
-			background: #757575;
-			width: 2px;
+			background: var(--hot-manualMove-guideline-color);
+			width: var(--hot-manualMove-guideline-size);
 			top: 0;
-			margin-inline-start: -1px;
+			margin-inline-start: calc(var(--hot-manualMove-guideline-size) * -.5);
 			margin-inline-end: 0;
 			z-index: 205;
 		}
 
 		&--backlight {
-			background: #343434;
-			background: rgba(52, 52, 52, 0.25);
+			background: var(--hot-manualMove-backlight-color);
 			display: none;
 			z-index: 205;
 			pointer-events: none;
