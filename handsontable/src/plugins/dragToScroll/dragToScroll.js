@@ -95,7 +95,7 @@ export class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Sets the value of the visible element.
+   * Sets the boundaries/dimensions of the scrollable viewport.
    *
    * @param {DOMRect|{left: number, right: number, top: number, bottom: number}} [boundaries] An object with
    * coordinates. Contains the window boundaries by default. The object is compatible with DOMRect.
