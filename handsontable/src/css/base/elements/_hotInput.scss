@@ -7,12 +7,12 @@
         border: none;
         outline-width: 0;
         margin: 0;
-        padding-top:    calc( var(--hot-cell-vertical-padding) + var(--hot-border-vertical-size) );
-        padding-bottom:  var(--hot-cell-vertical-padding) ;
-        padding-left:   calc( var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size) );
-        padding-right:  calc( var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size) );
+        padding-top:  var(--hot-border-vertical-size) !important;
+        padding-bottom: 0 !important;
+        padding-left:   calc( var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size) )  !important;
+        padding-right:  calc( var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size) )  !important;
         font-family: inherit;
-        line-height: var(--hot-cell-line-height);
+        line-height: calc( var(--hot-cell-line-height) + ( var(--hot-cell-vertical-padding) * 2 ) );
         font-size: inherit;
         box-shadow: 0 0 0 calc(var(--hot-border-horizontal-size) * 2) var(--hot-input-border-color) inset;
         resize: none;
@@ -22,7 +22,7 @@
         border-radius: 0;
         background-color: var(--hot-editor-background-color);
         /*overwrite styles potentionally made by a framework*/
-        height: calc( var(--hot-border-vertical-size) + var(--hot-cell-line-height) ) !important;
+        // height: calc( var(--hot-border-vertical-size) + var(--hot-cell-line-height) ) !important;
         &:focus {
             outline: none;
         }
@@ -33,6 +33,9 @@
     -webkit-appearance: menulist-button !important;
     position: absolute;
     width: auto;
+    font-family: var(--hot-font-family);
+    font-size: inherit;
+    padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
 
     &:focus {
         outline: none;
