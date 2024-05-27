@@ -21,5 +21,4 @@ test(__filename, async({ tablePage }) => {
   await filterByCondition(FilterConditions.IsBetween, '01/01/2020', '30/06/2020');
 
   expect(await rowsCount()).toBe(3);
-
 });
