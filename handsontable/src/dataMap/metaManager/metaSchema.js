@@ -1682,6 +1682,36 @@ export default () => {
     dateFormat: 'DD/MM/YYYY',
 
     /**
+     * The `timeFormat` option configures the time format accepted by [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells.
+     *
+     * You can set the `timeFormat` option to a string with a proper time format. The default value is: `'h:mm:ss a'`.
+     *
+     * To automatically correct times whose format doesn't match the `timeFormat` setting, use the [`correctFormat`](#correctFormat) option.
+     *
+     * Read more:
+     * - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
+     * - [`correctFormat`](#correctFormat)
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'h:mm:ss a'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *   // set the `type` of each cell in this column to `time`
+     *   type: 'time',
+     *   // for every `time` cell of this column, set the time format to `h:mm:ss a`
+     *   timeFormat: 'h:mm:ss a',
+     *   },
+     * ],
+     * ```
+     */
+    timeFormat: 'h:mm:ss a',
+
+    /**
      * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.2).
      *
      * You can set the `datePickerConfig` option to an object with any of the available [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration),
