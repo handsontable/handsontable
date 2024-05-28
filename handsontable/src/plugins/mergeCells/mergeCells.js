@@ -311,7 +311,7 @@ export class MergeCells extends BasePlugin {
     }
 
     const validSettings = settings
-      .filter((mergeCellInfo) => this.validateSetting(mergeCellInfo));
+      .filter(mergeCellInfo => this.validateSetting(mergeCellInfo));
     const nonOverlappingSettings = this.mergedCellsCollection
       .filterOverlappingMergeCells(validSettings);
 
