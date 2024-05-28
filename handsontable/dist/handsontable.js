@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.4.0
- * Release date: 28/05/2024 (built at 22/05/2024 12:56:05)
+ * Release date: 05/06/2024 (built at 28/05/2024 14:41:42)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -107,7 +107,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "22/05/2024 12:56:05";
+Handsontable.buildDate = "28/05/2024 14:41:42";
 Handsontable.version = "14.4.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -9137,7 +9137,7 @@ function _injectProductInfo(key, element) {
   const schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = (0, _moment.default)("28/05/2024", 'DD/MM/YYYY');
+      const releaseDate = (0, _moment.default)("05/06/2024", 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
@@ -39514,6 +39514,35 @@ var _default = () => {
      * ```
      */
     dateFormat: 'DD/MM/YYYY',
+    /**
+     * The `timeFormat` option configures the time format accepted by [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells.
+     *
+     * You can set the `timeFormat` option to a string with a proper time format. The default value is: `'h:mm:ss a'`.
+     *
+     * To automatically correct times whose format doesn't match the `timeFormat` setting, use the [`correctFormat`](#correctFormat) option.
+     *
+     * Read more:
+     * - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
+     * - [`correctFormat`](#correctFormat)
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'h:mm:ss a'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *   // set the `type` of each cell in this column to `time`
+     *   type: 'time',
+     *   // for every `time` cell of this column, set the time format to `h:mm:ss a`
+     *   timeFormat: 'h:mm:ss a',
+     *   },
+     * ],
+     * ```
+     */
+    timeFormat: 'h:mm:ss a',
     /**
      * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.2).
      *
