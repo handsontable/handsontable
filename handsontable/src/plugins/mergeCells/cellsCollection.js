@@ -98,7 +98,7 @@ class MergedCellsCollection {
    *
    * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCellsInfo The merged cell information object.
    * Has to contain `row`, `col`, `colspan` and `rowspan` properties.
-   * @returns {{ row: number, col: number, rowspan: number, colspan: number }[]}
+   * @returns {Array<{ row: number, col: number, rowspan: number, colspan: number }>}
    */
   filterOverlappingMergeCells(mergedCellsInfo) {
     const occupiedCells = new Set();
