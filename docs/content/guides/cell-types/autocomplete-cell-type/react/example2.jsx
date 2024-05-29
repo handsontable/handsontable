@@ -44,7 +44,6 @@ const ExampleComponent = () => {
           allowInvalid: true //true is default
         }
       ]}
-      height="auto"
     />
   );
 };
