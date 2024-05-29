@@ -29,5 +29,6 @@ find content/guides -wholename "*/javascript/*.ts" -print0 | while read -d $'\0'
 done
 
 wait
-sleep 10
+echo "Waiting for the result of all jobs..."
+sleep 20
 echo "All jobs finished"
