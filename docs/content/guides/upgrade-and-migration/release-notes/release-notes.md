@@ -25,6 +25,47 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 14.4.0
+
+Released on April 16, 2024
+
+For more information on this release, see:
+- [Blog post (14.4.0)](https://handsontable.com/blog/handsontable-14.4.0-enhanced-navigation-and-bug-fixes)
+- [Documentation (14.4)](https://handsontable.com/docs/14.4)
+
+### Added
+- Extended the `manualRowResize` plugin with a method to retrieve the row height value from the last manual adjustment attempt. [#10941](https://github.com/handsontable/handsontable/pull/10941)
+- Added an option to change the order of hook callbacks. [#10970](https://github.com/handsontable/handsontable/pull/10970)
+- Added new `dataDotNotation` option which, when set as `false` allows using object keys with dots. [#10973](https://github.com/handsontable/handsontable/pull/10973)
+
+### Changed
+- Improved editor behavior after dataset alterations. [#10963](https://github.com/handsontable/handsontable/pull/10963)
+- React: Synchronized the `rollup` version between the wrappers and updated the `rollup` plugin dependencies.  [#10962](https://github.com/handsontable/handsontable/pull/10962)
+
+### Fixed
+- Fixed unwanted table re-rendering for oversized rows/columns. [#10912](https://github.com/handsontable/handsontable/pull/10912)
+- Fixed `Ctrl/Cmd` + `Enter` keyboard shortcut for comments. [#10920](https://github.com/handsontable/handsontable/pull/10920)
+- Fixed issue with rows and columns not unfreezing when headers are disabled. [#10926](https://github.com/handsontable/handsontable/pull/10926)
+- Fixed `imeFastEdit` option being reset after `updateSettings` call [#10933](https://github.com/handsontable/handsontable/pull/10933)
+- Improved fast typing values between editors. [#10947](https://github.com/handsontable/handsontable/pull/10947)
+- Removed double borders for column headers. [#10948](https://github.com/handsontable/handsontable/pull/10948)
+- Fixed column width calculations with `stretchH: 'all'` option. [#10954](https://github.com/handsontable/handsontable/pull/10954)
+- Fixed missing column summary cell meta state after `updateSettings` method call. [#10955](https://github.com/handsontable/handsontable/pull/10955)
+- Fixed sorting issue for the `time` column type. [#10956](https://github.com/handsontable/handsontable/pull/10956)
+- Fixed data populate error with `correctFormat` usage. [#10957](https://github.com/handsontable/handsontable/pull/10957)
+- Fixed cell meta coordinates overwrite by `GhostTable`. [#10961](https://github.com/handsontable/handsontable/pull/10961)
+- Fixed `setDataAtRowProp` error when saving data into a trimmed-out column. [#10964](https://github.com/handsontable/handsontable/pull/10964)
+- Fixed table scrolling issue after inserting a new row over a table-wide selection. [#10965](https://github.com/handsontable/handsontable/pull/10965)
+- Fixed copy/cut/paste issue from outside elements. [#10976](https://github.com/handsontable/handsontable/pull/10976)
+- Fixed autocomplete dropdown dimensions after filtering out all choices. [#10977](https://github.com/handsontable/handsontable/pull/10977)
+- Fixed dataset clearing issue for formulas. [#10983](https://github.com/handsontable/handsontable/pull/10983)
+- Improved typings for the ContextMenu plugin. [#10984](https://github.com/handsontable/handsontable/pull/10984)
+- Added missing type for `namedExpressions`. [#10986](https://github.com/handsontable/handsontable/pull/10986)
+- Fixed double borders for row/column headers. [#10988](https://github.com/handsontable/handsontable/pull/10988)
+- Fixed a problem, where trying to render a hidden instance made it render all of its rows by disabling the rendering for hidden instances. [#10989](https://github.com/handsontable/handsontable/pull/10989)
+- Fixed error in numeric cell types after entering non-numeric values. [#10931](https://github.com/handsontable/handsontable/pull/10931)
+- React: Prevented React wrapper from throwing errors on updating component props with init-only settings. [#10921](https://github.com/handsontable/handsontable/pull/10921)
+
 ## 14.3.0
 
 Released on April 16, 2024
