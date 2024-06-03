@@ -69,6 +69,7 @@ jobs:
         run: BASE_URL=${{ inputs.test_env }} npx playwright test --update-snapshots
 
       - name: Test
+        if: ${{steps.cache.outputs.cache-hit == 'true' || inputs.update-snapshots != 'true'}}
         run: BASE_URL=${{ inputs.test_env }} npx playwright test
 
       - name: Upload test report
