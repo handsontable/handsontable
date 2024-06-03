@@ -1,5 +1,9 @@
 name: Docs Visual Tests
 
+env:
+  DOCSEARCH_API_KEY: ${{ secrets.DOCSEARCH_API_KEY }}
+  DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
+
 on:
   workflow_dispatch:
     inputs:
