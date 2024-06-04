@@ -402,7 +402,6 @@ list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the con
      *       a background of the first layer and `H` as the latest layer (most dark).
      * 'r' - The hash symbol indicates the row selection;
      * 'c' - The hash symbol indicates the column selection;
-     * 'h' - The hash symbol indicates that the cell is hidden (display: none);
      * '#' - The hash symbol indicates the currently selected cell without changed background color.
      *
      * The meaning of the symbol used to describe headers:
