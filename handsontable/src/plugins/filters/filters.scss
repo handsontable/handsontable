@@ -132,7 +132,7 @@
 }
 
 .htUIMultipleSelect .ht_master .wtHolder {
-  overflow: auto;
+  overflow-y: scroll;
 }
 
 .handsontable .htFiltersActive .changeType {
