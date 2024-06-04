@@ -12,7 +12,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [14.4.0] - 2024-05-28
 
 ### Added
-- Improved UX for column filtering [#10454](https://github.com/handsontable/handsontable/issues/10454)
 - Extended the `manualRowResize` plugin with a method that retrieves the row height value from the last attempt at manually changing said row height. [#10941](https://github.com/handsontable/handsontable/pull/10941)
 - Added an option to place the hook callbacks in a different order. [#10970](https://github.com/handsontable/handsontable/pull/10970)
 - Add new `dataDotNotation` option which, when set as `false` allows using object keys with dots. [#10973](https://github.com/handsontable/handsontable/pull/10973)
@@ -26,7 +25,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed `Ctrl/Cmd` + `Enter` keyboard shortcut for comments [#10920](https://github.com/handsontable/handsontable/pull/10920)
 - Fixed rows and columns unfreeze issue when headers are disabled [#10926](https://github.com/handsontable/handsontable/pull/10926)
 - Fixed `imeFastEdit` option being reset after `updateSettings` call [#10933](https://github.com/handsontable/handsontable/pull/10933)
-- Added horizontal scroll to the Filter's "by value" component [#10940](https://github.com/handsontable/handsontable/pull/10940)
 - Improved fast typing values between editors [#10947](https://github.com/handsontable/handsontable/pull/10947)
 - Removed double borders for column headers [#10948](https://github.com/handsontable/handsontable/pull/10948)
 - Fixed column widths calculations when `stretchH: 'all'` option was used. [#10954](https://github.com/handsontable/handsontable/pull/10954)
@@ -44,6 +42,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed double borders for row/column headers [#10988](https://github.com/handsontable/handsontable/pull/10988)
 - Fixed a problem, where trying to render a hidden instance made it render all of its rows by disabling the rendering for hidden instances. [#10989](https://github.com/handsontable/handsontable/pull/10989)
 - Fixed an error in numeric cell types that occur after entering non-numeric values. [#10931](https://github.com/handsontable/handsontable/pull/10931)
+- Fixed a bug that prevented column sorting of the checkbox cell types. [#11004](https://github.com/handsontable/handsontable/pull/11004)
 - React: Prevented the react wrapper from throwing errors on updating component props when the component had any init-only settings pre-declared. [#10921](https://github.com/handsontable/handsontable/pull/10921)
 
 ## [14.3.0] - 2024-04-16
