@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [14.4.0] - 2024-05-28
+## [14.4.0] - 2024-06-06
 
 ### Added
 - Extended the `manualRowResize` plugin with a method to retrieve the row height value from the last manual adjustment attempt. [#10941](https://github.com/handsontable/handsontable/pull/10941)
