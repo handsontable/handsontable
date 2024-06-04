@@ -44,11 +44,12 @@ class MergedCellsCollection {
   /**
    * Get a warning message for when the declared merged cell data overlaps already existing merged cells.
    *
-   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCell Object containing information
+   * about the merged cells that was about to be added.
    * @returns {string}
    */
-  static IS_OVERLAPPING_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}], overlaps\x20
+  static IS_OVERLAPPING_WARNING({ row, col }) {
+    return toSingleLine`The merged cell declared at [${row}, ${col}], overlaps\x20
       with the other declared merged cell. The overlapping merged cell was not added to the table, please\x20
       fix your setup.`;
   }

@@ -268,8 +268,6 @@ export class MergeCells extends BasePlugin {
    * @returns {boolean}
    */
   validateSetting(setting) {
-    let valid = true;
-
     if (!setting) {
       return false;
     }
@@ -277,25 +275,25 @@ export class MergeCells extends BasePlugin {
     if (MergedCellCoords.containsNegativeValues(setting)) {
       warn(MergedCellCoords.NEGATIVE_VALUES_WARNING(setting));
 
-      valid = false;
-
-    } else if (MergedCellCoords.isOutOfBounds(setting, this.hot.countRows(), this.hot.countCols())) {
+      return false;
+    }
+    if (MergedCellCoords.isOutOfBounds(setting, this.hot.countRows(), this.hot.countCols())) {
       warn(MergedCellCoords.IS_OUT_OF_BOUNDS_WARNING(setting));
 
-      valid = false;
-
-    } else if (MergedCellCoords.isSingleCell(setting)) {
+      return false;
+    }
+    if (MergedCellCoords.isSingleCell(setting)) {
       warn(MergedCellCoords.IS_SINGLE_CELL(setting));
 
-      valid = false;
-
-    } else if (MergedCellCoords.containsZeroSpan(setting)) {
+      return false;
+    }
+    if (MergedCellCoords.containsZeroSpan(setting)) {
       warn(MergedCellCoords.ZERO_SPAN_WARNING(setting));
 
-      valid = false;
+      return false;
     }
 
-    return valid;
+    return true;
   }
 
   /**
@@ -948,12 +946,13 @@ export class MergeCells extends BasePlugin {
       const overlayName = this.hot.view.getElementOverlayName(TD);
       const view = this.hot.view;
 
+      const isInlineStartOverlay = overlayName === 'top_inline_start_corner' || overlayName === 'inline_start';
       const shouldBeVisibleForMainOverlay = overlayName === 'master' && (origColspan === this.hot.countCols());
-      const shouldBeVisibleStartOverlay = (overlayName === 'top_inline_start_corner' || overlayName === 'inline_start') &&
+      const shouldBeVisibleForInlineStartOverlay = isInlineStartOverlay &&
         origColspan >= view.countNotHiddenFixedColumnsStart();
       const shouldBeVisibleForTopOverlay = overlayName === 'top' && (origColspan >= this.hot.countCols());
 
-      if (!shouldBeVisibleForMainOverlay && !shouldBeVisibleStartOverlay && !shouldBeVisibleForTopOverlay) {
+      if (!shouldBeVisibleForMainOverlay && !shouldBeVisibleForInlineStartOverlay && !shouldBeVisibleForTopOverlay) {
         TD.style.display = 'none';
       }
     }
