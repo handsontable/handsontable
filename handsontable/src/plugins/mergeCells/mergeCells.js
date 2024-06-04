@@ -6,10 +6,9 @@ import AutofillCalculations from './calculations/autofill';
 import SelectionCalculations from './calculations/selection';
 import toggleMergeItem from './contextMenuItem/toggleMerge';
 import { arrayEach } from '../../helpers/array';
-import { isObject, clone } from '../../helpers/object';
+import { isObject } from '../../helpers/object';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
-import { applySpanProperties } from './utils';
 import './mergeCells.css';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
@@ -907,33 +906,56 @@ export class MergeCells extends BasePlugin {
   #onAfterRenderer(TD, row, col) {
     const mergedCell = this.mergedCellsCollection.get(row, col);
 
-    if (isObject(mergedCell)) {
-      // We shouldn't override data in the collection.
-      const mergedCellCopy = clone(mergedCell);
-      const { rowIndexMapper: rowMapper, columnIndexMapper: columnMapper } = this.hot;
-      const { row: mergeRow, col: mergeColumn, colspan, rowspan } = mergedCellCopy;
-      const [lastMergedRowIndex, lastMergedColumnIndex] = this
-        .translateMergedCellToRenderable(mergeRow, rowspan, mergeColumn, colspan);
+    if (!isObject(mergedCell)) {
+      TD.removeAttribute('rowspan');
+      TD.removeAttribute('colspan');
+      TD.style.display = '';
 
-      const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
-      const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
+      return;
+    }
 
-      const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
-      const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
+    const { rowIndexMapper: rowMapper, columnIndexMapper: columnMapper } = this.hot;
+    const {
+      row: origRow,
+      col: origColumn,
+      colspan: origColspan,
+      rowspan: origRowspan,
+    } = mergedCell;
+    const [
+      lastMergedRowIndex,
+      lastMergedColumnIndex,
+    ] = this.translateMergedCellToRenderable(origRow, origRowspan, origColumn, origColspan);
 
-      // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
-      mergedCellCopy.row = rowMapper.getNearestNotHiddenIndex(mergedCellCopy.row, 1);
-      // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
-      mergedCellCopy.col = columnMapper.getNearestNotHiddenIndex(mergedCellCopy.col, 1);
-      // The `rowSpan` property for a `TD` element should be at most equal to number of rendered rows in the merge area.
-      mergedCellCopy.rowspan = Math.min(mergedCellCopy.rowspan, maxRowSpan);
-      // The `colSpan` property for a `TD` element should be at most equal to number of rendered columns in the merge area.
-      mergedCellCopy.colspan = Math.min(mergedCellCopy.colspan, maxColSpan);
+    const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
+    const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
 
-      applySpanProperties(TD, mergedCellCopy, row, col);
+    const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
+    const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
+
+    const notHiddenRow = rowMapper.getNearestNotHiddenIndex(origRow, 1);
+    const notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
+    const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);
+    const notHiddenColspan = Math.min(origColspan, maxColSpan);
+
+    if (notHiddenRow === row && notHiddenColumn === col) {
+      TD.setAttribute('rowspan', notHiddenRowspan);
+      TD.setAttribute('colspan', notHiddenColspan);
 
     } else {
-      applySpanProperties(TD, null, row, col);
+      TD.removeAttribute('rowspan');
+      TD.removeAttribute('colspan');
+
+      const overlayName = this.hot.view.getElementOverlayName(TD);
+      const view = this.hot.view;
+
+      const shouldBeVisibleForMainOverlay = overlayName === 'master' && (origColspan === this.hot.countCols());
+      const shouldBeVisibleStartOverlay = (overlayName === 'top_inline_start_corner' || overlayName === 'inline_start') &&
+        origColspan >= view.countNotHiddenFixedColumnsStart();
+      const shouldBeVisibleForTopOverlay = overlayName === 'top' && (origColspan >= this.hot.countCols());
+
+      if (!shouldBeVisibleForMainOverlay && !shouldBeVisibleStartOverlay && !shouldBeVisibleForTopOverlay) {
+        TD.style.display = 'none';
+      }
     }
   }
 

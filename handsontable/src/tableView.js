@@ -362,7 +362,7 @@ class TableView {
       }
 
       // immediate click on "holder" means click on the right side of vertical scrollbar
-      const { holder } = this.hot.view._wt.wtTable;
+      const { holder } = this._wt.wtTable;
 
       if (next === holder) {
         const scrollbarWidth = getScrollbarWidth(rootDocument);
@@ -1173,7 +1173,7 @@ class TableView {
     if (isInput(el)) {
       return true;
     }
-    const isChildOfTableBody = isChildOf(el, this.hot.view._wt.wtTable.spreader);
+    const isChildOfTableBody = isChildOf(el, this._wt.wtTable.spreader);
 
     if (this.settings.fragmentSelection === true && isChildOfTableBody) {
       return true;
@@ -1424,7 +1424,7 @@ class TableView {
    */
   getFirstFullyVisibleRow() {
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstVisibleRow());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstVisibleRow());
   }
 
   /**
@@ -1434,7 +1434,7 @@ class TableView {
    */
   getLastFullyVisibleRow() {
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastVisibleRow());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getLastVisibleRow());
   }
 
   /**
@@ -1444,7 +1444,7 @@ class TableView {
    */
   getFirstFullyVisibleColumn() {
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstVisibleColumn());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstVisibleColumn());
   }
 
   /**
@@ -1454,7 +1454,7 @@ class TableView {
    */
   getLastFullyVisibleColumn() {
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastVisibleColumn());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getLastVisibleColumn());
   }
 
   /**
@@ -1464,7 +1464,7 @@ class TableView {
    */
   getFirstPartiallyVisibleRow() {
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleRow());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstPartiallyVisibleRow());
   }
 
   /**
@@ -1474,7 +1474,7 @@ class TableView {
    */
   getLastPartiallyVisibleRow() {
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleRow());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getLastPartiallyVisibleRow());
   }
 
   /**
@@ -1484,7 +1484,7 @@ class TableView {
    */
   getFirstPartiallyVisibleColumn() {
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleColumn());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstPartiallyVisibleColumn());
   }
 
   /**
@@ -1494,7 +1494,7 @@ class TableView {
    */
   getLastPartiallyVisibleColumn() {
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleColumn());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getLastPartiallyVisibleColumn());
   }
 
   /**
@@ -1523,7 +1523,7 @@ class TableView {
    * @returns {number}
    */
   getViewportWidth() {
-    return this.hot.view._wt.wtViewport.getViewportWidth();
+    return this._wt.wtViewport.getViewportWidth();
   }
 
   /**
@@ -1532,7 +1532,7 @@ class TableView {
    * @returns {number}
    */
   getWorkspaceWidth() {
-    return this.hot.view._wt.wtViewport.getWorkspaceWidth();
+    return this._wt.wtViewport.getWorkspaceWidth();
   }
 
   /**
@@ -1543,7 +1543,7 @@ class TableView {
    * @returns {number}
    */
   getViewportHeight() {
-    return this.hot.view._wt.wtViewport.getViewportHeight();
+    return this._wt.wtViewport.getViewportHeight();
   }
 
   /**
@@ -1552,7 +1552,17 @@ class TableView {
    * @returns {number}
    */
   getWorkspaceHeight() {
-    return this.hot.view._wt.wtViewport.getWorkspaceHeight();
+    return this._wt.wtViewport.getWorkspaceHeight();
+  }
+
+  /**
+   * Checks to what overlay the provided element belongs.
+   *
+   * @param {HTMLElement} element The DOM element to check.
+   * @returns {'master'|'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'}
+   */
+  getElementOverlayName(element) {
+    return (this._wt.wtOverlays.getParentOverlay(element) ?? this._wt).wtTable.name;
   }
 
   /**
