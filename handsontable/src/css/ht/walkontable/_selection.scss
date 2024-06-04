@@ -28,6 +28,7 @@
         &.corner {
             font-size: 0;
             cursor: crosshair;
+            z-index: 10;
         }
     }
 }

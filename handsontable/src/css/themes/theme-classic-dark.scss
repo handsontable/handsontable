@@ -1,4 +1,5 @@
-.handsontable.theme-dark {
+.dark .handsontable,
+.handsontable.dark {
     /* Base Colors */
     --hot-foreground-color: #ffffff;
     --hot-background-color: #1e1e1e;
@@ -10,7 +11,7 @@
     --hot-cell-line-height: 21px;
 
     /* Input Fields */
-    --hot-input-border-color: #888888;
+    --hot-input-border-color: #5292F7;
 
     /* Link */
     --hot-link-accent-color: #d4af37;
