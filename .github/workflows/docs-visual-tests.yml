@@ -1,5 +1,9 @@
 name: Docs Visual Tests
 
+env:
+  DOCSEARCH_API_KEY: ${{ secrets.DOCSEARCH_API_KEY }}
+  DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -65,6 +69,7 @@ jobs:
         run: BASE_URL=${{ inputs.test_env }} npx playwright test --update-snapshots
 
       - name: Test
+        if: ${{steps.cache.outputs.cache-hit == 'true' || inputs.update-snapshots != 'true'}}
         run: BASE_URL=${{ inputs.test_env }} npx playwright test
 
       - name: Upload test report
