@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.4.0
- * Release date: 05/06/2024 (built at 28/05/2024 14:41:42)
+ * Release date: 05/06/2024 (built at 04/06/2024 08:50:42)
  */
 /**
  * Fix for bootstrap styles
@@ -1644,7 +1644,7 @@ textarea.HandsontableCopyPaste {
 }
 
 .htUIMultipleSelect .ht_master .wtHolder {
-  overflow: auto;
+  overflow-y: scroll;
 }
 
 .handsontable .htFiltersActive .changeType {
