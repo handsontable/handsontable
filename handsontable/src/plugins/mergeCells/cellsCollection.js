@@ -244,15 +244,29 @@ class MergedCellsCollection {
    * Clear all the merged cells.
    */
   clear() {
-    arrayEach(this.mergedCells, ({ row, col, rowspan, colspan }) => {
-      rangeEach(row, row + rowspan, (r) => {
-        rangeEach(col, col + colspan, (c) => {
-          const TD = this.hot.getCell(r, c);
+    const mergedCells = this.mergedCells;
+    const mergedCellParentsToClear = [];
+    const hiddenCollectionElements = [];
 
-          if (TD) {
-            TD.removeAttribute('rowspan');
-            TD.removeAttribute('colspan');
-            TD.style.display = '';
+    arrayEach(mergedCells, (mergedCell) => {
+      const TD = this.hot.getCell(mergedCell.row, mergedCell.col);
+
+      if (TD) {
+        mergedCellParentsToClear.push([TD, this.get(mergedCell.row, mergedCell.col), mergedCell.row, mergedCell.col]);
+      }
+    });
+
+    this.mergedCells.length = 0;
+
+    arrayEach(mergedCellParentsToClear, (mergedCell, i) => {
+      rangeEach(0, mergedCell.rowspan - 1, (j) => {
+        rangeEach(0, mergedCell.colspan - 1, (k) => {
+          if (k !== 0 || j !== 0) {
+            const TD = this.hot.getCell(mergedCell.row + j, mergedCell.col + k);
+
+            if (TD) {
+              hiddenCollectionElements.push([TD, null, null, null]);
+            }
           }
         });
       });
