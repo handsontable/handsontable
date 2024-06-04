@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.4.0
- * Release date: 05/06/2024 (built at 28/05/2024 14:41:42)
+ * Release date: 06/06/2024 (built at 04/06/2024 09:26:27)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -107,7 +107,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "28/05/2024 14:41:42";
+Handsontable.buildDate = "04/06/2024 09:26:27";
 Handsontable.version = "14.4.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -9137,7 +9137,7 @@ function _injectProductInfo(key, element) {
   const schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = (0, _moment.default)("05/06/2024", 'DD/MM/YYYY');
+      const releaseDate = (0, _moment.default)("06/06/2024", 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
@@ -50327,6 +50327,10 @@ function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellProperties
       callback: () => {
         changeSelectedCheckboxesState();
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
+      },
+      runOnlyIf: () => {
+        var _hotInstance$getSelec;
+        return (_hotInstance$getSelec = hotInstance.getSelectedRangeLast()) === null || _hotInstance$getSelec === void 0 ? void 0 : _hotInstance$getSelec.highlight.isCell();
       }
     }, {
       keys: [['enter']],
@@ -50335,14 +50339,18 @@ function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellProperties
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
       runOnlyIf: () => {
-        var _hotInstance$getSelec;
-        return hotInstance.getSettings().enterBeginsEditing && ((_hotInstance$getSelec = hotInstance.getSelectedRangeLast()) === null || _hotInstance$getSelec === void 0 ? void 0 : _hotInstance$getSelec.isSingle());
+        const range = hotInstance.getSelectedRangeLast();
+        return hotInstance.getSettings().enterBeginsEditing && (range === null || range === void 0 ? void 0 : range.isSingle()) && range.highlight.isCell();
       }
     }, {
       keys: [['delete'], ['backspace']],
       callback: () => {
         changeSelectedCheckboxesState(true);
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
+      },
+      runOnlyIf: () => {
+        var _hotInstance$getSelec2;
+        return (_hotInstance$getSelec2 = hotInstance.getSelectedRangeLast()) === null || _hotInstance$getSelec2 === void 0 ? void 0 : _hotInstance$getSelec2.highlight.isCell();
       }
     }], config);
   }
@@ -70967,13 +70975,7 @@ class MultipleSelectUI extends _base.BaseUI {
         beforeOnCellMouseUp: () => {
           _classPrivateFieldGet(_itemsBox, this).listen();
         },
-        modifyColWidth: width => {
-          const minWidth = _classPrivateFieldGet(_itemsBox, this).container.scrollWidth - (0, _element.getScrollbarWidth)(rootDocument);
-          if (width !== undefined && width < minWidth) {
-            return minWidth;
-          }
-          return width;
-        },
+        colWidths: () => _classPrivateFieldGet(_itemsBox, this).container.scrollWidth - (0, _element.getScrollbarWidth)(rootDocument),
         maxCols: 1,
         autoWrapCol: true,
         height: 110,

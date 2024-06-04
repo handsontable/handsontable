@@ -42,6 +42,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed double borders for row/column headers. [#10988](https://github.com/handsontable/handsontable/pull/10988)
 - Fixed a problem, where trying to render a hidden instance made it render all of its rows by disabling the rendering for hidden instances. [#10989](https://github.com/handsontable/handsontable/pull/10989)
 - Fixed error in numeric cell types after entering non-numeric values. [#10931](https://github.com/handsontable/handsontable/pull/10931)
+- Fixed a bug that prevented column sorting of the checkbox cell types. [#11004](https://github.com/handsontable/handsontable/pull/11004)
 - React: Prevented React wrapper from throwing errors on updating component props with init-only settings. [#10921](https://github.com/handsontable/handsontable/pull/10921)
 
 For more information on Handsontable 14.4.0, see:
