@@ -63,7 +63,7 @@ export default {
     },
     copyCode(e) {
       const button = e.target;
-      const preTag = button.parentElement;
+      const preTag = button.parentElement.parentElement;
       const codeTag = preTag.querySelector('code');
 
       navigator.clipboard.writeText(codeTag.innerText);
@@ -80,8 +80,8 @@ export default {
       );
     },
     openDropdown(e) {
-      const button = e.target;
-      button.classList.toggle('active');
+      const buttonDropdown = e.target;
+      buttonDropdown.classList.toggle('active');
     },
     showCodeButton(e) {
       e.target.parentElement?.classList.toggle('active');
