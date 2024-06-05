@@ -29,13 +29,13 @@ export default {
     guideLink() {
       return {
         link: `${this.frameworkUrlPrefix}/`,
-        text: 'Docs'
+        text: 'Guides'
       };
     },
     apiLink() {
       return {
         link: `${this.frameworkUrlPrefix}/api/`,
-        text: 'API'
+        text: 'API Reference'
       };
     },
     changelogLink() {

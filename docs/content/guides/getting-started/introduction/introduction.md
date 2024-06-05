@@ -83,7 +83,7 @@ Handsontable's built-in features make it a perfect fit for applications across d
 You are welcome to join our GitHub community. Discuss new releases, propose features, and report bugs on:
 - [GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
 - [Developers' forum](https://forum.handsontable.com/)
-- [Twitter](https://twitter.com/handsontable)
+- [X](https://x.com/handsontable)
 - [Stack Overflow](https://stackoverflow.com/tags/handsontable)
 
 ## Technical support
@@ -95,7 +95,7 @@ Implementing Handsontable requires a certain level of front-end development skil
 - [Roadmap](@/guides/upgrade-and-migration/roadmap/roadmap.md)
 - [Release notes](@/guides/upgrade-and-migration/release-notes/release-notes.md)
 - [Blog](https://handsontable.com/blog)
-- [Twitter](https://twitter.com/handsontable)
+- [X](https://x.com/handsontable)
 - [LinkedIn](https://linkedin.com/company/handsontable)
 
 <span class="decoration-right"></span>

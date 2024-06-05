@@ -12,13 +12,6 @@
     flex-direction: column
     display: flex
 
-    .os-scrollbar {
-
-        .os-scrollbar-handle { 
-            background: $borderColor
-        }
-    }
-
     .mobile-nav {
         display: none
     }
@@ -147,7 +140,10 @@
             }
         }
     }
-
+    .sidebar-nav {
+        height: -webkit-fill-available;
+        overflow: auto;
+    }
     .sidebar-nav > div > .sidebar-links, > div > .sidebar-links {
         > li { 
             display: block;
