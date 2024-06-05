@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "fix Context.getShortcuts type ",
+  "type": "fixed",
+  "issueOrPR": 10910,
+  "breaking": true,
+  "framework": "none"
+}
