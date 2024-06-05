@@ -15,17 +15,17 @@
 </template>
 
 <script>
-import SidebarLinks from "@theme/components/SidebarLinks.vue";
-import Logo from "@theme/components/Logo.vue";
-import NavLinks from "@theme/components/NavLinks.vue";
-import VersionsDropdown from "@theme/components/VersionsDropdown.vue";
-import ThemeSwitcher from "@theme/components/ThemeSwitcher.vue";
-import FrameworksDropdown from "@theme/components/FrameworksDropdown.vue";
-import ExternalNavLinks from "@theme/components/ExternalNavLinks.vue";
-import InfoBox from "@theme/components/InfoBox.vue";
+import SidebarLinks from '@theme/components/SidebarLinks.vue';
+import Logo from '@theme/components/Logo.vue';
+import NavLinks from '@theme/components/NavLinks.vue';
+import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
+import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
+import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
+import ExternalNavLinks from '@theme/components/ExternalNavLinks.vue';
+import InfoBox from '@theme/components/InfoBox.vue';
 
 export default {
-  name: "Sidebar",
+  name: 'Sidebar',
   components: {
     Logo,
     SidebarLinks,
@@ -36,7 +36,7 @@ export default {
     ExternalNavLinks,
     InfoBox,
   },
-  props: ["items"],
+  props: ['items'],
   data() {
     return {
       osInstance: undefined,
@@ -49,15 +49,15 @@ export default {
   },
   methods: {
     scrollToActiveElement(path) {
-      const sidebar = document.querySelector(".sidebar-nav");
+      const sidebar = document.querySelector('.sidebar-nav');
       const { scrollTop, offsetHeight } = sidebar;
 
       const element = `.sidebar-links .sidebar-link[href='/docs${path}']`;
-      const top = document?.querySelector(element).closest(".sidebar-group")?.offsetTop;
+      const top = document?.querySelector(element).closest('.sidebar-group')?.offsetTop;
 
       if (top > scrollTop + offsetHeight - 50) {
         setTimeout(() => {
-          sidebar.scrollTo({ top, behavior: "smooth" });
+          sidebar.scrollTo({ top, behavior: 'smooth' });
         }, 500);
       }
     },

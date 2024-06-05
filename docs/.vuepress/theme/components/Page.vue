@@ -98,10 +98,12 @@ export default {
 
       if (activeItem) {
         const parentElement = activeItem.parentElement;
+
         parentElement.classList.add('active');
         const top = parentElement.offsetTop - wrapper.offsetHeight;
-        wrapper.scrollTo({ top, behavior: "smooth" });
-      };
+
+        wrapper.scrollTo({ top, behavior: 'smooth' });
+      }
     },
     checkSectionInView() {
       const sections = document.querySelectorAll(
