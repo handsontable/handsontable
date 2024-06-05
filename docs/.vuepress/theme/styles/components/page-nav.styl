@@ -1,0 +1,81 @@
+.page {
+    .page-nav { 
+        padding: 24px 0 0
+        max-width: 720px
+        
+        .inner { 
+            border: 0
+            display: flex
+            gap: 16px
+            padding: 0
+
+            > span { 
+                border: 1px solid $borderColor
+                border-radius: $radius-xl
+                width: 100%
+                padding: 24px
+                position: relative
+                z-index: 1
+                color: $accentColor
+                font-size: $font-size-s
+                line-height: $line-height-s
+                font-weight: 400
+
+                &:before {
+                    display: block
+                    content: 'Preview'
+                    font-size: $font-size-xxs
+                    line-height: $line-height-xxs
+                    color: $text2Color
+                    pointer-events: none
+                }
+                
+                @media (hover: hover) {
+                    &:hover { 
+                        a:after {
+                            background: $borderColor
+                        }
+                    }
+                }
+
+                &.next { 
+                    text-align: right 
+                    margin-right: 0
+                    margin-left: auto
+
+                    &:before {
+                        content: 'Next'
+                    }
+                }
+
+                a { 
+                    font-weight: 300
+
+                    &:after { 
+                        position absolute
+                        inset: 0 
+                        content: ''
+                        display: block
+                        border-radius: $radius-xl
+                        z-index -1
+                        transition all $t ease
+
+                    }
+                    &:before { 
+                        position absolute
+                        inset: 0 
+                        content: ''
+                        display: block
+                        z-index 1
+                    }
+
+                    @media (hover: hover) {
+                        &:hover:after {  
+                            background: $borderColor
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

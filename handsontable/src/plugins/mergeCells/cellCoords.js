@@ -49,6 +49,12 @@ class MergedCellCoords {
    * @type {Function}
    */
   cellRangeFactory;
+  /**
+   * The cached range coordinates of the merged cell.
+   *
+   * @type {CellRange}
+   */
+  #cellRange = null;
 
   constructor(row, column, rowspan, colspan, cellCoordsFactory, cellRangeFactory) {
     this.row = row;
@@ -183,6 +189,8 @@ class MergedCellCoords {
     if (this.col + this.colspan > totalColumns - 1) {
       this.colspan = totalColumns - this.col;
     }
+
+    this.#cellRange = null;
   }
 
   /**
@@ -250,6 +258,7 @@ class MergedCellCoords {
       // removing the whole merge
       if (changeStart <= mergeStart && changeEnd >= mergeEnd) {
         this.removed = true;
+        this.#cellRange = null;
 
         return false;
 
@@ -272,6 +281,8 @@ class MergedCellCoords {
         this[span] -= removedPart;
       }
     }
+
+    this.#cellRange = null;
 
     return true;
   }
@@ -328,11 +339,15 @@ class MergedCellCoords {
    * @returns {CellRange}
    */
   getRange() {
-    return this.cellRangeFactory(
-      this.cellCoordsFactory(this.row, this.col),
-      this.cellCoordsFactory(this.row, this.col),
-      this.cellCoordsFactory(this.getLastRow(), this.getLastColumn()),
-    );
+    if (!this.#cellRange) {
+      this.#cellRange = this.cellRangeFactory(
+        this.cellCoordsFactory(this.row, this.col),
+        this.cellCoordsFactory(this.row, this.col),
+        this.cellCoordsFactory(this.getLastRow(), this.getLastColumn()),
+      );
+    }
+
+    return this.#cellRange;
   }
 }
 

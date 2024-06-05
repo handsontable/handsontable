@@ -126,7 +126,7 @@ const ExampleComponent = () => {
         },
       ]}
       columnSorting={true}
-      height={168}
+      height="auto"
       stretchH="all"
       autoWrapRow={true}
       autoWrapCol={true}

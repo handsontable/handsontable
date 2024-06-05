@@ -9,6 +9,7 @@ react:
   id: m60w87tn
   metaTitle: Cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Cell type
@@ -480,10 +481,14 @@ Empty cells may be treated differently in different contexts, for example, the [
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell function](@/guides/cell-functions/cell-function/cell-function.md)
 - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
 - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
 - [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)
+
+</div>
 
 ### Related API reference
 

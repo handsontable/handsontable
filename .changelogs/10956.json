@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed sorting of the time of the `time` column types",
+  "type": "fixed",
+  "issueOrPR": 10956,
+  "breaking": false,
+  "framework": "none"
+}

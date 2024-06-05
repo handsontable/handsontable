@@ -14,6 +14,7 @@ react:
   id: r2x6mh6h
   metaTitle: Context menu - React Data Grid | Handsontable
 searchCategory: Guides
+category: Accessories and menus
 ---
 
 # Context menu
@@ -179,6 +180,8 @@ To see the context menu, right-click on a cell:
 
 ### Related guides
 
+<div class="boxes-list gray">
+ 
 - [Adding comments via the context menu](@/guides/cell-features/comments/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack/icon-pack.md)
@@ -189,9 +192,15 @@ To see the context menu, right-click on a cell:
 - [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md)
 :::
 
+</div>
+
 ### Related blog articles
 
+<div class="boxes-list">
+
 - [Customize Handsontable context menu](https://handsontable.com/blog/customize-handsontable-context-menu)
+
+</div>
 
 ### Related API reference
 

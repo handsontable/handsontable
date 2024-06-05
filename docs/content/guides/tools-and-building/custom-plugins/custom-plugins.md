@@ -13,6 +13,7 @@ react:
   id: y66k6b2h
   metaTitle: Custom plugins - React Data Grid | Handsontable
 searchCategory: Guides
+category: Tools and building
 ---
 
 # Custom plugins

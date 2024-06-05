@@ -356,10 +356,12 @@ export class InlineStartOverlay extends Overlay {
    * @returns {boolean}
    */
   adjustHeaderBordersPosition(position) {
+    const { wtSettings } = this;
     const masterParent = this.wot.wtTable.holder.parentNode;
-    const rowHeaders = this.wtSettings.getSetting('rowHeaders');
-    const fixedColumnsStart = this.wtSettings.getSetting('fixedColumnsStart');
-    const totalRows = this.wtSettings.getSetting('totalRows');
+    const rowHeaders = wtSettings.getSetting('rowHeaders');
+    const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
+    const totalRows = wtSettings.getSetting('totalRows');
+    const preventVerticalOverflow = wtSettings.getSetting('preventOverflow') === 'vertical';
 
     if (totalRows) {
       removeClass(masterParent, 'emptyRows');
@@ -369,19 +371,21 @@ export class InlineStartOverlay extends Overlay {
 
     let positionChanged = false;
 
-    if (fixedColumnsStart && !rowHeaders.length) {
-      // "innerBorderLeft" is for backward compatibility
-      addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
-
-    } else if (!fixedColumnsStart && rowHeaders.length) {
-      const previousState = hasClass(masterParent, 'innerBorderInlineStart');
-
-      if (position) {
+    if (!preventVerticalOverflow) {
+      if (fixedColumnsStart && !rowHeaders.length) {
+        // "innerBorderLeft" is for backward compatibility
         addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
-        positionChanged = !previousState;
-      } else {
-        removeClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
-        positionChanged = previousState;
+
+      } else if (!fixedColumnsStart && rowHeaders.length) {
+        const previousState = hasClass(masterParent, 'innerBorderInlineStart');
+
+        if (position) {
+          addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
+          positionChanged = !previousState;
+        } else {
+          removeClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
+          positionChanged = previousState;
+        }
       }
     }
 

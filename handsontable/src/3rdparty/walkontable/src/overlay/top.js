@@ -381,8 +381,10 @@ export class TopOverlay extends Overlay {
    * @returns {boolean}
    */
   adjustHeaderBordersPosition(position, skipInnerBorderAdjusting = false) {
+    const { wtSettings } = this;
     const masterParent = this.wot.wtTable.holder.parentNode;
-    const totalColumns = this.wtSettings.getSetting('totalColumns');
+    const totalColumns = wtSettings.getSetting('totalColumns');
+    const preventHorizontalOverflow = wtSettings.getSetting('preventOverflow') === 'horizontal';
 
     if (totalColumns) {
       removeClass(masterParent, 'emptyColumns');
@@ -392,17 +394,17 @@ export class TopOverlay extends Overlay {
 
     let positionChanged = false;
 
-    if (!skipInnerBorderAdjusting) {
-      const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
+    if (!skipInnerBorderAdjusting && !preventHorizontalOverflow) {
+      const fixedRowsTop = wtSettings.getSetting('fixedRowsTop');
       const areFixedRowsTopChanged = this.cachedFixedRowsTop !== fixedRowsTop;
-      const columnHeaders = this.wtSettings.getSetting('columnHeaders');
+      const columnHeaders = wtSettings.getSetting('columnHeaders');
 
       if ((areFixedRowsTopChanged || fixedRowsTop === 0) && columnHeaders.length > 0) {
         const previousState = hasClass(masterParent, 'innerBorderTop');
 
-        this.cachedFixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
+        this.cachedFixedRowsTop = wtSettings.getSetting('fixedRowsTop');
 
-        if (position || this.wtSettings.getSetting('totalRows') === 0) {
+        if (position || wtSettings.getSetting('totalRows') === 0) {
           addClass(masterParent, 'innerBorderTop');
           positionChanged = !previousState;
         } else {

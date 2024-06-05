@@ -22,6 +22,7 @@ react:
   id: vz7ct2bv
   metaTitle: Column filter - React Data Grid | Handsontable
 searchCategory: Guides
+category: Columns
 ---
 
 # Column filter

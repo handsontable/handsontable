@@ -9,6 +9,7 @@ react:
   id: 34n5nwja
   metaTitle: Time cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Time cell type
@@ -60,7 +61,11 @@ By default, the values entered into the time-type column are not validated, so i
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
+
+</div>
 
 ### Related API reference
 

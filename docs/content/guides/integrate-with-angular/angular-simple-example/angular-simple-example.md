@@ -9,6 +9,7 @@ react:
   id: acbb666r
   metaTitle: Basic example - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Basic example in Angular

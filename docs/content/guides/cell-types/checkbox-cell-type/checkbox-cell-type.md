@@ -9,6 +9,7 @@ react:
   id: tfr1gisf
   metaTitle: Checkbox cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Checkbox cell type
@@ -111,7 +112,6 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 ## Related articles
 
 ### Related guides
-
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 
 ### Related API reference

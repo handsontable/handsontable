@@ -9,6 +9,7 @@ react:
   id: 8nvt7139
   metaTitle: Basic example - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Basic example in Vue 3

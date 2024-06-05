@@ -17,8 +17,10 @@ const cellProperties: Handsontable.CellProperties = {
 
 hot.addHook('afterChange', (changes: any[] | null, source: string) => {});
 hot.addHook('afterChange', [(changes: any[] | null, source: string) => {}]);
+hot.addHook('afterChange', [(changes: any[] | null, source: string) => {}], 3);
 hot.addHookOnce('afterChange', (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {});
 hot.addHookOnce('afterChange', [(changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {}]);
+hot.addHookOnce('afterChange', [(changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {}], -1);
 hot.alter('insert_row_above');
 hot.alter('insert_row_below');
 hot.alter('insert_col_start');

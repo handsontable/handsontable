@@ -11,6 +11,7 @@ react:
   id: weudz1vh
   metaTitle: Modules - React Data Grid | Handsontable
 searchCategory: Guides
+category: Tools and building
 ---
 
 # Modules
@@ -1017,16 +1018,23 @@ import { registerLanguageDictionary } from 'handsontable/i18n/registry';
 ## Using modules with frameworks
 
 You can also use modules with Handsontable's framework wrappers:
+
+<div class="boxes-list">
+
 - [Using modules with React](@/react/guides/tools-and-building/modules/modules.md)
 - [Using modules with Angular](@/guides/integrate-with-angular/angular-modules/angular-modules.md)
 - [Using modules with Vue 2](@/guides/integrate-with-vue/vue-modules/vue-modules.md)
 - [Using modules with Vue 3](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
+
+</div>
 
 :::
 
 ## Related articles
 
 ### Related guides
+
+<div class="boxes-list gray">
 
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
 - [Installation](@/guides/getting-started/installation/installation.md)
@@ -1040,7 +1048,13 @@ You can also use modules with Handsontable's framework wrappers:
 
 :::
 
+</div>
+
 ### Related blog articles
+
+<div class="boxes-list">
 
 - [Modularizing to improve the developer experience](https://handsontable.com/blog/modularizing-to-improve-the-developer-experience)
 - [Handsontable 11.0.0: modularization for React, Angular, and Vue](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)
+
+</div>

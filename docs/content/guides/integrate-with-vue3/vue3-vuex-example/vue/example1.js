@@ -66,11 +66,11 @@ const ExampleComponent = defineComponent({
     },
     updateVuexPreview() {
       // This method serves only as a renderer for the Vuex's state dump.
-      const previewTable = document.querySelector('#vuex-preview table');
-      let newInnerHtml = '<tbody>';
+      const previewTable = document.querySelector('#vuex-preview pre');
+      let newInnerHtml = '<div>';
 
       for (const [key, value] of Object.entries(store.state)) {
-        newInnerHtml += '<tr><td class="table-container">';
+        newInnerHtml += '<div><div class="table-container">';
 
         if (key === 'hotData' && Array.isArray(value)) {
           newInnerHtml += '<strong>hotData:</strong> <br><table><tbody>';
@@ -96,9 +96,9 @@ const ExampleComponent = defineComponent({
           newInnerHtml += '</ul>';
         }
 
-        newInnerHtml += '</td></tr>';
+        newInnerHtml += '</div></div>';
       }
-      newInnerHtml += '</tbody>';
+      newInnerHtml += '</div>';
 
       previewTable.innerHTML = newInnerHtml;
     }

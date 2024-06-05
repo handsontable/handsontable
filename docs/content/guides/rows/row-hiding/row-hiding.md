@@ -9,6 +9,7 @@ react:
   id: al1djb6l
   metaTitle: Row hiding - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Row hiding

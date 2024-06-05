@@ -1,0 +1,418 @@
+.theme-default-content:not(.custom) > h1, 
+.theme-default-content:not(.custom) > h2, 
+.theme-default-content:not(.custom) > h3, 
+.theme-default-content:not(.custom) > h4, 
+.theme-default-content:not(.custom) > h5, 
+.theme-default-content:not(.custom) > h6 {
+    padding: 0;
+    margin: 0;
+}
+
+.header-framework {display: none !important}
+.page { 
+    opacity 1
+    margin: 80px 380px 0
+    padding: 0 0 24px 0
+    position: relative
+    z-index: 1
+    //overflow: hidden
+
+    .theme-default-content {
+        font-size: $font-size-s
+        line-height: $line-height-s
+        font-weight: 400
+        color: $text2Color
+        letter-spacing: $letterSpacingText
+        
+        &:not(.custom) { 
+            max-width: 720px
+            padding: 0 0 80px
+
+            @media (max-width: $medium) {
+                padding-bottom: 24px
+            }
+        }
+
+        .header-framework { 
+            font-size: $font-size-s
+            line-height: $line-height-s
+            display: block
+            font-weight: 400
+            padding-bottom: 8px
+            color: $text2Color
+        }
+
+       .instalationPage h2 code:first-child  {
+            font-size:  $font-size-s
+            line-height: 32px
+            display: inline-block
+            height: 32px
+            width: 32px
+            text-align: center
+            border-radius: $radius
+            margin-right: 8px
+            border: 1px solid $text2Color
+            position: relative
+            top: -2px
+            margin-left: -48px
+            color: $textColor
+            padding: 0
+            font-family: $font
+            font-weight: 600
+
+            @media (max-width: $large) {
+                margin-left: 0
+            }
+        }
+
+        .instalationPage h2 {
+            font-size:  $font-size
+        }
+
+        .instalationPage .example-container {
+            padding: 16px 0 0
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: $textColor
+            font-weight 400
+            letter-spacing: 0//-0.16px
+
+            &:first-child {
+                margin-top 0
+                margin-bottom 16px
+
+                + p, + pre, + .custom-block {
+                    margin-top 0
+                }
+            }
+            &:focus .header-anchor,
+            &:hover .header-anchor {
+                opacity: 1        
+            }
+
+            &:before { 
+                position absolute
+                top -108px
+                content: ''
+                display: block
+            }
+
+            code { 
+                font-size: inherit
+                line-height: inherit
+            }
+        }
+
+        h1 { 
+            font-size: $font-size-xl
+            line-height: $line-height-xl
+            font-weight: 400
+            margin:0!important
+            padding: 40px 0 0
+            position: relative
+            
+            @media (max-width: $medium) {
+                font-size: $font-size-l
+                line-height: $line-height-l
+            }
+
+            + p {
+                border-bottom: 1px solid $lightBorderColor
+                padding-bottom: 24px
+                margin-bottom: 16px
+                display: block
+            }
+            
+        }
+
+        h2 { 
+            padding-top: 32px
+            padding-bottom: 0px
+            font-size: $font-size-l
+            line-height: $line-height-l
+            margin: 0
+            position relative
+        }
+
+        h3 { 
+            padding-top: 24px
+            padding-bottom: 0px
+            font-size: $font-size
+            line-height: $line-height
+            margin: 0
+            position: relative
+        }
+
+        h4, h5 { 
+            padding-top: 16px
+            padding-bottom: 4px
+            font-size: $font-size-s
+            line-height: $line-height-s
+            margin: 0
+            position: relative
+        }
+
+        a.header-anchor {
+            // margin-left: -40px
+            position absolute
+            inset: 0
+            margin: 0 
+            padding: 0
+            opacity 0 !important
+        }
+
+        > div { 
+            padding: 16px 0 0 
+        }
+
+        p { 
+            font-size: $font-size-s
+            line-height: $line-height-s
+            font-weight: 400
+            padding: 8px 0 0 
+            color: $text2Color
+            letter-spacing: $letterSpacingText
+            display: block
+
+            a { 
+                text-decoration-color: none
+
+                &[rel="noopener"] {
+                    white-space nowrap
+                }
+            }
+
+            &:empty { 
+                //display:none 
+            }
+
+            > img {
+                margin: 16px 0
+            }
+            
+        }
+        
+        li {
+            font-size: $font-size-s
+            line-height: $line-height-s
+        }
+
+        > ul, > ol, .boxes-list > ul, .instalationPage > ul { 
+            padding: 16px 8px 8px
+            word-wrap: break-word
+
+            li {
+                font-size: $font-size-s
+                line-height: $line-height-s
+                font-weight: 400
+                list-style square 
+                margin-left: 24px
+                color: $text2Color
+                padding-bottom: 8px
+
+                ul, ol {
+                    padding: 8px 8px 8px
+                }
+            }
+        }
+        
+        img { 
+            border-radius: $radius
+        }
+        
+        a { 
+            color: $accentColor
+            text-decoration: none 
+            font-weight: 400
+            transition: $ts all ease-in-out
+
+            @media (hover: hover) {
+                &:hover { 
+                    text-decoration:none
+                    color: $textColor
+                }
+            }
+            svg { padding: 4px}
+        }
+
+        iframe, video { 
+            margin-top: 16px
+            border-radius: $radius
+        }
+    }
+    
+    .checkbox-group > div > label {
+        gap: 8px
+    }
+
+    .checkbox-group { 
+        gap: 4px
+        padding-bottom: 4px
+    }
+
+    a.header-anchor { 
+        &:before {
+            content: '#'
+            font-weight: 300
+        }
+    }
+
+    
+    
+    kbd {
+        border: 1px solid $borderColor
+        border-bottom: 4px solid $borderColor
+        background: $bgColor
+        padding: 2px 6px
+        border-radius: $radius-s
+        font-weight: 400
+        font-family: $font
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+        white-space: pre
+        text-shadow: 0 -1px white
+        
+        strong { 
+            font-weight: 400
+        }
+    }
+
+    table {
+        text-size-adjust: none;
+    }
+
+    table.htCore {
+        display: table
+    }
+    
+    table:not(.htCore) { 
+        font-size: $font-size-s
+        line-height: 28px // $line-height-s
+        font-weight: 400
+        margin: 32px 0
+        width: 100% //calc(100% + 32px)
+        box-shadow: 0 0 0 1px $borderColor 
+        border-radius: $radius
+        overflow: auto
+        display: table
+        table-layout: fixed;
+        overflow-wrap: break-word;
+
+        img {
+            max-height: 80px
+            border-radius: 0
+        }
+        
+        td,th { 
+            padding: 16px
+        }
+
+        
+        thead { 
+            tr { 
+                th { 
+                    border-bottom:1px solid $lightBorderColor
+                    background: $onsurfaceColor
+                    font-weight: 500
+                    text-align: left
+                    color:$textColor
+                }
+            }
+        }
+
+        tbody {
+            tr {
+                background: $bgColor
+                td {
+                    border-top: 1px solid $borderColor
+                }
+                &:nth-child(2n) { 
+                    background: $sideColor
+                }
+            }
+        }
+    }
+
+    /*
+    .form-jsfiddle-external .js-fiddle-link { 
+        button {
+            background: $editorColor !important
+        }
+    }
+    */
+    
+    button:not(.theme-code-group__nav-tab, .handsontable *) {
+        padding: 8px 16px
+        border:none
+        cursor: pointer
+        border-radius: $radius
+        background: $sideColor 
+        border: 1px solid $lightBorderColor
+        color: $textColor
+
+        @media (hover: hover) {
+            &:hover { 
+                background: $borderColor 
+                border: 1px solid $accentColor
+            }
+        }
+    }
+
+    #hooksList {
+        padding-top: 16px 
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+    }
+
+    @media (max-width: $xLarge) {
+        margin: 128px 32px 24px 320px
+        
+        .theme-default-content .table-of-contents { 
+            display:none
+        }
+    }
+
+    @media (max-width: $large) {
+        margin: 80px 32px 0
+
+
+        table:not(.htCore) { 
+            display: block
+            overflow-x: auto
+
+            td { 
+                font-size: 16px;
+                white-space: nowrap;
+            }
+        }
+        .theme-default-content {
+
+            h1 { 
+                padding: 32px 0 8px
+            }
+
+            pre {
+                padding: 16px 16px
+                margin: 22px 0 0
+                border-radius: $radius
+            }
+
+            .theme-code-group {
+
+                pre { 
+                    border-radius: 0 
+                    margin: 22px 0 0
+                }
+            }
+        }
+    }
+}
+
+.handsontable-drawing p:last-child { 
+    display: none
+}
+
+.page .theme-default-content a.header-link {
+    color: $textColor
+}

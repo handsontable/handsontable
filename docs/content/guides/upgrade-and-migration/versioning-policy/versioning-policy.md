@@ -9,6 +9,7 @@ react:
   id: avrihx7w
   metaTitle: Versioning policy - React Data Grid | Handsontable
 searchCategory: Guides
+category: Upgrade and migration
 ---
 
 # Versioning policy
@@ -34,12 +35,17 @@ The following table outlines which number would change when a Major, Minor, or P
 ## Versioning of framework variants
 
 Up to Handsontable 8.3.2, each framework variant of Handsontable was versioned separately:
+
+<div class="boxes-list gray">
+
 - [Vanilla JavaScript](@/guides/getting-started/introduction/introduction.md)
 - [React wrapper](@/react/guides/getting-started/introduction/introduction.md)
 - [Angular wrapper](@/guides/integrate-with-angular/angular-installation/angular-installation.md)
 - [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
 - [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
 
+
+</div>
 Starting with version 8.4.0 (released in May 2021), all framework variants of Handsontable have the same version number.
 
 :::

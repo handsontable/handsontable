@@ -13,6 +13,7 @@ react:
   id: rib1rhmf
   metaTitle: Saving data - React Data Grid | Handsontable
 searchCategory: Guides
+category: Getting started
 ---
 
 # Saving data

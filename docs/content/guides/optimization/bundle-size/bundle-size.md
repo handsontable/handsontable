@@ -11,6 +11,7 @@ react:
   id: c8onyes4
   metaTitle: Bundle size - React Data Grid | Handsontable
 searchCategory: Guides
+category: Optimization
 ---
 
 # Bundle size
@@ -130,4 +131,8 @@ const App = () => {
 
 ## Related guides
 
+<div class="boxes-list gray">
+
 - [Modules](@/guides/tools-and-building/modules/modules.md)
+
+</div>

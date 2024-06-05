@@ -1,0 +1,93 @@
+.page .theme-default-content {
+    .custom-block {
+        background: $sideColor
+        border-radius: $radius
+        margin:0 0 16px
+        padding: 20px 24px
+        border:0
+        margin-top: 16px
+        position: relative
+        border: 1px solid $borderColor
+
+        i {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-size: 24px;
+            opacity: .6;
+            vertical-align: bottom;
+            margin-right: 8px;
+        }
+
+        /*&:before { 
+            content: ''
+            display: block
+            position absolute
+            top: 28px
+            bottom: 28px
+            left: 24px
+            width: 1px
+            background: $gradient
+        }*/
+
+        &.tip {
+            border-color: $accentColor
+        }
+        &.success {
+            border-color: $successColor
+        }
+        &.warning {
+            border-color: $errorColor
+        }
+        &.details {
+            background: $editorColor
+            padding: 16px 24px
+
+            summary {
+                transition: all $ts ease-in-out
+
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+                    }
+                }
+            }
+            
+            > p {
+                padding: 16px 0
+            }
+            ul { 
+                padding-left: 24px
+            }
+        }
+        
+        .tip-icon { 
+            height: 24px
+            width: 24px
+            display: inline-block
+            vertical-align: middle
+            margin-right: 8px
+        }
+        .custom-block-title {  
+            display: none                
+        }
+
+        p { 
+            padding: 0
+            vertical-align: middle
+            
+            a { 
+                font-weight: 400
+            }
+        }
+
+        code { 
+            // background: $bgColor 
+        }
+
+        pre {
+            margin: 16px
+            padding: 16px
+        }
+    }
+}

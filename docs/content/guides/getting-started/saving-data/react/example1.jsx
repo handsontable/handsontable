@@ -55,6 +55,17 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div class="example-controls-container">
+        <div className="controls">
+          <button id="load" className="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
+          <button id="save" className="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
+          <label>
+            <input type="checkbox" name="autosave" id="autosave" checked={isAutosave} onClick={(...args) => autosaveClickCallback(...args)}/>
+            Autosave
+          </label>
+        </div>
+        <output className="console" id="output">{output}</output>
+      </div>
       <HotTable
         ref={hotRef}
         startRows={8}
@@ -88,17 +99,6 @@ const ExampleComponent = () => {
             });
         }}
       />
-
-      <div className="controls">
-        <button id="load" className="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
-        <button id="save" className="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
-        <label>
-          <input type="checkbox" name="autosave" id="autosave" checked={isAutosave} onClick={(...args) => autosaveClickCallback(...args)}/>
-          Autosave
-        </label>
-      </div>
-
-      <output className="console" id="output">{output}</output>
     </>
   );
 };

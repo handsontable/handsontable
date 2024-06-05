@@ -49,6 +49,7 @@
   },
   "defaultProject": "hot-table",
   "cli": {
-    "defaultCollection": "@angular-eslint/schematics"
+    "defaultCollection": "@angular-eslint/schematics",
+    "analytics": "3cc71fb4-b6d3-4709-8c94-c6d52c459c3d"
   }
 }

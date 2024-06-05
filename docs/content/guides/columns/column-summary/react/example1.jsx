@@ -53,6 +53,7 @@ const ExampleComponent = () => {
           destinationColumn: 4
         }
       ]}
+      height="auto"
     />
   );
 };
