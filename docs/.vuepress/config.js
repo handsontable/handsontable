@@ -152,7 +152,7 @@ module.exports = {
       `
       (function(w, d) {
         const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
-        const preferredScheme = colorScheme ? colorScheme : 'dark';
+        const preferredScheme = colorScheme ? colorScheme : 'light';
 
         if (preferredScheme === 'dark') {
           d.documentElement.classList.add('theme-dark');

@@ -198,18 +198,20 @@
     white-space: pre
 }
 
+.theme-code-block [class*="language-"] {
+    .codeControls {
+        top:-42px
+    }
+}
+
 [class*="language-"] {
     .copycode, .report, .github { 
-        position: absolute 
-        top: 11px
-        right: 10px
+        position: relative 
         transition: all $t ease-in-out !important
-        opacity 0
         padding: 8px !important
         z-index: 1
         color: $textColor
         background:  $editorColor
-        //background: transparent !important
 
         i {
             opacity: .64
@@ -263,13 +265,11 @@
     }
 
     .report {
-        right: 54px
         padding: 8px 16px
         padding: 8px 16px
         border:none
         cursor: pointer
         border-radius: $radius
-        //background: transparent
         border: 1px solid $lightBorderColor
         color: $textColor
 
@@ -280,32 +280,113 @@
             }
         }
     }
-    .github { 
-        right: 75px
-    }
 
     @media (hover: hover) {
         &:hover  {
-            .copycode, .report, .github {
+            .codeControls {
                 opacity 1
             }
         }
     }
 }
+.codeControls {
+    position absolute
+    top: 11px
+    right: 11px
+    display: flex
+    gap:10px
+    opacity: 0
+    transition: all $t ease-in-out !important
+    z-index 1
+    padding-bottom: 8px
+}
+
+.hideElement { 
+    display: none !important
+}
+
+.page .select-type {
+    height: 36px
+
+    > button {
+        padding-right: 32px !important
+        padding-left: 12px !important
+        position: relative
+        min-width: 128px;
+        text-align: left;
+        line-height: 18px;
+        transition: all $t ease-in-out !important
+
+        &.active {
+            & + ul {
+                visibility: visible
+                opacity 1
+            }
+        }
+
+        &:after {
+            content: ''
+            display: block
+            width: 4px
+            height: 4px
+            border-left: 1px solid $textColor
+            border-bottom: 1px solid $textColor
+            transform: rotate(-45deg) translate(-50%)
+            position absolute
+            top: 10px
+            right: 12px
+            pointer-events: none
+            z-index: 1
+        }
+    }
+
+    ul { 
+        opacity: 0
+        visibility: hidden
+        transition: all $t ease-in-out
+        margin: 4px 0
+        border-radius: $radius
+        padding: 8px
+        background: $borderColor
+
+        li {
+            list-style none
+
+            button:not(.theme-code-group__nav-tab) {
+                width: 100%
+                border: none !important
+                padding: 6px 12px
+                background: none
+                line-height: 22px
+                text-align: left
+                color: $text2Color
+                transition: all $t ease-in-out
+
+                &.active { 
+                    background: $lightBorderColor
+                    color: $textColor
+                }
+
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+                    }
+                }
+            }
+        }
+    }
+
+    @media (max-width: $medium) {
+        .codeControls {
+            display: none
+        }
+    }
+}
 
 .tabs-component-panel { 
-    .copycode, .report, .github  {
-        opacity 1
+    .codeControls {
         top: -44px
-    }
-    .copycode {
         right: -8px
-    }
-    .report {
-        right: 36px
-    }
-    .github {
-        right: 72px
     }
 }
 

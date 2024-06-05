@@ -1029,6 +1029,44 @@ html.theme-dark {
         }
     }
 
+    .select-type {
+        > button {
+            &:after {
+                border-left: 1px solid $textColor
+                border-bottom: 1px solid $textColor
+            }
+        }
+
+        ul { 
+            background: $editorHeadColor 
+
+            li {
+                button:not(.theme-code-group__nav-tab) {
+                    color: $text2Color !important
+
+                    &.active { 
+                        background: $borderColor !important
+                        color: $textColor !important
+                        
+                        @media (hover: hover) {
+                            &:hover { 
+                                background: $borderColor !important
+                                color: $textColor !important
+                            }
+                        }
+                    }
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            background: none !important
+                            color: $textColor !important
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     @media (max-width: $large) {
         .sidebar { 
             background: $bgColor
