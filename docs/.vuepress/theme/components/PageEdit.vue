@@ -42,7 +42,7 @@
     </div>
 
     <div class="copyright">
-      <p>© {{ new Date().getFullYear() }} Handsoncode</p>
+      <p>© 2012 - {{ new Date().getFullYear() }} Handsoncode</p>
       <ThemeSwitcher />
     </div>
   </footer>

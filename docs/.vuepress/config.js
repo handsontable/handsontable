@@ -126,6 +126,7 @@ module.exports = {
         id: 'Sentry.io',
         src: 'https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js',
         crossorigin: 'anonymous',
+        defer: true,
       },
     ],
     // Cookiebot - cookie consent popup
@@ -135,6 +136,7 @@ module.exports = {
         id: 'Cookiebot',
         src: 'https://consent.cookiebot.com/uc.js',
         'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646',
+        defer: true,
       },
     ],
     // Headwayapp
@@ -142,7 +144,8 @@ module.exports = {
       'script',
       {
         id: 'Headwayapp',
-        src: 'https://cdn.headwayapp.co/widget.js'
+        src: 'https://cdn.headwayapp.co/widget.js',
+        defer: true,
       },
     ],
     ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
@@ -189,6 +192,7 @@ module.exports = {
     resolve: {
       symlinks: false,
     },
+    devtool: 'source-map',
   },
   stylus: {
     preferPathResolver: 'webpack',
@@ -349,7 +353,7 @@ module.exports = {
     nav: [
       // Guide & API Reference has been defined in theme/components/NavLinks.vue
       // { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
-      { text: 'Community',
+      { text: 'Support',
         items: [
           {
             text: 'Developers Forum',
