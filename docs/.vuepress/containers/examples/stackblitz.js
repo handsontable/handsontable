@@ -16,6 +16,8 @@ const stackblitz = (id, html, js, css, docsVersion, preset) => {
   const getTemplate = () => {
     if (preset.includes('react')) return 'create-react-app';
 
+    if (preset.includes('ts')) return 'typescript';
+
     if (preset.includes('hot')) return 'javascript';
 
     return 'node';

@@ -125,7 +125,7 @@ module.exports = function(docsVersion, base) {
 
         // Parse code
         const codeToCompile = parseCode(jsToken.content);
-        const codeToCompileSandbox = parseCodeSandbox(jsToken.content);
+        const codeToCompileSandbox = parseCodeSandbox(tsToken.content);
         const codeToPreview = parsePreview(jsToken.content, base);
         const tsCodeToPreview = parsePreview(tsToken?.content, base);
 
@@ -181,8 +181,8 @@ module.exports = function(docsVersion, base) {
                 <i class="ico i-code"></i>Source code
               </button>
               <div class="example-controls">
-                ${!noEdit ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
-                ${!noEdit ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
+                ${!noEdit ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, 'ts') : ''}
+                ${!noEdit ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, 'ts') : ''}
                 ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
                 <button 
                   aria-label="Reset the demo" 
