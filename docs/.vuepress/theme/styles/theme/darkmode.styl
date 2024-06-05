@@ -63,7 +63,11 @@ html.theme-dark {
         background: $bgColor //url('{{$basePath}}/img/noise.png') repeat
     }
 
+    .layout-container {
+        scrollbar-color: $borderColor transparent;
 
+        pre { scrollbar-color: $lightBorderColor transparent;}
+    }
     i.Logo { background:  url('{{$basePath}}/img/logo-white.svg');}
     i.ico { filter: brightness(0) invert(1)}
 
