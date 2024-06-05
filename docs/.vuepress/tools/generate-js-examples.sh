@@ -21,9 +21,9 @@ generate_single_file() {
 echo "Running $jobs_limit jobs in parallel..."
 
 find content/guides -wholename "*/javascript/*.ts" -print0 | while read -d $'\0' ts_filename; do
-  if test "$(jobs | wc -l)" -ge "$jobs_limit"; then
-    wait -n
-  fi
+  while test "$(jobs | wc -l)" -ge "$jobs_limit"; do
+    sleep 1
+  done
 
   generate_single_file "$ts_filename" &
 done
