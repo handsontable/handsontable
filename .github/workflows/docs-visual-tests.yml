@@ -63,7 +63,12 @@ jobs:
           key: plawyright-cache/${{github.repository}}/${{github.ref}}
           restore-keys: plawyright-cache/${{github.repository}}/refs/heads/develop
           path: '**/test-artifacts/**'
-      
+
+      - name: Print cache-hit and update-snapshots values
+        run: |
+          echo "Cache-hit: ${{ steps.cache.outputs.cache-hit }}"
+          echo "Update-snapshots: ${{ github.event.inputs.update-snapshots }}"
+
       - name: Initialize snapshots
         if: ${{steps.cache.outputs.cache-hit != 'true' || github.event.inputs.update-snapshots == 'true'}}
         run: BASE_URL=${{ inputs.test_env }} npx playwright test --update-snapshots
