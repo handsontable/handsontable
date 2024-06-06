@@ -68,7 +68,12 @@ class Table {
    * @type {boolean}
    */
   isTableVisible = false;
-
+  /**
+   * Indicates which the overlay is currently rendered.
+   *
+   * @type {string | null}
+   */
+  activeOverlay = null;
   tableOffset = 0;
   holderOffset = 0;
   /**

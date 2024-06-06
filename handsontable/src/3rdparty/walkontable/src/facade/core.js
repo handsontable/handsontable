@@ -30,6 +30,10 @@ export default class WalkontableFacade {
     this._wot = new Walkontable(settings.table, settings);
   }
 
+  get activeOverlay() {
+    return this._wot.activeOverlay;
+  }
+
   get guid() {
     return this._wot.guid;
   }

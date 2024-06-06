@@ -166,6 +166,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterDrawSelection', (...args) => this.#onAfterDrawSelection(...args));
     this.addHook('beforeRemoveCellClassNames', (...args) => this.#onBeforeRemoveCellClassNames(...args));
     this.addHook('beforeBeginEditing', (...args) => this.#onBeforeBeginEditing(...args));
+    this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.addHook('beforeUndoStackChange', (action, source) => {
       if (source === 'MergeCells') {
         return false;
@@ -942,19 +943,7 @@ export class MergeCells extends BasePlugin {
     } else {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
-
-      const overlayName = this.hot.view.getElementOverlayName(TD);
-      const view = this.hot.view;
-
-      const isInlineStartOverlay = overlayName === 'top_inline_start_corner' || overlayName === 'inline_start';
-      const shouldBeVisibleForMainOverlay = overlayName === 'master' && (origColspan === this.hot.countCols());
-      const shouldBeVisibleForInlineStartOverlay = isInlineStartOverlay &&
-        origColspan >= view.countNotHiddenFixedColumnsStart();
-      const shouldBeVisibleForTopOverlay = overlayName === 'top' && (origColspan >= this.hot.countCols());
-
-      if (!shouldBeVisibleForMainOverlay && !shouldBeVisibleForInlineStartOverlay && !shouldBeVisibleForTopOverlay) {
-        TD.style.display = 'none';
-      }
+      TD.style.display = 'none';
     }
   }
 
@@ -1455,5 +1444,64 @@ export class MergeCells extends BasePlugin {
     return this.hot.selection.getLayerLevel() === 0 && selection.isEqual(
       this.hot._createCellRange(from, from, to)
     );
+  }
+
+  /**
+   * Hook used to modify the row height depends on the merged cells in the row.
+   *
+   * @param {number} height The row height value provided by the Core.
+   * @param {number} row The visual row index.
+   * @returns {number}
+   */
+  #onModifyRowHeight(height, row) {
+    const mergedCellsInRow = this.mergedCellsCollection.mergedCellsMatrix.get(row);
+
+    if (!mergedCellsInRow) {
+      return;
+    }
+
+    const activeOverlay = this.hot.view.getActiveOverlay();
+    let firstColumn = 0;
+    let lastColumn = 0;
+
+    // TODO: add support for more overlay types.
+    if (activeOverlay?.type === 'inline_start') {
+      firstColumn = this.hot.columnIndexMapper
+        .getVisualFromRenderableIndex(activeOverlay.clone.wtTable.getFirstRenderedColumn());
+      lastColumn = this.hot.columnIndexMapper
+        .getVisualFromRenderableIndex(activeOverlay.clone.wtTable.getLastRenderedColumn());
+    } else {
+      firstColumn = this.hot.view.getFirstRenderedVisibleColumn();
+      lastColumn = this.hot.view.getLastRenderedVisibleColumn();
+    }
+
+    mergedCellsInRow.forEach(({ row: r, col, rowspan }) => {
+      if (row === r && col >= firstColumn && col <= lastColumn) {
+        // TODO: get the merged cell with the highest rowspan value.
+        height = this.#sumCellsHeights(row, rowspan);
+      }
+    });
+
+    return height;
+  }
+
+  /**
+   * Sums the heights of the all cells that the merge cell consists of.
+   *
+   * @param {number} row The visual row index of the merged cell.
+   * @param {number} rowspan The rowspan value of the merged cell.
+   * @returns {number}
+   */
+  #sumCellsHeights(row, rowspan) {
+    const defaultHeight = this.hot.view._wt.wtSettings.getSettingPure('defaultRowHeight');
+    const autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
+    let height = 0;
+
+    for (let i = row; i < row + rowspan; i++) {
+      // const rowHeight = this.hot._getRowHeightFromSettings(i);
+      height += autoRowSizePlugin?.getRowHeight(i) ?? defaultHeight;
+    }
+
+    return height;
   }
 }

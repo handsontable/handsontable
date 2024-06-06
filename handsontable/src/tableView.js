@@ -1418,7 +1418,48 @@ class TableView {
   }
 
   /**
-   * Returns the first fully visible row in the table viewport.
+   * Returns the first rendered row in the DOM (usually is not visible).
+   *
+   * @returns {number}
+   */
+  getFirstRenderedVisibleRow() {
+    return this.hot.rowIndexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedRow());
+  }
+
+  /**
+   * Returns the last rendered row in the DOM (usually is not visible).
+   *
+   * @returns {number}
+   */
+  getLastRenderedVisibleRow() {
+    return this.hot.rowIndexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedRow());
+  }
+
+  /**
+   * Returns the first rendered column in the DOM (usually is not visible).
+   *
+   * @returns {number}
+   */
+  getFirstRenderedVisibleColumn() {
+    return this.hot.columnIndexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedColumn());
+  }
+
+  /**
+   * Returns the last rendered column in the DOM (usually is not visible).
+   *
+   * @returns {number}
+   */
+  getLastRenderedVisibleColumn() {
+    return this.hot.columnIndexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedColumn());
+  }
+
+  /**
+   * Returns the first fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
@@ -1428,7 +1469,8 @@ class TableView {
   }
 
   /**
-   * Returns the last fully visible row in the table viewport.
+   * Returns the last fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
@@ -1438,7 +1480,8 @@ class TableView {
   }
 
   /**
-   * Returns the first fully visible column in the table viewport.
+   * Returns the first fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
@@ -1448,7 +1491,8 @@ class TableView {
   }
 
   /**
-   * Returns the last fully visible column in the table viewport.
+   * Returns the last fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
@@ -1458,7 +1502,8 @@ class TableView {
   }
 
   /**
-   * Returns the first partially visible row in the table viewport.
+   * Returns the first partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
@@ -1468,7 +1513,8 @@ class TableView {
   }
 
   /**
-   * Returns the last partially visible row in the table viewport.
+   * Returns the last partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
@@ -1478,7 +1524,8 @@ class TableView {
   }
 
   /**
-   * Returns the first partially visible column in the table viewport.
+   * Returns the first partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
@@ -1488,7 +1535,8 @@ class TableView {
   }
 
   /**
-   * Returns the last partially visible column in the table viewport.
+   * Returns the last partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
@@ -1563,6 +1611,15 @@ class TableView {
    */
   getElementOverlayName(element) {
     return (this._wt.wtOverlays.getParentOverlay(element) ?? this._wt).wtTable.name;
+  }
+
+  /**
+   * Gets information about what overlay instance is currently rendered.
+   *
+   * @returns {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|null}
+   */
+  getActiveOverlay() {
+    return this._wt.activeOverlay;
   }
 
   /**
