@@ -206,31 +206,29 @@ class Transformation {
       const topStartCorner = cellRange.getTopStartCorner();
       const topEndCorner = cellRange.getTopEndCorner();
       const bottomEndCorner = cellRange.getBottomEndCorner();
-      const restDelta = {
-        row: coords.row - highlightRow,
-        col: coords.col - highlightColumn,
-      };
 
-      if (delta.col < 0) {
-        if (toColumn >= highlightColumn && coords.col < highlightColumn) {
-          coords.col = this.#findFirstNonHiddenZeroBasedColumn(topStartCorner.col, topEndCorner.col) + restDelta.col;
-        }
+      if (delta.col < 0 && toColumn >= highlightColumn && coords.col < highlightColumn) {
+        const columnRestDelta = coords.col - highlightColumn;
 
-      } else if (delta.col > 0) {
-        if (toColumn <= highlightColumn && coords.col > highlightColumn) {
-          coords.col = this.#findFirstNonHiddenZeroBasedColumn(topEndCorner.col, topStartCorner.col) + restDelta.col;
-        }
+        coords.col = this.#findFirstNonHiddenZeroBasedColumn(topStartCorner.col, topEndCorner.col) + columnRestDelta;
+
+      } else if (delta.col > 0 && toColumn <= highlightColumn && coords.col > highlightColumn) {
+        const endColumnIndex = this.#findFirstNonHiddenZeroBasedColumn(topEndCorner.col, topStartCorner.col);
+        const columnRestDelta = Math.max(coords.col - endColumnIndex, 1);
+
+        coords.col = endColumnIndex + columnRestDelta;
       }
 
-      if (delta.row < 0) {
-        if (toRow >= highlightRow && coords.row < highlightRow) {
-          coords.row = this.#findFirstNonHiddenZeroBasedRow(topStartCorner.row, bottomEndCorner.row) + restDelta.row;
-        }
+      if (delta.row < 0 && toRow >= highlightRow && coords.row < highlightRow) {
+        const rowRestDelta = coords.row - highlightRow;
 
-      } else if (delta.row > 0) {
-        if (toRow <= highlightRow && coords.row > highlightRow) {
-          coords.row = this.#findFirstNonHiddenZeroBasedRow(bottomEndCorner.row, topStartCorner.row) + restDelta.row;
-        }
+        coords.row = this.#findFirstNonHiddenZeroBasedRow(topStartCorner.row, bottomEndCorner.row) + rowRestDelta;
+
+      } else if (delta.row > 0 && toRow <= highlightRow && coords.row > highlightRow) {
+        const bottomRowIndex = this.#findFirstNonHiddenZeroBasedRow(bottomEndCorner.row, topStartCorner.row);
+        const rowRestDelta = Math.max(coords.row - bottomRowIndex, 1);
+
+        coords.row = bottomRowIndex + rowRestDelta;
       }
 
       const { rowDir, colDir } = this.#clampCoords(coords);

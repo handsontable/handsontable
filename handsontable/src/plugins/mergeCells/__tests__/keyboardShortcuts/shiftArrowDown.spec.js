@@ -79,6 +79,22 @@ describe('MergeCells keyboard shortcut', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,2 to: 9,1']);
     });
 
+    it('should correctly extend the cells selection down by one cell when merged cell is selected (#11010)', () => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        mergeCells: [
+          { row: 1, col: 1, rowspan: 3, colspan: 3 },
+        ],
+      });
+
+      selectCells([[3, 3, 1, 1]]);
+      keyDownUp(['shift', 'arrowdown']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,3 to: 4,1']);
+    });
+
     it('should expand the cells selection down keeping the internal current focus position when some rows are hidden', () => {
       handsontable({
         data: createSpreadsheetData(6, 5),
