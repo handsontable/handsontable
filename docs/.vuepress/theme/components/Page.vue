@@ -81,6 +81,7 @@ export default {
     },
     openDropdown(e) {
       const buttonDropdown = e.target;
+
       buttonDropdown.classList.toggle('active');
     },
     showCodeButton(e) {
