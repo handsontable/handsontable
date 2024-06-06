@@ -2,7 +2,7 @@
   <div class="breadcrumbs">
     <a :href="getBaseFrameworkUrl">
       <i class="ico i-home"></i>
-      <span v-if="Boolean(getVersion)">{{ getVersion }}</span>
+      <span v-if="Boolean(getVersion)">{{ getVersion }} / {{$page.frameworkName}} Data Grid</span>
     </a>
     <a :href="getPageUrl">
       <span v-if="$page.frontmatter.category">{{$page.frontmatter.category}}</span>
@@ -29,7 +29,7 @@ export default {
         return `${versions[1][1][0]}`;
       }
 
-      return 'Home';
+      return ' ';
     },
     getBaseUrl() {
       return `${this.$page.hostname}${this.$site.base}`;

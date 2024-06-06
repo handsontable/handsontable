@@ -413,7 +413,11 @@ class Overlays {
     const shouldNotWheelHorizontally = masterHorizontal !== rootWindow &&
       target !== rootWindow && !target.contains(masterHorizontal);
 
-    if (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally)) {
+    if (
+      (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally))
+       ||
+      this.scrollableElement === rootWindow
+    ) {
       return;
     }
 

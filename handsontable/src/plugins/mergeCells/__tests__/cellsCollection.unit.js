@@ -1,7 +1,19 @@
 import MergedCellsCollection from '../cellsCollection';
+import MergedCell from '../cellCoords';
 import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
 
 describe('MergeCells', () => {
+  function createMergedCell(row, col, rowspan, colspan) {
+    return new MergedCell(
+      row,
+      col,
+      rowspan,
+      colspan,
+      (...args) => new CellCoords(...args),
+      (...args) => new CellRange(...args),
+    );
+  }
+
   describe('MergedCellsCollection', () => {
     const hotMock = {
       render: () => {
@@ -452,13 +464,12 @@ describe('MergeCells', () => {
           colspan: 4
         });
 
-        expect(mergedCellsCollection.isOverlapping({ row: 30, col: 30, rowspan: 3, colspan: 3 })).toEqual(false);
-        expect(mergedCellsCollection.isOverlapping({ row: 2, col: 2, rowspan: 3, colspan: 3 })).toEqual(true);
-        expect(mergedCellsCollection.isOverlapping({ row: 9, col: 9, rowspan: 3, colspan: 3 })).toEqual(true);
-        expect(mergedCellsCollection.isOverlapping({ row: 21, col: 19, rowspan: 5, colspan: 5 })).toEqual(true);
-        expect(mergedCellsCollection.isOverlapping({ row: 21, col: 22, rowspan: 5, colspan: 5 })).toEqual(true);
-        expect(mergedCellsCollection.isOverlapping({ row: 24, col: 25, rowspan: 5, colspan: 5 })).toEqual(false);
-
+        expect(mergedCellsCollection.isOverlapping(createMergedCell(30, 30, 3, 3))).toEqual(false);
+        expect(mergedCellsCollection.isOverlapping(createMergedCell(2, 2, 3, 3))).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping(createMergedCell(9, 9, 3, 3))).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping(createMergedCell(21, 19, 5, 5))).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping(createMergedCell(21, 22, 5, 5))).toEqual(true);
+        expect(mergedCellsCollection.isOverlapping(createMergedCell(24, 25, 5, 5))).toEqual(false);
       });
     });
 
