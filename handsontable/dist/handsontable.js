@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.4.0
- * Release date: 11/06/2024 (built at 05/06/2024 12:27:16)
+ * Release date: 11/06/2024 (built at 06/06/2024 10:09:19)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -107,7 +107,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "05/06/2024 12:27:16";
+Handsontable.buildDate = "06/06/2024 10:09:19";
 Handsontable.version = "14.4.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -35768,27 +35768,21 @@ class Transformation {
       const topStartCorner = cellRange.getTopStartCorner();
       const topEndCorner = cellRange.getTopEndCorner();
       const bottomEndCorner = cellRange.getBottomEndCorner();
-      const restDelta = {
-        row: coords.row - highlightRow,
-        col: coords.col - highlightColumn
-      };
-      if (delta.col < 0) {
-        if (toColumn >= highlightColumn && coords.col < highlightColumn) {
-          coords.col = _assertClassBrand(_Transformation_brand, this, _findFirstNonHiddenZeroBasedColumn).call(this, topStartCorner.col, topEndCorner.col) + restDelta.col;
-        }
-      } else if (delta.col > 0) {
-        if (toColumn <= highlightColumn && coords.col > highlightColumn) {
-          coords.col = _assertClassBrand(_Transformation_brand, this, _findFirstNonHiddenZeroBasedColumn).call(this, topEndCorner.col, topStartCorner.col) + restDelta.col;
-        }
+      if (delta.col < 0 && toColumn >= highlightColumn && coords.col < highlightColumn) {
+        const columnRestDelta = coords.col - highlightColumn;
+        coords.col = _assertClassBrand(_Transformation_brand, this, _findFirstNonHiddenZeroBasedColumn).call(this, topStartCorner.col, topEndCorner.col) + columnRestDelta;
+      } else if (delta.col > 0 && toColumn <= highlightColumn && coords.col > highlightColumn) {
+        const endColumnIndex = _assertClassBrand(_Transformation_brand, this, _findFirstNonHiddenZeroBasedColumn).call(this, topEndCorner.col, topStartCorner.col);
+        const columnRestDelta = Math.max(coords.col - endColumnIndex, 1);
+        coords.col = endColumnIndex + columnRestDelta;
       }
-      if (delta.row < 0) {
-        if (toRow >= highlightRow && coords.row < highlightRow) {
-          coords.row = _assertClassBrand(_Transformation_brand, this, _findFirstNonHiddenZeroBasedRow).call(this, topStartCorner.row, bottomEndCorner.row) + restDelta.row;
-        }
-      } else if (delta.row > 0) {
-        if (toRow <= highlightRow && coords.row > highlightRow) {
-          coords.row = _assertClassBrand(_Transformation_brand, this, _findFirstNonHiddenZeroBasedRow).call(this, bottomEndCorner.row, topStartCorner.row) + restDelta.row;
-        }
+      if (delta.row < 0 && toRow >= highlightRow && coords.row < highlightRow) {
+        const rowRestDelta = coords.row - highlightRow;
+        coords.row = _assertClassBrand(_Transformation_brand, this, _findFirstNonHiddenZeroBasedRow).call(this, topStartCorner.row, bottomEndCorner.row) + rowRestDelta;
+      } else if (delta.row > 0 && toRow <= highlightRow && coords.row > highlightRow) {
+        const bottomRowIndex = _assertClassBrand(_Transformation_brand, this, _findFirstNonHiddenZeroBasedRow).call(this, bottomEndCorner.row, topStartCorner.row);
+        const rowRestDelta = Math.max(coords.row - bottomRowIndex, 1);
+        coords.row = bottomRowIndex + rowRestDelta;
       }
       const {
         rowDir,
