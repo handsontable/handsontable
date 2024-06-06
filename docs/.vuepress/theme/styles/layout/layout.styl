@@ -25,6 +25,12 @@ a {
   min-height:100vh
   min-height:100dvh
 }
+.layout-container {
+  scrollbar-color: $borderColor transparent;
+  scrollbar-width:thin
+
+  pre { scrollbar-color: $lightBorderColor transparent;}
+}
 
 ::selection {
     //background-color: $accentColor
@@ -48,6 +54,18 @@ a {
 }
 .hidden { 
   display:none
+}
+
+.visually-hidden { 
+  border: 0
+  clip: rect(0, 0, 0, 0)
+  height: 1px
+  width: 1px
+  margin: -1px
+  padding: 0
+  overflow: hidden
+  white-space: nowrap
+  position: absolute
 }
 
 @media (min-width: $xxxLarge) {
