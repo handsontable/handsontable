@@ -192,7 +192,6 @@ module.exports = {
     resolve: {
       symlinks: false,
     },
-    devtool: 'source-map',
   },
   stylus: {
     preferPathResolver: 'webpack',
