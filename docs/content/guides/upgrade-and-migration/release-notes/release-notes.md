@@ -905,7 +905,7 @@ For more information on this release, see:
 - **Breaking change (Angular)**: Added support for modularization to the Angular wrapper.
   [#8818](https://github.com/handsontable/handsontable/issues/8818)
 - Added a new package entry point that allows importing built-in modules in one function call:
-  `import { registerAllEditors, registerAllRenderers, registerAllValidators, registerAllCellTypes, registerAllPlugins } from 'handsontable/registry'`.
+  <span class="lg-code">`import { registerAllEditors, registerAllRenderers, registerAllValidators, registerAllCellTypes, registerAllPlugins } from 'handsontable/registry'`</span>.
   [#8816](https://github.com/handsontable/handsontable/issues/8816)
 - Added a new `locale` option, to properly handle locale-based data.
   [#8897](https://github.com/handsontable/handsontable/issues/8897)

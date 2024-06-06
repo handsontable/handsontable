@@ -187,6 +187,13 @@ To install Handsontable locally using a package manager, run one of these comman
   ```
 
   </code-block>
+  <code-block title="pnpm">
+
+  ```bash
+  pnpm add handsontable @handsontable/react
+  ```
+
+  </code-block>
 </code-group>
 
 ## `2` Import Handsontable's CSS

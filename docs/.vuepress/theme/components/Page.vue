@@ -43,7 +43,10 @@ export default {
       );
       const exampleContainer = exampleDiv?.closest('.example-container');
 
-      exampleContainer.setAttribute('style', `height: ${exampleContainer?.offsetHeight - 16}px`);
+      exampleContainer.setAttribute(
+        'style',
+        `height: ${exampleContainer?.offsetHeight - 16}px`
+      );
 
       this.inActiveElementId = exampleId;
       this.isButtonInactive = true;
@@ -60,7 +63,7 @@ export default {
     },
     copyCode(e) {
       const button = e.target;
-      const preTag = button.parentElement;
+      const preTag = button.parentElement.parentElement;
       const codeTag = preTag.querySelector('code');
 
       navigator.clipboard.writeText(codeTag.innerText);
@@ -71,24 +74,42 @@ export default {
     },
     reportCode() {
       // eslint-disable-next-line max-len
-      window.open(`https://github.com/handsontable/handsontable/issues/new?link=${window.location}&template=improve_docs.yaml`, '_blank');
+      window.open(
+        `https://github.com/handsontable/handsontable/issues/new?link=${window.location}&template=improve_docs.yaml`,
+        '_blank'
+      );
+    },
+    openDropdown(e) {
+      const buttonDropdown = e.target;
+
+      buttonDropdown.classList.toggle('active');
     },
     showCodeButton(e) {
       e.target.parentElement?.classList.toggle('active');
     },
     setActiveElement(id) {
-      const items = document.querySelectorAll('.table-of-contents > ul li');
+      const wrapper = document.querySelector('.table-of-contents > ul');
+      const items = document.querySelectorAll(
+        '.table-of-contents > ul li'
+      );
 
       items.forEach((item) => {
         item.classList.remove('active');
       });
+
       const activeItem = document.querySelector(
         `.table-of-contents > ul li a[href="${id}"]`
       );
 
-      if (activeItem) activeItem.parentElement.classList.add('active');
-    },
+      if (activeItem) {
+        const parentElement = activeItem.parentElement;
 
+        parentElement.classList.add('active');
+        const top = parentElement.offsetTop - wrapper.offsetHeight;
+
+        wrapper.scrollTo({ top, behavior: 'smooth' });
+      }
+    },
     checkSectionInView() {
       const sections = document.querySelectorAll(
         '.theme-default-content h2, .theme-default-content h3'
