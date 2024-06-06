@@ -67,7 +67,7 @@ jobs:
       - name: Check if cache was restored
         id: check-cache
         run: |
-          if [[ -n "$(find '**/test-artifacts/**' -mindepth 1 -print -quit)" ]]; then
+          if [[ -n "$(find . -name 'test-artifacts' -type d -not -path '*/node_modules/*' -print0 | xargs -0 -I {} find {} -type f -print -quit)" ]]; then
             echo "::set-output name=cache-restored::true"
           else
             echo "::set-output name=cache-restored::false"
