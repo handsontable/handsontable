@@ -64,17 +64,28 @@ jobs:
           restore-keys: plawyright-cache/${{github.repository}}/refs/heads/develop
           path: '**/test-artifacts/**'
 
-      - name: Print cache-hit and update-snapshots values
+      - name: Check if cache was restored
+        id: check-cache
+        run: |
+          if [[ -n "$(find '**/test-artifacts/**' -mindepth 1 -print -quit)" ]]; then
+            echo "::set-output name=cache-restored::true"
+          else
+            echo "::set-output name=cache-restored::false"
+          fi
+  
+      - name: Print cache-hit, cache-restored and update-snapshots values
         run: |
           echo "Cache-hit: ${{ steps.cache.outputs.cache-hit }}"
+          echo "Cache-restored: ${{ steps.check-cache.outputs.cache-restored }}"
           echo "Update-snapshots: ${{ github.event.inputs.update-snapshots }}"
+  
 
       - name: Initialize snapshots
-        if: ${{steps.cache.outputs.cache-hit != 'true' || github.event.inputs.update-snapshots == 'true'}}
+        if: ${{steps.check-cache.outputs.cache-restored != 'true' || github.event.inputs.update-snapshots == 'true'}}
         run: BASE_URL=${{ inputs.test_env }} npx playwright test --update-snapshots
 
       - name: Test
-        if: ${{steps.cache.outputs.cache-hit == 'true' || github.event.inputs.update-snapshots != 'true'}}
+        if: ${{steps.check-cache.outputs.cache-restored == 'true' || github.event.inputs.update-snapshots != 'true'}}
         run: BASE_URL=${{ inputs.test_env }} npx playwright test
 
       - name: Upload test report
