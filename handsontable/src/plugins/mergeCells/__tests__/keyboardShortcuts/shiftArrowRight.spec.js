@@ -51,7 +51,7 @@ describe('MergeCells keyboard shortcut', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 1,0 to: 3,4']);
     });
 
-    it('should extend the cells selection down when focus is moved within a range', () => {
+    it('should extend the cells selection right when focus is moved within a range', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
@@ -77,6 +77,22 @@ describe('MergeCells keyboard shortcut', () => {
       keyDownUp(['shift', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 2,9']);
+    });
+
+    it('should correctly extend the cells selection right by one cell when merged cell is selected (#11010)', () => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        mergeCells: [
+          { row: 1, col: 1, rowspan: 3, colspan: 3 },
+        ],
+      });
+
+      selectCells([[1, 3, 3, 1]]);
+      keyDownUp(['shift', 'arrowright']);
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,4']);
     });
 
     it('should expand the cells selection right keeping the internal current focus position when some columns are hidden', () => {
