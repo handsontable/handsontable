@@ -155,7 +155,8 @@ module.exports = {
       `
       (function(w, d) {
         const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
-        const preferredScheme = colorScheme ? colorScheme : 'light';
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
 
         if (preferredScheme === 'dark') {
           d.documentElement.classList.add('theme-dark');
