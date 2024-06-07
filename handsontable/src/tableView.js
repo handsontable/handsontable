@@ -744,10 +744,10 @@ class TableView {
         // scrolling and dataset is empty (scroll should handle that?).
         return this.hot.getColWidth(visualIndex === null ? renderedColumnIndex : visualIndex);
       },
-      rowHeight: (renderedRowIndex) => {
+      rowHeight: (renderedRowIndex, overlayType) => {
         const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
 
-        return this.hot.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex);
+        return this.hot.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex, overlayType);
       },
       cellRenderer: (renderedRowIndex, renderedColumnIndex, TD) => {
         const [visualRowIndex, visualColumnIndex] = this
@@ -1620,6 +1620,16 @@ class TableView {
    */
   getActiveOverlay() {
     return this._wt.activeOverlay;
+  }
+
+  /**
+   * Gets the overlay instance by its name.
+   *
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
+   * @returns {Overlay | null}
+   */
+  getOverlayByName(overlayName) {
+    return this._wt.getOverlayByName(overlayName);
   }
 
   /**

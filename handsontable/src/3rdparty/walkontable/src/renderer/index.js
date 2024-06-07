@@ -29,6 +29,18 @@ class Renderer {
   }
 
   /**
+   * Sets the overlay that is currently rendered. If `null` is provided, the master overlay is set.
+   *
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|null} overlayName The overlay name.
+   * @returns {Renderer}
+   */
+  setActiveOverlayName(overlayName) {
+    this.renderer.setActiveOverlayName(overlayName);
+
+    return this;
+  }
+
+  /**
    * Sets filter calculators for newly calculated row and column position. The filters are used to transform visual
    * indexes (0 to N) to source indexes provided by Handsontable.
    *

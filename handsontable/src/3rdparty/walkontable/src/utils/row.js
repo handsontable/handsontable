@@ -26,10 +26,12 @@ export default class RowUtils {
    * Returns row height based on passed source index.
    *
    * @param {number} sourceIndex Row source index.
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} [overlayType] If provided,
+   * the hight for the specified overlay will be returned. Otherwise, the height for the master table will be returned.
    * @returns {number}
    */
-  getHeight(sourceIndex) {
-    let height = this.wtSettings.getSetting('rowHeight', sourceIndex);
+  getHeight(sourceIndex, overlayType) {
+    let height = this.wtSettings.getSetting('rowHeight', sourceIndex, overlayType);
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
 
     if (oversizedHeight !== undefined) {

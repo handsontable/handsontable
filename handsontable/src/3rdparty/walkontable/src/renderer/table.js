@@ -151,11 +151,26 @@ export default class TableRenderer {
    * @type {Function}
    */
   cellRenderer;
+  /**
+   * Holds the name of the currently active overlay.
+   *
+   * @type {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'}
+   */
+  activeOverlayName;
 
   constructor(rootNode, { cellRenderer } = {}) {
     this.rootNode = rootNode;
     this.rootDocument = this.rootNode.ownerDocument;
     this.cellRenderer = cellRenderer;
+  }
+
+  /**
+   * Sets the overlay that is currently rendered. If `null` is provided, the master overlay is set.
+   *
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|null} overlayName The overlay name.
+   */
+  setActiveOverlayName(overlayName) {
+    this.activeOverlayName = overlayName;
   }
 
   /**
@@ -286,7 +301,7 @@ export default class TableRenderer {
 
       if (TR.firstChild) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
-        const rowHeight = this.rowUtils.getHeight(sourceRowIndex);
+        const rowHeight = this.rowUtils.getHeight(sourceRowIndex, this.activeOverlayName);
 
         if (rowHeight) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top

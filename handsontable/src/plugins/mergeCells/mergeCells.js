@@ -1451,26 +1451,31 @@ export class MergeCells extends BasePlugin {
    *
    * @param {number} height The row height value provided by the Core.
    * @param {number} row The visual row index.
+   * @param {string} overlayType The overlay type that is currently rendered.
    * @returns {number}
    */
-  #onModifyRowHeight(height, row) {
+  #onModifyRowHeight(height, row, overlayType) {
+    if (this.hot.getSettings().rowHeaders) {
+      return;
+    }
+
     const mergedCellsInRow = this.mergedCellsCollection.mergedCellsMatrix.get(row);
 
     if (!mergedCellsInRow) {
       return;
     }
 
-    const activeOverlay = this.hot.view.getActiveOverlay();
+    const activeOverlay = this.hot.view.getOverlayByName(overlayType);
     let firstColumn = 0;
     let lastColumn = 0;
 
-    // TODO: add support for more overlay types.
-    if (activeOverlay?.type === 'inline_start') {
+    if (overlayType === 'inline_start' || overlayType === 'top_inline_start_corner' || overlayType === 'top') {
       firstColumn = this.hot.columnIndexMapper
         .getVisualFromRenderableIndex(activeOverlay.clone.wtTable.getFirstRenderedColumn());
       lastColumn = this.hot.columnIndexMapper
         .getVisualFromRenderableIndex(activeOverlay.clone.wtTable.getLastRenderedColumn());
-    } else {
+
+    } else if (overlayType === null) { // main table
       firstColumn = this.hot.view.getFirstRenderedVisibleColumn();
       lastColumn = this.hot.view.getLastRenderedVisibleColumn();
     }
@@ -1498,8 +1503,9 @@ export class MergeCells extends BasePlugin {
     let height = 0;
 
     for (let i = row; i < row + rowspan; i++) {
-      // const rowHeight = this.hot._getRowHeightFromSettings(i);
-      height += autoRowSizePlugin?.getRowHeight(i) ?? defaultHeight;
+      if (!this.hot.rowIndexMapper.isHidden(i)) {
+        height += autoRowSizePlugin?.getRowHeight(i) ?? defaultHeight;
+      }
     }
 
     return height;

@@ -1625,7 +1625,7 @@ describe('MergeCells', () => {
   it('should not collapse the left overlay height when the merge cell covers all overlay cells width', () => {
     handsontable({
       data: createSpreadsheetData(5, 5),
-      fixedColumnsStart: 2,
+      fixedColumnsStart: 1,
       mergeCells: true,
     });
 
@@ -1659,7 +1659,7 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 5 }],
     });
 
-    expect(getTopClone().height()).toBe(47);
+    expect(getTopClone().height()).toBe(70);
 
     updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 5 }],

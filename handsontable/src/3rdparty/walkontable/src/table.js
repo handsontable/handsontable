@@ -68,12 +68,6 @@ class Table {
    * @type {boolean}
    */
   isTableVisible = false;
-  /**
-   * Indicates which the overlay is currently rendered.
-   *
-   * @type {string | null}
-   */
-  activeOverlay = null;
   tableOffset = 0;
   holderOffset = 0;
   /**
@@ -356,6 +350,7 @@ class Table {
         this.resetOversizedRows();
 
         this.tableRenderer
+          .setActiveOverlayName(this.name === 'master' ? null : this.name)
           .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
@@ -1033,10 +1028,12 @@ class Table {
    * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height.
    *
    * @param {number} sourceRow The physical row index.
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} [overlayType] If provided,
+   * the hight for the specified overlay will be returned.
    * @returns {number}
    */
-  getRowHeight(sourceRow) {
-    return this.rowUtils.getHeight(sourceRow);
+  getRowHeight(sourceRow, overlayType) {
+    return this.rowUtils.getHeight(sourceRow, overlayType);
   }
 
   /**
