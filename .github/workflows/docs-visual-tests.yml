@@ -68,17 +68,10 @@ jobs:
         id: check-cache
         run: |
           if [[ -n "$(find . -name 'test-artifacts' -type d -not -path '*/node_modules/*' -print0 | xargs -0 -I {} find {} -type f -print -quit)" ]]; then
-            echo "::set-output name=cache-restored::true"
+            echo "cache-restored=true" >> $GITHUB_ENV
           else
-            echo "::set-output name=cache-restored::false"
+            echo "cache-restored=false" >> $GITHUB_ENV
           fi
-  
-      - name: Print cache-hit, cache-restored and update-snapshots values
-        run: |
-          echo "Cache-hit: ${{ steps.cache.outputs.cache-hit }}"
-          echo "Cache-restored: ${{ steps.check-cache.outputs.cache-restored }}"
-          echo "Update-snapshots: ${{ github.event.inputs.update-snapshots }}"
-  
 
       - name: Initialize snapshots
         if: ${{steps.check-cache.outputs.cache-restored != 'true' || github.event.inputs.update-snapshots == 'true'}}
