@@ -744,10 +744,10 @@ class TableView {
         // scrolling and dataset is empty (scroll should handle that?).
         return this.hot.getColWidth(visualIndex === null ? renderedColumnIndex : visualIndex);
       },
-      rowHeight: (renderedRowIndex, overlayType) => {
+      rowHeight: (renderedRowIndex, overlayType, source) => {
         const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
 
-        return this.hot.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex, overlayType);
+        return this.hot.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex, overlayType, source);
       },
       cellRenderer: (renderedRowIndex, renderedColumnIndex, TD) => {
         const [visualRowIndex, visualColumnIndex] = this

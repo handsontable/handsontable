@@ -13,6 +13,7 @@ import './mergeCells.css';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
 import { FocusOrder } from './focusOrder';
+import { createMergeCellRenderer } from './renderer';
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -114,6 +115,12 @@ export class MergeCells extends BasePlugin {
     rowIndexMapper: this.hot.rowIndexMapper,
     columnIndexMapper: this.hot.columnIndexMapper,
   });
+  /**
+   * The cell renderer responsible for rendering the merged cells.
+   *
+   * @type {{before: Function, after: Function}}
+   */
+  #cellRenderer = createMergeCellRenderer(this);
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -149,7 +156,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterSelectionEnd', (...args) => this.#onAfterSelectionEnd(...args));
     this.addHook('modifyGetCellCoords', (...args) => this.#onModifyGetCellCoords(...args));
     this.addHook('afterIsMultipleSelection', (...args) => this.#onAfterIsMultipleSelection(...args));
-    this.addHook('afterRenderer', (...args) => this.#onAfterRenderer(...args));
+    this.addHook('afterRenderer', (...args) => this.#cellRenderer.after(...args));
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.#addMergeActionsToContextMenu(...args));
     this.addHook('afterGetCellMeta', (...args) => this.#onAfterGetCellMeta(...args));
     this.addHook('afterViewportRowCalculatorOverride',
@@ -896,58 +903,6 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `afterRenderer` hook callback.
-   *
-   * @param {HTMLElement} TD The cell to be modified.
-   * @param {number} row Row index.
-   * @param {number} col Visual column index.
-   */
-  #onAfterRenderer(TD, row, col) {
-    const mergedCell = this.mergedCellsCollection.get(row, col);
-
-    if (!isObject(mergedCell)) {
-      TD.removeAttribute('rowspan');
-      TD.removeAttribute('colspan');
-      TD.style.display = '';
-
-      return;
-    }
-
-    const { rowIndexMapper: rowMapper, columnIndexMapper: columnMapper } = this.hot;
-    const {
-      row: origRow,
-      col: origColumn,
-      colspan: origColspan,
-      rowspan: origRowspan,
-    } = mergedCell;
-    const [
-      lastMergedRowIndex,
-      lastMergedColumnIndex,
-    ] = this.translateMergedCellToRenderable(origRow, origRowspan, origColumn, origColspan);
-
-    const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
-    const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
-
-    const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
-    const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
-
-    const notHiddenRow = rowMapper.getNearestNotHiddenIndex(origRow, 1);
-    const notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
-    const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);
-    const notHiddenColspan = Math.min(origColspan, maxColSpan);
-
-    if (notHiddenRow === row && notHiddenColumn === col) {
-      TD.setAttribute('rowspan', notHiddenRowspan);
-      TD.setAttribute('colspan', notHiddenColspan);
-
-    } else {
-      TD.removeAttribute('rowspan');
-      TD.removeAttribute('colspan');
-      TD.style.display = 'none';
-    }
-  }
-
-  /**
    * Clears the last selected coordinates before setting a new selection range.
    */
   #onBeforeSetRangeStart() {
@@ -1452,39 +1407,57 @@ export class MergeCells extends BasePlugin {
    * @param {number} height The row height value provided by the Core.
    * @param {number} row The visual row index.
    * @param {string} overlayType The overlay type that is currently rendered.
+   * @param {string} source The source of the row height call.
    * @returns {number}
    */
-  #onModifyRowHeight(height, row, overlayType) {
-    if (this.hot.getSettings().rowHeaders) {
+  #onModifyRowHeight(height, row, overlayType, source) {
+    if (
+      this.hot.getSettings().rowHeaders ||
+      source !== 'renderer' ||
+      // merged cells do not work with the bottom overlays
+      overlayType === 'bottom' || overlayType === 'bottom_inline_start_corner'
+    ) {
       return;
     }
 
-    const mergedCellsInRow = this.mergedCellsCollection.mergedCellsMatrix.get(row);
+    let firstColumn;
+    let lastColumn;
 
-    if (!mergedCellsInRow) {
-      return;
-    }
+    if (overlayType === 'master') {
+      firstColumn = this.hot.view.getFirstRenderedVisibleColumn();
+      lastColumn = this.hot.view.getLastRenderedVisibleColumn();
 
-    const activeOverlay = this.hot.view.getOverlayByName(overlayType);
-    let firstColumn = 0;
-    let lastColumn = 0;
+    } else {
+      const activeOverlay = this.hot.view.getOverlayByName(overlayType);
 
-    if (overlayType === 'inline_start' || overlayType === 'top_inline_start_corner' || overlayType === 'top') {
       firstColumn = this.hot.columnIndexMapper
         .getVisualFromRenderableIndex(activeOverlay.clone.wtTable.getFirstRenderedColumn());
       lastColumn = this.hot.columnIndexMapper
         .getVisualFromRenderableIndex(activeOverlay.clone.wtTable.getLastRenderedColumn());
-
-    } else if (overlayType === null) { // main table
-      firstColumn = this.hot.view.getFirstRenderedVisibleColumn();
-      lastColumn = this.hot.view.getLastRenderedVisibleColumn();
     }
 
-    mergedCellsInRow.forEach(({ row: r, col, rowspan }) => {
-      if (row === r && col >= firstColumn && col <= lastColumn) {
-        // TODO: get the merged cell with the highest rowspan value.
-        height = this.#sumCellsHeights(row, rowspan);
+    const firstMergedCellInRow = this.mergedCellsCollection.get(row, firstColumn);
+
+    if (!firstMergedCellInRow) {
+      return;
+    }
+
+    const from = this.hot._createCellCoords(row, firstColumn);
+    const to = this.hot._createCellCoords(row, lastColumn);
+    const viewportRange = this.hot._createCellRange(from, from, to);
+    const mergedCellsWithinRange = this.mergedCellsCollection.getAllWithinRange(viewportRange);
+    let rowspanCorrection = 0;
+
+    if (mergedCellsWithinRange.length > 1) {
+      const maxRowspan = mergedCellsWithinRange.reduce((acc, { rowspan }) => Math.max(acc, rowspan), 1);
+
+      if (mergedCellsWithinRange[0].rowspan < maxRowspan) {
+        rowspanCorrection = maxRowspan - mergedCellsWithinRange[0].rowspan;
       }
+    }
+
+    mergedCellsWithinRange.forEach(({ rowspan }) => {
+      height = Math.max(height ?? 0, this.#sumCellsHeights(row, rowspan - rowspanCorrection));
     });
 
     return height;

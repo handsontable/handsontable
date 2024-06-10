@@ -350,7 +350,7 @@ class Table {
         this.resetOversizedRows();
 
         this.tableRenderer
-          .setActiveOverlayName(this.name === 'master' ? null : this.name)
+          .setActiveOverlayName(this.name)
           .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
           .setFilters(this.rowFilter, this.columnFilter)
           .render();

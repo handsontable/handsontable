@@ -94,6 +94,30 @@ class MergedCellsCollection {
   }
 
   /**
+   * Gets the list of all merged cells within the provided range.
+   *
+   * @param {CellRange} range The range to search within.
+   * @returns {MergedCellCoords[]}
+   */
+  getAllWithinRange(range) {
+    const { row: rowStart, col: columnStart } = range.getTopStartCorner();
+    const { row: rowEnd, col: columnEnd } = range.getBottomEndCorner();
+    const result = [];
+
+    for (let row = rowStart; row <= rowEnd; row++) {
+      for (let column = columnStart; column <= columnEnd; column++) {
+        const mergedCell = this.get(row, column);
+
+        if (mergedCell && mergedCell.row === row && mergedCell.col === column) {
+          result.push(mergedCell);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Filters merge cells objects provided by users from overlapping cells.
    *
    * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCellsInfo The merged cell information object.
