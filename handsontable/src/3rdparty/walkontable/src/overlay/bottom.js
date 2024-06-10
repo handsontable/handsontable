@@ -153,7 +153,7 @@ export class BottomOverlay extends Overlay {
     let sum = 0;
 
     while (row < to) {
-      const height = wtTable.getRowHeight(row, this.type);
+      const height = wtTable.getRowHeight(row);
 
       sum += height === undefined ? defaultRowHeight : height;
       row += 1;

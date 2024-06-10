@@ -3856,16 +3856,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getRowHeight
    * @param {number} row A visual row index.
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} [overlayType] If provided,
-   * the hight for the specified overlay will be returned. Otherwise, the height for the master table will be returned.
-   * @param {string} [source] The source of the row height call.
    * @returns {number|undefined} The height of the specified row, in pixels.
    * @fires Hooks#modifyRowHeight
    */
-  this.getRowHeight = function(row, overlayType, source) {
+  this.getRowHeight = function(row) {
     let height = instance._getRowHeightFromSettings(row);
 
-    height = instance.runHooks('modifyRowHeight', height, row, overlayType, source);
+    height = instance.runHooks('modifyRowHeight', height, row);
 
     return height;
   };

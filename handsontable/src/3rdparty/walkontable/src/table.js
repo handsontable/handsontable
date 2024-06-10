@@ -1028,12 +1028,10 @@ class Table {
    * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height.
    *
    * @param {number} sourceRow The physical row index.
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} [overlayType] If provided,
-   * the hight for the specified overlay will be returned.
    * @returns {number}
    */
-  getRowHeight(sourceRow, overlayType) {
-    return this.rowUtils.getHeight(sourceRow, overlayType);
+  getRowHeight(sourceRow) {
+    return this.rowUtils.getHeight(sourceRow);
   }
 
   /**

@@ -173,7 +173,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterDrawSelection', (...args) => this.#onAfterDrawSelection(...args));
     this.addHook('beforeRemoveCellClassNames', (...args) => this.#onBeforeRemoveCellClassNames(...args));
     this.addHook('beforeBeginEditing', (...args) => this.#onBeforeBeginEditing(...args));
-    this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
+    this.addHook('modifyRowHeightByOverlayName', (...args) => this.#onModifyRowHeightByOverlayName(...args));
     this.addHook('beforeUndoStackChange', (action, source) => {
       if (source === 'MergeCells') {
         return false;
@@ -1407,13 +1407,11 @@ export class MergeCells extends BasePlugin {
    * @param {number} height The row height value provided by the Core.
    * @param {number} row The visual row index.
    * @param {string} overlayType The overlay type that is currently rendered.
-   * @param {string} source The source of the row height call.
    * @returns {number}
    */
-  #onModifyRowHeight(height, row, overlayType, source) {
+  #onModifyRowHeightByOverlayName(height, row, overlayType) {
     if (
       this.hot.getSettings().rowHeaders ||
-      source !== 'renderer' ||
       // merged cells do not work with the bottom overlays
       overlayType === 'bottom' || overlayType === 'bottom_inline_start_corner'
     ) {

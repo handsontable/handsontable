@@ -300,7 +300,7 @@ export default class TableRenderer {
 
       if (TR.firstChild) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
-        const rowHeight = this.rowUtils.getHeight(sourceRowIndex, this.activeOverlayName, 'renderer');
+        const rowHeight = this.rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
 
         if (rowHeight) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
