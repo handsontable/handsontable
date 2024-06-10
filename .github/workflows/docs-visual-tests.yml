@@ -74,11 +74,11 @@ jobs:
           fi
 
       - name: Initialize snapshots
-        if: ${{steps.check-cache.outputs.cache-restored != 'true' || github.event.inputs.update-snapshots == 'true'}}
+        if: ${{env.cache-restored != 'true' || github.event.inputs.update-snapshots == 'true'}}
         run: BASE_URL=${{ inputs.test_env }} npx playwright test --update-snapshots
 
       - name: Test
-        if: ${{steps.check-cache.outputs.cache-restored == 'true' || github.event.inputs.update-snapshots != 'true'}}
+        if: ${{env.cache-restored == 'true' || github.event.inputs.update-snapshots != 'true'}}
         run: BASE_URL=${{ inputs.test_env }} npx playwright test
 
       - name: Upload test report
