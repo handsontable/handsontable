@@ -25,7 +25,7 @@ defaults:
 jobs:
   run-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     env: # Or as an environment variable
       PASS_COOKIE: ${{ secrets.PassCookie }}
     steps:
