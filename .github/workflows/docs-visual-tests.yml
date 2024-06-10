@@ -55,6 +55,11 @@ jobs:
         if: ${{inputs.test_env == 'http://localhost:8080/docs'}} 
         run: |
           npm run docs:api
+      
+      - name: Build documentation
+        if: ${{inputs.test_env == 'http://localhost:8080/docs'}} 
+        run: |
+          npm run docs:build       
 
       - name: Set up cache
         id: cache
