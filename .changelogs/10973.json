@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Add new `dataDotNotation` option which, when set as `false` allows using object keys with dots.",
-  "type": "added",
-  "issueOrPR": 10973,
-  "breaking": false,
-  "framework": "none"
-}

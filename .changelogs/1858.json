@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an error in numeric cell types that occur after entering non-numeric values.",
-  "type": "fixed",
-  "issueOrPR": 10931,
-  "breaking": false,
-  "framework": "none"
-}
