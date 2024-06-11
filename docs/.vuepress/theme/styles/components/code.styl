@@ -304,6 +304,9 @@
     transition: all $t ease-in-out !important
     z-index 1
     padding-bottom: 8px
+    @media (max-width: $small) {
+        display: none
+    }
 }
 
 .hideElement { 
@@ -312,6 +315,7 @@
 
 .page .select-type {
     height: 36px
+    display: none
 
     > button {
         padding-right: 32px !important

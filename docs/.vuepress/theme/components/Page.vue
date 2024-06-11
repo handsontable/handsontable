@@ -79,19 +79,35 @@ export default {
         '_blank'
       );
     },
-    openDropdown(e) {
+    toggleDropdown(e) {
       const buttonDropdown = e.target;
 
       buttonDropdown.classList.toggle('active');
+    },
+    setLanguage(e) {
+      const element = e.target;
+      const isTS = element.classList.contains('select-type-ts');
+      const tabs = element.closest('.tabs-button-wrapper');
+      const button = element.closest('.codeControls').querySelector('.select-type-button');
+      const codeElements = tabs.querySelectorAll('[class*="tab-content-"]');
+      const codeElement = tabs.querySelector(
+        `.tab-content-${isTS ? 'ts' : 'js'}`
+      );
+      const select = tabs.querySelector('.selected-lang');
+
+      select.value = isTS ? 'ts' : 'js';
+      button.classList.remove('active');
+      codeElements.forEach(item => item.classList.add('hideElement'));
+      codeElement.classList.remove('hideElement');
+      codeElement.querySelector('pre').scrollTo({ top: 0, left: 0 });
+
     },
     showCodeButton(e) {
       e.target.parentElement?.classList.toggle('active');
     },
     setActiveElement(id) {
       const wrapper = document.querySelector('.table-of-contents > ul');
-      const items = document.querySelectorAll(
-        '.table-of-contents > ul li'
-      );
+      const items = document.querySelectorAll('.table-of-contents > ul li');
 
       items.forEach((item) => {
         item.classList.remove('active');

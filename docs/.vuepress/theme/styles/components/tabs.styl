@@ -4,6 +4,26 @@
     border-radius: $radius
     padding: 0
     border: 1px solid $lightBorderColor
+    
+    [id*="html-tab"], [id*="css-tab"] {
+        .select-type {
+            display: none !important
+        }
+    }
+    
+    div[class*="language-"] { 
+        .select-type {
+            display: none
+        }
+    }
+
+    div[class*="tab-content"] { 
+        div[class*="language-"] { 
+            .select-type {
+                display: block
+            }
+        }
+    }
 
     .option-label {
         color: $text2Color !important
@@ -95,6 +115,13 @@
 
             .tabs-component-panel {
                 padding: 16px 16px
+            }
+        }
+    }
+    @media (hover: hover) {
+        &:hover  {
+            .codeControls {
+                opacity 1
             }
         }
     }

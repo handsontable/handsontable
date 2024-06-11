@@ -4,7 +4,7 @@
  * @type {RegExp}
  */
 const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
-
+const Token = require('markdown-it/lib/token');
 const { buildCode } = require('./code-builder');
 const { addCodeForPreset } = require('./add-code-for-preset');
 const { codesandbox } = require('./codesandbox');
@@ -14,38 +14,16 @@ const { stackblitz } = require('./stackblitz');
 const tab = (tabName, token, id) => {
   if (!token) return [];
 
+  const openTSDivToken = new Token('html_block', '', 1);
+  const closeDivToken = new Token('html_block', '', -1);
+
+  openTSDivToken.content = `<tab id="${tabName.toLowerCase()}-tab-${id}" name="${tabName}">`;
+  closeDivToken.content = '</tab>';
+
   return [
-    {
-      type: 'html_block',
-      tag: '',
-      attrs: null,
-      map: [],
-      nesting: 0,
-      level: 1,
-      children: null,
-      content: `<tab id="${tabName.toLowerCase()}-tab-${id}" name="${tabName}">`,
-      markup: '',
-      info: '',
-      meta: null,
-      block: true,
-      hidden: false,
-    },
+    openTSDivToken,
     token,
-    {
-      type: 'html_block',
-      tag: '',
-      attrs: null,
-      map: [],
-      nesting: 0,
-      level: 1,
-      children: null,
-      content: '</tab>',
-      markup: '',
-      info: '',
-      meta: null,
-      block: true,
-      hidden: false,
-    },
+    closeDivToken
   ];
 };
 
@@ -86,6 +64,30 @@ const parseCodeSandbox = (content) => {
     .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '');
 };
 
+const getCodeToken = (jsToken, tsToken) => {
+  const code = new Token('inline', '', 1);
+  const openJSDivToken = new Token('container_div_open', 'div', 1);
+  const openTSDivToken = new Token('container_div_open', 'div', 1);
+  const closeDivToken = new Token('container_div_close', 'div', -1);
+
+  openJSDivToken.attrSet('class', 'tab-content-js hideElement');
+  openTSDivToken.attrSet('class', 'tab-content-ts');
+
+  code.children = [
+    openJSDivToken,
+    jsToken,
+    closeDivToken
+  ];
+
+  if (tsToken) {
+    code.children.push(openTSDivToken);
+    code.children.push(tsToken);
+    code.children.push(closeDivToken);
+  }
+
+  return code;
+};
+
 module.exports = function(docsVersion, base) {
   return {
     type: 'example',
@@ -116,8 +118,8 @@ module.exports = function(docsVersion, base) {
         const cssContent = cssToken ? cssToken.content : '';
 
         const jsPos = args.match(/--js (\d*)/)?.[1] || 1;
-        const jsIndex = index + Number.parseInt(jsPos, 10);
-        const jsToken = tokens[jsIndex];
+        const jsIndex = jsPos ? index + Number.parseInt(jsPos, 10) : 0;
+        const jsToken = jsPos ? tokens[jsIndex] : undefined;
 
         const tsPos = args.match(/--ts (\d*)/)?.[1];
         const tsIndex = tsPos ? index + Number.parseInt(tsPos, 10) : 0;
@@ -134,41 +136,36 @@ module.exports = function(docsVersion, base) {
 
         if (tsToken) tsToken.content = tsCodeToPreview;
 
-        const activeTab = `${args.match(/--tab (code|typescript|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
-        const noEdit = !!args.match(/--no-edit/)?.[0];
-
-        const codeForPreset = addCodeForPreset(codeToCompile, preset, id);
-
-        const code = buildCode(
-          id + (preset.includes('angular') ? '.ts' : '.jsx'),
-          codeForPreset,
-          env.relativePath
-        );
-
-        const encodedCode = encodeURI(
-          `useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`
-        );
-
         [htmlIndex, jsIndex, tsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
           tokens.splice(x, 1);
         });
 
         const newTokens = [
-          ...tab('TS', tsToken, id),
-          ...tab('JS', jsToken, id),
+          ...tab('Code', tsToken ? getCodeToken(jsToken, tsToken) : jsToken, id),
           ...tab('HTML', htmlToken, id),
           ...tab('CSS', cssToken, id),
         ];
 
         tokens.splice(index + 1, 0, ...newTokens);
 
+        const codeForPreset = addCodeForPreset(codeToCompile, preset, id);
+        const code = buildCode(
+          id + (preset.includes('angular') ? '.ts' : '.jsx'),
+          codeForPreset,
+          env.relativePath
+        );
+        const encodedCode = encodeURI(
+          `useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`
+        );
+        const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
+        const noEdit = !!args.match(/--no-edit/)?.[0];
         const isAngular = /angular(-.*)?/.test(preset);
         const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
         const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
         return `
-          <div class="example-container" >
+          <div class="example-container">
             <template v-if="${isActive}">
               <style v-pre>${cssContent}</style>
               <div v-pre>${htmlContentRoot}</div>
@@ -191,6 +188,10 @@ module.exports = function(docsVersion, base) {
                 >
                   <i class="ico i-refresh"></i>
                 </button>
+                <select class="selected-lang" value="ts" hidden>
+                  <option value="ts">ts</option>
+                  <option value="js">js</option>
+                </select>
               </div>
             </div>
             <div class="example-container-code">

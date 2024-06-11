@@ -14,11 +14,34 @@ const wrap = (code, lang) => {
   // eslint-disable-next-line max-len
   return `<pre v-pre class="language-${lang}"><code>${code}</code></pre>
           <div class="codeControls">
-            <div class="select-type hideElement">
-              <button @click="$parent.$parent.openDropdown($event)">TypeScript</button>
+            <div class="select-type">
+              <button
+                type="button"
+                class="select-type-button"
+                @click="$parent.$parent.toggleDropdown($event)"
+                value="${lang}"
+              >
+                 ${lang === 'ts' ? 'TypeScript' : 'JavaScript'}
+              </button>
               <ul>
-                <li><button class="active">TypeScript</button></li>
-                <li><button>JavaScript</button></li>
+                <li>
+                  <button
+                    type="button"
+                    @click="$parent.$parent.setLanguage($event)" 
+                    :class="{'select-type-ts': true, 'active': ${lang === 'ts'}}"
+                  >
+                    TypeScript
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    @click="$parent.$parent.setLanguage($event)" 
+                    :class="{'select-type-js': true, 'active': ${lang === 'js'}}"
+                  >
+                    JavaScript
+                  </button>
+                </li>
               </ul>
             </div>
             <button @click="$parent.$parent.copyCode($event)" class="copycode" aria-label="Copy to clipboard">
