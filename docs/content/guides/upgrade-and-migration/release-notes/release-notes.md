@@ -30,7 +30,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on June 11, 2024
 
 For more information on this release, see:
-- [Blog post (14.4.0)](https://handsontable.com/blog/handsontable-14.4.0-enhanced-navigation-and-bug-fixes)
+- [Blog post (14.4.0)](https://handsontable.com/blog/handsontable-14.4.0-improved-stability)
 - [Documentation (14.4)](https://handsontable.com/docs/14.4)
 
 ### Added
