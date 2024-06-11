@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed cell meta coordinates overwrite by _GhostTable_",
-  "type": "fixed",
-  "issueOrPR": 10961,
-  "breaking": false,
-  "framework": "none"
-}

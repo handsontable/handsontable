@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed unwanted table re-rerender for oversized rows/columns.",
-  "type": "fixed",
-  "issueOrPR": 10912,
-  "breaking": false,
-  "framework": "none"
-}

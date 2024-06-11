@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where `setDataAtRowProp` threw an error when trying to save data into a trimmed-out column.",
-  "type": "fixed",
-  "issueOrPR": 10964,
-  "breaking": false,
-  "framework": "none"
-}
