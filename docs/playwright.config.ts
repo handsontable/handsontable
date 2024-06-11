@@ -75,7 +75,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: !process.env.BASE_URL || process.env.BASE_URL.includes('localhost') ? {
-    command: 'npm run docs:start',
+    command: 'npm run docs:serve',
     url: process.env.BASE_URL ?? 'http://localhost:8080/docs',
     reuseExistingServer: !process.env.CI,
     timeout: 300 * 1000,
