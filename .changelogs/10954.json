@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed column widths calculations when `stretchH: 'all'` option was used.",
-  "type": "fixed",
-  "issueOrPR": 10954,
-  "breaking": false,
-  "framework": "none"
-}

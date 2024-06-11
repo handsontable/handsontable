@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added an option to place the hook callbacks in a different order.",
-  "type": "added",
-  "issueOrPR": 10970,
-  "breaking": false,
-  "framework": "none"
-}
