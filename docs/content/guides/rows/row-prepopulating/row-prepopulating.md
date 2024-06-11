@@ -14,6 +14,7 @@ react:
   id: kmqhr00y
   metaTitle: Row pre-populating - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Row pre-populating

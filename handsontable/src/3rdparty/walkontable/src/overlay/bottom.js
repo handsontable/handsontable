@@ -62,7 +62,7 @@ export class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   resetFixedPosition() {
-    if (!this.needFullRender || !this.wot.wtTable.holder.parentNode) {
+    if (!this.needFullRender || !this.shouldBeRendered() || !this.wot.wtTable.holder.parentNode) {
       // removed from DOM
       return false;
     }
@@ -163,14 +163,12 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
-   * Adjust overlay root element, childs and master table element sizes (width, height).
-   *
-   * @param {boolean} [force=false] When `true`, it adjusts the DOM nodes sizes for that overlay.
+   * Adjust overlay root element, children and master table element sizes (width, height).
    */
-  adjustElementsSize(force = false) {
+  adjustElementsSize() {
     this.updateTrimmingContainer();
 
-    if (this.needFullRender || force) {
+    if (this.needFullRender) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
     }

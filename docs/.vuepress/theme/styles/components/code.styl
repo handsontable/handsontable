@@ -1,0 +1,392 @@
+.page {
+    .theme-default-content code { 
+        background: $bgCode 
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+        font-weight: 400
+        vertical-align: middle
+        padding: 2px 6px
+        border-radius: $radius
+        color: $textColor 
+        margin: 1px 1px 1px 0
+        white-space: nowrap;
+    }
+
+    .theme-default-content {
+        a > code,
+        li > code,
+        p > code {
+            background: $onsurfaceColor 
+            box-shadow: 0 0 0 1px $borderColor
+        }
+
+        a code {
+            color: $linkColor
+            transition: $t all ease-in-out
+            
+
+            @media (hover: hover) {
+                &:hover { 
+                    text-decoration:none
+                    color: $textColor
+                }
+            }
+        }
+
+        td code {
+            white-space: pre-wrap
+        }
+
+        .language-bash:before { 
+            display: none
+        }
+        div[class*="language-"] { 
+            background: $editorColor 
+        }
+        
+        .source-code-link {
+            padding: 2px 8px
+            color: $text2Color
+            //background: $sideColor
+            border: 1px solid $borderColor
+            border-radius: $radius
+            top: -28px
+            position: relative
+            float: right
+            font-size: $font-size-xs
+            
+            i { 
+                display: inline-block
+                vertical-align: text-top;
+            }
+
+            + p { 
+                //margin-top: -28px 
+            }
+
+            @media (hover: hover) {
+                &:hover { 
+                    border-color: $linkColor
+                }
+            }
+
+            @media (max-width: $medium) {
+                position static
+                float none
+            }
+        }
+
+        pre { 
+            margin-top: 16px
+            background: $editorColor 
+            padding: 16px 24px
+            margin: 16px 0 0
+            border-radius: $radius
+            font-size: $font-size-s
+            line-height: $line-height-s
+
+            table {
+                margin: 8px 0 24px
+                width: auto
+
+                tr:first-child {
+                    td { 
+                        border-top:0 !important
+                    }
+                }
+                td, th { 
+                    padding: 8px 16px
+                }
+            }
+
+            .table-container {
+                ul { 
+                    margin-top: 8px
+                    margin-left: 24px
+                }
+            }
+        }
+
+        .theme-code-group { 
+            margin-top: 16px
+
+            .theme-code-group__nav {
+                padding: 8px
+                margin: 0
+                background: $editorHeadColor
+
+                .theme-code-group__ul {
+                    gap: 8px
+
+                    .theme-code-group__li {
+                        button {
+                            padding: 6px 12px
+                            margin:0
+                            text-decoration: none
+                            color: $text2Color
+                            font-size: $font-size-xs
+                            line-height: $line-height-xs
+                            font-weight: 400
+                            background: $onsurfaceColor
+                            border-radius: $radius
+                            border: 1px solid $lightBorderColor
+                            transition: all $ts ease-in-out
+
+                            &.theme-code-group__nav-tab-active {
+                                font-weight: 400
+                                border-bottom: 0
+                                color: $textColor
+                                background: white
+                                border: 1px solid $lightBorderColor
+                            }
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $textColor
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            .theme-code-block  {
+                pre {
+                    margin: 0
+                    border-top-left-radius: 0
+                    border-top-right-radius: 0
+                }
+            }
+        }
+    }
+
+    div[class*="language-"]::before { 
+        display: none
+
+        font-size: $font-size-xxs
+        line-height: $line-height-xxs
+        color: $text2Color
+        top: 8px;
+        right: -8px;
+        padding: 8px;
+        border-radius: $radius;
+        background: $bgColor
+    }
+    .tabs-component {
+        div[class*="language-"]::before {
+            right: 8px
+        }
+    }
+
+    .theme-default-content div[class*="language-"] {
+        background: $editorColor 
+        border-radius: $radius
+        margin-bottom: 24px
+        padding: 0
+    }
+
+    @media (max-width: 419px) {
+        div[class*="language-"] {
+            margin:0
+        }
+    }
+}
+
+.theme-default-content pre code, 
+.theme-default-content pre[class*="language-"] code {
+    color: $textColor
+    white-space: pre
+}
+
+[class*="language-"] {
+    .copycode, .report, .github { 
+        position: absolute 
+        top: 11px
+        right: 10px
+        transition: all $t ease-in-out !important
+        opacity 0
+        padding: 8px !important
+        z-index: 1
+        color: $textColor
+        background:  $editorColor
+        //background: transparent !important
+
+        i {
+            opacity: .64
+            transition: all $t ease-in-out
+
+            + i {
+                position absolute
+                opacity 0
+                inset 8px
+            }
+        }
+
+        &.check {
+            i {
+                opacity 0
+
+                + i {
+                    opacity: .64
+                }
+            }
+        }
+
+        &:after {
+            content: attr(aria-label)
+            position absolute
+            white-space: pre;
+            top: 40px;
+            left: 50%
+            transform: translateX(-50%)
+            padding:4px 8px
+            border-radius: $radius
+            background: black
+            border: 1px solid black
+            color: white
+            opacity: 0
+            transition: all $t ease-in-out
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+            pointer-events: none
+        }
+
+        @media (hover: hover) {
+            &:hover:after  {
+                opacity 1
+            }
+        }
+
+        @media (hover: none) {
+            opacity 1
+        }
+    }
+
+    .report {
+        right: 54px
+        padding: 8px 16px
+        padding: 8px 16px
+        border:none
+        cursor: pointer
+        border-radius: $radius
+        //background: transparent
+        border: 1px solid $lightBorderColor
+        color: $textColor
+
+        @media (hover: hover) {
+            &:hover { 
+                background: $borderColor 
+                border: 1px solid $accentColor
+            }
+        }
+    }
+    .github { 
+        right: 75px
+    }
+
+    @media (hover: hover) {
+        &:hover  {
+            .copycode, .report, .github {
+                opacity 1
+            }
+        }
+    }
+}
+
+.tabs-component-panel { 
+    .copycode, .report, .github  {
+        opacity 1
+        top: -44px
+    }
+    .copycode {
+        right: -8px
+    }
+    .report {
+        right: 36px
+    }
+    .github {
+        right: 72px
+    }
+}
+
+div[class*="language-"] pre, 
+div[class*="language-"] pre[class*="language-"] {
+    background: $editorColor
+    position: relative
+}
+
+output.console {
+    margin: 8px 0
+    padding: 8px 16px
+    border-radius: $radius
+    max-height: 240px;
+    font-size: $font-size-xs
+    line-height: $line-height-xs
+    border: 1px solid $borderColor
+    background: $sideColor
+    white-space: pre-line;
+    display: inline-block
+    overflow-y: auto
+    br { 
+        display: block
+    }
+
+    &:last-child {
+        margin-bottom: 0
+    }
+
+    &:empty {
+        display: none
+    }
+}
+
+#example1_events {
+    height: 200px;
+    padding: 8px;
+    margin: 16px 0 16px;
+    overflow-y: scroll;
+    font-size: $font-size-xs
+    line-height: $line-height-xs
+    box-sizing: border-box;
+    border-radius: $radius
+    border:1px solid $borderColor
+
+    div {
+        padding: 8px 8px
+        border-radius: $radius
+
+        &:nth-child(odd) {
+            background-color: $borderColor
+        }
+    }
+}
+
+#example1 {
+  margin-top: 0;
+}
+#example3 .controls {
+  margin: 0 0 16px;
+  padding: 0;
+}
+#example3 .controls label {
+  display: inline-block;
+  padding: 4px 0;
+}
+#example3 .controls label input {
+  margin-right: 8px;
+}
+#hooksList {
+    padding: 0;
+    height: 320px;
+    overflow: auto;
+}
+#hooksList li {
+    list-style: none;
+    width: 33%;
+    display: inline-block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-size: $font-size-xs
+    line-height: $line-height-xs
+}

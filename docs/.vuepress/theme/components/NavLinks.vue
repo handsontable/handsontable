@@ -1,11 +1,14 @@
 <template>
   <nav class="nav-links">
     <!-- user links -->
-    <div class="nav-item">
+    <div :class="{'nav-item': true, 'no-active': isRoadmapLinkActive}">
       <NavLink :item="guideLink"/>
     </div>
     <div class="nav-item">
       <NavLink :item="apiLink"/>
+    </div>
+    <div class="nav-item roadmap">
+      <NavLink :item="roadmapLink"/>
     </div>
   </nav>
 </template>
@@ -26,15 +29,25 @@ export default {
     guideLink() {
       return {
         link: `${this.frameworkUrlPrefix}/`,
-        text: 'Guides'
+        text: 'Docs'
       };
     },
     apiLink() {
       return {
         link: `${this.frameworkUrlPrefix}/api/`,
-        text: 'API reference'
+        text: 'API'
       };
+    },
+    roadmapLink() {
+      return {
+        link: `${this.frameworkUrlPrefix}/roadmap/`,
+        text: 'Roadmap'
+      };
+    },
+    isRoadmapLinkActive() {
+      return this.$route.path.includes('/roadmap');
     }
   }
 };
+
 </script>

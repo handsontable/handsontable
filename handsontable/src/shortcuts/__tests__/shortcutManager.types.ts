@@ -36,7 +36,7 @@ context.addShortcut(minimalSetup);
 context.addShortcuts([shortcut]);
 context.addShortcuts([withAllOptions]);
 context.addShortcuts([minimalSetup]);
-context.getShortcuts();
+context.getShortcuts(['control/meta', 'a']);
 context.hasShortcut(['control/meta', 'a']);
 context.removeShortcutsByKeys(['control/meta', 'a']);
 context.removeShortcutsByGroup('group');

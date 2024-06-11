@@ -139,7 +139,7 @@ export class ManualColumnResize extends BasePlugin {
     this.#columnWidthsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.columnIndexMapper.registerMap(this.pluginName, this.#columnWidthsMap);
 
-    this.addHook('modifyColWidth', (width, col) => this.#onModifyColWidth(width, col));
+    this.addHook('modifyColWidth', (width, col) => this.#onModifyColWidth(width, col), 1);
     this.addHook('beforeStretchingColumnWidth',
       (stretchedWidth, column) => this.#onBeforeStretchingColumnWidth(stretchedWidth, column));
     this.addHook('beforeColumnResize',
@@ -466,7 +466,7 @@ export class ManualColumnResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize();
     };
     const resize = (column, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeColumnResize', this.#newSize, column, true);
@@ -565,7 +565,7 @@ export class ManualColumnResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize();
     };
     const resize = (column, forceRender) => {
       this.hot.runHooks('beforeColumnResize', this.#newSize, column, false);

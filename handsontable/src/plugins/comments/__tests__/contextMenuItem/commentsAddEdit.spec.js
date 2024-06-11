@@ -13,6 +13,39 @@ describe('ContextMenu', () => {
   });
 
   describe('add/edit comment', () => {
+    it('should keep the cell focus untouched after adding a new comment', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        comments: true,
+        colHeaders: true,
+        contextMenu: true,
+      });
+
+      selectCell(1, 1);
+      contextMenu(getCell(1, 1));
+      selectContextMenuOption('Add comment');
+
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+    });
+
+    it('should keep the cell focus untouched after editing a comment', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        comments: true,
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Hello world!' } }
+        ],
+        colHeaders: true,
+        contextMenu: true,
+      });
+
+      selectCell(1, 1);
+      contextMenu(getCell(1, 1));
+      selectContextMenuOption('Edit comment');
+
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+    });
+
     describe('UI', () => {
       it('should disable the item when all cells are selected (using keyboard shortcut)', () => {
         handsontable({

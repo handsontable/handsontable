@@ -457,11 +457,16 @@ class Viewport {
       return false;
     }
 
-    const { startRow, endRow, isVisibleInTrimmingContainer } = proposedRowsVisibleCalculator;
+    let { startRow, endRow } = proposedRowsVisibleCalculator;
 
-    // if there are no fully visible rows at all, return false
+    // if there are no fully visible rows at all...
     if (startRow === null && endRow === null) {
-      return !isVisibleInTrimmingContainer;
+      if (!proposedRowsVisibleCalculator.isVisibleInTrimmingContainer) {
+        return true;
+      }
+      // ...use partially visible rows calculator to determine what render type is needed
+      startRow = this.rowsPartiallyVisibleCalculator.startRow;
+      endRow = this.rowsPartiallyVisibleCalculator.endRow;
     }
 
     const { startRow: renderedStartRow, endRow: renderedEndRow } = this.rowsRenderCalculator;
@@ -490,11 +495,16 @@ class Viewport {
       return false;
     }
 
-    const { startColumn, endColumn, isVisibleInTrimmingContainer } = proposedColumnsVisibleCalculator;
+    let { startColumn, endColumn } = proposedColumnsVisibleCalculator;
 
-    // if there are no fully visible columns at all, return false
+    // if there are no fully visible columns at all...
     if (startColumn === null && endColumn === null) {
-      return !isVisibleInTrimmingContainer;
+      if (!proposedColumnsVisibleCalculator.isVisibleInTrimmingContainer) {
+        return true;
+      }
+      // ...use partially visible columns calculator to determine what render type is needed
+      startColumn = this.columnsPartiallyVisibleCalculator.startColumn;
+      endColumn = this.columnsPartiallyVisibleCalculator.endColumn;
     }
 
     const { startColumn: renderedStartColumn, endColumn: renderedEndColumn } = this.columnsRenderCalculator;

@@ -9,6 +9,7 @@ react:
   id: z78880e4
   metaTitle: Integration with Vuex - Vue 3 Data Grid - Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Vuex in Vue 3

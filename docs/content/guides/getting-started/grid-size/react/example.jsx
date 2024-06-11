@@ -30,6 +30,15 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div className="controls">
+        <button
+          id="triggerBtn"
+          className="button button--primary"
+          onClick={(...args) => triggerBtnClickCallback(...args)}
+        >
+          {isContainerExpanded ? 'Collapse container' : 'Expand container'}
+        </button>
+      </div>
       <div id="exampleParent" className="exampleParent">
         <HotTable
           data={data}
@@ -44,16 +53,6 @@ const ExampleComponent = () => {
           licenseKey="non-commercial-and-evaluation"
           ref={hotRef}
         />
-      </div>
-
-      <div className="controls">
-        <button
-          id="triggerBtn"
-          className="button button--primary"
-          onClick={(...args) => triggerBtnClickCallback(...args)}
-        >
-          {isContainerExpanded ? 'Collapse container' : 'Expand container'}
-        </button>
       </div>
     </>
   );

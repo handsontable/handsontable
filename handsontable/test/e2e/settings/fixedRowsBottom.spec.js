@@ -59,7 +59,7 @@ describe('settings', () => {
         expect(getBottomClone().find('tbody tr').length).toEqual(2);
       });
 
-      it('should create fixed rows when they are disabled eariler', () => {
+      it('should create fixed rows when they are disabled earlier', () => {
         handsontable({
           fixedRowsBottom: 0
         });
@@ -80,7 +80,7 @@ describe('settings', () => {
           fixedRowsBottom: 0
         });
 
-        expect(getBottomClone().find('tbody tr').length).toEqual(2);
+        expect(getBottomClone().find('tbody tr').length).toBe(0);
         expect(getInlineStartClone().height()).toBe(0);
       });
 

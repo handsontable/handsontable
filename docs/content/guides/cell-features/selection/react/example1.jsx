@@ -26,6 +26,17 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div className="controls">
+        <select
+          id="selectOption"
+          onChange={(...args) => selectOptionChangeCallback(...args)}
+          defaultValue="multiple"
+        >
+          <option value="single">Single selection</option>
+          <option value="range">Range selection</option>
+          <option value="multiple">Multiple ranges selection</option>
+        </select>
+      </div>
       <HotTable
         ref={hotRef}
         data={[
@@ -50,17 +61,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <select
-          id="selectOption"
-          onChange={(...args) => selectOptionChangeCallback(...args)}
-          defaultValue="multiple"
-        >
-          <option value="single">Single selection</option>
-          <option value="range">Range selection</option>
-          <option value="multiple">Multiple ranges selection</option>
-        </select>
-      </div>
     </>
   );
 };

@@ -27,6 +27,7 @@ const ExampleComponent = () => {
     <HotTable data={hotData} 
       autoWrapRow={true}
       autoWrapCol={true}
+      height="auto"
       licenseKey="non-commercial-and-evaluation">
       <HotColumn title="First column header" />
       <HotColumn settings={secondColumnSettings} />

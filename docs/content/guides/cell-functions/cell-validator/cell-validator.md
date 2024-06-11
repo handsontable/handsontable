@@ -9,6 +9,7 @@ react:
   id: fvou30a5
   metaTitle: Cell validator - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell functions
 ---
 
 # Cell validator

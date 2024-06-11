@@ -320,15 +320,17 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.strippedChoices = choices;
 
-    this.htEditor.loadData(pivot([choices]));
-
     if (choices.length === 0) {
       this.htEditor.rootElement.style.display = 'none';
 
     } else {
       this.htEditor.rootElement.style.display = '';
+    }
 
-      this.updateDropdownHeight();
+    this.htEditor.loadData(pivot([choices]));
+
+    if (choices.length > 0) {
+      this.updateDropdownDimensions();
       this.flipDropdownIfNeeded();
 
       if (this.cellProperties.strict === true) {
@@ -401,7 +403,8 @@ export class AutocompleteEditor extends HandsontableEditor {
       height = tempHeight - lastRowHeight;
 
       if (this.htEditor.flipped) {
-        this.htEditor.rootElement.style.top = `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`; // eslint-disable-line max-len
+        this.htEditor.rootElement.style.top =
+        `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
       }
 
       this.setDropdownHeight(tempHeight - lastRowHeight);
@@ -442,7 +445,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    *
    * @private
    */
-  updateDropdownHeight() {
+  updateDropdownDimensions() {
     const currentDropdownWidth = this.htEditor.getColWidth(0) + getScrollbarWidth(this.hot.rootDocument) + 2;
     const trimDropdown = this.cellProperties.trimDropdown;
 

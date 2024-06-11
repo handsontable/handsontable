@@ -13,11 +13,19 @@ export function shortcutsEditorContext(hot) {
 
   context.addShortcuts([{
     keys: [['Enter'], ['Enter', 'Shift']],
-    callback: (event, keys) => commandsPool.editorCloseAndSave(event, keys),
+    callback: (event, keys) => commandsPool.editorCloseAndSaveByEnter(event, keys),
   }, {
     keys: [['Enter', 'Control/Meta'], ['Enter', 'Control/Meta', 'Shift']],
     captureCtrl: true,
+    callback: (event, keys) => commandsPool.editorCloseAndSaveByEnter(event, keys),
+  }, {
+    keys: [['Tab'], ['Tab', 'Shift'], ['PageDown'], ['PageUp']],
+    forwardToContext: hot.getShortcutManager().getContext('grid'),
     callback: (event, keys) => commandsPool.editorCloseAndSave(event, keys),
+  }, {
+    keys: [['ArrowDown'], ['ArrowUp'], ['ArrowLeft'], ['ArrowRight']],
+    preventDefault: false,
+    callback: (event, keys) => commandsPool.editorCloseAndSaveByArrowKeys(event, keys),
   }, {
     keys: [['Escape'], ['Escape', 'Control/Meta']],
     callback: () => commandsPool.editorCloseWithoutSaving(),

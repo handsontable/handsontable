@@ -9,6 +9,7 @@ react:
   id: ijm6kk3v
   metaTitle: Custom cell renderer - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Custom renderer in Vue 3
@@ -38,7 +39,11 @@ The following example is an implementation of `@handsontable/vue3` with a custom
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
+
+</div>
 
 ### Related API reference
 

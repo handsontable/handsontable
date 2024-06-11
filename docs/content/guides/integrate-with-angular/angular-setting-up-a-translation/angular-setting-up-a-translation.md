@@ -9,6 +9,7 @@ react:
   id: x0ixc386
   metaTitle: Setting up a translation - Angular Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Angular
 ---
 
 # Setting up a translation in Angular

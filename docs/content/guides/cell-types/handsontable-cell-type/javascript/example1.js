@@ -54,5 +54,5 @@ const hot = new Handsontable(container, {
     },
   ],
   autoWrapRow: true,
-  autoWrapCol: true,
+  autoWrapCol: true
 });

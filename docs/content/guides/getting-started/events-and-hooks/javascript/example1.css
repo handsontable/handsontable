@@ -21,8 +21,7 @@
   padding: 0;
 }
 #example3 .controls label {
-  display: inline-block;
-  padding: 3px 0;
+  display: block;
 }
 #example3 .controls label input {
   margin-right: 6px;

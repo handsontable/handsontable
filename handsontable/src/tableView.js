@@ -166,14 +166,12 @@ class TableView {
 
   /**
    * Adjust overlays elements size and master table size.
-   *
-   * @param {boolean} [force=false] When `true`, it adjust the DOM nodes sizes for all overlays.
    */
-  adjustElementsSize(force = false) {
+  adjustElementsSize() {
     if (this.hot.isRenderSuspended()) {
       this.postponedAdjustElementsSize = true;
     } else {
-      this._wt.wtOverlays.adjustElementsSize(force);
+      this._wt.wtOverlays.adjustElementsSize();
     }
   }
 
