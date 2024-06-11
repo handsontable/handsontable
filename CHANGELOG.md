@@ -48,7 +48,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 For more information on Handsontable 14.4.0, see:
 
-- [Blog post (14.4.0)](https://handsontable.com/blog/handsontable-14.4.0-enhanced-navigation-and-bug-fixes)
+- [Blog post (14.4.0)](https://handsontable.com/blog/handsontable-14.4.0-improved-stability)
 - [Documentation (14.4)](https://handsontable.com/docs/14.4)
 - [Release notes (14.4.0)](https://handsontable.com/docs/release-notes/#_14-4-0)
 
