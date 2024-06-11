@@ -14,13 +14,6 @@ import { addClass, removeClass } from '../../../../helpers/dom/element';
  */
 export default class Walkontable extends CoreAbstract {
   /**
-   * Keeps the overlay instance that is currently rendered, `null` otherwise.
-   *
-   * @type {Overlay | null}
-   */
-  activeOverlay = null;
-
-  /**
    * @param {HTMLTableElement} table Main table.
    * @param {SettingsPure} settings The Walkontable settings.
    */

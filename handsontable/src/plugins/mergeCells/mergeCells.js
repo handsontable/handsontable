@@ -1415,7 +1415,7 @@ export class MergeCells extends BasePlugin {
       // merged cells do not work with the bottom overlays
       overlayType === 'bottom' || overlayType === 'bottom_inline_start_corner'
     ) {
-      return;
+      return height;
     }
 
     let firstColumn;
@@ -1437,7 +1437,7 @@ export class MergeCells extends BasePlugin {
     const firstMergedCellInRow = this.mergedCellsCollection.get(row, firstColumn);
 
     if (!firstMergedCellInRow) {
-      return;
+      return height;
     }
 
     const from = this.hot._createCellCoords(row, firstColumn);

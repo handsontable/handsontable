@@ -47,6 +47,13 @@ export default class RowUtils {
    * @returns {number}
    */
   getHeightByOverlayName(sourceIndex, overlayName) {
-    return this.wtSettings.getSetting('rowHeightByOverlayName', sourceIndex, overlayName);
+    let height = this.wtSettings.getSetting('rowHeightByOverlayName', sourceIndex, overlayName);
+    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
+
+    if (oversizedHeight !== undefined) {
+      height = height === undefined ? oversizedHeight : Math.max(height, oversizedHeight);
+    }
+
+    return height;
   }
 }

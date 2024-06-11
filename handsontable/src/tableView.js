@@ -1621,15 +1621,6 @@ class TableView {
   }
 
   /**
-   * Gets information about what overlay instance is currently rendered.
-   *
-   * @returns {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|null}
-   */
-  getActiveOverlay() {
-    return this._wt.activeOverlay;
-  }
-
-  /**
    * Gets the overlay instance by its name.
    *
    * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.

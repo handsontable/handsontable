@@ -352,11 +352,7 @@ export class Overlay {
    */
   refresh(fastDraw = false) {
     if (this.needFullRender) {
-      const clone = this.clone;
-
-      clone.cloneSource.activeOverlay = this;
-      clone.draw(fastDraw);
-      clone.cloneSource.activeOverlay = null;
+      this.clone.draw(fastDraw);
     }
   }
 
