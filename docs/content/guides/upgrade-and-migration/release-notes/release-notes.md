@@ -30,19 +30,19 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on June 11, 2024
 
 For more information on this release, see:
-- [Blog post (14.4.0)](https://handsontable.com/blog/handsontable-14.4.0-enhanced-navigation-and-bug-fixes)
+- [Blog post (14.4.0)](https://handsontable.com/blog/handsontable-14.4.0-improved-stability)
 - [Documentation (14.4)](https://handsontable.com/docs/14.4)
 
-### Added
+#### Added
 - Extended the `manualRowResize` plugin with a method to retrieve the row height value from the last manual adjustment attempt. [#10941](https://github.com/handsontable/handsontable/pull/10941)
 - Added an option to change the order of hook callbacks. [#10970](https://github.com/handsontable/handsontable/pull/10970)
 - Added new `dataDotNotation` option which, when set as `false` allows using object keys with dots. [#10973](https://github.com/handsontable/handsontable/pull/10973)
 
-### Changed
+#### Changed
 - Improved editor behavior after dataset alterations. [#10963](https://github.com/handsontable/handsontable/pull/10963)
 - React: Synchronized the `rollup` version between the wrappers and updated the `rollup` plugin dependencies.  [#10962](https://github.com/handsontable/handsontable/pull/10962)
 
-### Fixed
+#### Fixed
 - Fixed unwanted table re-rendering for oversized rows/columns. [#10912](https://github.com/handsontable/handsontable/pull/10912)
 - Fixed `Ctrl/Cmd` + `Enter` keyboard shortcut for comments. [#10920](https://github.com/handsontable/handsontable/pull/10920)
 - Fixed issue with rows and columns not unfreezing when headers are disabled. [#10926](https://github.com/handsontable/handsontable/pull/10926)
