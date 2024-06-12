@@ -112,6 +112,39 @@ describe('Hook', () => {
       expect(afterRefreshDimensions.calls.count()).toBe(0);
     });
 
+    it('should not be stuck in an infinite loop when the parent container is sized with dynamic units (`dvh`) and' +
+      ' additional elements were added to the parent container - it should break the cycle and display an' +
+      ' appropriate warning message', async() => {
+      spyOn(console, 'warn');
+      const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
+      const $parentContainer = $('<div id="parentContainer"></div>').appendTo('body');
+
+      spec().$container.detach().appendTo($parentContainer);
+      $parentContainer
+        .css('width', '100%')
+        .css('min-height', '100dvh')
+        .css('overflow', 'hidden')
+        .append('<div id="additionalElement">Test</div>');
+
+      handsontable({
+        data: [[1, 2], [3, 4]],
+        afterRefreshDimensions,
+      });
+
+      await sleep(300);
+
+      expect(afterRefreshDimensions).toHaveBeenCalledTimes(5);
+      expect(console.warn).toHaveBeenCalledWith(
+        'The ResizeObserver callback was fired too many times in direct succession.' +
+        '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
+        'with the `dvh` units) to a Handsontable container\'s parent. ' +
+        '\nThe observer will be disconnected.'
+      );
+
+      destroy();
+      $parentContainer.remove();
+    });
+
     describe('running in iframe', () => {
       beforeEach(function() {
         this.$iframe = $('<iframe width="500px" height="60px"/>').appendTo(this.$container);
