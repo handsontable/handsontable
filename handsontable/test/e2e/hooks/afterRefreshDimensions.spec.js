@@ -134,6 +134,7 @@ describe('Hook', () => {
       await sleep(2000);
 
       expect(afterRefreshDimensions).toHaveBeenCalledTimes(100);
+      // eslint-disable-next-line no-console
       expect(console.warn).toHaveBeenCalledWith(
         'The ResizeObserver callback was fired too many times in direct succession.' +
         '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
