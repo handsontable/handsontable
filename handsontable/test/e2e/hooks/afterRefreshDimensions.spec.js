@@ -131,9 +131,9 @@ describe('Hook', () => {
         afterRefreshDimensions,
       });
 
-      await sleep(300);
+      await sleep(2000);
 
-      expect(afterRefreshDimensions).toHaveBeenCalledTimes(5);
+      expect(afterRefreshDimensions).toHaveBeenCalledTimes(100);
       expect(console.warn).toHaveBeenCalledWith(
         'The ResizeObserver callback was fired too many times in direct succession.' +
         '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +

@@ -13,7 +13,6 @@ import {
   setAttribute,
   getParentWindow,
 } from './helpers/dom/element';
-import { warn } from './helpers/console';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
@@ -131,12 +130,6 @@ class TableView {
    * @type {number}
    */
   #lastHeight = 0;
-  /**
-   * The amount of times the ResizeObserver callback was fired in direct succession.
-   *
-   * @type {number}
-   */
-  #containerDomResizeCount = 0;
 
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
@@ -795,30 +788,11 @@ class TableView {
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
       onWindowResize: () => {
         if (this.hot && !this.hot.isDestroyed) {
-          this.#containerDomResizeCount = 0;
-
           this.hot.refreshDimensions();
         }
       },
       onContainerElementResize: () => {
         if (this.hot && !this.hot.isDestroyed && isVisible(this.hot.rootElement)) {
-          this.#containerDomResizeCount += 1;
-
-          if (this.#containerDomResizeCount === 5) {
-            warn('The ResizeObserver callback was fired too many times in direct succession.' +
-              '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
-              'with the `dvh` units) to a Handsontable container\'s parent. ' +
-              '\nThe observer will be disconnected.');
-
-            this._wt.wtOverlays.resizeObserver.disconnect();
-          }
-
-          // This logic is required to prevent an endless loop of the ResizeObserver callback.
-          // https://github.com/handsontable/dev-handsontable/issues/1898#issuecomment-2154794817
-          setTimeout(() => {
-            this.#containerDomResizeCount = 0;
-          }, 2000);
-
           this.hot.refreshDimensions();
         }
       },
