@@ -437,7 +437,7 @@ export class BaseEditor {
       scrollableContainerLeft.scrollLeft : 0;
     const gridMostRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
     const { wtTable: overlayTable } = wtOverlays.getParentOverlay(TD) ?? this.hot.view._wt;
-    const overlayName = this.hot.view.getElementOverlayName(TD);
+    const overlayName = overlayTable.name;
 
     const scrollTop = ['master', 'inline_start'].includes(overlayName) ? containerScrollTop : 0;
     const scrollLeft = ['master', 'top', 'bottom'].includes(overlayName) ? containerScrollLeft : 0;

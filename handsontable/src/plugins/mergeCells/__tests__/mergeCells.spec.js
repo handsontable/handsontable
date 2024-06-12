@@ -1673,4 +1673,48 @@ describe('MergeCells', () => {
 
     expect(getTopClone().height()).toBe(47);
   });
+
+  it('should correctly render all overlay\'s heights when they are contain merge cells', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      width: 600,
+      height: 400,
+      fixedColumnsStart: 1,
+      fixedRowsTop: 3,
+      mergeCells: [
+        { row: 0, col: 0, rowspan: 5, colspan: 1 },
+        { row: 0, col: 3, rowspan: 3, colspan: 1 },
+        { row: 0, col: 5, rowspan: 8, colspan: 1 },
+      ],
+    });
+
+    expect(getTopInlineStartClone().height()).toBe(70);
+    expect(getTopClone().height()).toBe(70);
+    expect(getInlineStartClone().height()).toBe(400);
+  });
+
+  it('should expand the all overlays size after changing the row height', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      width: 600,
+      height: 400,
+      autoRowSize: true, // the autoRowSize plugin is mandatory
+      fixedColumnsStart: 1,
+      fixedRowsTop: 3,
+      mergeCells: [
+        { row: 0, col: 0, rowspan: 5, colspan: 1 },
+        { row: 0, col: 3, rowspan: 3, colspan: 1 },
+        { row: 0, col: 5, rowspan: 8, colspan: 1 },
+      ],
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().TEXTAREA.value = 'test\n\ntest';
+    keyDownUp('enter');
+
+    expect(getTopInlineStartClone().height()).toBe(111);
+    expect(getTopClone().height()).toBe(111);
+    expect(getInlineStartClone().height()).toBe(400);
+  });
 });

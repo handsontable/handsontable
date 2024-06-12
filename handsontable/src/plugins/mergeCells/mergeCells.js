@@ -494,7 +494,7 @@ export class MergeCells extends BasePlugin {
   unmergeRange(cellRange, auto = false) {
     const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
 
-    if (!mergedCells) {
+    if (mergedCells.length === 0) {
       return;
     }
 
@@ -1241,12 +1241,12 @@ export class MergeCells extends BasePlugin {
       return dragArea;
     }
 
-    const mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange({
-      from: { row: select[0], col: select[1] },
-      to: { row: select[2], col: select[3] }
-    });
+    const from = this.hot._createCellCoords(select[0], select[1]);
+    const to = this.hot._createCellCoords(select[2], select[3]);
+    const range = this.hot._createCellRange(from, from, to);
+    const mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange(range);
 
-    if (!mergedCellsWithinSelectionArea) {
+    if (mergedCellsWithinSelectionArea.length === 0) {
       return dragArea;
     }
 
@@ -1443,7 +1443,7 @@ export class MergeCells extends BasePlugin {
     const from = this.hot._createCellCoords(row, firstColumn);
     const to = this.hot._createCellCoords(row, lastColumn);
     const viewportRange = this.hot._createCellRange(from, from, to);
-    const mergedCellsWithinRange = this.mergedCellsCollection.getAllWithinRange(viewportRange);
+    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(viewportRange);
     const maxRowspan = mergedCellsWithinRange.reduce((acc, { rowspan }) => Math.max(acc, rowspan), 1);
     let rowspanCorrection = 0;
 

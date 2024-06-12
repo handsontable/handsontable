@@ -94,30 +94,6 @@ class MergedCellsCollection {
   }
 
   /**
-   * Gets the list of all merged cells within the provided range.
-   *
-   * @param {CellRange} range The range to search within.
-   * @returns {MergedCellCoords[]}
-   */
-  getAllWithinRange(range) {
-    const { row: rowStart, col: columnStart } = range.getTopStartCorner();
-    const { row: rowEnd, col: columnEnd } = range.getBottomEndCorner();
-    const result = [];
-
-    for (let row = rowStart; row <= rowEnd; row++) {
-      for (let column = columnStart; column <= columnEnd; column++) {
-        const mergedCell = this.get(row, column);
-
-        if (mergedCell && mergedCell.row === row && mergedCell.col === column) {
-          result.push(mergedCell);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  /**
    * Filters merge cells objects provided by users from overlapping cells.
    *
    * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCellsInfo The merged cell information object.
@@ -173,40 +149,30 @@ class MergedCellsCollection {
   /**
    * Get a merged cell contained in the provided range.
    *
-   * @param {CellRange|object} range The range to search merged cells in.
+   * @param {CellRange} range The range to search merged cells in.
    * @param {boolean} [countPartials=false] If set to `true`, all the merged cells overlapping the range will be taken into calculation.
-   * @returns {Array|boolean} Array of found merged cells of `false` if none were found.
+   * @returns {MergedCellCoords[]} Array of found merged cells.
    */
   getWithinRange(range, countPartials = false) {
-    const foundMergedCells = [];
-    let testedRange = range;
+    const { row: rowStart, col: columnStart } = range.getTopStartCorner();
+    const { row: rowEnd, col: columnEnd } = range.getBottomEndCorner();
+    const result = [];
 
-    if (!testedRange.includesRange) {
-      const from = this.hot._createCellCoords(testedRange.from.row, testedRange.from.col);
-      const to = this.hot._createCellCoords(testedRange.to.row, testedRange.to.col);
+    for (let row = rowStart; row <= rowEnd; row++) {
+      for (let column = columnStart; column <= columnEnd; column++) {
+        const mergedCell = this.get(row, column);
 
-      testedRange = this.hot._createCellRange(from, from, to);
+        if (
+          mergedCell &&
+          (countPartials ||
+          !countPartials && mergedCell.row === row && mergedCell.col === column)
+        ) {
+          result.push(mergedCell);
+        }
+      }
     }
 
-    arrayEach(this.mergedCells, (mergedCell) => {
-      const mergedCellTopLeft = this.hot._createCellCoords(mergedCell.row, mergedCell.col);
-      const mergedCellBottomRight = this.hot._createCellCoords(
-        mergedCell.row + mergedCell.rowspan - 1,
-        mergedCell.col + mergedCell.colspan - 1
-      );
-      const mergedCellRange = this.hot._createCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
-
-      if (countPartials) {
-        if (testedRange.overlaps(mergedCellRange)) {
-          foundMergedCells.push(mergedCell);
-        }
-
-      } else if (testedRange.includesRange(mergedCellRange)) {
-        foundMergedCells.push(mergedCell);
-      }
-    });
-
-    return foundMergedCells.length ? foundMergedCells : false;
+    return result;
   }
 
   /**
