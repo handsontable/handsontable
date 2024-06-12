@@ -42,11 +42,11 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 <div class="boxes-list gray">
 
-- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/js/demo/)
-- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/ts/demo/)
-- [Angular demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/angular/demo/)
-- [React demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/react/demo/)
-- [Vue demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/vue/demo/)
+- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.4/examples/next/docs/js/demo/)
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.4/examples/next/docs/ts/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.4/examples/next/docs/angular/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.4/examples/next/docs/react/demo/)
+- [Vue demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.4/examples/next/docs/vue/demo/)
 
 </div>
 
