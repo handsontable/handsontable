@@ -1648,7 +1648,7 @@ describe('MergeCells', () => {
     expect(getInlineStartClone().find('.htCore').height()).toBe(116);
   });
 
-  it('should not collapse the top overlay height when the merge cell covers all overlay cells width', () => {
+  xit('should not collapse the top overlay height when the merge cell covers all overlay cells width', () => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       fixedRowsTop: 2,

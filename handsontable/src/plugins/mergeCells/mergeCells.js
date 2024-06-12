@@ -1444,18 +1444,23 @@ export class MergeCells extends BasePlugin {
     const to = this.hot._createCellCoords(row, lastColumn);
     const viewportRange = this.hot._createCellRange(from, from, to);
     const mergedCellsWithinRange = this.mergedCellsCollection.getAllWithinRange(viewportRange);
+    const maxRowspan = mergedCellsWithinRange.reduce((acc, { rowspan }) => Math.max(acc, rowspan), 1);
     let rowspanCorrection = 0;
 
-    if (mergedCellsWithinRange.length > 1) {
-      const maxRowspan = mergedCellsWithinRange.reduce((acc, { rowspan }) => Math.max(acc, rowspan), 1);
-
-      if (mergedCellsWithinRange[0].rowspan < maxRowspan) {
-        rowspanCorrection = maxRowspan - mergedCellsWithinRange[0].rowspan;
-      }
+    if (mergedCellsWithinRange.length > 1 && mergedCellsWithinRange[0].rowspan < maxRowspan) {
+      rowspanCorrection = maxRowspan - mergedCellsWithinRange[0].rowspan;
     }
 
     mergedCellsWithinRange.forEach(({ rowspan }) => {
-      height = Math.max(height ?? 0, this.#sumCellsHeights(row, rowspan - rowspanCorrection));
+      let rowspanAfterCorrection = 0;
+
+      if (overlayType === 'top' || overlayType === 'top_inline_start_corner') {
+        rowspanAfterCorrection = Math.min(maxRowspan, this.hot.view.countNotHiddenFixedRowsTop() - row);
+      } else {
+        rowspanAfterCorrection = rowspan - rowspanCorrection;
+      }
+
+      height = Math.max(height ?? 0, this.#sumCellsHeights(row, rowspanAfterCorrection));
     });
 
     return height;
