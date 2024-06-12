@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed rows and columns unfreeze issue when headers are disabled",
-  "type": "fixed",
-  "issueOrPR": 10926,
-  "breaking": false,
-  "framework": "none"
-}

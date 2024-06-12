@@ -13,8 +13,7 @@
       </div>
     </div>
 
-    <div class="hot-feedback">
-    </div>
+    <div class="hot-feedback"></div>
 
     <div class="footer-links">
       <div class="socail-links">
@@ -41,7 +40,7 @@
     </div>
 
     <div class="copyright">
-      <p>© {{ new Date().getFullYear() }} Handsoncode</p>
+      <p>© 2012 - {{ new Date().getFullYear() }} Handsoncode</p>
       <ThemeSwitcher />
     </div>
   </footer>

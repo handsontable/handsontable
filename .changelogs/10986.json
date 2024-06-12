@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added missing type for `namedExpressions`",
-  "type": "fixed",
-  "issueOrPR": 10986,
-  "breaking": false,
-  "framework": "none"
-}

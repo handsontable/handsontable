@@ -63,7 +63,11 @@ html.theme-dark {
         background: $bgColor //url('{{$basePath}}/img/noise.png') repeat
     }
 
+    .layout-container {
+        scrollbar-color: $borderColor transparent;
 
+        pre { scrollbar-color: $lightBorderColor transparent;}
+    }
     i.Logo { background:  url('{{$basePath}}/img/logo-white.svg');}
     i.ico { filter: brightness(0) invert(1)}
 
@@ -101,10 +105,6 @@ html.theme-dark {
     ------------------------------- */
     .sidebar { 
         //background: $darkDrop
-
-        .os-scrollbar .os-scrollbar-handle { 
-            background: $borderColor
-        }
 
         .info-box { 
             background: $gradient2
@@ -544,7 +544,7 @@ html.theme-dark {
                 box-shadow: 0 0 0 1px $lightBorderColor
             }
             
-            .table-of-contents { 
+            .table-of-contents {
                 ul {
                     li { 
                         > ul {
@@ -1025,6 +1025,44 @@ html.theme-dark {
                 color: $textColor
                 background: black //$sideColor
                 border: 0 solid $lightBorderColor
+            }
+        }
+    }
+
+    .select-type {
+        > button {
+            &:after {
+                border-left: 1px solid $textColor
+                border-bottom: 1px solid $textColor
+            }
+        }
+
+        ul { 
+            background: $editorHeadColor 
+
+            li {
+                button:not(.theme-code-group__nav-tab) {
+                    color: $text2Color !important
+
+                    &.active { 
+                        background: $borderColor !important
+                        color: $textColor !important
+                        
+                        @media (hover: hover) {
+                            &:hover { 
+                                background: $borderColor !important
+                                color: $textColor !important
+                            }
+                        }
+                    }
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            background: none !important
+                            color: $textColor !important
+                        }
+                    }
+                }
             }
         }
     }

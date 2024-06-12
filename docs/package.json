@@ -14,9 +14,11 @@
     "docs:lint:fix": "eslint --ext .js,.vue,.mjs .vuepress content --fix",
     "docs:scripts:link-assets": "node .vuepress/tools/link-assets.mjs",
     "docs:scripts:generate-legacy-docs-versions": "node .vuepress/tools/generate-legacy-docs-versions.mjs",
+    "docs:scripts:generate-js-examples": "bash .vuepress/tools/generate-js-examples.sh",
     "docs:start": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev ./",
     "docs:start:no-cache": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev --no-cache ./",
-    "docs:build": "cross-env NODE_OPTIONS=--openssl-legacy-provider node .vuepress/tools/build.mjs -- --no-cache",
+    "docs:serve": "http-server -c-1 .vuepress/dist/",
+    "docs:build": "npm run docs:scripts:generate-js-examples && cross-env NODE_OPTIONS=--openssl-legacy-provider node .vuepress/tools/build.mjs -- --no-cache",
     "docs:docker:build": "npm run docs:docker:build:testing",
     "docs:docker:build:testing": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=testing npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
     "docs:docker:build:staging": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=staging npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
@@ -40,7 +42,7 @@
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
     "@octokit/rest": "^18.6.7",
-    "@playwright/test": "^1.42.1",
+    "@playwright/test": "^1.44.1",
     "@types/node": "^20.11.27",
     "@vuepress/plugin-active-header-links": "^1.9.10",
     "@vuepress/shared-utils": "^1.9.10",
@@ -79,12 +81,11 @@
     "not dead"
   ],
   "dependencies": {
-    "@types/overlayscrollbars": "^1.12.5",
     "@docsearch/js": "^3.6.0",
+    "@types/overlayscrollbars": "^1.12.5",
     "codesandbox": "^2.2.3",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",
-    "overlayscrollbars": "^2.7.1",
     "patch-package": "^8.0.0"
   }
 }
