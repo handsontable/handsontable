@@ -41,7 +41,6 @@ const ExampleComponent = () => {
           trimDropdown: false
         }
       ]}
-      height="auto"
     />
   );
 };
