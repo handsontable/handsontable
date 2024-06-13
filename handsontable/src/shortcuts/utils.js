@@ -51,44 +51,43 @@ export const getKeysList = (normalizedKeys) => {
   return normalizedKeys.split('+');
 };
 
-/**
- * The regex tests if the event.code matches to the pattern and it's used to extract letters and digits from
- * the string.
- */
-const codeToKeyRegExp = new RegExp('^(?:Key|Digit)([A-Z0-9])$');
-const keyCodeNames = new Set([
-  'Backquote',
-  'Minus',
-  'Equal',
-  'BracketLeft',
-  'BracketRight',
-  'Backslash',
-  'Semicolon',
-  'Quote',
-  'Comma',
-  'Period',
-  'Slash',
+const specialCharactersSet = new Map([
+  [186, 'semicolon'],
+  [187, 'equal'],
+  [188, 'comma'],
+  [189, 'minus'],
+  [190, 'period'],
+  [191, 'slash'],
+  [192, 'backquote'],
+  [219, 'bracketleft'],
+  [220, 'backslash'],
+  [221, 'bracketright'],
+  [222, 'quote'],
 ]);
 
 /**
- * Normalizes a keyboard event key value to a key before its modification. When the keyboard event
- * is triggered with Alt, Control or Shift keys the `key` property contains modified key e.g. for Alt+L
- * it will be `ł`. But that value is only valid for polish keyboard layout. To fix that limitations, for
- * letters and digits the value is taken from the `code` property which holds original value before
- * transformation.
+ * Normalizes a keyboard event key value to a key before its modification.
+ *
+ * Keep in mind that there is difference between `key` and `code` properties of the KeyboardEvent object.
+ * The `key` property represents the logical key on the keyboard (after applying modifiers and taking
+ * the keyboard layout into account), where the `code` property represents the physical key
+ * (regardless of what is printed on the key). Using the `keyCode` for alphanumeric keys,
+ * solves the problem and allows to get the correct key value. The value that takes the keyboard layout
+ * into account but is not modified by the modifiers (e.g. Alt + L would give polish "ł" we want "l").
  *
  * @param {Event} event The KeyboardEvent object.
  * @returns {string}
  */
-export const normalizeEventKey = ({ key, code }) => {
-  let normalizedKey = key;
-
-  if (codeToKeyRegExp.test(code)) {
-    normalizedKey = code.replace(codeToKeyRegExp, '$1');
-
-  } else if (keyCodeNames.has(code)) {
-    normalizedKey = code;
+export const normalizeEventKey = ({ which, key }) => {
+  if (specialCharactersSet.has(which)) {
+    return specialCharactersSet.get(which);
   }
 
-  return normalizedKey.toLowerCase();
+  const normalizedKey = String.fromCharCode(which).toLowerCase();
+
+  if (/^[a-z0-9]$/.test(normalizedKey)) {
+    return normalizedKey;
+  }
+
+  return key.toLowerCase();
 };
