@@ -120,11 +120,9 @@ Autocomplete can also be used with Ajax data sources. In the example below, sugg
 
 ### Related guides
 
-<div class="boxes-list gray">
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
 - [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
-</div>
 
 ### Related API reference
 
