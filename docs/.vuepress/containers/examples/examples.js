@@ -178,30 +178,30 @@ module.exports = function(docsVersion, base) {
                 <i class="ico i-code"></i>Source code
               </button>
               <div class="example-controls">
-                <div class="examples-buttons examples-js${tsToken ? ' hideElement' : '' }">
-                  ${!noEdit 
-                    ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset, 'js') 
-                    : ''}
-                  ${!noEdit 
-                    ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset, 'js') 
-                    : ''}
-                  ${!noEdit 
-                    ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset, 'js') 
-                    : ''}
+                <div class="examples-buttons examples-js${tsToken ? ' hideElement' : ''}">
+                  ${!noEdit
+    ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset, 'js')
+    : ''}
+                  ${!noEdit
+    ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset, 'js')
+    : ''}
+                  ${!noEdit
+    ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset, 'js')
+    : ''}
                 </div>
                 ${tsToken ? `
                   <div class="examples-buttons examples-ts">
                     ${!noEdit
-                    ? stackblitz(id, htmlContent, tsCodeToCompileSandbox, cssContent, docsVersion, preset, 'ts')
-                    : ''}
+    ? stackblitz(id, htmlContent, tsCodeToCompileSandbox, cssContent, docsVersion, preset, 'ts')
+    : ''}
                     ${!noEdit
-                    ? codesandbox(id, htmlContent, tsCodeToCompileSandbox, cssContent, docsVersion, preset, 'ts')
-                    : ''}
+    ? codesandbox(id, htmlContent, tsCodeToCompileSandbox, cssContent, docsVersion, preset, 'ts')
+    : ''}
                     ${!noEdit
-                    ? jsfiddle(id, htmlContent, tsCodeToCompile, cssContent, docsVersion, preset, 'ts')
-                    : ''}
+    ? jsfiddle(id, htmlContent, tsCodeToCompile, cssContent, docsVersion, preset, 'ts')
+    : ''}
                   </div>
-                ` : '' }
+                ` : ''}
                 <button
                   aria-label="Reset the demo" 
                   @click="$parent.$parent.resetDemo('${id}')" 
