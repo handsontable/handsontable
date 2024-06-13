@@ -127,7 +127,9 @@ module.exports = function(docsVersion, base) {
 
         // Parse code
         const codeToCompile = parseCode(jsToken.content);
+        const tsCodeToCompile = parseCode(tsToken?.content);
         const codeToCompileSandbox = parseCodeSandbox(jsToken.content);
+        const tsCodeToCompileSandbox = parseCodeSandbox(tsToken?.content);
         const codeToPreview = parsePreview(jsToken.content, base);
         const tsCodeToPreview = parsePreview(tsToken?.content, base);
 
@@ -159,10 +161,8 @@ module.exports = function(docsVersion, base) {
         );
         const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
-        const isAngular = /angular(-.*)?/.test(preset);
         const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
-        const displayJsFiddle = Boolean(!noEdit && !isAngular);
 
         return `
           <div class="example-container">
@@ -178,10 +178,31 @@ module.exports = function(docsVersion, base) {
                 <i class="ico i-code"></i>Source code
               </button>
               <div class="example-controls">
-                ${!noEdit ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
-                ${!noEdit ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset) : ''}
-                ${displayJsFiddle ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset) : ''}
-                <button 
+                <div class="examples-buttons examples-js${tsToken ? ' hideElement' : '' }">
+                  ${!noEdit 
+                    ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset, 'js') 
+                    : ''}
+                  ${!noEdit 
+                    ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset, 'js') 
+                    : ''}
+                  ${!noEdit 
+                    ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset, 'js') 
+                    : ''}
+                </div>
+                ${tsToken ? `
+                  <div class="examples-buttons examples-ts">
+                    ${!noEdit
+                    ? stackblitz(id, htmlContent, tsCodeToCompileSandbox, cssContent, docsVersion, preset, 'ts')
+                    : ''}
+                    ${!noEdit
+                    ? codesandbox(id, htmlContent, tsCodeToCompileSandbox, cssContent, docsVersion, preset, 'ts')
+                    : ''}
+                    ${!noEdit
+                    ? jsfiddle(id, htmlContent, tsCodeToCompile, cssContent, docsVersion, preset, 'ts')
+                    : ''}
+                  </div>
+                ` : '' }
+                <button
                   aria-label="Reset the demo" 
                   @click="$parent.$parent.resetDemo('${id}')" 
                   :disabled="$parent.$parent.isButtonInactive"

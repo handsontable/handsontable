@@ -93,12 +93,18 @@ export default {
       const codeElement = tabs.querySelector(
         `.tab-content-${isTS ? 'ts' : 'js'}`
       );
+      const buttonsElements = tabs.querySelectorAll('.examples-buttons');
+      const buttonsElement = tabs.querySelector(
+        `.examples-${isTS ? 'ts' : 'js'}`
+      );
       const select = tabs.querySelector('.selected-lang');
 
       select.value = isTS ? 'ts' : 'js';
       button.classList.remove('active');
       codeElements.forEach(item => item.classList.add('hideElement'));
       codeElement.classList.remove('hideElement');
+      buttonsElements.forEach(item => item.classList.add('hideElement'));
+      buttonsElement.classList.remove('hideElement');
       codeElement.querySelector('pre').scrollTo({ top: 0, left: 0 });
 
     },

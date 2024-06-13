@@ -1,7 +1,7 @@
 const { getBody } = require('../../code-structure-builder/getBody');
 
-const stackblitz = (id, html, js, css, docsVersion, preset) => {
-  const body = getBody(id, html, js, css, docsVersion, preset, 'stackblitz');
+const stackblitz = (id, html, js, css, docsVersion, preset, lang) => {
+  const body = getBody({ id, html, js, css, docsVersion, preset, sandbox: 'stackblitz', lang });
 
   const projects = body?.files
     ? Object.entries(body?.files).map(([key, value]) => (
@@ -16,7 +16,9 @@ const stackblitz = (id, html, js, css, docsVersion, preset) => {
   const getTemplate = () => {
     if (preset.includes('react')) return 'create-react-app';
 
-    if (preset.includes('hot')) return 'javascript';
+    if (preset.includes('hot') && lang === 'js') return 'javascript';
+
+    if (preset.includes('hot') && lang === 'ts') return 'typescript';
 
     return 'node';
   };
