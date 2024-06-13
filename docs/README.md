@@ -48,7 +48,7 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:scripts:link-assets` – Prepares the `next` documentation version's CSS and JavaScript.
 * `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
 * `npm run docs:test:example-checker` – Runs the tests that checks if all Docs examples work.
-* `npm run docs:scripts:generate-js-examples` – Generate js examples from ts files (need to run this script before first `docs:start` and every time after change ts file content in `docs/content/guides`)
+* `npm run docs:scripts:generate-js-examples` – Generate js version of the code examples (need to run this script before first `docs:start` and every time some `*.ts` inside `docs/content/guides` changes)
 
 
 ## Handsontable documentation directory structure
