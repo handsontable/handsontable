@@ -37,6 +37,7 @@ const testCases = [
     setExceptionsForPermalinks([
       // The column-summary example on the page of the framework shows an error being thrown - the Handsontable instance is never rendered.
       ['/react-data-grid/column-summary', { expectedCount: -1 }],
+      // The formula calculation page contains an example with two Handsontable instances, hence the compensation here.
       ['/javascript-data-grid/formula-calculation', { expectedCount: 1 }],
       ['/react-data-grid/formula-calculation', { expectedCount: 1 }],
     ]);
