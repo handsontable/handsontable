@@ -54,8 +54,9 @@ const testCases = [
 
     codeTabs.forEach((codeTab) => {
       const exampleId = codeTab.id.replace('code-tab-', '');
+      const codePreviewElement = document.querySelector(`#${exampleId}`);
 
-      if (document.querySelector(`#${exampleId}`)?.parentNode?.querySelector('.handsontable') === null) {
+      if (codePreviewElement?.parentNode?.querySelector('.handsontable') === null) {
         elementsNotYetRenderedCount += 1;
       }
     });
