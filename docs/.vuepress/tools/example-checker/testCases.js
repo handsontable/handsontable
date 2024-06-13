@@ -35,37 +35,11 @@ const testCases = [
     };
 
     setExceptionsForPermalinks([
+      // The column-summary example on the page of the framework shows an error being thrown - the Handsontable instance is never rendered.
       ['/react-data-grid/column-summary', { expectedCount: -1 }],
       ['/javascript-data-grid/formula-calculation', { expectedCount: 1 }],
       ['/react-data-grid/formula-calculation', { expectedCount: 1 }],
     ]);
-
-    /**
-     * Fetch the framework defined as a preset type in the container configuration.
-     *
-     * @param {HTMLElement} parentNode Parent node of the example container.
-     * @returns {string}
-     */
-    function fetchContainerFramework(parentNode) {
-      const presetHoldingElement = parentNode
-        .querySelector('[data-preset-type]');
-
-      if (!presetHoldingElement) {
-        return false;
-      }
-
-      let containerFramework = presetHoldingElement
-        .getAttribute('data-preset-type')
-        // Replace any digits with an empty string (vue3 -> vue)
-        .replace(/\d/g, '')
-        .split('-')[0];
-
-      if (containerFramework === 'hot') {
-        containerFramework = 'javascript';
-      }
-
-      return containerFramework;
-    }
 
     // ----------------------------------------
     // Actual logic starts here:
@@ -79,10 +53,9 @@ const testCases = [
     let hotInstancesCount = document.querySelectorAll('[data-preset-type]').length;
 
     codeTabs.forEach((codeTab) => {
-      const codeTabParentElement = codeTab.parentElement;
-      const containerFramework = fetchContainerFramework(codeTabParentElement);
+      const exampleId = codeTab.id.replace('code-tab-', '');
 
-      if (containerFramework === false) {
+      if (document.querySelector(`#${exampleId}`)?.parentNode?.querySelector('.handsontable') === null) {
         elementsNotYetRenderedCount += 1;
       }
     });
