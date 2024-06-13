@@ -2,7 +2,10 @@
 
 # This script generates the JS files for all the TS code examples. It skips the examples that already have a JS file.
 
-find content/guides -wholename "*/javascript/*.ts" -print0 | while read -d $'\0' ts_filename; do
+jobs_limit=16
+
+generate_single_file() {
+  ts_filename="$1"
   js_filename="${ts_filename%.*}.js"
     
   tsc --target esnext --skipLibCheck $ts_filename > /dev/null
@@ -13,4 +16,19 @@ find content/guides -wholename "*/javascript/*.ts" -print0 | while read -d $'\0'
   else
     echo "Failed to generate $js_filename"
   fi
+}
+
+echo "Running $jobs_limit jobs in parallel..."
+
+find content/guides -wholename "*/javascript/*.ts" -print0 | while read -d $'\0' ts_filename; do
+  while test "$(jobs | wc -l)" -ge "$jobs_limit"; do
+    sleep 1
+  done
+
+  generate_single_file "$ts_filename" &
 done
+
+wait
+echo "Waiting for the result of all jobs..."
+sleep 20
+echo "All jobs finished"

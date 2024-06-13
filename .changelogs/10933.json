@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed `imeFastEdit` option being reset after `updateSettings` call",
-  "type": "fixed",
-  "issueOrPR": 10933,
-  "breaking": false,
-  "framework": "none"
-}
