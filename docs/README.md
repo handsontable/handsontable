@@ -25,11 +25,15 @@ To start a local Handsontable documentation server:
    ```bash
    npm run docs:api
    ```
-3. Start your local documentation server:
+3. Generate the JS examples:
+   ```bash
+   npm run docs:scripts:generate-js-examples
+   ```
+4. Start your local documentation server:
    ```bash
    npm run docs:start
    ```
-4. In your browser, go to: http://localhost:8080/docs/.
+5. In your browser, go to: http://localhost:8080/docs/.
 
 ## Documentation npm scripts:
 
