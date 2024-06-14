@@ -400,6 +400,8 @@ list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the con
      * 'A' - The letters (from A to H) indicates the position of the cell which contains the hidden editor
      *       (which `current` class name). The letter `A` indicates the currently selected cell with
      *       a background of the first layer and `H` as the latest layer (most dark).
+     * 'r' - The hash symbol indicates the row selection;
+     * 'c' - The hash symbol indicates the column selection;
      * '#' - The hash symbol indicates the currently selected cell without changed background color.
      *
      * The meaning of the symbol used to describe headers:

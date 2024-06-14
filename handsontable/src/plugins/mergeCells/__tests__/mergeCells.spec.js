@@ -1260,73 +1260,52 @@ describe('MergeCells', () => {
     });
   });
 
-  xdescribe('canMergeRange', () => {
-    it('should return false if start and end cell is the same', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
-      });
-      const mergeCells = new Handsontable.plugins.MergeCells(hot);
-      const result = mergeCells.canMergeRange({
-        from: {
-          row: 0, col: 1
-        },
-        to: {
-          row: 0, col: 1
-        }
+  describe('canMergeRange', () => {
+    it('should return false if coords point to negative values', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(10, 5)
       });
 
-      expect(result).toBe(false);
+      const plugin = getPlugin('mergeCells');
+
+      expect(plugin.canMergeRange({ row: -1, col: 1, rowspan: 2, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: -1, rowspan: 2, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: -2, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 2, colspan: -2 })).toBe(false);
     });
 
-    it('should return true for 2 consecutive cells in the same column', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
-      });
-      const mergeCells = new Handsontable.plugins.MergeCells(hot);
-      const result = mergeCells.canMergeRange({
-        from: {
-          row: 0, col: 1
-        },
-        to: {
-          row: 1, col: 1
-        }
+    it('should return false if coords point out of table dataset range', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(10, 5)
       });
 
-      expect(result).toBe(true);
+      const plugin = getPlugin('mergeCells');
+
+      expect(plugin.canMergeRange({ row: 50, col: 1, rowspan: 2, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 50, rowspan: 2, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 50, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 2, colspan: 50 })).toBe(false);
     });
 
-    it('should return true for 2 consecutive cells in the same row', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
-      });
-      const mergeCells = hot.getPlugin('mergeCells');
-      const result = mergeCells.canMergeRange({
-        from: {
-          row: 0, col: 1
-        },
-        to: {
-          row: 0, col: 2
-        }
+    it('should return false if coords point to single cell', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(10, 5)
       });
 
-      expect(result).toBe(true);
+      const plugin = getPlugin('mergeCells');
+
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 1, colspan: 1 })).toBe(false);
     });
 
-    it('should return true for 4 neighboring cells', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
-      });
-      const mergeCells = hot.getPlugin('mergeCells');
-      const result = mergeCells.canMergeRange({
-        from: {
-          row: 0, col: 1
-        },
-        to: {
-          row: 1, col: 2
-        }
+    it('should return false if coords contain invalid rowspan/colspan', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(10, 5)
       });
 
-      expect(result).toBe(true);
+      const plugin = getPlugin('mergeCells');
+
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 0, colspan: 1 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 1, colspan: 0 })).toBe(false);
     });
   });
 
@@ -1628,5 +1607,114 @@ describe('MergeCells', () => {
     expect(getCellMeta(3, 3).copyable).toBe(false);
     expect(getCellMeta(3, 4).copyable).toBe(false);
     expect(getCellMeta(4, 4).copyable).toBe(false);
+  });
+
+  it('should not collapse the main table\'s row height when the merge cell covers all cells width', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      mergeCells: true,
+    });
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 5 }],
+    });
+
+    expect(getCell(0, 0).offsetHeight).toBe(70);
+  });
+
+  it('should not collapse the left overlay height when the merge cell covers all overlay cells width', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      fixedColumnsStart: 1,
+      mergeCells: true,
+    });
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 1 }],
+    });
+
+    expect(getInlineStartClone().find('.htCore').height()).toBe(116);
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 2 }],
+    });
+
+    expect(getInlineStartClone().find('.htCore').height()).toBe(116);
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 3 }],
+    });
+
+    expect(getInlineStartClone().find('.htCore').height()).toBe(116);
+  });
+
+  xit('should not collapse the top overlay height when the merge cell covers all overlay cells width', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      fixedRowsTop: 2,
+      mergeCells: true,
+    });
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 5 }],
+    });
+
+    expect(getTopClone().height()).toBe(70);
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 5 }],
+    });
+
+    expect(getTopClone().height()).toBe(47);
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 5 }],
+    });
+
+    expect(getTopClone().height()).toBe(47);
+  });
+
+  it('should correctly render all overlay\'s heights when they are contain merge cells', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      width: 600,
+      height: 400,
+      fixedColumnsStart: 1,
+      fixedRowsTop: 3,
+      mergeCells: [
+        { row: 0, col: 0, rowspan: 5, colspan: 1 },
+        { row: 0, col: 3, rowspan: 3, colspan: 1 },
+        { row: 0, col: 5, rowspan: 8, colspan: 1 },
+      ],
+    });
+
+    expect(getTopInlineStartClone().height()).toBe(70);
+    expect(getTopClone().height()).toBe(70);
+    expect(getInlineStartClone().height()).toBe(400);
+  });
+
+  it('should expand the all overlays size after changing the row height', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      width: 600,
+      height: 400,
+      autoRowSize: true, // the autoRowSize plugin is mandatory
+      fixedColumnsStart: 1,
+      fixedRowsTop: 3,
+      mergeCells: [
+        { row: 0, col: 0, rowspan: 5, colspan: 1 },
+        { row: 0, col: 3, rowspan: 3, colspan: 1 },
+        { row: 0, col: 5, rowspan: 8, colspan: 1 },
+      ],
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().TEXTAREA.value = 'test\n\ntest';
+    keyDownUp('enter');
+
+    expect(getTopInlineStartClone().height()).toBe(111);
+    expect(getTopClone().height()).toBe(111);
+    expect(getInlineStartClone().height()).toBe(400);
   });
 });

@@ -435,7 +435,7 @@ class AutofillCalculations {
     const bottomRight = this.plugin.hot._createCellCoords(dragAreaEndRow, dragAreaEndColumn);
     const dragRange = this.plugin.hot._createCellRange(topLeft, topLeft, bottomRight);
 
-    return !!this.mergedCellsCollection.getWithinRange(dragRange, true);
+    return this.mergedCellsCollection.getWithinRange(dragRange, true).length > 0;
   }
 }
 

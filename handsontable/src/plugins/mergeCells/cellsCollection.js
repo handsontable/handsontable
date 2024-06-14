@@ -2,7 +2,6 @@ import MergedCellCoords from './cellCoords';
 import { rangeEach, rangeEachReverse } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
-import { applySpanProperties } from './utils';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 /**
@@ -45,11 +44,12 @@ class MergedCellsCollection {
   /**
    * Get a warning message for when the declared merged cell data overlaps already existing merged cells.
    *
-   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCell Object containing information
+   * about the merged cells that was about to be added.
    * @returns {string}
    */
-  static IS_OVERLAPPING_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}], overlaps\x20
+  static IS_OVERLAPPING_WARNING({ row, col }) {
+    return toSingleLine`The merged cell declared at [${row}, ${col}], overlaps\x20
       with the other declared merged cell. The overlapping merged cell was not added to the table, please\x20
       fix your setup.`;
   }
@@ -149,40 +149,30 @@ class MergedCellsCollection {
   /**
    * Get a merged cell contained in the provided range.
    *
-   * @param {CellRange|object} range The range to search merged cells in.
+   * @param {CellRange} range The range to search merged cells in.
    * @param {boolean} [countPartials=false] If set to `true`, all the merged cells overlapping the range will be taken into calculation.
-   * @returns {Array|boolean} Array of found merged cells of `false` if none were found.
+   * @returns {MergedCellCoords[]} Array of found merged cells.
    */
   getWithinRange(range, countPartials = false) {
-    const foundMergedCells = [];
-    let testedRange = range;
+    const { row: rowStart, col: columnStart } = range.getTopStartCorner();
+    const { row: rowEnd, col: columnEnd } = range.getBottomEndCorner();
+    const result = [];
 
-    if (!testedRange.includesRange) {
-      const from = this.hot._createCellCoords(testedRange.from.row, testedRange.from.col);
-      const to = this.hot._createCellCoords(testedRange.to.row, testedRange.to.col);
+    for (let row = rowStart; row <= rowEnd; row++) {
+      for (let column = columnStart; column <= columnEnd; column++) {
+        const mergedCell = this.get(row, column);
 
-      testedRange = this.hot._createCellRange(from, from, to);
+        if (
+          mergedCell &&
+          (countPartials ||
+          !countPartials && mergedCell.row === row && mergedCell.col === column)
+        ) {
+          result.push(mergedCell);
+        }
+      }
     }
 
-    arrayEach(this.mergedCells, (mergedCell) => {
-      const mergedCellTopLeft = this.hot._createCellCoords(mergedCell.row, mergedCell.col);
-      const mergedCellBottomRight = this.hot._createCellCoords(
-        mergedCell.row + mergedCell.rowspan - 1,
-        mergedCell.col + mergedCell.colspan - 1
-      );
-      const mergedCellRange = this.hot._createCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
-
-      if (countPartials) {
-        if (testedRange.overlaps(mergedCellRange)) {
-          foundMergedCells.push(mergedCell);
-        }
-
-      } else if (testedRange.includesRange(mergedCellRange)) {
-        foundMergedCells.push(mergedCell);
-      }
-    });
-
-    return foundMergedCells.length ? foundMergedCells : false;
+    return result;
   }
 
   /**
@@ -244,43 +234,22 @@ class MergedCellsCollection {
    * Clear all the merged cells.
    */
   clear() {
-    const mergedCellParentsToClear = [];
-    const hiddenCollectionElements = [];
+    arrayEach(this.mergedCells, ({ row, col, rowspan, colspan }) => {
+      rangeEach(row, row + rowspan, (r) => {
+        rangeEach(col, col + colspan, (c) => {
+          const TD = this.hot.getCell(r, c);
 
-    arrayEach(this.mergedCells, (mergedCell) => {
-      const TD = this.hot.getCell(mergedCell.row, mergedCell.col);
-
-      if (TD) {
-        mergedCellParentsToClear.push([TD, this.get(mergedCell.row, mergedCell.col), mergedCell.row, mergedCell.col]);
-      }
+          if (TD) {
+            TD.removeAttribute('rowspan');
+            TD.removeAttribute('colspan');
+            TD.style.display = '';
+          }
+        });
+      });
     });
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix = new Map();
-
-    arrayEach(mergedCellParentsToClear, (mergedCell, i) => {
-      rangeEach(0, mergedCell.rowspan - 1, (j) => {
-        rangeEach(0, mergedCell.colspan - 1, (k) => {
-          if (k !== 0 || j !== 0) {
-            const TD = this.hot.getCell(mergedCell.row + j, mergedCell.col + k);
-
-            if (TD) {
-              hiddenCollectionElements.push([TD, null, null, null]);
-            }
-          }
-        });
-      });
-
-      mergedCellParentsToClear[i][1] = null;
-    });
-
-    arrayEach(mergedCellParentsToClear, (mergedCellParents) => {
-      applySpanProperties(...mergedCellParents);
-    });
-
-    arrayEach(hiddenCollectionElements, (hiddenCollectionElement) => {
-      applySpanProperties(...hiddenCollectionElement);
-    });
   }
 
   /**
