@@ -3,6 +3,7 @@ import { isObject } from '../../helpers/object';
 /**
  * Creates a renderer object for the `MergeCells` plugin.
  *
+ * @private
  * @param {MergeCells} plugin The `MergeCells` plugin instance.
  * @returns {{before: Function, after: Function}}
  */
@@ -17,12 +18,15 @@ export function createMergeCellRenderer(plugin) {
 
   /**
    * Runs before the cell is rendered.
+   *
+   * @private
    */
   function before() {}
 
   /**
    * Runs after the cell is rendered.
    *
+   * @private
    * @param {HTMLElement} TD The cell to be modified.
    * @param {number} row Row index.
    * @param {number} col Visual column index.
