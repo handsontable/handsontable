@@ -32,7 +32,8 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} renderAllColumns Option `renderAllColumns`.
  * @property {Option} renderAllRows Option `renderAllRows`.
  * @property {Option} rowHeaders Option `rowHeaders`.
- * @property {Option} rowHeight Option `,`.
+ * @property {Option} rowHeightOption `rowHeight`.
+ * @property {Option} rowHeightByOverlayName Option `rowHeightByOverlayName`.
  * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
  * @property {Option} shouldRenderInlineStartOverlay Option `shouldRenderInlineStartOverlay`.
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
@@ -184,6 +185,9 @@ export default class Settings {
         // return undefined means use default size for the rendered cell content
       },
       rowHeight() {
+        // return undefined means use default size for the rendered cell content
+      },
+      rowHeightByOverlayName() {
         // return undefined means use default size for the rendered cell content
       },
       defaultRowHeight: 23,

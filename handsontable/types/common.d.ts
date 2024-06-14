@@ -72,3 +72,6 @@ export interface ColumnDataGetterSetterFunction {
   (row: RowObject | CellValue[]): CellValue;
   (row: RowObject | CellValue[], value: CellValue): void;
 }
+
+export type OverlayType = 'inline_start' | 'top' | 'top_inline_start_corner' | 'bottom' |
+  'bottom_inline_start_corner' | 'master';

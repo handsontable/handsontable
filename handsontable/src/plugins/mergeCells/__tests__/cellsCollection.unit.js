@@ -306,16 +306,9 @@ describe('MergeCells', () => {
           colspan: 4
         });
 
-        const wantedCollections = mergedCellsCollection.getWithinRange({
-          from: {
-            row: 0,
-            col: 0,
-          },
-          to: {
-            row: 19,
-            col: 20
-          }
-        });
+        const wantedCollections = mergedCellsCollection.getWithinRange(
+          new CellRange(new CellCoords(0, 0), new CellCoords(0, 0), new CellCoords(19, 20))
+        );
 
         expect(wantedCollections.length).toEqual(2);
         expect(wantedCollections[0].row).toEqual(0);
@@ -326,7 +319,15 @@ describe('MergeCells', () => {
         expect(wantedCollections[1].col).toEqual(11);
         expect(wantedCollections[1].rowspan).toEqual(3);
         expect(wantedCollections[1].colspan).toEqual(4);
+      });
 
+      it('should return an empty array when no merged cells found', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const wantedCollections = mergedCellsCollection.getWithinRange(
+          new CellRange(new CellCoords(0, 0), new CellCoords(0, 0), new CellCoords(5, 5))
+        );
+
+        expect(wantedCollections).toEqual([]);
       });
     });
 

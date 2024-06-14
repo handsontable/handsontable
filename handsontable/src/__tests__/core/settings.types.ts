@@ -650,7 +650,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},
-  modifyRowHeight: (height, row) => {},
+  modifyRowHeight: (height, row) => {
+    const _height: number = height;
+    const _row: number = row;
+  },
+  modifyRowHeightByOverlayName: (height, row, overlayType) => {
+    const _height: number = height;
+    const _row: number = row;
+    const _overlayType: string = overlayType;
+  },
   modifyTransformEnd: (delta) => {
     const rowDelta: number = delta.row;
     const colDelta: number = delta.row;

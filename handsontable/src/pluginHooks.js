@@ -1520,6 +1520,18 @@ const REGISTERED_HOOKS = [
   'modifyRowHeight',
 
   /**
+   * Fired when a row height is about to be modified by a callback function. The hook allows to change the row height
+   * for the specified overlay type.
+   *
+   * @since 14.5.0
+   * @event Hooks#modifyRowHeightByOverlayName
+   * @param {number} height Row height.
+   * @param {number} row Visual row index.
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName Overlay name.
+   */
+  'modifyRowHeightByOverlayName',
+
+  /**
    * Fired when a data was retrieved or modified.
    *
    * @event Hooks#modifyData
