@@ -3811,12 +3811,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
-    // let cellProperties = instance.getCellMeta(row, 0);
-    // let height = cellProperties.height;
-    //
-    // if (height === undefined || height === tableMeta.height) {
-    //  height = cellProperties.rowHeights;
-    // }
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {

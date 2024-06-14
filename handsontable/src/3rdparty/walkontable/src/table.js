@@ -68,7 +68,6 @@ class Table {
    * @type {boolean}
    */
   isTableVisible = false;
-
   tableOffset = 0;
   holderOffset = 0;
   /**
@@ -351,6 +350,7 @@ class Table {
         this.resetOversizedRows();
 
         this.tableRenderer
+          .setActiveOverlayName(this.name)
           .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
