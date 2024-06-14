@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed double borders for row/column headers",
-  "type": "fixed",
-  "issueOrPR": 10988,
-  "breaking": false,
-  "framework": "none"
-}
