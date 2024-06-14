@@ -1,12 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: './tests/.env', override: true });
+dotenv.config({ path: './tests/.env' });
 
 const isCI = !!process.env.CI;
 
 export default defineConfig({
   expect: { timeout: !process.env.BASE_URL || process.env.BASE_URL.includes('localhost') ? 30000 : 60000 },
+  timeout: !process.env.BASE_URL || process.env.BASE_URL.includes('localhost') ? 30000 : 60000,
   testDir: './tests',
   outputDir: './tests/test-artifacts/output',
   snapshotPathTemplate: './tests/test-artifacts/screenshots/{testFilePath}/{arg}{ext}',
@@ -30,7 +31,6 @@ export default defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.BASE_URL ?? 'http://localhost:8080/docs',
-
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
