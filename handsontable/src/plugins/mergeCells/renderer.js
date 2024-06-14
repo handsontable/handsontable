@@ -17,8 +17,9 @@ export function createMergeCellRenderer(plugin) {
   } = hot;
 
   /**
-   * @private
    * Runs before the cell is rendered.
+   *
+   * @private
    */
   function before() {}
 
