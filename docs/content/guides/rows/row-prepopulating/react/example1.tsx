@@ -37,7 +37,6 @@ const ExampleComponent = () => {
     if (args[5] === null && isEmptyRow(instance, row)) {
       args[5] = templateValues[col];
       td.style.color = '#999';
-
     } else {
       td.style.color = '';
     }
@@ -62,14 +61,14 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
-        cells={function(row, col, prop) {
+        cells={function (row, col, prop) {
           const cellProperties = {};
 
           cellProperties.renderer = defaultValueRenderer;
 
           return cellProperties;
         }}
-        beforeChange={function(changes) {
+        beforeChange={function (changes) {
           const instance = hot;
           const columns = instance.countCols();
           const rowColumnSeen = {};
@@ -91,11 +90,11 @@ const ExampleComponent = () => {
               for (let c = 0; c < columns; c++) {
                 // if it is not provided by user in this change set, take the value from the template
                 if (!rowColumnSeen[r + '/' + c]) {
-                changes.push([r, c, null, templateValues[c]]);
+                  changes.push([r, c, null, templateValues[c]]);
+                }
               }
             }
           }
-        }
         }}
       />
     </>

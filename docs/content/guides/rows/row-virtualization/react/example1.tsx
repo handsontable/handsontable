@@ -7,10 +7,11 @@ registerAllModules();
 
 // generate an array of arrays with dummy data
 const data = new Array(1000) // number of rows
-  .fill()
-  .map((_, row) => new Array(1000) // number of columns
-    .fill()
-    .map((_, column) => `${row}, ${column}`)
+  .fill(0)
+  .map((_, row) =>
+    new Array(1000) // number of columns
+      .fill(0)
+      .map((_, column) => `${row}, ${column}`)
   );
 
 const ExampleComponent = () => {

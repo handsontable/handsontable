@@ -23,15 +23,17 @@ const ExampleComponent = () => {
         ['A9', 'B9', 'C9', 'D9', 'E9'],
         ['A10', 'B10', 'C10', 'D10', 'E10'],
         ['A11', 'B11', 'C11', 'D11', 'E11'],
-        ['A12', 'B12', 'C12', 'D12', 'E12'],
+        ['A12', 'B12', 'C12', 'D12', 'E12']
       ]}
       height="auto"
       colHeaders={true}
       rowHeaders={true}
+      contextMenu={['hidden_rows_show', 'hidden_rows_hide']}
       hiddenRows={{
         rows: [3, 5, 9],
-        // show UI indicators to mark hidden rows
-        indicators: true
+        indicators: true,
+        // exclude hidden rows from copying and pasting
+        copyPasteEnabled: false
       }}
     />
   );

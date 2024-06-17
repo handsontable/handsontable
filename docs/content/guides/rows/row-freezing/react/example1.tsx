@@ -5,22 +5,25 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
+// generate an array of arrays with dummy data
+const data = new Array(100) // number of rows
+  .fill(0)
+  .map((_item, row) =>
+    new Array(50) // number of columns
+      .fill(0)
+      .map((_, column) => `${row}, ${column}`)
+  );
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['A1', 'B1', 'C1', 'D1', 'E1'],
-        ['A2', 'B2', 'C2', 'D2', 'E2'],
-        ['A3', 'B3', 'C3', 'D3', 'E3'],
-      ]}
+      data={data}
+      colWidths={100}
       width="100%"
-      height="auto"
-      colHeaders={true}
+      height={320}
       rowHeaders={true}
-      rowHeights={function(index) {
-        return (index + 1) * 20;
-      }}
-      manualRowResize={true}
+      colHeaders={true}
+      fixedRowsTop={2}
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
