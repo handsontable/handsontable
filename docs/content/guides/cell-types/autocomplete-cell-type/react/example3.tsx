@@ -20,7 +20,7 @@ const ExampleComponent = () => {
       colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
       columns={[{
           type: 'autocomplete',
-          source(query, process) {
+          source(_query, process) {
             fetch('{{$basePath}}/scripts/json/autocomplete.json')
                     .then(response => response.json())
                     .then(response => process(response.data));

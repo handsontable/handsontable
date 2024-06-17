@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable, HotTableClass } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -7,12 +7,12 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef(null);
+  const hotRef = useRef<HotTableClass>(null);
 
   useEffect(() => {
-    const hot = hotRef.current.hotInstance;
+    const hot = hotRef.current?.hotInstance;
 
-    hot.validateCells();
+    hot?.validateCells();
   });
 
   return (

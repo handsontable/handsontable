@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
-import { HotTable } from '@handsontable/react';
+import Handsontable from 'handsontable';
+import { HotTable, HotTableClass } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -7,17 +8,20 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef(null);
+  const hotRef = useRef<HotTableClass>(null);
 
   useEffect(() => {
-    const hot = hotRef.current.hotInstance;
+    const hot = hotRef.current?.hotInstance;
 
-    hot.updateSettings({
-      cells(row, col) {
-        const cellProperties = {};
+    hot?.updateSettings({
+      cells(row, _col, prop) {
+        const cellProperties: Handsontable.CellMeta = {};
 
-        if (hot.getData()[row][col] === 'Nissan') {
-          cellProperties.readOnly = true;
+        if (hot.getDataAtRowProp(row, prop as string) === 'Nissan') {
+          cellProperties.editor = false;
+
+        } else {
+          cellProperties.editor = 'text';
         }
 
         return cellProperties;

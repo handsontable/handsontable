@@ -46,13 +46,13 @@ new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',
   afterSelection(_row, _col, row2, col2) {
-    const meta = this.getCellMeta(row2, col2);
+    const meta = (this as unknown as Handsontable.Core).getCellMeta(row2, col2);
 
     if (meta.readOnly) {
-      this.updateSettings({ fillHandle: false });
+      (this as unknown as Handsontable.Core).updateSettings({ fillHandle: false });
 
     } else {
-      this.updateSettings({ fillHandle: true });
+      (this as unknown as Handsontable.Core).updateSettings({ fillHandle: true });
     }
   },
   cells(row, col) {

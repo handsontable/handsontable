@@ -1,5 +1,5 @@
-import { useRef, useEffect } from 'react';
-import { HotTable } from '@handsontable/react';
+import { useRef } from 'react';
+import { HotTable, HotTableClass } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -7,34 +7,32 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef(null);
+  const hotRef = useRef<HotTableClass>(null);
 
-  let buttonClickCallback;
+  const buttonClickCallback = () => {
+    const hot = hotRef.current?.hotInstance;
+    const exportPlugin = hot?.getPlugin('exportFile');
 
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
-    const exportPlugin = hot.getPlugin('exportFile');
-
-    buttonClickCallback = () => {
-      const exportedBlob = exportPlugin.exportAsBlob('csv', {
-        bom: false,
-        columnDelimiter: ',',
-        columnHeaders: false,
-        exportHiddenColumns: true,
-        exportHiddenRows: true,
-        mimeType: 'text/csv',
-        rowDelimiter: '\r\n',
-        rowHeaders: true
-      });
-
-      console.log(exportedBlob);
-    };
-  });
+    exportPlugin?.downloadFile('csv', {
+      bom: false,
+      columnDelimiter: ',',
+      columnHeaders: false,
+      exportHiddenColumns: true,
+      exportHiddenRows: true,
+      fileExtension: 'csv',
+      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+      mimeType: 'text/csv',
+      rowDelimiter: '\r\n',
+      rowHeaders: true
+    });
+  };
 
   return (
     <>
-      <div className="controls">
-        <button id="export-blob" onClick={(...args) => buttonClickCallback(...args)}>Export as a Blob</button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button id="export-file" onClick={() => buttonClickCallback()}>Download CSV</button>
+        </div>
       </div>
       <HotTable
         ref={hotRef}

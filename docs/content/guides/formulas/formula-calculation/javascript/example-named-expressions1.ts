@@ -1,8 +1,8 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 import { HyperFormula } from 'hyperformula';
-import { Formulas } from 'handsontable/plugins'
-import {DetailedSettings} from 'handsontable/plugins/formulas'
+import { Formulas } from 'handsontable/plugins';
+import { DetailedSettings } from 'handsontable/plugins/formulas';
 
 const data: (string | number)[][] = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],

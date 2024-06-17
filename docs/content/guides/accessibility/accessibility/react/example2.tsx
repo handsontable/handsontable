@@ -1,3 +1,4 @@
+import Handsontable from "handsontable";
 import { useState } from "react";
 import { HotTable, HotColumn } from "@handsontable/react";
 import { registerAllModules } from "handsontable/registry";
@@ -6,7 +7,30 @@ import "handsontable/dist/handsontable.full.min.css";
 registerAllModules();
 
 /* start:skip-in-preview */
-const data = [
+interface Toggle {
+  tabNavigation: boolean,
+  navigableHeaders: boolean,
+  renderAllRows: boolean,
+  renderAllColumns: boolean,
+  enterBeginsEditing: boolean,
+  autoWrapRow: boolean,
+  autoWrapCol: boolean,
+  enterMoves: { col: number, row: number },
+  changeToggleOptions: any,
+}
+
+interface Product {
+  companyName: string;
+  productName: string;
+  sellDate: string;
+  inStock: boolean;
+  qty: number;
+  orderId: string;
+  country: string;
+}
+
+/* start:skip-in-preview */
+const data: Product[] = [
   {
     companyName: "Hodkiewicz - Hintz",
     productName: "Rustic Soft Ball",
@@ -468,16 +492,18 @@ const data = [
   },
 ];
 
-const countries = data.reduce((acc, curr) => {
+const countries = data.reduce<string[]>((acc, curr) => {
   if (acc.includes(curr.country)) {
     return acc;
   }
+
   return [...acc, curr.country];
 }, []);
+
 /* end:skip-in-preview */
 
 // Handsontable options
-const hotOptions = {
+const hotOptions: Handsontable.GridSettings = {
   data,
   height: 464,
   colWidths: [140, 165, 100, 100, 100, 110, 178],
@@ -503,7 +529,7 @@ const hotOptions = {
 };
 
 const ExampleComponent = () => {
-  const [toggleableOptions, setToggleableOptions] = useState({
+  const [toggleableOptions, setToggleableOptions] = useState<Omit<Toggle, "changeToggleOptions">>({
     tabNavigation: true,
     navigableHeaders: true,
     renderAllRows: false,
@@ -574,49 +600,49 @@ function DemoOptions({
   autoWrapCol,
   enterMoves,
   changeToggleOptions,
-}) {
+} : Toggle) {
   // on checkbox change, update handsontable option
-  const handleCheckboxChange = (checkboxName) => {
+  const handleCheckboxChange = (checkboxName: string) => {
     switch (checkboxName) {
       case "enable-tab-navigation":
-        changeToggleOptions((existing) => ({
+        changeToggleOptions((existing: any) => ({
           ...existing,
           tabNavigation: !tabNavigation,
         }));
         break;
       case "enable-header-navigation":
-        changeToggleOptions((existing) => ({
+        changeToggleOptions((existing: any) => ({
           ...existing,
           navigableHeaders: !navigableHeaders,
         }));
         break;
       case "enable-cell-virtualization":
-        changeToggleOptions((existing) => ({
+        changeToggleOptions((existing: any) => ({
           ...existing,
           renderAllRows: !renderAllRows,
           renderAllColumns: !renderAllColumns,
         }));
         break;
       case "enable-cell-enter-editing":
-        changeToggleOptions((existing) => ({
+        changeToggleOptions((existing: any) => ({
           ...existing,
           enterBeginsEditing: !enterBeginsEditing,
         }));
         break;
       case "enable-arrow-rl-first-last-column":
-        changeToggleOptions((existing) => ({
+        changeToggleOptions((existing: any) => ({
           ...existing,
           autoWrapRow: !autoWrapRow,
         }));
         break;
       case "enable-arrow-td-first-last-column":
-        changeToggleOptions((existing) => ({
+        changeToggleOptions((existing: any) => ({
           ...existing,
           autoWrapCol: !autoWrapCol,
         }));
         break;
       case "enable-enter-focus-editing":
-        changeToggleOptions((existing) => ({
+        changeToggleOptions((existing: any) => ({
           ...existing,
           enterMoves:
             enterMoves.row !== 1 ? { col: 0, row: 1 } : { col: 0, row: 0 },
