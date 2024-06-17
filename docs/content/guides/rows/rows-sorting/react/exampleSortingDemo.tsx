@@ -85,7 +85,6 @@ const ExampleComponent = () => {
           data: 'sellTime',
           timeFormat: 'hh:mm A',
           correctFormat: true,
-          correctFormat: true,
           className: 'htRight',
         },
         {

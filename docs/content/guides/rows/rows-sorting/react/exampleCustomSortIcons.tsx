@@ -15,7 +15,7 @@ const ExampleComponent = () => {
           price: 30,
           sellDate: 'Oct 11, 2023',
           sellTime: '01:23 AM',
-          inStock: false,
+          inStock: false
         },
         {
           brand: 'Gigabox',
@@ -23,7 +23,7 @@ const ExampleComponent = () => {
           price: 1890.9,
           sellDate: 'May 3, 2023',
           sellTime: '11:27 AM',
-          inStock: false,
+          inStock: false
         },
         {
           brand: 'Camido',
@@ -31,7 +31,7 @@ const ExampleComponent = () => {
           price: 130.1,
           sellDate: 'Mar 27, 2023',
           sellTime: '03:17 AM',
-          inStock: true,
+          inStock: true
         },
         {
           brand: 'Chatterpoint',
@@ -39,7 +39,7 @@ const ExampleComponent = () => {
           price: 59,
           sellDate: 'Aug 28, 2023',
           sellTime: '08:01 AM',
-          inStock: true,
+          inStock: true
         },
         {
           brand: 'Eidel',
@@ -47,19 +47,19 @@ const ExampleComponent = () => {
           price: 279.99,
           sellDate: 'Oct 2, 2023',
           sellTime: '13:23 AM',
-          inStock: true,
-        },
+          inStock: true
+        }
       ]}
       columns={[
         {
           title: 'Brand',
           type: 'text',
-          data: 'brand',
+          data: 'brand'
         },
         {
           title: 'Model',
           type: 'text',
-          data: 'model',
+          data: 'model'
         },
         {
           title: 'Price',
@@ -67,8 +67,8 @@ const ExampleComponent = () => {
           data: 'price',
           numericFormat: {
             pattern: '$ 0,0.00',
-            culture: 'en-US',
-          },
+            culture: 'en-US'
+          }
         },
         {
           title: 'Date',
@@ -76,7 +76,7 @@ const ExampleComponent = () => {
           data: 'sellDate',
           dateFormat: 'MMM D, YYYY',
           correctFormat: true,
-          className: 'htRight',
+          className: 'htRight'
         },
         {
           title: 'Time',
@@ -84,20 +84,20 @@ const ExampleComponent = () => {
           data: 'sellTime',
           timeFormat: 'hh:mm A',
           correctFormat: true,
-          className: 'htRight',
+          className: 'htRight'
         },
         {
           title: 'In stock',
           type: 'checkbox',
           data: 'inStock',
-          className: 'htCenter',
-        },
+          className: 'htCenter'
+        }
       ]}
       columnSorting={{
         initialConfig: {
           column: 1,
-          sortOrder: 'desc',
-        },
+          sortOrder: 'desc'
+        }
       }}
       className="custom-sort-icon-example-1"
       height="auto"

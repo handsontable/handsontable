@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable, HotTableClass } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -7,25 +7,32 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotTableComponentRef = useRef(null);
-  const sort = () => {
-    // get the `MultiColumnSorting` plugin
-    const multiColumnSorting = hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
+  const hotTableComponentRef = useRef<HotTableClass>(null);
+  const sortAsc = () => {
+    // get the `ColumnSorting` plugin
+    const columnSorting = hotTableComponentRef.current?.hotInstance.getPlugin('columnSorting');
 
-    multiColumnSorting.sort([
-      {
-        column: 0,
-        sortOrder: 'asc',
-      },
-      {
-        column: 1,
-        sortOrder: 'desc',
-      },
-    ]);
+    columnSorting.sort({
+      column: 0,
+      sortOrder: 'asc',
+    });
+  };
+
+  const unsort = () => {
+    // get the `ColumnSorting` plugin
+    const columnSorting = hotTableComponentRef.current?.hotInstance.getPlugin('columnSorting');
+
+    columnSorting.clearSort();
   };
 
   return (
     <>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button onClick={sortAsc}>Sort by the "Brand" column, in ascending order</button>
+          <button onClick={unsort}>Go back to the original order</button>
+        </div>
+      </div>
       <HotTable
         ref={hotTableComponentRef}
         data={[
@@ -38,7 +45,7 @@ const ExampleComponent = () => {
             inStock: false,
           },
           {
-            brand: 'Jetpulse',
+            brand: 'Gigabox',
             model: 'HL Mountain Frame',
             price: 1890.9,
             sellDate: 'May 3, 2023',
@@ -46,7 +53,7 @@ const ExampleComponent = () => {
             inStock: false,
           },
           {
-            brand: 'Jetpulse',
+            brand: 'Camido',
             model: 'Cycling Cap',
             price: 130.1,
             sellDate: 'Mar 27, 2023',
@@ -62,7 +69,7 @@ const ExampleComponent = () => {
             inStock: true,
           },
           {
-            brand: 'Chatterpoint',
+            brand: 'Eidel',
             model: 'HL Road Tire',
             price: 279.99,
             sellDate: 'Oct 2, 2023',
@@ -113,16 +120,13 @@ const ExampleComponent = () => {
             className: 'htCenter',
           },
         ]}
-        multiColumnSorting={true}
+        columnSorting={true}
         height="auto"
         stretchH="all"
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button onClick={sort}>Sort</button>
-      </div>
     </>
   );
 };

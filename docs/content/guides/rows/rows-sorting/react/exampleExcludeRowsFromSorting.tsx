@@ -1,6 +1,6 @@
 // you need `useRef` to call Handsontable's instance methods
 import { useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable, HotTableClass } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -8,9 +8,9 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotTableComponentRef = useRef(null);
+  const hotTableComponentRef = useRef<HotTableClass>(null);
   const exclude = () => {
-    const handsontableInstance = hotTableComponentRef.current.hotInstance;
+    const handsontableInstance = hotTableComponentRef.current?.hotInstance;
     const lastRowIndex = handsontableInstance.countRows() - 1;
 
     // after each sorting, take row 1 and change its index to 0
@@ -190,7 +190,7 @@ const ExampleComponent = () => {
       columnSorting={true}
       // `afterColumnSort()` is a Handsontable hook: it's fired after each sorting
       afterColumnSort={exclude}
-      cells={(row, col, prop) => {
+      cells={(row: number, col: any, prop: any) => {
         if (hotTableComponentRef.current != null) {
           const lastRowIndex = hotTableComponentRef.current.hotInstance.countRows() - 1;
 
