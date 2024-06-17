@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable, HotTableClass } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -7,7 +7,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hot4Ref = useRef(null);
+  const hot4Ref = useRef<HotTableClass>(null);
   const [resultCount, setResultCounter] = useState(0);
 
   const data = [
@@ -19,7 +19,7 @@ const ExampleComponent = () => {
 
   //  define your custom callback function
   function searchResultCounter(instance, row, col, value, result) {
-    const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
+    const DEFAULT_CALLBACK = function (instance, row, col, data, testResult) {
       instance.getCellMeta(row, col).isSearchResult = testResult;
     };
 
@@ -30,20 +30,22 @@ const ExampleComponent = () => {
     }
   }
 
-  const handleKeyUp = (event) => {
+  const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
     setResultCounter(0);
-    const search = hot4Ref.current.hotInstance.getPlugin('search');
-    const queryResult = search.query(event.target.value);
-    hot4Ref.current.hotInstance.render();
-  }
+    const search = hot4Ref.current?.hotInstance.getPlugin('search');
+    const queryResult = search.query(event.currentTarget.value);
+    hot4Ref.current?.hotInstance.render();
+  };
 
   return (
     <>
-      <div class="example-controls-container">
+      <div className="example-controls-container">
         <div className="controls">
-          <input id="search_field4" type="search" placeholder="Search" onKeyUp={handleKeyUp}/>
+          <input id="search_field4" type="search" placeholder="Search" onKeyUp={handleKeyUp} />
         </div>
-        <output className="console" id="output">{resultCount} results</output>
+        <output className="console" id="output">
+          {resultCount} results
+        </output>
       </div>
       <HotTable
         ref={hot4Ref}

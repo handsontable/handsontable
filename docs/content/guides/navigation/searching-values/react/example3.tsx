@@ -1,5 +1,5 @@
-import { useRef, useEffect } from 'react';
-import { HotTable } from '@handsontable/react';
+import { useRef, useEffect, useCallback } from 'react';
+import { HotTable, HotTableClass } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -7,7 +7,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef(null);
+  const hotRef = useRef<HotTableClass>(null);
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -15,32 +15,35 @@ const ExampleComponent = () => {
     ['Chrysler', 2019, 'yellow', 'black'],
     ['Volvo', 2020, 'white', 'gray']
   ];
-  let searchFieldKeyupCallback;
-
-  //  define your custom query method
-  function onlyExactMatch(queryStr, value) {
-    return queryStr.toString() === value.toString();
-  }
-
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
-
-    searchFieldKeyupCallback = function(event) {
+  const searchFieldKeyupCallback = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      const hot = hotRef.current?.hotInstance;
       const search = hot.getPlugin('search');
       // use the `Search`'s `query()` method
-      const queryResult = search.query(event.target.value);
+      const queryResult = search.query(event.currentTarget.value);
 
       console.log(queryResult);
 
       hot.render();
-    };
-  });
+    },
+    [hotRef.current]
+  );
+
+  //  define your custom query method
+  function onlyExactMatch(queryStr: { toString: () => any }, value: { toString: () => any }) {
+    return queryStr.toString() === value.toString();
+  }
 
   return (
     <>
-      <div class="example-controls-container">
+      <div className="example-controls-container">
         <div className="controls">
-          <input id="search_field3" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
+          <input
+            id="search_field3"
+            type="search"
+            placeholder="Search"
+            onKeyUp={(...args) => searchFieldKeyupCallback(...args)}
+          />
         </div>
       </div>
       <HotTable
