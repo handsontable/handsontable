@@ -44,7 +44,7 @@ const hot = new Handsontable(document.createElement('div'), {
   ],
 });
 const hot2 = new Handsontable(document.createElement('div'), {
-  columnSummary: function() {
+  columnSummary() {
     return [
       {
         sourceColumn: 0,
