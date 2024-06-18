@@ -43,6 +43,19 @@ const hot = new Handsontable(document.createElement('div'), {
     },
   ],
 });
+const hot2 = new Handsontable(document.createElement('div'), {
+  columnSummary: function() {
+    return [
+      {
+        sourceColumn: 0,
+        type: 'sum',
+        destinationRow: this.hot.countRows() - 1,
+        destinationColumn: this.hot.countCols() - 1,
+        forceNumeric: true
+      },
+    ];
+  }
+});
 const columnSummary = hot.getPlugin('columnSummary');
 const endpoint: Endpoint = {
   destinationRow: 0,
