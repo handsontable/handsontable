@@ -70,6 +70,7 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
         autoRowSize={false}
         autoColumnSize={false}
+        height="auto"
     >
       {/* use the `data` prop to reference the column data */}
       <HotColumn data="id" />

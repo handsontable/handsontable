@@ -354,7 +354,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
     if (hiddenIndexesChanged) {
-      this.selection.refresh();
+      this.selection.commit();
     }
   };
 
@@ -412,7 +412,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
-    this._refreshBorders(null);
+    if (selection.getSelectionSource() !== 'shift') {
+      editorManager.closeEditor(null);
+    }
+
+    instance.view.render();
+    editorManager.prepareEditor();
   });
 
   this.selection.addLocalHook('beforeSetFocus', (cellCoords) => {
@@ -428,7 +433,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       viewportScroller.scrollTo(cellCoords);
     }
 
-    this._refreshBorders(null);
+    editorManager.closeEditor();
+    instance.view.render();
+    editorManager.prepareEditor();
   });
 
   this.selection.addLocalHook('afterSelectionFinished', (cellRanges) => {
@@ -450,9 +457,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   this.selection.addLocalHook('afterDeselect', () => {
-    editorManager.destroyEditor();
+    editorManager.closeEditor();
+    instance.view.render();
 
-    this._refreshBorders();
     removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
 
     this.runHooks('afterDeselect');
@@ -552,40 +559,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             startPhysicalIndex: startRowPhysicalIndex,
           } = datamap.createRow(index, amount, { source, mode: insertRowMode });
 
-          if (rowDelta) {
-            const currentSelectedRange = selection.selectedRange.current();
-            const currentFromRange = currentSelectedRange?.from;
-            const currentFromRow = currentFromRange?.row;
-            const startVisualRowIndex = instance.toVisualRow(startRowPhysicalIndex);
-
-            if (selection.isSelectedByCorner()) {
-              selection.selectAll(true, true, {
-                disableHeadersHighlight: true,
-              });
-
-            } else if (isDefined(currentFromRow) && currentFromRow >= startVisualRowIndex) {
-              // Moving the selection (if it exists) downward – it should be applied to the "old" row.
-              // TODO: The logic here should be handled by selection module.
-              const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
-              let currentFromColumn = currentFromRange.col;
-
-              // Workaround: headers are not stored inside selection.
-              if (selection.isSelectedByRowHeader()) {
-                currentFromColumn = -1;
-              }
-
-              // Remove from the stack the last added selection as that selection below will be
-              // replaced by new transformed selection.
-              selection.getSelectedRange().pop();
-              // I can't use transforms as they don't work in negative indexes.
-              selection.setRangeStartOnly(instance
-                ._createCellCoords(currentFromRow + rowDelta, currentFromColumn), true);
-              selection.setRangeEnd(instance
-                ._createCellCoords(currentToRow + rowDelta, currentToColumn)); // will call render() internally
-            } else {
-              instance._refreshBorders(); // it will call render and prepare methods
-            }
-          }
+          selection.shiftRows(instance.toVisualRow(startRowPhysicalIndex), rowDelta);
           break;
 
         case 'insert_col_start':
@@ -610,39 +584,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
 
-            const currentSelectedRange = selection.selectedRange.current();
-            const currentFromRange = currentSelectedRange?.from;
-            const currentFromColumn = currentFromRange?.col;
-            const startVisualColumnIndex = instance.toVisualColumn(startColumnPhysicalIndex);
-
-            if (selection.isSelectedByCorner()) {
-              selection.selectAll(true, true, {
-                disableHeadersHighlight: true,
-              });
-
-            } else if (isDefined(currentFromColumn) && currentFromColumn >= startVisualColumnIndex) {
-              // Moving the selection (if it exists) rightward – it should be applied to the "old" column.
-              // TODO: The logic here should be handled by selection module.
-              const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
-              let currentFromRow = currentFromRange.row;
-
-              // Workaround: headers are not stored inside selection.
-              if (selection.isSelectedByColumnHeader()) {
-                currentFromRow = -1;
-              }
-
-              // Remove from the stack the last added selection as that selection below will be
-              // replaced by new transformed selection.
-              selection.getSelectedRange().pop();
-
-              // I can't use transforms as they don't work in negative indexes.
-              selection.setRangeStartOnly(instance
-                ._createCellCoords(currentFromRow, currentFromColumn + colDelta), true);
-              selection.setRangeEnd(instance
-                ._createCellCoords(currentToRow, currentToColumn + colDelta)); // will call render() internally
-            } else {
-              instance._refreshBorders(); // it will call render and prepare methods
-            }
+            selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex), colDelta);
           }
           break;
 
@@ -670,7 +612,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 return;
               }
 
+              if (selection.isSelected()) {
+                const { row } = instance.getSelectedRangeLast().highlight;
+
+                if (row >= groupIndex && row <= groupIndex + groupAmount - 1) {
+                  editorManager.closeEditor(true);
+                }
+              }
+
               const totalRows = instance.countRows();
+
+              if (totalRows === 0) {
+                selection.deselect();
+
+              } else if (source === 'ContextMenu.removeRow') {
+                selection.refresh();
+
+              } else {
+                selection.shiftRows(groupIndex, -groupAmount);
+              }
+
               const fixedRowsTop = tableMeta.fixedRowsTop;
 
               if (fixedRowsTop >= calcIndex + 1) {
@@ -692,9 +653,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           } else {
             removeRow([[index, amount]]);
           }
-
-          grid.adjustRowsAndCols();
-          instance._refreshBorders(); // it will call render and prepare methods
           break;
 
         case 'remove_col':
@@ -722,6 +680,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 return;
               }
 
+              if (selection.isSelected()) {
+                const { col } = instance.getSelectedRangeLast().highlight;
+
+                if (col >= groupIndex && col <= groupIndex + groupAmount - 1) {
+                  editorManager.closeEditor(true);
+                }
+              }
+
+              const totalColumns = instance.countCols();
+
+              if (totalColumns === 0) {
+                selection.deselect();
+
+              } else if (source === 'ContextMenu.removeColumn') {
+                selection.refresh();
+
+              } else {
+                selection.shiftColumns(groupIndex, -groupAmount);
+              }
+
               const fixedColumnsStart = tableMeta.fixedColumnsStart;
 
               if (fixedColumnsStart >= calcIndex + 1) {
@@ -744,14 +722,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           } else {
             removeCol([[index, amount]]);
           }
-
-          grid.adjustRowsAndCols();
-          instance._refreshBorders(); // it will call render and prepare methods
-
           break;
         default:
           throw new Error(`There is no such action "${action}"`);
       }
+
+      instance.view.render();
 
       if (!keepEmptyRows) {
         grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
@@ -768,10 +744,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       const minSpareRows = tableMeta.minSpareRows;
       const minCols = tableMeta.minCols;
       const minSpareCols = tableMeta.minSpareCols;
-
-      if (instance.countRows() === 0 && instance.countCols() === 0) {
-        selection.deselect();
-      }
 
       if (minRows) {
         // should I add empty rows to data source to meet minRows?
@@ -827,64 +799,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           // we don't want to touch/shift cell meta objects.
           datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
         }
-      }
-
-      if (selection.isSelected()) {
-        const rowCount = instance.countRows();
-        const colCount = instance.countCols();
-
-        arrayEach(selection.selectedRange, (range) => {
-          let selectionChanged = false;
-          let fromRow = range.from.row;
-          let fromCol = range.from.col;
-          let toRow = range.to.row;
-          let toCol = range.to.col;
-
-          // if selection is outside, move selection to last row
-          if (fromRow > rowCount - 1) {
-            fromRow = rowCount - 1;
-            selectionChanged = true;
-
-            if (toRow > fromRow) {
-              toRow = fromRow;
-            }
-          } else if (toRow > rowCount - 1) {
-            toRow = rowCount - 1;
-            selectionChanged = true;
-
-            if (fromRow > toRow) {
-              fromRow = toRow;
-            }
-          }
-          // if selection is outside, move selection to last row
-          if (fromCol > colCount - 1) {
-            fromCol = colCount - 1;
-            selectionChanged = true;
-
-            if (toCol > fromCol) {
-              toCol = fromCol;
-            }
-          } else if (toCol > colCount - 1) {
-            toCol = colCount - 1;
-            selectionChanged = true;
-
-            if (fromCol > toCol) {
-              fromCol = toCol;
-            }
-          }
-
-          if (selectionChanged) {
-            if (fromCol < 0) {
-              instance.selectRows(fromRow, toRow, fromCol);
-
-            } else if (fromRow < 0) {
-              instance.selectColumns(fromCol, toCol, fromRow);
-
-            } else {
-              instance.selectCell(fromRow, fromCol, toRow, toCol);
-            }
-          }
-        });
       }
 
       if (instance.view) {
@@ -1287,6 +1201,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   function validateChanges(changes, source, callback) {
     if (!changes.length) {
+      callback();
+
       return;
     }
 
@@ -1294,18 +1210,27 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const waitingForValidator = new ValidatorsQueue();
     let shouldBeCanceled = true;
 
-    waitingForValidator.onQueueEmpty = (isValid) => {
+    waitingForValidator.onQueueEmpty = () => {
       if (activeEditor && shouldBeCanceled) {
         activeEditor.cancelChanges();
       }
 
-      callback(isValid); // called when async validators are resolved and beforeChange was not async
+      callback(); // called when async validators are resolved and beforeChange was not async
     };
 
     for (let i = changes.length - 1; i >= 0; i--) {
       const [row, prop, , newValue] = changes[i];
-      const col = datamap.propToCol(prop);
-      const cellProperties = instance.getCellMeta(row, col);
+      const visualCol = datamap.propToCol(prop);
+      let cellProperties;
+
+      if (Number.isInteger(visualCol)) {
+        cellProperties = instance.getCellMeta(row, visualCol);
+
+      } else {
+        // If there's no requested visual column, we can use the table meta as the cell properties when retrieving
+        // the cell validator.
+        cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
+      }
 
       if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
         changes[i][3] = getParsedNumber(newValue);
@@ -1324,12 +1249,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               shouldBeCanceled = false;
               changes.splice(index, 1); // cancel the change
               cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
-
-              const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
-
-              if (cell !== null) {
-                removeClass(cell, tableMeta.invalidCellClassName);
-              }
             }
             waitingForValidator.removeValidatorFormQueue();
           };
@@ -1349,13 +1268,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterChange
    */
   function applyChanges(changes, source) {
-    let i = changes.length - 1;
-
-    if (i < 0) {
-      return;
-    }
-
-    for (; i >= 0; i--) {
+    for (let i = changes.length - 1; i >= 0; i--) {
       let skipThisChange = false;
 
       if (changes[i] === null) {
@@ -1405,17 +1318,27 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
     }
 
-    instance.forceFullRender = true; // used when data was changed
-    grid.adjustRowsAndCols();
-    instance.runHooks('beforeChangeRender', changes, source);
-    instance._refreshBorders(null);
-    instance.view.adjustElementsSize();
-    instance.runHooks('afterChange', changes, source || 'edit');
+    const hasChanges = changes.length > 0;
 
-    const activeEditor = instance.getActiveEditor();
+    instance.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
 
-    if (activeEditor && isDefined(activeEditor.refreshValue)) {
-      activeEditor.refreshValue();
+    if (hasChanges) {
+      grid.adjustRowsAndCols();
+      instance.runHooks('beforeChangeRender', changes, source);
+      editorManager.closeEditor();
+      instance.view.render();
+      editorManager.prepareEditor();
+      instance.view.adjustElementsSize();
+      instance.runHooks('afterChange', changes, source || 'edit');
+
+      const activeEditor = instance.getActiveEditor();
+
+      if (activeEditor && isDefined(activeEditor.refreshValue)) {
+        activeEditor.refreshValue();
+      }
+
+    } else {
+      instance.view.render();
     }
   }
 
@@ -1653,6 +1576,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ]);
     }
 
+    // TODO: I don't think `prop` should be used as `changeSource` here, but removing it would be a breaking change.
+    // We should remove it with the next major release.
     if (!changeSource && typeof row === 'object') {
       changeSource = prop;
     }
@@ -1721,7 +1646,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
    */
   this.destroyEditor = function(revertOriginal = false, prepareEditorIfNeeded = true) {
-    instance._refreshBorders(revertOriginal, prepareEditorIfNeeded);
+    editorManager.closeEditor(revertOriginal);
+    instance.view.render();
+
+    if (prepareEditorIfNeeded && selection.isSelected()) {
+      editorManager.prepareEditor();
+    }
   };
 
   /**
@@ -1983,7 +1913,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (this.renderCall) {
         this.render();
       } else {
-        this._refreshBorders(null);
+        instance.view.render();
       }
     }
   };
@@ -2001,12 +1931,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.render = function() {
     if (this.view) {
       this.renderCall = true;
-      this.forceFullRender = true; // used when data was changed
+      this.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
 
       if (!this.isRenderSuspended()) {
-        editorManager.lockEditor();
-        this._refreshBorders(null);
-        editorManager.unlockEditor();
+        instance.view.render();
       }
     }
   };
@@ -2283,6 +2211,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.rowIndexMapper.fitToLength(this.countSourceRows());
 
         grid.adjustRowsAndCols();
+        selection.refresh();
       }, {
         hotInstance: instance,
         dataMap: datamap,
@@ -2326,6 +2255,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         metaManager.clearCellsCache();
         instance.initIndexMappers();
         grid.adjustRowsAndCols();
+        selection.refresh();
 
         if (firstRun) {
           firstRun = [null, 'loadData'];
@@ -2651,10 +2581,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (instance.view && !firstRun) {
       instance.forceFullRender = true; // used when data was changed
-      editorManager.lockEditor();
-      instance._refreshBorders(null);
+      instance.view.render();
       instance.view._wt.wtOverlays.adjustElementsSize();
-      editorManager.unlockEditor();
     }
 
     if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
@@ -2812,7 +2740,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       renderableRowIndex = this.rowIndexMapper.getRenderableFromVisualIndex(row);
     }
 
-    if (renderableRowIndex === null || renderableColumnIndex === null) {
+    if (
+      renderableRowIndex === null ||
+      renderableColumnIndex === null ||
+      renderableRowIndex === undefined ||
+      renderableColumnIndex === undefined
+    ) {
       return null;
     }
 
@@ -3876,12 +3809,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
-    // let cellProperties = instance.getCellMeta(row, 0);
-    // let height = cellProperties.height;
-    //
-    // if (height === undefined || height === tableMeta.height) {
-    //  height = cellProperties.rowHeights;
-    // }
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {
@@ -4695,13 +4622,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @see Hooks#add
    * @param {string} key Hook name (see {@link Hooks}).
    * @param {Function|Array} callback Function or array of functions.
+   * @param {number} [orderIndex] Order index of the callback.
+   *                              If > 0, the callback will be added after the others, for example, with an index of 1, the callback will be added before the ones with an index of 2, 3, etc., but after the ones with an index of 0 and lower.
+   *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
+   *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
    * @example
    * ```js
    * hot.addHook('beforeInit', myCallback);
    * ```
    */
-  this.addHook = function(key, callback) {
-    Hooks.getSingleton().add(key, callback, instance);
+  this.addHook = function(key, callback, orderIndex) {
+    Hooks.getSingleton().add(key, callback, instance, orderIndex);
   };
 
   /**
@@ -4732,13 +4663,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @see Hooks#once
    * @param {string} key Hook name (see {@link Hooks}).
    * @param {Function|Array} callback Function or array of functions.
+   * @param {number} [orderIndex] Order index of the callback.
+   *                              If > 0, the callback will be added after the others, for example, with an index of 1, the callback will be added before the ones with an index of 2, 3, etc., but after the ones with an index of 0 and lower.
+   *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
+   *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
    * @example
    * ```js
    * hot.addHookOnce('beforeInit', myCallback);
    * ```
    */
-  this.addHookOnce = function(key, callback) {
-    Hooks.getSingleton().once(key, callback, instance);
+  this.addHookOnce = function(key, callback, orderIndex) {
+    Hooks.getSingleton().once(key, callback, instance, orderIndex);
   };
 
   /**
@@ -4878,22 +4813,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     arrayEach(this.immediates, (handler) => {
       clearImmediate(handler);
     });
-  };
-
-  /**
-   * Refresh selection borders. This is temporary method relic after selection rewrite.
-   *
-   * @private
-   * @param {boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
-   * @param {boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
-   */
-  this._refreshBorders = function(revertOriginal = false, prepareEditorIfNeeded = true) {
-    editorManager.destroyEditor(revertOriginal);
-    instance.view.render();
-
-    if (prepareEditorIfNeeded && selection.isSelected()) {
-      editorManager.prepareEditor();
-    }
   };
 
   /**

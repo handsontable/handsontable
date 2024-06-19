@@ -35,6 +35,7 @@ import {
   CellChange,
   ChangeSource,
   RangeType,
+  OverlayType,
 } from './common';
 
 type Bucket = {
@@ -250,7 +251,8 @@ export interface Events {
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
   modifyRowHeaderWidth?: (rowHeaderWidth: number) => void;
-  modifyRowHeight?: (height: number, row: number) => void;
+  modifyRowHeight?: (height: number, row: number) => void | number;
+  modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: OverlayType) => void | number;
   modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyTransformEnd?: (delta: CellCoords) => void;
   modifyTransformFocus?: (delta: CellCoords) => void;
@@ -261,7 +263,7 @@ export interface Events {
 }
 
 export class Hooks {
-  add<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core): Hooks;
+  add<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core, orderIndex?: number): Hooks;
   createEmptyBucket(): Bucket;
   deregister(key: string): void;
   destroy(context?: Core): void;

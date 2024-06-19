@@ -42,7 +42,7 @@ describe('PluginHooks', () => {
     const fn2 = function() {};
     const fn3 = function() {};
     const context = {};
-    const bucket = {};
+    const bucket = hooks.createEmptyBucket();
 
     spyOn(hooks, 'getBucket').and.returnValue(bucket);
     spyOn(hooks, 'register');
@@ -65,7 +65,11 @@ describe('PluginHooks', () => {
     const fn1 = function() {};
     const fn2 = function() {};
     const context = {};
-    const bucket = { test: [] };
+    const bucket = hooks.createEmptyBucket();
+
+    bucket.test = [];
+
+    hooks.initOrderMap(bucket, 'test');
 
     spyOn(hooks, 'getBucket').and.returnValue(bucket);
     spyOn(hooks, 'register');
@@ -85,6 +89,65 @@ describe('PluginHooks', () => {
     expect(bucket.test[1]).toBe(fn2);
   });
 
+  it('should set the order index of the added hook as 0, unless stated otherwise', () => {
+    const hooks = new Hooks();
+    const fn1 = function() {};
+    const fn2 = function() {};
+    const fn3 = function() {};
+    const bucket = hooks.createEmptyBucket();
+    const context = {
+      pluginHookBucket: bucket
+    };
+
+    bucket.test = [];
+    hooks.initOrderMap(bucket, 'test');
+
+    expect(hooks.getCallbackOrderMap(bucket, 'test').size).toEqual(0);
+
+    hooks.add('test', fn1, context);
+    hooks.add('test', fn2, context);
+    hooks.add('test', fn3, context);
+
+    expect(hooks.getCallbackOrderMap(bucket, 'test').get(0)).toEqual([fn1, fn2, fn3]);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').size).toEqual(1);
+
+    expect(bucket.test.length).toBe(3);
+    expect(bucket.test[0]).toBe(fn1);
+    expect(bucket.test[1]).toBe(fn2);
+    expect(bucket.test[2]).toBe(fn3);
+  });
+
+  it('should set the order index of the added hook as whatever\'s passed to the add method, and arrange the bucket array ' +
+  'according to the order indexes', () => {
+    const hooks = new Hooks();
+    const fn1 = function() {};
+    const fn2 = function() {};
+    const fn3 = function() {};
+    const bucket = hooks.createEmptyBucket();
+    const context = {
+      pluginHookBucket: bucket
+    };
+
+    bucket.test = [];
+    hooks.initOrderMap(bucket, 'test');
+
+    expect(hooks.getCallbackOrderMap(bucket, 'test').size).toEqual(0);
+
+    hooks.add('test', fn1, context);
+    hooks.add('test', fn2, context, 1);
+    hooks.add('test', fn3, context, -1);
+
+    expect(hooks.getCallbackOrderMap(bucket, 'test').get(0)).toEqual([fn1]);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').get(1)).toEqual([fn2]);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').get(-1)).toEqual([fn3]);
+    expect(hooks.getCallbackOrderMap(bucket, 'test').size).toEqual(3);
+
+    expect(bucket.test.length).toBe(3);
+    expect(bucket.test[0]).toBe(fn3);
+    expect(bucket.test[1]).toBe(fn1);
+    expect(bucket.test[2]).toBe(fn2);
+  });
+
   it('should add hook once as array', () => {
     const hooks = new Hooks();
     const fn1 = function() {};
@@ -101,7 +164,7 @@ describe('PluginHooks', () => {
     expect(fn3.runOnce).toBe(true);
     expect(hooks.add.calls.count()).toBe(5);
     expect(hooks.add.calls.mostRecent())
-      .toEqual({ object: hooks, args: ['test', fn3, context], returnValue: undefined });
+      .toEqual({ object: hooks, args: ['test', fn3, context, undefined], returnValue: undefined });
   });
 
   it('should add hook once as function', () => {

@@ -115,7 +115,7 @@ export default class CoreAbstract {
   draw(fastDraw = false) {
     this.drawInterrupted = false;
 
-    if (!fastDraw && !this.wtTable.isVisible()) {
+    if (!this.wtTable.isVisible()) {
       // draw interrupted because TABLE is not visible
       this.drawInterrupted = true;
     } else {

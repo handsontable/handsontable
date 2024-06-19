@@ -1,0 +1,168 @@
+/* removing the fader */
+.CybotCookiebotFader {
+	display: none!important
+}
+
+body #CybotCookiebotDialog { 
+	* {
+		font-size: $font-size-xs
+		line-height: $line-height-xs
+	}
+
+	margin: 0
+	min-width: auto
+	max-width: auto
+	width: auto
+	background: $borderColor
+	color: $text2Color
+
+	h2 { 
+		color: $textColor
+	}
+
+  	svg path {
+    	fill: $textColor
+  	}
+  	#CybotCookiebotDialogBodyEdgeMoreDetails a {
+      	color: $accentColor
+
+		&:after {
+			border-color: $accentColor
+		}
+  	}
+
+	#CybotCookiebotDialogFooter #CybotCookiebotDialogBodyButtonAccept, 
+	#CybotCookiebotDialogFooter #CybotCookiebotDialogBodyLevelButtonAccept, 
+	#CybotCookiebotDialogFooter #CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll {
+		border-color: $accentColor
+		background: $accentColor
+		border-radius: $radius
+		color: $textColor
+		transition: all $t ease-in-out
+	}
+
+	#CybotCookiebotDialogFooter .CybotCookiebotDialogBodyButton {
+		border-color: $accentColor
+		border-width: 1px
+		color: $accentColor
+		border-radius: $radius
+		padding: 8px 16px
+		height: auto
+		width: auto
+	}
+
+	.CybotCookiebotScrollContainer .CybotCookiebotScrollbarContainer {
+		background: $bgColor
+		border-radius: $radius
+		width: 8px
+	}
+
+	#CybotCookiebotDialogHeader,
+	.CybotCookiebotScrollContainer { 
+		border-color: $bgColor
+	}
+
+	#CybotCookiebotDialogPoweredByText a {
+		color: $text2Color
+	}
+
+	.CookieCard {
+		border-color: $bgColor
+	}
+
+	.CybotCookiebotDialogBodyLevelButtonIABContainerToggleHide, 
+	.CybotCookiebotDialogBodyLevelButtonIABContainerToggleShow, 
+	a:after, 
+	a:before, 
+	button:after, 
+	button:before {
+		border-color: $text2Color
+	}
+
+	.CookieCard .CybotCookiebotDialogDetailBodyContentCookieContainerButton:hover, 
+	.CookieCard .CybotCookiebotDialogDetailBodyContentIABv2Tab:hover, 
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieProvider:not(.CybotCookiebotDialogDetailBodyContentCookieInfoCount):hover {
+		color: $accentColor
+	}
+
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieGroup {
+		border-color: $bgColor
+	}
+
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieProvider:not(.CybotCookiebotDialogDetailBodyContentCookieInfoCount) {
+		color: $textColor
+	}
+
+	#CybotCookiebotDialogTabContent .CybotCookiebotDialogDetailBulkConsentCount {
+		background: $bgColor
+	}
+
+	#CybotCookiebotDialogBodyContentText a, 
+	#CybotCookiebotDialogBodyLevelButtonIABHeaderViewPartnersLink, 
+	#CybotCookiebotDialogDetailBulkConsentList dt a, 
+	#CybotCookiebotDialogDetailFooter a, 
+	.CybotCookiebotDialogBodyLevelButtonIABDescription a, 
+	.CybotCookiebotDialogDetailBodyContentCookieLink, 
+	#CybotCookiebotDialogDetailBodyContentTextAbout a {
+		color: $accentColor
+	}
+
+	.CybotExternalLinkArrow {
+		width: 12px
+	}
+
+	#CybotCookiebotDialogNav .CybotCookiebotDialogNavItemLink {
+		color: $text2Color
+		border-color: $bgColor
+	}
+
+	#CybotCookiebotDialogNav .CybotCookiebotDialogNavItemLink.CybotCookiebotDialogActive {
+		color: $accentColor
+		border-color: $accentColor
+	}
+
+	#CybotCookiebotDialogNav {
+		border-color: $bgColor
+	}
+
+	#CybotCookiebotDialogDetailBulkConsent {
+		border-color: $bgColor
+	}
+
+	#CybotCookiebotDialogDetailBulkConsentLink {
+		color: $text2Color
+	}
+	#CybotCookiebotDialogFooter .CybotCookiebotDialogBodyButton:hover {
+		opacity 1
+		border-color: $accentColor
+	}
+
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfoFooter,
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo,
+	#CybotCookiebotDialogDetailBulkConsentListWrapper,
+	#CybotCookiebotDialogDetailBulkConsentListWrapper>span,
+	#CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo.CybotCookiebotDialogShow:first-of-type:before {
+		border-color: $borderColor
+	}
+
+	@media screen and (min-width: 1200px) {
+		&.CybotEdge {
+			margin-top:-20px
+			width: calc(100vw - 48px)
+			min-width: auto
+			max-height: none
+		}
+	}
+
+	@media screen and (min-width: 1720px) {
+		&.CybotEdge {
+			width: 1720px
+		}
+	}
+
+	@media screen and (max-width: 800px) {
+		&.CybotEdge {
+			width: 90%
+		}
+	}
+}

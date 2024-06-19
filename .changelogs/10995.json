@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved performance of the cells merging.",
+  "type": "fixed",
+  "issueOrPR": 10995,
+  "breaking": false,
+  "framework": "none"
+}

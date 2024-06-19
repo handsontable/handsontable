@@ -9,6 +9,7 @@ react:
   id: u3lvnmzh
   metaTitle: Documentation license - React Data Grid | Handsontable
 searchCategory: Guides
+category: Technical specification
 ---
 
 # Documentation license

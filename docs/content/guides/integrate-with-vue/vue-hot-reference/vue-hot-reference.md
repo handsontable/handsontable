@@ -9,6 +9,7 @@ react:
   id: xk0bot46
   metaTitle: Referencing Handsontable - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 2
 ---
 
 # Referencing the Handsontable instance in Vue 2

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Removed double borders for column headers",
-  "type": "fixed",
-  "issueOrPR": 10948,
-  "breaking": false,
-  "framework": "none"
-}

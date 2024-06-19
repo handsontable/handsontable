@@ -13,6 +13,7 @@ basement_dist
 .idea
 report-check-links.xlsx
 ~$*.xlsx
+.env
 
 /.vuepress/public/handsontable
 /.vuepress/public/@handsontable
@@ -30,3 +31,4 @@ report-check-links.xlsx
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/content/guides/**/javascript/**/*.js

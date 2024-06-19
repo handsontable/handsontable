@@ -27,6 +27,7 @@ const hot = new Handsontable.Core(elem, {});
 
 hot.alter('insert_col_start', 0, 1);
 hot.addHook('afterCopy', () => {});
+hot.addHook('afterCopy', () => {}, 1);
 
 const defaultSettings: Handsontable.GridSettings = Handsontable.DefaultSettings;
 

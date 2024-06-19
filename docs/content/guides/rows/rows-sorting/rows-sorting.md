@@ -28,6 +28,7 @@ react:
   id: h4jfevxj
   metaTitle: Rows sorting - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Rows sorting
@@ -339,8 +340,7 @@ const configurationOptions = {
 
 :::
 
-The [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options override each other. If you use
-them both, the one defined later takes precedence.
+The [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options are mutually exclusive, so don't enable them together. If you do so, [`columnSorting`](@/api/options.md#columnsorting) will be automatically disabled, as it's being overridden by [`multiColumnSorting`](@/api/options.md#multicolumnsorting).
 
 ## Set an initial sort order
 
@@ -1001,8 +1001,12 @@ related to sorting, see the following API reference pages:
 
 Didn't find what you need? Try this:
 
+<div class="boxes-list gray">
+
 - [View related topics](https://github.com/handsontable/handsontable/labels/Column%20sorting) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
 - [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
 - [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+
+</div>

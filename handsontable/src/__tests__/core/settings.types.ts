@@ -14,6 +14,8 @@ enum SortDirection { asc = 'asc', desc = 'desc' }
 const contextMenuDemo: Handsontable.plugins.ContextMenu.Settings = {
   callback(key, selection, clickEvent) { },
   items: {
+    sep1: '---------',
+    row_above: 'row_above',
     item: {
       name() {
         return '';
@@ -188,6 +190,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   ]),
   data: oneOf([{}, {}, {}], [[], [], []]),
+  dataDotNotation: oneOf(true),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
   datePickerConfig: {
@@ -647,7 +650,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},
-  modifyRowHeight: (height, row) => {},
+  modifyRowHeight: (height, row) => {
+    const _height: number = height;
+    const _row: number = row;
+  },
+  modifyRowHeightByOverlayName: (height, row, overlayType) => {
+    const _height: number = height;
+    const _row: number = row;
+    const _overlayType: string = overlayType;
+  },
   modifyTransformEnd: (delta) => {
     const rowDelta: number = delta.row;
     const colDelta: number = delta.row;

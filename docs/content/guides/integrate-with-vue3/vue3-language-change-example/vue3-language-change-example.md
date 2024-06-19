@@ -9,6 +9,7 @@ react:
   id: sxkgoryi
   metaTitle: Language change - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 3
 ---
 
 # Language change in Vue 3
@@ -40,9 +41,13 @@ Note that the `language` property is bound to the component separately using `la
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Language](@/guides/internationalization/language/language.md)
 - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
 - [Locale](@/guides/internationalization/locale/locale.md)
+
+</div>
 
 ### Related API reference
 

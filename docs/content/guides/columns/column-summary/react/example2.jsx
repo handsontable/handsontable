@@ -42,6 +42,7 @@ const ExampleComponent = () => {
           destinationColumn: 1
         }
       ]}
+      height="auto"
     />
   );
 };

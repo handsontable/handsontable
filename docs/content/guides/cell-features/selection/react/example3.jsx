@@ -42,6 +42,9 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div className="controls">
+        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Click to modify the selected cells</button>
+      </div>
       <HotTable
         ref={hotRef}
         data={[
@@ -56,7 +59,7 @@ const ExampleComponent = () => {
           ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9'],
         ]}
         width="auto"
-        height={272}
+        height="auto"
         colWidths={100}
         rowHeights={23}
         rowHeaders={true}
@@ -67,9 +70,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Click to modify the selected cells</button>
-      </div>
     </>
   );
 };

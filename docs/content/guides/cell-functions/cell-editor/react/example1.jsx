@@ -90,6 +90,7 @@ const ExampleComponent = () => {
       rowHeaders={true}
       autoWrapRow={true}
       autoWrapCol={true}
+      height="auto"
       licenseKey="non-commercial-and-evaluation"
     >
       {/* add the `editor` prop to set the component as a Handsontable editor */}

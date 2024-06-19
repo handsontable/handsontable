@@ -160,8 +160,10 @@ export async function clickWithPosition(cell: Locator) {
 /**
  * @param {Locator} cell Cell locator.
  */
-export async function clickCell(cell: Locator) {
-  await cell.click();
+export async function clickCell(cell:Locator) {
+
+  await cell
+    .click();
 }
 
 /**
@@ -294,10 +296,11 @@ export async function setAdditionalColumnSorting(
  * @param {string} value Filter value.
  */
 export async function filterByValue(value: string) {
-  await getPageInstance().getByText('Clear', { exact: true }).click();
+  await getPageInstance().getByText('Clear', { exact: true }).click(); // deselect all checkboxes
   await getPageInstance()
     .getByPlaceholder('Search')
     .pressSequentially(value, { delay: 100 });
+  await getPageInstance().getByText('Select all', { exact: true }).click(); // select only that filtered one
   await getPageInstance().getByRole('button', { name: 'OK' }).click();
 }
 

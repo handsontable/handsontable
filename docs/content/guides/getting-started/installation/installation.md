@@ -11,6 +11,7 @@ react:
   id: zqk2jjw3
   metaTitle: Installation - React Data Grid | Handsontable
 searchCategory: Guides
+category: Getting started
 ---
 
 # Installation
@@ -29,13 +30,15 @@ Install Handsontable through your preferred package manager, and control your gr
 
 [[toc]]
 
+<div class="instalationPage">
+
 ::: only-for javascript
 
 ## Overview
 
 To start using Handsontable, follow these steps:
 
-## 1. Install Handsontable
+## `1` Install Handsontable
 
 Get Handsontable's files in your preferred way.
 
@@ -74,7 +77,7 @@ To get Handsontable's files from a CDN, use the following locations:
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css)
 
-## 2. Import Handsontable's JavaScript
+## `2` Import Handsontable's JavaScript
 
 Import Handsontable's JavaScript into your application.
 
@@ -102,7 +105,7 @@ Use the `script` tag. For example, if you're loading Handsontable's JavaScript f
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 ```
 
-## 3. Import Handsontable's CSS
+## `3`  Import Handsontable's CSS
 
 Import Handsontable's CSS into your application.
 
@@ -122,7 +125,7 @@ You can also import Handsontable's CSS using a link tag:
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
 ```
 
-## 4. Create a container
+## `4` Create a container
 
 In your HTML, add an empty `div`, which serves as a container for your Handsontable instance.
 
@@ -130,7 +133,7 @@ In your HTML, add an empty `div`, which serves as a container for your Handsonta
 <div id="example"></div>
 ```
 
-## 5. Initialize your grid
+## `5` Initialize your grid
 
 Now turn your container into a data grid with sample data.
 
@@ -165,7 +168,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-## 1. Install Handsontable
+## `1` Install Handsontable
 
 To install Handsontable locally using a package manager, run one of these commands:
 
@@ -184,9 +187,16 @@ To install Handsontable locally using a package manager, run one of these comman
   ```
 
   </code-block>
+  <code-block title="pnpm">
+
+  ```bash
+  pnpm add handsontable @handsontable/react
+  ```
+
+  </code-block>
 </code-group>
 
-## 2. Import Handsontable's CSS
+## `2` Import Handsontable's CSS
 
 Import Handsontable's CSS into your application.
 
@@ -194,7 +204,7 @@ Import Handsontable's CSS into your application.
 import 'handsontable/dist/handsontable.full.min.css';
 ```
 
-## 3. Register Handsontable's modules
+## `3` Register Handsontable's modules
 
 Import and register all of Handsontable's modules with a single function call:
 
@@ -207,7 +217,7 @@ registerAllModules();
 
 Or, to reduce the size of your JavaScript bundle, [import only the modules that you need](@/guides/tools-and-building/modules/modules.md).
 
-## 4. Use the `HotTable` component
+## `4` Use the `HotTable` component
 
 The main Handsontable component is called `HotTable`.
 
@@ -243,6 +253,8 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 :::
 
 :::
+
+</div>
 
 ## Related articles
 

@@ -68,6 +68,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() currentRowClassName: Handsontable.GridSettings['currentRowClassName'];
   @Input() customBorders: Handsontable.GridSettings['customBorders'];
   @Input() data: Handsontable.GridSettings['data'];
+  @Input() dataDotNotation: Handsontable.GridSettings['dataDotNotation'];
   @Input() dataSchema: Handsontable.GridSettings['dataSchema'];
   @Input() dateFormat: Handsontable.GridSettings['dateFormat'];
   @Input() datePickerConfig: Handsontable.GridSettings['datePickerConfig'];
@@ -357,6 +358,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() modifyRowHeader: Handsontable.GridSettings['modifyRowHeader'];
   @Input() modifyRowHeaderWidth: Handsontable.GridSettings['modifyRowHeaderWidth'];
   @Input() modifyRowHeight: Handsontable.GridSettings['modifyRowHeight'];
+  @Input() modifyRowHeightByOverlayName: Handsontable.GridSettings['modifyRowHeightByOverlayName'];
   @Input() modifySourceData: Handsontable.GridSettings['modifySourceData'];
   @Input() modifyTransformEnd: Handsontable.GridSettings['modifyTransformEnd'];
   @Input() modifyTransformFocus: Handsontable.GridSettings['modifyTransformFocus'];

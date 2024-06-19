@@ -37,6 +37,7 @@ const ExampleComponent = () => {
           forceNumeric: true
         }]
       }
+      height="auto"
     />
   );
 };

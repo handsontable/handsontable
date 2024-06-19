@@ -9,6 +9,7 @@ react:
   id: u7t2rn0n
   metaTitle: Date cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Date cell type
@@ -121,7 +122,11 @@ Click on one of the ▼ icons to open an interactive date editor.
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
+
+</div>
 
 ### Related API reference
 

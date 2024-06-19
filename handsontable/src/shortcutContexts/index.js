@@ -10,7 +10,7 @@ export * from './constants';
  */
 export function registerAllShortcutContexts(hotInstance) {
   [
-    shortcutsEditorContext,
     shortcutsGridContext,
+    shortcutsEditorContext,
   ].forEach(context => context(hotInstance));
 }

@@ -44,6 +44,9 @@ const ExampleComponent = () => {
           ['A10'],
         ]}
         rowHeaders={true}
+        autoRowSize={false}
+        autoColumnSize={false}
+        height="auto"
         licenseKey={"non-commercial-and-evaluation"}
       >
         {/* add the `renderer` prop to set the component as a Handsontable renderer */}

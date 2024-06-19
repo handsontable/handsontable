@@ -11,6 +11,7 @@ react:
   id: lxw2632u
   metaTitle: Comments - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Comments
