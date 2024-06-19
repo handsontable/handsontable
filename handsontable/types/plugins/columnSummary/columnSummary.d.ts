@@ -18,7 +18,7 @@ export type DetailedSettings = {
   customFunction: (this: ColumnSummary, endpoint: Endpoint) => number;
 });
 
-export type Settings = DetailedSettings[] | (() => DetailedSettings[]);
+export type Settings = DetailedSettings[] | ((this: ColumnSummary) => DetailedSettings[]);
 
 export interface Endpoint {
   destinationRow: number;
