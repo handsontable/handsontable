@@ -1282,12 +1282,12 @@ export function addClassesToRows(TD: HTMLTableCellElement, row: number, column: 
   }
 }
 
-export function alignHeaders(column: number, TH: HTMLTableHeaderCellElement): void {
+export function alignHeaders(this: Handsontable, column: number, TH: HTMLTableHeaderCellElement): void {
   if (column < 0) {
     return;
   }
 
-  const alignmentClass = (this as Handsontable).isRtl() ? 'htRight' : 'htLeft';
+  const alignmentClass = this.isRtl() ? 'htRight' : 'htLeft';
 
   if (TH.firstChild) {
     if (headerAlignments.has(column.toString())) {

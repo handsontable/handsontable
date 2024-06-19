@@ -6,7 +6,7 @@ const output = document.querySelector('#output') as HTMLElement;
 
 const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
 
-const emailValidator = (value, callback) => {
+const emailValidator = (value: string, callback: (value: boolean) => void) => {
   setTimeout(() => {
     if (/.+@.+/.test(value)) {
       callback(true);

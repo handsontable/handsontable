@@ -7,7 +7,7 @@ import "handsontable/dist/handsontable.full.min.css";
 registerAllModules();
 
 const ExampleComponent = () => {
-  const data: (string | number)[][] = [
+  const data = [
     ["150", "643", "0.32", "11", "=A1*(B1*C1)+D1"],
     ["172", "474", "0.51", "11", "=A2*(B2*C2)+D2"],
     ["188", "371", "0.59", "11", "=A3*(B3*C3)+D3"],

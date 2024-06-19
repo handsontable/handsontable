@@ -7,14 +7,14 @@ import "handsontable/dist/handsontable.full.min.css";
 registerAllModules();
 
 const ExampleComponent = () => {
-  const data1: [string, null, string, string][] = [
+  const data1 = [
     ["10.26", null, "Sum", "=SUM(A:A)"],
     ["20.12", null, "Average", "=AVERAGE(A:A)"],
     ["30.01", null, "Median", "=MEDIAN(A:A)"],
     ["40.29", null, "MAX", "=MAX(A:A)"],
     ["50.18", null, "MIN", "=MIN(A1:A5)"],
   ];
-  const data2: [string, string][] = [
+  const data2 = [
     ["Is A1 in Sheet1 > 10?", '=IF(Sheet1!A1>10,"TRUE","FALSE")'],
     ["Is A:A in Sheet > 150?", '=IF(SUM(Sheet1!A:A)>150,"TRUE","FALSE")'],
     ["How many blank cells are in the Sheet1?", "=COUNTBLANK(Sheet1!A1:D5)"],

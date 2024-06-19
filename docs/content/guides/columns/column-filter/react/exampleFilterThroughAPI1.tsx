@@ -8,30 +8,43 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotTableComponentRef = useRef<HotTableClass>(null);
-  const sortAsc = () => {
-    // get the `ColumnSorting` plugin
-    const columnSorting = hotTableComponentRef.current?.hotInstance?.getPlugin('columnSorting');
+  const filterBelow200 = () => {
+    // get the `Filters` plugin, so you can use its API
+    const filters = hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
 
-    columnSorting?.sort({
-      column: 0,
-      sortOrder: 'asc',
-    });
+    // clear any existing filters
+    filters?.clearConditions();
+    // filter data by the 'Price' column (column at index 2)
+    // to display only items that are less than ('lt') $200
+    filters?.addCondition(2, 'lt', [200]);
+    filters?.filter();
   };
 
-  const unsort = () => {
-    // get the `ColumnSorting` plugin
-    const columnSorting = hotTableComponentRef.current?.hotInstance?.getPlugin('columnSorting');
+  const filterAbove200 = () => {
+    // get the `Filters` plugin, so you can use its API
+    const filters = hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
 
-    columnSorting?.clearSort();
+    filters?.clearConditions();
+    // display only items that are more than ('gt') $200
+    filters?.addCondition(2, 'gt', [200]);
+    filters?.filter();
+  };
+
+  const clearAllFilters = () => {
+    // get the `Filters` plugin, so you can use its API
+    const filters = hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
+
+    // clear all filters
+    filters?.clearConditions();
+    filters?.filter();
   };
 
   return (
     <>
-      <div className="example-controls-container">
-        <div className="controls">
-          <button onClick={sortAsc}>Sort by the "Brand" column, in ascending order</button>
-          <button onClick={unsort}>Go back to the original order</button>
-        </div>
+      <div className="controls">
+        <button onClick={filterBelow200}>Show items &lt; $200</button> 
+        <button onClick={filterAbove200}>Show items &gt; $200</button> 
+        <button onClick={clearAllFilters}>Clear filters</button>
       </div>
       <HotTable
         ref={hotTableComponentRef}
@@ -62,7 +75,7 @@ const ExampleComponent = () => {
           },
           {
             brand: 'Chatterpoint',
-            model: 'Road Tire Tube',
+            model: 'Road Tire Tube',
             price: 59,
             sellDate: 'Aug 28, 2023',
             sellTime: '08:01 AM',
@@ -70,10 +83,10 @@ const ExampleComponent = () => {
           },
           {
             brand: 'Eidel',
-            model: 'HL Road Tire',
+            model: 'HL Road Tire',
             price: 279.99,
             sellDate: 'Oct 2, 2023',
-            sellTime: '13:23 AM',
+            sellTime: '01:23 AM',
             inStock: true,
           },
         ]}
@@ -120,9 +133,11 @@ const ExampleComponent = () => {
             className: 'htCenter',
           },
         ]}
-        columnSorting={true}
+        // enable filtering
+        filters={true}
+        // enable the column menu
+        dropdownMenu={true}
         height="auto"
-        stretchH="all"
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"

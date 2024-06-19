@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { HotTable, HotTableClass } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -25,22 +25,22 @@ const ExampleComponent = () => {
   const alterTable = useCallback(() => {
     const hot = hotRef.current?.hotInstance;
 
-    hot.alter('insert_row_above', 10, 10);
-    hot.alter('insert_col_start', 6, 1);
-    hot.populateFromArray(10, 0, data2);
-    hot.populateFromArray(11, 0, data3);
-    hot.setCellMeta(2, 2, 'className', 'green-bg');
-    hot.setCellMeta(4, 2, 'className', 'green-bg');
-    hot.setCellMeta(5, 2, 'className', 'green-bg');
-    hot.setCellMeta(6, 2, 'className', 'green-bg');
-    hot.setCellMeta(8, 2, 'className', 'green-bg');
-    hot.setCellMeta(9, 2, 'className', 'green-bg');
-    hot.setCellMeta(10, 2, 'className', 'green-bg');
-    hot.alter('remove_col', 6, 1);
-    hot.alter('remove_row', 10, 10);
-    hot.setCellMeta(0, 5, 'className', 'red-bg');
-    hot.setCellMeta(10, 5, 'className', 'red-bg');
-    hot.render(); // Render is needed here to populate the new "className"s
+    hot?.alter('insert_row_above', 10, 10);
+    hot?.alter('insert_col_start', 6, 1);
+    hot?.populateFromArray(10, 0, data2);
+    hot?.populateFromArray(11, 0, data3);
+    hot?.setCellMeta(2, 2, 'className', 'green-bg');
+    hot?.setCellMeta(4, 2, 'className', 'green-bg');
+    hot?.setCellMeta(5, 2, 'className', 'green-bg');
+    hot?.setCellMeta(6, 2, 'className', 'green-bg');
+    hot?.setCellMeta(8, 2, 'className', 'green-bg');
+    hot?.setCellMeta(9, 2, 'className', 'green-bg');
+    hot?.setCellMeta(10, 2, 'className', 'green-bg');
+    hot?.alter('remove_col', 6, 1);
+    hot?.alter('remove_row', 10, 10);
+    hot?.setCellMeta(0, 5, 'className', 'red-bg');
+    hot?.setCellMeta(10, 5, 'className', 'red-bg');
+    hot?.render(); // Render is needed here to populate the new "className"s
   }, [hotRef.current]);
 
   const buttonWithoutClickCallback = useCallback(() => {
@@ -54,7 +54,7 @@ const ExampleComponent = () => {
   const buttonWithClickCallback = useCallback(() => {
     const hot = hotRef.current?.hotInstance;
     const t1 = performance.now();
-    hot.batch(alterTable);
+    hot?.batch(alterTable);
     const t2 = performance.now();
 
     logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');

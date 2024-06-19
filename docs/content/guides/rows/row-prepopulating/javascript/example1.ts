@@ -11,8 +11,8 @@ const data: (string | number)[][] = [
   ['2019', 30, 15, 12, 13]
 ];
 
-function isEmptyRow(instance, _row) {
-  const rowData = instance.countRows();
+function isEmptyRow(instance: Handsontable, row: number) {
+  const rowData = instance.getDataAtRow(row);
 
   for (let i = 0, ilen = rowData.length; i < ilen; i++) {
     if (rowData[i] !== null) {

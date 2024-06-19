@@ -13,7 +13,7 @@ const ExampleComponent = () => {
   const [namedExpressionValue, setNamedExpressionValue] =
     useState("=10 * Sheet1!$A$2");
 
-  const data: (string | number)[][] = [
+  const data = [
     ["Travel ID", "Destination", "Base price", "Price with extra cost"],
     ["154", "Rome", 400, "=ROUND(ADDITIONAL_COST+C2,0)"],
     ["155", "Athens", 300, "=ROUND(ADDITIONAL_COST+C3,0)"],

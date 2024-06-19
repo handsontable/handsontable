@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { HotTable, HotTableClass } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable';
 
 // register Handsontable's modules
 registerAllModules();
@@ -18,12 +19,12 @@ const ExampleComponent = () => {
   ];
 
   //  define your custom callback function
-  function searchResultCounter(instance, row, col, value, result) {
-    const DEFAULT_CALLBACK = function (instance, row, col, data, testResult) {
+  function searchResultCounter(this: Handsontable, instance: Handsontable, row: number, col: number, value: any, result: any) {
+    const DEFAULT_CALLBACK = function (instance: Handsontable, row: number, col: number, data: any, testResult: any) {
       instance.getCellMeta(row, col).isSearchResult = testResult;
     };
 
-    DEFAULT_CALLBACK.apply(this, arguments);
+    DEFAULT_CALLBACK.apply(this, arguments as any);
 
     if (result) {
       setResultCounter(count => count + 1);
@@ -32,9 +33,12 @@ const ExampleComponent = () => {
 
   const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
     setResultCounter(0);
-    const search = hot4Ref.current?.hotInstance.getPlugin('search');
-    const queryResult = search.query(event.currentTarget.value);
-    hot4Ref.current?.hotInstance.render();
+    const search = hot4Ref.current?.hotInstance?.getPlugin('search');
+    const queryResult = search?.query(event.currentTarget.value);
+
+    console.log(queryResult);
+
+    hot4Ref.current?.hotInstance?.render();
   };
 
   return (

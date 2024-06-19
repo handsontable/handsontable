@@ -1,4 +1,5 @@
-import { useRef } from 'react';
+// you need `useRef` to call Handsontable's instance methods
+import { useEffect, useRef } from 'react';
 import { HotTable, HotTableClass } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -8,30 +9,41 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotTableComponentRef = useRef<HotTableClass>(null);
-  const sortAsc = () => {
-    // get the `ColumnSorting` plugin
-    const columnSorting = hotTableComponentRef.current?.hotInstance?.getPlugin('columnSorting');
 
-    columnSorting?.sort({
-      column: 0,
-      sortOrder: 'asc',
+  useEffect(() => {
+    const handsontableInstance = hotTableComponentRef.current?.hotInstance;
+    const filterField = document.querySelector('#filterField');
+
+    filterField?.addEventListener('keyup', function (event) {
+      const filtersPlugin = handsontableInstance?.getPlugin('filters');
+      const columnSelector = document.getElementById('columns');
+      const columnValue = (columnSelector as HTMLSelectElement).value;
+
+      filtersPlugin?.removeConditions(Number(columnValue));
+      filtersPlugin?.addCondition(Number(columnValue), 'contains', [(event.target as HTMLInputElement).value]);
+      filtersPlugin?.filter();
+
+      handsontableInstance?.render();
     });
-  };
-
-  const unsort = () => {
-    // get the `ColumnSorting` plugin
-    const columnSorting = hotTableComponentRef.current?.hotInstance?.getPlugin('columnSorting');
-
-    columnSorting?.clearSort();
-  };
+  }, []);
 
   return (
     <>
-      <div className="example-controls-container">
-        <div className="controls">
-          <button onClick={sortAsc}>Sort by the "Brand" column, in ascending order</button>
-          <button onClick={unsort}>Go back to the original order</button>
-        </div>
+      <div className="controlsQuickFilter">
+        <label htmlFor="columns" className="selectColumn">
+          Select a column:{' '}
+        </label>
+        <select name="columns" id="columns">
+          <option value="0">Brand</option>
+          <option value="1">Model</option>
+          <option value="2">Price</option>
+          <option value="3">Date</option>
+          <option value="4">Time</option>
+          <option value="5">In stock</option>
+        </select>
+      </div>
+      <div className="controlsQuickFilter">
+        <input id="filterField" type="text" placeholder="Filter" />
       </div>
       <HotTable
         ref={hotTableComponentRef}
@@ -62,7 +74,7 @@ const ExampleComponent = () => {
           },
           {
             brand: 'Chatterpoint',
-            model: 'Road Tire Tube',
+            model: 'Road Tire Tube',
             price: 59,
             sellDate: 'Aug 28, 2023',
             sellTime: '08:01 AM',
@@ -70,10 +82,10 @@ const ExampleComponent = () => {
           },
           {
             brand: 'Eidel',
-            model: 'HL Road Tire',
+            model: 'HL Road Tire',
             price: 279.99,
             sellDate: 'Oct 2, 2023',
-            sellTime: '13:23 AM',
+            sellTime: '01:23 AM',
             inStock: true,
           },
         ]}
@@ -120,9 +132,9 @@ const ExampleComponent = () => {
             className: 'htCenter',
           },
         ]}
-        columnSorting={true}
+        filters={true}
         height="auto"
-        stretchH="all"
+        className="exampleQuickFilter"
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"

@@ -10,27 +10,18 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotTableComponentRef = useRef<HotTableClass>(null);
   const exclude = () => {
-    const handsontableInstance = hotTableComponentRef.current?.hotInstance;
-    const lastRowIndex = (handsontableInstance?.countRows() || 0) - 1;
+    let hotInstance = hotTableComponentRef.current?.hotInstance;
+    // @ts-ignore
+    let filtersRowsMap = hotInstance?.getPlugin('filters').filtersRowsMap;
 
-    // after each sorting, take row 1 and change its index to 0
-    handsontableInstance?.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(0), 0);
-    // after each sorting, take row 16 and change its index to 15
-    handsontableInstance?.rowIndexMapper.moveIndexes(handsontableInstance.toVisualRow(lastRowIndex), lastRowIndex);
+    filtersRowsMap.setValueAtIndex(0, false);
+    filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
   };
 
   return (
     <HotTable
       ref={hotTableComponentRef}
       data={[
-        {
-          brand: 'Brand',
-          model: 'Model',
-          price: 'Price',
-          sellDate: 'Date',
-          sellTime: 'Time',
-          inStock: 'In stock',
-        },
         {
           brand: 'Gigabox',
           model: 'HL Mountain Frame',
@@ -143,26 +134,30 @@ const ExampleComponent = () => {
           sellTime: '01:23 AM',
           inStock: 2,
         },
-        {},
       ]}
       columns={[
         {
+          title: 'Brand',
           type: 'text',
           data: 'brand',
         },
         {
+          title: 'Model',
           type: 'text',
           data: 'model',
         },
         {
+          title: 'Price',
           type: 'numeric',
           data: 'price',
           numericFormat: {
             pattern: '$ 0,0.00',
             culture: 'en-US',
           },
+          className: 'htRight',
         },
         {
+          title: 'Date',
           type: 'date',
           data: 'sellDate',
           dateFormat: 'MMM D, YYYY',
@@ -170,6 +165,7 @@ const ExampleComponent = () => {
           className: 'htRight',
         },
         {
+          title: 'Time',
           type: 'time',
           data: 'sellTime',
           timeFormat: 'hh:mm A',
@@ -177,60 +173,21 @@ const ExampleComponent = () => {
           className: 'htRight',
         },
         {
+          title: 'In stock',
           type: 'numeric',
           data: 'inStock',
           className: 'htCenter',
         },
       ]}
       height={200}
-      stretchH="all"
+      colWidths={[120, 150, 120, 140, 120, 120]}
       fixedRowsTop={1}
       fixedRowsBottom={1}
+      minSpareRows={1}
       colHeaders={true}
-      columnSorting={true}
-      // `afterColumnSort()` is a Handsontable hook: it's fired after each sorting
-      afterColumnSort={exclude}
-      cells={(row: number, col: any, prop: any) => {
-        if (hotTableComponentRef.current != null) {
-          const lastRowIndex = (hotTableComponentRef.current?.hotInstance?.countRows() || 0) - 1;
-
-          if (row === 0) {
-            return {
-              type: 'text',
-              className: 'htCenter',
-              readOnly: true,
-            };
-          }
-          if (row === lastRowIndex) {
-            return {
-              type: 'numeric',
-              className: 'htCenter',
-            };
-          }
-        }
-
-        return {}
-      }}
-      columnSummary={[
-        {
-          sourceColumn: 2,
-          type: 'sum',
-          reversedRowCoords: true,
-          destinationRow: 0,
-          destinationColumn: 2,
-          forceNumeric: true,
-          suppressDataTypeErrors: true,
-        },
-        {
-          sourceColumn: 5,
-          type: 'sum',
-          reversedRowCoords: true,
-          destinationRow: 0,
-          destinationColumn: 5,
-          forceNumeric: true,
-          suppressDataTypeErrors: true,
-        },
-      ]}
+      filters={true}
+      dropdownMenu={true}
+      afterFilter={exclude}
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"

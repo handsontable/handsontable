@@ -503,7 +503,7 @@ const countries = data.reduce<string[]>((acc, curr) => {
 /* end:skip-in-preview */
 
 // Handsontable options
-const hotOptions: Handsontable.GridSettings = {
+const hotOptions = {
   data,
   height: 464,
   colWidths: [140, 165, 100, 100, 100, 110, 178],

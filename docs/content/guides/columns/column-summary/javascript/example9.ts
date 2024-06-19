@@ -41,7 +41,7 @@ new Handsontable(container, {
         let evenCount = 0;
 
         // a helper function
-        const checkRange = (rowRange) => {
+        const checkRange = (rowRange: number[]) => {
           let i = rowRange[1] || rowRange[0];
           let counter = 0;
 

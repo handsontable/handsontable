@@ -19,11 +19,11 @@ const ExampleComponent = () => {
   const searchFieldKeyupCallback = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       const hot = hotRef.current?.hotInstance;
-      const search = hot.getPlugin('search');
-      const queryResult = search.query(event.currentTarget.value);
+      const search = hot?.getPlugin('search');
+      const queryResult = search?.query(event.currentTarget.value);
 
       console.log(queryResult);
-      hot.render();
+      hot?.render();
     },
     [hotRef.current]
   );
