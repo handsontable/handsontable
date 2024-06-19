@@ -3,7 +3,6 @@ import {
   closest,
   isChildOf,
   hasClass,
-  outerWidth,
   outerHeight
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
@@ -162,13 +161,6 @@ export class Comments extends BasePlugin {
    */
   #preventEditorHiding = false;
   /**
-   * The property for holding editor dimensions for further processing.
-   *
-   * @private
-   * @type {object}
-   */
-  #tempEditorDimensions = {};
-  /**
    * The flag that allows processing mousedown event correctly when comments editor is triggered.
    *
    * @private
@@ -203,6 +195,7 @@ export class Comments extends BasePlugin {
 
     if (!this.#editor) {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl());
+      this.#editor.addLocalHook('resize', (...args) => this.#onEditorResize(...args));
     }
 
     if (!this.#displaySwitch) {
@@ -322,8 +315,6 @@ export class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
     this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
     this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
-    this.eventManager.addEventListener(editorElement, 'mousedown', event => this.#onEditorMouseDown(event));
-    this.eventManager.addEventListener(editorElement, 'mouseup', event => this.#onEditorMouseUp(event));
   }
 
   /**
@@ -598,6 +589,7 @@ export class Comments extends BasePlugin {
 
     this.#editor.setPosition(x, y);
     this.#editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY));
+    this.#editor.observeSize();
   }
 
   /**
@@ -736,35 +728,15 @@ export class Comments extends BasePlugin {
   }
 
   /**
-   * `mousedown` hook. Along with `onEditorMouseUp` used to simulate the textarea resizing event.
+   * Saves the comments editor size to the cell meta.
    *
-   * @param {MouseEvent} event The `mousedown` event.
+   * @param {number} width The new width of the editor.
+   * @param {number} height The new height of the editor.
    */
-  #onEditorMouseDown(event) {
-    this.#tempEditorDimensions = {
-      width: outerWidth(event.target),
-      height: outerHeight(event.target)
-    };
-  }
-
-  /**
-   * `mouseup` hook. Along with `onEditorMouseDown` used to simulate the textarea resizing event.
-   *
-   * @param {MouseEvent} event The `mouseup` event.
-   */
-  #onEditorMouseUp(event) {
-    const currentWidth = outerWidth(event.target);
-    const currentHeight = outerHeight(event.target);
-
-    if (currentWidth !== this.#tempEditorDimensions.width + 1 ||
-        currentHeight !== this.#tempEditorDimensions.height + 2) {
-      this.updateCommentMeta(this.range.from.row, this.range.from.col, {
-        [META_STYLE]: {
-          width: currentWidth,
-          height: currentHeight
-        }
-      });
-    }
+  #onEditorResize(width, height) {
+    this.updateCommentMeta(this.range.from.row, this.range.from.col, {
+      [META_STYLE]: { width, height }
+    });
   }
 
   /**
@@ -831,13 +803,8 @@ export class Comments extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    if (this.#editor) {
-      this.#editor.destroy();
-    }
-
-    if (this.#displaySwitch) {
-      this.#displaySwitch.destroy();
-    }
+    this.#editor?.destroy();
+    this.#displaySwitch?.destroy();
 
     super.destroy();
   }
