@@ -79,6 +79,27 @@ describe('Core_render', () => {
     expect(afterRender).toHaveBeenCalledTimes(2); // 1 from load and 1 from populateFromArray
   });
 
+  it('should render the table when there is no changes in the dataset', () => {
+    const afterRender = jasmine.createSpy('afterRender');
+
+    handsontable({
+      data: [
+        ['Joe Red']
+      ],
+      beforeChange(changes) {
+        changes.length = 0;
+      },
+      afterRender,
+    });
+
+    afterRender.calls.reset();
+    setDataAtCell(0, 0, 'Test');
+
+    // even though the changes are canceled, the table should be rendered to reset
+    // the cells states (e.g. validation CSS classes)
+    expect(afterRender).toHaveBeenCalledTimes(1);
+  });
+
   it('should run afterRenderer hook', () => {
     let lastCellProperties;
 
