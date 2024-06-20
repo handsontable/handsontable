@@ -317,7 +317,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:e2e.dump && npm run test:e2e.puppeteer
+          npm run test:e2e.dump.esm-cjs && npm run test:e2e.puppeteer
 
   test-handsontable-cjs-e2e:
     name: "[TEST] Handsontable: CJS"
@@ -341,7 +341,7 @@ jobs:
           path: ./
       - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
       
-      - name: Build UMD from ESM
+      - name: Build UMD from CJS
         run: |
           cd handsontable
           npm run build:umd-from-cjs 
@@ -349,7 +349,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:e2e.dump.cjs && npm run test:e2e.puppeteer
+          npm run test:e2e.dump.esm-cjs && npm run test:e2e.puppeteer
 
   test-angular:
     name: "[TEST] Wrapper: Angular"
