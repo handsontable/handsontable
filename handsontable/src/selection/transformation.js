@@ -266,6 +266,16 @@ class Transformation {
   }
 
   /**
+   * Resets the offset size to the default values.
+   */
+  resetOffsetSize() {
+    this.#offset = {
+      x: 0,
+      y: 0
+    };
+  }
+
+  /**
    * Clamps the coords to make sure they points to the cell (or header) in the table range.
    *
    * @param {CellCoords} zeroBasedCoords The coords object to clamp.
