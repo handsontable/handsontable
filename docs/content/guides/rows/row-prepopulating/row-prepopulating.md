@@ -40,9 +40,10 @@ The example below shows how cell renderers can be used to populate the template 
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-prepopulating/react/example1.jsx)
+@[code](@/content/guides/rows/row-prepopulating/react/example1.tsx)
 
 :::
 

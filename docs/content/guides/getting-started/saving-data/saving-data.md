@@ -42,9 +42,10 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/saving-data/react/example1.jsx)
+@[code](@/content/guides/getting-started/saving-data/react/example1.tsx)
 
 :::
 

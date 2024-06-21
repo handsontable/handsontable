@@ -73,11 +73,11 @@ Double click on a cell to open the editor and preview the formula.
 
 ::: only-for react
 
-::: example #example1 :react --css 1 --js 2
+::: example #example1 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/formulas/formula-calculation/react/example1.css)
-
 @[code](@/content/guides/formulas/formula-calculation/react/example1.jsx)
+@[code](@/content/guides/formulas/formula-calculation/react/example1.tsx)
 
 :::
 
@@ -93,7 +93,6 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 ::: example #example-data-grid --js 1 --ts 2
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.js)
-
 @[code](@/content/guides/formulas/formula-calculation/javascript/example-data-grid.ts)
 
 :::
@@ -102,9 +101,10 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 ::: only-for react
 
-::: example #example-data-grid :react
+::: example #example-data-grid :react --js 1 --ts 2
 
 @[code](@/content/guides/formulas/formula-calculation/react/example-data-grid.jsx)
+@[code](@/content/guides/formulas/formula-calculation/react/example-data-grid.tsx)
 
 :::
 
@@ -455,9 +455,7 @@ pass an array with `name` and `expression` to your `formulas` configuration obje
 ::: example #example-named-expressions1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example-named-expressions1.html)
-
 @[code](@/content/guides/formulas/formula-calculation/javascript/example-named-expressions1.js)
-
 @[code](@/content/guides/formulas/formula-calculation/javascript/example-named-expressions1.ts)
 
 :::
@@ -468,9 +466,10 @@ pass an array with `name` and `expression` to your `formulas` configuration obje
 
 ::: only-for react
 
-::: example #example-named-expressions1 :react
+::: example #example-named-expressions1 :react --js 1 --ts 2
 
 @[code](@/content/guides/formulas/formula-calculation/react/example-named-expressions1.jsx)
+@[code](@/content/guides/formulas/formula-calculation/react/example-named-expressions1.tsx)
 
 :::
 

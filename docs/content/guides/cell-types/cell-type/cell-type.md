@@ -437,9 +437,10 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/cell-type/react/example1.jsx)
+@[code](@/content/guides/cell-types/cell-type/react/example1.tsx)
 
 :::
 

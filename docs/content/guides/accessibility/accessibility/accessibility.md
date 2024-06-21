@@ -111,9 +111,7 @@ Check out the interactive demo below to see how various Handsontable settings im
 ::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.html)
-
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.css)
-
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.js)
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.ts)
 
@@ -123,11 +121,11 @@ Check out the interactive demo below to see how various Handsontable settings im
 
 ::: only-for react
 
-::: example #example2 :react --css 1 --js 2
+::: example #example2 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/accessibility/accessibility/react/example2.css)
-
 @[code](@/content/guides/accessibility/accessibility/react/example2.jsx)
+@[code](@/content/guides/accessibility/accessibility/react/example2.tsx)
 
 :::
 

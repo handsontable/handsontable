@@ -215,9 +215,10 @@ As a result, each cell in the grid is read-only:
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/configuration-options/react/example1.jsx)
+@[code](@/content/guides/getting-started/configuration-options/react/example1.tsx)
 
 :::
 
@@ -291,9 +292,10 @@ As a result, each cell in the third and ninth columns is read-only:
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/configuration-options/react/example2.jsx)
+@[code](@/content/guides/getting-started/configuration-options/react/example2.tsx)
 
 :::
 
@@ -374,9 +376,10 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/configuration-options/react/example3.jsx)
+@[code](@/content/guides/getting-started/configuration-options/react/example3.tsx)
 
 :::
 
@@ -452,9 +455,10 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/configuration-options/react/example4.jsx)
+@[code](@/content/guides/getting-started/configuration-options/react/example4.tsx)
 
 :::
 
@@ -710,9 +714,10 @@ In the example below, some cells are read-only, and some cells are editable:
 
 ::: only-for react
 
-::: example #example6 :react
+::: example #example6 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/configuration-options/react/example6.jsx)
+@[code](@/content/guides/getting-started/configuration-options/react/example6.tsx)
 
 :::
 

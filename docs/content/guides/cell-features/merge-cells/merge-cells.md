@@ -57,9 +57,10 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/merge-cells/react/example1.jsx)
+@[code](@/content/guides/cell-features/merge-cells/react/example1.tsx)
 
 :::
 

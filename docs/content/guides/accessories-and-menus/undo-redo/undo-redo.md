@@ -52,9 +52,10 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**C
 
 ::: only-for react
 
-::: example #example :react
+::: example #example :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/undo-redo/react/example.jsx)
+@[code](@/content/guides/accessories-and-menus/undo-redo/react/example.tsx)
 
 :::
 

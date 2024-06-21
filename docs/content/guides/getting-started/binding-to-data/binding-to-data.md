@@ -41,9 +41,10 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example1.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example1.tsx)
 
 :::
 
@@ -66,9 +67,10 @@ The following example shows how you would use the array of arrays with a selecti
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example2.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example2.tsx)
 
 :::
 
@@ -91,9 +93,10 @@ An array of objects can be used as a data source as follows:
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example3.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example3.tsx)
 
 :::
 
@@ -116,9 +119,10 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 
 ::: only-for react
 
-::: example #example4 .custom-class :react
+::: example #example4 .custom-class :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/binding-to-data/javascript/example4.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/javascript/example4.tsx)
 
 :::
 
@@ -141,9 +145,10 @@ In a scenario where you have nested objects, you can use them as the data source
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #example5 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example5.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example5.tsx)
 
 :::
 
@@ -168,9 +173,10 @@ In a scenario where you start with an empty data source, you will need to provid
 
 ::: only-for react
 
-::: example #example6 :react
+::: example #example6 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example6.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example6.tsx)
 
 :::
 
@@ -195,9 +201,10 @@ The example below shows how to use such objects:
 
 ::: only-for react
 
-::: example #example7 :react
+::: example #example7 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example7.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example7.tsx)
 
 :::
 
@@ -220,9 +227,10 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 
 ::: only-for react
 
-::: example #example9 :react
+::: example #example9 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example9.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example9.tsx)
 
 :::
 
@@ -262,9 +270,10 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 ::: only-for react
 
-::: example #example10 :react
+::: example #example10 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example10.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example10.tsx)
 
 :::
 
@@ -419,8 +428,10 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 :::
 
 ::: only-for react
-::: example #example11 :react
+::: example #example11 :react --js 1 --ts 2
+
 @[code](@/content/guides/getting-started/binding-to-data/react/example11.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example11.tsx)
 
 :::
 

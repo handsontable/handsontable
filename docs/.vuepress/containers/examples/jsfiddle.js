@@ -29,8 +29,8 @@ ${html}
       </textarea>
       <textarea class="hidden" name="css" readOnly v-pre>${css}</textarea>
       <input type="hidden" name="panel_css" value="1" readOnly> <!-- enables SCSS panel -->
-      ${isBabelPanel && lang === 'js' ? '<input type="hidden" name="panel_js" value="3" readOnly>' : ''}
-      ${isAngularPanel || lang === 'ts' ? '<input type="hidden" name="panel_js" value="4" readOnly>' : ''}
+      ${isBabelPanel && lang === 'JavaScript' ? '<input type="hidden" name="panel_js" value="3" readOnly>' : ''}
+      ${isAngularPanel || lang === 'TypeScript' ? '<input type="hidden" name="panel_js" value="4" readOnly>' : ''}
 
       <div class="js-fiddle-link">
       <button type="submit" aria-label="Edit in JSFiddle">

@@ -50,9 +50,10 @@ In this example we set the same width of `100px` for all columns across the enti
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/react/example1.jsx)
+@[code](@/content/guides/columns/column-width/react/example1.tsx)
 
 :::
 
@@ -75,9 +76,10 @@ In this example, the width is only set for the first four columns. Each addition
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/react/example2.jsx)
+@[code](@/content/guides/columns/column-width/react/example2.tsx)
 
 :::
 
@@ -100,9 +102,10 @@ In this example, the size of all columns is set using a function by taking a col
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/react/example3.jsx)
+@[code](@/content/guides/columns/column-width/react/example3.tsx)
 
 :::
 
@@ -127,9 +130,10 @@ You can adjust the size of one or multiple columns simultaneously, even if the s
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/react/example4.jsx)
+@[code](@/content/guides/columns/column-width/react/example4.tsx)
 
 :::
 
@@ -162,9 +166,10 @@ This example fits all columns to the container's width equally by setting the op
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #example5 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/react/example5.jsx)
+@[code](@/content/guides/columns/column-width/react/example5.tsx)
 
 :::
 
@@ -187,9 +192,10 @@ In this example, the first three columns are set to be 80px wide, and the last c
 
 ::: only-for react
 
-::: example #example6 :react
+::: example #example6 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-width/react/example6.jsx)
+@[code](@/content/guides/columns/column-width/react/example6.tsx)
 
 :::
 

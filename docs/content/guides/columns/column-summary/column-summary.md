@@ -54,9 +54,10 @@ This example calculates and displays five different column summaries:
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/react/example1.jsx)
+@[code](@/content/guides/columns/column-summary/react/example1.tsx)
 
 :::
 
@@ -375,9 +376,10 @@ To reverse row coordinates for your column summary, set the [`reversedRowCoords`
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/react/example2.jsx)
+@[code](@/content/guides/columns/column-summary/react/example2.tsx)
 
 :::
 
@@ -407,9 +409,10 @@ The example below sets up five different column summaries. To do this, it:
 
 ::: only-for react
 
-::: example #example7 :react
+::: example #example7 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/react/example7.jsx)
+@[code](@/content/guides/columns/column-summary/react/example7.tsx)
 
 :::
 
@@ -430,9 +433,10 @@ Using a function to provide a column summary configuration lets you set up all s
 
 ::: only-for react
 
-::: example #example8 :react
+::: example #example8 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/react/example8.jsx)
+@[code](@/content/guides/columns/column-summary/react/example8.tsx)
 
 :::
 
@@ -528,9 +532,10 @@ This example implements a function that counts the number of even values in a co
 
 ::: only-for react
 
-::: example #example9 :react
+::: example #example9 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/react/example9.jsx)
+@[code](@/content/guides/columns/column-summary/react/example9.tsx)
 
 :::
 
@@ -556,9 +561,10 @@ See the following example:
 
 ::: only-for react
 
-::: example #example12 :react
+::: example #example12 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/react/example12.jsx)
+@[code](@/content/guides/columns/column-summary/react/example12.tsx)
 
 :::
 
@@ -612,9 +618,10 @@ To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option 
 
 ::: only-for react
 
-::: example #example10 :react
+::: example #example10 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/react/example10.jsx)
+@[code](@/content/guides/columns/column-summary/react/example10.tsx)
 
 :::
 
@@ -639,9 +646,10 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 ::: only-for react
 
-::: example #example11 :react --tab code
+::: example #example11 :react --tab code --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/react/example11.jsx)
+@[code](@/content/guides/columns/column-summary/react/example11.tsx)
 
 :::
 

@@ -247,9 +247,10 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 ## Preview the result
 
-::: example #example :react
+::: example #example :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/installation/react/example.jsx)
+@[code](@/content/guides/getting-started/installation/react/example.tsx)
 
 :::
 

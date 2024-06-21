@@ -43,9 +43,10 @@ To enable row hiding, use the [`hiddenRows`](@/api/options.md#hiddenrows) option
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-hiding/react/example1.jsx)
+@[code](@/content/guides/rows/row-hiding/react/example1.tsx)
 
 :::
 
@@ -76,9 +77,10 @@ Now, those rows are hidden by default:
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-hiding/react/example2.jsx)
+@[code](@/content/guides/rows/row-hiding/react/example2.tsx)
 
 :::
 
@@ -103,9 +105,10 @@ To enable the UI indicators, in the `hiddenRows` object, set the `indicators` pr
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-hiding/react/example3.jsx)
+@[code](@/content/guides/rows/row-hiding/react/example3.tsx)
 
 :::
 
@@ -130,9 +133,10 @@ Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenRow
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-hiding/react/example4.jsx)
+@[code](@/content/guides/rows/row-hiding/react/example4.tsx)
 
 :::
 
@@ -153,9 +157,10 @@ You can also add the row hiding menu items individually, by adding the [`hidden_
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #example5 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-hiding/react/example5.jsx)
+@[code](@/content/guides/rows/row-hiding/react/example5.tsx)
 
 :::
 
@@ -180,9 +185,10 @@ To exclude hidden rows from copying and pasting, in the `hiddenRows` object, set
 
 ::: only-for react
 
-::: example #example6 :react
+::: example #example6 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-hiding/react/example6.jsx)
+@[code](@/content/guides/rows/row-hiding/react/example6.tsx)
 
 :::
 

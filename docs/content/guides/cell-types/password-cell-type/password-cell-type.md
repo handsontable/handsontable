@@ -35,9 +35,10 @@ The password cell type behaves like a text cell, the only difference being that 
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/password-cell-type/react/example1.jsx)
+@[code](@/content/guides/cell-types/password-cell-type/react/example1.tsx)
 
 :::
 
@@ -60,9 +61,10 @@ By default, every hash has a length equal to the length of its corresponding val
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/password-cell-type/react/example2.jsx)
+@[code](@/content/guides/cell-types/password-cell-type/react/example2.tsx)
 
 :::
 
@@ -85,9 +87,10 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/password-cell-type/react/example3.jsx)
+@[code](@/content/guides/cell-types/password-cell-type/react/example3.tsx)
 
 :::
 

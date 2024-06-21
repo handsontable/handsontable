@@ -63,9 +63,10 @@ To try out Handsontable's RTL support, check out the demo below:
 
 ::: only-for react
 
-::: example #example1 :react-languages
+::: example #example1 :react-languages  --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/react/example1.jsx)
+@[code](@/content/guides/internationalization/layout-direction/react/example1.tsx)
 
 :::
 
@@ -121,9 +122,10 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/react/example2.jsx)
+@[code](@/content/guides/internationalization/layout-direction/react/example2.tsx)
 
 :::
 
@@ -149,9 +151,10 @@ and set it to `'rtl'`:
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/react/example3.jsx)
+@[code](@/content/guides/internationalization/layout-direction/react/example3.tsx)
 
 :::
 
@@ -177,9 +180,10 @@ and set it to `'ltr'`:
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/react/example4.jsx)
+@[code](@/content/guides/internationalization/layout-direction/react/example4.tsx)
 
 :::
 
@@ -204,9 +208,10 @@ In the example below, some columns are explicitly aligned to the left, center, o
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #example5 :react --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/react/example5.jsx)
+@[code](@/content/guides/internationalization/layout-direction/react/example5.tsx)
 
 :::
 

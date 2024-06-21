@@ -113,9 +113,10 @@ The example below:
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/navigation/searching-values/react/example1.jsx)
+@[code](@/content/guides/navigation/searching-values/react/example1.tsx)
 
 :::
 
@@ -145,10 +146,11 @@ The example below highlights its search results in bold red. To do this, it:
 
 ::: only-for react
 
-::: example #example2 :react --css 1 --js 2
+::: example #example2 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/navigation/searching-values/react/example2.css)
 @[code](@/content/guides/navigation/searching-values/react/example2.jsx)
+@[code](@/content/guides/navigation/searching-values/react/example2.tsx)
 
 :::
 
@@ -177,9 +179,10 @@ The example below searches only for exact search query matches. To do this, it:
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/navigation/searching-values/react/example3.jsx)
+@[code](@/content/guides/navigation/searching-values/react/example3.tsx)
 
 :::
 
@@ -208,9 +211,10 @@ The example below displays the number of matching search results. To do this, it
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/navigation/searching-values/react/example4.jsx)
+@[code](@/content/guides/navigation/searching-values/react/example4.tsx)
 
 :::
 

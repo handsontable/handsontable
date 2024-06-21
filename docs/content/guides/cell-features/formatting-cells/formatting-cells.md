@@ -34,7 +34,6 @@ In this example, we add a custom class `custom-cell` to the cell in the top left
 ::: example #example1 --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-features/formatting-cells/javascript/example1.css)
-
 @[code](@/content/guides/cell-features/formatting-cells/javascript/example1.js)
 @[code](@/content/guides/cell-features/formatting-cells/javascript/example1.ts)
 
@@ -44,11 +43,11 @@ In this example, we add a custom class `custom-cell` to the cell in the top left
 
 ::: only-for react
 
-::: example #example1 :react --css 1 --js 2
+::: example #example1 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-features/formatting-cells/react/example1.css)
-
 @[code](@/content/guides/cell-features/formatting-cells/react/example1.jsx)
+@[code](@/content/guides/cell-features/formatting-cells/react/example1.tsx)
 
 :::
 
@@ -71,9 +70,10 @@ You can apply inline styles directly to the DOM element using its `style` proper
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/formatting-cells/react/example2.jsx)
+@[code](@/content/guides/cell-features/formatting-cells/react/example2.tsx)
 
 :::
 
@@ -100,9 +100,10 @@ In the names of the API properties, the words `start` and `end` refer to the sta
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/formatting-cells/react/example3.jsx)
+@[code](@/content/guides/cell-features/formatting-cells/react/example3.tsx)
 
 :::
 

@@ -37,9 +37,10 @@ A draggable move handle appears above the selected column header. You can click 
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-moving/react/example1.jsx)
+@[code](@/content/guides/columns/column-moving/react/example1.tsx)
 
 :::
 
@@ -62,9 +63,10 @@ When you move columns, the default column headers (A, B, C) stay in place.
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-moving/react/example2.jsx)
+@[code](@/content/guides/columns/column-moving/react/example2.tsx)
 
 :::
 
@@ -85,9 +87,10 @@ But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option wit
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-moving/react/example3.jsx)
+@[code](@/content/guides/columns/column-moving/react/example3.tsx)
 
 :::
 

@@ -56,9 +56,10 @@ The example below presents a data grid displaying 1 million cells (1000 rows x 1
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-virtualization/react/example1.jsx)
+@[code](@/content/guides/rows/row-virtualization/react/example1.tsx)
 
 :::
 

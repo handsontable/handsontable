@@ -103,9 +103,10 @@ In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/comments/react/example1.jsx)
+@[code](@/content/guides/cell-features/comments/react/example1.tsx)
 
 :::
 
@@ -128,9 +129,10 @@ By default, all comments are editable. To change this, set the [`readOnly`](@/ap
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/comments/react/example2.jsx)
+@[code](@/content/guides/cell-features/comments/react/example2.tsx)
 
 :::
 
@@ -153,9 +155,10 @@ To set the width and height of a comment box, use the [`style`](@/api/options.md
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/comments/react/example3.jsx)
+@[code](@/content/guides/cell-features/comments/react/example3.tsx)
 
 :::
 
@@ -178,9 +181,10 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/comments/react/example4.jsx)
+@[code](@/content/guides/cell-features/comments/react/example4.tsx)
 
 :::
 

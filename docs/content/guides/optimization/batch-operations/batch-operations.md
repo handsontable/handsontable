@@ -205,9 +205,10 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/optimization/batch-operations/react/example1.jsx)
+@[code](@/content/guides/optimization/batch-operations/react/example1.tsx)
 
 :::
 

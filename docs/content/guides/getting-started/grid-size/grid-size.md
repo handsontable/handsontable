@@ -158,10 +158,11 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 
 ::: only-for react
 
-::: example #example :react --css 1 --js 2
+::: example #example :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/getting-started/grid-size/react/example.css)
 @[code](@/content/guides/getting-started/grid-size/react/example.jsx)
+@[code](@/content/guides/getting-started/grid-size/react/example.tsx)
 
 :::
 

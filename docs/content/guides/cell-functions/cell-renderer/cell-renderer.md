@@ -62,9 +62,10 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 :::
 
-::: example #example1 :react --tab preview
+::: example #example1 :react --js 1 --ts 2 --tab preview
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example1.jsx)
+@[code](@/content/guides/cell-functions/cell-renderer/react/example1.tsx)
 
 :::
 
@@ -72,10 +73,11 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 In this example, React's `Context` passes information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with [editors](@/guides/cell-functions/cell-editor/cell-editor.md) as well.
 
-::: example #example2 :react --css 1 --js 2 --tab preview
+::: example #example2 :react --css 1 --js 2 --ts 3 --tab preview
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example2.css)
 @[code](@/content/guides/cell-functions/cell-renderer/react/example2.jsx)
+@[code](@/content/guides/cell-functions/cell-renderer/react/example2.tsx)
 
 :::
 
@@ -85,9 +87,10 @@ You can also declare a custom renderer for the `HotTable` component by declaring
 
 The following example implements `@handsontable/react` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example3.jsx)
+@[code](@/content/guides/cell-functions/cell-renderer/react/example3.tsx)
 
 :::
 
@@ -307,9 +310,10 @@ This example shows how to use custom cell renderers to display HTML content in a
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example4.jsx)
+@[code](@/content/guides/cell-functions/cell-renderer/react/example4.tsx)
 
 :::
 
@@ -343,9 +347,10 @@ You can also put HTML into row and column headers. If you need to attach events 
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #example5 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example5.jsx)
+@[code](@/content/guides/cell-functions/cell-renderer/react/example5.tsx)
 
 :::
 

@@ -70,8 +70,10 @@ const getCodeToken = (jsToken, tsToken) => {
   const openTSDivToken = new Token('container_div_open', 'div', 1);
   const closeDivToken = new Token('container_div_close', 'div', -1);
 
-  openJSDivToken.attrSet('class', 'tab-content-js hideElement');
+  openJSDivToken.attrSet('class', 'tab-content-js');
+  openJSDivToken.attrSet('v-if', '$parent.$parent.selectedLang === \'JavaScript\'');
   openTSDivToken.attrSet('class', 'tab-content-ts');
+  openTSDivToken.attrSet('v-if', '$parent.$parent.selectedLang === \'TypeScript\'');
 
   code.children = [
     openJSDivToken,
@@ -151,6 +153,7 @@ module.exports = function(docsVersion, base) {
         tokens.splice(index + 1, 0, ...newTokens);
 
         const codeForPreset = addCodeForPreset(codeToCompile, preset, id);
+        const tsCodeForPreset = addCodeForPreset(tsCodeToCompile, preset, id);
         const code = buildCode(
           id + (preset.includes('angular') ? '.ts' : '.jsx'),
           codeForPreset,
@@ -163,6 +166,8 @@ module.exports = function(docsVersion, base) {
         const noEdit = !!args.match(/--no-edit/)?.[0];
         const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
+        const selectedLang = '$parent.$parent.selectedLang';
+        const isReact = preset.includes('react');
 
         return `
           <div class="example-container">
@@ -178,30 +183,76 @@ module.exports = function(docsVersion, base) {
                 <i class="ico i-code"></i>Source code
               </button>
               <div class="example-controls">
-                <div class="examples-buttons examples-js${tsToken ? ' hideElement' : ''}">
+                <div class="examples-buttons" v-if="${selectedLang} === 'JavaScript'">
                   ${!noEdit
-    ? stackblitz(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset, 'js')
+    ? stackblitz(
+      id,
+      htmlContent,
+      codeToCompileSandbox,
+      cssContent,
+      docsVersion,
+      preset,
+      'JavaScript'
+    )
     : ''}
                   ${!noEdit
-    ? codesandbox(id, htmlContent, codeToCompileSandbox, cssContent, docsVersion, preset, 'js')
+    ? codesandbox(
+      id,
+      htmlContent,
+      codeToCompileSandbox,
+      cssContent,
+      docsVersion,
+      preset,
+      'JavaScript'
+    )
     : ''}
                   ${!noEdit
-    ? jsfiddle(id, htmlContent, codeForPreset, cssContent, docsVersion, preset, 'js')
+    ? jsfiddle(
+      id,
+      htmlContent,
+      codeForPreset,
+      cssContent,
+      docsVersion,
+      preset,
+      'JavaScript'
+    )
     : ''}
                 </div>
-                ${tsToken ? `
-                  <div class="examples-buttons examples-ts">
-                    ${!noEdit
-    ? stackblitz(id, htmlContent, tsCodeToCompileSandbox, cssContent, docsVersion, preset, 'ts')
+                <div class="examples-buttons" v-if="${selectedLang} === 'TypeScript'">
+                  ${!noEdit
+    ? stackblitz(
+      id,
+      htmlContent,
+      tsCodeToCompileSandbox,
+      cssContent,
+      docsVersion,
+      preset,
+      'TypeScript'
+    )
     : ''}
-                    ${!noEdit
-    ? codesandbox(id, htmlContent, tsCodeToCompileSandbox, cssContent, docsVersion, preset, 'ts')
+                  ${!noEdit
+    ? codesandbox(
+      id,
+      htmlContent,
+      tsCodeToCompileSandbox,
+      cssContent,
+      docsVersion,
+      preset,
+      'TypeScript'
+    )
     : ''}
-                    ${!noEdit
-    ? jsfiddle(id, htmlContent, tsCodeToCompile, cssContent, docsVersion, preset, 'ts')
+                  ${!noEdit && !isReact
+    ? jsfiddle(
+      id,
+      htmlContent,
+      tsCodeForPreset,
+      cssContent,
+      docsVersion,
+      preset,
+      'TypeScript'
+    )
     : ''}
-                  </div>
-                ` : ''}
+                </div>
                 <button
                   aria-label="Reset the demo" 
                   @click="$parent.$parent.resetDemo('${id}')" 

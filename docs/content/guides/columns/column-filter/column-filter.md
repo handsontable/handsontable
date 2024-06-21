@@ -68,9 +68,10 @@ this behavior, set
 
 ::: only-for react
 
-::: example #exampleFilterBasicDemo :react
+::: example #exampleFilterBasicDemo :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-filter/react/exampleFilterBasicDemo.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleFilterBasicDemo.tsx)
 
 :::
 
@@ -131,9 +132,10 @@ the configuration.
 
 ::: only-for react
 
-::: example #exampleShowFilterItemsOnly :react
+::: example #exampleShowFilterItemsOnly :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-filter/react/exampleShowFilterItemsOnly.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleShowFilterItemsOnly.tsx)
 
 :::
 
@@ -161,9 +163,10 @@ useful items in the menu such as **Clear column**.
 
 ::: only-for react
 
-::: example #exampleEnableFilterInColumns :react
+::: example #exampleEnableFilterInColumns :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-filter/react/exampleEnableFilterInColumns.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleEnableFilterInColumns.tsx)
 
 :::
 
@@ -191,9 +194,10 @@ each data type.
 
 ::: only-for react
 
-::: example #exampleFilterDifferentTypes :react
+::: example #exampleFilterDifferentTypes :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-filter/react/exampleFilterDifferentTypes.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleFilterDifferentTypes.tsx)
 
 :::
 
@@ -236,9 +240,10 @@ To do this, use the API provided by the [`Filters`](@/api/filters.md) plugin. Fo
 below demonstrates how you can start with a pre-applied filter to display only items priced less
 than $200.
 
-::: example #exampleFilterOnInitialization :react
+::: example #exampleFilterOnInitialization :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-filter/react/exampleFilterOnInitialization.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleFilterOnInitialization.tsx)
 
 :::
 
@@ -255,10 +260,8 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 ::: example #exampleQuickFilter --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleQuickFilter.html)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleQuickFilter.js)
 @[code](@/content/guides/columns/column-filter/javascript/exampleQuickFilter.ts)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleQuickFilter.css)
 
 :::
@@ -267,11 +270,11 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 
 ::: only-for react
 
-::: example #exampleQuickFilter :react --js 1 --css 2
+::: example #exampleQuickFilter :react --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/react/exampleQuickFilter.jsx)
-
 @[code](@/content/guides/columns/column-filter/react/exampleQuickFilter.css)
+@[code](@/content/guides/columns/column-filter/react/exampleQuickFilter.tsx)
 
 :::
 
@@ -300,11 +303,11 @@ down icon.
 
 ::: only-for react
 
-::: example #exampleCustomFilterButton :react --js 1 --css 2
+::: example #exampleCustomFilterButton :react --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/react/exampleCustomFilterButton.jsx)
-
 @[code](@/content/guides/columns/column-filter/react/exampleCustomFilterButton.css)
+@[code](@/content/guides/columns/column-filter/react/exampleCustomFilterButton.tsx)
 
 :::
 
@@ -318,10 +321,8 @@ over the header, apply additional styling to `th .relative:hover .changeType`.
 ::: example #exampleCustomFilterButton2 --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton2.html)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton2.js)
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton2.ts)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton2.css)
 
 :::
@@ -330,11 +331,11 @@ over the header, apply additional styling to `th .relative:hover .changeType`.
 
 ::: only-for react
 
-::: example #exampleCustomFilterButton2 :react --js 1 --css 2
+::: example #exampleCustomFilterButton2 :react --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/react/exampleCustomFilterButton2.jsx)
-
 @[code](@/content/guides/columns/column-filter/react/exampleCustomFilterButton2.css)
+@[code](@/content/guides/columns/column-filter/react/exampleCustomFilterButton2.tsx)
 
 :::
 
@@ -374,9 +375,10 @@ filtering doesn't affect them.
 
 ::: only-for react
 
-::: example #exampleExcludeRowsFromFiltering :react
+::: example #exampleExcludeRowsFromFiltering :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-filter/react/exampleExcludeRowsFromFiltering.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleExcludeRowsFromFiltering.tsx)
 
 :::
 
@@ -413,9 +415,10 @@ filters is logged to the console.
 
 ::: only-for react
 
-::: example #exampleServerSideFilter :react
+::: example #exampleServerSideFilter :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-filter/react/exampleServerSideFilter.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleServerSideFilter.tsx)
 
 :::
 
@@ -557,9 +560,10 @@ Mind that before you apply new filter conditions, you need to clear the previous
 
 ::: only-for react
 
-::: example #exampleFilterThroughAPI1 :react
+::: example #exampleFilterThroughAPI1 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-filter/react/exampleFilterThroughAPI1.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleFilterThroughAPI1.tsx)
 
 :::
 

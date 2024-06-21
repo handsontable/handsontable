@@ -25,6 +25,7 @@ export default {
     return {
       inActiveElementId: '',
       isButtonInactive: false,
+      selectedLang: localStorage.getItem('selected_lang') ?? 'JavaScript',
     };
   },
   computed: {
@@ -84,29 +85,17 @@ export default {
 
       buttonDropdown.classList.toggle('active');
     },
-    setLanguage(e) {
-      const element = e.target;
-      const isTS = element.classList.contains('select-type-ts');
-      const tabs = element.closest('.tabs-button-wrapper');
-      const button = element.closest('.codeControls').querySelector('.select-type-button');
-      const codeElements = tabs.querySelectorAll('[class*="tab-content-"]');
-      const codeElement = tabs.querySelector(
-        `.tab-content-${isTS ? 'ts' : 'js'}`
-      );
-      const buttonsElements = tabs.querySelectorAll('.examples-buttons');
-      const buttonsElement = tabs.querySelector(
-        `.examples-${isTS ? 'ts' : 'js'}`
-      );
-      const select = tabs.querySelector('.selected-lang');
-
-      select.value = isTS ? 'ts' : 'js';
-      button.classList.remove('active');
-      codeElements.forEach(item => item.classList.add('hideElement'));
-      codeElement.classList.remove('hideElement');
-      buttonsElements.forEach(item => item.classList.add('hideElement'));
-      buttonsElement.classList.remove('hideElement');
-      codeElement.querySelector('pre').scrollTo({ top: 0, left: 0 });
-
+    setLanguage(lang) {
+      this.selectedLang = lang;
+      localStorage.setItem('selected_lang', lang);
+      document.querySelectorAll('.select-type-button').forEach((element) => {
+        element.classList.remove('active');
+      });
+      document
+        .querySelectorAll('.example-container-code pre')
+        .forEach((element) => {
+          element.scrollTo({ top: 0, left: 0 });
+        });
     },
     showCodeButton(e) {
       e.target.parentElement?.classList.toggle('active');

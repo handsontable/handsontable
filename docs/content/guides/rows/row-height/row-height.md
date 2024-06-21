@@ -55,9 +55,10 @@ We set the same height of `40px` for all rows across the entire grid in this exa
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-height/react/example1.jsx)
+@[code](@/content/guides/rows/row-height/react/example1.tsx)
 
 :::
 
@@ -80,9 +81,10 @@ In this example, the height is only set for the first rows. Each additional row 
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-height/react/example2.jsx)
+@[code](@/content/guides/rows/row-height/react/example2.tsx)
 
 :::
 
@@ -105,9 +107,10 @@ The row height can be set using a function. In this example, the size of all row
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-height/react/example3.jsx)
+@[code](@/content/guides/rows/row-height/react/example3.tsx)
 
 :::
 
@@ -132,9 +135,10 @@ You can adjust the size of one or multiple rows simultaneously, even if the sele
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-height/react/example4.jsx)
+@[code](@/content/guides/rows/row-height/react/example4.tsx)
 
 :::
 

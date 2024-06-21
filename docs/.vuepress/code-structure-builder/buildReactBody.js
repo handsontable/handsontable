@@ -1,4 +1,4 @@
-const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox }) => {
+const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox, lang }) => {
   const addReduxDependencies = preset.includes('redux')
     ? `
     "redux": "^4.0.0",
@@ -21,12 +21,21 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
   "version": "1.0.0",
   "description": "",
   "dependencies": {
+    ${lang === 'tsx' ?
+    `"@types/react": "^16.8.2",
+     "@types/react-dom": "^16.8.0",` : ''
+}
     "react": "^18.2.0",
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
     "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
     "@handsontable/react": "${version}"
   },
+  ${lang === 'tsx' ?
+    `"devDependencies": {
+      "react-scripts-ts": "latest"
+    },` : ''
+}
   "browserslist": {
     "production": [
       ">0.2%",
@@ -59,7 +68,7 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
         'src/styles.css': {
           content: css
         },
-        'src/index.js': {
+        [`src/index.${lang === 'jsx' ? 'js' : 'tsx'}`]: {
           content: `import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
@@ -74,7 +83,7 @@ root.render(
   </StrictMode>
 );`
         },
-        'src/ExampleComponent.jsx': {
+        [`src/ExampleComponent.${lang}`]: {
           content: `import React from "react";
 ${js}`
         }
@@ -89,7 +98,7 @@ ${js}`
   "name": "handsontable",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.jsx",
+  "main": "src/index.${lang}",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build"
@@ -138,7 +147,7 @@ ${js}`
       'src/styles.css': {
         content: css
       },
-      'src/index.jsx': {
+      [`src/index.${lang}`]: {
         content: `import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
@@ -153,7 +162,7 @@ root.render(
   </StrictMode>
 );`
       },
-      'src/ExampleComponent.jsx': {
+      [`src/ExampleComponent.${lang}`]: {
         content: js.replace('import { HyperFormula } from \'hyperformula\';', '')
       }
     }

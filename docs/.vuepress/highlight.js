@@ -21,25 +21,25 @@ const wrap = (code, lang) => {
                 @click="$parent.$parent.toggleDropdown($event)"
                 value="${lang}"
               >
-                 ${lang === 'ts' ? 'TypeScript' : 'JavaScript'}
+                {{ $parent.$parent.selectedLang }}
               </button>
               <ul>
                 <li>
                   <button
                     type="button"
-                    @click="$parent.$parent.setLanguage($event)" 
-                    :class="{'select-type-ts': true, 'active': ${lang === 'ts'}}"
+                    @click="$parent.$parent.setLanguage('JavaScript')" 
+                    :class="{'select-type-js': true, 'active': ${lang.includes('js')}}"
                   >
-                    TypeScript
+                    JavaScript
                   </button>
                 </li>
                 <li>
                   <button
                     type="button"
-                    @click="$parent.$parent.setLanguage($event)" 
-                    :class="{'select-type-js': true, 'active': ${lang === 'js'}}"
+                    @click="$parent.$parent.setLanguage('TypeScript')" 
+                    :class="{'select-type-ts': true, 'active': ${lang.includes('ts')}}"
                   >
-                    JavaScript
+                    TypeScript
                   </button>
                 </li>
               </ul>
