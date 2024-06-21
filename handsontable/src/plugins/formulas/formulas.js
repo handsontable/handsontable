@@ -688,8 +688,8 @@ export class Formulas extends BasePlugin {
       for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
         populatedColumnIndex += 1) {
         const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
-        const sourceRow = populatedRowIndex % populationRowLength;
-        const sourceColumn = populatedColumnIndex % populationColumnLength;
+        const sourceRow = sourceStartRow + (populatedRowIndex % populationRowLength);
+        const sourceColumn = sourceStartColumn + (populatedColumnIndex % populationColumnLength);
         const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
 
         if (isDate(populatedValue, sourceCellMeta.type)) {
