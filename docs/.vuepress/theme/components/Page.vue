@@ -25,7 +25,7 @@ export default {
     return {
       inActiveElementId: '',
       isButtonInactive: false,
-      selectedLang: localStorage.getItem('selected_lang') ?? 'JavaScript',
+      selectedLang: 'JavaScript',
     };
   },
   computed: {
@@ -141,6 +141,7 @@ export default {
     },
   },
   mounted() {
+    this.selectedLang = localStorage?.getItem('selected_lang') ?? 'JavaScript';
     this.checkSectionInView();
     window.addEventListener('scroll', this.checkSectionInView);
   },
