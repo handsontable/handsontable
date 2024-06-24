@@ -9,6 +9,8 @@ generate_single_file() {
   ts_filename="$1"
   js_filename="${ts_filename%.*}.js"
   jsx_filename="${ts_filename%.*}.jsx"
+
+  eslint --fix --no-ignore -c eslintrc.examples.js "$ts_filename" > /dev/null
   
   if [[ "$ts_filename" == *.ts ]]; then
     tsc --target esnext --skipLibCheck "$ts_filename" > /dev/null

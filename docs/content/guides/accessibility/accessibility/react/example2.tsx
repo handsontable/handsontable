@@ -8,15 +8,15 @@ registerAllModules();
 
 /* start:skip-in-preview */
 interface Toggle {
-  tabNavigation: boolean,
-  navigableHeaders: boolean,
-  renderAllRows: boolean,
-  renderAllColumns: boolean,
-  enterBeginsEditing: boolean,
-  autoWrapRow: boolean,
-  autoWrapCol: boolean,
-  enterMoves: { col: number, row: number },
-  changeToggleOptions: any,
+  tabNavigation: boolean;
+  navigableHeaders: boolean;
+  renderAllRows: boolean;
+  renderAllColumns: boolean;
+  enterBeginsEditing: boolean;
+  autoWrapRow: boolean;
+  autoWrapCol: boolean;
+  enterMoves: { col: number; row: number };
+  changeToggleOptions: any;
 }
 
 interface Product {
@@ -529,7 +529,9 @@ const hotOptions = {
 };
 
 const ExampleComponent = () => {
-  const [toggleableOptions, setToggleableOptions] = useState<Omit<Toggle, "changeToggleOptions">>({
+  const [toggleableOptions, setToggleableOptions] = useState<
+    Omit<Toggle, "changeToggleOptions">
+  >({
     tabNavigation: true,
     navigableHeaders: true,
     renderAllRows: false,
@@ -585,7 +587,7 @@ const ExampleComponent = () => {
       />
     </div>
   );
-}
+};
 
 // Demo Options allows you to change the Handsontable options
 // This allows us to change the Handsontable settings from the UI, showcasing
@@ -600,7 +602,7 @@ function DemoOptions({
   autoWrapCol,
   enterMoves,
   changeToggleOptions,
-} : Toggle) {
+}: Toggle) {
   // on checkbox change, update handsontable option
   const handleCheckboxChange = (checkboxName: string) => {
     switch (checkboxName) {
@@ -609,12 +611,14 @@ function DemoOptions({
           ...existing,
           tabNavigation: !tabNavigation,
         }));
+
         break;
       case "enable-header-navigation":
         changeToggleOptions((existing: any) => ({
           ...existing,
           navigableHeaders: !navigableHeaders,
         }));
+
         break;
       case "enable-cell-virtualization":
         changeToggleOptions((existing: any) => ({
@@ -622,24 +626,28 @@ function DemoOptions({
           renderAllRows: !renderAllRows,
           renderAllColumns: !renderAllColumns,
         }));
+
         break;
       case "enable-cell-enter-editing":
         changeToggleOptions((existing: any) => ({
           ...existing,
           enterBeginsEditing: !enterBeginsEditing,
         }));
+
         break;
       case "enable-arrow-rl-first-last-column":
         changeToggleOptions((existing: any) => ({
           ...existing,
           autoWrapRow: !autoWrapRow,
         }));
+
         break;
       case "enable-arrow-td-first-last-column":
         changeToggleOptions((existing: any) => ({
           ...existing,
           autoWrapCol: !autoWrapCol,
         }));
+
         break;
       case "enable-enter-focus-editing":
         changeToggleOptions((existing: any) => ({
@@ -647,6 +655,7 @@ function DemoOptions({
           enterMoves:
             enterMoves.row !== 1 ? { col: 0, row: 1 } : { col: 0, row: 0 },
         }));
+
         break;
       default:
         break;

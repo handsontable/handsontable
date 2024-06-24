@@ -1,7 +1,7 @@
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
-import Handsontable from 'handsontable';
+import { HotTable } from "@handsontable/react";
+import { registerAllModules } from "handsontable/registry";
+import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from "handsontable";
 
 interface Person {
   id: number | undefined;
@@ -12,16 +12,24 @@ interface Person {
 
 // register Handsontable's modules
 registerAllModules();
-//TODO: add type
+
+// TODO: add type
 const ExampleComponent = () => {
-  function model(opts: { [x: string]: any; id?: number; name?: string; address?: string; hasOwnProperty?: any; }) {
-    let _pub = {
+  function model(opts: {
+    [x: string]: any;
+    id?: number;
+    name?: string;
+    address?: string;
+    hasOwnProperty?: any;
+  }) {
+    const _pub = {
       id: undefined,
       name: undefined,
       address: undefined,
-      attr: undefined
+      attr: undefined,
     };
-    let _priv: Partial<Person> = {};
+
+    const _priv: Partial<Person> = {};
 
     for (const i in opts) {
       if (opts.hasOwnProperty(i)) {
@@ -29,14 +37,14 @@ const ExampleComponent = () => {
       }
     }
 
-    _pub.attr = function(attr: string | number, val: any) {
-      if (typeof val === 'undefined') {
-        window.console && console.log('GET the', attr, 'value of', _pub);
+    _pub.attr = function (attr: string | number, val: any) {
+      if (typeof val === "undefined") {
+        window.console && console.log("GET the", attr, "value of", _pub);
 
         return _priv[attr];
       }
 
-      window.console && console.log('SET the', attr, 'value of', _pub);
+      window.console && console.log("SET the", attr, "value of", _pub);
       _priv[attr] = val;
 
       return _pub;
@@ -46,15 +54,16 @@ const ExampleComponent = () => {
   }
 
   function property(attr: string) {
-    return (row: Handsontable.RowObject, value?: Handsontable.CellValue) => (row as Person).attr(attr, value);
+    return (row: Handsontable.RowObject, value?: Handsontable.CellValue) =>
+      (row as Person).attr(attr, value);
   }
 
   const data = [
-    model({ id: 1, name: 'Ted Right', address: '' }),
-    model({ id: 2, name: 'Frank Honest', address: '' }),
-    model({ id: 3, name: 'Joan Well', address: '' }),
-    model({ id: 4, name: 'Gail Polite', address: '' }),
-    model({ id: 5, name: 'Michael Fair', address: '' })
+    model({ id: 1, name: "Ted Right", address: "" }),
+    model({ id: 2, name: "Frank Honest", address: "" }),
+    model({ id: 3, name: "Joan Well", address: "" }),
+    model({ id: 4, name: "Gail Polite", address: "" }),
+    model({ id: 5, name: "Michael Fair", address: "" }),
   ];
 
   return (
@@ -63,11 +72,11 @@ const ExampleComponent = () => {
       dataSchema={model}
       height="auto"
       width="auto"
-      colHeaders={['ID', 'Name', 'Address']}
+      colHeaders={["ID", "Name", "Address"]}
       columns={[
-        { data: property('id') },
-        { data: property('name') },
-        { data: property('address') }
+        { data: property("id") },
+        { data: property("name") },
+        { data: property("address") },
       ]}
       minSpareRows={1}
       autoWrapRow={true}

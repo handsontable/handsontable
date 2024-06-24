@@ -61,6 +61,7 @@ const ExampleComponent = () => {
       cells={function (row, col) {
         if (row === 0 && col === 0) {
           this.renderer = greenRenderer;
+
           return { renderer: this.renderer };
         }
 

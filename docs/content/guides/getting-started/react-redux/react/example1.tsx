@@ -83,10 +83,10 @@ const ExampleComponentContent = () => {
                             | ReactPortal
                             | null
                             | undefined,
-                          i: Key | null | undefined
+                          i: Key | null | undefined,
                         ) => (
                           <td key={i}>{cell}</td>
-                        )
+                        ),
                       )}
                     </tr>
                   ))}
@@ -106,7 +106,7 @@ const ExampleComponentContent = () => {
                       </td>
                       <td>{value.toString()}</td>
                     </tr>
-                  )
+                  ),
               )}
             </tbody>
           </table>
@@ -133,7 +133,7 @@ const initialReduxStoreState = {
 
 const updatesReducer = (
   state = initialReduxStoreState,
-  action: { type: any; dataChanges: [any, any, any, any][]; readOnly: any }
+  action: { type: any; dataChanges: [any, any, any, any][]; readOnly: any },
 ) => {
   switch (action.type) {
     case "updateData":

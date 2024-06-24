@@ -17,6 +17,7 @@ const hotData = [
   ["A9", "B9"],
   ["A10", "B10"],
 ];
+
 const secondColumnSettings = {
   title: "Second column header",
   readOnly: true,

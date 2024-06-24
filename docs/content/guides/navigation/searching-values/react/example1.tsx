@@ -1,7 +1,7 @@
-import { useRef, useEffect, useCallback } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import { useRef, useEffect, useCallback } from "react";
+import { HotTable, HotTableClass } from "@handsontable/react";
+import { registerAllModules } from "handsontable/registry";
+import "handsontable/dist/handsontable.full.min.css";
 
 // register Handsontable's modules
 registerAllModules();
@@ -10,17 +10,17 @@ const ExampleComponent = () => {
   const hotRef = useRef<HotTableClass>(null);
 
   const data = [
-    ['Tesla', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'yellow', 'gray']
+    ["Tesla", 2017, "black", "black"],
+    ["Nissan", 2018, "blue", "blue"],
+    ["Chrysler", 2019, "yellow", "black"],
+    ["Volvo", 2020, "yellow", "gray"],
   ];
 
   const searchFieldKeyupCallback = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       const hot = hotRef.current?.hotInstance;
       // get the `Search` plugin's instance
-      const search = hot.getPlugin('search');
+      const search = hot.getPlugin("search");
       // use the `Search` plugin's `query()` method
       const queryResult = search.query(event.currentTarget.value);
 
@@ -28,7 +28,7 @@ const ExampleComponent = () => {
 
       hot.render();
     },
-    [hotRef.current]
+    [hotRef.current],
   );
 
   return (
@@ -39,7 +39,7 @@ const ExampleComponent = () => {
             id="search_field"
             type="search"
             placeholder="Search"
-            onKeyUp={event => searchFieldKeyupCallback(event)}
+            onKeyUp={(event) => searchFieldKeyupCallback(event)}
           />
         </div>
       </div>

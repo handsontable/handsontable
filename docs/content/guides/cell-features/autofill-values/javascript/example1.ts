@@ -1,25 +1,25 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from "handsontable";
+import "handsontable/dist/handsontable.full.min.css";
 
 const data: (string | number)[][] = [
-  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-  ['2017', 10, 11, 12, 13],
-  ['2018', 20, 11, 14, 13],
-  ['2019', 30, 15, 12, 13],
-  ['2020', '', '', '', ''],
-  ['2021', '', '', '', '']
+  ["", "Tesla", "Nissan", "Toyota", "Honda"],
+  ["2017", 10, 11, 12, 13],
+  ["2018", 20, 11, 14, 13],
+  ["2019", 30, 15, 12, 13],
+  ["2020", "", "", "", ""],
+  ["2021", "", "", "", ""],
 ];
 
-const container = document.querySelector('#example1')!;
+const container = document.querySelector("#example1")!;
 
 const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   fillHandle: true, // possible values: true, false, "horizontal", "vertical",
-  height: 'auto',
+  height: "auto",
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: "non-commercial-and-evaluation",
 });
 
 // or, use `updateData()` to replace `data` without resetting states

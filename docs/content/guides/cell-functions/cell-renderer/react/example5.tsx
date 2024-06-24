@@ -16,7 +16,7 @@ const ExampleComponent = () => {
   function customRenderer(
     this: Handsontable,
     instance: Handsontable,
-    td: HTMLTableCellElement
+    td: HTMLTableCellElement,
   ) {
     textRenderer.apply(this, arguments as any);
 
@@ -58,8 +58,8 @@ const ExampleComponent = () => {
                 isChecked ? `checked="checked"` : ""
               }> checkbox`;
 
-            default :
-              return ''
+            default:
+              return "";
           }
         }}
         autoWrapRow={true}

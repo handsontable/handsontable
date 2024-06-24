@@ -9,15 +9,18 @@ registerAllModules();
 const ScoreRenderer = (props: { value?: any }) => {
   const { value } = props;
   const color = value > 60 ? "#2ECC40" : "#FF4136";
+
   return <span style={{ color }}>{value}</span>;
 };
 
 // a renderer component
 const PromotionRenderer = (props: { value?: any }) => {
   const { value } = props;
+
   if (value) {
     return <span>&#10004;</span>;
   }
+
   return <span>&#10007;</span>;
 };
 

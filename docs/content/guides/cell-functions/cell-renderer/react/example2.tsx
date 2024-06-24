@@ -1,7 +1,7 @@
-import React, { useState, useContext, MouseEvent } from 'react';
-import { HotTable, HotColumn } from '@handsontable/react';
-import 'handsontable/dist/handsontable.full.min.css';
-import Handsontable from 'handsontable';
+import React, { useState, useContext, MouseEvent } from "react";
+import { HotTable, HotColumn } from "@handsontable/react";
+import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from "handsontable";
 
 type RendererProps = {
   TD?: HTMLTableCellElement;
@@ -18,12 +18,12 @@ const HighlightContext = React.createContext(false);
 function CustomRenderer(props: RendererProps) {
   const darkMode = useContext(HighlightContext);
 
-  if(!props.TD) return;
+  if (!props.TD) return;
 
   if (darkMode) {
-    props.TD.className = 'dark';
+    props.TD.className = "dark";
   } else {
-    props.TD.className = '';
+    props.TD.className = "";
   }
 
   return <div>{props.value}</div>;
@@ -39,20 +39,22 @@ const ExampleComponent = () => {
   return (
     <HighlightContext.Provider value={darkMode}>
       <div className="controls">
-        <label><input type="checkbox" onClick={toggleDarkMode}/> Dark mode</label>
+        <label>
+          <input type="checkbox" onClick={toggleDarkMode} /> Dark mode
+        </label>
       </div>
       <HotTable
         data={[
-          ['A1'],
-          ['A2'],
-          ['A3'],
-          ['A4'],
-          ['A5'],
-          ['A6'],
-          ['A7'],
-          ['A8'],
-          ['A9'],
-          ['A10'],
+          ["A1"],
+          ["A2"],
+          ["A3"],
+          ["A4"],
+          ["A5"],
+          ["A6"],
+          ["A7"],
+          ["A8"],
+          ["A9"],
+          ["A10"],
         ]}
         rowHeaders={true}
         autoRowSize={false}

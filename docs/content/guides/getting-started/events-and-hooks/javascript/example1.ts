@@ -1,43 +1,51 @@
-import Handsontable from 'handsontable';
-import numbro from 'numbro';
+import Handsontable from "handsontable";
+import numbro from "numbro";
 
 const config: Handsontable.GridSettings = {
   data: [
-    ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
-    ['2017', 0, 2941, 4303, 354, 5814],
-    ['2018', 3, 2905, 2867, 412, 5284],
-    ['2019', 4, 2517, 4822, 552, 6127],
-    ['2020', 2, 2422, 5399, 776, 4151]
+    ["", "Tesla", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
+    ["2017", 0, 2941, 4303, 354, 5814],
+    ["2018", 3, 2905, 2867, 412, 5284],
+    ["2019", 4, 2517, 4822, 552, 6127],
+    ["2020", 2, 2422, 5399, 776, 4151],
   ],
   minRows: 5,
   minCols: 6,
-  height: 'auto',
-  stretchH: 'all',
+  height: "auto",
+  stretchH: "all",
   minSpareRows: 1,
   autoWrapRow: true,
   colHeaders: true,
   contextMenu: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: "non-commercial-and-evaluation",
 };
-const example1Events = document.getElementById('example1_events')!;
-const hooksList = document.getElementById('hooksList')!;
+
+const example1Events = document.getElementById("example1_events")!;
+const hooksList = document.getElementById("hooksList")!;
 const hooks = Handsontable.hooks.getRegistered();
 
 hooks.forEach((hook) => {
-  let checked = '';
+  let checked = "";
 
-  if (hook === 'afterChange' || hook === 'afterSelection' || hook === 'afterCreateRow' || hook === 'afterRemoveRow' ||
-      hook === 'afterCreateCol' || hook === 'afterRemoveCol') {
-    checked = 'checked';
+  if (
+    hook === "afterChange" ||
+    hook === "afterSelection" ||
+    hook === "afterCreateRow" ||
+    hook === "afterRemoveRow" ||
+    hook === "afterCreateCol" ||
+    hook === "afterRemoveCol"
+  ) {
+    checked = "checked";
   }
+
   hooksList.innerHTML += `<li><label><input type="checkbox" ${checked} id="check_${hook}"> ${hook}</label></li>`;
-  config[hook] = function() {
+  config[hook] = function () {
     log_events(hook, arguments);
   } as any;
 });
 
-const start = (new Date()).getTime();
+const start = new Date().getTime();
 let i = 0;
 let timer;
 
@@ -47,15 +55,14 @@ let timer;
  */
 function log_events(event, data) {
   if ((document.getElementById(`check_${event}`) as HTMLInputElement).checked) {
-    const now = (new Date()).getTime();
+    const now = new Date().getTime();
     const diff = now - start;
     let str;
-    const vals = [i, `@${numbro(diff / 1000).format('0.000')}`, `[${event}]`];
+    const vals = [i, `@${numbro(diff / 1000).format("0.000")}`, `[${event}]`];
 
     for (let d = 0; d < data.length; d++) {
       try {
         str = JSON.stringify(data[d]);
-
       } catch (e) {
         str = data[d].toString();
       }
@@ -69,18 +76,23 @@ function log_events(event, data) {
       }
 
       if (d < data.length - 1) {
-        str += ',';
+        str += ",";
       }
 
       vals.push(str);
     }
 
     if (window.console) {
-      console.log(i, `@${numbro(diff / 1000).format('0.000')}`, `[${event}]`, data);
+      console.log(
+        i,
+        `@${numbro(diff / 1000).format("0.000")}`,
+        `[${event}]`,
+        data,
+      );
     }
 
-    const div = document.createElement('div');
-    const text = document.createTextNode(vals.join(' '));
+    const div = document.createElement("div");
+    const text = document.createTextNode(vals.join(" "));
 
     div.appendChild(text);
 
@@ -96,20 +108,29 @@ function log_events(event, data) {
   }
 }
 
-const example1 = document.querySelector('#example1')!;
+const example1 = document.querySelector("#example1")!;
+
 new Handsontable(example1, config);
 
-document.querySelector('#check_select_all')!.addEventListener('click', function() {
-  const state = this.checked;
-  const inputs = document.querySelectorAll('#hooksList input[type=checkbox]') as NodeListOf<HTMLInputElement>
+document
+  .querySelector("#check_select_all")!
+  .addEventListener("click", function () {
+    const state = this.checked;
+    const inputs = document.querySelectorAll(
+      "#hooksList input[type=checkbox]",
+    ) as NodeListOf<HTMLInputElement>;
 
-  Array.prototype.forEach.call(inputs, (input: HTMLInputElement) => {
-    input.checked = state;
+    Array.prototype.forEach.call(inputs, (input: HTMLInputElement) => {
+      input.checked = state;
+    });
   });
-});
 
-document.querySelector('#hooksList input[type=checkbox]')!.addEventListener('click', function() {
-  if (!this.checked) {
-    (document.getElementById('check_select_all') as HTMLInputElement).checked = false;
-  }
-});
+document
+  .querySelector("#hooksList input[type=checkbox]")!
+  .addEventListener("click", function () {
+    if (!this.checked) {
+      (
+        document.getElementById("check_select_all") as HTMLInputElement
+      ).checked = false;
+    }
+  });

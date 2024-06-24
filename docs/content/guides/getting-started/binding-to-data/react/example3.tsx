@@ -1,6 +1,6 @@
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import { HotTable } from "@handsontable/react";
+import { registerAllModules } from "handsontable/registry";
+import "handsontable/dist/handsontable.full.min.css";
 
 interface Person {
   id: number;
@@ -13,11 +13,11 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const data: Person[] = [
-    { id: 1, name: 'Ted Right', address: '' },
-    { id: 2, name: 'Frank Honest', address: '' },
-    { id: 3, name: 'Joan Well', address: '' },
-    { id: 4, name: 'Gail Polite', address: '' },
-    { id: 5, name: 'Michael Fair', address: '' }
+    { id: 1, name: "Ted Right", address: "" },
+    { id: 2, name: "Frank Honest", address: "" },
+    { id: 3, name: "Joan Well", address: "" },
+    { id: 4, name: "Gail Polite", address: "" },
+    { id: 5, name: "Michael Fair", address: "" },
   ];
 
   return (

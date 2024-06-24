@@ -1,15 +1,27 @@
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import { HotTable } from "@handsontable/react";
+import { registerAllModules } from "handsontable/registry";
+import "handsontable/dist/handsontable.full.min.css";
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const colors = ['yellow', 'red', 'orange', 'green', 'blue',
-    'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'
+  const colors = [
+    "yellow",
+    "red",
+    "orange",
+    "green",
+    "blue",
+    "gray",
+    "black",
+    "white",
+    "purple",
+    "lime",
+    "olive",
+    "cyan",
   ];
-  const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
+
+  const cars = ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"];
 
   return (
     <HotTable
@@ -17,32 +29,37 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
-        ['BMW', 2017, 'black', 'black'],
-        ['Nissan', 2018, 'blue', 'blue'],
-        ['Chrysler', 2019, 'yellow', 'black'],
-        ['Volvo', 2020, 'white', 'gray']
+        ["BMW", 2017, "black", "black"],
+        ["Nissan", 2018, "blue", "blue"],
+        ["Chrysler", 2019, "yellow", "black"],
+        ["Volvo", 2020, "white", "gray"],
       ]}
-      colHeaders={['Car<br>(allowInvalid true)', 'Year', 'Chassis color<br>(allowInvalid false)',
-        'Bumper color<br>(allowInvalid true)']}
-      columns={[{
-          type: 'autocomplete',
+      colHeaders={[
+        "Car<br>(allowInvalid true)",
+        "Year",
+        "Chassis color<br>(allowInvalid false)",
+        "Bumper color<br>(allowInvalid true)",
+      ]}
+      columns={[
+        {
+          type: "autocomplete",
           source: cars,
-          strict: true
+          strict: true,
           // allowInvalid: true // true is default
         },
         {},
         {
-          type: 'autocomplete',
+          type: "autocomplete",
           source: colors,
           strict: true,
-          allowInvalid: false
+          allowInvalid: false,
         },
         {
-          type: 'autocomplete',
+          type: "autocomplete",
           source: colors,
           strict: true,
-          allowInvalid: true //true is default
-        }
+          allowInvalid: true, // true is default
+        },
       ]}
     />
   );

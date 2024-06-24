@@ -29,7 +29,7 @@ const ExampleComponent = () => {
     col,
     prop,
     value,
-    cellProperties
+    cellProperties,
   ) => {
     Handsontable.renderers.TextRenderer(
       instance,
@@ -38,7 +38,7 @@ const ExampleComponent = () => {
       col,
       prop,
       value,
-      cellProperties
+      cellProperties,
     );
 
     // if the row contains a negative number
@@ -57,6 +57,7 @@ const ExampleComponent = () => {
       td.style.background = "";
     }
   };
+
   //  maps function to a lookup string
   registerRenderer("negativeValueRenderer", negativeValueRenderer);
 

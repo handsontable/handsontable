@@ -1,13 +1,13 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from "handsontable";
+import "handsontable/dist/handsontable.full.min.css";
 
 // generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
 
-  const array2d = [...new Array(rows)]
-    .map(_ => [...new Array(columns)]
-      .map(_ => counter++));
+  const array2d = [...new Array(rows)].map((_) =>
+    [...new Array(columns)].map((_) => counter++),
+  );
 
   if (additionalRows) {
     array2d.push([]);
@@ -17,12 +17,13 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   return array2d;
 };
 
-const container = document.querySelector('#example9')!;
+const container = document.querySelector("#example9")!;
+
 new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  licenseKey: "non-commercial-and-evaluation",
   // initialize a Handsontable instance with the generated numeric data
   data: generateData(5, 7),
-  height: 'auto',
+  height: "auto",
   colHeaders: true,
   rowHeaders: true,
   // enable the `ColumnSummary` plugin
@@ -30,7 +31,7 @@ new Handsontable(container, {
     // configure a column summary
     {
       // set the `type` option to `'custom'`
-      type: 'custom',
+      type: "custom",
       destinationRow: 0,
       destinationColumn: 5,
       reversedRowCoords: true,
@@ -46,7 +47,14 @@ new Handsontable(container, {
           let counter = 0;
 
           do {
-            if (parseInt(hotInstance.getDataAtCell(i, endpoint.sourceColumn), 10) % 2 === 0) {
+            if (
+              parseInt(
+                hotInstance.getDataAtCell(i, endpoint.sourceColumn),
+                10,
+              ) %
+                2 ===
+              0
+            ) {
               counter++;
             }
 
@@ -65,8 +73,8 @@ new Handsontable(container, {
 
         return evenCount;
       },
-      forceNumeric: true
-    }
+      forceNumeric: true,
+    },
   ],
   autoWrapRow: true,
   autoWrapCol: true,

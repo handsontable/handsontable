@@ -1,13 +1,13 @@
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from "handsontable";
+import "handsontable/dist/handsontable.full.min.css";
 
 // Generate an array of arrays with a dummy data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
 
-  const array2d = [...new Array(rows)]
-    .map(_ => [...new Array(columns)]
-      .map(_ => counter++));
+  const array2d = [...new Array(rows)].map((_) =>
+    [...new Array(columns)].map((_) => counter++),
+  );
 
   if (additionalRows) {
     array2d.push([]);
@@ -17,17 +17,17 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   return array2d;
 };
 
-const container = document.querySelector('#example1')!;
+const container = document.querySelector("#example1")!;
 
 new Handsontable(container, {
   data: generateData(),
   colHeaders: true,
   rowHeaders: true,
-  height: 'auto',
+  height: "auto",
   contextMenu: true,
   manualRowMove: true,
-  bindRowsWithHeaders: 'strict',
+  bindRowsWithHeaders: "strict",
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: "non-commercial-and-evaluation",
 });

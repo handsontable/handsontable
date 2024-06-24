@@ -1,9 +1,17 @@
+const jsdocOff = Object.keys(require('eslint-plugin-jsdoc').rules)
+  .reduce((acc, rule) => {
+    acc[`jsdoc/${rule}`] = 'off';
+
+    return acc;
+  }, {});
+
 module.exports = {
-  extends: ['../.eslintrc.js'],
+  extends: ['../.eslintrc.js', 'plugin:prettier/recommended'],
   parserOptions: {
     requireConfigFile: false
   },
   rules: {
+    ...jsdocOff,
     'no-restricted-syntax': 'off',
     'no-restricted-globals': 'off',
     'no-console': 'off',

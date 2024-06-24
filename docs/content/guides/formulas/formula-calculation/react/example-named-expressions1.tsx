@@ -19,6 +19,7 @@ const ExampleComponent = () => {
     ["155", "Athens", 300, "=ROUND(ADDITIONAL_COST+C3,0)"],
     ["156", "Warsaw", 150, "=ROUND(ADDITIONAL_COST+C4,0)"],
   ];
+
   const inputChangeCallback = (event: ChangeEvent<HTMLInputElement>) => {
     setNamedExpressionValue(event.target.value);
   };
@@ -29,7 +30,7 @@ const ExampleComponent = () => {
 
     formulasPlugin?.engine?.changeNamedExpression(
       "ADDITIONAL_COST",
-      namedExpressionValue
+      namedExpressionValue,
     );
 
     hotNamedExpressions?.render();

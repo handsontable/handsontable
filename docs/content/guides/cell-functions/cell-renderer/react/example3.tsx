@@ -1,6 +1,6 @@
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import { HotTable } from "@handsontable/react";
+import { registerAllModules } from "handsontable/registry";
+import "handsontable/dist/handsontable.full.min.css";
 
 // register Handsontable's modules
 registerAllModules();
@@ -10,27 +10,30 @@ const ExampleComponent = () => {
     <HotTable
       id="hot"
       data={[
-        ['A1', '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-        ['A2', '{{$basePath}}/img/examples/javascript-the-good-parts.jpg']
+        [
+          "A1",
+          "{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg",
+        ],
+        ["A2", "{{$basePath}}/img/examples/javascript-the-good-parts.jpg"],
       ]}
       columns={[
         {},
         {
           renderer(instance, td, row, col, prop, value, cellProperties) {
-            const img = document.createElement('img');
+            const img = document.createElement("img");
 
             img.src = value;
 
-            img.addEventListener('mousedown', event => {
+            img.addEventListener("mousedown", (event) => {
               event.preventDefault();
             });
 
-            td.innerText = '';
+            td.innerText = "";
             td.appendChild(img);
 
             return td;
-          }
-        }
+          },
+        },
       ]}
       colHeaders={true}
       rowHeights={55}
@@ -40,6 +43,6 @@ const ExampleComponent = () => {
       licenseKey="non-commercial-and-evaluation"
     />
   );
-}
+};
 
 export default ExampleComponent;

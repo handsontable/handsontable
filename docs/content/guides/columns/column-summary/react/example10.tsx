@@ -1,6 +1,6 @@
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import { HotTable } from "@handsontable/react";
+import { registerAllModules } from "handsontable/registry";
+import "handsontable/dist/handsontable.full.min.css";
 
 // register Handsontable's modules
 registerAllModules();
@@ -11,32 +11,27 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={[
-        [0, 1, 2],
-        ['3c', '4b', 5],
-        [],
-        []
-      ]}
+      data={[[0, 1, 2], ["3c", "4b", 5], [], []]}
       colHeaders={true}
       rowHeaders={true}
-      columnSummary={
-        [{
-          type: 'sum',
+      columnSummary={[
+        {
+          type: "sum",
           destinationRow: 0,
           destinationColumn: 0,
           reversedRowCoords: true,
           // force this column summary to treat non-numeric values as numeric values
-          forceNumeric: true
+          forceNumeric: true,
         },
         {
-          type: 'sum',
+          type: "sum",
           destinationRow: 0,
           destinationColumn: 1,
           reversedRowCoords: true,
           // force this column summary to treat non-numeric values as numeric values
-          forceNumeric: true
-        }]
-      }
+          forceNumeric: true,
+        },
+      ]}
       height="auto"
     />
   );

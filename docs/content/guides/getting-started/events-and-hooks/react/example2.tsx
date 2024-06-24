@@ -16,8 +16,10 @@ const ExampleComponent = () => {
     hot?.updateSettings({
       beforeKeyDown(e) {
         const selection = hot?.getSelected()?.[0];
-        if(!selection) return;
+
+        if (!selection) return;
         console.log(selection);
+
         // BACKSPACE or DELETE
         if (e.keyCode === 8 || e.keyCode === 46) {
           e.stopImmediatePropagation();

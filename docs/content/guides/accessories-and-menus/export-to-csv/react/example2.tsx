@@ -29,10 +29,7 @@ const ExampleComponent = () => {
   return (
     <>
       <div className="controls">
-        <button
-          id="export-blob"
-          onClick={() => buttonClickCallback()}
-        >
+        <button id="export-blob" onClick={() => buttonClickCallback()}>
           Export as a Blob
         </button>
       </div>

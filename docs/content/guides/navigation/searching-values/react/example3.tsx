@@ -1,7 +1,7 @@
-import { useRef, useCallback } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import { useRef, useCallback } from "react";
+import { HotTable, HotTableClass } from "@handsontable/react";
+import { registerAllModules } from "handsontable/registry";
+import "handsontable/dist/handsontable.full.min.css";
 
 // register Handsontable's modules
 registerAllModules();
@@ -10,15 +10,16 @@ const ExampleComponent = () => {
   const hotRef = useRef<HotTableClass>(null);
 
   const data = [
-    ['Tesla', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray']
+    ["Tesla", 2017, "black", "black"],
+    ["Nissan", 2018, "blue", "blue"],
+    ["Chrysler", 2019, "yellow", "black"],
+    ["Volvo", 2020, "white", "gray"],
   ];
+
   const searchFieldKeyupCallback = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       const hot = hotRef.current?.hotInstance;
-      const search = hot?.getPlugin('search');
+      const search = hot?.getPlugin("search");
       // use the `Search`'s `query()` method
       const queryResult = search?.query(event.currentTarget.value);
 
@@ -26,11 +27,14 @@ const ExampleComponent = () => {
 
       hot?.render();
     },
-    [hotRef.current]
+    [hotRef.current],
   );
 
   //  define your custom query method
-  function onlyExactMatch(queryStr: { toString: () => any }, value: { toString: () => any }) {
+  function onlyExactMatch(
+    queryStr: { toString: () => any },
+    value: { toString: () => any },
+  ) {
     return queryStr.toString() === value.toString();
   }
 
@@ -53,7 +57,7 @@ const ExampleComponent = () => {
         // enable the `Search` plugin
         search={{
           // add your custom query method
-          queryMethod: onlyExactMatch
+          queryMethod: onlyExactMatch,
         }}
         height="auto"
         autoWrapRow={true}

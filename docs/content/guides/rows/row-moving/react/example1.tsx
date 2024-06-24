@@ -1,6 +1,6 @@
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import { HotTable } from "@handsontable/react";
+import { registerAllModules } from "handsontable/registry";
+import "handsontable/dist/handsontable.full.min.css";
 
 // register Handsontable's modules
 registerAllModules();
@@ -11,7 +11,7 @@ const data = new Array(200) // number of rows
   .map((_, row) =>
     new Array(20) // number of columns
       .fill(0)
-      .map((_, column) => `${row}, ${column}`)
+      .map((_, column) => `${row}, ${column}`),
   );
 
 const ExampleComponent = () => {
