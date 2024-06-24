@@ -6,7 +6,6 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 registerAllModules();
 
-/* start:skip-in-preview */
 interface Toggle {
   tabNavigation: boolean;
   navigableHeaders: boolean;
