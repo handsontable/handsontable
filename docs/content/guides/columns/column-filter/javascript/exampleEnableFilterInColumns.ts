@@ -1,92 +1,92 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector("#exampleEnableFilterInColumns")!;
+const container = document.querySelector('#exampleEnableFilterInColumns')!;
 
 new Handsontable(container, {
   data: [
     {
-      brand: "Jetpulse",
-      model: "Racing Socks",
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
       price: 30,
-      sellDate: "Oct 11, 2023",
-      sellTime: "01:23 AM",
+      sellDate: 'Oct 11, 2023',
+      sellTime: '01:23 AM',
       inStock: false,
     },
     {
-      brand: "Gigabox",
-      model: "HL Mountain Frame",
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
       price: 1890.9,
-      sellDate: "May 3, 2023",
-      sellTime: "11:27 AM",
+      sellDate: 'May 3, 2023',
+      sellTime: '11:27 AM',
       inStock: false,
     },
     {
-      brand: "Camido",
-      model: "Cycling Cap",
+      brand: 'Camido',
+      model: 'Cycling Cap',
       price: 130.1,
-      sellDate: "Mar 27, 2023",
-      sellTime: "03:17 AM",
+      sellDate: 'Mar 27, 2023',
+      sellTime: '03:17 AM',
       inStock: true,
     },
     {
-      brand: "Chatterpoint",
-      model: "Road Tire Tube",
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
       price: 59,
-      sellDate: "Aug 28, 2023",
-      sellTime: "08:01 AM",
+      sellDate: 'Aug 28, 2023',
+      sellTime: '08:01 AM',
       inStock: true,
     },
     {
-      brand: "Eidel",
-      model: "HL Road Tire",
+      brand: 'Eidel',
+      model: 'HL Road Tire',
       price: 279.99,
-      sellDate: "Oct 2, 2023",
-      sellTime: "01:23 AM",
+      sellDate: 'Oct 2, 2023',
+      sellTime: '01:23 AM',
       inStock: true,
     },
   ],
   columns: [
     {
-      title: "Brand",
-      type: "text",
-      data: "brand",
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
     },
     {
-      title: "Model",
-      type: "text",
-      data: "model",
+      title: 'Model',
+      type: 'text',
+      data: 'model',
     },
     {
-      title: "Price",
-      type: "numeric",
-      data: "price",
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
       numericFormat: {
-        pattern: "$ 0,0.00",
-        culture: "en-US",
+        pattern: '$ 0,0.00',
+        culture: 'en-US',
       },
     },
     {
-      title: "Date",
-      type: "date",
-      data: "sellDate",
-      dateFormat: "MMM D, YYYY",
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      dateFormat: 'MMM D, YYYY',
       correctFormat: true,
-      className: "htRight",
+      className: 'htRight',
     },
     {
-      title: "Time",
-      type: "time",
-      data: "sellTime",
-      timeFormat: "hh:mm A",
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      timeFormat: 'hh:mm A',
       correctFormat: true,
-      className: "htRight",
+      className: 'htRight',
     },
     {
-      title: "In stock",
-      type: "checkbox",
-      data: "inStock",
-      className: "htCenter",
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
     },
   ],
   // enable filtering for all columns
@@ -120,7 +120,7 @@ new Handsontable(container, {
   afterGetColHeader(col, TH) {
     // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
     if (col > 1) {
-      const button = TH.querySelector(".changeType")!;
+      const button = TH.querySelector('.changeType')!;
 
       if (!button) {
         return;
@@ -129,9 +129,9 @@ new Handsontable(container, {
       button.parentElement!.removeChild(button);
     }
   },
-  height: "auto",
-  example: "exampleEnableFilterInColumns",
+  height: 'auto',
+  example: 'exampleEnableFilterInColumns',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
 } as Handsontable.GridSettings);

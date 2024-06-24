@@ -1,25 +1,25 @@
-import { HotTable } from "@handsontable/react";
-import Handsontable from "handsontable";
-import { registerAllModules } from "handsontable/registry";
-import { BaseRenderer, registerRenderer } from "handsontable/renderers";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable } from '@handsontable/react';
+import Handsontable from 'handsontable';
+import { registerAllModules } from 'handsontable/registry';
+import { BaseRenderer, registerRenderer } from 'handsontable/renderers';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
   const data = [
-    ["", "Tesla", "Nissan", "Toyota", "Honda"],
-    ["2017", -5, "", 12, 13],
-    ["2018", "", -11, 14, 13],
-    ["2019", "", 15, -12, "readOnly"],
+    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+    ['2017', -5, '', 12, 13],
+    ['2018', '', -11, 14, 13],
+    ['2019', '', 15, -12, 'readOnly'],
   ];
 
   const firstRowRenderer: BaseRenderer = (instance, td, ...rest) => {
     Handsontable.renderers.TextRenderer(instance, td, ...rest);
-    td.style.fontWeight = "bold";
-    td.style.color = "green";
-    td.style.background = "#CEC";
+    td.style.fontWeight = 'bold';
+    td.style.color = 'green';
+    td.style.background = '#CEC';
   };
 
   const negativeValueRenderer: BaseRenderer = (
@@ -44,22 +44,22 @@ const ExampleComponent = () => {
     // if the row contains a negative number
     if (parseInt(value, 10) < 0) {
       // add class 'make-me-red'
-      td.className = "make-me-red";
+      td.className = 'make-me-red';
     }
 
-    if (!value || value === "") {
-      td.style.background = "#EEE";
+    if (!value || value === '') {
+      td.style.background = '#EEE';
     } else {
-      if (value === "Nissan") {
-        td.style.fontStyle = "italic";
+      if (value === 'Nissan') {
+        td.style.fontStyle = 'italic';
       }
 
-      td.style.background = "";
+      td.style.background = '';
     }
   };
 
   //  maps function to a lookup string
-  registerRenderer("negativeValueRenderer", negativeValueRenderer);
+  registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
   return (
     <HotTable
@@ -85,14 +85,14 @@ const ExampleComponent = () => {
         const cellProperties: Handsontable.CellMeta = {};
         const data = this.instance.getData();
 
-        if (row === 0 || (data[row] && data[row][col] === "readOnly")) {
+        if (row === 0 || (data[row] && data[row][col] === 'readOnly')) {
           cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
         }
 
         if (row === 0) {
           cellProperties.renderer = firstRowRenderer; // uses function directly
         } else {
-          cellProperties.renderer = "negativeValueRenderer"; // uses lookup map
+          cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
         }
 
         return cellProperties;

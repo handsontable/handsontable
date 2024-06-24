@@ -1,10 +1,10 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector("#example2")!;
+const container = document.querySelector('#example2')!;
 
 new Handsontable(container, {
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
     [1, 2, 3, 4, 5],
     [6, 7, 8, 9, 10],
@@ -17,7 +17,7 @@ new Handsontable(container, {
   columnSummary: [
     {
       sourceColumn: 0,
-      type: "sum",
+      type: 'sum',
       // for this column summary, count row coordinates backward
       reversedRowCoords: true,
       // now, to always display this column summary in the bottom row,
@@ -27,7 +27,7 @@ new Handsontable(container, {
     },
     {
       sourceColumn: 1,
-      type: "min",
+      type: 'min',
       // for this column summary, count row coordinates backward
       reversedRowCoords: true,
       // now, to always display this column summary in the bottom row,
@@ -38,5 +38,5 @@ new Handsontable(container, {
   ],
   autoWrapRow: true,
   autoWrapCol: true,
-  height: "auto",
+  height: 'auto',
 });

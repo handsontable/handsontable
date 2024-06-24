@@ -1,23 +1,23 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector("#example3")!;
+const container = document.querySelector('#example3')!;
 
 new Handsontable(container, {
   data: [
-    ["A1", "B1", "C1", "D1", "E1", "F1"],
-    ["A2", "B2", "C2", "D2", "E2", "F2"],
-    ["A3", "B3", "C3", "D3", "E3", "F3"],
-    ["A4", "B4", "C4", "D4", "E4", "F4"],
-    ["A5", "B5", "C5", "D5", "E5", "F5"],
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5'],
   ],
   rowHeaders: true,
   colHeaders: true,
   autoWrapRow: true,
   autoWrapCol: true,
-  stretchH: "all",
-  height: "auto",
-  licenseKey: "non-commercial-and-evaluation",
+  stretchH: 'all',
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
   customBorders: [
     {
       range: {
@@ -32,19 +32,19 @@ new Handsontable(container, {
       },
       top: {
         width: 2,
-        color: "#5292F7",
+        color: '#5292F7',
       },
       bottom: {
         width: 2,
-        color: "red",
+        color: 'red',
       },
       start: {
         width: 2,
-        color: "orange",
+        color: 'orange',
       },
       end: {
         width: 2,
-        color: "magenta",
+        color: 'magenta',
       },
     },
     {
@@ -52,11 +52,11 @@ new Handsontable(container, {
       col: 2,
       start: {
         width: 2,
-        color: "red",
+        color: 'red',
       },
       end: {
         width: 1,
-        color: "green",
+        color: 'green',
       },
     },
   ],

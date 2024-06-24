@@ -1,6 +1,6 @@
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -10,49 +10,49 @@ const ExampleComponent = () => {
     <HotTable
       data={[
         {
-          car: "Mercedes A 160",
+          car: 'Mercedes A 160',
           year: 2017,
           available: true,
-          comesInBlack: "yes",
+          comesInBlack: 'yes',
         },
         {
-          car: "Citroen C4 Coupe",
+          car: 'Citroen C4 Coupe',
           year: 2018,
           available: false,
-          comesInBlack: "yes",
+          comesInBlack: 'yes',
         },
         {
-          car: "Audi A4 Avant",
+          car: 'Audi A4 Avant',
           year: 2019,
           available: true,
-          comesInBlack: "no",
+          comesInBlack: 'no',
         },
         {
-          car: "Opel Astra",
+          car: 'Opel Astra',
           year: 2020,
           available: false,
-          comesInBlack: "yes",
+          comesInBlack: 'yes',
         },
         {
-          car: "BMW 320i Coupe",
+          car: 'BMW 320i Coupe',
           year: 2021,
           available: false,
-          comesInBlack: "no",
+          comesInBlack: 'no',
         },
       ]}
-      colHeaders={["Car model", "Year of manufacture", "Available"]}
+      colHeaders={['Car model', 'Year of manufacture', 'Available']}
       height="auto"
       columns={[
         {
-          data: "car",
+          data: 'car',
         },
         {
-          data: "year",
-          type: "numeric",
+          data: 'year',
+          type: 'numeric',
         },
         {
-          data: "available",
-          type: "checkbox",
+          data: 'available',
+          type: 'checkbox',
         },
       ]}
       autoWrapRow={true}

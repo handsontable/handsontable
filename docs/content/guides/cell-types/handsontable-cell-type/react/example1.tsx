@@ -1,29 +1,29 @@
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
   const colorData = [
-    ["yellow"],
-    ["red"],
-    ["orange"],
-    ["green"],
-    ["blue"],
-    ["gray"],
-    ["black"],
-    ["white"],
+    ['yellow'],
+    ['red'],
+    ['orange'],
+    ['green'],
+    ['blue'],
+    ['gray'],
+    ['black'],
+    ['white'],
   ];
 
   const manufacturerData = [
-    { name: "BMW", country: "Germany", owner: "Bayerische Motoren Werke AG" },
-    { name: "Chrysler", country: "USA", owner: "Chrysler Group LLC" },
-    { name: "Nissan", country: "Japan", owner: "Nissan Motor Company Ltd" },
-    { name: "Suzuki", country: "Japan", owner: "Suzuki Motor Corporation" },
-    { name: "Toyota", country: "Japan", owner: "Toyota Motor Corporation" },
-    { name: "Volvo", country: "Sweden", owner: "Zhejiang Geely Holding Group" },
+    { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
+    { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
+    { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
+    { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
+    { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
+    { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' },
   ];
 
   return (
@@ -32,17 +32,17 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
-        ["Tesla", 2017, "black", "black"],
-        ["Nissan", 2018, "blue", "blue"],
-        ["Chrysler", 2019, "yellow", "black"],
-        ["Volvo", 2020, "white", "gray"],
+        ['Tesla', 2017, 'black', 'black'],
+        ['Nissan', 2018, 'blue', 'blue'],
+        ['Chrysler', 2019, 'yellow', 'black'],
+        ['Volvo', 2020, 'white', 'gray'],
       ]}
-      colHeaders={["Car", "Year", "Chassis color", "Bumper color"]}
+      colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
       columns={[
         {
-          type: "handsontable",
+          type: 'handsontable',
           handsontable: {
-            colHeaders: ["Marque", "Country", "Parent company"],
+            colHeaders: ['Marque', 'Country', 'Parent company'],
             autoColumnSize: true,
             data: manufacturerData,
             getValue() {
@@ -54,16 +54,16 @@ const ExampleComponent = () => {
             },
           },
         },
-        { type: "numeric" },
+        { type: 'numeric' },
         {
-          type: "handsontable",
+          type: 'handsontable',
           handsontable: {
             colHeaders: false,
             data: colorData,
           },
         },
         {
-          type: "handsontable",
+          type: 'handsontable',
           handsontable: {
             colHeaders: false,
             data: colorData,

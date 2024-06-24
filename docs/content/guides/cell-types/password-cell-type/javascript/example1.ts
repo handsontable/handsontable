@@ -1,26 +1,26 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector("#example1")!;
+const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
   data: [
     {
       id: 1,
-      name: { first: "Chris", last: "Right" },
-      password: "plainTextPassword",
+      name: { first: 'Chris', last: 'Right' },
+      password: 'plainTextPassword',
     },
-    { id: 2, name: { first: "John", last: "Honest" }, password: "txt" },
-    { id: 3, name: { first: "Greg", last: "Well" }, password: "longer" },
+    { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+    { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' },
   ],
-  colHeaders: ["ID", "First name", "Last name", "Password"],
-  height: "auto",
-  licenseKey: "non-commercial-and-evaluation",
+  colHeaders: ['ID', 'First name', 'Last name', 'Password'],
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
   columns: [
-    { data: "id" },
-    { data: "name.first" },
-    { data: "name.last" },
-    { data: "password", type: "password" },
+    { data: 'id' },
+    { data: 'name.first' },
+    { data: 'name.last' },
+    { data: 'password', type: 'password' },
   ],
   autoWrapRow: true,
   autoWrapCol: true,

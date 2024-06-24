@@ -1,9 +1,9 @@
-import { useRef, MouseEvent } from "react";
-import Handsontable from "handsontable";
-import { HotTable, HotTableClass } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import { textRenderer } from "handsontable/renderers/textRenderer";
-import "handsontable/dist/handsontable.full.min.css";
+import { useRef, MouseEvent } from 'react';
+import Handsontable from 'handsontable';
+import { HotTable, HotTableClass } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -21,9 +21,9 @@ const ExampleComponent = () => {
     textRenderer.apply(this, arguments as any);
 
     if (isChecked) {
-      td.style.backgroundColor = "yellow";
+      td.style.backgroundColor = 'yellow';
     } else {
-      td.style.backgroundColor = "white";
+      td.style.backgroundColor = 'white';
     }
   }
 
@@ -31,8 +31,8 @@ const ExampleComponent = () => {
     const hot = hotRef.current?.hotInstance;
 
     if (
-      (event.target as HTMLInputElement).nodeName == "INPUT" &&
-      (event.target as HTMLInputElement).className == "checker"
+      (event.target as HTMLInputElement).nodeName == 'INPUT' &&
+      (event.target as HTMLInputElement).className == 'checker'
     ) {
       isChecked = !(event.target as HTMLInputElement).checked;
       hot?.render();
@@ -51,15 +51,15 @@ const ExampleComponent = () => {
         colHeaders={function (col: number) {
           switch (col) {
             case 0:
-              return "<b>Bold</b> and <em>Beautiful</em>";
+              return '<b>Bold</b> and <em>Beautiful</em>';
 
             case 1:
               return `Some <input type="checkbox" class="checker" ${
-                isChecked ? `checked="checked"` : ""
+                isChecked ? `checked="checked"` : ''
               }> checkbox`;
 
             default:
-              return "";
+              return '';
           }
         }}
         autoWrapRow={true}

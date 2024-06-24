@@ -1,47 +1,47 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector("#example1")!;
+const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
   data: [
-    ["Tesla", 2017, "black", "black"],
-    ["Nissan", 2018, "blue", "blue"],
-    ["Chrysler", 2019, "yellow", "black"],
-    ["Volvo", 2020, "white", "gray"],
+    ['Tesla', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray'],
   ],
-  colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   columns: [
     {},
-    { type: "numeric" },
+    { type: 'numeric' },
     {
-      type: "dropdown",
+      type: 'dropdown',
       source: [
-        "yellow",
-        "red",
-        "orange",
-        "green",
-        "blue",
-        "gray",
-        "black",
-        "white",
+        'yellow',
+        'red',
+        'orange',
+        'green',
+        'blue',
+        'gray',
+        'black',
+        'white',
       ],
     },
     {
-      type: "dropdown",
+      type: 'dropdown',
       source: [
-        "yellow",
-        "red",
-        "orange",
-        "green",
-        "blue",
-        "gray",
-        "black",
-        "white",
+        'yellow',
+        'red',
+        'orange',
+        'green',
+        'blue',
+        'gray',
+        'black',
+        'white',
       ],
     },
   ],
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
 });

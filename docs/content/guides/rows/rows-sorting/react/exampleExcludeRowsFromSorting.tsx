@@ -1,8 +1,8 @@
 // you need `useRef` to call Handsontable's instance methods
-import { useRef } from "react";
-import { HotTable, HotTableClass } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { useRef } from 'react';
+import { HotTable, HotTableClass } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -30,162 +30,162 @@ const ExampleComponent = () => {
       ref={hotTableComponentRef}
       data={[
         {
-          brand: "Brand",
-          model: "Model",
-          price: "Price",
-          sellDate: "Date",
-          sellTime: "Time",
-          inStock: "In stock",
+          brand: 'Brand',
+          model: 'Model',
+          price: 'Price',
+          sellDate: 'Date',
+          sellTime: 'Time',
+          inStock: 'In stock',
         },
         {
-          brand: "Gigabox",
-          model: "HL Mountain Frame",
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
           price: 1890.9,
-          sellDate: "May 3, 2023",
-          sellTime: "11:27 AM",
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
           inStock: 11,
         },
         {
-          brand: "Camido",
-          model: "Cycling Cap",
+          brand: 'Camido',
+          model: 'Cycling Cap',
           price: 130.1,
-          sellDate: "Mar 27, 2023",
-          sellTime: "03:17 AM",
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
           inStock: 0,
         },
         {
-          brand: "Chatterpoint",
-          model: "Road Tire Tube",
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
           price: 59,
-          sellDate: "Aug 28, 2023",
-          sellTime: "08:01 AM",
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
           inStock: 1,
         },
         {
-          brand: "Eidel",
-          model: "HL Road Tire",
+          brand: 'Eidel',
+          model: 'HL Road Tire',
           price: 279.99,
-          sellDate: "Oct 2, 2023",
-          sellTime: "13:23 AM",
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
           inStock: 3,
         },
         {
-          brand: "Jetpulse",
-          model: "Racing Socks",
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
           price: 30,
-          sellDate: "Oct 11, 2023",
-          sellTime: "01:23 AM",
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
           inStock: 5,
         },
         {
-          brand: "Gigabox",
-          model: "HL Mountain Frame",
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
           price: 1890.9,
-          sellDate: "May 3, 2023",
-          sellTime: "11:27 AM",
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
           inStock: 22,
         },
         {
-          brand: "Camido",
-          model: "Cycling Cap",
+          brand: 'Camido',
+          model: 'Cycling Cap',
           price: 130.1,
-          sellDate: "Mar 27, 2023",
-          sellTime: "03:17 AM",
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
           inStock: 13,
         },
         {
-          brand: "Chatterpoint",
-          model: "Road Tire Tube",
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
           price: 59,
-          sellDate: "Aug 28, 2023",
-          sellTime: "08:01 AM",
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
           inStock: 0,
         },
         {
-          brand: "Eidel",
-          model: "HL Road Tire",
+          brand: 'Eidel',
+          model: 'HL Road Tire',
           price: 279.99,
-          sellDate: "Oct 2, 2023",
-          sellTime: "13:23 AM",
+          sellDate: 'Oct 2, 2023',
+          sellTime: '13:23 AM',
           inStock: 14,
         },
         {
-          brand: "Jetpulse",
-          model: "Racing Socks",
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
           price: 30,
-          sellDate: "Oct 11, 2023",
-          sellTime: "01:23 AM",
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
           inStock: 16,
         },
         {
-          brand: "Gigabox",
-          model: "HL Mountain Frame",
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
           price: 1890.9,
-          sellDate: "May 3, 2023",
-          sellTime: "11:27 AM",
+          sellDate: 'May 3, 2023',
+          sellTime: '11:27 AM',
           inStock: 18,
         },
         {
-          brand: "Camido",
-          model: "Cycling Cap",
+          brand: 'Camido',
+          model: 'Cycling Cap',
           price: 130.1,
-          sellDate: "Mar 27, 2023",
-          sellTime: "03:17 AM",
+          sellDate: 'Mar 27, 2023',
+          sellTime: '03:17 AM',
           inStock: 3,
         },
         {
-          brand: "Chatterpoint",
-          model: "Road Tire Tube",
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
           price: 59,
-          sellDate: "Aug 28, 2023",
-          sellTime: "08:01 AM",
+          sellDate: 'Aug 28, 2023',
+          sellTime: '08:01 AM',
           inStock: 0,
         },
         {
-          brand: "Vinte",
-          model: "ML Road Frame-W",
+          brand: 'Vinte',
+          model: 'ML Road Frame-W',
           price: 30,
-          sellDate: "Oct 11, 2023",
-          sellTime: "01:23 AM",
+          sellDate: 'Oct 11, 2023',
+          sellTime: '01:23 AM',
           inStock: 2,
         },
         {},
       ]}
       columns={[
         {
-          type: "text",
-          data: "brand",
+          type: 'text',
+          data: 'brand',
         },
         {
-          type: "text",
-          data: "model",
+          type: 'text',
+          data: 'model',
         },
         {
-          type: "numeric",
-          data: "price",
+          type: 'numeric',
+          data: 'price',
           numericFormat: {
-            pattern: "$ 0,0.00",
-            culture: "en-US",
+            pattern: '$ 0,0.00',
+            culture: 'en-US',
           },
         },
         {
-          type: "date",
-          data: "sellDate",
-          dateFormat: "MMM D, YYYY",
+          type: 'date',
+          data: 'sellDate',
+          dateFormat: 'MMM D, YYYY',
           correctFormat: true,
-          className: "htRight",
+          className: 'htRight',
         },
         {
-          type: "time",
-          data: "sellTime",
-          timeFormat: "hh:mm A",
+          type: 'time',
+          data: 'sellTime',
+          timeFormat: 'hh:mm A',
           correctFormat: true,
-          className: "htRight",
+          className: 'htRight',
         },
         {
-          type: "numeric",
-          data: "inStock",
-          className: "htCenter",
+          type: 'numeric',
+          data: 'inStock',
+          className: 'htCenter',
         },
       ]}
       height={200}
@@ -203,16 +203,16 @@ const ExampleComponent = () => {
 
           if (row === 0) {
             return {
-              type: "text",
-              className: "htCenter",
+              type: 'text',
+              className: 'htCenter',
               readOnly: true,
             };
           }
 
           if (row === lastRowIndex) {
             return {
-              type: "numeric",
-              className: "htCenter",
+              type: 'numeric',
+              className: 'htCenter',
             };
           }
         }
@@ -222,7 +222,7 @@ const ExampleComponent = () => {
       columnSummary={[
         {
           sourceColumn: 2,
-          type: "sum",
+          type: 'sum',
           reversedRowCoords: true,
           destinationRow: 0,
           destinationColumn: 2,
@@ -231,7 +231,7 @@ const ExampleComponent = () => {
         },
         {
           sourceColumn: 5,
-          type: "sum",
+          type: 'sum',
           reversedRowCoords: true,
           destinationRow: 0,
           destinationColumn: 5,

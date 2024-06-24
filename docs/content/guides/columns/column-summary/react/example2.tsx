@@ -1,6 +1,6 @@
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -23,7 +23,7 @@ const ExampleComponent = () => {
       columnSummary={[
         {
           sourceColumn: 0,
-          type: "sum",
+          type: 'sum',
           // for this column summary, count row coordinates backward
           reversedRowCoords: true,
           // now, to always display this column summary in the bottom row,
@@ -33,7 +33,7 @@ const ExampleComponent = () => {
         },
         {
           sourceColumn: 1,
-          type: "min",
+          type: 'min',
           // for this column summary, count row coordinates backward
           reversedRowCoords: true,
           // now, to always display this column summary in the bottom row,

@@ -1,19 +1,19 @@
-import Handsontable from "handsontable";
-import { BaseRenderer } from "handsontable/renderers";
-import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from 'handsontable';
+import { BaseRenderer } from 'handsontable/renderers';
+import 'handsontable/dist/handsontable.full.min.css';
 
 const data: (string | number)[][] = [
-  ["", "Tesla", "Nissan", "Toyota", "Honda"],
-  ["2017", -5, "", 12, 13],
-  ["2018", "", -11, 14, 13],
-  ["2019", "", 15, -12, "readOnly"],
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+  ['2017', -5, '', 12, 13],
+  ['2018', '', -11, 14, 13],
+  ['2019', '', 15, -12, 'readOnly'],
 ];
 
 const firstRowRenderer: BaseRenderer = (instance, td, ...rest) => {
   Handsontable.renderers.TextRenderer(instance, td, ...rest);
-  td.style.fontWeight = "bold";
-  td.style.color = "green";
-  td.style.background = "#CEC";
+  td.style.fontWeight = 'bold';
+  td.style.color = 'green';
+  td.style.background = '#CEC';
 };
 
 const negativeValueRenderer: BaseRenderer = (
@@ -38,32 +38,32 @@ const negativeValueRenderer: BaseRenderer = (
   // if the row contains a negative number
   if (parseInt(value, 10) < 0) {
     // add class 'make-me-red'
-    td.className = "make-me-red";
+    td.className = 'make-me-red';
   }
 
-  if (!value || value === "") {
-    td.style.background = "#EEE";
+  if (!value || value === '') {
+    td.style.background = '#EEE';
   } else {
-    if (value === "Nissan") {
-      td.style.fontStyle = "italic";
+    if (value === 'Nissan') {
+      td.style.fontStyle = 'italic';
     }
 
-    td.style.background = "";
+    td.style.background = '';
   }
 };
 
 // maps function to a lookup string
 Handsontable.renderers.registerRenderer(
-  "negativeValueRenderer",
+  'negativeValueRenderer',
   negativeValueRenderer,
 );
 
-const container = document.querySelector("#example1")!;
+const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
   data,
-  licenseKey: "non-commercial-and-evaluation",
-  height: "auto",
+  licenseKey: 'non-commercial-and-evaluation',
+  height: 'auto',
   afterSelection(_row, _col, row2, col2) {
     const meta = (this as unknown as Handsontable.Core).getCellMeta(row2, col2);
 
@@ -81,14 +81,14 @@ new Handsontable(container, {
     const cellProperties: Handsontable.CellMeta = {};
     const data = this.instance.getData();
 
-    if (row === 0 || (data[row] && data[row][col] === "readOnly")) {
+    if (row === 0 || (data[row] && data[row][col] === 'readOnly')) {
       cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
     }
 
     if (row === 0) {
       cellProperties.renderer = firstRowRenderer; // uses function directly
     } else {
-      cellProperties.renderer = "negativeValueRenderer"; // uses lookup map
+      cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
     }
 
     return cellProperties;

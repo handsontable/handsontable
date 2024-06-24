@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
-import { HotTable, HotTableClass } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { useEffect, useRef } from 'react';
+import { HotTable, HotTableClass } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -36,7 +36,7 @@ const ExampleComponent = () => {
             lastChange[0][2] == lastChange[0][3]
           ) {
             e.stopImmediatePropagation();
-            hot.spliceCol(selection[1], selection[0], 0, "");
+            hot.spliceCol(selection[1], selection[0], 0, '');
             // add new cell
             hot.selectCell(selection[0], selection[1]);
             // select new cell
@@ -51,10 +51,10 @@ const ExampleComponent = () => {
   return (
     <HotTable
       data={[
-        ["Tesla", 2017, "black", "black"],
-        ["Nissan", 2018, "blue", "blue"],
-        ["Chrysler", 2019, "yellow", "black"],
-        ["Volvo", 2020, "yellow", "gray"],
+        ['Tesla', 2017, 'black', 'black'],
+        ['Nissan', 2018, 'blue', 'blue'],
+        ['Chrysler', 2019, 'yellow', 'black'],
+        ['Volvo', 2020, 'yellow', 'gray'],
       ]}
       colHeaders={true}
       rowHeaders={true}

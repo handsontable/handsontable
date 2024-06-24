@@ -1,10 +1,10 @@
-import { useRef } from "react";
-import { HotTable, HotTableClass } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import { textRenderer } from "handsontable/renderers/textRenderer";
-import "handsontable/dist/handsontable.full.min.css";
-import Handsontable from "handsontable";
-import { CellChange } from "handsontable/common";
+import { useRef } from 'react';
+import { HotTable, HotTableClass } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable';
+import { CellChange } from 'handsontable/common';
 
 // register Handsontable's modules
 registerAllModules();
@@ -12,12 +12,12 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableClass>(null);
 
-  const templateValues = ["one", "two", "three"];
+  const templateValues = ['one', 'two', 'three'];
   const data = [
-    ["", "Tesla", "Nissan", "Toyota", "Honda"],
-    ["2017", 10, 11, 12, 13],
-    ["2018", 20, 11, 14, 13],
-    ["2019", 30, 15, 12, 13],
+    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+    ['2017', 10, 11, 12, 13],
+    ['2018', 20, 11, 14, 13],
+    ['2019', 30, 15, 12, 13],
   ];
 
   function isEmptyRow(instance: Handsontable, row: number) {
@@ -43,9 +43,9 @@ const ExampleComponent = () => {
 
     if (args[5] === null && isEmptyRow(instance, row)) {
       args[5] = templateValues[col];
-      td.style.color = "#999";
+      td.style.color = '#999';
     } else {
-      td.style.color = "";
+      td.style.color = '';
     }
 
     textRenderer.apply(this, args as any);

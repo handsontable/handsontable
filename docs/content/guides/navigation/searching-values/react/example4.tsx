@@ -1,8 +1,8 @@
-import { useRef, useEffect, useState } from "react";
-import { HotTable, HotTableClass } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
-import Handsontable from "handsontable";
+import { useRef, useEffect, useState } from 'react';
+import { HotTable, HotTableClass } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable';
 
 // register Handsontable's modules
 registerAllModules();
@@ -12,10 +12,10 @@ const ExampleComponent = () => {
   const [resultCount, setResultCounter] = useState(0);
 
   const data = [
-    ["Tesla", 2017, "black", "black"],
-    ["Nissan", 2018, "blue", "blue"],
-    ["Chrysler", 2019, "yellow", "black"],
-    ["Volvo", 2020, "white", "gray"],
+    ['Tesla', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray'],
   ];
 
   //  define your custom callback function
@@ -47,7 +47,7 @@ const ExampleComponent = () => {
   const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
     setResultCounter(0);
 
-    const search = hot4Ref.current?.hotInstance?.getPlugin("search");
+    const search = hot4Ref.current?.hotInstance?.getPlugin('search');
     const queryResult = search?.query(event.currentTarget.value);
 
     console.log(queryResult);

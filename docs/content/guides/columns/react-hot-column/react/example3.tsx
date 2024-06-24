@@ -1,6 +1,6 @@
-import { HotTable, HotColumn } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable, HotColumn } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -8,7 +8,7 @@ registerAllModules();
 // a renderer component
 const ScoreRenderer = (props: { value?: any }) => {
   const { value } = props;
-  const color = value > 60 ? "#2ECC40" : "#FF4136";
+  const color = value > 60 ? '#2ECC40' : '#FF4136';
 
   return <span style={{ color }}>{value}</span>;
 };
@@ -28,31 +28,31 @@ const PromotionRenderer = (props: { value?: any }) => {
 const data = [
   {
     id: 1,
-    name: "Alex",
+    name: 'Alex',
     score: 10,
     isPromoted: false,
   },
   {
     id: 2,
-    name: "Adam",
+    name: 'Adam',
     score: 55,
     isPromoted: false,
   },
   {
     id: 3,
-    name: "Kate",
+    name: 'Kate',
     score: 61,
     isPromoted: true,
   },
   {
     id: 4,
-    name: "Max",
+    name: 'Max',
     score: 98,
     isPromoted: true,
   },
   {
     id: 5,
-    name: "Lucy",
+    name: 'Lucy',
     score: 59,
     isPromoted: false,
   },

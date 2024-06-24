@@ -1,18 +1,18 @@
-import React, { MouseEvent } from "react";
-import Handsontable from "handsontable";
-import { HotTable, HotColumn, BaseEditorComponent } from "@handsontable/react";
-import "handsontable/dist/handsontable.full.min.css";
+import React, { MouseEvent } from 'react';
+import Handsontable from 'handsontable';
+import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // an editor component
 class EditorComponent extends BaseEditorComponent {
   mainElementRef: React.RefObject<HTMLDivElement>;
 
-  constructor(props: BaseEditorComponent["props"]) {
+  constructor(props: BaseEditorComponent['props']) {
     super(props);
 
     this.mainElementRef = React.createRef();
     this.state = {
-      value: "",
+      value: '',
     };
   }
 
@@ -28,12 +28,12 @@ class EditorComponent extends BaseEditorComponent {
 
   open() {
     if (!this.mainElementRef.current) return;
-    this.mainElementRef.current.style.display = "block";
+    this.mainElementRef.current.style.display = 'block';
   }
 
   close() {
     if (!this.mainElementRef.current) return;
-    this.mainElementRef.current.style.display = "none";
+    this.mainElementRef.current.style.display = 'none';
   }
 
   prepare(
@@ -90,13 +90,13 @@ class EditorComponent extends BaseEditorComponent {
     return (
       <div
         style={{
-          display: "none",
-          position: "absolute",
+          display: 'none',
+          position: 'absolute',
           left: 0,
           top: 0,
-          background: "#fff",
-          border: "1px solid #000",
-          padding: "15px",
+          background: '#fff',
+          border: '1px solid #000',
+          padding: '15px',
           zIndex: 999,
         }}
         ref={this.mainElementRef}
@@ -115,13 +115,13 @@ class EditorComponent extends BaseEditorComponent {
 }
 
 const data = [
-  ["Obrien Fischer"],
-  ["Alexandria Gordon"],
-  ["John Stafford"],
-  ["Regina Waters"],
-  ["Kay Bentley"],
-  ["Emerson Drake"],
-  ["Dean Stapleton"],
+  ['Obrien Fischer'],
+  ['Alexandria Gordon'],
+  ['John Stafford'],
+  ['Regina Waters'],
+  ['Kay Bentley'],
+  ['Emerson Drake'],
+  ['Dean Stapleton'],
 ];
 
 const ExampleComponent = () => {

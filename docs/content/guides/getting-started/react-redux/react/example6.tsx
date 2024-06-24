@@ -1,12 +1,12 @@
-import React, { useEffect, MouseEvent } from "react";
-import { HexColorPicker } from "react-colorful";
-import StarRatingComponent from "react-star-rating-component";
-import { Provider, connect } from "react-redux";
-import { createStore, combineReducers } from "redux";
-import { HotTable, HotColumn, BaseEditorComponent } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
-import Handsontable from "handsontable";
+import React, { useEffect, MouseEvent } from 'react';
+import { HexColorPicker } from 'react-colorful';
+import StarRatingComponent from 'react-star-rating-component';
+import { Provider, connect } from 'react-redux';
+import { createStore, combineReducers } from 'redux';
+import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable';
 
 // register Handsontable's modules
 registerAllModules();
@@ -21,14 +21,14 @@ type EditorProps = {
 // a custom editor component
 class UnconnectedColorPicker extends BaseEditorComponent<EditorProps> {
   editorRef: React.RefObject<HTMLDivElement>;
-  constructor(props: BaseEditorComponent<EditorProps>["props"]) {
+  constructor(props: BaseEditorComponent<EditorProps>['props']) {
     super(props);
 
     this.editorRef = React.createRef();
 
     this.state = {
       renderResult: null,
-      value: "",
+      value: '',
     };
   }
 
@@ -49,13 +49,13 @@ class UnconnectedColorPicker extends BaseEditorComponent<EditorProps> {
   open() {
     if (!this.editorRef.current) return;
 
-    this.editorRef.current.style.display = "block";
+    this.editorRef.current.style.display = 'block';
   }
 
   close() {
     if (!this.editorRef.current) return;
 
-    this.editorRef.current.style.display = "none";
+    this.editorRef.current.style.display = 'none';
 
     this.setState({
       pickedColor: null,
@@ -89,13 +89,13 @@ class UnconnectedColorPicker extends BaseEditorComponent<EditorProps> {
 
     if (this.col === 1) {
       dispatch({
-        type: "updateActiveStarColor",
+        type: 'updateActiveStarColor',
         row: this.row,
         hexColor: this.getValue(),
       });
     } else if (this.col === 2) {
       dispatch({
-        type: "updateInactiveStarColor",
+        type: 'updateInactiveStarColor',
         row: this.row,
         hexColor: this.getValue(),
       });
@@ -111,14 +111,14 @@ class UnconnectedColorPicker extends BaseEditorComponent<EditorProps> {
       renderResult = (
         <div
           style={{
-            display: "none",
-            position: "absolute",
+            display: 'none',
+            position: 'absolute',
             left: 0,
             top: 0,
             zIndex: 999,
-            background: "#fff",
-            padding: "15px",
-            border: "1px solid #cecece",
+            background: '#fff',
+            padding: '15px',
+            border: '1px solid #cecece',
           }}
           ref={this.editorRef}
           onMouseDown={this.stopMousedownPropagation}
@@ -128,7 +128,7 @@ class UnconnectedColorPicker extends BaseEditorComponent<EditorProps> {
             onChange={this.onPickedColor.bind(this)}
           />
           <button
-            style={{ width: "100%", height: "33px", marginTop: "10px" }}
+            style={{ width: '100%', height: '33px', marginTop: '10px' }}
             onClick={this.applyColor.bind(this)}
           >
             Apply
@@ -141,10 +141,10 @@ class UnconnectedColorPicker extends BaseEditorComponent<EditorProps> {
           <div
             style={{
               background: this.props.value,
-              width: "21px",
-              height: "21px",
-              float: "left",
-              marginRight: "5px",
+              width: '21px',
+              height: '21px',
+              float: 'left',
+              marginRight: '5px',
             }}
           />
           <div>{this.props.value}</div>
@@ -177,7 +177,7 @@ const appReducer = (
   action: { type?: any; row?: any; hexColor?: any; hotData?: any },
 ) => {
   switch (action.type) {
-    case "initRatingColors": {
+    case 'initRatingColors': {
       const { hotData } = action;
 
       const activeColors = hotData.map((data: string[]) => data[1]);
@@ -190,7 +190,7 @@ const appReducer = (
       };
     }
 
-    case "updateActiveStarColor": {
+    case 'updateActiveStarColor': {
       const rowIndex = action.row;
       const newColor = action.hexColor;
 
@@ -206,7 +206,7 @@ const appReducer = (
       };
     }
 
-    case "updateInactiveStarColor": {
+    case 'updateInactiveStarColor': {
       const rowIndex = action.row;
       const newColor = action.hexColor;
 
@@ -264,17 +264,17 @@ const StarRatingRenderer = connect((state: RootState) => ({
 }))(UnconnectedStarRatingRenderer);
 
 const data = [
-  [1, "#ff6900", "#fcb900"],
-  [2, "#fcb900", "#7bdcb5"],
-  [3, "#7bdcb5", "#8ed1fc"],
-  [4, "#00d084", "#0693e3"],
-  [5, "#eb144c", "#abb8c3"],
+  [1, '#ff6900', '#fcb900'],
+  [2, '#fcb900', '#7bdcb5'],
+  [3, '#7bdcb5', '#8ed1fc'],
+  [4, '#00d084', '#0693e3'],
+  [5, '#eb144c', '#abb8c3'],
 ];
 
 const ExampleComponent = () => {
   useEffect(() => {
     reduxStore.dispatch({
-      type: "initRatingColors",
+      type: 'initRatingColors',
       hotData: data,
     });
   }, []);
@@ -285,13 +285,13 @@ const ExampleComponent = () => {
         data={data}
         rowHeaders={true}
         rowHeights={30}
-        colHeaders={["Rating", "Active star color", "Inactive star color"]}
+        colHeaders={['Rating', 'Active star color', 'Inactive star color']}
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       >
-        <HotColumn width={100} type={"numeric"}>
+        <HotColumn width={100} type={'numeric'}>
           {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
           <StarRatingRenderer hot-renderer />
         </HotColumn>

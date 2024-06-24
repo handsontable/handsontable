@@ -1,7 +1,7 @@
-import React, { useState, useContext, MouseEvent } from "react";
-import { HotTable, HotColumn } from "@handsontable/react";
-import "handsontable/dist/handsontable.full.min.css";
-import Handsontable from "handsontable";
+import React, { useState, useContext, MouseEvent } from 'react';
+import { HotTable, HotColumn } from '@handsontable/react';
+import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable';
 
 type RendererProps = {
   TD?: HTMLTableCellElement;
@@ -21,9 +21,9 @@ function CustomRenderer(props: RendererProps) {
   if (!props.TD) return;
 
   if (darkMode) {
-    props.TD.className = "dark";
+    props.TD.className = 'dark';
   } else {
-    props.TD.className = "";
+    props.TD.className = '';
   }
 
   return <div>{props.value}</div>;
@@ -45,22 +45,22 @@ const ExampleComponent = () => {
       </div>
       <HotTable
         data={[
-          ["A1"],
-          ["A2"],
-          ["A3"],
-          ["A4"],
-          ["A5"],
-          ["A6"],
-          ["A7"],
-          ["A8"],
-          ["A9"],
-          ["A10"],
+          ['A1'],
+          ['A2'],
+          ['A3'],
+          ['A4'],
+          ['A5'],
+          ['A6'],
+          ['A7'],
+          ['A8'],
+          ['A9'],
+          ['A10'],
         ]}
         rowHeaders={true}
         autoRowSize={false}
         autoColumnSize={false}
         height="auto"
-        licenseKey={"non-commercial-and-evaluation"}
+        licenseKey={'non-commercial-and-evaluation'}
       >
         <HotColumn>
           {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}

@@ -1,7 +1,7 @@
-import { HotTable, HotTableClass } from "@handsontable/react";
-import Handsontable from "handsontable";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable, HotTableClass } from '@handsontable/react';
+import Handsontable from 'handsontable';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -31,10 +31,10 @@ const ExampleComponent = () => {
       data={generateData(5, 5, true)}
       height="auto"
       rowHeaders={true}
-      colHeaders={["sum", "min", "max", "count", "average"]}
+      colHeaders={['sum', 'min', 'max', 'count', 'average']}
       columnSummary={function () {
         const configArray = [];
-        const summaryTypes = ["sum", "min", "max", "count", "average"];
+        const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
 
         for (let i = 0; i < this.hot.countCols(); i++) {
           // iterate over visible columns

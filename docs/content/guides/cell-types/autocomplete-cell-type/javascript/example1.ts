@@ -1,47 +1,47 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
 const colors: string[] = [
-  "yellow",
-  "red",
-  "orange and another color",
-  "green",
-  "blue",
-  "gray",
-  "black",
-  "white",
-  "purple",
-  "lime",
-  "olive",
-  "cyan",
+  'yellow',
+  'red',
+  'orange and another color',
+  'green',
+  'blue',
+  'gray',
+  'black',
+  'white',
+  'purple',
+  'lime',
+  'olive',
+  'cyan',
 ];
 
-const container = document.querySelector("#example1")!;
+const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
-    ["BMW", 2017, "black", "black"],
-    ["Nissan", 2018, "blue", "blue"],
-    ["Chrysler", 2019, "yellow", "black"],
-    ["Volvo", 2020, "white", "gray"],
+    ['BMW', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray'],
   ],
-  colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   columns: [
     {
-      type: "autocomplete",
-      source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+      type: 'autocomplete',
+      source: ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'],
       strict: false,
     },
-    { type: "numeric" },
+    { type: 'numeric' },
     {
-      type: "autocomplete",
+      type: 'autocomplete',
       source: colors,
       strict: false,
       visibleRows: 4,
     },
     {
-      type: "autocomplete",
+      type: 'autocomplete',
       source: colors,
       strict: false,
       trimDropdown: false,

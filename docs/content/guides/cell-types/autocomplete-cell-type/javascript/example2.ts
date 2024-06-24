@@ -1,62 +1,62 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
 const colors: string[] = [
-  "yellow",
-  "red",
-  "orange",
-  "green",
-  "blue",
-  "gray",
-  "black",
-  "white",
-  "purple",
-  "lime",
-  "olive",
-  "cyan",
+  'yellow',
+  'red',
+  'orange',
+  'green',
+  'blue',
+  'gray',
+  'black',
+  'white',
+  'purple',
+  'lime',
+  'olive',
+  'cyan',
 ];
 
 const cars: string[] = [
-  "BMW",
-  "Chrysler",
-  "Nissan",
-  "Suzuki",
-  "Toyota",
-  "Volvo",
+  'BMW',
+  'Chrysler',
+  'Nissan',
+  'Suzuki',
+  'Toyota',
+  'Volvo',
 ];
 
-const container = document.querySelector("#example2")!;
+const container = document.querySelector('#example2')!;
 
 new Handsontable(container, {
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
-    ["BMW", 2017, "black", "black"],
-    ["Nissan", 2018, "blue", "blue"],
-    ["Chrysler", 2019, "yellow", "black"],
-    ["Volvo", 2020, "white", "gray"],
+    ['BMW', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray'],
   ],
   colHeaders: [
-    "Car<br>(allowInvalid true)",
-    "Year",
-    "Chassis color<br>(allowInvalid false)",
-    "Bumper color<br>(allowInvalid true)",
+    'Car<br>(allowInvalid true)',
+    'Year',
+    'Chassis color<br>(allowInvalid false)',
+    'Bumper color<br>(allowInvalid true)',
   ],
   columns: [
     {
-      type: "autocomplete",
+      type: 'autocomplete',
       source: cars,
       strict: true,
       // allowInvalid: true // true is default
     },
     {},
     {
-      type: "autocomplete",
+      type: 'autocomplete',
       source: colors,
       strict: true,
       allowInvalid: false,
     },
     {
-      type: "autocomplete",
+      type: 'autocomplete',
       source: colors,
       strict: true,
       allowInvalid: true, // true is default

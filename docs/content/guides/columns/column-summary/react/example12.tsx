@@ -1,6 +1,6 @@
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -16,13 +16,13 @@ const ExampleComponent = () => {
       rowHeaders={true}
       columnSummary={[
         {
-          type: "average",
+          type: 'average',
           destinationRow: 0,
           destinationColumn: 0,
           reversedRowCoords: true,
         },
         {
-          type: "average",
+          type: 'average',
           destinationRow: 0,
           destinationColumn: 1,
           reversedRowCoords: true,

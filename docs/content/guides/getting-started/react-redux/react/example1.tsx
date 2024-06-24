@@ -6,13 +6,13 @@ import {
   ReactElement,
   ReactNode,
   ReactPortal,
-} from "react";
-import { createStore } from "redux";
-import { Provider, useSelector, useDispatch } from "react-redux";
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
-import Handsontable from "handsontable";
+} from 'react';
+import { createStore } from 'redux';
+import { Provider, useSelector, useDispatch } from 'react-redux';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable';
 
 // register Handsontable's modules
 registerAllModules();
@@ -27,7 +27,7 @@ const ExampleComponentContent = () => {
 
   const onBeforeHotChange = (changes: (Handsontable.CellChange | null)[]) => {
     dispatch({
-      type: "updateData",
+      type: 'updateData',
       dataChanges: changes,
     });
 
@@ -36,7 +36,7 @@ const ExampleComponentContent = () => {
 
   const toggleReadOnly = (event: MouseEvent) => {
     dispatch({
-      type: "updateReadOnly",
+      type: 'updateReadOnly',
       readOnly: (event.target as HTMLInputElement).checked,
     });
   };
@@ -65,7 +65,7 @@ const ExampleComponentContent = () => {
           {isHotData && (
             <div>
               <strong>data:</strong>
-              <table style={{ border: "1px solid #d6d6d6" }}>
+              <table style={{ border: '1px solid #d6d6d6' }}>
                 <tbody>
                   {hotData.map((row, i) => (
                     <tr key={i}>
@@ -99,7 +99,7 @@ const ExampleComponentContent = () => {
             <tbody>
               {Object.entries(hotSettings).map(
                 ([name, value]) =>
-                  name !== "data" && (
+                  name !== 'data' && (
                     <tr key={`${name}${value}`}>
                       <td>
                         <strong>{name}:</strong>
@@ -118,17 +118,17 @@ const ExampleComponentContent = () => {
 
 const initialReduxStoreState = {
   data: [
-    ["A1", "B1", "C1"],
-    ["A2", "B2", "C2"],
-    ["A3", "B3", "C3"],
-    ["A4", "B4", "C4"],
-    ["A5", "B5", "C5"],
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+    ['A3', 'B3', 'C3'],
+    ['A4', 'B4', 'C4'],
+    ['A5', 'B5', 'C5'],
   ],
   colHeaders: true,
   rowHeaders: true,
   readOnly: false,
-  height: "auto",
-  licenseKey: "non-commercial-and-evaluation",
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
 };
 
 const updatesReducer = (
@@ -136,7 +136,7 @@ const updatesReducer = (
   action: { type: any; dataChanges: [any, any, any, any][]; readOnly: any },
 ) => {
   switch (action.type) {
-    case "updateData":
+    case 'updateData':
       const newData = [...state.data];
 
       action.dataChanges.forEach(([row, column, oldValue, newValue]) => {
@@ -148,7 +148,7 @@ const updatesReducer = (
         data: newData,
       };
 
-    case "updateReadOnly":
+    case 'updateReadOnly':
       return {
         ...state,
         readOnly: action.readOnly,

@@ -1,6 +1,6 @@
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -20,13 +20,13 @@ const ExampleComponent = () => {
           __children: [{ value: 15 }, { value: 16 }, { value: 17 }],
         },
       ]}
-      columns={[{ data: "value" }]}
+      columns={[{ data: 'value' }]}
       nestedRows={true}
       rowHeaders={true}
-      colHeaders={["sum", "min", "max", "count", "average"]}
+      colHeaders={['sum', 'min', 'max', 'count', 'average']}
       columnSummary={function () {
         const endpoints = [];
-        const nestedRowsPlugin = this.hot.getPlugin("nestedRows");
+        const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
         const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(
           nestedRowsPlugin.dataManager,
         );
@@ -37,7 +37,7 @@ const ExampleComponent = () => {
         let nestedRowsCache = null;
 
         if (nestedRowsPlugin.isEnabled()) {
-          nestedRowsCache = this.hot.getPlugin("nestedRows").dataManager.cache;
+          nestedRowsCache = this.hot.getPlugin('nestedRows').dataManager.cache;
         } else {
           return;
         }
@@ -56,7 +56,7 @@ const ExampleComponent = () => {
           tempEndpoint.destinationRow = getRowIndex(
             nestedRowsCache.levels[0][i],
           );
-          tempEndpoint.type = "sum";
+          tempEndpoint.type = 'sum';
           tempEndpoint.forceNumeric = true;
           tempEndpoint.ranges = [];
 

@@ -1,6 +1,6 @@
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -32,12 +32,12 @@ const ExampleComponent = () => {
       ]}
       className="htCenter"
       cell={[
-        { row: 0, col: 0, className: "htRight" },
-        { row: 1, col: 1, className: "htLeft htMiddle" },
-        { row: 3, col: 4, className: "htLeft htBottom" },
+        { row: 0, col: 0, className: 'htRight' },
+        { row: 1, col: 1, className: 'htLeft htMiddle' },
+        { row: 3, col: 4, className: 'htLeft htBottom' },
       ]}
       afterSetCellMeta={function (row, col, key, val) {
-        console.log("cell meta changed", row, col, key, val);
+        console.log('cell meta changed', row, col, key, val);
       }}
     />
   );

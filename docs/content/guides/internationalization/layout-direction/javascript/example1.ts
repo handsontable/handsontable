@@ -1,16 +1,16 @@
-import Handsontable from "handsontable";
-import { registerLanguageDictionary, arAR } from "handsontable/i18n";
-import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from 'handsontable';
+import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
+import 'handsontable/dist/handsontable.full.min.css';
 
 registerLanguageDictionary(arAR);
 
 // generate random RTL data (e.g., Arabic)
 function generateArabicData() {
   const randomName = () =>
-    ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
+    ['عمر', 'علي', 'عبد الله', 'معتصم'][Math.floor(Math.random() * 3)];
 
   const randomCountry = () =>
-    ["تركيا", "مصر", "لبنان", "العراق"][Math.floor(Math.random() * 3)];
+    ['تركيا', 'مصر', 'لبنان', 'العراق'][Math.floor(Math.random() * 3)];
 
   const randomDate = () =>
     new Date(Math.floor(Math.random() * Date.now())).toLocaleDateString();
@@ -36,18 +36,18 @@ function generateArabicData() {
   return arr;
 }
 
-const container = document.querySelector("#example1")!;
+const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
   data: generateArabicData(),
   colHeaders: true,
   rowHeaders: true,
-  height: "auto",
+  height: 'auto',
   // render Handsontable from the right to the left
-  layoutDirection: "rtl",
+  layoutDirection: 'rtl',
   // load an RTL language (e.g., Arabic)
-  language: "ar-AR",
+  language: 'ar-AR',
   // enable a few options that exemplify the layout direction
   dropdownMenu: true,
   filters: true,

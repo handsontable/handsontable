@@ -1,9 +1,9 @@
-import { ChangeEvent, useRef, useState } from "react";
-import { HyperFormula } from "hyperformula";
-import { HotTable, HotTableClass } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import { DetailedSettings } from "handsontable/plugins/formulas";
-import "handsontable/dist/handsontable.full.min.css";
+import { ChangeEvent, useRef, useState } from 'react';
+import { HyperFormula } from 'hyperformula';
+import { HotTable, HotTableClass } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import { DetailedSettings } from 'handsontable/plugins/formulas';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -11,13 +11,13 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotNamedExpressionsRef = useRef<HotTableClass>(null);
   const [namedExpressionValue, setNamedExpressionValue] =
-    useState("=10 * Sheet1!$A$2");
+    useState('=10 * Sheet1!$A$2');
 
   const data = [
-    ["Travel ID", "Destination", "Base price", "Price with extra cost"],
-    ["154", "Rome", 400, "=ROUND(ADDITIONAL_COST+C2,0)"],
-    ["155", "Athens", 300, "=ROUND(ADDITIONAL_COST+C3,0)"],
-    ["156", "Warsaw", 150, "=ROUND(ADDITIONAL_COST+C4,0)"],
+    ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
+    ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
+    ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
+    ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)'],
   ];
 
   const inputChangeCallback = (event: ChangeEvent<HTMLInputElement>) => {
@@ -26,10 +26,10 @@ const ExampleComponent = () => {
 
   const buttonClickCallback = () => {
     const hotNamedExpressions = hotNamedExpressionsRef.current?.hotInstance;
-    const formulasPlugin = hotNamedExpressions?.getPlugin("formulas");
+    const formulasPlugin = hotNamedExpressions?.getPlugin('formulas');
 
     formulasPlugin?.engine?.changeNamedExpression(
-      "ADDITIONAL_COST",
+      'ADDITIONAL_COST',
       namedExpressionValue,
     );
 
@@ -49,7 +49,7 @@ const ExampleComponent = () => {
             engine: HyperFormula,
             namedExpressions: [
               {
-                name: "ADDITIONAL_COST",
+                name: 'ADDITIONAL_COST',
                 expression: 100,
               },
             ],

@@ -1,6 +1,6 @@
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -10,58 +10,58 @@ const ExampleComponent = () => {
     <HotTable
       data={[
         {
-          car: "Mercedes A 160",
+          car: 'Mercedes A 160',
           year: 2017,
           available: true,
-          comesInBlack: "yes",
+          comesInBlack: 'yes',
         },
         {
-          car: "Citroen C4 Coupe",
+          car: 'Citroen C4 Coupe',
           year: 2018,
           available: false,
-          comesInBlack: "yes",
+          comesInBlack: 'yes',
         },
         {
-          car: "Audi A4 Avant",
+          car: 'Audi A4 Avant',
           year: 2019,
           available: true,
-          comesInBlack: "no",
+          comesInBlack: 'no',
         },
         {
-          car: "Opel Astra",
+          car: 'Opel Astra',
           year: 2020,
           available: false,
-          comesInBlack: "yes",
+          comesInBlack: 'yes',
         },
         {
-          car: "BMW 320i Coupe",
+          car: 'BMW 320i Coupe',
           year: 2021,
           available: false,
-          comesInBlack: "no",
+          comesInBlack: 'no',
         },
       ]}
-      colHeaders={["Car model", "Accepted", "Comes in black"]}
+      colHeaders={['Car model', 'Accepted', 'Comes in black']}
       height="auto"
       columns={[
         {
-          data: "car",
+          data: 'car',
         },
         {
-          data: "available",
-          type: "checkbox",
+          data: 'available',
+          type: 'checkbox',
           label: {
-            position: "after",
-            property: "car", // Read value from row object
+            position: 'after',
+            property: 'car', // Read value from row object
           },
         },
         {
-          data: "comesInBlack",
-          type: "checkbox",
-          checkedTemplate: "yes",
-          uncheckedTemplate: "no",
+          data: 'comesInBlack',
+          type: 'checkbox',
+          checkedTemplate: 'yes',
+          uncheckedTemplate: 'no',
           label: {
-            position: "before",
-            value: "In black? ",
+            position: 'before',
+            value: 'In black? ',
           },
         },
       ]}

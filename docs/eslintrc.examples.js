@@ -12,6 +12,12 @@ module.exports = {
   },
   rules: {
     ...jsdocOff,
+    "prettier/prettier": [
+      "error",
+      {
+        "singleQuote": true,
+      }
+    ],
     'no-restricted-syntax': 'off',
     'no-restricted-globals': 'off',
     'no-console': 'off',

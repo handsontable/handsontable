@@ -1,7 +1,7 @@
-import { useRef, useState, useCallback } from "react";
-import { HotTable, HotTableClass } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { useRef, useState, useCallback } from 'react';
+import { HotTable, HotTableClass } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -9,13 +9,13 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableClass>(null);
   const [counter, setCounter] = useState(0);
-  const [output, setOutput] = useState("");
+  const [output, setOutput] = useState('');
 
-  const data2 = [[11, "Gavin Elle", "Floppy socks", "XS", 3, "yes"]];
+  const data2 = [[11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes']];
   const data3 = [
-    [12, "Gary Erre", "Happy dress", "M", 1, "no"],
-    [13, "Anna Moon", "Unicorn shades", "uni", 200, "no"],
-    [14, "Elise Eli", "Regular shades", "uni", 1, "no"],
+    [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
+    [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
+    [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no'],
   ];
 
   const logOutput = (msg: string) => {
@@ -26,21 +26,21 @@ const ExampleComponent = () => {
   const alterTable = useCallback(() => {
     const hot = hotRef.current?.hotInstance;
 
-    hot?.alter("insert_row_above", 10, 10);
-    hot?.alter("insert_col_start", 6, 1);
+    hot?.alter('insert_row_above', 10, 10);
+    hot?.alter('insert_col_start', 6, 1);
     hot?.populateFromArray(10, 0, data2);
     hot?.populateFromArray(11, 0, data3);
-    hot?.setCellMeta(2, 2, "className", "green-bg");
-    hot?.setCellMeta(4, 2, "className", "green-bg");
-    hot?.setCellMeta(5, 2, "className", "green-bg");
-    hot?.setCellMeta(6, 2, "className", "green-bg");
-    hot?.setCellMeta(8, 2, "className", "green-bg");
-    hot?.setCellMeta(9, 2, "className", "green-bg");
-    hot?.setCellMeta(10, 2, "className", "green-bg");
-    hot?.alter("remove_col", 6, 1);
-    hot?.alter("remove_row", 10, 10);
-    hot?.setCellMeta(0, 5, "className", "red-bg");
-    hot?.setCellMeta(10, 5, "className", "red-bg");
+    hot?.setCellMeta(2, 2, 'className', 'green-bg');
+    hot?.setCellMeta(4, 2, 'className', 'green-bg');
+    hot?.setCellMeta(5, 2, 'className', 'green-bg');
+    hot?.setCellMeta(6, 2, 'className', 'green-bg');
+    hot?.setCellMeta(8, 2, 'className', 'green-bg');
+    hot?.setCellMeta(9, 2, 'className', 'green-bg');
+    hot?.setCellMeta(10, 2, 'className', 'green-bg');
+    hot?.alter('remove_col', 6, 1);
+    hot?.alter('remove_row', 10, 10);
+    hot?.setCellMeta(0, 5, 'className', 'red-bg');
+    hot?.setCellMeta(10, 5, 'className', 'red-bg');
     hot?.render(); // Render is needed here to populate the new "className"s
   }, [hotRef.current]);
 
@@ -85,32 +85,32 @@ const ExampleComponent = () => {
           </button>
         </div>
         <output className="console" id="output">
-          {output || "Here you will see the log"}
+          {output || 'Here you will see the log'}
         </output>
       </div>
       <HotTable
         ref={hotRef}
         data={[
-          [1, "Gary Nash", "Speckled trousers", "S", 1, "yes"],
-          [2, "Gloria Brown", "100% Stainless sweater", "M", 2, "no"],
-          [3, "Ronald Carver", "Sunny T-shirt", "S", 1, "no"],
-          [4, "Samuel Watkins", "Floppy socks", "S", 3, "no"],
-          [5, "Stephanie Huddart", "Bushy-bush cap", "XXL", 1, "no"],
-          [6, "Madeline McGillivray", "Long skirt", "L", 1, "no"],
-          [7, "Jai Moor", "Happy dress", "XS", 1, "no"],
-          [8, "Ben Lower", "Speckled trousers", "M", 1, "no"],
-          [9, "Ali Tunbridge", "Speckled trousers", "M", 2, "no"],
-          [10, "Archie Galvin", "Regular shades", "uni", 10, "no"],
+          [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
+          [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
+          [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
+          [4, 'Samuel Watkins', 'Floppy socks', 'S', 3, 'no'],
+          [5, 'Stephanie Huddart', 'Bushy-bush cap', 'XXL', 1, 'no'],
+          [6, 'Madeline McGillivray', 'Long skirt', 'L', 1, 'no'],
+          [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
+          [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
+          [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
+          [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no'],
         ]}
         width="auto"
         height="auto"
         colHeaders={[
-          "ID",
-          "Customer name",
-          "Product name",
-          "Size",
-          "qty",
-          "Return",
+          'ID',
+          'Customer name',
+          'Product name',
+          'Size',
+          'qty',
+          'Return',
         ]}
         autoWrapRow={true}
         autoWrapCol={true}

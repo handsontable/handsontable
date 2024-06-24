@@ -1,5 +1,5 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
@@ -17,13 +17,13 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   return array2d;
 };
 
-const container = document.querySelector("#example9")!;
+const container = document.querySelector('#example9')!;
 
 new Handsontable(container, {
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
   // initialize a Handsontable instance with the generated numeric data
   data: generateData(5, 7),
-  height: "auto",
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   // enable the `ColumnSummary` plugin
@@ -31,7 +31,7 @@ new Handsontable(container, {
     // configure a column summary
     {
       // set the `type` option to `'custom'`
-      type: "custom",
+      type: 'custom',
       destinationRow: 0,
       destinationColumn: 5,
       reversedRowCoords: true,

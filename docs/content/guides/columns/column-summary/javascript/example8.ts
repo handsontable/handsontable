@@ -1,12 +1,12 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
-import { NestedRows } from "handsontable/plugins";
-import { DetailedSettings } from "handsontable/plugins/columnSummary";
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+import { NestedRows } from 'handsontable/plugins';
+import { DetailedSettings } from 'handsontable/plugins/columnSummary';
 
-const container = document.querySelector("#example8")!;
+const container = document.querySelector('#example8')!;
 
 new Handsontable(container, {
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
     {
       value: null,
@@ -16,13 +16,13 @@ new Handsontable(container, {
       __children: [{ value: 15 }, { value: 16 }, { value: 17 }],
     },
   ],
-  columns: [{ data: "value" }],
+  columns: [{ data: 'value' }],
   nestedRows: true,
   rowHeaders: true,
-  colHeaders: ["sum", "min", "max", "count", "average"],
+  colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   columnSummary() {
     const endpoints: DetailedSettings[] = [];
-    const nestedRowsPlugin: NestedRows = this.hot.getPlugin("nestedRows");
+    const nestedRowsPlugin: NestedRows = this.hot.getPlugin('nestedRows');
     const getRowIndex = nestedRowsPlugin.dataManager!.getRowIndex.bind(
       nestedRowsPlugin.dataManager,
     );
@@ -52,7 +52,7 @@ new Handsontable(container, {
       const tempEndpoint: DetailedSettings = {
         destinationColumn: resultColumn,
         destinationRow: getRowIndex(nestedRowsCache.levels[0][i]),
-        type: "sum",
+        type: 'sum',
         forceNumeric: true,
         ranges: [],
       };
@@ -73,5 +73,5 @@ new Handsontable(container, {
   },
   autoWrapRow: true,
   autoWrapCol: true,
-  height: "auto",
+  height: 'auto',
 });

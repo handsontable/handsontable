@@ -1,13 +1,13 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
-import { BaseRenderer } from "handsontable/renderers";
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+import { BaseRenderer } from 'handsontable/renderers';
 
-const templateValues: string[] = ["one", "two", "three"];
+const templateValues: string[] = ['one', 'two', 'three'];
 const data: (string | number)[][] = [
-  ["", "Tesla", "Nissan", "Toyota", "Honda"],
-  ["2017", 10, 11, 12, 13],
-  ["2018", 20, 11, 14, 13],
-  ["2019", 30, 15, 12, 13],
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+  ['2017', 10, 11, 12, 13],
+  ['2018', 20, 11, 14, 13],
+  ['2019', 30, 15, 12, 13],
 ];
 
 function isEmptyRow(instance: Handsontable, row: number) {
@@ -33,9 +33,9 @@ const defaultValueRenderer: BaseRenderer = (
 ) => {
   if (value === null && isEmptyRow(instance, row)) {
     value = templateValues[col];
-    td.style.color = "#999";
+    td.style.color = '#999';
   } else {
-    td.style.color = "";
+    td.style.color = '';
   }
 
   Handsontable.renderers.TextRenderer(
@@ -49,15 +49,15 @@ const defaultValueRenderer: BaseRenderer = (
   );
 };
 
-const container = document.querySelector("#example1")!;
+const container = document.querySelector('#example1')!;
 
 const hot = new Handsontable(container, {
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,
   contextMenu: true,
-  height: "auto",
-  licenseKey: "non-commercial-and-evaluation",
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
   cells() {
     return { renderer: defaultValueRenderer };
   },

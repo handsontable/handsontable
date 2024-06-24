@@ -1,6 +1,6 @@
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -12,16 +12,16 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       data={[
-        ["empty string", "", "", "", "", ""],
-        ["null", null, null, null, null, null],
-        ["undefined", undefined, undefined, undefined, undefined, undefined],
+        ['empty string', '', '', '', '', ''],
+        ['null', null, null, null, null, null],
+        ['undefined', undefined, undefined, undefined, undefined, undefined],
         [
-          "non-empty value",
-          "non-empty text",
+          'non-empty value',
+          'non-empty text',
           13000,
           true,
-          "orange",
-          "password",
+          'orange',
+          'password',
         ],
       ]}
       columnSorting={{
@@ -42,24 +42,24 @@ const ExampleComponent = () => {
         },
         {},
         {
-          type: "numeric",
+          type: 'numeric',
           numericFormat: {
-            pattern: "$0,0.00",
-            culture: "en-US",
+            pattern: '$0,0.00',
+            culture: 'en-US',
           },
         },
-        { type: "checkbox" },
-        { type: "dropdown", source: ["yellow", "red", "orange"] },
-        { type: "password" },
+        { type: 'checkbox' },
+        { type: 'dropdown', source: ['yellow', 'red', 'orange'] },
+        { type: 'password' },
       ]}
       preventOverflow="horizontal"
       colHeaders={[
-        "value<br>underneath",
-        "type:text",
-        "type:numeric",
-        "type:checkbox",
-        "type:dropdown",
-        "type:password",
+        'value<br>underneath',
+        'type:text',
+        'type:numeric',
+        'type:checkbox',
+        'type:dropdown',
+        'type:password',
       ]}
       height="auto"
     />

@@ -1,6 +1,6 @@
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -35,7 +35,7 @@ const ExampleComponent = () => {
         // configure a column summary
         {
           // set the `type` option to `'custom'`
-          type: "custom",
+          type: 'custom',
           destinationRow: 0,
           destinationColumn: 5,
           reversedRowCoords: true,

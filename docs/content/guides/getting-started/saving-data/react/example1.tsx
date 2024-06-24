@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from "react";
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.css";
+import { useEffect, useState, useRef } from 'react';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -18,9 +18,9 @@ const ExampleComponent = () => {
     setIsAutosave(event.target.checked);
 
     if (event.target.checked) {
-      setOutput("Changes will be autosaved");
+      setOutput('Changes will be autosaved');
     } else {
-      setOutput("Changes will not be autosaved");
+      setOutput('Changes will not be autosaved');
     }
   };
 
@@ -28,26 +28,26 @@ const ExampleComponent = () => {
     const hot = hotRef.current.hotInstance;
 
     loadClickCallback = () => {
-      fetch("{{$basePath}}/scripts/json/load.json").then((response) => {
+      fetch('{{$basePath}}/scripts/json/load.json').then((response) => {
         response.json().then((data) => {
           hot.loadData(data.data);
           // or, use `updateData()` to replace `data` without resetting states
-          setOutput("Data loaded");
+          setOutput('Data loaded');
         });
       });
     };
     saveClickCallback = () => {
       // save all cell's data
-      fetch("{{$basePath}}/scripts/json/save.json", {
-        method: "POST",
-        mode: "no-cors",
+      fetch('{{$basePath}}/scripts/json/save.json', {
+        method: 'POST',
+        mode: 'no-cors',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ data: hot.getData() }),
       }).then((response) => {
-        setOutput("Data saved");
-        console.log("The POST request is only used here for the demo purposes");
+        setOutput('Data saved');
+        console.log('The POST request is only used here for the demo purposes');
       });
     };
   });
@@ -97,7 +97,7 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
         afterChange={function (change, source) {
-          if (source === "loadData") {
+          if (source === 'loadData') {
             return; // don't save this change
           }
 
@@ -105,19 +105,19 @@ const ExampleComponent = () => {
             return;
           }
 
-          fetch("{{$basePath}}/scripts/json/save.json", {
-            method: "POST",
-            mode: "no-cors",
+          fetch('{{$basePath}}/scripts/json/save.json', {
+            method: 'POST',
+            mode: 'no-cors',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify({ data: change }),
           }).then((response) => {
             setOutput(
-              `Autosaved (${change.length} cell${change.length > 1 ? "s" : ""})`,
+              `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`,
             );
             console.log(
-              "The POST request is only used here for the demo purposes",
+              'The POST request is only used here for the demo purposes',
             );
           });
         }}

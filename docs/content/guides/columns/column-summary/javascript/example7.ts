@@ -1,6 +1,6 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
-import { DetailedSettings } from "handsontable/plugins/columnSummary";
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+import { DetailedSettings } from 'handsontable/plugins/columnSummary';
 
 // generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
@@ -18,24 +18,24 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   return array2d;
 };
 
-const container = document.querySelector("#example7")!;
+const container = document.querySelector('#example7')!;
 
 new Handsontable(container, {
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
   // initialize a Handsontable instance with the generated data
   data: generateData(5, 5, true),
-  height: "auto",
+  height: 'auto',
   rowHeaders: true,
-  colHeaders: ["sum", "min", "max", "count", "average"],
+  colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   // set the `columnSummary` configuration option to a function
   columnSummary() {
     const configArray: DetailedSettings[] = [];
-    const summaryTypes: ("sum" | "min" | "max" | "count" | "average")[] = [
-      "sum",
-      "min",
-      "max",
-      "count",
-      "average",
+    const summaryTypes: ('sum' | 'min' | 'max' | 'count' | 'average')[] = [
+      'sum',
+      'min',
+      'max',
+      'count',
+      'average',
     ];
 
     for (let i = 0; i < this.hot.countCols(); i++) {
