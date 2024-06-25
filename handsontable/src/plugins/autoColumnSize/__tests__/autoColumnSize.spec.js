@@ -194,6 +194,8 @@ describe('AutoColumnSize', () => {
     spec().$container.css('display', 'block');
     hot.render();
 
+    await sleep(50);
+
     expect(colWidth(spec().$container, 0)).toBeAroundValue(58);
   });
 

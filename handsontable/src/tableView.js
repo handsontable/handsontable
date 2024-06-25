@@ -1631,6 +1631,15 @@ class TableView {
   }
 
   /**
+   * Checks if the table is visible or not.
+   *
+   * @returns {boolean}
+   */
+  isVisible() {
+    return this._wt.wtTable.isVisible();
+  }
+
+  /**
    * Return the value of the `aria-colcount` attribute.
    *
    * @returns {number} The value of the `aria-colcount` attribute.
