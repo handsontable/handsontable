@@ -12,6 +12,30 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
     "react-star-rating-component": "1.4.1",`
     : '';
 
+  const tsconfig = lang === 'tsx' ? {
+  'tsconfig.json' : {
+    content: `{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noResolve": false,
+    "noImplicitAny": false,
+    "allowJs": true,
+    "jsx": "react",
+    "skipLibCheck": true,
+    "lib": [
+        "dom",
+        "es2020"
+    ]
+  },
+  "exclude": [
+    "./node_modules/**/*"
+  ]
+}`
+  }
+}: {}
+
   if (sandbox === 'stackblitz') {
     return {
       files: {
@@ -21,15 +45,15 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
   "version": "1.0.0",
   "description": "",
   "dependencies": {
-    ${lang === 'tsx' ?
-    `"@types/react": "^16.8.2",
-     "@types/react-dom": "^16.8.0",` : ''
-}
     "react": "^18.2.0",
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
     "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
-    "@handsontable/react": "${version}"
+    "@handsontable/react": "${version}"${lang === 'tsx' ?`,
+    "@types/react": "18.0.21",
+    "@types/react-dom": "18.0.6",
+    "typescript": "5.5.2"` : ''
+    }
   },
   ${lang === 'tsx' ?
     `"devDependencies": {
@@ -86,7 +110,8 @@ root.render(
         [`src/ExampleComponent.${lang}`]: {
           content: `import React from "react";
 ${js}`
-        }
+        },
+        ...tsconfig
       }
     };
   }
@@ -107,7 +132,11 @@ ${js}`
     "react": "^18.2.0",
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
     "handsontable": "${version}",
-    "@handsontable/react": "${version}"
+    "@handsontable/react": "${version}"${lang === 'tsx' ?`,
+    "@types/react": "18.0.21",
+    "@types/react-dom": "18.0.6",
+    "typescript": "5.5.2"` : ''
+    }
   },
   "devDependencies": {
     "react-scripts": "^5.0.1"
@@ -148,7 +177,8 @@ ${js}`
         content: css
       },
       [`src/index.${lang}`]: {
-        content: `import { StrictMode } from "react";
+        content: `import * as React from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import ExampleComponent from "./ExampleComponent";
@@ -163,8 +193,10 @@ root.render(
 );`
       },
       [`src/ExampleComponent.${lang}`]: {
-        content: js.replace('import { HyperFormula } from \'hyperformula\';', '')
-      }
+        content: `import * as React from "react";
+${js.replace('import { HyperFormula } from \'hyperformula\';', '')}`
+      },
+      ...tsconfig
     }
   };
 

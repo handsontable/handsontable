@@ -1,4 +1,3 @@
-import Handsontable from 'handsontable';
 import { useState } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
