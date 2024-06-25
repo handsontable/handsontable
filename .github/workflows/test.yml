@@ -308,7 +308,7 @@ jobs:
         with:
           name: handsontable-build-es-cjs
           path: ./
-      - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       
       - name: Build UMD from ESM
         run: |
@@ -339,7 +339,7 @@ jobs:
         with:
           name: handsontable-build-es-cjs
           path: ./
-      - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       
       - name: Build UMD from CJS
         run: |
