@@ -25,14 +25,14 @@ const ExampleComponent = () => {
     row: number,
     col: number,
     value: any,
-    result: any,
+    result: any
   ) {
     const DEFAULT_CALLBACK = function (
       instance: Handsontable,
       row: number,
       col: number,
       data: any,
-      testResult: any,
+      testResult: any
     ) {
       instance.getCellMeta(row, col).isSearchResult = testResult;
     };

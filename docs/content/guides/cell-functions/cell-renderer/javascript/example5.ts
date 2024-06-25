@@ -22,7 +22,9 @@ const hot = new Handsontable(container, {
   colHeaders(col) {
     return col === 0
       ? '<b>Bold</b> and <em>Beautiful</em>'
-      : `Some <input type="checkbox" class="checker" ${isChecked ? 'checked="checked"' : ''}> checkbox`;
+      : `Some <input type="checkbox" class="checker" ${
+          isChecked ? 'checked="checked"' : ''
+        }> checkbox`;
   },
   autoWrapRow: true,
   autoWrapCol: true,

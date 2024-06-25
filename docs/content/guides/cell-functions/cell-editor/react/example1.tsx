@@ -42,7 +42,7 @@ class EditorComponent extends BaseEditorComponent {
     prop: string,
     td: HTMLTableColElement,
     originalValue: string,
-    cellProperties: Handsontable.CellProperties,
+    cellProperties: Handsontable.CellProperties
   ) {
     // We'll need to call the `prepare` method from
     // the `BaseEditorComponent` class, as it provides
@@ -56,8 +56,12 @@ class EditorComponent extends BaseEditorComponent {
     // any cell, we're updating the styles for the editor element,
     // so it shows up in the correct position.
     if (!this.mainElementRef.current) return;
-    this.mainElementRef.current.style.left = `${tdPosition.left + window.pageXOffset}px`;
-    this.mainElementRef.current.style.top = `${tdPosition.top + window.pageYOffset}px`;
+    this.mainElementRef.current.style.left = `${
+      tdPosition.left + window.pageXOffset
+    }px`;
+    this.mainElementRef.current.style.top = `${
+      tdPosition.top + window.pageYOffset
+    }px`;
   }
 
   setLowerCase() {
@@ -67,7 +71,7 @@ class EditorComponent extends BaseEditorComponent {
       },
       () => {
         this.finishEditing();
-      },
+      }
     );
   }
 
@@ -78,7 +82,7 @@ class EditorComponent extends BaseEditorComponent {
       },
       () => {
         this.finishEditing();
-      },
+      }
     );
   }
 

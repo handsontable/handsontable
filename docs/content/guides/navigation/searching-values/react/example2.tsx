@@ -25,7 +25,7 @@ const ExampleComponent = () => {
       console.log(queryResult);
       hot?.render();
     },
-    [hotRef.current],
+    [hotRef.current]
   );
 
   return (

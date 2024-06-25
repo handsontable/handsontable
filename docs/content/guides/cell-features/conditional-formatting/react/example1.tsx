@@ -29,7 +29,7 @@ const ExampleComponent = () => {
     col,
     prop,
     value,
-    cellProperties,
+    cellProperties
   ) => {
     Handsontable.renderers.TextRenderer(
       instance,
@@ -38,7 +38,7 @@ const ExampleComponent = () => {
       col,
       prop,
       value,
-      cellProperties,
+      cellProperties
     );
 
     // if the row contains a negative number

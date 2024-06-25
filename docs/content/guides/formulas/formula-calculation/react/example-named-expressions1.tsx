@@ -30,7 +30,7 @@ const ExampleComponent = () => {
 
     formulasPlugin?.engine?.changeNamedExpression(
       'ADDITIONAL_COST',
-      namedExpressionValue,
+      namedExpressionValue
     );
 
     hotNamedExpressions?.render();

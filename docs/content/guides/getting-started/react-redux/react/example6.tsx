@@ -68,7 +68,7 @@ class UnconnectedColorPicker extends BaseEditorComponent<EditorProps> {
     prop: string,
     td: HTMLTableColElement,
     originalValue: string,
-    cellProperties: Handsontable.CellProperties,
+    cellProperties: Handsontable.CellProperties
   ) {
     super.prepare(row, col, prop, td, originalValue, cellProperties);
 
@@ -76,8 +76,12 @@ class UnconnectedColorPicker extends BaseEditorComponent<EditorProps> {
 
     if (!this.editorRef.current) return;
 
-    this.editorRef.current.style.left = `${tdPosition.left + window.pageXOffset}px`;
-    this.editorRef.current.style.top = `${tdPosition.top + window.pageYOffset}px`;
+    this.editorRef.current.style.left = `${
+      tdPosition.left + window.pageXOffset
+    }px`;
+    this.editorRef.current.style.top = `${
+      tdPosition.top + window.pageYOffset
+    }px`;
   }
 
   onPickedColor(color: any) {
@@ -174,7 +178,7 @@ const initialReduxStoreState: {
 
 const appReducer = (
   state = initialReduxStoreState,
-  action: { type?: any; row?: any; hexColor?: any; hotData?: any },
+  action: { type?: any; row?: any; hexColor?: any; hotData?: any }
 ) => {
   switch (action.type) {
     case 'initRatingColors': {

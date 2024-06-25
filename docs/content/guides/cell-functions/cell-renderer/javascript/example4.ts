@@ -44,7 +44,7 @@ const safeHtmlRenderer: BaseRenderer = (
   _row,
   _col,
   _prop,
-  value,
+  value
 ) => {
   // WARNING: Be sure you only allow certain HTML tags to avoid XSS threats.
   // Sanitize the "value" before passing it to the innerHTML property.
@@ -57,7 +57,7 @@ const coverRenderer: BaseRenderer = (
   _row,
   _col,
   _prop,
-  value,
+  value
 ) => {
   const img = document.createElement('img');
 

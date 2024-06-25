@@ -180,7 +180,7 @@ new Handsontable(container, {
     filtersRowsMap.setValueAtIndex(0, false);
     filtersRowsMap.setValueAtIndex(
       filtersRowsMap.indexedValues.length - 1,
-      false,
+      false
     );
   },
   autoWrapRow: true,

@@ -28,7 +28,7 @@ const ExampleComponent = () => {
 
       hot.render();
     },
-    [hotRef.current],
+    [hotRef.current]
   );
 
   return (

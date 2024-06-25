@@ -27,13 +27,13 @@ const ExampleComponent = () => {
 
       hot?.render();
     },
-    [hotRef.current],
+    [hotRef.current]
   );
 
   //  define your custom query method
   function onlyExactMatch(
     queryStr: { toString: () => any },
-    value: { toString: () => any },
+    value: { toString: () => any }
   ) {
     return queryStr.toString() === value.toString();
   }

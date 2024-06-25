@@ -114,10 +114,10 @@ const ExampleComponent = () => {
             body: JSON.stringify({ data: change }),
           }).then((response) => {
             setOutput(
-              `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`,
+              `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`
             );
             console.log(
-              'The POST request is only used here for the demo purposes',
+              'The POST request is only used here for the demo purposes'
             );
           });
         }}

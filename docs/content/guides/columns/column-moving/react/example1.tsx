@@ -11,7 +11,7 @@ const data = new Array(200) // number of rows
   .map((_, row) =>
     new Array(20) // number of columns
       .fill(null)
-      .map((_, column) => `${row}, ${column}`),
+      .map((_, column) => `${row}, ${column}`)
   );
 
 const ExampleComponent = () => {

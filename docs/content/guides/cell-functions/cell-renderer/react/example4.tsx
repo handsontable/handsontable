@@ -43,7 +43,7 @@ const ExampleComponent = () => {
     _col: number,
     _prop: string | number,
     value: Handsontable.CellValue,
-    _cellProperties: Handsontable.CellProperties,
+    _cellProperties: Handsontable.CellProperties
   ) {
     // WARNING: Be sure you only allow certain HTML tags to avoid XSS threats.
     // Sanitize the "value" before passing it to the innerHTML property.
@@ -57,7 +57,7 @@ const ExampleComponent = () => {
     _col: number,
     _prop: string | number,
     value: Handsontable.CellValue,
-    _cellProperties: Handsontable.CellProperties,
+    _cellProperties: Handsontable.CellProperties
   ) {
     const img = document.createElement('img');
 

@@ -87,7 +87,7 @@ function log_events(event, data) {
         i,
         `@${numbro(diff / 1000).format('0.000')}`,
         `[${event}]`,
-        data,
+        data
       );
     }
 
@@ -117,7 +117,7 @@ document
   .addEventListener('click', function () {
     const state = this.checked;
     const inputs = document.querySelectorAll(
-      '#hooksList input[type=checkbox]',
+      '#hooksList input[type=checkbox]'
     ) as NodeListOf<HTMLInputElement>;
 
     Array.prototype.forEach.call(inputs, (input: HTMLInputElement) => {

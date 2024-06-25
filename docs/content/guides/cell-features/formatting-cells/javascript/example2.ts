@@ -12,7 +12,7 @@ const customStylesRenderer: BaseRenderer = (hotInstance, TD, ...rest) => {
 
 Handsontable.renderers.registerRenderer(
   'customStylesRenderer',
-  customStylesRenderer,
+  customStylesRenderer
 );
 
 const container = document.querySelector('#example2')!;

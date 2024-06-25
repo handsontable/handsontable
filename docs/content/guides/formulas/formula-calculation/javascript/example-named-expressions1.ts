@@ -39,7 +39,7 @@ const button = document.getElementById('named-expressions-button')!;
 button!.addEventListener('click', () => {
   formulasPlugin.engine?.changeNamedExpression(
     'ADDITIONAL_COST',
-    (input as HTMLInputElement).value,
+    (input as HTMLInputElement).value
   );
   hot.render();
 });

@@ -1,8 +1,8 @@
-import React from "react";
-import { HotTable } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
-import Handsontable from "handsontable";
+import React from 'react';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+import Handsontable from 'handsontable';
 
 interface Person {
   id: number | undefined;
@@ -46,13 +46,13 @@ function model(opts: ModelOptions): Partial<Person> {
     attr: keyof Person | string,
     val?: Handsontable.CellValue
   ) {
-    if (typeof val === "undefined") {
-      window.console && console.log("GET the", attr, "value of", _pub);
+    if (typeof val === 'undefined') {
+      window.console && console.log('GET the', attr, 'value of', _pub);
 
       return _priv[attr];
     }
 
-    window.console && console.log("SET the", attr, "value of", _pub);
+    window.console && console.log('SET the', attr, 'value of', _pub);
     _priv[attr] = val;
 
     return _pub;
@@ -67,11 +67,11 @@ function property(attr: keyof Person | string) {
 }
 
 const data: Partial<Person>[] = [
-  model({ id: 1, name: "Ted Right", address: "" }),
-  model({ id: 2, name: "Frank Honest", address: "" }),
-  model({ id: 3, name: "Joan Well", address: "" }),
-  model({ id: 4, name: "Gail Polite", address: "" }),
-  model({ id: 5, name: "Michael Fair", address: "" }),
+  model({ id: 1, name: 'Ted Right', address: '' }),
+  model({ id: 2, name: 'Frank Honest', address: '' }),
+  model({ id: 3, name: 'Joan Well', address: '' }),
+  model({ id: 4, name: 'Gail Polite', address: '' }),
+  model({ id: 5, name: 'Michael Fair', address: '' }),
 ];
 
 const ExampleComponent: React.FC = () => (
@@ -80,11 +80,11 @@ const ExampleComponent: React.FC = () => (
     dataSchema={model}
     height="auto"
     width="auto"
-    colHeaders={["ID", "Name", "Address"]}
+    colHeaders={['ID', 'Name', 'Address']}
     columns={[
-      { data: property("id") },
-      { data: property("name") },
-      { data: property("address") },
+      { data: property('id') },
+      { data: property('name') },
+      { data: property('address') },
     ]}
     minSpareRows={1}
     autoWrapRow={true}

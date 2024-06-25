@@ -550,7 +550,7 @@ let hot = new Handsontable(app, hotOptions);
 // Helper function to set up checkbox event handling
 const setupCheckbox = (
   element: HTMLInputElement,
-  callback: (val: boolean) => void,
+  callback: (val: boolean) => void
 ) => element.addEventListener('click', () => callback(element.checked));
 
 // Set up event listeners for various checkboxes to update Handsontable settings.
@@ -567,9 +567,9 @@ setupCheckbox(
     });
     console.log(
       'Updated setting: tabNavigation to',
-      hot.getSettings().tabNavigation,
+      hot.getSettings().tabNavigation
     );
-  },
+  }
 );
 
 // Checkbox: Enable/Disable Header Navigation
@@ -582,9 +582,9 @@ setupCheckbox(
     });
     console.log(
       'Updated setting: navigableHeaders to',
-      hot.getSettings().navigableHeaders,
+      hot.getSettings().navigableHeaders
     );
-  },
+  }
 );
 
 // Checkbox: Enable/Disable Cell Virtualization
@@ -601,7 +601,7 @@ setupCheckbox(
       renderAllRows: hot.getSettings().renderAllRows,
       renderAllColumns: hot.getSettings().renderAllColumns,
     });
-  },
+  }
 );
 
 // Checkbox: Enable/Disable Cell Enter Editing
@@ -614,15 +614,15 @@ setupCheckbox(
     });
     console.log(
       'Updated setting: enable-cell-enter-editing to',
-      hot.getSettings().enterBeginsEditing,
+      hot.getSettings().enterBeginsEditing
     );
-  },
+  }
 );
 
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Row
 setupCheckbox(
   document.querySelector(
-    '#enable-arrow-rl-first-last-column',
+    '#enable-arrow-rl-first-last-column'
   ) as HTMLInputElement,
   (checked) => {
     hotOptions.autoWrapRow = checked;
@@ -631,15 +631,15 @@ setupCheckbox(
     });
     console.log(
       'Updated setting: autoWrapRow to',
-      hot.getSettings().autoWrapRow,
+      hot.getSettings().autoWrapRow
     );
-  },
+  }
 );
 
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Column
 setupCheckbox(
   document.querySelector(
-    '#enable-arrow-td-first-last-column',
+    '#enable-arrow-td-first-last-column'
   ) as HTMLInputElement,
   (checked) => {
     hotOptions.autoWrapCol = checked;
@@ -648,9 +648,9 @@ setupCheckbox(
     });
     console.log(
       'Updated setting: autoWrapCol to',
-      hot.getSettings().autoWrapCol,
+      hot.getSettings().autoWrapCol
     );
-  },
+  }
 );
 
 // Checkbox: Enable/Disable Enter Key Focus for Editing
@@ -662,5 +662,5 @@ setupCheckbox(
       enterMoves: hotOptions.enterMoves,
     });
     console.log('Updated setting: enterMoves to', hot.getSettings().enterMoves);
-  },
+  }
 );

@@ -29,7 +29,7 @@ const defaultValueRenderer: BaseRenderer = (
   col,
   prop,
   value,
-  cellProperties,
+  cellProperties
 ) => {
   if (value === null && isEmptyRow(instance, row)) {
     value = templateValues[col];
@@ -45,7 +45,7 @@ const defaultValueRenderer: BaseRenderer = (
     col,
     prop,
     value,
-    cellProperties,
+    cellProperties
   );
 };
 

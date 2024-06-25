@@ -24,7 +24,7 @@ new Handsontable(container, {
     const endpoints: DetailedSettings[] = [];
     const nestedRowsPlugin: NestedRows = this.hot.getPlugin('nestedRows');
     const getRowIndex = nestedRowsPlugin.dataManager!.getRowIndex.bind(
-      nestedRowsPlugin.dataManager,
+      nestedRowsPlugin.dataManager
     );
 
     const resultColumn = 0;
@@ -62,7 +62,7 @@ new Handsontable(container, {
         getRowIndex(
           nestedRowsCache.levels[0][i].__children[
             nestedRowsCache.levels[0][i].__children.length - 1
-          ],
+          ]
         ),
       ]);
 

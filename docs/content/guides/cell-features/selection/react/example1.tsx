@@ -11,7 +11,7 @@ const ExampleComponent = () => {
   const hotRef = useRef<HotTableClass>(null);
 
   const selectOptionChangeCallback = (
-    event: ChangeEvent<HTMLSelectElement>,
+    event: ChangeEvent<HTMLSelectElement>
   ) => {
     const hot = hotRef.current?.hotInstance;
 

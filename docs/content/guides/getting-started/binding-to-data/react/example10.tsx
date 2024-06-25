@@ -1,18 +1,18 @@
-import React, { useEffect, useRef } from "react";
-import { HotTable, HotTableClass } from "@handsontable/react";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.min.css";
+import React, { useEffect, useRef } from 'react';
+import { HotTable, HotTableClass } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // Register Handsontable's modules
 registerAllModules();
 
 const data: Array<Array<string | number>> = [
-  ["", "Tesla", "Nissan", "Toyota", "Honda", "Mazda", "Ford"],
-  ["2017", 10, 11, 12, 13, 15, 16],
-  ["2018", 10, 11, 12, 13, 15, 16],
-  ["2019", 10, 11, 12, 13, 15, 16],
-  ["2020", 10, 11, 12, 13, 15, 16],
-  ["2021", 10, 11, 12, 13, 15, 16],
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+  ['2017', 10, 11, 12, 13, 15, 16],
+  ['2018', 10, 11, 12, 13, 15, 16],
+  ['2019', 10, 11, 12, 13, 15, 16],
+  ['2020', 10, 11, 12, 13, 15, 16],
+  ['2021', 10, 11, 12, 13, 15, 16],
 ];
 
 const ExampleComponent: React.FC = () => {
@@ -22,7 +22,7 @@ const ExampleComponent: React.FC = () => {
     const hot = hotRef.current?.hotInstance;
 
     if (hot) {
-      hot.setDataAtCell(0, 1, "Ford");
+      hot.setDataAtCell(0, 1, 'Ford');
     }
   }, []); // run once
 

@@ -23,7 +23,7 @@ const negativeValueRenderer: BaseRenderer = (
   col,
   prop,
   value,
-  cellProperties,
+  cellProperties
 ) => {
   Handsontable.renderers.TextRenderer(
     instance,
@@ -32,7 +32,7 @@ const negativeValueRenderer: BaseRenderer = (
     col,
     prop,
     value,
-    cellProperties,
+    cellProperties
   );
 
   // if the row contains a negative number
@@ -55,7 +55,7 @@ const negativeValueRenderer: BaseRenderer = (
 // maps function to a lookup string
 Handsontable.renderers.registerRenderer(
   'negativeValueRenderer',
-  negativeValueRenderer,
+  negativeValueRenderer
 );
 
 const container = document.querySelector('#example1')!;

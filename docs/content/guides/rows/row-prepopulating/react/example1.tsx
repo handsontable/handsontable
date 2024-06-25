@@ -37,7 +37,7 @@ const ExampleComponent = () => {
     instance: Handsontable,
     td: HTMLTableCellElement,
     row: number,
-    col: number,
+    col: number
   ) {
     const args = arguments;
 

@@ -17,7 +17,7 @@ function searchResultCounter(
   row: number,
   column: number,
   value: Handsontable.CellValue,
-  result: boolean,
+  result: boolean
 ): void {
   const DEFAULT_CALLBACK = function (instance, row, col, _data, testResult) {
     instance.getCellMeta(row, col).isSearchResult = testResult;

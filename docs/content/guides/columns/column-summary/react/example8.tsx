@@ -28,7 +28,7 @@ const ExampleComponent = () => {
         const endpoints = [];
         const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
         const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(
-          nestedRowsPlugin.dataManager,
+          nestedRowsPlugin.dataManager
         );
 
         const resultColumn = 0;
@@ -54,7 +54,7 @@ const ExampleComponent = () => {
 
           tempEndpoint.destinationColumn = resultColumn;
           tempEndpoint.destinationRow = getRowIndex(
-            nestedRowsCache.levels[0][i],
+            nestedRowsCache.levels[0][i]
           );
           tempEndpoint.type = 'sum';
           tempEndpoint.forceNumeric = true;
@@ -65,7 +65,7 @@ const ExampleComponent = () => {
             getRowIndex(
               nestedRowsCache.levels[0][i].__children[
                 nestedRowsCache.levels[0][i].__children.length - 1
-              ],
+              ]
             ),
           ]);
 

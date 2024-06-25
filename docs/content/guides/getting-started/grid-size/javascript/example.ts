@@ -11,7 +11,7 @@ const data: string[][] = new Array(100) // number of rows
   .map((_, row) =>
     new Array(50) // number of columns
       .fill(null)
-      .map((_, column) => `${row}, ${column}`),
+      .map((_, column) => `${row}, ${column}`)
   );
 
 const hot = new Handsontable(example, {

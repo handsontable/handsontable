@@ -11,7 +11,7 @@ const ExampleComponent = () => {
     let counter = 0;
 
     const array2d = [...new Array(rows)].map((_) =>
-      [...new Array(columns)].map((_) => counter++),
+      [...new Array(columns)].map((_) => counter++)
     );
 
     if (additionalRows) {

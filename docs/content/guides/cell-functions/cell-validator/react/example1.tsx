@@ -15,7 +15,7 @@ const ExampleComponent = () => {
 
   const emailValidator = (
     value: string,
-    callback: (value: boolean) => void,
+    callback: (value: boolean) => void
   ) => {
     setTimeout(() => {
       if (/.+@.+/.test(value)) {

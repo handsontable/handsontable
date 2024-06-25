@@ -12,7 +12,7 @@ const ExampleComponent = () => {
     let counter = 0;
 
     const array2d = [...new Array(rows)].map((_) =>
-      [...new Array(columns)].map((_) => counter++),
+      [...new Array(columns)].map((_) => counter++)
     );
 
     // add an empty row at the bottom, to display column summaries

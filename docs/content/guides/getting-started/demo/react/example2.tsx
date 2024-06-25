@@ -1224,7 +1224,7 @@ export function addClassesToRows(
   column: number,
   _prop: string | number,
   _value: Handsontable.CellValue,
-  cellProperties: Handsontable.CellProperties,
+  cellProperties: Handsontable.CellProperties
 ): void {
   // Adding classes to `TR` just while rendering first visible `TD` element
   if (column !== 0) {
@@ -1255,7 +1255,7 @@ export function addClassesToRows(
 export function alignHeaders(
   this: Handsontable,
   column: number,
-  TH: HTMLTableHeaderCellElement,
+  TH: HTMLTableHeaderCellElement
 ) {
   if (column < 0) {
     return;
@@ -1267,11 +1267,11 @@ export function alignHeaders(
     if (headerAlignments.has(column.toString())) {
       Handsontable.dom.removeClass(
         TH.firstChild as HTMLElement,
-        alignmentClass,
+        alignmentClass
       );
       Handsontable.dom.addClass(
         TH.firstChild as HTMLElement,
-        headerAlignments.get(column.toString())!,
+        headerAlignments.get(column.toString())!
       );
     } else {
       Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
@@ -1325,5 +1325,5 @@ const rootElement = document.getElementById('example2');
 ReactDOM.render(<App />, rootElement);
 
 console.log(
-  `Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`,
+  `Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`
 );

@@ -12,7 +12,7 @@ const ExampleComponent = () => {
     // get the `MultiColumnSorting` plugin
     const multiColumnSorting =
       hotTableComponentRef.current?.hotInstance?.getPlugin(
-        'multiColumnSorting',
+        'multiColumnSorting'
       );
 
     multiColumnSorting?.sort([

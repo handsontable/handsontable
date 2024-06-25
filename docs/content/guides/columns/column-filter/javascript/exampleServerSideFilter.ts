@@ -101,7 +101,9 @@ new Handsontable(container, {
     console.log(`The amount of filters: ${conditionsStack.length}`);
     console.log(`The last changed column index: ${conditionsStack[0]!.column}`);
     console.log(
-      `The amount of filters added to this column: ${conditionsStack[0]!.conditions.length}`,
+      `The amount of filters added to this column: ${
+        conditionsStack[0]!.conditions.length
+      }`
     );
     // the list of filter conditions
     console.log(conditionsStack[0]!.conditions);
