@@ -25,15 +25,11 @@ To start a local Handsontable documentation server:
    ```bash
    npm run docs:api
    ```
-3. Generate the JS examples:
-   ```bash
-   npm run docs:scripts:generate-js-examples
-   ```
-4. Start your local documentation server:
+3. Start your local documentation server:
    ```bash
    npm run docs:start
    ```
-5. In your browser, go to: http://localhost:8080/docs/.
+4. In your browser, go to: http://localhost:8080/docs/.
 
 ## Documentation npm scripts:
 
@@ -52,7 +48,8 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:scripts:link-assets` – Prepares the `next` documentation version's CSS and JavaScript.
 * `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
 * `npm run docs:test:example-checker` – Runs the tests that checks if all Docs examples work.
-* `npm run docs:scripts:generate-js-examples` – Generate js version of the code examples (need to run this script before first `docs:start` and every time some `*.ts` inside `docs/content/guides` changes)
+* `npm run docs:scripts:generate-js-example content/guides/path/to/example.ts` – Generate JS/JSX version of the code example (needs to be run before commiting any change to TS/TSX code example)
+* `npm run docs:scripts:generate-js-example:all` – Generate all JS/JSX versions of the TS/TSX code examples
 
 
 ## Handsontable documentation directory structure
