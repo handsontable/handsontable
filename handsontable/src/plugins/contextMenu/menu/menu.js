@@ -119,13 +119,6 @@ export class Menu {
   #shortcutsCtrl;
 
   /**
-   * The bound version of the `afterOnCellMouseDown` hook callback.
-   *
-   * @type {Function}
-   */
-  #boundAfterOnCellMouseDown;
-
-  /**
    * @param {Core} hotInstance Handsontable instance.
    * @param {MenuOptions} [options] Menu options.
    */
@@ -162,6 +155,7 @@ export class Menu {
 
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
+      this.eventManager.addEventListener(frame.document, 'touchstart', event => this.onDocumentMouseDown(event));
       this.eventManager.addEventListener(frame.document, 'contextmenu', event => this.onDocumentContextMenu(event));
 
       frame = getParentWindow(frame);
@@ -345,15 +339,6 @@ export class Menu {
       },
     };
 
-    if (isMobileBrowser() || isIpadOS()) {
-      // Because of the fix for double-tapping implemented in #7824, the `mousedown` event is not being triggered to
-      // newly-selected cells after tapping them.
-      // To work around that, we need to trigger the `mousedown` logic in that specific situation.
-      this.#boundAfterOnCellMouseDown = this.#onAfterOnCellMouseDown.bind(this);
-
-      this.hot.addHook('afterOnCellMouseDown', this.#boundAfterOnCellMouseDown);
-    }
-
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
     this.hotMenu = new this.hot.constructor(this.container, settings);
@@ -393,11 +378,6 @@ export class Menu {
       this.hotMenu.destroy();
       this.hotMenu = null;
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
-
-      if (isMobileBrowser() || isIpadOS()) {
-        this.hot.removeHook('afterOnCellMouseDown', this.#boundAfterOnCellMouseDown);
-      }
-
       this.runLocalHooks('afterClose');
 
       if (this.isSubMenu()) {
@@ -703,17 +683,6 @@ export class Menu {
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) && !isChildOf(event.target, '.htMenu')) {
       this.close(true);
     }
-  }
-
-  /**
-   * `afterOnCellMouseDown` hook callback.
-   * Needed for the mobile browsers to close the menu when the user taps on the main instance's cells.
-   *
-   * @private
-   * @param {MouseEvent} event The mouse event object.
-   */
-  #onAfterOnCellMouseDown(event) {
-    this.onDocumentMouseDown(event);
   }
 
   /**
