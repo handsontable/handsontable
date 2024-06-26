@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { arrayEach, arrayFilter, arrayReduce, arrayMap } from '../../helpers/array';
+import { arrayEach, arrayFilter, arrayReduce } from '../../helpers/array';
 import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
 import Hooks from '../../pluginHooks';
@@ -9,7 +9,6 @@ import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
 import { ViewportColumnsCalculator } from '../../3rdparty/walkontable/src';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { isDefined } from '../../helpers/mixed';
 
 Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 
@@ -244,6 +243,19 @@ export class AutoColumnSize extends BasePlugin {
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     this.addHook('init', () => this.#onInit());
 
+    // this.addHook('afterRemoveCol', () => {
+    //   this.calculateAllColumnsWidth();
+    // });
+    // this.addHook('afterCreateCol', () => {
+    //   this.calculateAllColumnsWidth();
+    // });
+    // this.addHook('afterRemoveRow', () => {
+    //   this.calculateAllColumnsWidth();
+    // });
+    // this.addHook('afterCreateRow', () => {
+    //   this.calculateAllColumnsWidth();
+    // });
+
     super.enablePlugin();
   }
 
@@ -256,8 +268,14 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   #calculateSpecificColumnsWidth(visualColumns) {
+    console.log('visualColumns', visualColumns);
+
     visualColumns.forEach((visualColumn) => {
       const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+      if (physicalColumn === null) {
+        return;
+      }
 
       if (!this.hot._getColWidthFromSettings(physicalColumn)) {
         const samples = this.samplesGenerator.generateColumnSamples(visualColumn, {
@@ -332,6 +350,8 @@ export class AutoColumnSize extends BasePlugin {
   ) {
     const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
+
+    console.log('calculateColumnsWidth', columnsRange, rowsRange);
 
     rangeEach(columnsRange.from, columnsRange.to, (visualColumn) => {
       let physicalColumn = this.hot.toPhysicalColumn(visualColumn);
@@ -509,7 +529,7 @@ export class AutoColumnSize extends BasePlugin {
       const firstFullyVisibleColumn = wot.wtTable.getFirstVisibleColumn();
 
       if (firstFullyVisibleColumn !== -1) {
-        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(firstFullyVisibleColumn);
+        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(firstFullyVisibleColumn) ?? -1;
       }
     }
 
@@ -518,7 +538,7 @@ export class AutoColumnSize extends BasePlugin {
 
       // There are no rendered column.
       if (firstRenderedColumn !== -1) {
-        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(firstRenderedColumn);
+        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(firstRenderedColumn) ?? -1;
       }
     }
 
@@ -533,12 +553,23 @@ export class AutoColumnSize extends BasePlugin {
   getLastVisibleColumn() {
     const wot = this.hot.view._wt;
 
+    // if (this.#isTableReady) {
+    //   console.log(
+    //     'getFirstRenderedVisibleColumn',
+    //     this.hot.view.getFirstRenderedVisibleColumn(),
+    //     this.hot.view._wt.wtTable.getFirstRenderedColumn(),
+    //     'getLastRenderedVisibleColumn',
+    //     this.hot.view.getLastRenderedVisibleColumn(),
+    //     this.hot.view._wt.wtTable.getLastRenderedColumn(),
+    //   );
+    // }
+
     if (wot.wtViewport.columnsVisibleCalculator) {
       // Last fully visible column is stored as renderable index.
       const lastFullyVisibleColumn = wot.wtTable.getLastVisibleColumn();
 
       if (lastFullyVisibleColumn !== -1) {
-        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(lastFullyVisibleColumn);
+        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(lastFullyVisibleColumn) ?? -1;
       }
     }
 
@@ -548,7 +579,7 @@ export class AutoColumnSize extends BasePlugin {
 
       // There are no rendered columns.
       if (lastRenderedColumn !== -1) {
-        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(lastRenderedColumn);
+        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(lastRenderedColumn) ?? -1;
       }
     }
 
@@ -559,7 +590,7 @@ export class AutoColumnSize extends BasePlugin {
    * Collects all columns which titles has been changed in comparison to the previous state.
    *
    * @private
-   * @returns {Array} It returns an array of physical column indexes.
+   * @returns {Array} It returns an array of visual column indexes.
    */
   findColumnsWhereHeaderWasChanged() {
     const columnHeaders = this.hot.getColHeader();
@@ -616,11 +647,6 @@ export class AutoColumnSize extends BasePlugin {
    */
   #onBeforeRender() {
     console.log('onBeforeRender');
-
-    // if (!this.hot.view.isVisible()) {
-    //   return;
-    // }
-
     this.calculateVisibleColumnsWidth();
 
     if (!this.inProgress) {
@@ -633,8 +659,6 @@ export class AutoColumnSize extends BasePlugin {
    * On after load data listener.
    */
   #onAfterLoadData(sourceData, isFirstLoad, source) {
-    console.log('LOAD', sourceData, isFirstLoad, source);
-
     if (!isFirstLoad) {
       this.recalculateAllColumnsWidth();
     }
@@ -646,9 +670,15 @@ export class AutoColumnSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   #onBeforeChange(changes) {
-    const changedColumns = arrayMap(changes, ([, columnProperty]) => {
-      return this.hot.propToCol(columnProperty);
-    });
+    const changedColumns = changes.reduce((acc, [, columnProperty]) => {
+      const visualColumn = this.hot.propToCol(columnProperty);
+
+      if (Number.isInteger(visualColumn) && acc.indexOf(visualColumn) === -1) {
+        acc.push(visualColumn);
+      }
+
+      return acc;
+    }, []);
 
     this.#visualColumnsToRefresh.push(...changedColumns);
   }
@@ -679,10 +709,7 @@ export class AutoColumnSize extends BasePlugin {
   #onInit() {
     console.log('onInit');
     this.#cachedColumnHeaders = this.hot.getColHeader();
-
-    if (this.hot.view.isVisible()) {
-      this.recalculateAllColumnsWidth();
-    }
+    this.recalculateAllColumnsWidth();
   }
 
   /**
@@ -691,8 +718,19 @@ export class AutoColumnSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   #onAfterFormulasValuesUpdate(changes) {
-    const filteredChanges = arrayFilter(changes, change => isDefined(change.address?.col));
-    const changedColumns = arrayMap(filteredChanges, change => this.hot.toVisualColumn(change.address.col));
+    const changedColumns = changes.reduce((acc, change) => {
+      const physicalColumn = change.address?.col;
+
+      if (Number.isInteger(physicalColumn)) {
+        const visualColumn = this.hot.toVisualColumn(physicalColumn);
+
+        if (acc.indexOf(visualColumn) === -1) {
+          acc.push(visualColumn);
+        }
+      }
+
+      return acc;
+    }, []);
 
     this.#visualColumnsToRefresh.push(...changedColumns);
   }
