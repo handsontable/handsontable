@@ -1,6 +1,5 @@
 name: Bug Report
 description: Something is broken? Create a report to help us improve.
-title: "[Bug]: "
 labels: [bug]
 body:
   - type: textarea
