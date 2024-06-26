@@ -55,6 +55,7 @@ Handsontable.dom.isInput(domElement);
 Handsontable.dom.isLeftClick(domEvent);
 Handsontable.dom.isOutsideInput(domElement);
 Handsontable.dom.isRightClick(domEvent);
+Handsontable.dom.isTouchEvent(domEvent);
 Handsontable.dom.isVisible(domElement);
 Handsontable.dom.matchesCSSRules(domElement, cssRule);
 Handsontable.dom.offset(domElement);
