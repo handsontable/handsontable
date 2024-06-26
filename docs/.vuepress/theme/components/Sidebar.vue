@@ -53,7 +53,7 @@ export default {
       const { scrollTop, offsetHeight } = sidebar;
 
       const element = `.sidebar-links .sidebar-link[href='/docs${path}']`;
-      const top = document?.querySelector(element).closest('.sidebar-group')?.offsetTop;
+      const top = document?.querySelector(element)?.closest('.sidebar-group')?.offsetTop || 0;
 
       if (top > scrollTop + offsetHeight - 50) {
         setTimeout(() => {
