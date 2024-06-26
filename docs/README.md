@@ -31,6 +31,17 @@ To start a local Handsontable documentation server:
    ```
 4. In your browser, go to: http://localhost:8080/docs/.
 
+## Handsontable documentation code examples
+
+Most code examples in the `content/guides` directory are kept in 2 versions: TS/TSX and JS/JSX. When modifying the code example or adding a new one, you should always update the TS/TSX version and then generate the JS/JSX version:
+
+E.g.:
+1. Modify `content/guides/some/example.ts` file.
+2. Run `npm run docs:scripts:generate-js-example content/guides/some/example.ts` to generate `content/guides/some/example.js`.
+3. Commit both `content/guides/some/example.ts` and `content/guides/some/example.js`.
+
+In case of TSX file, the script will generate JSX version of the code example, so the workflow is the same as above.
+
 ## Documentation npm scripts:
 
 From the `docs` directory, you can run the following npm scripts:
@@ -49,7 +60,7 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
 * `npm run docs:test:example-checker` – Runs the tests that checks if all Docs examples work.
 * `npm run docs:scripts:generate-js-example content/guides/path/to/example.ts` – Generate JS/JSX version of the code example (needs to be run before commiting any change to TS/TSX code example)
-* `npm run docs:scripts:generate-js-example:all` – Generate all JS/JSX versions of the TS/TSX code examples
+* `npm run docs:scripts:generate-js-example:all` – Generate all JS/JSX versions of the TS/TSX code examples in content/guides/ directory
 
 
 ## Handsontable documentation directory structure
