@@ -260,6 +260,12 @@ module.exports = function(docsVersion, base) {
                 >
                   <i class="ico i-refresh"></i>
                 </button>
+                <button
+                  aria-label="Open demo source" 
+                  @click="$parent.$parent.openExample('${env.relativePath}', '${preset}', '${id}')" 
+                >
+                  <i class="ico i-github"></i>
+                </button>
                 <select class="selected-lang" value="ts" hidden>
                   <option value="ts">ts</option>
                   <option value="js">js</option>

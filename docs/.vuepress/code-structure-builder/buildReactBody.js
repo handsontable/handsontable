@@ -13,8 +13,8 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
     : '';
 
   const tsconfig = lang === 'tsx' ? {
-  'tsconfig.json' : {
-    content: `{
+    'tsconfig.json': {
+      content: `{
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
@@ -33,8 +33,8 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
     "./node_modules/**/*"
   ]
 }`
-  }
-}: {}
+    }
+  } : {};
 
   if (sandbox === 'stackblitz') {
     return {
@@ -49,11 +49,11 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
     "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
-    "@handsontable/react": "${version}"${lang === 'tsx' ?`,
+    "@handsontable/react": "${version}"${lang === 'tsx' ? `,
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
     "typescript": "5.5.2"` : ''
-    }
+}
   },
   ${lang === 'tsx' ?
     `"devDependencies": {
@@ -132,11 +132,11 @@ ${js}`
     "react": "^18.2.0",
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
     "handsontable": "${version}",
-    "@handsontable/react": "${version}"${lang === 'tsx' ?`,
+    "@handsontable/react": "${version}"${lang === 'tsx' ? `,
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
     "typescript": "5.5.2"` : ''
-    }
+}
   },
   "devDependencies": {
     "react-scripts": "^5.0.1"

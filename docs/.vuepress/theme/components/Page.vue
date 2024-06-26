@@ -74,8 +74,8 @@ export default {
       }, 2000);
     },
     reportCode() {
-      // eslint-disable-next-line max-len
       window.open(
+        // eslint-disable-next-line max-len
         `https://github.com/handsontable/handsontable/issues/new?link=${window.location}&template=improve_docs.yaml`,
         '_blank'
       );
@@ -138,6 +138,44 @@ export default {
       if (visibleElements[0]) {
         this.setActiveElement(`#${visibleElements[0].id}`);
       }
+    },
+    openExample(path, preset, id) {
+      const filename = (() => {
+        if (preset.includes('vue')) return `vue/${id}.js`;
+
+        if (preset.includes('angular')) return `angular/${id}.js`;
+
+        if (preset.includes('react') && this.selectedLang === 'TypeScript') return `react/${id}.tsx`;
+
+        if (preset.includes('react') && this.selectedLang === 'JavaScript') return `react/${id}.jsx`;
+
+        if (preset.includes('hot') && this.selectedLang === 'TypeScript') return `javascript/${id}.ts`;
+
+        if (preset.includes('hot') && this.selectedLang === 'JavaScript') return `javascript/${id}.js`;
+
+        return undefined;
+      })();
+
+      if (!path || !filename) {
+        // eslint-disable-next-line
+        console.error('Sorry, unable to get file path.');
+
+        return;
+      }
+
+      const pathArray = path
+        .split('/')
+        .reduce(
+          (a, c, i, array) =>
+            (i === 0 || i === 1 || array.length - 1 === i ? a : [...a, c]),
+          []
+        );
+
+      window.open(
+        // eslint-disable-next-line max-len
+        `https://github.com/handsontable/handsontable/blob/develop/docs/content/${pathArray.join('/')}/${filename}`,
+        '_blank'
+      );
     },
   },
   mounted() {
