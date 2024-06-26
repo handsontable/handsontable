@@ -4,7 +4,7 @@ import {
 } from '../../helpers/dom/element';
 import { isNumeric, clamp } from '../../helpers/number';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { isLeftClick, isRightClick } from '../../helpers/dom/event';
+import { isLeftClick, isRightClick, isTouchEvent } from '../../helpers/dom/event';
 import { warn } from '../../helpers/console';
 import {
   ACTIVE_HEADER_TYPE,
@@ -606,7 +606,7 @@ export class NestedHeaders extends BasePlugin {
         columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
       }
 
-    } else if (isLeftClick(event) || (isRightClick(event) && allowRightClickSelection)) {
+    } else if (isLeftClick(event) || (isRightClick(event) && allowRightClickSelection) || isTouchEvent(event)) {
       columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
 

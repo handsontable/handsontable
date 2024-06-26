@@ -39,6 +39,16 @@ export function isLeftClick(event) {
 }
 
 /**
+ * Check if the provided event is a touch event.
+ *
+ * @param {Event} event The event object.
+ * @returns {boolean}
+ */
+export function isTouchEvent(event) {
+  return event instanceof TouchEvent;
+}
+
+/**
  * Calculates the event offset until reaching the element defined by `relativeElement` argument.
  *
  * @param {Event} event The mouse event object.
