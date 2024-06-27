@@ -128,18 +128,14 @@ go_through_all_examples_concurrently() {
 }
 
 verify_all_examples_sequentially() {
-  local any_failed
-  any_failed=0
   
   find content/guides -type f \( -name "*.ts" -o -name "*.tsx" \) -print0 | while read -d $'\0' source_input_filename; do
     if ! verify_single_example "$source_input_filename"; then
-      any_failed=1
+      return 1
     fi
   done
   
-  echo "$any_failed"
-  
-  if [ "$any_failed" -eq 0 ]; then
+  if [ $? -eq 0 ]; then
     echo "Verification successful"
   else
     echo "Verification failed"
