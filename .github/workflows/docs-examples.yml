@@ -24,6 +24,10 @@ jobs:
       - name: Install Documentation dependencies
         run: |
           cd docs/ && npm ci --no-audit
+          
+      - name: Install Handsontable dependencies
+        run: |
+          npm ci --no-audit
       
       - name: Run JS examples checker
         run: |
