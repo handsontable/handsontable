@@ -14,13 +14,35 @@ format() {
 
 generate() {
   input_filename="$1"
-  output_filename="$2"
-
+  
   if [[ "$input_filename" == *.ts ]]; then
-    tsc --target esnext --skipLibCheck --outFile "$output_filename" "$input_filename" > /dev/null
+    tsc --target esnext --skipLibCheck "$input_filename" > /dev/null
   elif [[ "$input_filename" == *.tsx ]]; then
-    tsc --target esnext --jsx preserve --skipLibCheck --outFile "$output_filename" "$input_filename" > /dev/null
+    tsc --target esnext --jsx preserve --skipLibCheck "$input_filename" > /dev/null
+  else
+    echo "Invalid file extension: $input_filename. Must be .ts or .tsx" >&2
+    return 1
   fi
+  
+  if [ ! -f "$output_filename" ]; then
+    echo "Failed to generate $output_filename from $input_filename" >&2
+    return 1
+  fi
+}
+
+build_output_filename() {
+  input_filename="$1"
+  
+  if [[ "$input_filename" == *.ts ]]; then
+    output_filename="${input_filename%.*}.js"
+  elif [[ "$input_filename" == *.tsx ]]; then
+    output_filename="${input_filename%.*}.jsx"
+  else
+    echo "Invalid file extension: $input_filename. Must be .ts or .tsx" >&2
+    return 1
+  fi
+  
+  echo "$output_filename"
 }
 
 format_single_file() {
@@ -30,44 +52,28 @@ format_single_file() {
 
 generate_single_example() {
   input_filename="$1"
+  output_filename=$(build_output_filename "$input_filename")
 
-  if [[ "$input_filename" == *.ts ]]; then
-    output_filename="${input_filename%.*}.js"
-  elif [[ "$input_filename" == *.tsx ]]; then
-    output_filename="${input_filename%.*}.jsx"
-  else
-    echo "Invalid file extension: $input_filename. Must be .ts or .tsx"
-    return
-  fi
-
-  generate "$input_filename" "$output_filename"
-
-  if [ -f "$output_filename" ]; then
-    format "$output_filename"
-    echo "Generated $output_filename"
-  else
-    echo "Failed to generate $output_filename from $input_filename"
-  fi
+  generate "$input_filename"
+  format "$output_filename"
+  echo "Generated $output_filename"
 }
 
 verify_single_example() {
   input_filename="$1"
-
+  original_output_filename=$(build_output_filename "$input_filename")
+  
   if [[ "$input_filename" == *.ts ]]; then
-    output_filename="${input_filename%.*}.js"
-    tmp_filename="${input_filename%.*}-tmp.js"
+    tmp_input_filename="${input_filename%.*}-tmp.ts"
   elif [[ "$input_filename" == *.tsx ]]; then
-    output_filename="${input_filename%.*}.jsx"
-    tmp_filename="${input_filename%.*}-tmp.jsx"
-  else
-    echo "Invalid file extension: $input_filename. Must be .ts or .tsx"
-    return
+    tmp_input_filename="${input_filename%.*}-tmp.tsx"
   fi
-
-  generate "$input_filename" "$tmp_filename"
-  format "$tmp_filename"
-
-  # todo: diff
+  
+  tmp_output_filename=$(build_output_filename "$tmp_input_filename")
+  
+  generate "$tmp_input_filename"  
+  format "$tmp_output_filename"
+  diff -q "$original_output_filename" "$tmp_output_filename"
 }
 
 go_through_all_examples() {
