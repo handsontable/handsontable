@@ -8,12 +8,31 @@
 #   ./code-examples-generator.sh --formatAllTsExamples - runs the autoformatter on all TS and TSX example files in the content/guides directory
 
 format() {
-  filename="$1"
-  eslint --fix --no-ignore -c eslintrc.examples.js "$filename" > /dev/null
+  eslint --fix --no-ignore -c eslintrc.examples.js "$1" > /dev/null
+}
+
+build_output_filename() {
+  local input_filename
+  local output_filename
+  input_filename="$1"
+  
+  if [[ "$input_filename" == *.ts ]]; then
+    output_filename="${input_filename%.*}.js"
+  elif [[ "$input_filename" == *.tsx ]]; then
+    output_filename="${input_filename%.*}.jsx"
+  else
+    echo "Invalid file extension: $input_filename. Must be .ts or .tsx" >&2
+    return 1
+  fi
+  
+  echo "$output_filename"
 }
 
 generate() {
+  local input_filename
+  local output_filename
   input_filename="$1"
+  output_filename=$(build_output_filename "$input_filename")
   
   if [[ "$input_filename" == *.ts ]]; then
     tsc --target esnext --skipLibCheck "$input_filename" > /dev/null
@@ -30,27 +49,14 @@ generate() {
   fi
 }
 
-build_output_filename() {
-  input_filename="$1"
-  
-  if [[ "$input_filename" == *.ts ]]; then
-    output_filename="${input_filename%.*}.js"
-  elif [[ "$input_filename" == *.tsx ]]; then
-    output_filename="${input_filename%.*}.jsx"
-  else
-    echo "Invalid file extension: $input_filename. Must be .ts or .tsx" >&2
-    return 1
-  fi
-  
-  echo "$output_filename"
-}
-
 format_single_file() {
   format "$1"
   echo "Formatted $1"
 }
 
 generate_single_example() {
+  local input_filename
+  local output_filename
   input_filename="$1"
   output_filename=$(build_output_filename "$input_filename")
 
@@ -60,6 +66,11 @@ generate_single_example() {
 }
 
 verify_single_example() {
+  local input_filename
+  local original_output_filename
+  local tmp_input_filename
+  local tmp_output_filename
+  
   input_filename="$1"
   original_output_filename=$(build_output_filename "$input_filename")
   
@@ -71,28 +82,41 @@ verify_single_example() {
   
   tmp_output_filename=$(build_output_filename "$tmp_input_filename")
   
+  cp "$input_filename" "$tmp_input_filename"
   generate "$tmp_input_filename"  
   format "$tmp_output_filename"
-  diff -q "$original_output_filename" "$tmp_output_filename"
+  
+  if diff -q "$original_output_filename" "$tmp_output_filename" > /dev/null; then
+    rm "$tmp_input_filename"
+    rm "$tmp_output_filename"
+    return 0
+  else
+    rm "$tmp_input_filename"
+    rm "$tmp_output_filename"
+    echo "File $original_output_filename differs from the one generated from $input_filename"
+    return 1
+  fi
 }
 
-go_through_all_examples() {
+go_through_all_examples_concurrently() {
+  local task
+  local jobs_limit
   task="$1"
   jobs_limit=16
 
   echo "Running $jobs_limit jobs in parallel..."
 
-  find content/guides -type f \( -name "*.ts" -o -name "*.tsx" \) -print0 | while read -d $'\0' input_filename; do
+  find content/guides -type f \( -name "*.ts" -o -name "*.tsx" \) -print0 | while read -d $'\0' source_input_filename; do
     while test "$(jobs | wc -l)" -ge "$jobs_limit"; do
       sleep 1
     done
 
     if [ "$task" == "verifyAll" ]; then
-      verify_single_example "$input_filename" &
+      verify_single_example "$source_input_filename" &
     elif [ "$task" == "formatAllTsExamples" ]; then
-      format_single_file "$input_filename" &
+      format_single_file "$source_input_filename" &
     else
-      generate_single_example "$input_filename" &
+      generate_single_example "$source_input_filename" &
     fi
 
   done
@@ -103,17 +127,37 @@ go_through_all_examples() {
   echo "All jobs finished"
 }
 
+verify_all_examples_sequentially() {
+  local any_failed
+  any_failed=0
+  
+  find content/guides -type f \( -name "*.ts" -o -name "*.tsx" \) -print0 | while read -d $'\0' source_input_filename; do
+    if ! verify_single_example "$source_input_filename"; then
+      any_failed=1
+    fi
+  done
+  
+  echo "$any_failed"
+  
+  if [ "$any_failed" -eq 0 ]; then
+    echo "Verification successful"
+  else
+    echo "Verification failed"
+    return 1
+  fi
+}
+
 if [ -z "$1" ]; then
   echo "Provide a path to the TS/TSX file or use one of the commands: --generateAll, --verifyAll, --formatAllTsExamples"
 elif [ "$1" == "--generateAll" ]; then
   echo "Generating all examples..."
-  go_through_all_examples "generateAll"
+  go_through_all_examples_concurrently "generateAll"
 elif [ "$1" == "--verifyAll" ]; then
   echo "Verifying all examples..."
-  go_through_all_examples "verifyAll"
+  verify_all_examples_sequentially
 elif [ "$1" == "--formatAllTsExamples" ]; then
   echo "Formatting all TS/TSX example files..."
-  go_through_all_examples "formatAllTsExamples"
+  go_through_all_examples_concurrently "formatAllTsExamples"
 else
   echo "Generating single example..."
   generate_single_example "$1"
