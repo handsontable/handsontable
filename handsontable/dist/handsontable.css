@@ -2270,10 +2270,20 @@
   /* submenu */
   /* checkbox */
   /* comment */
-  /* manualColumnResizer */
+  /* manualColumnResizer 
   width: 10px;
   background: none;
   margin: 2px;
+  &::before {
+      content: '';
+      height: 100%;
+      width: 2px;
+      display: block;
+  }
+  &:after {
+
+  }
+  */
 }
 .handsontable.theme-modern .htItemWrapper:before,
 .theme-modern .handsontable .htItemWrapper:before {
@@ -3249,13 +3259,7 @@
 .theme-modern .handsontable .htCommentCell:after {
   border-top-color: var(--hot-accent-color);
 }
-.handsontable.theme-modern::before,
-.theme-modern .handsontable::before {
-  content: "";
-  height: 100%;
-  width: 2px;
-  display: block;
-}
+
 .theme-modern .htCommentsContainer .htCommentTextArea {
   border: 0;
   border-inline-start: 2px solid #1A42E8;
