@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.2.0
- * Release date: 06/03/2024 (built at 19/06/2024 09:39:07)
+ * Release date: 06/03/2024 (built at 26/06/2024 08:56:45)
  */
 @import url(https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap);
 @import url(https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap);
@@ -2238,9 +2238,10 @@
   --hot-hidden-dimension-indicator-color: #bbbbbb;
   --hot-hidden-dimension-indicator-color-highlighted: #eeeeee;
   /* Manual Move */
-  --hot-manualMove-guideline-color: #757575;
-  --hot-manualMove-guideline-size: 2px;
-  --hot-manualMove-backlight-color: rgba(52, 52, 52, 0.2);
+  --hot-manualMove-color: 53, 53, 53;
+  --hot-manualMove-guideline-color: rgb(var(--hot-manualMove-color));
+  --hot-manualMove-guideline-size: 1px;
+  --hot-manualMove-backlight-color: rgba(var(--hot-manualMove-color), .1);
   /* Nested Rows */
   --hot-nestedrows-start: 7px;
   --hot-nestedrows-levels-padding: 11px;
@@ -2269,11 +2270,46 @@
   /* submenu */
   /* checkbox */
   /* comment */
+  /* manualColumnResizer */
+  width: 10px;
+  background: none;
+  margin: 2px;
 }
 .handsontable.theme-modern .htItemWrapper:before,
 .theme-modern .handsontable .htItemWrapper:before {
   vertical-align: text-bottom;
   margin-right: 12px;
+}
+.handsontable.theme-modern .htItemWrapper span.selected,
+.theme-modern .handsontable .htItemWrapper span.selected {
+  font-size: 0;
+  inset: 0;
+}
+.handsontable.theme-modern .htItemWrapper span.selected:after,
+.theme-modern .handsontable .htItemWrapper span.selected:after {
+  content: "";
+  display: block;
+  pointer-events: none;
+  content: "";
+  width: 6px;
+  height: 10px;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  border-left: 2px solid var(--hot-accent-color);
+  border-top: 2px solid var(--hot-accent-color);
+  transform: translate(-50%, -50%) rotate(-135deg);
+  box-sizing: border-box;
+  transition: all 0.2s ease-in-out;
+}
+.handsontable.theme-modern .htItemWrapper span.selected::before,
+.theme-modern .handsontable .htItemWrapper span.selected::before {
+  content: "";
+  display: bl;
+  position: absolute;
+  inset: 0;
+  background-color: var(--hot-accent-color);
+  opacity: 0.1;
 }
 .handsontable.theme-modern [role=menuitem].htDisabled .htItemWrapper:before,
 .theme-modern .handsontable [role=menuitem].htDisabled .htItemWrapper:before {
@@ -2684,23 +2720,19 @@
 }
 .handsontable.theme-modern .columnSorting.sortAction,
 .theme-modern .handsontable .columnSorting.sortAction {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  position: absolute;
+  gap: 0;
   inset: 0;
-  padding: var(--hot-header-vertical-padding) var(--hot-header-horizontal-padding);
 }
 .handsontable.theme-modern .columnSorting.sortAction:hover,
 .theme-modern .handsontable .columnSorting.sortAction:hover {
-  background: rgba(0, 0, 0, 0.04);
   text-decoration: none;
 }
 .handsontable.theme-modern .columnSorting.sortAction:before,
 .theme-modern .handsontable .columnSorting.sortAction:before {
   position: static;
   order: 1;
-  display: inline-block;
   width: 16px;
   height: 16px;
   margin: 0;
@@ -2708,6 +2740,7 @@
 }
 .handsontable.theme-modern .columnSorting.sortAction.descending:before,
 .theme-modern .handsontable .columnSorting.sortAction.descending:before {
+  display: inline-block;
   width: 16px;
   height: 16px;
   display: inline-block;
@@ -2721,6 +2754,7 @@
 }
 .handsontable.theme-modern .columnSorting.sortAction.ascending:before,
 .theme-modern .handsontable .columnSorting.sortAction.ascending:before {
+  display: inline-block;
   width: 16px;
   height: 16px;
   display: inline-block;
@@ -2738,14 +2772,6 @@
   order: 2;
   margin-left: -5px;
   padding-inline-start: 0;
-}
-.handsontable.theme-modern .changeType + .columnSorting.sortAction,
-.theme-modern .handsontable .changeType + .columnSorting.sortAction {
-  padding-right: calc(var(--hot-header-horizontal-padding) + 16px);
-}
-.handsontable.theme-modern th.ht__active_highlight .columnSorting.sortAction:hover,
-.theme-modern .handsontable th.ht__active_highlight .columnSorting.sortAction:hover {
-  background: rgba(255, 255, 255, 0.08);
 }
 .handsontable.theme-modern th.ht__active_highlight .columnSorting.sortAction:before,
 .theme-modern .handsontable th.ht__active_highlight .columnSorting.sortAction:before {
@@ -2768,6 +2794,7 @@
 .theme-modern .handsontable tbody th.ht__active_highlight,
 .theme-modern .handsontable thead th.ht__active_highlight {
   border-color: var(--hot-foreground-color);
+  box-shadow: calc(var(--hot-border-vertical-size) * -1) calc(var(--hot-border-horizontal-size) * -1) 0 var(--hot-foreground-color), 0 calc(var(--hot-border-horizontal-size) * -1) 0 var(--hot-foreground-color), calc(var(--hot-border-vertical-size) * -1) 0 0 var(--hot-foreground-color);
 }
 .handsontable.theme-modern tbody th.ht__active_highlight:before,
 .handsontable.theme-modern thead th.ht__active_highlight:before,
@@ -3086,15 +3113,19 @@
   padding: 8px 0;
   border-radius: 8px;
 }
-.handsontable.theme-modern.htContextMenu table.htCore tbody tr td.htSeparator,
-.theme-modern .handsontable.htContextMenu table.htCore tbody tr td.htSeparator {
+.handsontable.theme-modern.htContextMenu table.htCore tbody tr td,
+.theme-modern .handsontable.htContextMenu table.htCore tbody tr td {
+  position: relative;
+}
+.handsontable.theme-modern.htContextMenu table.htCore tbody tr td .htSeparator,
+.theme-modern .handsontable.htContextMenu table.htCore tbody tr td .htSeparator {
   height: auto !important;
   border: none;
   padding: 4px 0;
   margin: 0;
 }
-.handsontable.theme-modern.htContextMenu table.htCore tbody tr td.htSeparator .htItemWrapper,
-.theme-modern .handsontable.htContextMenu table.htCore tbody tr td.htSeparator .htItemWrapper {
+.handsontable.theme-modern.htContextMenu table.htCore tbody tr td .htSeparator .htItemWrapper,
+.theme-modern .handsontable.htContextMenu table.htCore tbody tr td .htSeparator .htItemWrapper {
   border-top: var(--hot-contextmenu-separator-size) solid var(--hot-contextmenu-separator-color);
   margin: 0;
 }
@@ -3167,26 +3198,64 @@
   border-right: 1px solid var(--hot-read-only-text);
   border-top: 1px solid var(--hot-read-only-text);
 }
+.handsontable.theme-modern .htCheckboxRendererLabel,
+.theme-modern .handsontable .htCheckboxRendererLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+.handsontable.theme-modern .htCheckboxRendererLabel:has(input:checked)::before,
+.theme-modern .handsontable .htCheckboxRendererLabel:has(input:checked)::before {
+  background-color: var(--hot-accent-color);
+  border-color: var(--hot-accent-color);
+}
 .handsontable.theme-modern .htCheckboxRendererLabel input,
 .theme-modern .handsontable .htCheckboxRendererLabel input {
   position: absolute;
   opacity: 0;
-  top: 0;
-  left: 0;
+  inset: 0;
+  visibility: hidden;
 }
-.handsontable.theme-modern .htCheckboxRendererLabel:before,
-.theme-modern .handsontable .htCheckboxRendererLabel:before {
+.handsontable.theme-modern .htCheckboxRendererLabel::before,
+.theme-modern .handsontable .htCheckboxRendererLabel::before {
+  pointer-events: none;
   content: "";
+  border: 2px solid var(--hot-border-color);
+  border-radius: 2px;
+  width: var(--hot-checkbox-height);
+  height: var(--hot-checkbox-height);
+  display: inline-block;
+  box-sizing: border-box;
+  background-color: var(--hot-background-color);
+  transition: all 0.5s ease-in-out;
 }
-.handsontable.theme-modern .htCheckboxRendererLabel:after,
-.theme-modern .handsontable .htCheckboxRendererLabel:after {
+.handsontable.theme-modern .htCheckboxRendererLabel::after,
+.theme-modern .handsontable .htCheckboxRendererLabel::after {
+  pointer-events: none;
   content: "";
+  width: 6px;
+  height: 10px;
+  position: absolute;
+  left: calc(var(--hot-checkbox-height) * 0.5);
+  top: calc(var(--hot-checkbox-height) * 0.5);
+  border-left: 2px solid var(--hot-background-color);
+  border-top: 2px solid var(--hot-background-color);
+  transform: translate(-50%, -50%) rotate(-135deg);
+  box-sizing: border-box;
+  transition: all 0.2s ease-in-out;
 }
 .handsontable.theme-modern .htCommentCell:after,
 .theme-modern .handsontable .htCommentCell:after {
   border-top-color: var(--hot-accent-color);
 }
-
+.handsontable.theme-modern::before,
+.theme-modern .handsontable::before {
+  content: "";
+  height: 100%;
+  width: 2px;
+  display: block;
+}
 .theme-modern .htCommentsContainer .htCommentTextArea {
   border: 0;
   border-inline-start: 2px solid #1A42E8;
