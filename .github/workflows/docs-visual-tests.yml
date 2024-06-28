@@ -24,6 +24,7 @@ defaults:
     working-directory: ./docs/
 jobs:
   run-tests:
+    name: Visual tests for ${{ github.event.inputs.test_env }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env: # Or as an environment variable
