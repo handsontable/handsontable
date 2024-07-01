@@ -8,7 +8,6 @@
   ],
   "publishDirectory": {
     "handsontable": "handsontable/tmp",
-    // "@handsontable/angular": "wrappers/angular/dist/hot-table",
     "@handsontable/react": "wrappers/react",
     "@handsontable/vue": "wrappers/vue"
   },
