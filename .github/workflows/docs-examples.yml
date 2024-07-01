@@ -12,10 +12,8 @@ jobs:
     name: Docs Examples
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout pull request HEAD branch
+      - name: Checkout the pull request merge commit
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
@@ -38,7 +36,7 @@ jobs:
 
       - name: Check if generated examples made any changes
         run: |
-          if git diff --exit-code; then
+          if git diff --exit-code && git diff --cached --exit-code; then
             echo "No changes detected"
           else
             exit 1

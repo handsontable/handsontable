@@ -21,7 +21,6 @@
     "docs:start:no-cache": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev --no-cache ./",
     "docs:serve": "http-server -c-1 .vuepress/dist/",
     "docs:build": "cross-env NODE_OPTIONS=--openssl-legacy-provider node .vuepress/tools/build.mjs -- --no-cache",
-    "docs:tmp": "cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/vuepress/cli.js dev --no-cache ./",
     "docs:docker:build": "npm run docs:docker:build:testing",
     "docs:docker:build:testing": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=testing npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
     "docs:docker:build:staging": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=staging npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
