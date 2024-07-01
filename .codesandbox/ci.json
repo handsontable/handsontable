@@ -13,7 +13,7 @@
     "@handsontable/vue": "wrappers/vue"
   },
   "sandboxes": [
-    "examples/next/docs/react/demo"
+    "examples/next/docs/js/demo"
   ],
   "node": "18"
 }
