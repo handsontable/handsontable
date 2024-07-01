@@ -295,8 +295,20 @@
     transition: all $t ease-in-out !important
     z-index 1
     padding-bottom: 8px
+
     @media (max-width: $small) {
-        display: none
+        position: absolute;
+        right: -16px !important;
+        left: -16px;
+        width: auto;
+        background: inherit;
+        padding: 0 8px 8px;
+    }
+}
+
+.tabs-component-panel:has(.codeControls) {
+    @media (max-width: $small) {
+        padding-top: 64px !important
     }
 }
 
