@@ -204,6 +204,9 @@
 }
 
 .theme-code-block [class*="language-"] {
+    &:has(.codeControls) {
+        padding-top: 64px
+    }
     .codeControls {
         top:-42px
     }
@@ -295,6 +298,7 @@
     transition: all $t ease-in-out !important
     z-index 1
     padding-bottom: 8px
+    opacity: 0
 
     @media (max-width: $small) {
         position: absolute;
@@ -303,12 +307,35 @@
         width: auto;
         background: inherit;
         padding: 0 8px 8px;
+        opacity 1
+    }
+}
+pre + .codeControls {
+    @media (max-width: $small) {
+        left: auto
+        right: 0 !important
+        background: none
+    }
+}
+
+.tabs-component:has(.codeControls),
+div[class*="language-"]:has(.codeControls),
+.theme-code-group:has(.codeControls) {
+    @media (hover: hover) {
+        &:hover .codeControls { 
+            opacity 1
+        }
     }
 }
 
 .tabs-component-panel:has(.codeControls) {
     @media (max-width: $small) {
         padding-top: 64px !important
+
+        .codeControls {
+            right: -16px !important;
+            left: -16px;
+        }
     }
 }
 
