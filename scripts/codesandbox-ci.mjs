@@ -3,7 +3,7 @@ import fse from 'fs-extra';
 import {
   spawnProcess
 } from './utils/processes.mjs';
-import codesandboxConfig from '../.codesandbox/ci.json';
+import codesandboxConfig from '../.codesandbox/ci.json' assert { type: 'json' };
 
 /**
  * --------------------------------------------------------.
