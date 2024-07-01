@@ -1425,43 +1425,59 @@ class TableView {
   }
 
   /**
-   * Returns the first rendered row in the DOM (usually is not visible).
+   * Returns the first rendered row in the DOM (usually is not visible in the table's viewport).
    *
-   * @returns {number}
+   * @returns {number | null}
    */
   getFirstRenderedVisibleRow() {
+    if (!this._wt.wtViewport.rowsRenderCalculator) {
+      return null;
+    }
+
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedRow());
+      .getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedRow(), 1);
   }
 
   /**
-   * Returns the last rendered row in the DOM (usually is not visible).
+   * Returns the last rendered row in the DOM (usually is not visible in the table's viewport).
    *
-   * @returns {number}
+   * @returns {number | null}
    */
   getLastRenderedVisibleRow() {
+    if (!this._wt.wtViewport.rowsRenderCalculator) {
+      return null;
+    }
+
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedRow());
+      .getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedRow(), -1);
   }
 
   /**
-   * Returns the first rendered column in the DOM (usually is not visible).
+   * Returns the first rendered column in the DOM (usually is not visible in the table's viewport).
    *
-   * @returns {number}
+   * @returns {number | null}
    */
   getFirstRenderedVisibleColumn() {
+    if (!this._wt.wtViewport.columnsRenderCalculator) {
+      return null;
+    }
+
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedColumn());
+      .getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedColumn(), 1);
   }
 
   /**
-   * Returns the last rendered column in the DOM (usually is not visible).
+   * Returns the last rendered column in the DOM (usually is not visible in the table's viewport).
    *
-   * @returns {number}
+   * @returns {number | null}
    */
   getLastRenderedVisibleColumn() {
+    if (!this._wt.wtViewport.columnsRenderCalculator) {
+      return null;
+    }
+
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedColumn());
+      .getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedColumn(), -1);
   }
 
   /**

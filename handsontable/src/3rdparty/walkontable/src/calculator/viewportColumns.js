@@ -196,8 +196,6 @@ export class ViewportColumnsCalculator {
   _getColumnWidth(column) {
     let width = this.#options.columnWidthFn(column);
 
-    console.log('_getColumnWidth', width);
-
     if (isNaN(width)) {
       width = ViewportColumnsCalculator.DEFAULT_WIDTH;
     }
