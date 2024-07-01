@@ -30,3 +30,32 @@ jobs:
         timeout-minutes: 1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          
+  codeql:
+      name: CodeQL
+      runs-on: 'ubuntu-latest'
+      timeout-minutes: 60
+      permissions:
+        security-events: write
+        packages: read
+        actions: read
+        contents: read
+
+      strategy:
+        fail-fast: false
+        matrix: 
+          language: [javascript-typescript]
+      steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # https://github.com/actions/checkout/releases/tag/v4.1.7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          config-file: .github/codeql/codeql-config.yml 
+          
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
