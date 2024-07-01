@@ -81,11 +81,11 @@ jobs:
 
       - name: Initialize snapshots
         if: ${{env.cache-restored != 'true' || github.event.inputs.update-snapshots == 'true'}}
-        run: BASE_URL=${{ inputs.test_env }} npx playwright test --update-snapshots
+        run: BASE_URL=${{ github.event.inputs.test_env }} npx playwright test --update-snapshots
 
       - name: Test
         if: ${{env.cache-restored == 'true' && github.event.inputs.update-snapshots != 'true'}}
-        run: BASE_URL=${{ inputs.test_env }} npx playwright test
+        run: BASE_URL=${{ github.event.inputs.test_env }} npx playwright test
 
       - name: Upload test report
         if: always()
