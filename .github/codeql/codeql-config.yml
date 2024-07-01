@@ -1,0 +1,5 @@
+name: "CodeQL Config"
+
+paths-ignore:
+  - "handsontable/dist/**"
+  - "handsontable/test/**"

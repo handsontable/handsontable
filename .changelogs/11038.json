@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem with the Formulas plugin using wrong indexes when performing autofill. ",
+  "type": "fixed",
+  "issueOrPR": 11038,
+  "breaking": false,
+  "framework": "none"
+}
