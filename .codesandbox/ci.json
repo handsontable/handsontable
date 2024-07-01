@@ -2,7 +2,6 @@
   "buildCommand": "build:codesandbox",
   "packages": [
     "handsontable",
-    "wrappers/angular",
     "wrappers/react",
     "wrappers/vue"
   ],
