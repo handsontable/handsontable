@@ -13,10 +13,7 @@
     "@handsontable/vue": "wrappers/vue"
   },
   "sandboxes": [
-    "github/handsontable/examples/tree/master/vanilla/pull-request",
-    "github/handsontable/examples/tree/master/angular/pull-request",
-    "github/handsontable/examples/tree/master/react/pull-request",
-    "github/handsontable/examples/tree/master/vue/pull-request"
+    "examples/next/docs/react/demo"
   ],
-  "node": "14"
+  "node": "18"
 }
