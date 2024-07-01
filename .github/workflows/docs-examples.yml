@@ -29,6 +29,20 @@ jobs:
         run: |
           npm ci --no-audit
       
-      - name: Run JS examples checker
+      - name: Generate JS code examples
         run: |
-          cd docs/ && npm run docs:code-examples:verify-all-js
+          cd docs/ && npm run docs:code-examples:generate-all-js
+
+      - name: Check if generated examples made any changes
+        run: |
+          if git diff --exit-code; then
+            echo "No changes detected"
+          else
+            exit 1
+          fi
+
+      - name: Report status
+        if: failure()
+        run: |
+          echo "Changes were detected. This check has failed."
+          exit 1
