@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 /* start:skip-in-preview */
-const data = [
+const products = [
   {
     companyName: 'Hodkiewicz - Hintz',
     productName: 'Rustic Soft Ball',
@@ -464,7 +464,7 @@ const data = [
   },
 ];
 
-const countries = data.reduce((acc, curr) => {
+const countries = products.reduce((acc, curr) => {
   if (acc.includes(curr.country)) {
     return acc;
   }
@@ -477,7 +477,7 @@ const countries = data.reduce((acc, curr) => {
 const app = document.getElementById('example1');
 // Define configuration options for the Handsontable
 const hotOptions = {
-  data,
+  data: products,
   height: 464,
   colWidths: [140, 165, 100, 100, 100, 110, 178],
   autoRowSize: true,
