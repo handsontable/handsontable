@@ -11,7 +11,7 @@
     "@handsontable/vue": "wrappers/vue"
   },
   "sandboxes": [
-    "examples/next/docs/js/demo"
+    "github/handsontable/handsontable/tree/develop/examples/next/docs/js"
   ],
   "node": "18"
 }
