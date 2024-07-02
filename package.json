@@ -19,7 +19,6 @@
     "eslint": "eslint .github/scripts/ bin/changelog scripts/",
     "test": "npm run all test -- -e=examples",
     "build": "npm run all build -- -e=examples",
-    "build:codesandbox": "node scripts/codesandbox-ci.mjs",
     "freeze": "node scripts/freeze.mjs",
     "release": "node scripts/release.mjs",
     "changelog": "bin/changelog",

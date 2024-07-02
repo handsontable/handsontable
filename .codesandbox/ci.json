@@ -1,8 +1,8 @@
 {
-  "buildCommand": "build:codesandbox",
+  "buildCommand": "build",
   "packages": [
-    "handsontable",
     "wrappers/angular",
+    "handsontable",
     "wrappers/react",
     "wrappers/vue"
   ],
@@ -13,10 +13,10 @@
     "@handsontable/vue": "wrappers/vue"
   },
   "sandboxes": [
-    "github/handsontable/examples/tree/master/vanilla/pull-request",
-    "github/handsontable/examples/tree/master/angular/pull-request",
-    "github/handsontable/examples/tree/master/react/pull-request",
-    "github/handsontable/examples/tree/master/vue/pull-request"
+    "github/handsontable/handsontable/tree/develop/examples/next/docs/js/demo",
+    "github/handsontable/handsontable/tree/develop/examples/next/docs/react/demo",
+    "github/handsontable/handsontable/tree/develop/examples/next/docs/vue/demo",
+    "github/handsontable/handsontable/tree/develop/examples/next/docs/angular/demo"
   ],
-  "node": "14"
+  "node": "18"
 }
