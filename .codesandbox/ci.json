@@ -1,12 +1,14 @@
 {
-  "buildCommand": "build:codesandbox",
+  "buildCommand": "build",
   "packages": [
+    "wrappers/angular",
     "handsontable",
     "wrappers/react",
     "wrappers/vue"
   ],
   "publishDirectory": {
     "handsontable": "handsontable/tmp",
+    "@handsontable/angular": "wrappers/angular/dist/hot-table",
     "@handsontable/react": "wrappers/react",
     "@handsontable/vue": "wrappers/vue"
   },
