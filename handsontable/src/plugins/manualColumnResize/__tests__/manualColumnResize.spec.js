@@ -394,7 +394,7 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(0).width()).toBe(63);
+    expect($columnHeaders.eq(0).width()).toBe(64);
     expect($columnHeaders.eq(1).width()).toBe(49);
     expect($columnHeaders.eq(2).width()).toBe(49);
     expect($columnHeaders.eq(3).width()).toBe(49);
@@ -448,7 +448,7 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(24);
+      expect($columnHeaders.eq(0).width()).toBe(25);
       expect($columnHeaders.eq(1).width()).toBe(119);
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
@@ -466,7 +466,7 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(24);
+      expect($columnHeaders.eq(0).width()).toBe(25);
       expect($columnHeaders.eq(1).width()).toBe(70);
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);

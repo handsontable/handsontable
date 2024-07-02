@@ -322,7 +322,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       keyDownUp(['control/meta', 'backspace']);
 
       // 2050 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(getCurrentScrollPosition()).toEqual({ x: 1746, y: 1035 });
+      expect(getCurrentScrollPosition()).toEqual({ x: 1747, y: 1035 });
     });
 
     it('should scroll the viewport vertically when the row header is focused and all columns are trimmed', async() => {

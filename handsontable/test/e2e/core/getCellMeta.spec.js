@@ -210,6 +210,8 @@ describe('Core.getCellMeta', () => {
     let _this;
 
     handsontable({
+      autoRowSize: false,
+      autoColumnSize: false,
       cells(row) {
         called += 1;
         _row = row;

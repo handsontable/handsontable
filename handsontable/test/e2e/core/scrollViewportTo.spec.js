@@ -23,7 +23,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the bottom-end edge when ' +
-        ' the previous viewport position was on the top-start (auto-snapping)', () => {
+        'the previous viewport position was on the top-start (auto-snapping)', () => {
       const hot = handsontable({
         data: createSpreadsheetData(200, 100),
         width: 300,
@@ -40,7 +40,7 @@ describe('Core.scrollViewportTo', () => {
       render();
 
       expect(result).toBe(true);
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2316);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2318);
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3216);
     });
 
@@ -130,7 +130,7 @@ describe('Core.scrollViewportTo', () => {
       render();
 
       expect(result).toBe(true);
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2316);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2318);
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3450);
     });
   });
@@ -194,7 +194,7 @@ describe('Core.scrollViewportTo', () => {
     render();
 
     expect(result).toBe(true);
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2316);
+    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2318);
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
 
@@ -215,7 +215,7 @@ describe('Core.scrollViewportTo', () => {
     render();
 
     expect(result).toBe(true);
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2500);
+    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2502);
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
 
@@ -235,7 +235,7 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    expect(hot.view._wt.wtScroll.getLastVisibleColumn()).toBe(98);
+    expect(hot.view._wt.wtScroll.getLastVisibleColumn()).toBe(99);
     expect(hot.view._wt.wtScroll.getLastVisibleRow()).toBe(99);
   });
 

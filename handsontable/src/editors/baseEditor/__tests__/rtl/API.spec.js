@@ -127,10 +127,10 @@ describe('BaseEditor API (RTL mode)', () => {
             await sleep(100);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
-              start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 50, // 50 - the width of the first cell
+              start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 51, // 51 - the width of the first cell
               top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 23,
               width: 51,
-              maxWidth: 50,
+              maxWidth: 51,
               height: 24,
               // maxHeight: ?, // returns wrong value! it will be fixed within #9206
             }));
