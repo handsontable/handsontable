@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -22,7 +22,7 @@ const ExampleComponent = () => {
     setOutput(`[${counter}] ${msg}\n${output}`);
   };
 
-  const alterTable = useCallback(() => {
+  const alterTable = () => {
     const hot = hotRef.current?.hotInstance;
 
     hot?.alter('insert_row_above', 10, 10);
@@ -41,9 +41,9 @@ const ExampleComponent = () => {
     hot?.setCellMeta(0, 5, 'className', 'red-bg');
     hot?.setCellMeta(10, 5, 'className', 'red-bg');
     hot?.render(); // Render is needed here to populate the new "className"s
-  }, [hotRef.current]);
+  };
 
-  const buttonWithoutClickCallback = useCallback(() => {
+  const buttonWithoutClickCallback = () => {
     const t1 = performance.now();
 
     alterTable();
@@ -51,9 +51,9 @@ const ExampleComponent = () => {
     const t2 = performance.now();
 
     logOutput(`Time without batch ${(t2 - t1).toFixed(2)}ms`);
-  }, [alterTable]);
+  };
 
-  const buttonWithClickCallback = useCallback(() => {
+  const buttonWithClickCallback = () => {
     const hot = hotRef.current?.hotInstance;
     const t1 = performance.now();
 
@@ -62,7 +62,7 @@ const ExampleComponent = () => {
     const t2 = performance.now();
 
     logOutput(`Time with batch ${(t2 - t1).toFixed(2)}ms`);
-  }, [hotRef.current, alterTable]);
+  };
 
   return (
     <>

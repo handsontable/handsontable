@@ -1,4 +1,4 @@
-import React from 'react';
+import { createRef } from 'react';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -6,7 +6,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 class EditorComponent extends BaseEditorComponent {
   constructor(props) {
     super(props);
-    this.mainElementRef = React.createRef();
+    this.mainElementRef = createRef();
     this.state = {
       value: '',
     };

@@ -2,7 +2,7 @@ name: Check docs examples (JS version vs TS version)
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, modified]
+    types: [opened, synchronize, reopened]
 
 env:
   NODE_VERSION: 20
