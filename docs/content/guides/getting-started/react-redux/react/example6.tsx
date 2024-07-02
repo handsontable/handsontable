@@ -1,4 +1,4 @@
-import React, { useEffect, MouseEvent } from 'react';
+import { useEffect, MouseEvent } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect } from 'react-redux';

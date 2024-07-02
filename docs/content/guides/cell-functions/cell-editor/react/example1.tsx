@@ -1,4 +1,4 @@
-import React, { MouseEvent } from 'react';
+import { MouseEvent } from 'react';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';

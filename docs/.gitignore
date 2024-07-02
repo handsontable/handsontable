@@ -31,3 +31,5 @@ report-check-links.xlsx
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/content/guides/**/javascript/**/*.js
+/content/guides/**/*.jsx
