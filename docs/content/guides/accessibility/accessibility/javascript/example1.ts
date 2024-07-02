@@ -13,7 +13,7 @@ interface Product {
 }
 
 /* start:skip-in-preview */
-const data: Product[] = [
+const products: Product[] = [
   {
     companyName: 'Hodkiewicz - Hintz',
     productName: 'Rustic Soft Ball',
@@ -475,7 +475,7 @@ const data: Product[] = [
   },
 ];
 
-const countries = data.reduce<string[]>((acc, curr) => {
+const countries = products.reduce<string[]>((acc, curr) => {
   if (acc.includes(curr.country)) {
     return acc;
   }
@@ -490,7 +490,7 @@ const app = document.getElementById('example1')!;
 
 // Define configuration options for the Handsontable
 const hotOptions: Handsontable.GridSettings = {
-  data,
+  data: products,
   height: 464,
   colWidths: [140, 165, 100, 100, 100, 110, 178],
   autoRowSize: true,
