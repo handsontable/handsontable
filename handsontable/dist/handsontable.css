@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.2.0
- * Release date: 06/03/2024 (built at 26/06/2024 08:56:45)
+ * Release date: 06/03/2024 (built at 02/07/2024 09:22:11)
  */
 @import url(https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap);
 @import url(https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap);
@@ -799,7 +799,15 @@
 .handsontable .manualColumnResizer:hover, .handsontable .manualColumnResizer.active {
   background-color: var(--hot-column-resizer-color);
 }
-.handsontable .manualRowResize:hover, .handsontable .manualRowResize.active {
+.handsontable .manualRowResizer {
+  position: absolute;
+  left: 0;
+  cursor: row-resize;
+  z-index: 210;
+  height: var(--hot-resizer-width);
+  width: var(--hot-col-width);
+}
+.handsontable .manualRowResizer:hover, .handsontable .manualRowResizer.active {
   background-color: var(--hot-column-resizer-color);
 }
 .handsontable .manualColumnResizerGuide {
@@ -822,6 +830,7 @@
   display: none;
   height: 0;
   border-bottom: var(--hot-border-vertical-size) dashed var(--hot-column-resizer-guide-color);
+  border-top: none;
   margin-top: var(--hot-resizer-width);
 }
 .handsontable .manualColumnResizerGuide.active,
@@ -2068,6 +2077,7 @@
   --hot-border-color: #D1D1D5;
   --hot-separator-color: #EFEFF3;
   --hot-accent-color: #1A42E8;
+  --hot-frozen-shadow: rgba(0, 0, 0, 0.2);
   /* Sizing */
   --hot-border-horizontal-size: 1px;
   --hot-border-vertical-size: 1px;
@@ -2086,7 +2096,7 @@
   --hot-link-color: var(--hot-link-accent-color);
   --hot-mobile-focus-color: var(--hot-input-border-color);
   --hot-area-color: var(--hot-accent-color);
-  --hot-column-resizer-color: #34a9db;
+  --hot-column-resizer-color: var(--hot-accent-color);
   --hot-column-resizer-guide-color: #777777;
   --hot-editor-text-color: var(--hot-foreground-color-active);
   --hot-editor-background-color: var(--hot-background-color);
@@ -2101,7 +2111,7 @@
   --hot-header-active-text-color: var(--hot-foreground-color-active);
   --hot-header-highlight-background-color: #EFEFF3;
   --hot-header-highlight-active-background-color: #353535;
-  --hot-header-current-color: #171717;
+  --hot-header-current-color: var(--hot-accent-color);
   --hot-header-horizontal-padding: var(--hot-cell-horizontal-padding);
   --hot-header-vertical-padding: var(--hot-cell-vertical-padding);
   --hot-header-line-height: var(--hot-cell-line-height);
@@ -2270,20 +2280,7 @@
   /* submenu */
   /* checkbox */
   /* comment */
-  /* manualColumnResizer 
-  width: 10px;
-  background: none;
-  margin: 2px;
-  &::before {
-      content: '';
-      height: 100%;
-      width: 2px;
-      display: block;
-  }
-  &:after {
-
-  }
-  */
+  /* manualColumnResizer */
 }
 .handsontable.theme-modern .htItemWrapper:before,
 .theme-modern .handsontable .htItemWrapper:before {
@@ -2338,8 +2335,8 @@
   background-color: var(--hot-foreground-color);
   -webkit-mask: url(d5d3f927a11a55e4a798.svg) no-repeat center;
 }
-.handsontable.theme-modern [role=menuitem][aria-label="Read only"] .htItemWrapper:before,
-.theme-modern .handsontable [role=menuitem][aria-label="Read only"] .htItemWrapper:before {
+.handsontable.theme-modern [role=menuitem][aria-label*="Read only"] .htItemWrapper:before,
+.theme-modern .handsontable [role=menuitem][aria-label*="Read only"] .htItemWrapper:before {
   width: 16px;
   height: 16px;
   display: inline-block;
@@ -2549,8 +2546,8 @@
   background-color: var(--hot-foreground-color);
   -webkit-mask: url(33db60f708c46d79631d.svg) no-repeat center;
 }
-.handsontable.theme-modern [role=menuitem][aria-label=Center] .htItemWrapper:before,
-.theme-modern .handsontable [role=menuitem][aria-label=Center] .htItemWrapper:before {
+.handsontable.theme-modern [role=menuitem][aria-label*=Center] .htItemWrapper:before,
+.theme-modern .handsontable [role=menuitem][aria-label*=Center] .htItemWrapper:before {
   width: 16px;
   height: 16px;
   display: inline-block;
@@ -2562,8 +2559,8 @@
   background-color: var(--hot-foreground-color);
   -webkit-mask: url(6e24af36ce58da5e98bb.svg) no-repeat center;
 }
-.handsontable.theme-modern [role=menuitem][aria-label=Left] .htItemWrapper:before,
-.theme-modern .handsontable [role=menuitem][aria-label=Left] .htItemWrapper:before {
+.handsontable.theme-modern [role=menuitem][aria-label*=Left] .htItemWrapper:before,
+.theme-modern .handsontable [role=menuitem][aria-label*=Left] .htItemWrapper:before {
   width: 16px;
   height: 16px;
   display: inline-block;
@@ -2575,8 +2572,8 @@
   background-color: var(--hot-foreground-color);
   -webkit-mask: url(d5d3f927a11a55e4a798.svg) no-repeat center;
 }
-.handsontable.theme-modern [role=menuitem][aria-label=Right] .htItemWrapper:before,
-.theme-modern .handsontable [role=menuitem][aria-label=Right] .htItemWrapper:before {
+.handsontable.theme-modern [role=menuitem][aria-label*=Right] .htItemWrapper:before,
+.theme-modern .handsontable [role=menuitem][aria-label*=Right] .htItemWrapper:before {
   width: 16px;
   height: 16px;
   display: inline-block;
@@ -2588,8 +2585,8 @@
   background-color: var(--hot-foreground-color);
   -webkit-mask: url(338bfd859c69f477f42e.svg) no-repeat center;
 }
-.handsontable.theme-modern [role=menuitem][aria-label=Justify] .htItemWrapper:before,
-.theme-modern .handsontable [role=menuitem][aria-label=Justify] .htItemWrapper:before {
+.handsontable.theme-modern [role=menuitem][aria-label*=Justify] .htItemWrapper:before,
+.theme-modern .handsontable [role=menuitem][aria-label*=Justify] .htItemWrapper:before {
   width: 16px;
   height: 16px;
   display: inline-block;
@@ -2601,8 +2598,8 @@
   background-color: var(--hot-foreground-color);
   -webkit-mask: url(a031747d35d1f7cf043a.svg) no-repeat center;
 }
-.handsontable.theme-modern [role=menuitem][aria-label=Top] .htItemWrapper:before,
-.theme-modern .handsontable [role=menuitem][aria-label=Top] .htItemWrapper:before {
+.handsontable.theme-modern [role=menuitem][aria-label*=Top] .htItemWrapper:before,
+.theme-modern .handsontable [role=menuitem][aria-label*=Top] .htItemWrapper:before {
   width: 16px;
   height: 16px;
   display: inline-block;
@@ -2614,8 +2611,8 @@
   background-color: var(--hot-foreground-color);
   -webkit-mask: url(48e0fcc91a2f6a69c27a.svg) no-repeat center;
 }
-.handsontable.theme-modern [role=menuitem][aria-label=Middle] .htItemWrapper:before,
-.theme-modern .handsontable [role=menuitem][aria-label=Middle] .htItemWrapper:before {
+.handsontable.theme-modern [role=menuitem][aria-label*=Middle] .htItemWrapper:before,
+.theme-modern .handsontable [role=menuitem][aria-label*=Middle] .htItemWrapper:before {
   width: 16px;
   height: 16px;
   display: inline-block;
@@ -2627,8 +2624,8 @@
   background-color: var(--hot-foreground-color);
   -webkit-mask: url(a977537543710b84eeff.svg) no-repeat center;
 }
-.handsontable.theme-modern [role=menuitem][aria-label=Bottom] .htItemWrapper:before,
-.theme-modern .handsontable [role=menuitem][aria-label=Bottom] .htItemWrapper:before {
+.handsontable.theme-modern [role=menuitem][aria-label*=Bottom] .htItemWrapper:before,
+.theme-modern .handsontable [role=menuitem][aria-label*=Bottom] .htItemWrapper:before {
   width: 16px;
   height: 16px;
   display: inline-block;
@@ -2686,6 +2683,10 @@
   100% {
     background-position: 8px 0, 0 100%, 0 0, 100% 8px;
   }
+}
+.handsontable.theme-modern .wtHider,
+.theme-modern .handsontable .wtHider {
+  background-color: var(--hot-background-color);
 }
 .handsontable.theme-modern thead th,
 .theme-modern .handsontable thead th {
@@ -2796,8 +2797,7 @@
 .handsontable.theme-modern thead th.current,
 .theme-modern .handsontable tbody th.current,
 .theme-modern .handsontable thead th.current {
-  background-color: var(--hot-header-current-color);
-  color: #B5B5B9;
+  box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1) var(--hot-header-current-color);
 }
 .handsontable.theme-modern tbody th.ht__active_highlight,
 .handsontable.theme-modern thead th.ht__active_highlight,
@@ -2849,6 +2849,10 @@
   background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
   background-size: 8px 2px, 0px 0px, 2px 8px, 0px 0px;
   animation: marching-ants 600ms infinite linear;
+  background-color: var(--hot-accent-color) !important;
+}
+.handsontable.theme-modern .wtBorder.current,
+.theme-modern .handsontable .wtBorder.current {
   background-color: var(--hot-accent-color) !important;
 }
 .handsontable.theme-modern .collapsibleIndicator,
@@ -2959,10 +2963,6 @@
   top: 0;
   margin-right: 4px;
 }
-.handsontable.theme-modern .ht_nestingLevels,
-.theme-modern .handsontable .ht_nestingLevels {
-  overflow: hidden !important;
-}
 .handsontable.theme-modern .ht_nestingLevels > .relative,
 .theme-modern .handsontable .ht_nestingLevels > .relative {
   display: flex;
@@ -2987,7 +2987,7 @@
   content: "";
   display: block;
   border-left: 1px solid var(--hot-border-color);
-  height: calc(var(--hot-cell-line-height) * 2);
+  height: calc(var(--hot-cell-line-height) * 0.5 + 3px);
   position: absolute;
   bottom: 0;
   left: 0;
@@ -3052,11 +3052,39 @@
 .theme-modern .handsontable .ht_clone_bottom_left_corner thead tr th:not(:first-child):last-child,
 .theme-modern .handsontable .ht_clone_top_left_corner tbody tr td:last-child,
 .theme-modern .handsontable .ht_clone_top_left_corner thead tr th:not(:first-child):last-child {
-  box-shadow: -2px 0 0 0 inset var(--hot-border-color);
+  box-shadow: -2px 0 0 0 inset var(--hot-frozen-shadow);
+}
+.handsontable.theme-modern .ht_clone_inline_start.ht_clone_left tbody tr td:last-child.current,
+.handsontable.theme-modern .ht_clone_inline_start.ht_clone_left thead tr th:not(:first-child):last-child.current,
+.handsontable.theme-modern .ht_clone_bottom_left_corner tbody tr td:last-child.current,
+.handsontable.theme-modern .ht_clone_bottom_left_corner thead tr th:not(:first-child):last-child.current,
+.handsontable.theme-modern .ht_clone_top_left_corner tbody tr td:last-child.current,
+.handsontable.theme-modern .ht_clone_top_left_corner thead tr th:not(:first-child):last-child.current,
+.theme-modern .handsontable .ht_clone_inline_start.ht_clone_left tbody tr td:last-child.current,
+.theme-modern .handsontable .ht_clone_inline_start.ht_clone_left thead tr th:not(:first-child):last-child.current,
+.theme-modern .handsontable .ht_clone_bottom_left_corner tbody tr td:last-child.current,
+.theme-modern .handsontable .ht_clone_bottom_left_corner thead tr th:not(:first-child):last-child.current,
+.theme-modern .handsontable .ht_clone_top_left_corner tbody tr td:last-child.current,
+.theme-modern .handsontable .ht_clone_top_left_corner thead tr th:not(:first-child):last-child.current {
+  box-shadow: -2px 0 0 0 inset var(--hot-frozen-shadow), 0 0 0 1px inset var(--hot-accent-color);
+}
+.handsontable.theme-modern .ht_clone_inline_start.ht_clone_left tbody tr td.ht__highlight:last-child,
+.handsontable.theme-modern .ht_clone_inline_start.ht_clone_left thead tr th.ht__active_highlight:not(:first-child):last-child,
+.handsontable.theme-modern .ht_clone_bottom_left_corner tbody tr td.ht__highlight:last-child,
+.handsontable.theme-modern .ht_clone_bottom_left_corner thead tr th.ht__active_highlight:not(:first-child):last-child,
+.handsontable.theme-modern .ht_clone_top_left_corner tbody tr td.ht__highlight:last-child,
+.handsontable.theme-modern .ht_clone_top_left_corner thead tr th.ht__active_highlight:not(:first-child):last-child,
+.theme-modern .handsontable .ht_clone_inline_start.ht_clone_left tbody tr td.ht__highlight:last-child,
+.theme-modern .handsontable .ht_clone_inline_start.ht_clone_left thead tr th.ht__active_highlight:not(:first-child):last-child,
+.theme-modern .handsontable .ht_clone_bottom_left_corner tbody tr td.ht__highlight:last-child,
+.theme-modern .handsontable .ht_clone_bottom_left_corner thead tr th.ht__active_highlight:not(:first-child):last-child,
+.theme-modern .handsontable .ht_clone_top_left_corner tbody tr td.ht__highlight:last-child,
+.theme-modern .handsontable .ht_clone_top_left_corner thead tr th.ht__active_highlight:not(:first-child):last-child {
+  box-shadow: -2px 0 0 0 inset var(--hot-header-highlight-active-background-color);
 }
 .handsontable.theme-modern .ht_clone_top_left_corner tbody tr:last-child td:last-child,
 .theme-modern .handsontable .ht_clone_top_left_corner tbody tr:last-child td:last-child {
-  box-shadow: -2px -2px 0 0 inset var(--hot-border-color);
+  box-shadow: -2px -2px 0 0 inset var(--hot-frozen-shadow);
 }
 .handsontable.theme-modern .ht_clone_bottom tbody tr:first-child td, .handsontable.theme-modern .ht_clone_bottom tbody tr:first-child th,
 .handsontable.theme-modern .ht_clone_bottom_left_corner tbody tr:first-child td,
@@ -3065,11 +3093,11 @@
 .theme-modern .handsontable .ht_clone_bottom tbody tr:first-child th,
 .theme-modern .handsontable .ht_clone_bottom_left_corner tbody tr:first-child td,
 .theme-modern .handsontable .ht_clone_bottom_left_corner tbody tr:first-child th {
-  box-shadow: 0 2px 0 0 inset var(--hot-border-color);
+  box-shadow: 0 2px 0 0 inset var(--hot-frozen-shadow);
 }
 .handsontable.theme-modern .ht_clone_bottom_left_corner tbody tr:first-child td:last-child,
 .theme-modern .handsontable .ht_clone_bottom_left_corner tbody tr:first-child td:last-child {
-  box-shadow: -2px 2px 0 0 inset var(--hot-border-color);
+  box-shadow: -2px 2px 0 0 inset var(--hot-frozen-shadow);
 }
 .handsontable.theme-modern .ht_clone_top tbody tr:last-child td, .handsontable.theme-modern .ht_clone_top tbody tr:last-child th,
 .handsontable.theme-modern .ht_clone_top_left_corner tbody tr:last-child td,
@@ -3078,7 +3106,16 @@
 .theme-modern .handsontable .ht_clone_top tbody tr:last-child th,
 .theme-modern .handsontable .ht_clone_top_left_corner tbody tr:last-child td,
 .theme-modern .handsontable .ht_clone_top_left_corner tbody tr:last-child th {
-  box-shadow: 0 -2px 0 0 inset var(--hot-border-color);
+  box-shadow: 0 -2px 0 0 inset var(--hot-frozen-shadow);
+}
+.handsontable.theme-modern .ht_clone_top tbody tr:last-child td.current, .handsontable.theme-modern .ht_clone_top tbody tr:last-child th.current,
+.handsontable.theme-modern .ht_clone_top_left_corner tbody tr:last-child td.current,
+.handsontable.theme-modern .ht_clone_top_left_corner tbody tr:last-child th.current,
+.theme-modern .handsontable .ht_clone_top tbody tr:last-child td.current,
+.theme-modern .handsontable .ht_clone_top tbody tr:last-child th.current,
+.theme-modern .handsontable .ht_clone_top_left_corner tbody tr:last-child td.current,
+.theme-modern .handsontable .ht_clone_top_left_corner tbody tr:last-child th.current {
+  box-shadow: 0 -2px 0 0 inset var(--hot-frozen-shadow), 0 0 0 1px inset var(--hot-accent-color);
 }
 .handsontable.theme-modern .handsontable .htAutocompleteArrow,
 .theme-modern .handsontable .handsontable .htAutocompleteArrow {
@@ -3117,25 +3154,34 @@
 .theme-modern .handsontable .htSeparator {
   margin: 8px 0;
 }
-.handsontable.theme-modern.htContextMenu table.htCore,
-.theme-modern .handsontable.htContextMenu table.htCore {
+.handsontable.theme-modern.htContextMenu, .handsontable.theme-modern.htDropdownMenu table.htCore,
+.theme-modern .handsontable.htContextMenu,
+.theme-modern .handsontable.htDropdownMenu table.htCore {
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.12);
   padding: 8px 0;
   border-radius: 8px;
 }
-.handsontable.theme-modern.htContextMenu table.htCore tbody tr td,
-.theme-modern .handsontable.htContextMenu table.htCore tbody tr td {
+.handsontable.theme-modern.htContextMenu tbody tr td, .handsontable.theme-modern.htDropdownMenu table.htCore tbody tr td,
+.theme-modern .handsontable.htContextMenu tbody tr td,
+.theme-modern .handsontable.htDropdownMenu table.htCore tbody tr td {
   position: relative;
 }
-.handsontable.theme-modern.htContextMenu table.htCore tbody tr td .htSeparator,
-.theme-modern .handsontable.htContextMenu table.htCore tbody tr td .htSeparator {
+.handsontable.theme-modern.htContextMenu tbody tr td.current, .handsontable.theme-modern.htDropdownMenu table.htCore tbody tr td.current,
+.theme-modern .handsontable.htContextMenu tbody tr td.current,
+.theme-modern .handsontable.htDropdownMenu table.htCore tbody tr td.current {
+  background: var(--hot-header-background-color);
+}
+.handsontable.theme-modern.htContextMenu tbody tr td .htSeparator, .handsontable.theme-modern.htDropdownMenu table.htCore tbody tr td .htSeparator,
+.theme-modern .handsontable.htContextMenu tbody tr td .htSeparator,
+.theme-modern .handsontable.htDropdownMenu table.htCore tbody tr td .htSeparator {
   height: auto !important;
   border: none;
   padding: 4px 0;
   margin: 0;
 }
-.handsontable.theme-modern.htContextMenu table.htCore tbody tr td .htSeparator .htItemWrapper,
-.theme-modern .handsontable.htContextMenu table.htCore tbody tr td .htSeparator .htItemWrapper {
+.handsontable.theme-modern.htContextMenu tbody tr td .htSeparator .htItemWrapper, .handsontable.theme-modern.htDropdownMenu table.htCore tbody tr td .htSeparator .htItemWrapper,
+.theme-modern .handsontable.htContextMenu tbody tr td .htSeparator .htItemWrapper,
+.theme-modern .handsontable.htDropdownMenu table.htCore tbody tr td .htSeparator .htItemWrapper {
   border-top: var(--hot-contextmenu-separator-size) solid var(--hot-contextmenu-separator-color);
   margin: 0;
 }
@@ -3258,6 +3304,84 @@
 .handsontable.theme-modern .htCommentCell:after,
 .theme-modern .handsontable .htCommentCell:after {
   border-top-color: var(--hot-accent-color);
+}
+.handsontable.theme-modern .manualColumnResizer,
+.theme-modern .handsontable .manualColumnResizer {
+  width: 10px;
+  background: none;
+  margin: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+.handsontable.theme-modern .manualColumnResizer::before, .handsontable.theme-modern .manualColumnResizer::after,
+.theme-modern .handsontable .manualColumnResizer::before,
+.theme-modern .handsontable .manualColumnResizer::after {
+  content: "";
+  height: calc(100% - 8px);
+  width: 2px;
+  display: block;
+  background: var(--hot-read-only-text);
+  border-radius: 2px;
+  margin: 4px 0;
+  top: 0;
+  left: 1px;
+  position: absolute;
+}
+.handsontable.theme-modern .manualColumnResizer:after,
+.theme-modern .handsontable .manualColumnResizer:after {
+  right: 0;
+  left: auto;
+}
+.handsontable.theme-modern .manualColumnResizer:hover, .handsontable.theme-modern .manualColumnResizer.active,
+.theme-modern .handsontable .manualColumnResizer:hover,
+.theme-modern .handsontable .manualColumnResizer.active {
+  opacity: 1;
+}
+.handsontable.theme-modern .manualRowResizer,
+.theme-modern .handsontable .manualRowResizer {
+  height: 10px;
+  background: none;
+  margin: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+.handsontable.theme-modern .manualRowResizer::before, .handsontable.theme-modern .manualRowResizer::after,
+.theme-modern .handsontable .manualRowResizer::before,
+.theme-modern .handsontable .manualRowResizer::after {
+  content: "";
+  width: calc(100% - 8px);
+  height: 2px;
+  display: block;
+  background: var(--hot-read-only-text);
+  border-radius: 2px;
+  margin: 0 4px;
+  top: 1px;
+  left: 0;
+  position: absolute;
+}
+.handsontable.theme-modern .manualRowResizer:after,
+.theme-modern .handsontable .manualRowResizer:after {
+  bottom: 0;
+  top: auto;
+}
+.handsontable.theme-modern .manualRowResizer:hover, .handsontable.theme-modern .manualRowResizer.active,
+.theme-modern .handsontable .manualRowResizer:hover,
+.theme-modern .handsontable .manualRowResizer.active {
+  opacity: 1;
+}
+.handsontable.theme-modern .manualColumnResizerGuide,
+.handsontable.theme-modern .manualRowResizerGuide,
+.theme-modern .handsontable .manualColumnResizerGuide,
+.theme-modern .handsontable .manualRowResizerGuide {
+  border-style: solid;
+}
+.handsontable.theme-modern .manualColumnResizerGuide,
+.theme-modern .handsontable .manualColumnResizerGuide {
+  border-left: 0;
+}
+.handsontable.theme-modern .manualRowResizerGuide,
+.theme-modern .handsontable .manualRowResizerGuide {
+  border-top: 0;
 }
 
 .theme-modern .htCommentsContainer .htCommentTextArea {

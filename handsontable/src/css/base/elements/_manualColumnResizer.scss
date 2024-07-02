@@ -18,7 +18,14 @@
         }
     }
 
-    .manualRowResize {
+    .manualRowResizer {
+        position: absolute;
+        left: 0;
+        cursor: row-resize;
+        z-index: 210;
+        height: var(--hot-resizer-width);
+        width: var(--hot-col-width);
+
         &:hover, 
         &.active {
             background-color: var(--hot-column-resizer-color);
@@ -46,6 +53,7 @@
         display: none;
         height: 0;
         border-bottom: var(--hot-border-vertical-size) dashed var(--hot-column-resizer-guide-color);
+        border-top: none;
         margin-top: var(--hot-resizer-width);
     }
 
