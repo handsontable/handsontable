@@ -29,10 +29,10 @@ export default {
     };
   },
   computed: {
-    docsVersion(){
-      if(this.$page.versions[0] === 'next') return this.$page.versions[1]
+    docsVersion() {
+      if (this.$page.versions[0] === 'next') return this.$page.versions[1];
 
-      return this.$page.versions[0]
+      return this.$page.versions[0];
     },
     isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
