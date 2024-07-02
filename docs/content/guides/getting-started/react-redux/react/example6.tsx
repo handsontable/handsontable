@@ -1,4 +1,4 @@
-import { useEffect, MouseEvent } from 'react';
+import { useEffect, MouseEvent, RefObject, createRef } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect } from 'react-redux';
@@ -20,11 +20,11 @@ type EditorProps = {
 
 // a custom editor component
 class UnconnectedColorPicker extends BaseEditorComponent<EditorProps> {
-  editorRef: React.RefObject<HTMLDivElement>;
+  editorRef: RefObject<HTMLDivElement>;
   constructor(props: BaseEditorComponent<EditorProps>['props']) {
     super(props);
 
-    this.editorRef = React.createRef();
+    this.editorRef = createRef();
 
     this.state = {
       renderResult: null,

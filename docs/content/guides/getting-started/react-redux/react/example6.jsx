@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, createRef } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect } from 'react-redux';
@@ -14,7 +14,7 @@ registerAllModules();
 class UnconnectedColorPicker extends BaseEditorComponent {
   constructor(props) {
     super(props);
-    this.editorRef = React.createRef();
+    this.editorRef = createRef();
     this.state = {
       renderResult: null,
       value: '',

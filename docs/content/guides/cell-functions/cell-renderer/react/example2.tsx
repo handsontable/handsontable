@@ -1,4 +1,4 @@
-import { useState, useContext, MouseEvent } from 'react';
+import { useState, useContext, MouseEvent, createContext } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 import Handsontable from 'handsontable';
@@ -12,7 +12,7 @@ type RendererProps = {
 };
 
 // a component
-const HighlightContext = React.createContext(false);
+const HighlightContext = createContext(false);
 
 // a renderer component
 function CustomRenderer(props: RendererProps) {

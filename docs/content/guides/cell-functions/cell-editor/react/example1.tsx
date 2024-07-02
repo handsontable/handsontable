@@ -1,16 +1,16 @@
-import { MouseEvent } from 'react';
+import { createRef, MouseEvent, RefObject } from 'react';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // an editor component
 class EditorComponent extends BaseEditorComponent {
-  mainElementRef: React.RefObject<HTMLDivElement>;
+  mainElementRef: RefObject<HTMLDivElement>;
 
   constructor(props: BaseEditorComponent['props']) {
     super(props);
 
-    this.mainElementRef = React.createRef();
+    this.mainElementRef = createRef();
     this.state = {
       value: '',
     };
