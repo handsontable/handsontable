@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect } from 'react-redux';
