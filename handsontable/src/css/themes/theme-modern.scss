@@ -704,6 +704,10 @@ $frozen-size: 2px;
         tbody tr:first-child { 
             td, th {
                 box-shadow: 0 $frozen-size 0 0 inset var(--hot-frozen-shadow) ; 
+
+                &.current {
+                    box-shadow: 0 $frozen-size 0 0 inset var(--hot-frozen-shadow), 0 0 0 1px inset var(--hot-accent-color) ; 
+                }
             }
         }
     } 
@@ -719,10 +723,19 @@ $frozen-size: 2px;
         tbody tr:last-child { 
             td, th  {
                 box-shadow: 0 ($frozen-size * -1) 0 0 inset var(--hot-frozen-shadow);
-                
+
                 &.current {
                     box-shadow: 0 ($frozen-size * -1) 0 0 inset var(--hot-frozen-shadow), 0 0 0 1px inset var(--hot-accent-color);
                 }
+            }
+        }
+    }
+
+    // One Cell
+    .ht_clone_top_inline_start_corner {
+        thead {
+            tr th:first-child {
+                border-bottom: transparent;
             }
         }
     }

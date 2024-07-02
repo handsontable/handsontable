@@ -3092,6 +3092,15 @@
 .theme-modern .handsontable .ht_clone_bottom_left_corner tbody tr:first-child th {
   box-shadow: 0 2px 0 0 inset var(--hot-frozen-shadow);
 }
+.handsontable.theme-modern .ht_clone_bottom tbody tr:first-child td.current, .handsontable.theme-modern .ht_clone_bottom tbody tr:first-child th.current,
+.handsontable.theme-modern .ht_clone_bottom_left_corner tbody tr:first-child td.current,
+.handsontable.theme-modern .ht_clone_bottom_left_corner tbody tr:first-child th.current,
+.theme-modern .handsontable .ht_clone_bottom tbody tr:first-child td.current,
+.theme-modern .handsontable .ht_clone_bottom tbody tr:first-child th.current,
+.theme-modern .handsontable .ht_clone_bottom_left_corner tbody tr:first-child td.current,
+.theme-modern .handsontable .ht_clone_bottom_left_corner tbody tr:first-child th.current {
+  box-shadow: 0 2px 0 0 inset var(--hot-frozen-shadow), 0 0 0 1px inset var(--hot-accent-color);
+}
 .handsontable.theme-modern .ht_clone_bottom_left_corner tbody tr:first-child td:last-child,
 .theme-modern .handsontable .ht_clone_bottom_left_corner tbody tr:first-child td:last-child {
   box-shadow: -2px 2px 0 0 inset var(--hot-frozen-shadow);
@@ -3113,6 +3122,10 @@
 .theme-modern .handsontable .ht_clone_top_left_corner tbody tr:last-child td.current,
 .theme-modern .handsontable .ht_clone_top_left_corner tbody tr:last-child th.current {
   box-shadow: 0 -2px 0 0 inset var(--hot-frozen-shadow), 0 0 0 1px inset var(--hot-accent-color);
+}
+.handsontable.theme-modern .ht_clone_top_inline_start_corner thead tr th:first-child,
+.theme-modern .handsontable .ht_clone_top_inline_start_corner thead tr th:first-child {
+  border-bottom: transparent;
 }
 .handsontable.theme-modern .handsontable .htAutocompleteArrow,
 .theme-modern .handsontable .handsontable .htAutocompleteArrow {
