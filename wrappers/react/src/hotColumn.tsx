@@ -1,108 +1,96 @@
 import React from 'react';
-import { HotTableProps, HotColumnProps } from './types';
+import { HotTableProps, HotColumnProps, HotEditorHooks } from './types';
 import {
   createEditorPortal,
-  getExtendedEditorElement,
+  displayAnyChildrenWarning,
+  displayObsoleteRenderersEditorsWarning
 } from './helpers';
 import { SettingsMapper } from './settingsMapper';
 import Handsontable from 'handsontable/base';
+import { useHotTableContext } from './hotTableContext'
+import { useHotColumnContext } from './hotColumnContext'
+import { EditorContextProvider, makeEditorClass } from "./hotEditor";
 
-class HotColumn extends React.Component<HotColumnProps, {}> {
-  internalProps: string[];
-  columnSettings: Handsontable.ColumnSettings;
+const isHotColumn = (childNode: any): childNode is React.ReactElement => childNode.type === HotColumn;
 
-  /**
-   * Filter out all the internal properties and return an object with just the Handsontable-related props.
-   *
-   * @returns {Object}
-   */
-  getSettingsProps(): HotTableProps {
-    this.internalProps = ['_componentRendererColumns', '_emitColumnSettings', '_columnIndex', '_getChildElementByType', '_getRendererWrapper',
-      '_getEditorClass', '_getEditorCache', '_getOwnerDocument', 'hot-renderer', 'hot-editor', 'children'];
+const internalProps = ['_columnIndex', '_getOwnerDocument', 'children'];
 
-    return Object.keys(this.props)
-      .filter(key => {
-        return !this.internalProps.includes(key);
-      })
-      .reduce((obj, key) => {
-        obj[key] = this.props[key];
-
-        return obj;
-      }, {});
-  }
+const HotColumn: React.FC<HotColumnProps> = (props) => {
+  const { componentRendererColumns, emitColumnSettings, getRendererWrapper } = useHotTableContext();
+  const { columnIndex, getOwnerDocument } = useHotColumnContext();
 
   /**
-   * Get the editor element for the current column.
-   *
-   * @returns {React.ReactElement} React editor component element.
+   * Reference to component-based editor overridden hooks object.
    */
-  getLocalEditorElement(): React.ReactElement | null {
-    return getExtendedEditorElement(this.props.children, this.props._getEditorCache(), this.props._columnIndex);
-  }
+  const localEditorHooksRef = React.useRef<HotEditorHooks | null>(null);
 
   /**
-   * Create the column settings based on the data provided to the `HotColumn` component and it's child components.
+   * Reference to HOT-native custom editor class instance.
    */
-  createColumnSettings(): void {
-    const rendererElement = this.props._getChildElementByType(this.props.children, 'hot-renderer');
-    const editorElement = this.getLocalEditorElement();
+  const localEditorClassInstance = React.useRef<Handsontable.editors.BaseEditor | null>(null);
 
-    this.columnSettings = SettingsMapper.getSettings(this.getSettingsProps()) as unknown as Handsontable.ColumnSettings;
+  /**
+   * Logic performed after mounting & updating of the HotColumn component.
+   */
+  React.useEffect(() => {
 
-    if (rendererElement !== null) {
-      this.columnSettings.renderer = this.props._getRendererWrapper(rendererElement);
-      this.props._componentRendererColumns.set(this.props._columnIndex, true);
+    /**
+     * Filter out all the internal properties and return an object with just the Handsontable-related props.
+     *
+     * @returns {Object}
+     */
+    const getSettingsProps = (): HotTableProps => {
+      return Object.keys(props)
+        .filter(key => !internalProps.includes(key))
+        .reduce<HotTableProps>((obj, key) => {
+          (obj as any)[key] = props[key];
+          return obj;
+        }, {});
+    };
+
+    /**
+     * Create the column settings based on the data provided to the `HotColumn` component and its child components.
+     */
+    const createColumnSettings = (): Handsontable.ColumnSettings => {
+      const columnSettings = SettingsMapper.getSettings(getSettingsProps()) as unknown as Handsontable.ColumnSettings;
+
+      if (props.renderer) {
+        columnSettings.renderer = getRendererWrapper(props.renderer);
+        componentRendererColumns.set(columnIndex, true);
+      } else if (props.hotRenderer) {
+        columnSettings.renderer = props.hotRenderer;
+      }
+
+      if (props.editor) {
+        columnSettings.editor = makeEditorClass(localEditorHooksRef, localEditorClassInstance);
+      } else if (props.hotEditor) {
+        columnSettings.editor = props.hotEditor;
+      }
+
+      return columnSettings
+    };
+
+    const columnSettings = createColumnSettings();
+    emitColumnSettings(columnSettings, columnIndex);
+
+    if (!displayObsoleteRenderersEditorsWarning(props.children)) {
+      displayAnyChildrenWarning(props.children);
     }
+  });
 
-    if (editorElement !== null) {
-      this.columnSettings.editor = this.props._getEditorClass(editorElement, this.props._columnIndex);
-    }
-  }
-
-  /**
-   * Emit the column settings to the parent using a prop passed from the parent.
-   */
-  emitColumnSettings(): void {
-    this.props._emitColumnSettings(this.columnSettings, this.props._columnIndex);
-  }
-
-  /*
-  ---------------------------------------
-  ------- React lifecycle methods -------
-  ---------------------------------------
-  */
-
-  /**
-   * Logic performed after the mounting of the HotColumn component.
-   */
-  componentDidMount(): void {
-    this.createColumnSettings();
-    this.emitColumnSettings();
-  }
-
-  /**
-   * Logic performed after the updating of the HotColumn component.
-   */
-  componentDidUpdate(): void {
-    this.createColumnSettings();
-    this.emitColumnSettings();
-  }
+  const editorPortal = createEditorPortal(getOwnerDocument(), props.editor);
 
   /**
    * Render the portals of the editors, if there are any.
    *
    * @returns {React.ReactElement}
    */
-  render(): React.ReactElement {
-    const ownerDocument = this.props._getOwnerDocument();
-    const editorPortal = createEditorPortal(ownerDocument, this.getLocalEditorElement());
-
-    return (
-      <React.Fragment>
-        {editorPortal}
-      </React.Fragment>
-    )
-  }
+  return (
+    <EditorContextProvider hooksRef={localEditorHooksRef}
+                           hotCustomEditorInstanceRef={localEditorClassInstance}>
+      {editorPortal}
+    </EditorContextProvider>
+  )
 }
 
-export { HotColumn };
+export { HotColumn, isHotColumn };

@@ -52,7 +52,7 @@ Set together, a renderer, [editor](@/guides/cell-functions/cell-editor/cell-edit
 Handsontable's React wrapper lets you create custom cell renderers using React components.
 Although it's possible to use class-based react components for this purpose, we strongly suggest using functional components, as using the `state` of a class-based component would re-initialize on every Handsontable render.
 
-To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
+To provide a component as a Handsontable renderer, use `renderer` prop of either `HotTable` or `HotColumn`.
 
 ::: tip
 

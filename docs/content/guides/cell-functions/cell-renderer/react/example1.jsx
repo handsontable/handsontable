@@ -40,10 +40,8 @@ const ExampleComponent = () => {
       autoColumnSize={false}
       height="auto"
       licenseKey="non-commercial-and-evaluation">
-      <HotColumn width={250}>
-        {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-        <RendererComponent hot-renderer />
-      </HotColumn>
+      {/* add the `renderer` prop to set the component as a Handsontable renderer */}
+      <HotColumn width={250} renderer={RendererComponent} />
     </HotTable>
   );
 };

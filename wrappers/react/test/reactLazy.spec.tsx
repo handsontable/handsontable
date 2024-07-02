@@ -1,18 +1,17 @@
 import React, { Suspense, lazy } from 'react';
 import { act } from '@testing-library/react';
-import {
-  HotTable
-} from '../src/hotTable';
+import { HotTable } from '../src/hotTable';
 import {
   createSpreadsheetData,
   mockElementDimensions,
   mountComponentWithRef,
   sleep,
 } from './_helpers';
+import { HotRendererProps, HotTableRef } from '../src/types'
 
 describe('React.lazy', () => {
   it('should be possible to lazy-load components and utilize Suspend', async () => {
-    function RendererComponent2(props) {
+    function RendererComponent2(props: HotRendererProps) {
       return (
         <>
           lazy value: {props.value}
@@ -20,9 +19,9 @@ describe('React.lazy', () => {
       );
     }
 
-    let promiseResolve = null;
+    let promiseResolve: (value: unknown) => void = () => undefined;
 
-    function SuspendedRenderer(props) {
+    function SuspendedRenderer(props: HotRendererProps) {
       const customImportPromise = new Promise(function (resolve, reject) {
           promiseResolve = resolve;
         }
@@ -37,7 +36,7 @@ describe('React.lazy', () => {
       )
     }
 
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(1, 1)}
@@ -49,12 +48,11 @@ describe('React.lazy', () => {
                 autoColumnSize={false}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <SuspendedRenderer hot-renderer/>
-      </HotTable>
-    )).hotInstance;
+                }}
+                renderer={SuspendedRenderer}/>
+    )).hotInstance!;
 
-    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>loading-message</div>');
+    expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('<div>loading-message</div>');
 
     await act(async () => {
       promiseResolve({
@@ -65,6 +63,6 @@ describe('React.lazy', () => {
 
     await sleep(40);
 
-    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>lazy value: A1</div>');
+    expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('<div>lazy value: A1</div>');
   });
 });

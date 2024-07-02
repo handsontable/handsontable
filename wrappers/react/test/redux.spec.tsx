@@ -1,10 +1,8 @@
 import React from 'react';
 import { act } from '@testing-library/react';
-import { createStore, combineReducers } from 'redux';
+import { createStore, combineReducers, AnyAction } from 'redux';
 import { Provider, connect } from 'react-redux';
-import {
-  HotTable
-} from '../src/hotTable';
+import { HotTable } from '../src/hotTable';
 import {
   createSpreadsheetData,
   mockElementDimensions,
@@ -18,7 +16,7 @@ const initialReduxStoreState = {
   hexColor: '#fff'
 };
 
-const appReducer = (state = initialReduxStoreState, action) => {
+const appReducer = (state = initialReduxStoreState, action: AnyAction) => {
   switch (action.type) {
     case 'updateColor':
       const newColor = action.hexColor;
@@ -48,12 +46,9 @@ describe('Using Redux store within HotTable renderers and editors', () => {
         }
       }, () => {
         return {};
-      },
-      null,
-      {
-        forwardRef: true
       })(RendererComponent);
-    let rendererInstances = new Map();
+
+    const rendererInstances = new Map();
 
     mountComponent((
       <Provider store={reduxStore}>
@@ -68,21 +63,18 @@ describe('Using Redux store within HotTable renderers and editors', () => {
                   autoColumnSize={false}
                   init={function () {
                     mockElementDimensions(this.rootElement, 300, 300);
-                  }}>
-          <ReduxEnabledRenderer ref={function (instance) {
-            if (instance === null) {
-              return instance;
-            }
-
-            rendererInstances.set(`${instance.props.row}-${instance.props.col}`, instance);
-          }
-          } hot-renderer/>
-        </HotTable>
+                  }}
+                  renderer={(props) => <ReduxEnabledRenderer {...props} tap={(props) =>  {
+                    rendererInstances.set(`${props.row}-${props.col}`, props);
+                  }
+                  } />} />
       </Provider>
     ));
 
-    rendererInstances.forEach((component, key, map) => {
-      expect(component.props.bgColor).toEqual('#fff');
+    expect(rendererInstances.size).not.toEqual(0);
+
+    rendererInstances.forEach((props, key, map) => {
+      expect(props.bgColor).toEqual('#fff');
     });
 
     await act(async () => {
@@ -92,8 +84,8 @@ describe('Using Redux store within HotTable renderers and editors', () => {
       });
     });
 
-    rendererInstances.forEach((component, key, map) => {
-      expect(component.props.bgColor).toEqual('#B57267');
+    rendererInstances.forEach((props) => {
+      expect(props.bgColor).toEqual('#B57267');
     });
   });
 
@@ -109,7 +101,8 @@ describe('Using Redux store within HotTable renderers and editors', () => {
       {
         forwardRef: true
       })(EditorComponent);
-    let editorInstances = new Map();
+
+    let editorProps: any;
 
     mountComponent((
       <Provider store={reduxStore}>
@@ -122,24 +115,17 @@ describe('Using Redux store within HotTable renderers and editors', () => {
                   colWidths={50}
                   init={function () {
                     mockElementDimensions(this.rootElement, 300, 300);
-                  }}>
-          <ReduxEnabledEditor ref={function (instance) {
-            if (instance === null) {
-              return instance;
-            }
-
-            editorInstances.set(`${instance.props.row}-${instance.props.col}`, instance);
-          }
-          } hot-editor/>
-        </HotTable>
+                  }}
+                  editor={() => <ReduxEnabledEditor tap={(props) => {
+                    editorProps = props
+                  }
+                  } />} />
       </Provider>
     ));
 
     await sleep(100);
 
-    editorInstances.forEach((value, key, map) => {
-      expect(value.props.bgColor).toEqual('#fff');
-    });
+    expect(editorProps.bgColor).toEqual('#fff');
 
     await act(async () => {
       reduxStore.dispatch({
@@ -148,8 +134,6 @@ describe('Using Redux store within HotTable renderers and editors', () => {
       });
     });
 
-    editorInstances.forEach((value, key, map) => {
-      expect(value.props.bgColor).toEqual('#B57267');
-    });
+    expect(editorProps.bgColor).toEqual('#B57267');
   });
 });

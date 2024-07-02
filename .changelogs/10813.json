@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Enable TypeScript strict mode & ensure proper strong typing everywhere",
+  "type": "changed",
+  "issueOrPR": 10813,
+  "breaking": false,
+  "framework": "react"
+}
