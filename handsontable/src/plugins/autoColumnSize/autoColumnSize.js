@@ -400,6 +400,11 @@ export class AutoColumnSize extends BasePlugin {
    * @param {number[]} visualColumns List of visual columns to calculate.
    */
   #calculateSpecificColumnsWidth(visualColumns) {
+    const rowsRange = {
+      from: 0,
+      to: this.hot.countRows() - 1,
+    };
+
     visualColumns.forEach((visualColumn) => {
       const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
@@ -408,10 +413,7 @@ export class AutoColumnSize extends BasePlugin {
       }
 
       if (!this.hot._getColWidthFromSettings(physicalColumn)) {
-        const samples = this.samplesGenerator.generateColumnSamples(visualColumn, {
-          from: 0,
-          to: this.hot.countRows() - 1,
-        });
+        const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
 
         arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
       }
