@@ -29,6 +29,11 @@ export default {
     };
   },
   computed: {
+    docsVersion(){
+      if(this.$page.versions[0] === 'next') return this.$page.versions[1]
+
+      return this.$page.versions[0]
+    },
     isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
     },
@@ -173,7 +178,7 @@ export default {
 
       window.open(
         // eslint-disable-next-line max-len
-        `https://github.com/handsontable/handsontable/blob/develop/docs/content/${pathArray.join('/')}/${filename}`,
+        `https://github.com/handsontable/handsontable/blob/prod-docs/${this.docsVersion}/docs/content/${pathArray.join('/')}/${filename}`,
         '_blank'
       );
     },
