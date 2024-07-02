@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.css';
@@ -10,8 +10,6 @@ const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [output, setOutput] = useState('Click "Load" to load data from server');
   const [isAutosave, setIsAutosave] = useState(false);
-  let loadClickCallback;
-  let saveClickCallback;
   const autosaveClickCallback = (event) => {
     setIsAutosave(event.target.checked);
 
@@ -22,37 +20,38 @@ const ExampleComponent = () => {
     }
   };
 
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
+  const loadClickCallback = (event) => {
+    const hot = hotRef.current?.hotInstance;
 
-    loadClickCallback = () => {
-      fetch('{{$basePath}}/scripts/json/load.json').then((response) => {
-        response.json().then((data) => {
-          hot.loadData(data.data);
-          // or, use `updateData()` to replace `data` without resetting states
-          setOutput('Data loaded');
-        });
+    fetch('{{$basePath}}/scripts/json/load.json').then((response) => {
+      response.json().then((data) => {
+        hot?.loadData(data.data);
+        // or, use `updateData()` to replace `data` without resetting states
+        setOutput('Data loaded');
       });
-    };
-    saveClickCallback = () => {
-      // save all cell's data
-      fetch('{{$basePath}}/scripts/json/save.json', {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ data: hot.getData() }),
-      }).then((response) => {
-        setOutput('Data saved');
-        console.log('The POST request is only used here for the demo purposes');
-      });
-    };
-  });
+    });
+  };
+
+  const saveClickCallback = (event) => {
+    const hot = hotRef.current?.hotInstance;
+
+    // save all cell's data
+    fetch('{{$basePath}}/scripts/json/save.json', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ data: hot?.getData() }),
+    }).then((response) => {
+      setOutput('Data saved');
+      console.log('The POST request is only used here for the demo purposes');
+    });
+  };
 
   return (
     <>
-      <div class="example-controls-container">
+      <div className="example-controls-container">
         <div className="controls">
           <button
             id="load"
@@ -112,7 +111,9 @@ const ExampleComponent = () => {
             body: JSON.stringify({ data: change }),
           }).then((response) => {
             setOutput(
-              `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`
+              `Autosaved (${change?.length} cell${
+                (change?.length || 0) > 1 ? 's' : ''
+              })`
             );
             console.log(
               'The POST request is only used here for the demo purposes'
