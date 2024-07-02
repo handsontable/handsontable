@@ -2275,6 +2275,7 @@
   /* htAutocompleteArrow */
   /* dropdown */
   /* contextMenu */
+  /* dropdownMenu */
   /* select */
   /* listbox */
   /* submenu */
@@ -3150,36 +3151,36 @@
 .theme-modern .handsontable .htSeparator {
   margin: 8px 0;
 }
-.handsontable.theme-modern.htContextMenu, .handsontable.theme-modern.htDropdownMenu table.htCore,
-.theme-modern .handsontable.htContextMenu,
-.theme-modern .handsontable.htDropdownMenu table.htCore {
+.handsontable.theme-modern.htContextMenu .htCore,
+.theme-modern .handsontable.htContextMenu .htCore {
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.12);
   padding: 8px 0;
   border-radius: 8px;
+  margin-bottom: 16px;
 }
-.handsontable.theme-modern.htContextMenu tbody tr td, .handsontable.theme-modern.htDropdownMenu table.htCore tbody tr td,
-.theme-modern .handsontable.htContextMenu tbody tr td,
-.theme-modern .handsontable.htDropdownMenu table.htCore tbody tr td {
+.handsontable.theme-modern.htContextMenu .htCore tbody tr td,
+.theme-modern .handsontable.htContextMenu .htCore tbody tr td {
   position: relative;
 }
-.handsontable.theme-modern.htContextMenu tbody tr td.current, .handsontable.theme-modern.htDropdownMenu table.htCore tbody tr td.current,
-.theme-modern .handsontable.htContextMenu tbody tr td.current,
-.theme-modern .handsontable.htDropdownMenu table.htCore tbody tr td.current {
+.handsontable.theme-modern.htContextMenu .htCore tbody tr td.current,
+.theme-modern .handsontable.htContextMenu .htCore tbody tr td.current {
   background: var(--hot-header-background-color);
 }
-.handsontable.theme-modern.htContextMenu tbody tr td .htSeparator, .handsontable.theme-modern.htDropdownMenu table.htCore tbody tr td .htSeparator,
-.theme-modern .handsontable.htContextMenu tbody tr td .htSeparator,
-.theme-modern .handsontable.htDropdownMenu table.htCore tbody tr td .htSeparator {
+.handsontable.theme-modern.htContextMenu .htCore tbody tr td .htSeparator,
+.theme-modern .handsontable.htContextMenu .htCore tbody tr td .htSeparator {
   height: auto !important;
   border: none;
   padding: 4px 0;
   margin: 0;
 }
-.handsontable.theme-modern.htContextMenu tbody tr td .htSeparator .htItemWrapper, .handsontable.theme-modern.htDropdownMenu table.htCore tbody tr td .htSeparator .htItemWrapper,
-.theme-modern .handsontable.htContextMenu tbody tr td .htSeparator .htItemWrapper,
-.theme-modern .handsontable.htDropdownMenu table.htCore tbody tr td .htSeparator .htItemWrapper {
+.handsontable.theme-modern.htContextMenu .htCore tbody tr td .htSeparator .htItemWrapper,
+.theme-modern .handsontable.htContextMenu .htCore tbody tr td .htSeparator .htItemWrapper {
   border-top: var(--hot-contextmenu-separator-size) solid var(--hot-contextmenu-separator-color);
   margin: 0;
+}
+.handsontable.theme-modern.htDropdownMenu table.htCore tbody tr td,
+.theme-modern .handsontable.htDropdownMenu table.htCore tbody tr td {
+  position: relative;
 }
 .handsontable.theme-modern .htSelectEditor,
 .theme-modern .handsontable .htSelectEditor {

@@ -768,11 +768,11 @@ $frozen-size: 2px;
     }
 
     /* contextMenu */
-    &.htContextMenu,
-    &.htDropdownMenu table.htCore { 
+    &.htContextMenu .htCore { 
         box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.12);
         padding: 8px 0;
         border-radius: 8px;
+        margin-bottom: 16px;
 
         tbody tr td {
             position: relative;
@@ -792,6 +792,13 @@ $frozen-size: 2px;
                     margin: 0;
                 }
             }
+        }
+    }
+
+    /* dropdownMenu */
+    &.htDropdownMenu table.htCore {
+        tbody tr td {
+            position: relative;
         }
     }
 
