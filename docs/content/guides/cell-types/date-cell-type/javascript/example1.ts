@@ -10,7 +10,7 @@ new Handsontable(container, {
     ['Citroen', 'C4 Coupe', '12/01/2022', 8330],
     ['Audi', 'A4 Avant', '11/19/2023', 33900],
     ['Opel', 'Astra', '02/02/2021', 7000],
-    ['BMW', '320i Coupe', '07/24/2022', 30500]
+    ['BMW', '320i Coupe', '07/24/2022', 30500],
   ],
   colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
   height: 'auto',
@@ -35,15 +35,15 @@ new Handsontable(container, {
         disableDayFn(date) {
           // Disable Sunday and Saturday
           return date.getDay() === 0 || date.getDay() === 6;
-        }
-      }
+        },
+      },
     },
     {
       type: 'numeric',
       numericFormat: {
-        pattern: '$ 0,0.00'
-      }
-    }
+        pattern: '$ 0,0.00',
+      },
+    },
   ],
   autoWrapRow: true,
   autoWrapCol: true,

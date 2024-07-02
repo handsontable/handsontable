@@ -10,9 +10,10 @@ const ExampleComponent = () => {
   const hotTableComponentRef = useRef(null);
   const sortAsc = () => {
     // get the `ColumnSorting` plugin
-    const columnSorting = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
+    const columnSorting =
+      hotTableComponentRef.current?.hotInstance?.getPlugin('columnSorting');
 
-    columnSorting.sort({
+    columnSorting?.sort({
       column: 0,
       sortOrder: 'asc',
     });
@@ -20,16 +21,19 @@ const ExampleComponent = () => {
 
   const unsort = () => {
     // get the `ColumnSorting` plugin
-    const columnSorting = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
+    const columnSorting =
+      hotTableComponentRef.current?.hotInstance?.getPlugin('columnSorting');
 
-    columnSorting.clearSort();
+    columnSorting?.clearSort();
   };
 
   return (
     <>
-      <div class="example-controls-container">
+      <div className="example-controls-container">
         <div className="controls">
-          <button onClick={sortAsc}>Sort by the "Brand" column, in ascending order</button>
+          <button onClick={sortAsc}>
+            Sort by the "Brand" column, in ascending order
+          </button>
           <button onClick={unsort}>Go back to the original order</button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -9,42 +9,35 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [output, setOutput] = useState('');
+  const getButtonClickCallback = () => {
+    const hot = hotRef.current?.hotInstance;
+    const selected = hot?.getSelected() || [];
+    let data = [];
 
-  let getButtonClickCallback;
+    if (selected.length === 1) {
+      data = hot?.getData(...selected[0]) || [];
+    } else {
+      for (let i = 0; i < selected.length; i += 1) {
+        const item = selected[i];
 
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
-
-    getButtonClickCallback = event => {
-      const selected = hot.getSelected() || [];
-      let data = [];
-
-      if (selected.length === 1) {
-        data = hot.getData(...selected[0]);
-      } else {
-        for (let i = 0; i < selected.length; i += 1) {
-          const item = selected[i];
-    
-          data.push(hot.getData(...item));
-        }
+        data.push(hot?.getData(...item));
       }
+    }
 
-      setOutput(JSON.stringify(data));
-    };
-  });
+    setOutput(JSON.stringify(data));
+  };
 
   return (
     <>
-      <div class="example-controls-container">
+      <div className="example-controls-container">
         <div className="controls">
-          <button
-            id="getButton"
-            onClick={(...args) => getButtonClickCallback(...args)}
-          >
+          <button id="getButton" onClick={() => getButtonClickCallback()}>
             Get data
           </button>
         </div>
-        <output className="console" id="output">{output}</output>
+        <output className="console" id="output">
+          {output}
+        </output>
       </div>
       <HotTable
         ref={hotRef}

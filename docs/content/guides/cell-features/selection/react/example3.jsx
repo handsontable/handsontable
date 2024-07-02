@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -8,42 +8,41 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
+  const buttonClickCallback = () => {
+    const hot = hotRef.current?.hotInstance;
+    const selected = hot?.getSelected() || [];
 
-  let buttonClickCallback;
+    hot?.suspendRender();
 
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
+    for (let index = 0; index < selected.length; index += 1) {
+      const [row1, column1, row2, column2] = selected[index];
+      const startRow = Math.max(Math.min(row1, row2), 0);
+      const endRow = Math.max(row1, row2);
+      const startCol = Math.max(Math.min(column1, column2), 0);
+      const endCol = Math.max(column1, column2);
 
-    buttonClickCallback = event => {
-      const selected = hot.getSelected() || [];
-      const target = event.target.id;
-
-      hot.suspendRender();
-
-      for (let index = 0; index < selected.length; index += 1) {
-        const [row1, column1, row2, column2] = selected[index];
-        const startRow = Math.max(Math.min(row1, row2), 0);
-        const endRow = Math.max(row1, row2);
-        const startCol = Math.max(Math.min(column1, column2), 0);
-        const endCol = Math.max(column1, column2);
-
-        for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
-          for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
-            hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
-            hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
-          }
+      for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
+        for (
+          let columnIndex = startCol;
+          columnIndex <= endCol;
+          columnIndex += 1
+        ) {
+          hot?.setDataAtCell(rowIndex, columnIndex, 'data changed');
+          hot?.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
         }
       }
+    }
 
-      hot.render();
-      hot.resumeRender();
-    };
-  });
+    hot?.render();
+    hot?.resumeRender();
+  };
 
   return (
     <>
       <div className="controls">
-        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Click to modify the selected cells</button>
+        <button id="set-data-action" onClick={() => buttonClickCallback()}>
+          Click to modify the selected cells
+        </button>
       </div>
       <HotTable
         ref={hotRef}

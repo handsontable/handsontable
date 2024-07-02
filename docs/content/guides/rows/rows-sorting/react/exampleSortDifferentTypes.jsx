@@ -64,7 +64,7 @@ const ExampleComponent = () => {
         {
           title: 'Model<br>(text)',
           // set the type of the 'Model' column
-          type: 'text', // 'text' is the default type, so you can omit this line
+          type: 'text',
           data: 'model',
         },
         {

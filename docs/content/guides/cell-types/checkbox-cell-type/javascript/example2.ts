@@ -6,29 +6,34 @@ const container = document.querySelector('#example2')!;
 new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
-    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+    {
+      car: 'Citroen C4 Coupe',
+      year: 2018,
+      available: false,
+      comesInBlack: 'yes',
+    },
     { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
     { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
-    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' },
   ],
   colHeaders: ['Car model', 'Year of manufacture', 'Comes in black'],
   height: 'auto',
   columns: [
     {
-      data: 'car'
+      data: 'car',
     },
     {
       data: 'year',
-      type: 'numeric'
+      type: 'numeric',
     },
     {
       data: 'comesInBlack',
       type: 'checkbox',
       checkedTemplate: 'yes',
-      uncheckedTemplate: 'no'
-    }
+      uncheckedTemplate: 'no',
+    },
   ],
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

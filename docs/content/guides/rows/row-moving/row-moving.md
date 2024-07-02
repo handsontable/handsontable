@@ -26,9 +26,10 @@ A draggable move handle appears above the selected row header. You can click and
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-moving/javascript/example1.js)
+@[code](@/content/guides/rows/row-moving/javascript/example1.ts)
 
 :::
 
@@ -36,9 +37,10 @@ A draggable move handle appears above the selected row header. You can click and
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-moving/react/example1.jsx)
+@[code](@/content/guides/rows/row-moving/react/example1.tsx)
 
 :::
 

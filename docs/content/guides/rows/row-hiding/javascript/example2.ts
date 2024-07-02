@@ -25,7 +25,7 @@ new Handsontable(container, {
   // enable the `HiddenRows` plugin
   hiddenRows: {
     // specify rows hidden by default
-    rows: [3, 5, 9]
+    rows: [3, 5, 9],
   },
   autoWrapRow: true,
   autoWrapCol: true,

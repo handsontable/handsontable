@@ -28,7 +28,7 @@ new Handsontable(container, {
   // automatically adds the context menu's row hiding items
   hiddenRows: {
     rows: [3, 5, 9],
-    indicators: true
+    indicators: true,
   },
   autoWrapRow: true,
   autoWrapCol: true,

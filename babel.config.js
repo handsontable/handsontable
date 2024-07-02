@@ -18,6 +18,7 @@ module.exports = {
     ['@babel/preset-env', babelPresetConfig()]
   ],
   plugins: [
-    ['transform-inline-environment-variables']
+    ['transform-inline-environment-variables'],
+    '@babel/plugin-syntax-jsx'
   ]
 };

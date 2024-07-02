@@ -42,9 +42,10 @@ To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowsw
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-header/javascript/example1.js)
+@[code](@/content/guides/rows/row-header/javascript/example1.ts)
 
 :::
 
@@ -52,9 +53,10 @@ To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowsw
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-header/react/example1.jsx)
+@[code](@/content/guides/rows/row-header/react/example1.tsx)
 
 :::
 

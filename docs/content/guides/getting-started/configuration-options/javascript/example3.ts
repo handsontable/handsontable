@@ -19,9 +19,7 @@ const hot = new Handsontable(container, {
   // the `cells` options overwrite all other options
   // apply only to each cell of rows 1 and 4, as specified in the function's body
   cells(row) {
-    return (row === 1 || row === 4)
-      ? { readOnly: true }
-      : {};
+    return row === 1 || row === 4 ? { readOnly: true } : {};
   },
   autoWrapRow: true,
   autoWrapCol: true,

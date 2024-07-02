@@ -9,7 +9,6 @@ registerAllModules();
 const ExampleComponent = () => {
   registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
     textRenderer(hotInstance, TD, ...rest);
-
     TD.style.fontWeight = 'bold';
     TD.style.color = 'green';
     TD.style.background = '#d7f1e1';

@@ -190,6 +190,7 @@ const hot = new Handsontable(container, {
         readOnly: true,
       };
     }
+
     if (row === lastRowIndex) {
       return {
         type: 'numeric',
@@ -198,8 +199,8 @@ const hot = new Handsontable(container, {
     }
 
     return {
-      type: 'text'
-    }
+      type: 'text',
+    };
   },
   columnSummary: [
     {

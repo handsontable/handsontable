@@ -1,8 +1,8 @@
 const { getParameters } = require('codesandbox/lib/api/define');
 const { getBody } = require('../../code-structure-builder/getBody');
 
-const codesandbox = (id, html, js, css, docsVersion, preset) => {
-  const body = getBody(id, html, js, css, docsVersion, preset);
+const codesandbox = (id, html, js, css, docsVersion, preset, lang) => {
+  const body = getBody({ id, html, js, css, docsVersion, preset, lang });
   const parameters = getParameters(body);
 
   return `

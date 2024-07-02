@@ -23,50 +23,62 @@ const ExampleComponent = () => {
       autoWrapRow: true,
       autoWrapCol: true,
       height: 220,
-      licenseKey: 'non-commercial-and-evaluation'
-    }
+      licenseKey: 'non-commercial-and-evaluation',
+    };
 
     return initialState;
   });
 
-  const handleChange = (setting, states) => event => {
-    setSettings(prevState => ({
+  const handleChange = (setting, states) => (event) => {
+    setSettings((prevState) => ({
       ...prevState,
       [setting]: states[event.target.checked ? 1 : 0],
-    }))
-  }
+    }));
+  };
 
   return (
     <div>
       <div className="controls">
         <label>
-          <input onChange={handleChange('fixedRowsTop', [0, 2])} type="checkbox" />
+          <input
+            onChange={handleChange('fixedRowsTop', [0, 2])}
+            type="checkbox"
+          />
           Add fixed rows
         </label>
-        <br/>
+        <br />
 
         <label>
-          <input onChange={handleChange('fixedColumnsStart', [0, 2])} type="checkbox" />
+          <input
+            onChange={handleChange('fixedColumnsStart', [0, 2])}
+            type="checkbox"
+          />
           Add fixed columns
         </label>
-        <br/>
+        <br />
 
         <label>
-          <input onChange={handleChange('rowHeaders', [false, true])} type="checkbox" />
+          <input
+            onChange={handleChange('rowHeaders', [false, true])}
+            type="checkbox"
+          />
           Enable row headers
         </label>
-        <br/>
+        <br />
 
         <label>
-          <input onChange={handleChange('colHeaders', [false, true])} type="checkbox" />
+          <input
+            onChange={handleChange('colHeaders', [false, true])}
+            type="checkbox"
+          />
           Enable column headers
         </label>
-        <br/>
+        <br />
       </div>
 
-      <HotTable id="hot" {...settings}/>
+      <HotTable id="hot" {...settings} />
     </div>
   );
-}
+};
 
 export default ExampleComponent;

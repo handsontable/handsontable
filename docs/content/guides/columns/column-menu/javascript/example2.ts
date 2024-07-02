@@ -2,6 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example2')!;
+
 new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
@@ -16,7 +17,7 @@ new Handsontable(container, {
     '---------',
     'make_read_only',
     '---------',
-    'alignment'
+    'alignment',
   ],
   autoWrapRow: true,
   autoWrapCol: true,

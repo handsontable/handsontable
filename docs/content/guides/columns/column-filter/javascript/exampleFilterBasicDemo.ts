@@ -3,6 +3,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleFilterBasicDemo')!;
+
 new Handsontable(container, {
   data: [
     {

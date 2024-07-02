@@ -1,4 +1,4 @@
-const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox }) => {
+const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox, lang }) => {
   const addReduxDependencies = preset.includes('redux')
     ? `
     "redux": "^4.0.0",
@@ -11,6 +11,30 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
     "react-colorful": "5.6.1",
     "react-star-rating-component": "1.4.1",`
     : '';
+
+  const tsconfig = lang === 'tsx' ? {
+    'tsconfig.json': {
+      content: `{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noResolve": false,
+    "noImplicitAny": false,
+    "allowJs": true,
+    "jsx": "react",
+    "skipLibCheck": true,
+    "lib": [
+        "dom",
+        "es2020"
+    ]
+  },
+  "exclude": [
+    "./node_modules/**/*"
+  ]
+}`
+    }
+  } : {};
 
   if (sandbox === 'stackblitz') {
     return {
@@ -25,8 +49,17 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
     "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
-    "@handsontable/react": "${version}"
+    "@handsontable/react": "${version}"${lang === 'tsx' ? `,
+    "@types/react": "18.0.21",
+    "@types/react-dom": "18.0.6",
+    "typescript": "5.5.2"` : ''
+}
   },
+  ${lang === 'tsx' ?
+    `"devDependencies": {
+      "react-scripts-ts": "latest"
+    },` : ''
+}
   "browserslist": {
     "production": [
       ">0.2%",
@@ -59,7 +92,7 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
         'src/styles.css': {
           content: css
         },
-        'src/index.js': {
+        [`src/index.${lang === 'jsx' ? 'js' : 'tsx'}`]: {
           content: `import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
@@ -74,10 +107,11 @@ root.render(
   </StrictMode>
 );`
         },
-        'src/ExampleComponent.jsx': {
+        [`src/ExampleComponent.${lang}`]: {
           content: `import React from "react";
 ${js}`
-        }
+        },
+        ...tsconfig
       }
     };
   }
@@ -89,7 +123,7 @@ ${js}`
   "name": "handsontable",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.jsx",
+  "main": "src/index.${lang}",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build"
@@ -98,7 +132,11 @@ ${js}`
     "react": "^18.2.0",
     "react-dom": "^18.2.0",${addReduxDependencies}${addAdvancedDependencies}
     "handsontable": "${version}",
-    "@handsontable/react": "${version}"
+    "@handsontable/react": "${version}"${lang === 'tsx' ? `,
+    "@types/react": "18.0.21",
+    "@types/react-dom": "18.0.6",
+    "typescript": "5.5.2"` : ''
+}
   },
   "devDependencies": {
     "react-scripts": "^5.0.1"
@@ -138,8 +176,9 @@ ${js}`
       'src/styles.css': {
         content: css
       },
-      'src/index.jsx': {
-        content: `import { StrictMode } from "react";
+      [`src/index.${lang}`]: {
+        content: `import * as React from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import ExampleComponent from "./ExampleComponent";
@@ -153,9 +192,11 @@ root.render(
   </StrictMode>
 );`
       },
-      'src/ExampleComponent.jsx': {
-        content: js.replace('import { HyperFormula } from \'hyperformula\';', '')
-      }
+      [`src/ExampleComponent.${lang}`]: {
+        content: `import * as React from "react";
+${js.replace('import { HyperFormula } from \'hyperformula\';', '')}`
+      },
+      ...tsconfig
     }
   };
 

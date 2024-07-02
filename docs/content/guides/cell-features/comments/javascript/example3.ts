@@ -17,10 +17,17 @@ new Handsontable(container, {
   cell: [
     { row: 1, col: 1, comment: { value: 'Some comment' } },
     // add the `style` parameter
-    { row: 2, col: 2, comment: { value: 'Comment 200x50 px', style: { width: 200, height: 50 } } }
+    {
+      row: 2,
+      col: 2,
+      comment: {
+        value: 'Comment 200x50 px',
+        style: { width: 200, height: 50 },
+      },
+    },
   ],
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

@@ -10,9 +10,12 @@ const ExampleComponent = () => {
   const hotTableComponentRef = useRef(null);
   const sort = () => {
     // get the `MultiColumnSorting` plugin
-    const multiColumnSorting = hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
+    const multiColumnSorting =
+      hotTableComponentRef.current?.hotInstance?.getPlugin(
+        'multiColumnSorting'
+      );
 
-    multiColumnSorting.sort([
+    multiColumnSorting?.sort([
       {
         column: 0,
         sortOrder: 'asc',

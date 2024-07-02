@@ -4,7 +4,8 @@ import 'handsontable/dist/handsontable.full.min.css';
 const container = document.querySelector('#exampleFilterDifferentTypes')!;
 
 new Handsontable(container, {
-  data: [    {
+  data: [
+    {
       model: 'Racing Socks',
       size: 'S',
       price: 30,

@@ -15,11 +15,15 @@ new Handsontable(container, {
   contextMenu: true,
   comments: true,
   cell: [
-    { row: 0, col: 1, comment: { value: 'A read-only comment.', readOnly: true } },
-    { row: 0, col: 3, comment: { value: 'You can edit this comment' } }
+    {
+      row: 0,
+      col: 1,
+      comment: { value: 'A read-only comment.', readOnly: true },
+    },
+    { row: 0, col: 3, comment: { value: 'You can edit this comment' } },
   ],
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

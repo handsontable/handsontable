@@ -25,7 +25,7 @@ const hot = new Handsontable(container, {
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 const button = document.querySelector('#set-data-action')!;
@@ -43,7 +43,11 @@ button.addEventListener('click', () => {
     const endCol = Math.max(column1, column2);
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
-      for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
+      for (
+        let columnIndex = startCol;
+        columnIndex <= endCol;
+        columnIndex += 1
+      ) {
         hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
         hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
       }

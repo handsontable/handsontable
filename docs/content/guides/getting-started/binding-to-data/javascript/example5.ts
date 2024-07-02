@@ -12,7 +12,7 @@ interface Person {
 const data: Person[] = [
   { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
   { id: 2, address: '' }, // Handsontable will create missing properties on demand
-  { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
+  { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' },
 ];
 
 new Handsontable(container, {
@@ -24,10 +24,10 @@ new Handsontable(container, {
     { data: 'id' },
     { data: 'name.first' },
     { data: 'name.last' },
-    { data: 'address' }
+    { data: 'address' },
   ],
   minSpareRows: 1,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

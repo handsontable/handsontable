@@ -9,7 +9,7 @@ new Handsontable(container, {
     ['BMW', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
     ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray']
+    ['Volvo', 2020, 'white', 'gray'],
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   columns: [
@@ -17,15 +17,15 @@ new Handsontable(container, {
       type: 'autocomplete',
       source(_query, process) {
         fetch('{{$basePath}}/scripts/json/autocomplete.json')
-          .then(response => response.json())
-          .then(response => process(response.data));
+          .then((response) => response.json())
+          .then((response) => process(response.data));
       },
-      strict: true
+      strict: true,
     },
     {}, // Year is a default text column
     {}, // Chassis color is a default text column
-    {} // Bumper color is a default text column
+    {}, // Bumper color is a default text column
   ],
   autoWrapRow: true,
-  autoWrapCol: true
+  autoWrapCol: true,
 });

@@ -21,10 +21,17 @@ new Handsontable(container, {
   rowHeaders: true,
   height: 'auto',
   nestedHeaders: [
-    ['A', { label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }, { label: 'E', colspan: 2 }, 'F'],
-    ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
+    [
+      'A',
+      { label: 'B', colspan: 2 },
+      { label: 'C', colspan: 2 },
+      { label: 'D', colspan: 2 },
+      { label: 'E', colspan: 2 },
+      'F',
+    ],
+    ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'],
   ],
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

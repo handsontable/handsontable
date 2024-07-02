@@ -125,9 +125,10 @@ The first argument may be modified and passed on through the Handsontable hooks 
 
 ## External control
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/events-and-hooks/react/example3.jsx)
+@[code](@/content/guides/getting-started/events-and-hooks/react/example3.tsx)
 
 :::
 
@@ -207,9 +208,10 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/events-and-hooks/javascript/example2.js)
+@[code](@/content/guides/getting-started/events-and-hooks/javascript/example2.ts)
 
 :::
 
@@ -217,9 +219,10 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/events-and-hooks/react/example2.jsx)
+@[code](@/content/guides/getting-started/events-and-hooks/react/example2.tsx)
 
 :::
 

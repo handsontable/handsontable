@@ -16,7 +16,7 @@ const data1: (string | number)[][] = [
   [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
   [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
   [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
-  [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
+  [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no'],
 ];
 
 const data2: (string | number)[][] = [
@@ -26,7 +26,7 @@ const data2: (string | number)[][] = [
 const data3: (string | number)[][] = [
   [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
   [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
-  [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
+  [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no'],
 ];
 
 const hot = new Handsontable(container, {
@@ -36,7 +36,7 @@ const hot = new Handsontable(container, {
   colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 const alterTable = () => {
@@ -71,6 +71,7 @@ buttonWithout.addEventListener('click', () => {
   const t1 = performance.now();
 
   alterTable();
+
   const t2 = performance.now();
 
   logOutput(`Time without batch ${(t2 - t1).toFixed(2)}ms`);
@@ -80,6 +81,7 @@ buttonWith.addEventListener('click', () => {
   const t1 = performance.now();
 
   hot.batch(alterTable);
+
   const t2 = performance.now();
 
   logOutput(`Time with batch ${(t2 - t1).toFixed(2)}ms`);

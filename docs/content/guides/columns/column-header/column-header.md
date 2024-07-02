@@ -30,9 +30,10 @@ Setting the [`colHeaders`](@/api/options.md#colheaders) option to `true` enables
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/javascript/example1.js)
+@[code](@/content/guides/columns/column-header/javascript/example1.ts)
 
 :::
 
@@ -40,9 +41,10 @@ Setting the [`colHeaders`](@/api/options.md#colheaders) option to `true` enables
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/react/example1.jsx)
+@[code](@/content/guides/columns/column-header/react/example1.tsx)
 
 :::
 
@@ -53,9 +55,10 @@ An array of labels can be used to set the [`colHeaders`](@/api/options.md#colhea
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/javascript/example2.js)
+@[code](@/content/guides/columns/column-header/javascript/example2.ts)
 
 :::
 
@@ -63,9 +66,10 @@ An array of labels can be used to set the [`colHeaders`](@/api/options.md#colhea
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/react/example2.jsx)
+@[code](@/content/guides/columns/column-header/react/example2.tsx)
 
 :::
 
@@ -76,9 +80,10 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 ::: only-for javascript
 
-::: example #example3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/javascript/example3.js)
+@[code](@/content/guides/columns/column-header/javascript/example3.ts)
 
 :::
 
@@ -86,9 +91,10 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/react/example3.jsx)
+@[code](@/content/guides/columns/column-header/react/example3.tsx)
 
 :::
 

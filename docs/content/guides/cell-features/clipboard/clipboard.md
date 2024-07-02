@@ -55,9 +55,10 @@ You can use them in the same way as the rest of the predefined items in the [con
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example1.js)
+@[code](@/content/guides/cell-features/clipboard/javascript/example1.ts)
 
 :::
 
@@ -65,9 +66,10 @@ You can use them in the same way as the rest of the predefined items in the [con
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/react/example1.jsx)
+@[code](@/content/guides/cell-features/clipboard/react/example1.tsx)
 
 :::
 
@@ -102,11 +104,11 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and
 
 ::: only-for javascript
 
-::: example #example3 --html 1 --js 2
+::: example #example3 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example3.html)
-
 @[code](@/content/guides/cell-features/clipboard/javascript/example3.js)
+@[code](@/content/guides/cell-features/clipboard/javascript/example3.ts)
 
 :::
 
@@ -114,9 +116,10 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/react/example3.jsx)
+@[code](@/content/guides/cell-features/clipboard/react/example3.tsx)
 
 :::
 
@@ -149,9 +152,10 @@ Right-click on a cell to try it out:
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/javascript/example2.js)
+@[code](@/content/guides/cell-features/clipboard/javascript/example2.ts)
 
 :::
 
@@ -159,9 +163,10 @@ Right-click on a cell to try it out:
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/clipboard/react/example2.jsx)
+@[code](@/content/guides/cell-features/clipboard/react/example2.tsx)
 
 :::
 

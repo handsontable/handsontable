@@ -13,7 +13,7 @@ interface Product {
 }
 
 /* start:skip-in-preview */
-const data: Product[] = [
+const products: Product[] = [
   {
     companyName: 'Hodkiewicz - Hintz',
     productName: 'Rustic Soft Ball',
@@ -475,7 +475,7 @@ const data: Product[] = [
   },
 ];
 
-const countries = data.reduce<string[]>((acc, curr) => {
+const countries = products.reduce<string[]>((acc, curr) => {
   if (acc.includes(curr.country)) {
     return acc;
   }
@@ -490,7 +490,7 @@ const app = document.getElementById('example1')!;
 
 // Define configuration options for the Handsontable
 const hotOptions: Handsontable.GridSettings = {
-  data,
+  data: products,
   height: 464,
   colWidths: [140, 165, 100, 100, 100, 110, 178],
   autoRowSize: true,
@@ -548,24 +548,29 @@ const hotOptions: Handsontable.GridSettings = {
 let hot = new Handsontable(app, hotOptions);
 
 // Helper function to set up checkbox event handling
-const setupCheckbox = (element: HTMLInputElement, callback: (val: boolean) => void) =>
-  element.addEventListener('click', () => callback(element.checked));
+const setupCheckbox = (
+  element: HTMLInputElement,
+  callback: (val: boolean) => void
+) => element.addEventListener('click', () => callback(element.checked));
 
 // Set up event listeners for various checkboxes to update Handsontable settings.
 // This allows us to change the Handsontable settings from the UI, showcasing
 // the flexibility of Handsontable in configuring according to your needs.
 
 // Checkbox: Enable/Disable Tab Navigation
-setupCheckbox(document.querySelector('#enable-tab-navigation') as HTMLInputElement, (checked) => {
-  hotOptions.tabNavigation = checked;
-  hot.updateSettings({
-    tabNavigation: hotOptions.tabNavigation,
-  });
-  console.log(
-    'Updated setting: tabNavigation to',
-    hot.getSettings().tabNavigation
-  );
-});
+setupCheckbox(
+  document.querySelector('#enable-tab-navigation') as HTMLInputElement,
+  (checked) => {
+    hotOptions.tabNavigation = checked;
+    hot.updateSettings({
+      tabNavigation: hotOptions.tabNavigation,
+    });
+    console.log(
+      'Updated setting: tabNavigation to',
+      hot.getSettings().tabNavigation
+    );
+  }
+);
 
 // Checkbox: Enable/Disable Header Navigation
 setupCheckbox(
@@ -616,7 +621,9 @@ setupCheckbox(
 
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Row
 setupCheckbox(
-  document.querySelector('#enable-arrow-rl-first-last-column') as HTMLInputElement,
+  document.querySelector(
+    '#enable-arrow-rl-first-last-column'
+  ) as HTMLInputElement,
   (checked) => {
     hotOptions.autoWrapRow = checked;
     hot.updateSettings({
@@ -631,7 +638,9 @@ setupCheckbox(
 
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Column
 setupCheckbox(
-  document.querySelector('#enable-arrow-td-first-last-column') as HTMLInputElement,
+  document.querySelector(
+    '#enable-arrow-td-first-last-column'
+  ) as HTMLInputElement,
   (checked) => {
     hotOptions.autoWrapCol = checked;
     hot.updateSettings({
@@ -652,9 +661,6 @@ setupCheckbox(
     hot.updateSettings({
       enterMoves: hotOptions.enterMoves,
     });
-    console.log(
-      'Updated setting: enterMoves to',
-      hot.getSettings().enterMoves
-    );
+    console.log('Updated setting: enterMoves to', hot.getSettings().enterMoves);
   }
 );

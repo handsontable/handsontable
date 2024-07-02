@@ -1,8 +1,9 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-import {Filters} from 'handsontable/plugins'
+import { Filters } from 'handsontable/plugins';
 
 const container = document.querySelector('#exampleFilterOnInitialization')!;
+
 new Handsontable(container, {
   data: [
     {

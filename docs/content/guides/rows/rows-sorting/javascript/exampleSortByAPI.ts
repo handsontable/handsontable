@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-import { ColumnSorting } from 'handsontable/plugins'
+import { ColumnSorting } from 'handsontable/plugins';
 
 const container = document.querySelector('#exampleSortByAPI')!;
 

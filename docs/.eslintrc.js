@@ -7,7 +7,9 @@ module.exports = {
   },
   ignorePatterns: [
     '**/guides/**/*.js',
-    '**/guides/**/*.ts'
+    '**/guides/**/*.ts',
+    '**/guides/**/*.jsx',
+    '**/guides/**/*.tsx'
   ],
   rules: {
     'no-restricted-globals': 'off',

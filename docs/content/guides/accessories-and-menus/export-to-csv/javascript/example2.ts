@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-import {ExportFile} from 'handsontable/plugins'
+import { ExportFile } from 'handsontable/plugins';
 
 const container = document.querySelector('#example2')!;
 
@@ -21,7 +21,7 @@ const hot = new Handsontable(container, {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 const exportPlugin: ExportFile = hot.getPlugin('exportFile');
@@ -37,7 +37,7 @@ button.addEventListener('click', () => {
     exportHiddenRows: true,
     mimeType: 'text/csv',
     rowDelimiter: '\r\n',
-    rowHeaders: true
+    rowHeaders: true,
   });
 
   console.log(exportedBlob);

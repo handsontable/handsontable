@@ -12,7 +12,7 @@ new Handsontable(container, {
     ['non-empty value', 'non-empty text', 13000, true, 'orange', 'password'],
   ],
   columnSorting: {
-    sortEmptyCells: true
+    sortEmptyCells: true,
   },
   columns: [
     {
@@ -23,7 +23,7 @@ new Handsontable(container, {
           return function comparator() {
             return 0; // Don't sort the first visual column.
           };
-        }
+        },
       },
       readOnly: true,
     },
@@ -32,7 +32,7 @@ new Handsontable(container, {
       type: 'numeric',
       numericFormat: {
         pattern: '$0,0.00',
-        culture: 'en-US' // this is the default culture, set up for USD
+        culture: 'en-US', // this is the default culture, set up for USD
       },
     },
     { type: 'checkbox' },
@@ -40,8 +40,15 @@ new Handsontable(container, {
     { type: 'password' },
   ],
   preventOverflow: 'horizontal',
-  colHeaders: ['value<br>underneath', 'type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password'],
+  colHeaders: [
+    'value<br>underneath',
+    'type:text',
+    'type:numeric',
+    'type:checkbox',
+    'type:dropdown',
+    'type:password',
+  ],
   autoWrapRow: true,
   autoWrapCol: true,
-  height: 'auto'
+  height: 'auto',
 });

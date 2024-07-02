@@ -2,6 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example6')!;
+
 new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1'],
@@ -19,5 +20,5 @@ new Handsontable(container, {
   contextMenu: true,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

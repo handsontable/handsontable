@@ -3,36 +3,38 @@ import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
+// Register Handsontable's modules
 registerAllModules();
+
+const data = [
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+  ['2017', 10, 11, 12, 13, 15, 16],
+  ['2018', 10, 11, 12, 13, 15, 16],
+  ['2019', 10, 11, 12, 13, 15, 16],
+  ['2020', 10, 11, 12, 13, 15, 16],
+  ['2021', 10, 11, 12, 13, 15, 16],
+];
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {
-    const hot = hotRef.current.hotInstance;
+    const hot = hotRef.current?.hotInstance;
 
-    hot.setDataAtCell(0, 1, 'Ford');
-  });
-
-  const data = [
-    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-    ['2017', 10, 11, 12, 13, 15, 16],
-    ['2018', 10, 11, 12, 13, 15, 16],
-    ['2019', 10, 11, 12, 13, 15, 16],
-    ['2020', 10, 11, 12, 13, 15, 16],
-    ['2021', 10, 11, 12, 13, 15, 16]
-  ];
+    if (hot) {
+      hot.setDataAtCell(0, 1, 'Ford');
+    }
+  }, []); // run once
 
   return (
-      <HotTable
-        ref={hotRef}
-        data={data}
-        height="auto"
-        autoWrapRow={true}
-        autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
-      />
+    <HotTable
+      ref={hotRef}
+      data={data}
+      height="auto"
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 

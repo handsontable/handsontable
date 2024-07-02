@@ -145,11 +145,12 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 
 ::: only-for javascript
 
-::: example #example --html 1 --css 2 --js 3
+::: example #example --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/getting-started/grid-size/javascript/example.html)
 @[code](@/content/guides/getting-started/grid-size/javascript/example.css)
 @[code](@/content/guides/getting-started/grid-size/javascript/example.js)
+@[code](@/content/guides/getting-started/grid-size/javascript/example.ts)
 
 :::
 
@@ -157,10 +158,11 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 
 ::: only-for react
 
-::: example #example :react --css 1 --js 2
+::: example #example :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/getting-started/grid-size/react/example.css)
 @[code](@/content/guides/getting-started/grid-size/react/example.jsx)
+@[code](@/content/guides/getting-started/grid-size/react/example.tsx)
 
 :::
 

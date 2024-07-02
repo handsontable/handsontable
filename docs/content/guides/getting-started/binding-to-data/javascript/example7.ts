@@ -9,13 +9,14 @@ interface Person {
 }
 
 const container = document.querySelector('#example7')!;
+
 new Handsontable(container, {
   data: [
     model({ id: 1, name: 'Ted Right', address: '' }),
     model({ id: 2, name: 'Frank Honest', address: '' }),
     model({ id: 3, name: 'Joan Well', address: '' }),
     model({ id: 4, name: 'Gail Polite', address: '' }),
-    model({ id: 5, name: 'Michael Fair', address: '' })
+    model({ id: 5, name: 'Michael Fair', address: '' }),
   ],
   dataSchema: model,
   height: 'auto',
@@ -24,12 +25,12 @@ new Handsontable(container, {
   columns: [
     { data: property('id') },
     { data: property('name') },
-    { data: property('address') }
+    { data: property('address') },
   ],
   minSpareRows: 1,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 function model(person: Partial<Person>) {
@@ -37,8 +38,9 @@ function model(person: Partial<Person>) {
     id: undefined,
     name: undefined,
     address: undefined,
-    attr: () => _pub
+    attr: () => _pub,
   };
+
   const _priv: Partial<Person> = {};
 
   for (const prop in person) {
@@ -64,5 +66,6 @@ function model(person: Partial<Person>) {
 }
 
 function property(attr: string) {
-  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) => (row as Person).attr(attr, value);
+  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) =>
+    (row as Person).attr(attr, value);
 }
