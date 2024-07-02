@@ -346,9 +346,6 @@ $frozen-size: 2px;
     scrollbar-width: thin;
     scrollbar-color: var(--hot-border-color) var(--hot-header-background-color);
 
-    .wtHider {
-        background-color: var(--hot-background-color);
-    }
     
     thead th { 
         height: var(--hot-cell-height) !important;

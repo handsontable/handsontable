@@ -2684,10 +2684,6 @@
     background-position: 8px 0, 0 100%, 0 0, 100% 8px;
   }
 }
-.handsontable.theme-modern .wtHider,
-.theme-modern .handsontable .wtHider {
-  background-color: var(--hot-background-color);
-}
 .handsontable.theme-modern thead th,
 .theme-modern .handsontable thead th {
   height: var(--hot-cell-height) !important;
