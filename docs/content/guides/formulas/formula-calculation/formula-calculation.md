@@ -129,6 +129,8 @@ There are also other installation methods available. Check out
 To use the [`Formulas`](@/api/formulas.md) plugin with an external HyperFormula instance, initialize
 HyperFormula with the `'internal-use-in-handsontable'` license key:
 
+:::
+
 ```js
 // create an external HyperFormula instance
 const hyperformulaInstance = HyperFormula.buildEmpty({
@@ -136,8 +138,6 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   licenseKey: 'internal-use-in-handsontable',
 });
 ```
-
-:::
 
 ### Pass the HyperFormula class/instance to Handsontable
 
