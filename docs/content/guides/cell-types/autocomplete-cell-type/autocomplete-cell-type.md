@@ -46,7 +46,7 @@ This example uses the `autocomplete` feature in the default flexible mode. In th
 ::: example #example1 :react --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/react/example1.jsx)
-@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example1.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example1.css)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/react/example1.tsx)
 
 :::

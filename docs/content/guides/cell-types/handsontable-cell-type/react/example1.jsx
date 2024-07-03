@@ -70,7 +70,6 @@ const ExampleComponent = () => {
           },
         },
       ]}
-      height="auto"
     />
   );
 };

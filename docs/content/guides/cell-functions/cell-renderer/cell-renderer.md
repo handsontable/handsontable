@@ -133,14 +133,14 @@ It gives users a convenient way for defining which renderer should be used when 
 
 You can set a cell's [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator) individually, but you still need to set that cell's [`type`](@/api/options.md#type). For example:
 
+:::
+
 ```js
 renderer: Handsontable.NumericRenderer,
 editor: Handsontable.editors.NumericEditor,
 validator: Handsontable.NumericValidator,
 type: 'numeric',
 ```
-
-:::
 
 ### Use a cell renderer
 

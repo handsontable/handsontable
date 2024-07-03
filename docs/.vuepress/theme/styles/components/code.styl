@@ -188,6 +188,11 @@
         border-radius: $radius
         margin-bottom: 24px
         padding: 0
+        &:not(:first-child) {
+            pre {
+                padding-top: 60px
+            }
+        }
     }
 
     @media (max-width: 419px) {

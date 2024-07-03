@@ -4,6 +4,14 @@
     border-radius: $radius
     padding: 0
     border: 1px solid $lightBorderColor
+
+    .select-type-button {
+        font-size: $font-size-xs
+
+        @media (max-width: $small) {
+            font-size: 12px
+        }
+    }
     
     [id*="html-tab"], [id*="css-tab"] {
         .select-type {
@@ -84,11 +92,16 @@
                 border-radius: $radius
                 background: $onsurfaceColor
                 border: 1px solid $onsurfaceColor
+                font-size: $font-size-xs
 
                 @media (hover: hover) {
                     &:hover {
                         color: $textColor
                     }
+                }
+
+                @media (max-width: $small) {
+                    font-size: 12px
                 }
             }
 
@@ -211,12 +224,18 @@
             transition: all $t ease-in-out
             align-items: center
             border: 1px solid $bgColor !important
+            font-size: $font-size-xs
 
             @media (hover: hover) {
                 &:hover {
                     background: $editorColor
                 }
             }
+
+             @media (max-width: $small) {
+                font-size: 12px
+                padding: 7px 12px 7px 10px !important
+             }
         }
 
         .example-controls {
