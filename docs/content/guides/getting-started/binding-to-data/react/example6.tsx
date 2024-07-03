@@ -1,3 +1,4 @@
+import { FC } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -5,7 +6,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent: React.FC = () => (
+const ExampleComponent: FC = () => (
   <HotTable
     data={[]}
     dataSchema={{

@@ -1,3 +1,4 @@
+import { FC } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -14,7 +15,7 @@ const data: Array<Array<string | number>> = [
   ['2021', 10, 11, 12, 13, 15, 16],
 ];
 
-const ExampleComponent: React.FC = () => (
+const ExampleComponent: FC = () => (
   <HotTable
     data={data}
     colHeaders={true}

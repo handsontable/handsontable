@@ -1,3 +1,4 @@
+import { FC } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -73,7 +74,7 @@ const data: Partial<Person>[] = [
   model({ id: 5, name: 'Michael Fair', address: '' }),
 ];
 
-const ExampleComponent: React.FC = () => (
+const ExampleComponent: FC = () => (
   <HotTable
     data={data}
     dataSchema={model}
