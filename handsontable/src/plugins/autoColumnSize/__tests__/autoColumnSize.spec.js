@@ -180,8 +180,7 @@ describe('AutoColumnSize', () => {
     expect(colWidth(spec().$container, 0)).toBe(144);
   });
 
-  // https://github.com/handsontable/handsontable/issues/2684
-  it('should correctly detect column width when table is hidden on init (display: none)', async() => {
+  it('should correctly detect column width when table is hidden on init (display: none) #2684', async() => {
     spec().$container.css('display', 'none');
     const hot = handsontable({
       data: arrayOfObjects(),
@@ -684,6 +683,27 @@ describe('AutoColumnSize', () => {
 
     expect(colWidth(spec().$container, 1)).toBe(109);
     expect(colWidth(spec().$container, 2)).toBe(50);
+  });
+
+  it('should keep the viewport position unchanged after resetting all columns widths (#dev-1888)', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 50),
+      width: 400,
+      height: 400,
+      autoColumnSize: true,
+      colHeaders: ['Longer header name'],
+      rowHeaders: true,
+    });
+
+    scrollViewportTo(0, 49);
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(2217);
+
+    selectRows(2, 2);
+    listen();
+    keyDownUp('delete');
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(2217);
   });
 
   describe('should cooperate with the `UndoRedo` plugin properly', () => {

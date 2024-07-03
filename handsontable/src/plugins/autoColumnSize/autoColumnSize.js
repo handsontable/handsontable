@@ -1,5 +1,4 @@
 import { BasePlugin } from '../base';
-import { arrayEach, arrayFilter, arrayReduce } from '../../helpers/array';
 import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
 import Hooks from '../../pluginHooks';
@@ -272,23 +271,22 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Calculates visible columns width.
+   * Calculates widths for visible columns in the viewport only.
    */
   calculateVisibleColumnsWidth() {
-    const rowsCount = this.hot.countRows();
-
     // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
-    if (!rowsCount) {
+    if (!this.hot.countRows()) {
       return;
     }
 
-    const overwriteCache = this.hot.renderCall;
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
 
     if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
       return;
     }
+
+    const overwriteCache = this.hot.renderCall;
 
     this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, undefined, overwriteCache);
   }
@@ -319,7 +317,7 @@ export class AutoColumnSize extends BasePlugin {
           !this.hot._getColWidthFromSettings(physicalColumn))) {
         const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
 
-        arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
+        samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
       }
     });
 
@@ -415,7 +413,7 @@ export class AutoColumnSize extends BasePlugin {
       if (!this.hot._getColWidthFromSettings(physicalColumn)) {
         const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
 
-        arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
+        samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
       }
     });
 
@@ -496,7 +494,7 @@ export class AutoColumnSize extends BasePlugin {
    * @param {boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {number}
    */
-  getColumnWidth(column, defaultWidth = undefined, keepMinimum = true) {
+  getColumnWidth(column, defaultWidth, keepMinimum = true) {
     let width = defaultWidth;
 
     if (width === undefined) {
@@ -537,7 +535,7 @@ export class AutoColumnSize extends BasePlugin {
   findColumnsWhereHeaderWasChanged() {
     const columnHeaders = this.hot.getColHeader();
 
-    const changedColumns = arrayReduce(columnHeaders, (acc, columnTitle, physicalColumn) => {
+    const changedColumns = columnHeaders.reduce((acc, columnTitle, physicalColumn) => {
       const cachedColumnsLength = this.#cachedColumnHeaders.length;
 
       if (cachedColumnsLength - 1 < physicalColumn || this.#cachedColumnHeaders[physicalColumn] !== columnTitle) {
@@ -559,12 +557,12 @@ export class AutoColumnSize extends BasePlugin {
    * Clears cache of calculated column widths. If you want to clear only selected columns pass an array with their indexes.
    * Otherwise whole cache will be cleared.
    *
-   * @param {number[]} [columns] List of physical column indexes to clear.
+   * @param {number[]} [physicalColumns] List of physical column indexes to clear.
    */
-  clearCache(columns = []) {
-    if (columns.length) {
+  clearCache(physicalColumns) {
+    if (Array.isArray(physicalColumns)) {
       this.hot.batchExecution(() => {
-        arrayEach(columns, (physicalIndex) => {
+        physicalColumns.forEach((physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
         });
       }, true);
@@ -580,8 +578,8 @@ export class AutoColumnSize extends BasePlugin {
    * @returns {boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.columnWidthsMap.getValues()
-      .slice(0, this.measuredColumns), item => (item === null)).length;
+    return !!this.columnWidthsMap.getValues()
+      .slice(0, this.measuredColumns).filter(item => (item === null)).length;
   }
 
   /**
