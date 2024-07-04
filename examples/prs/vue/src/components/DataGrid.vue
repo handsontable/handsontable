@@ -11,10 +11,12 @@
 <script lang="ts">
 import { HotTable } from "@handsontable/vue";
 import "handsontable/dist/handsontable.full.css";
+import { registerAllModules } from "handsontable/registry";
 
 import { getData } from "../utils/constants";
 
 import { alignHeaders, addClassesToRows } from "../utils/hooks-callbacks";
+registerAllModules();
 
 export default {
   name: "DataGrid",

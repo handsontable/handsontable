@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import React from "react";
 import "pikaday/css/pikaday.css";
 import "./styles.css";
 import { HotTable, HotColumn } from "@handsontable/react";
@@ -8,7 +9,9 @@ import { data } from "./constants";
 import { addClassesToRows, alignHeaders } from "./hooksCallbacks";
 
 import "handsontable/dist/handsontable.min.css";
+import { registerAllModules } from 'handsontable/registry'
 
+registerAllModules();
 const App = () => {
   return (
     <HotTable
