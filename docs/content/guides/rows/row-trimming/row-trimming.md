@@ -80,9 +80,10 @@ Note that the second, third, and sixth rows are missing in the following example
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-trimming/javascript/example1.js)
+@[code](@/content/guides/rows/row-trimming/javascript/example1.ts)
 
 :::
 
@@ -90,9 +91,10 @@ Note that the second, third, and sixth rows are missing in the following example
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-trimming/react/example1.jsx)
+@[code](@/content/guides/rows/row-trimming/react/example1.tsx)
 
 :::
 

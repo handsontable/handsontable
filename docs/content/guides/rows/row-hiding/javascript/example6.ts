@@ -27,7 +27,7 @@ new Handsontable(container, {
     rows: [3, 5, 9],
     indicators: true,
     // exclude hidden rows from copying and pasting
-    copyPasteEnabled: false
+    copyPasteEnabled: false,
   },
   autoWrapRow: true,
   autoWrapCol: true,

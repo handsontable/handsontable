@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { HyperFormula } from 'hyperformula';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -9,7 +9,8 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotNamedExpressionsRef = useRef(null);
-  const [namedExpressionValue, setNamedExpressionValue] = useState('=10 * Sheet1!$A$2');
+  const [namedExpressionValue, setNamedExpressionValue] =
+    useState('=10 * Sheet1!$A$2');
 
   const data = [
     ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -17,21 +18,21 @@ const ExampleComponent = () => {
     ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
     ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)'],
   ];
+
   const inputChangeCallback = (event) => {
     setNamedExpressionValue(event.target.value);
   };
-  let buttonClickCallback;
 
-  useEffect(() => {
-    const hotNamedExpressions = hotNamedExpressionsRef.current.hotInstance;
-    const formulasPlugin = hotNamedExpressions.getPlugin('formulas');
+  const buttonClickCallback = () => {
+    const hotNamedExpressions = hotNamedExpressionsRef.current?.hotInstance;
+    const formulasPlugin = hotNamedExpressions?.getPlugin('formulas');
 
-    buttonClickCallback = (event) => {
-      formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', namedExpressionValue);
-
-      hotNamedExpressions.render();
-    };
-  });
+    formulasPlugin?.engine?.changeNamedExpression(
+      'ADDITIONAL_COST',
+      namedExpressionValue
+    );
+    hotNamedExpressions?.render();
+  };
 
   return (
     <>
@@ -61,7 +62,10 @@ const ExampleComponent = () => {
           defaultValue={namedExpressionValue}
           onChange={(...args) => inputChangeCallback(...args)}
         />
-        <button id="named-expressions-button" onClick={(...args) => buttonClickCallback(...args)}>
+        <button
+          id="named-expressions-button"
+          onClick={() => buttonClickCallback()}
+        >
           Calculate the price
         </button>
       </div>

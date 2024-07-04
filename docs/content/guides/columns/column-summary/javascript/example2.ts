@@ -2,6 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example2')!;
+
 new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -9,7 +10,7 @@ new Handsontable(container, {
     [6, 7, 8, 9, 10],
     [11, 12, 13, 14, 15],
     // add an empty row
-    [null]
+    [null],
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -22,7 +23,7 @@ new Handsontable(container, {
       // now, to always display this column summary in the bottom row,
       // set `destinationRow` to `0` (i.e. the last possible row)
       destinationRow: 0,
-      destinationColumn: 0
+      destinationColumn: 0,
     },
     {
       sourceColumn: 1,
@@ -32,10 +33,10 @@ new Handsontable(container, {
       // now, to always display this column summary in the bottom row,
       // set `destinationRow` to `0` (i.e. the last possible row)
       destinationRow: 0,
-      destinationColumn: 1
-    }
+      destinationColumn: 1,
+    },
   ],
   autoWrapRow: true,
   autoWrapCol: true,
-  height: 'auto'
+  height: 'auto',
 });

@@ -21,14 +21,13 @@ import {
   ruRU,
   srSP,
   zhCN,
-  zhTW
+  zhTW,
 } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
-
 registerLanguageDictionary(arAR);
 registerLanguageDictionary(csCZ);
 registerLanguageDictionary(deCH);
@@ -57,22 +56,24 @@ const ExampleComponent = () => {
     setLanguageList(getLanguagesDictionaries());
   }, []);
 
-  const updateHotLanguage = event => {
+  const updateHotLanguage = (event) => {
     setLanguage(event.target.value);
   };
 
   return (
     <div>
-      <div className="controls select-language"><label>Select language of the context menu:
-        {' '}
-        <select value={language} onChange={updateHotLanguage}>
-          {languageList.map(({ languageCode }) => (
-            <option key={languageCode} value={languageCode}>
-              {languageCode}
-            </option>
-          ))}
-        </select>
-      </label></div>
+      <div className="controls select-language">
+        <label>
+          Select language of the context menu:{' '}
+          <select value={language} onChange={updateHotLanguage}>
+            {languageList.map(({ languageCode }) => (
+              <option key={languageCode} value={languageCode}>
+                {languageCode}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       <HotTable
         data={[
@@ -93,6 +94,6 @@ const ExampleComponent = () => {
       />
     </div>
   );
-}
+};
 
 export default ExampleComponent;

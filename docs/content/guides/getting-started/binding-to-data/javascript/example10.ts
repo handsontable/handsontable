@@ -8,14 +8,15 @@ const data: (string | number)[][] = [
   ['2018', 10, 11, 12, 13, 15, 16],
   ['2019', 10, 11, 12, 13, 15, 16],
   ['2020', 10, 11, 12, 13, 15, 16],
-  ['2021', 10, 11, 12, 13, 15, 16]
+  ['2021', 10, 11, 12, 13, 15, 16],
 ];
+
 const settings = {
   data,
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 };
 
 const hot = new Handsontable(container, settings);

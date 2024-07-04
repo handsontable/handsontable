@@ -1,5 +1,4 @@
 import { HotTable } from '@handsontable/react';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -11,8 +10,11 @@ const ExampleComponent = () => {
     <HotTable
       id="hot"
       data={[
-        ['A1', '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-        ['A2', '{{$basePath}}/img/examples/javascript-the-good-parts.jpg']
+        [
+          'A1',
+          '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg',
+        ],
+        ['A2', '{{$basePath}}/img/examples/javascript-the-good-parts.jpg'],
       ]}
       columns={[
         {},
@@ -21,17 +23,15 @@ const ExampleComponent = () => {
             const img = document.createElement('img');
 
             img.src = value;
-
-            img.addEventListener('mousedown', event => {
+            img.addEventListener('mousedown', (event) => {
               event.preventDefault();
             });
-
             td.innerText = '';
             td.appendChild(img);
 
             return td;
-          }
-        }
+          },
+        },
       ]}
       colHeaders={true}
       rowHeights={55}
@@ -41,6 +41,6 @@ const ExampleComponent = () => {
       licenseKey="non-commercial-and-evaluation"
     />
   );
-}
+};
 
 export default ExampleComponent;
