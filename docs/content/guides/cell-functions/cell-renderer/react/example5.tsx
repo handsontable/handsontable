@@ -1,6 +1,6 @@
 import { useRef, MouseEvent } from 'react';
 import Handsontable from 'handsontable';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -9,13 +9,13 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
   let isChecked = false;
 
   function customRenderer(
     this: Handsontable,
-    instance: Handsontable,
+    _instance: Handsontable,
     td: HTMLTableCellElement
   ) {
     textRenderer.apply(this, arguments as any);

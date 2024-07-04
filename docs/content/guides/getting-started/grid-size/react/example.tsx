@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -17,7 +17,7 @@ const data = new Array(100) // number of rows
 
 const ExampleComponent = () => {
   const [isContainerExpanded, setIsContainerExpanded] = useState(false);
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
   const triggerBtnClickCallback = () => {
     setIsContainerExpanded(!isContainerExpanded);

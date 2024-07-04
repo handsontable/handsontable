@@ -1,171 +1,138 @@
-import { useEffect, MouseEvent, RefObject, createRef } from 'react';
+import { useEffect, MouseEvent, KeyboardEvent, useRef, useState } from 'react';
+import Handsontable from 'handsontable';
 import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
-import { Provider, connect } from 'react-redux';
+import { Provider, connect, useDispatch } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
-import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
+import { HotTable, HotColumn, useHotEditor } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
-import Handsontable from 'handsontable';
 
 // register Handsontable's modules
 registerAllModules();
 
-type EditorProps = {
-  isEditor?: boolean;
-  isRenderer?: boolean;
-  dispatch?: any;
-  value?: any;
+type RendererProps = {
+  TD?: HTMLTableCellElement;
+  value?: string | number;
+  row?: number;
+  col?: number;
+  cellProperties?: Handsontable.CellProperties;
 };
 
-// a custom editor component
-class UnconnectedColorPicker extends BaseEditorComponent<EditorProps> {
-  editorRef: RefObject<HTMLDivElement>;
-  constructor(props: BaseEditorComponent<EditorProps>['props']) {
-    super(props);
+const UnconnectedColorPickerEditor = () => {
+  const dispatch = useDispatch();
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [pickedColor, setPickedColor] = useState('');
 
-    this.editorRef = createRef();
+  const { value, setValue, isOpen, finishEditing, col, row } = useHotEditor({
+    onOpen: () => {
+      if (editorRef.current) editorRef.current.style.display = 'block';
+      (
+        document.querySelector('.react-colorful__interactive') as HTMLDivElement
+      )?.focus();
+    },
+    onClose: () => {
+      if (editorRef.current) editorRef.current.style.display = 'none';
 
-    this.state = {
-      renderResult: null,
-      value: '',
-    };
-  }
+      setPickedColor('');
+    },
+    onPrepare: (_row, _column, _prop, TD, _originalValue, _cellProperties) => {
+      const tdPosition = TD.getBoundingClientRect();
 
-  stopMousedownPropagation(e: MouseEvent) {
-    e.stopPropagation();
-  }
+      if (!editorRef.current) return;
 
-  setValue(value: any, callback: (() => void) | undefined) {
-    this.setState((state, props) => {
-      return { value };
-    }, callback);
-  }
+      editorRef.current.style.left = `${
+        tdPosition.left + window.pageXOffset
+      }px`;
+      editorRef.current.style.top = `${tdPosition.top + window.pageYOffset}px`;
+    },
+    onFocus: () => {},
+  });
 
-  getValue() {
-    return this.state.value;
-  }
+  const onPickedColor = (color: string) => {
+    setValue(color);
+  };
 
-  open() {
-    if (!this.editorRef.current) return;
-
-    this.editorRef.current.style.display = 'block';
-  }
-
-  close() {
-    if (!this.editorRef.current) return;
-
-    this.editorRef.current.style.display = 'none';
-
-    this.setState({
-      pickedColor: null,
-    });
-  }
-
-  prepare(
-    row: number,
-    col: number,
-    prop: string,
-    td: HTMLTableColElement,
-    originalValue: string,
-    cellProperties: Handsontable.CellProperties
-  ) {
-    super.prepare(row, col, prop, td, originalValue, cellProperties);
-
-    const tdPosition = td.getBoundingClientRect();
-
-    if (!this.editorRef.current) return;
-
-    this.editorRef.current.style.left = `${
-      tdPosition.left + window.pageXOffset
-    }px`;
-    this.editorRef.current.style.top = `${
-      tdPosition.top + window.pageYOffset
-    }px`;
-  }
-
-  onPickedColor(color: any) {
-    this.setValue(color, () => {});
-  }
-
-  applyColor() {
-    const dispatch = this.props.dispatch;
-
-    if (this.col === 1) {
+  const applyColor = () => {
+    if (col === 1) {
       dispatch({
         type: 'updateActiveStarColor',
-        row: this.row,
-        hexColor: this.getValue(),
+        row,
+        hexColor: value,
       });
-    } else if (this.col === 2) {
+    } else if (col === 2) {
       dispatch({
         type: 'updateInactiveStarColor',
-        row: this.row,
-        hexColor: this.getValue(),
+        row,
+        hexColor: value,
       });
     }
 
-    this.finishEditing();
-  }
+    finishEditing();
+  };
 
-  render() {
-    let renderResult = null;
+  const stopMousedownPropagation = (e: MouseEvent) => {
+    e.stopPropagation();
+  };
 
-    if (this.props.isEditor) {
-      renderResult = (
-        <div
-          style={{
-            display: 'none',
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            zIndex: 999,
-            background: '#fff',
-            padding: '15px',
-            border: '1px solid #cecece',
-          }}
-          ref={this.editorRef}
-          onMouseDown={this.stopMousedownPropagation}
-        >
-          <HexColorPicker
-            color={this.state.pickedColor || this.state.value}
-            onChange={this.onPickedColor.bind(this)}
-          />
-          <button
-            style={{ width: '100%', height: '33px', marginTop: '10px' }}
-            onClick={this.applyColor.bind(this)}
-          >
-            Apply
-          </button>
-        </div>
-      );
-    } else if (this.props.isRenderer) {
-      renderResult = (
-        <>
-          <div
-            style={{
-              background: this.props.value,
-              width: '21px',
-              height: '21px',
-              float: 'left',
-              marginRight: '5px',
-            }}
-          />
-          <div>{this.props.value}</div>
-        </>
-      );
+  const stopKeyboardPropagation = (e: KeyboardEvent) => {
+    e.stopPropagation();
+
+    if (e.key === 'Escape') {
+      applyColor();
     }
+  };
 
-    return <>{renderResult}</>;
-  }
-}
+  return (
+    <div
+      style={{
+        display: 'none',
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        zIndex: 999,
+        background: '#fff',
+        padding: '15px',
+        border: '1px solid #cecece',
+      }}
+      ref={editorRef}
+      onMouseDown={stopMousedownPropagation}
+      onKeyDown={stopKeyboardPropagation}
+    >
+      <HexColorPicker color={pickedColor || value} onChange={onPickedColor} />
+      <button
+        style={{ width: '100%', height: '33px', marginTop: '10px' }}
+        onClick={applyColor}
+      >
+        Apply
+      </button>
+    </div>
+  );
+};
 
-const ColorPicker = connect(function (state: RootState) {
+const ColorPickerEditor = connect(function (state: RootState) {
   return {
     activeColors: state.appReducer.activeColors,
     inactiveColors: state.appReducer.inactiveColors,
   };
-})(UnconnectedColorPicker);
+})(UnconnectedColorPickerEditor);
+
+const ColorPickerRenderer = ({ value }: RendererProps) => {
+  return (
+    <>
+      <div
+        style={{
+          background: value,
+          width: '21px',
+          height: '21px',
+          float: 'left',
+          marginRight: '5px',
+        }}
+      />
+      <div>{value}</div>
+    </>
+  );
+};
 
 // a Redux component
 const initialReduxStoreState: {
@@ -295,20 +262,17 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       >
-        <HotColumn width={100} type={'numeric'}>
-          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-          <StarRatingRenderer hot-renderer />
-        </HotColumn>
-        <HotColumn width={150}>
-          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-          {/* add the `hot-editor` attribute to mark the component as a Handsontable editor */}
-          <ColorPicker hot-renderer hot-editor />
-        </HotColumn>
-        <HotColumn width={150}>
-          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-          {/* add the `hot-editor` attribute to mark the component as a Handsontable editor */}
-          <ColorPicker hot-renderer hot-editor />
-        </HotColumn>
+        <HotColumn width={100} type={'numeric'} renderer={StarRatingRenderer} />
+        <HotColumn
+          width={150}
+          renderer={ColorPickerRenderer}
+          editor={ColorPickerEditor}
+        />
+        <HotColumn
+          width={150}
+          renderer={ColorPickerRenderer}
+          editor={ColorPickerEditor}
+        />
       </HotTable>
     </Provider>
   );

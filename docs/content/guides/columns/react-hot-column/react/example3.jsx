@@ -71,12 +71,8 @@ const ExampleComponent = () => {
     >
       <HotColumn data="id" />
       <HotColumn data="name" />
-      <HotColumn data="score">
-        <ScoreRenderer hot-renderer />
-      </HotColumn>
-      <HotColumn data="isPromoted">
-        <PromotionRenderer hot-renderer />
-      </HotColumn>
+      <HotColumn data="score" renderer={ScoreRenderer} />
+      <HotColumn data="isPromoted" renderer={PromotionRenderer} />
     </HotTable>
   );
 };

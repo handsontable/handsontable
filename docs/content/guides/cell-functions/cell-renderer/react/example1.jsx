@@ -42,9 +42,7 @@ const ExampleComponent = () => {
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     >
-      <HotColumn width={250}>
-        <RendererComponent hot-renderer />
-      </HotColumn>
+      <HotColumn width={250} renderer={RendererComponent} />
     </HotTable>
   );
 };

@@ -1,102 +1,77 @@
-import { createRef } from 'react';
-import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
+import { useRef } from 'react';
+import { HotTable, HotColumn, useHotEditor } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// an editor component
-class EditorComponent extends BaseEditorComponent {
-  constructor(props) {
-    super(props);
-    this.mainElementRef = createRef();
-    this.state = {
-      value: '',
-    };
-  }
-  setValue(value, callback) {
-    this.setState((_state, _props) => {
-      return { value };
-    }, callback);
-  }
-  getValue() {
-    return this.state.value;
-  }
-  open() {
-    if (!this.mainElementRef.current) return;
-    this.mainElementRef.current.style.display = 'block';
-  }
-  close() {
-    if (!this.mainElementRef.current) return;
-    this.mainElementRef.current.style.display = 'none';
-  }
-  prepare(row, col, prop, td, originalValue, cellProperties) {
-    // We'll need to call the `prepare` method from
-    // the `BaseEditorComponent` class, as it provides
-    // the component with the information needed to use the editor
-    // (hotInstance, row, col, prop, TD, originalValue, cellProperties)
-    super.prepare(row, col, prop, td, originalValue, cellProperties);
+const EditorComponent = () => {
+  const mainElementRef = useRef(null);
+  const { value, setValue, finishEditing } = useHotEditor({
+    onOpen: () => {
+      if (!mainElementRef.current) return;
+      mainElementRef.current.style.display = 'block';
+    },
+    onClose: () => {
+      if (!mainElementRef.current) return;
+      mainElementRef.current.style.display = 'none';
+    },
+    onPrepare: (_row, _column, _prop, TD, _originalValue, _cellProperties) => {
+      const tdPosition = TD.getBoundingClientRect();
 
-    const tdPosition = td.getBoundingClientRect();
+      // As the `prepare` method is triggered after selecting
+      // any cell, we're updating the styles for the editor element,
+      // so it shows up in the correct position.
+      if (!mainElementRef.current) return;
+      mainElementRef.current.style.left = `${
+        tdPosition.left + window.pageXOffset
+      }px`;
+      mainElementRef.current.style.top = `${
+        tdPosition.top + window.pageYOffset
+      }px`;
+    },
+    onFocus: () => {},
+  });
 
-    // As the `prepare` method is triggered after selecting
-    // any cell, we're updating the styles for the editor element,
-    // so it shows up in the correct position.
-    if (!this.mainElementRef.current) return;
-    this.mainElementRef.current.style.left = `${
-      tdPosition.left + window.pageXOffset
-    }px`;
-    this.mainElementRef.current.style.top = `${
-      tdPosition.top + window.pageYOffset
-    }px`;
-  }
-  setLowerCase() {
-    this.setState(
-      (state, props) => {
-        return { value: this.state.value.toString().toLowerCase() };
-      },
-      () => {
-        this.finishEditing();
-      }
-    );
-  }
-  setUpperCase() {
-    this.setState(
-      (state, props) => {
-        return { value: this.state.value.toString().toUpperCase() };
-      },
-      () => {
-        this.finishEditing();
-      }
-    );
-  }
-  stopMousedownPropagation(e) {
+  const setLowerCase = () => {
+    setValue(value.toString().toLowerCase());
+    finishEditing();
+  };
+
+  const setUpperCase = () => {
+    setValue(value.toString().toUpperCase());
+    finishEditing();
+  };
+
+  const stopMousedownPropagation = (e) => {
     e.stopPropagation();
-  }
-  render() {
-    return (
-      <div
-        style={{
-          display: 'none',
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          background: '#fff',
-          border: '1px solid #000',
-          padding: '15px',
-          zIndex: 999,
-        }}
-        ref={this.mainElementRef}
-        onMouseDown={this.stopMousedownPropagation}
-        id="editorElement"
-      >
-        <button onClick={this.setLowerCase.bind(this)}>
-          {this.state.value.toLowerCase()}
-        </button>
-        <button onClick={this.setUpperCase.bind(this)}>
-          {this.state.value.toUpperCase()}
-        </button>
-      </div>
-    );
-  }
-}
+  };
+
+  const buttonValue = value || '';
+
+  return (
+    <div
+      id="editorElement"
+      ref={mainElementRef}
+      style={{
+        display: 'none',
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        background: '#fff',
+        border: '1px solid #000',
+        padding: '15px',
+        zIndex: 999,
+      }}
+      onMouseDown={stopMousedownPropagation}
+    >
+      <button onClick={setLowerCase.bind(this)}>
+        {buttonValue.toLowerCase()}
+      </button>
+      <button onClick={setUpperCase.bind(this)}>
+        {buttonValue.toUpperCase()}
+      </button>
+    </div>
+  );
+};
+
 const data = [
   ['Obrien Fischer'],
   ['Alexandria Gordon'],
@@ -117,9 +92,7 @@ const ExampleComponent = () => {
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     >
-      <HotColumn width={250}>
-        <EditorComponent hot-editor />
-      </HotColumn>
+      <HotColumn width={250} editor={EditorComponent} />
     </HotTable>
   );
 };

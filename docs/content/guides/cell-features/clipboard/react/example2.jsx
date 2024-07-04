@@ -38,7 +38,7 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-    ></HotTable>
+    />
   );
 };
 

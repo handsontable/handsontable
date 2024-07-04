@@ -11,7 +11,7 @@ const ExampleComponent = () => {
   const hotRef = useRef(null);
   let isChecked = false;
 
-  function customRenderer(instance, td) {
+  function customRenderer(_instance, td) {
     textRenderer.apply(this, arguments);
 
     if (isChecked) {

@@ -1,5 +1,5 @@
 import { useState, useRef, MouseEvent } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.css';
 
@@ -7,7 +7,7 @@ import 'handsontable/dist/handsontable.full.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
   const [output, setOutput] = useState('Click "Load" to load data from server');
   const [isAutosave, setIsAutosave] = useState(false);
 

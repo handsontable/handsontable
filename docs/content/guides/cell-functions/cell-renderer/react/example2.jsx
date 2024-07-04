@@ -52,9 +52,7 @@ const ExampleComponent = () => {
         height="auto"
         licenseKey={'non-commercial-and-evaluation'}
       >
-        <HotColumn>
-          <CustomRenderer hot-renderer />
-        </HotColumn>
+        <HotColumn renderer={CustomRenderer} />
       </HotTable>
     </HighlightContext.Provider>
   );

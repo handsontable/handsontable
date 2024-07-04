@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -14,7 +14,7 @@ const ExampleComponent = () => {
     ['A4', 'B4', 'C4', 'D4'],
   ];
 
-  const hotTableComponentRef = useRef<HotTableClass>(null);
+  const hotTableComponentRef = useRef<HotTableRef>(null);
 
   const selectCell = () => {
     // The Handsontable instance is stored under the `hotInstance` property of the wrapper component.

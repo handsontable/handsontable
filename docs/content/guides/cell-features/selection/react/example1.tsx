@@ -1,6 +1,6 @@
 import { useRef, ChangeEvent } from 'react';
 import Handsontable from 'handsontable';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -8,7 +8,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
   const selectOptionChangeCallback = (
     event: ChangeEvent<HTMLSelectElement>
