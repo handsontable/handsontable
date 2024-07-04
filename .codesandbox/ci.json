@@ -5,7 +5,7 @@
     "handsontable",
     "wrappers/react",
     "wrappers/vue",
-    "wrappers/vue3",
+    "wrappers/vue3"
   ],
   "publishDirectory": {
     "handsontable": "handsontable/tmp",
