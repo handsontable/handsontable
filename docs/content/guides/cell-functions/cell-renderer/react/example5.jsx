@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
@@ -9,7 +9,6 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-
   let isChecked = false;
 
   function customRenderer(instance, td) {
@@ -22,41 +21,37 @@ const ExampleComponent = () => {
     }
   }
 
-  const exampleContainerMousedownCallback = event => {
-    if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
-      event.stopPropagation();
+  const exampleContainerMouseupCallback = (event) => {
+    const hot = hotRef.current?.hotInstance;
+
+    if (
+      event.target.nodeName == 'INPUT' &&
+      event.target.className == 'checker'
+    ) {
+      isChecked = !event.target.checked;
+      hot?.render();
     }
   };
-  let exampleContainerMouseupCallback;
-
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
-
-    exampleContainerMouseupCallback = event => {
-      if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
-        isChecked = !event.target.checked;
-        hot.render();
-      }
-    };
-  });
 
   return (
-    <div id="exampleContainer5" onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}>
+    <div
+      id="exampleContainer5"
+      onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}
+    >
       <HotTable
         ref={hotRef}
         height="auto"
-        columns={[
-          {},
-          { renderer: customRenderer }
-        ]}
-        colHeaders={
-          function(col) {
-            switch (col) {
+        columns={[{}, { renderer: customRenderer }]}
+        colHeaders={function (col) {
+          switch (col) {
             case 0:
-            return '<b>Bold</b> and <em>Beautiful</em>';
-
+              return '<b>Bold</b> and <em>Beautiful</em>';
             case 1:
-            return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
+              return `Some <input type="checkbox" class="checker" ${
+                isChecked ? `checked="checked"` : ''
+              }> checkbox`;
+            default:
+              return '';
           }
         }}
         autoWrapRow={true}

@@ -1,14 +1,14 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-import {DetailedSettings} from 'handsontable/plugins/columnSummary'
+import { DetailedSettings } from 'handsontable/plugins/columnSummary';
 
 // generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
 
-  const array2d = [...new Array(rows)]
-    .map(_ => [...new Array(columns)]
-      .map(_ => counter++));
+  const array2d = [...new Array(rows)].map((_) =>
+    [...new Array(columns)].map((_) => counter++)
+  );
 
   // add an empty row at the bottom, to display column summaries
   if (additionalRows) {
@@ -19,6 +19,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 };
 
 const container = document.querySelector('#example7')!;
+
 new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   // initialize a Handsontable instance with the generated data
@@ -29,9 +30,16 @@ new Handsontable(container, {
   // set the `columnSummary` configuration option to a function
   columnSummary() {
     const configArray: DetailedSettings[] = [];
-    const summaryTypes: ('sum' | 'min' | 'max' | 'count' | 'average')[] = ['sum', 'min', 'max', 'count', 'average'];
+    const summaryTypes: ('sum' | 'min' | 'max' | 'count' | 'average')[] = [
+      'sum',
+      'min',
+      'max',
+      'count',
+      'average',
+    ];
 
-    for (let i = 0; i < this.hot.countCols(); i++) { // iterate over visible columns
+    for (let i = 0; i < this.hot.countCols(); i++) {
+      // iterate over visible columns
       // for each visible column, add a column summary with a configuration
       configArray.push({
         sourceColumn: i,
@@ -41,7 +49,7 @@ new Handsontable(container, {
         // display the column summary in the bottom row (because of the reversed row coordinates)
         destinationRow: 0,
         destinationColumn: i,
-        forceNumeric: true
+        forceNumeric: true,
       });
     }
 

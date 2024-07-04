@@ -7,7 +7,7 @@ const data: (string | number)[][] = [
   ['2018', 20, 11, 14, 13],
   ['2019', 30, 15, 12, 13],
   ['2020', '', '', '', ''],
-  ['2021', '', '', '', '']
+  ['2021', '', '', '', ''],
 ];
 
 const container = document.querySelector('#example2')!;
@@ -18,10 +18,10 @@ new Handsontable(container, {
   colHeaders: true,
   fillHandle: {
     direction: 'vertical',
-    autoInsertRow: true
+    autoInsertRow: true,
   },
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

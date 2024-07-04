@@ -66,9 +66,10 @@ Here's an example:
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-parent-child/javascript/example1.js)
+@[code](@/content/guides/rows/row-parent-child/javascript/example1.ts)
 
 :::
 
@@ -76,9 +77,10 @@ Here's an example:
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-parent-child/react/example1.jsx)
+@[code](@/content/guides/rows/row-parent-child/react/example1.tsx)
 
 :::
 

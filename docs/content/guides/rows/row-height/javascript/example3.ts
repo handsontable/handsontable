@@ -19,5 +19,5 @@ new Handsontable(container!, {
   manualRowResize: true,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

@@ -1,5 +1,8 @@
 import Handsontable from 'handsontable';
-import { DetailedSettings, MenuItemConfig } from 'handsontable/plugins/contextMenu';
+import {
+  DetailedSettings,
+  MenuItemConfig,
+} from 'handsontable/plugins/contextMenu';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const contextMenuSettings: DetailedSettings = {
@@ -9,33 +12,39 @@ const contextMenuSettings: DetailedSettings = {
   },
   items: {
     row_above: {
-      disabled() { // `disabled` can be a boolean or a function
+      disabled() {
+        // `disabled` can be a boolean or a function
         // Disable option when first row was clicked
         return this.getSelectedLast()?.[0] === 0; // `this` === hot
-      }
+      },
     },
     // A separator line can also be added like this:
     // 'sp1': { name: '---------' }
     // and the key has to be unique
     sp1: '---------' as MenuItemConfig,
     row_below: {
-      name: 'Click to add row below' // Set custom text for predefined option
+      name: 'Click to add row below', // Set custom text for predefined option
     },
-    about: { // Own custom option
-      name() { // `name` can be a string or a function
+    about: {
+      // Own custom option
+      name() {
+        // `name` can be a string or a function
         return '<b>Custom option</b>'; // Name can contain HTML
       },
-      hidden() { // `hidden` can be a boolean or a function
+      hidden() {
+        // `hidden` can be a boolean or a function
         // Hide the option when the first column was clicked
         return this.getSelectedLast()?.[1] == 0; // `this` === hot
       },
-      callback() { // Callback for specific option
+      callback() {
+        // Callback for specific option
         setTimeout(() => {
           alert('Hello world!'); // Fire alert after menu close (with timeout)
         }, 0);
-      }
+      },
     },
-    colors: { // Own custom option
+    colors: {
+      // Own custom option
       name: 'Colors...',
       submenu: {
         // Custom option with submenu of items
@@ -48,14 +57,15 @@ const contextMenuSettings: DetailedSettings = {
               setTimeout(() => {
                 alert('You clicked red!');
               }, 0);
-            }
+            },
           },
           { key: 'colors:green', name: 'Green' },
-          { key: 'colors:blue', name: 'Blue' }
-        ]
-      }
+          { key: 'colors:blue', name: 'Blue' },
+        ],
+      },
     },
-    credits: { // Own custom property
+    credits: {
+      // Own custom property
       // Custom rendered element in the context menu
       renderer() {
         const elem = document.createElement('marquee');
@@ -66,10 +76,10 @@ const contextMenuSettings: DetailedSettings = {
         return elem;
       },
       disableSelection: true, // Prevent mouseoever from highlighting the item for selection
-      isCommand: false // Prevent clicks from executing command and closing the menu
-    }
-  }
-}
+      isCommand: false, // Prevent clicks from executing command and closing the menu
+    },
+  },
+};
 
 const container = document.querySelector('#example3')!;
 
@@ -80,7 +90,7 @@ new Handsontable(container, {
     ['2018', 10, 11, 12, 13, 15, 16],
     ['2019', 10, 11, 12, 13, 15, 16],
     ['2020', 10, 11, 12, 13, 15, 16],
-    ['2021', 10, 11, 12, 13, 15, 16]
+    ['2021', 10, 11, 12, 13, 15, 16],
   ],
   rowHeaders: true,
   colHeaders: true,
@@ -88,5 +98,5 @@ new Handsontable(container, {
   height: 'auto',
   contextMenu: contextMenuSettings,
   autoWrapRow: true,
-  autoWrapCol: true
+  autoWrapCol: true,
 });

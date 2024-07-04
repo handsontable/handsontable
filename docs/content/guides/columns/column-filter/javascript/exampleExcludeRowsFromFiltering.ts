@@ -1,8 +1,9 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-import {Filters} from 'handsontable/plugins'
+import { Filters } from 'handsontable/plugins';
 
 const container = document.querySelector('#exampleExcludeRowsFromFiltering')!;
+
 new Handsontable(container, {
   data: [
     {
@@ -174,10 +175,13 @@ new Handsontable(container, {
   dropdownMenu: true,
   afterFilter() {
     const filtersPlugin: Filters = (this as Handsontable).getPlugin('filters');
-    const filtersRowsMap = filtersPlugin['filtersRowsMap'];
+    const filtersRowsMap = filtersPlugin.filtersRowsMap;
 
     filtersRowsMap.setValueAtIndex(0, false);
-    filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
+    filtersRowsMap.setValueAtIndex(
+      filtersRowsMap.indexedValues.length - 1,
+      false
+    );
   },
   autoWrapRow: true,
   autoWrapCol: true,

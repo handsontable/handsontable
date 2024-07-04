@@ -5,9 +5,13 @@ const container = document.querySelector('#example3')!;
 
 new Handsontable(container, {
   data: [
-    { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+    {
+      id: 1,
+      name: { first: 'Chris', last: 'Right' },
+      password: 'plainTextPassword',
+    },
     { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
-    { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
+    { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' },
   ],
   colHeaders: ['ID', 'First name', 'Last name', 'Password'],
   height: 'auto',
@@ -16,7 +20,7 @@ new Handsontable(container, {
     { data: 'id' },
     { data: 'name.first' },
     { data: 'name.last' },
-    { data: 'password', type: 'password', hashSymbol: '&#9632;' }
+    { data: 'password', type: 'password', hashSymbol: '&#9632;' },
   ],
   autoWrapRow: true,
   autoWrapCol: true,
