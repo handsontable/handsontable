@@ -87,8 +87,8 @@ export default async({ router, siteData, isServer }) => {
 
     if (savedPosition) {
       scrollPosition = savedPosition; // page from the browser navigation (back/forward)
-    } 
-    
+    }
+
     if (to.hash) {
       scrollPosition = {
         selector: to.hash,
