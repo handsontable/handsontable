@@ -1,9 +1,23 @@
+const jsdocOff = Object.keys(require('eslint-plugin-jsdoc').rules)
+  .reduce((acc, rule) => {
+    acc[`jsdoc/${rule}`] = 'off';
+
+    return acc;
+  }, {});
+
 module.exports = {
-  extends: ['../.eslintrc.js'],
+  extends: ['../.eslintrc.js', 'plugin:prettier/recommended'],
   parserOptions: {
-    requireConfigFile: false,
+    requireConfigFile: false
   },
   rules: {
+    ...jsdocOff,
+    "prettier/prettier": [
+      "error",
+      {
+        "singleQuote": true,
+      }
+    ],
     'no-restricted-syntax': 'off',
     'no-restricted-globals': 'off',
     'no-console': 'off',
@@ -24,7 +38,11 @@ module.exports = {
       { blankLine: 'always', prev: 'multiline-var', next: '*' },
 
       { blankLine: 'always', prev: ['singleline-const', 'singleline-let', 'singleline-var'], next: '*' },
-      { blankLine: 'any', prev: ['singleline-const', 'singleline-let', 'singleline-var'], next: ['const', 'let', 'var'] },
+      {
+        blankLine: 'any',
+        prev: ['singleline-const', 'singleline-let', 'singleline-var'],
+        next: ['const', 'let', 'var']
+      },
 
       // { blankLine: "always", prev: "*", next: "multiline-expression" },
       { blankLine: 'always', prev: 'multiline-expression', next: '*' },
@@ -36,7 +54,7 @@ module.exports = {
       { blankLine: 'any', prev: 'import', next: 'import' },
 
       { blankLine: 'always', prev: ['case', 'default'], next: '*' },
-      { blankLine: 'any', prev: ['case', 'default'], next: ['case', 'default'] },
+      { blankLine: 'any', prev: ['case', 'default'], next: ['case', 'default'] }
     ]
-  },
+  }
 };

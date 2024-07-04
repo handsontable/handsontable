@@ -124,9 +124,10 @@ Language files were loaded after loading Handsontable.
 
 ::: only-for javascript
 
-::: example #example1 :hot-lang
+::: example #example1 :hot-lang --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/language/javascript/example1.js)
+@[code](@/content/guides/internationalization/language/javascript/example1.ts)
 
 :::
 
@@ -134,9 +135,10 @@ Language files were loaded after loading Handsontable.
 
 ::: only-for react
 
-::: example #example1 :react-languages
+::: example #example1 :react-languages --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/language/react/example1.jsx)
+@[code](@/content/guides/internationalization/language/react/example1.tsx)
 
 :::
 

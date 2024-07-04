@@ -32,9 +32,10 @@ Click on the column names to sort them.
 
 ::: only-for javascript
 
-::: example #example1 :hot-numbro
+::: example #example1 :hot-numbro --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.js)
+@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.ts)
 
 :::
 
@@ -42,9 +43,10 @@ Click on the column names to sort them.
 
 ::: only-for react
 
-::: example #example1 :react-numbro
+::: example #example1 :react-numbro --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/react/example1.jsx)
+@[code](@/content/guides/cell-types/numeric-cell-type/react/example1.tsx)
 
 :::
 
@@ -117,9 +119,10 @@ In the following demo, columns **Price in Japan** and **Price in Turkey** use tw
 
 ::: only-for javascript
 
-::: example #example3 :hot-numbro
+::: example #example3 :hot-numbro --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example3.js)
+@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example3.ts)
 
 :::
 
@@ -127,9 +130,10 @@ In the following demo, columns **Price in Japan** and **Price in Turkey** use tw
 
 ::: only-for react
 
-::: example #example3 :react-numbro
+::: example #example3 :react-numbro --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/numeric-cell-type/react/example3.jsx)
+@[code](@/content/guides/cell-types/numeric-cell-type/react/example3.tsx)
 
 :::
 
