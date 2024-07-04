@@ -2,6 +2,8 @@ name: Check docs examples (JS version vs TS version)
 
 on:
   pull_request:
+    paths:
+      - 'docs/**'
     types: [opened, synchronize, reopened]
 
 env:
