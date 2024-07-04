@@ -1,5 +1,5 @@
 {
-    "name": "handsontable-data-grid-v1440-react-demo",
+    "name": "handsontable-react-demo",
     "version": "1.0.0",
     "description": "",
     "keywords": [],
@@ -13,13 +13,14 @@
       "react-scripts": "4.0.3"
     },
     "devDependencies": {
+      "@ngneat/falso": "^7.2.0",
       "@types/react": "18.0.28",
       "@types/react-dom": "18.0.11",
       "typescript": "4.2.4"
     },
     "scripts": {
-      "start": "react-scripts start",
-      "build": "react-scripts build",
+      "start": "SKIP_PREFLIGHT_CHECK=true react-scripts start",
+      "build": "SKIP_PREFLIGHT_CHECK=true react-scripts build",
       "test": "react-scripts test --env=jsdom",
       "eject": "react-scripts eject"
     },
