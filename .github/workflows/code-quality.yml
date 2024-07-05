@@ -59,3 +59,12 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{matrix.language}}"
+  
+  fossa-scan:
+      name: FOSSA Scan
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # https://github.com/actions/checkout/releases/tag/v4.1.7
+        - uses: fossas/fossa-action@47ef11b1e1e3812e88dae436ccbd2d0cbd1adab0 # https://github.com/fossas/fossa-action/releases/tag/v1.3.3
+          with:
+            api-key: ${{secrets.FOSSA_API_KEY}}
