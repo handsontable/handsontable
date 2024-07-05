@@ -25,9 +25,15 @@ export default {
     return {
       inActiveElementId: '',
       isButtonInactive: false,
+      selectedLang: 'JavaScript',
     };
   },
   computed: {
+    docsVersion() {
+      if (this.$page.versions[0] === 'next') return this.$page.versions[1];
+
+      return this.$page.versions[0];
+    },
     isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
     },
@@ -73,25 +79,35 @@ export default {
       }, 2000);
     },
     reportCode() {
-      // eslint-disable-next-line max-len
       window.open(
+        // eslint-disable-next-line max-len
         `https://github.com/handsontable/handsontable/issues/new?link=${window.location}&template=improve_docs.yaml`,
         '_blank'
       );
     },
-    openDropdown(e) {
+    toggleDropdown(e) {
       const buttonDropdown = e.target;
 
       buttonDropdown.classList.toggle('active');
+    },
+    setLanguage(lang) {
+      this.selectedLang = lang;
+      localStorage.setItem('selected_lang', lang);
+      document.querySelectorAll('.select-type-button').forEach((element) => {
+        element.classList.remove('active');
+      });
+      document
+        .querySelectorAll('.example-container-code pre')
+        .forEach((element) => {
+          element.scrollTo({ top: 0, left: 0 });
+        });
     },
     showCodeButton(e) {
       e.target.parentElement?.classList.toggle('active');
     },
     setActiveElement(id) {
       const wrapper = document.querySelector('.table-of-contents > ul');
-      const items = document.querySelectorAll(
-        '.table-of-contents > ul li'
-      );
+      const items = document.querySelectorAll('.table-of-contents > ul li');
 
       items.forEach((item) => {
         item.classList.remove('active');
@@ -128,8 +144,47 @@ export default {
         this.setActiveElement(`#${visibleElements[0].id}`);
       }
     },
+    openExample(path, preset, id) {
+      const filename = (() => {
+        if (preset.includes('vue')) return `vue/${id}.js`;
+
+        if (preset.includes('angular')) return `angular/${id}.js`;
+
+        if (preset.includes('react') && this.selectedLang === 'TypeScript') return `react/${id}.tsx`;
+
+        if (preset.includes('react') && this.selectedLang === 'JavaScript') return `react/${id}.jsx`;
+
+        if (preset.includes('hot') && this.selectedLang === 'TypeScript') return `javascript/${id}.ts`;
+
+        if (preset.includes('hot') && this.selectedLang === 'JavaScript') return `javascript/${id}.js`;
+
+        return undefined;
+      })();
+
+      if (!path || !filename) {
+        // eslint-disable-next-line
+        console.error('Sorry, unable to get file path.');
+
+        return;
+      }
+
+      const pathArray = path
+        .split('/')
+        .reduce(
+          (a, c, i, array) =>
+            (i === 0 || i === 1 || array.length - 1 === i ? a : [...a, c]),
+          []
+        );
+
+      window.open(
+        // eslint-disable-next-line max-len
+        `https://github.com/handsontable/handsontable/blob/prod-docs/${this.docsVersion}/docs/content/${pathArray.join('/')}/${filename}`,
+        '_blank'
+      );
+    },
   },
   mounted() {
+    this.selectedLang = localStorage?.getItem('selected_lang') ?? 'JavaScript';
     this.checkSectionInView();
     window.addEventListener('scroll', this.checkSectionInView);
   },

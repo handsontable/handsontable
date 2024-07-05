@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-import {Filters} from 'handsontable/plugins'
+import { Filters } from 'handsontable/plugins';
 
 const container = document.querySelector('#exampleQuickFilter')!;
 const filterField = document.querySelector('#filterField')!;
@@ -104,7 +104,9 @@ filterField.addEventListener('keyup', (event) => {
   const columnValue = columnSelector.value as unknown as number;
 
   filters.removeConditions(columnValue);
-  filters.addCondition(columnValue, 'contains', [(event.target as HTMLInputElement).value]);
+  filters.addCondition(columnValue, 'contains', [
+    (event.target as HTMLInputElement).value,
+  ]);
   filters.filter();
 
   hot.render();

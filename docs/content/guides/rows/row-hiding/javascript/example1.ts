@@ -26,7 +26,7 @@ new Handsontable(container, {
   hiddenRows: {
     rows: [3, 5, 9],
     // show UI indicators to mark hidden rows
-    indicators: true
+    indicators: true,
   },
   autoWrapRow: true,
   autoWrapCol: true,

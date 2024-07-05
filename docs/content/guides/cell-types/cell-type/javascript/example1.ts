@@ -2,9 +2,18 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 import { BaseRenderer } from 'handsontable/renderers';
 
-const colors: string[] = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
+const colors: string[] = [
+  'yellow',
+  'red',
+  'orange',
+  'green',
+  'blue',
+  'gray',
+  'black',
+  'white',
+];
 
-const yellowRenderer: BaseRenderer = (instance, td, ...rest) =>{
+const yellowRenderer: BaseRenderer = (instance, td, ...rest) => {
   Handsontable.renderers.TextRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'yellow';
 };
@@ -33,20 +42,19 @@ new Handsontable(container, {
     // use default 'text' cell type but overwrite its renderer with yellowRenderer
     { data: 'isActive', type: 'checkbox' },
     { data: 'date', type: 'date', dateFormat: 'YYYY-MM-DD' },
-    { data: 'color', type: 'autocomplete', source: colors }
+    { data: 'color', type: 'autocomplete', source: colors },
   ],
-  cell: [
-    { row: 1, col: 0, renderer: greenRenderer }
-  ],
+  cell: [{ row: 1, col: 0, renderer: greenRenderer }],
   cells(row, col) {
     if (row === 0 && col === 0) {
       this.renderer = greenRenderer;
+
       return { renderer: this.renderer };
     }
-    
+
     return {};
   },
   autoWrapRow: true,
   autoWrapCol: true,
-  height: 'auto'
+  height: 'auto',
 });

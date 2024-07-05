@@ -17,7 +17,7 @@ const hot = new Handsontable(container, {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 const copyBtn = document.querySelector('#copy')!;

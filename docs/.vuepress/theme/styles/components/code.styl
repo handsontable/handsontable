@@ -188,6 +188,13 @@
         border-radius: $radius
         margin-bottom: 24px
         padding: 0
+        @media (max-width: $small) {
+            &:not(:first-child) {
+                pre {
+                    padding-top: 60px
+                }
+            }
+        }
     }
 
     @media (max-width: 419px) {
@@ -204,6 +211,9 @@
 }
 
 .theme-code-block [class*="language-"] {
+    &:has(.codeControls) {
+        padding-top: 64px
+    }
     .codeControls {
         top:-42px
     }
@@ -285,14 +295,6 @@
             }
         }
     }
-
-    @media (hover: hover) {
-        &:hover  {
-            .codeControls {
-                opacity 1
-            }
-        }
-    }
 }
 .codeControls {
     position absolute
@@ -300,10 +302,48 @@
     right: 11px
     display: flex
     gap:10px
-    opacity: 0
     transition: all $t ease-in-out !important
     z-index 1
     padding-bottom: 8px
+    //opacity: 0
+
+    @media (max-width: $small) {
+        position: absolute;
+        right: -16px !important;
+        left: -16px;
+        width: auto;
+        background: inherit;
+        padding: 0 8px 8px;
+        opacity 1
+    }
+}
+pre + .codeControls {
+    @media (max-width: $small) {
+        left: auto
+        right: 0 !important
+        background: none
+    }
+}
+
+/*.tabs-component:has(.codeControls),
+div[class*="language-"]:has(.codeControls),
+.theme-code-group:has(.codeControls) {
+    @media (hover: hover) {
+        &:hover .codeControls { 
+            opacity 1
+        }
+    }
+}*/
+
+.tabs-component-panel:has(.codeControls) {
+    @media (max-width: $small) {
+        padding-top: 64px !important
+
+        .codeControls {
+            right: -16px !important;
+            left: -16px;
+        }
+    }
 }
 
 .hideElement { 
@@ -312,6 +352,7 @@
 
 .page .select-type {
     height: 36px
+    display: none
 
     > button {
         padding-right: 32px !important

@@ -35,8 +35,8 @@ new Handsontable(container, {
     },
     {
       productName: 'Product C',
-      JP_price: 3120.10,
-      TR_price: 435.20,
+      JP_price: 3120.1,
+      TR_price: 435.2,
     },
   ],
   columns: [

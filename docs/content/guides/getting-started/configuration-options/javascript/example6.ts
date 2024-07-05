@@ -2,6 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example6')!;
+
 new Handsontable(container, {
   // top-level grid options that apply to the entire grid
   licenseKey: 'non-commercial-and-evaluation',
@@ -48,9 +49,7 @@ new Handsontable(container, {
   // the `cells` option's logic overwrites all other options
   cells(row, col) {
     // cell (2, 2) is editable
-    return (row === 2 && col === 2)
-      ? { readOnly: false, className: '' }
-      : {};
+    return row === 2 && col === 2 ? { readOnly: false, className: '' } : {};
   },
   autoWrapRow: true,
   autoWrapCol: true,
