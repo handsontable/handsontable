@@ -40,7 +40,7 @@ const ExampleComponent = () => {
           className="button button--primary"
           onClick={() => triggerBtnClickCallback()}
         >
-          {isContainerExpanded ? 'Collapse container' : 'Expand container"
+          {isContainerExpanded ? 'Collapse container' : 'Expand container'
         </button>
       </div>
       <div id="exampleParent" className="exampleParent">
