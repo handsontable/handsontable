@@ -1,13 +1,13 @@
 /**
- * @typedef {object} RenderAllRowsCalculatorOptions
+ * @typedef {object} RenderedAllRowsCalculatorOptions
  * @property {number} totalRows Total number of rows.
  */
 /**
  * Holds all calculations needed to perform the rendering of all rows.
  *
- * @class RenderAllRowsCalculator
+ * @class RenderedAllRowsCalculationType
  */
-export class RenderAllRowsCalculator {
+export class RenderedAllRowsCalculationType {
   /**
    * Number of rendered/visible rows.
    *
@@ -32,12 +32,14 @@ export class RenderAllRowsCalculator {
    * @type {number}
    */
   startPosition = 0;
-
   /**
-   * @param {RenderAllRowsCalculatorOptions} options Object with all options specified for row viewport calculation.
+   * Determines if the viewport is visible in the trimming container.
+   *
+   * @type {boolean}
    */
-  constructor(options) {
-    this.count = options.totalRows;
-    this.endRow = this.count - 1;
-  }
+  isVisibleInTrimmingContainer = false;
+
+  initialize() {}
+  process() {}
+  finalize() {}
 }
