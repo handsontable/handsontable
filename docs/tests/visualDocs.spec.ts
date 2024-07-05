@@ -57,7 +57,6 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
          */
         const maxDiffPixelRatioValue = pathsNeedingMoreTolerance.includes('path') ? 0.01 : 0.001;
 
-        console.log(baseURL);
         await page.goto(baseURL + path);
         await expect(page.getByText('Page not found (404)')).toHaveCount(0);
         await expect(page.getByText('Password protected site')).toHaveCount(0);
