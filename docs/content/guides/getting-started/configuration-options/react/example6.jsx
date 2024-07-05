@@ -19,10 +19,10 @@ const ExampleComponent = () => {
       data={data}
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey={'non-commercial-and-evaluation'}
+      licenseKey="non-commercial-and-evaluation"
       readOnly={true}
-      width={'auto'}
-      height={'auto'}
+      width="auto"
+      height="auto"
       rowHeaders={true}
       colHeaders={true}
       columns={[

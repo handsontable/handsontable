@@ -20,7 +20,7 @@ const ExampleComponent: FC = () => {
     <HotTable
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey={'non-commercial-and-evaluation'}
+      licenseKey="non-commercial-and-evaluation"
       data={data}
       readOnly={true}
       width="auto"

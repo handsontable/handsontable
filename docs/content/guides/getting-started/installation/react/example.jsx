@@ -26,9 +26,9 @@ const ExampleComponent = () => {
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
+      licenseKey="non-commercial-and-evaluation" // for non-commercial use only
     />
-  ); // for non-commercial use only />;
+  );
 };
 
 export default ExampleComponent;

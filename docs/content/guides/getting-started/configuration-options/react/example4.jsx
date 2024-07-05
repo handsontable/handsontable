@@ -19,9 +19,9 @@ const ExampleComponent = () => {
       data={data}
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey={'non-commercial-and-evaluation'}
-      width={'auto'}
-      height={'auto'}
+      licenseKey="non-commercial-and-evaluation"
+      width="auto"
+      height="auto"
       rowHeaders={true}
       colHeaders={true}
       readOnly={false}
