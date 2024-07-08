@@ -1,0 +1,23 @@
+{
+    "name": "handsontable-typescript-demo",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.html",
+    "scripts": {
+      "start": "parcel index.html --open",
+      "build": "parcel build index.html",
+      "check-types": "tsc --noEmit --skipLibCheck"
+    },
+    "dependencies": {
+      "handsontable": "14.4.0",
+      "parcel": "^2.x"
+    },
+    "devDependencies": {
+      "typescript": "^4.7"
+    },
+    "resolutions": {
+      "@babel/preset-env": "7.13.8"
+    },
+    "keywords": []
+  }
+  
