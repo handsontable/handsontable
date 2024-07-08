@@ -24,11 +24,9 @@ const ExampleComponent = () => {
       height="auto"
       rowHeaders={true}
       colHeaders={true}
-      cells={(row) => {
+      cells={(row, col) => {
         if (row === 1 || row === 4) {
-          return {
-            readOnly: true,
-          };
+          return { readOnly: true };
         }
 
         return {};

@@ -1,12 +1,14 @@
-import { HotTable } from '@handsontable/react';
+import { FC } from 'react';
+import { HotTable, HotTableProps } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
-  const data = [
+const ExampleComponent: FC = () => {
+  const data: Handsontable.CellValue[][] = [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
     ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
     ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
@@ -24,11 +26,9 @@ const ExampleComponent = () => {
       height="auto"
       rowHeaders={true}
       colHeaders={true}
-      cells={(row) => {
+      cells={(row: number, col: number) => {
         if (row === 1 || row === 4) {
-          return {
-            readOnly: true,
-          };
+          return { readOnly: true };
         }
 
         return {};
