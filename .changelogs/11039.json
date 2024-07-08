@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Annotate Events functions types with this: Core as they are always bound",
-  "type": "added",
-  "issueOrPR": 11039,
-  "breaking": false,
-  "framework": "none"
-}
