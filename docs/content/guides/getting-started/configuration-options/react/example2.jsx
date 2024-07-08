@@ -25,12 +25,10 @@ const ExampleComponent = () => {
       rowHeaders={true}
       colHeaders={true}
       readOnly={false}
-      columns={(index) => {
-        return {
-          type: index > 0 ? 'numeric' : 'text',
-          readOnly: index === 2 || index === 8,
-        };
-      }}
+      columns={(index) => ({
+        type: index > 0 ? 'numeric' : 'text',
+        readOnly: index === 2 || index === 8,
+      })}
     />
   );
 };
