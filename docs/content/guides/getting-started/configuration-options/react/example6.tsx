@@ -1,12 +1,14 @@
-import { HotTable } from '@handsontable/react';
+import { FC } from 'react';
+import { HotTable, HotTableProps } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
-  const data = [
+const ExampleComponent: FC = () => {
+  const data: Handsontable.CellValue[][] = [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
     ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
     ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
@@ -16,10 +18,10 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      data={data}
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={data}
       readOnly={true}
       width="auto"
       height="auto"
@@ -27,10 +29,7 @@ const ExampleComponent = () => {
       colHeaders={true}
       columns={[
         // each cell in the first (by physical index) column is editable
-        {
-          readOnly: false,
-          className: '',
-        },
+        { readOnly: false, className: '' },
         {},
         {},
         {},
@@ -42,20 +41,13 @@ const ExampleComponent = () => {
         {},
       ]}
       cell={[
-        {
-          // cell (0, 0) is read-only
-          row: 0,
-          col: 0,
-          readOnly: true,
-        },
+        // cell (0, 0) is read-only
+        { row: 0, col: 0, readOnly: true },
       ]}
-      cells={(row, col) => {
+      cells={(row: number, col: number) => {
         // cell (2, 2) is editable
         if (row === 2 && col === 2) {
-          return {
-            readOnly: false,
-            className: '',
-          };
+          return { readOnly: false, className: '' };
         }
 
         return {};

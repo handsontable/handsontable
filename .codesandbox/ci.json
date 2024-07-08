@@ -4,19 +4,24 @@
     "wrappers/angular",
     "handsontable",
     "wrappers/react",
-    "wrappers/vue"
+    "wrappers/vue",
+    "wrappers/vue3"
   ],
   "publishDirectory": {
     "handsontable": "handsontable/tmp",
     "@handsontable/angular": "wrappers/angular/dist/hot-table",
     "@handsontable/react": "wrappers/react",
-    "@handsontable/vue": "wrappers/vue"
+    "@handsontable/vue": "wrappers/vue",
+    "@handsontable/vue3": "wrappers/vue3"
+
   },
   "sandboxes": [
-    "github/handsontable/handsontable/tree/develop/examples/next/docs/js/demo",
-    "github/handsontable/handsontable/tree/develop/examples/next/docs/react/demo",
-    "github/handsontable/handsontable/tree/develop/examples/next/docs/vue/demo",
-    "github/handsontable/handsontable/tree/develop/examples/next/docs/angular/demo"
+    "github/handsontable/handsontable/tree/develop/examples/prs/js/",
+    "github/handsontable/handsontable/tree/develop/examples/prs/ts/",
+    "github/handsontable/handsontable/tree/develop/examples/prs/react/",
+    "github/handsontable/handsontable/tree/develop/examples/prs/vue/",
+    "github/handsontable/handsontable/tree/develop/examples/prs/vue3/",
+    "github/handsontable/handsontable/tree/develop/examples/prs/angular/"
   ],
   "node": "18"
 }
