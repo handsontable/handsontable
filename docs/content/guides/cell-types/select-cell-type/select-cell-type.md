@@ -28,9 +28,10 @@ The select editor should be considered an example of how to write editors rather
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/select-cell-type/javascript/example1.js)
+@[code](@/content/guides/cell-types/select-cell-type/javascript/example1.ts)
 
 :::
 
@@ -38,9 +39,10 @@ The select editor should be considered an example of how to write editors rather
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/select-cell-type/react/example1.jsx)
+@[code](@/content/guides/cell-types/select-cell-type/react/example1.tsx)
 
 :::
 

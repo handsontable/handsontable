@@ -594,6 +594,9 @@ class Selection {
         x: this.tableProps.countRowHeaders(),
         y: this.tableProps.countColHeaders(),
       });
+
+    } else {
+      this.#transformation.resetOffsetSize();
     }
 
     this.setRangeStart(this.#transformation.transformStart(rowDelta, colDelta, createMissingRecords));
@@ -611,6 +614,9 @@ class Selection {
         x: this.tableProps.countRowHeaders(),
         y: this.tableProps.countColHeaders(),
       });
+
+    } else {
+      this.#transformation.resetOffsetSize();
     }
 
     this.setRangeEnd(this.#transformation.transformEnd(rowDelta, colDelta));

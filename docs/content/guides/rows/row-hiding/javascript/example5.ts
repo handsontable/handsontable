@@ -26,7 +26,7 @@ new Handsontable(container, {
   contextMenu: ['hidden_rows_show', 'hidden_rows_hide'],
   hiddenRows: {
     rows: [3, 5, 9],
-    indicators: true
+    indicators: true,
   },
   autoWrapRow: true,
   autoWrapCol: true,

@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -8,21 +8,13 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
+  const selectOptionChangeCallback = (event) => {
+    const hot = hotRef.current?.hotInstance;
+    const value = event.target.value;
+    const first = value.split(' ')[0].toLowerCase();
 
-  let selectOptionChangeCallback;
-
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
-
-    selectOptionChangeCallback = event => {
-      const value = event.target.value;
-      const first = value.split(' ')[0].toLowerCase();
-
-      hot.updateSettings({
-        selectionMode: first
-      });
-    };
-  });
+    hot?.updateSettings({ selectionMode: first });
+  };
 
   return (
     <>

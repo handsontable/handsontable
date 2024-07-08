@@ -5,14 +5,31 @@ const { buildReactBody } = require('./buildReactBody');
 const { buildVue3Body } = require('./buildVue3Body');
 const { buildVueBody } = require('./buildVueBody');
 
-const getBody = (id, html, js, css, docsVersion, preset, sandbox) => {
+const getBody = ({ id, html, js, css, docsVersion, preset, sandbox, lang }) => {
   const version = formatVersion(docsVersion);
   const hyperformulaVersion = '^2.4.0';
 
   if (/hot(-.*)?/.test(preset)) {
-    return buildJavascriptBody({ id, html, js, css, version, hyperformulaVersion, sandbox });
+    return buildJavascriptBody({
+      id,
+      html,
+      js,
+      css,
+      version,
+      hyperformulaVersion,
+      sandbox,
+      lang: lang === 'JavaScript' ? 'js' : 'ts'
+    });
   } else if (/react(-.*)?/.test(preset)) {
-    return buildReactBody({ js, css, version, hyperformulaVersion, preset, sandbox });
+    return buildReactBody({
+      js,
+      css,
+      version,
+      hyperformulaVersion,
+      preset,
+      sandbox,
+      lang: lang === 'JavaScript' ? 'jsx' : 'tsx'
+    });
   } else if (/vue3(-.*)?/.test(preset)) {
     return buildVue3Body({ id, html, js, css, version, hyperformulaVersion, preset });
   } else if (/vue(-.*)?/.test(preset)) {

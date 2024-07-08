@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-
 const container = document.querySelector('#example1')!;
 
 const hot = new Handsontable(container, {
@@ -25,7 +24,7 @@ const hot = new Handsontable(container, {
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 const selectOption = document.querySelector('#selectOption')!;
