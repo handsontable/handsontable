@@ -1,11 +1,11 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example1')!;
-const exampleConsole = document.querySelector('#output') as HTMLElement;
-const autosave = document.querySelector('#autosave') as HTMLInputElement;
-const load = document.querySelector('#load')!;
-const save = document.querySelector('#save')!;
+const container = document.querySelector<HTMLDivElement>('#example1')!;
+const exampleConsole = document.querySelector<HTMLDivElement>('#output')!;
+const autosave = document.querySelector<HTMLInputElement>('#autosave')!;
+const load = document.querySelector<HTMLButtonElement>('#load')!;
+const save = document.querySelector<HTMLButtonElement>('#save')!;
 
 const hot = new Handsontable(container, {
   startRows: 8,
@@ -14,7 +14,10 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
-  afterChange(change, source) {
+  afterChange(
+    change: Handsontable.CellChange[] | null,
+    source: Handsontable.ChangeSource
+  ) {
     if (source === 'loadData') {
       return; // don't save this change
     }
@@ -54,6 +57,7 @@ load.addEventListener('click', () => {
     });
   });
 });
+
 save.addEventListener('click', () => {
   // save all cell's data
   fetch('{{$basePath}}/scripts/json/save.json', {
