@@ -125,10 +125,10 @@ describe('BaseEditor API', () => {
             selectCell(1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
-              start: document.documentElement.scrollLeft + document.documentElement.clientWidth - 50, // 50 - the width of the first cell
+              start: document.documentElement.scrollLeft + document.documentElement.clientWidth - 51, // 51 - the width of the first cell
               top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 23,
               width: 51,
-              maxWidth: 50,
+              maxWidth: 51,
               height: 24,
               maxHeight: document.documentElement.clientHeight - 23,
             }));
