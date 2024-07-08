@@ -780,7 +780,7 @@ describe('Core_view', () => {
 
       const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-      expect($columnHeaders.eq(0).width()).toEqual(48);
+      expect($columnHeaders.eq(0).width()).toEqual(49);
       expect($columnHeaders.eq(1).width()).toEqual(73);
       expect($columnHeaders.eq(2).width()).toEqual(149);
       expect($columnHeaders.eq(3).width()).toEqual(74);

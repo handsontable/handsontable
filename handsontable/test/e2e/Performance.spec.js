@@ -18,7 +18,7 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
       colWidths: 100,
       rowHeights: 23,
       renderer(...args) {
@@ -34,7 +34,7 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
       rowHeights: 23,
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
@@ -49,7 +49,7 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
       colWidths: 50,
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
@@ -64,7 +64,7 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
       autoRowSize: true,
       autoColumnSize: true,
       renderer(...args) {
@@ -80,7 +80,9 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
+      autoRowSize: false,
+      autoColumnSize: false,
       rowHeights: 23,
       beforeGetCellMeta() {
         count += 1;
@@ -94,7 +96,9 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
+      autoRowSize: false,
+      autoColumnSize: false,
       colWidths: 50,
       beforeGetCellMeta() {
         count += 1;
@@ -108,7 +112,9 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
+      autoRowSize: false,
+      autoColumnSize: false,
       colHeaders: true,
       rowHeights: 23,
       beforeGetCellMeta() {
@@ -123,7 +129,9 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
+      autoRowSize: false,
+      autoColumnSize: false,
       colHeaders: true,
       colWidths: 50,
       beforeGetCellMeta() {
@@ -138,7 +146,9 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
+      autoRowSize: false,
+      autoColumnSize: false,
       rowHeaders: true,
       rowHeights: 23,
       beforeGetCellMeta() {
@@ -153,7 +163,9 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
+      autoRowSize: false,
+      autoColumnSize: false,
       rowHeaders: true,
       colWidths: 50,
       beforeGetCellMeta() {
@@ -168,7 +180,9 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
+      autoRowSize: false,
+      autoColumnSize: false,
       colHeaders: true,
       rowHeaders: true,
       rowHeights: 23,
@@ -184,7 +198,9 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 1),
+      data: createSpreadsheetData(1, 1),
+      autoRowSize: false,
+      autoColumnSize: false,
       colHeaders: true,
       rowHeaders: true,
       colWidths: 50,
@@ -200,8 +216,9 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       rowHeights: 23,
+      autoRowSize: false,
       autoColumnSize: true,
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
@@ -216,9 +233,10 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       colWidths: 50,
       autoRowSize: true,
+      autoColumnSize: false,
       renderer(...args) {
         Handsontable.renderers.TextRenderer.apply(this, args);
         count += 1;
@@ -232,7 +250,7 @@ describe('Performance', () => {
     let count = 0;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       autoRowSize: true,
       autoColumnSize: true,
       renderer(...args) {
