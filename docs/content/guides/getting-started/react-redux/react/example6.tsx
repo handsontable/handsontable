@@ -295,7 +295,7 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       >
-        <HotColumn width={100} type={'numeric'}>
+        <HotColumn width={100} type="numeric">
           {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
           <StarRatingRenderer hot-renderer />
         </HotColumn>

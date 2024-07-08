@@ -242,7 +242,7 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       >
-        <HotColumn width={100} type={'numeric'}>
+        <HotColumn width={100} type="numeric">
           <StarRatingRenderer hot-renderer />
         </HotColumn>
         <HotColumn width={150}>

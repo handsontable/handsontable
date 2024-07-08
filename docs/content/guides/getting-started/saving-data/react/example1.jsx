@@ -11,9 +11,11 @@ const ExampleComponent = () => {
   const [output, setOutput] = useState('Click "Load" to load data from server');
   const [isAutosave, setIsAutosave] = useState(false);
   const autosaveClickCallback = (event) => {
-    setIsAutosave(event.target.checked);
+    const target = event.target;
 
-    if (event.target.checked) {
+    setIsAutosave(target.checked);
+
+    if (target.checked) {
       setOutput('Changes will be autosaved');
     } else {
       setOutput('Changes will not be autosaved');
@@ -43,7 +45,7 @@ const ExampleComponent = () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ data: hot?.getData() }),
-    }).then((response) => {
+    }).then(() => {
       setOutput('Data saved');
       console.log('The POST request is only used here for the demo purposes');
     });
@@ -56,7 +58,7 @@ const ExampleComponent = () => {
           <button
             id="load"
             className="button button--primary button--blue"
-            onClick={(...args) => loadClickCallback(...args)}
+            onClick={loadClickCallback}
           >
             Load data
           </button>
@@ -64,7 +66,7 @@ const ExampleComponent = () => {
           <button
             id="save"
             className="button button--primary button--blue"
-            onClick={(...args) => saveClickCallback(...args)}
+            onClick={saveClickCallback}
           >
             Save data
           </button>
@@ -74,7 +76,7 @@ const ExampleComponent = () => {
               name="autosave"
               id="autosave"
               checked={isAutosave}
-              onClick={(...args) => autosaveClickCallback(...args)}
+              onClick={autosaveClickCallback}
             />
             Autosave
           </label>
@@ -109,7 +111,7 @@ const ExampleComponent = () => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ data: change }),
-          }).then((response) => {
+          }).then(() => {
             setOutput(
               `Autosaved (${change?.length} cell${
                 (change?.length || 0) > 1 ? 's' : ''
