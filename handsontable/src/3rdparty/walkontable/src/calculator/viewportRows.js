@@ -1,6 +1,6 @@
 import { ViewportBaseCalculator } from './viewportBase';
 
-const DEFAULT_HEIGHT = 23;
+export const DEFAULT_HEIGHT = 23;
 
 /**
  * @typedef {object} ViewportRowsCalculatorOptions
@@ -50,7 +50,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     this.totalRows = totalRows;
     this.rowHeightFn = rowHeightFn;
     this.overrideFn = overrideFn;
-    this.horizontalScrollbarHeight = horizontalScrollbarHeight;
+    this.horizontalScrollbarHeight = horizontalScrollbarHeight ?? 0;
     this.innerViewportHeight = this.zeroBasedScrollOffset + this.viewportHeight - this.horizontalScrollbarHeight;
 
     this.calculate();
@@ -80,7 +80,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   }
 
   getRowHeight(row) {
-    let rowHeight = this.rowHeightFn(row);
+    const rowHeight = this.rowHeightFn(row);
 
     if (isNaN(rowHeight)) {
       return DEFAULT_HEIGHT;

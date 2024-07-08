@@ -23,9 +23,9 @@ export class PartiallyVisibleColumnsCalculationType {
   /**
    * Position of the first partially visible column (in px).
    *
-   * @type {number}
+   * @type {number|null}
    */
-  startPosition = 0;
+  startPosition = null;
   /**
    * Determines if the viewport is visible in the trimming container.
    *
@@ -33,8 +33,17 @@ export class PartiallyVisibleColumnsCalculationType {
    */
   isVisibleInTrimmingContainer = false;
 
+  /**
+   * Initializes the calculation.
+   */
   initialize() {}
 
+  /**
+   * Processes the column.
+   *
+   * @param {number} column The column index.
+   * @param {ViewportColumnsCalculator} viewportCalculator The viewport calculator object.
+   */
   process(column, viewportCalculator) {
     const {
       totalCalculatedWidth,
@@ -60,6 +69,11 @@ export class PartiallyVisibleColumnsCalculationType {
     this.endColumn = column;
   }
 
+  /**
+   * Finalizes the calculation.
+   *
+   * @param {ViewportColumnsCalculator} viewportCalculator The viewport calculator object.
+   */
   finalize(viewportCalculator) {
     const {
       scrollOffset,
@@ -78,13 +92,13 @@ export class PartiallyVisibleColumnsCalculationType {
       this.startColumn = this.endColumn;
 
       while (this.startColumn > 0) {
-        const calculatedViewportHeight = startPositions[this.endColumn] +
+        const calculatedViewportWidth = startPositions[this.endColumn] +
           columnWidth -
           startPositions[this.startColumn - 1];
 
         this.startColumn -= 1;
 
-        if (calculatedViewportHeight >= viewportWidth) {
+        if (calculatedViewportWidth > viewportWidth) {
           break;
         }
       }
@@ -94,7 +108,6 @@ export class PartiallyVisibleColumnsCalculationType {
 
     const compensatedViewportWidth = zeroBasedScrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
     const mostRightScrollOffset = scrollOffset + viewportWidth - compensatedViewportWidth;
-    const inlineStartColumnOffset = 0;
 
     if (
       // the table is to the left of the viewport
@@ -103,7 +116,7 @@ export class PartiallyVisibleColumnsCalculationType {
         scrollOffset > startPositions.at(-1) + columnWidth
       ) ||
       // the table is to the right of the viewport
-      (((-1) * scrollOffset) - viewportWidth > (-1) * inlineStartColumnOffset)
+      (((-1) * scrollOffset) - viewportWidth > 0)
     ) {
       this.isVisibleInTrimmingContainer = false;
     } else {

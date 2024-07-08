@@ -1,6 +1,7 @@
 import { ViewportBaseCalculator } from './viewportBase';
 
-const DEFAULT_WIDTH = 50;
+export const DEFAULT_WIDTH = 50;
+
 /**
  * @typedef {object} ViewportColumnsCalculatorOptions
  * @property {Map<string, ViewportBaseCalculator>} calculationTypes The calculation types to be performed.
@@ -77,10 +78,10 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
   }
 
   getColumnWidth(column) {
-    let width = this.columnWidthFn(column);
+    const width = this.columnWidthFn(column);
 
     if (isNaN(width)) {
-      width = DEFAULT_WIDTH;
+      return DEFAULT_WIDTH;
     }
 
     return width;

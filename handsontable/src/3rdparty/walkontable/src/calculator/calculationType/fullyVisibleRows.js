@@ -23,9 +23,9 @@ export class FullyVisibleRowsCalculationType {
   /**
    * Position of the first fully visible row (in px).
    *
-   * @type {number}
+   * @type {number|null}
    */
-  startPosition = 0;
+  startPosition = null;
   /**
    * Determines if the viewport is visible in the trimming container.
    *
@@ -33,8 +33,17 @@ export class FullyVisibleRowsCalculationType {
    */
   isVisibleInTrimmingContainer = false;
 
+  /**
+   * Initializes the calculation.
+   */
   initialize() {}
 
+  /**
+   * Processes the row.
+   *
+   * @param {number} row The row index.
+   * @param {ViewportRowsCalculator} viewportCalculator The viewport calculator object.
+   */
   process(row, viewportCalculator) {
     const {
       totalCalculatedHeight,
@@ -50,11 +59,16 @@ export class FullyVisibleRowsCalculationType {
       if (this.startRow === null) {
         this.startRow = row;
       }
-    }
 
-    this.endRow = row;
+      this.endRow = row;
+    }
   }
 
+  /**
+   * Finalizes the calculation.
+   *
+   * @param {ViewportRowsCalculator} viewportCalculator The viewport calculator object.
+   */
   finalize(viewportCalculator) {
     const {
       scrollOffset,
@@ -89,9 +103,9 @@ export class FullyVisibleRowsCalculationType {
     this.startPosition = startPositions[this.startRow] ?? null;
 
     const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
-    const topRowOffset = viewportCalculator.getRowHeight(this.startRow);
+    const topRowOffset = this.startRow === null ? 0 : viewportCalculator.getRowHeight(this.startRow);
 
-    if (mostBottomScrollOffset < topRowOffset || scrollOffset > startPositions.at(-1) + 0) {
+    if (mostBottomScrollOffset < topRowOffset || scrollOffset > startPositions.at(-1)) {
       this.isVisibleInTrimmingContainer = false;
     } else {
       this.isVisibleInTrimmingContainer = true;

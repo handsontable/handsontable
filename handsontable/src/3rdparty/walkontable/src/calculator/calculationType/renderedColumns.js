@@ -5,47 +5,28 @@ import { PartiallyVisibleColumnsCalculationType } from './partiallyVisibleColumn
  */
 export class RenderedColumnsCalculationType extends PartiallyVisibleColumnsCalculationType {
   /**
-   * Total number of rendered columns (all columns in the viewport + buffer columns above and below the viewport).
+   * Finalizes the calculation.
    *
-   * @type {number}
+   * @param {ViewportColumnsCalculator} viewportCalculator The viewport calculator object.
    */
-  count = 0;
-  /**
-   * The column index of the first rendered column in the viewport.
-   *
-   * @type {number|null}
-   */
-  startColumns = null;
-  /**
-   * The column index of the last rendered column in the viewport.
-   *
-   * @type {number|null}
-   */
-  endColumns = null;
-  /**
-   * Position of the first rendered column (in px).
-   *
-   * @type {number}
-   */
-  startPosition = 0;
-  /**
-   * Determines if the viewport is visible in the trimming container.
-   *
-   * @type {boolean}
-   */
-  isVisibleInTrimmingContainer = false;
-
   finalize(viewportCalculator) {
     super.finalize(viewportCalculator);
 
     const {
       overrideFn,
       totalColumns,
+      startPositions,
     } = viewportCalculator;
 
     if (this.startColumn !== null && typeof overrideFn === 'function') {
       overrideFn(this);
     }
+
+    if (this.startColumn < 0) {
+      this.startColumn = 0;
+    }
+
+    this.startPosition = startPositions[this.startColumn] ?? null;
 
     if (totalColumns < this.endColumn) {
       this.endColumn = totalColumns - 1;

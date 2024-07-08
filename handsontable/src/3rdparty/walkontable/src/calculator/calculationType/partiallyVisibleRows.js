@@ -23,9 +23,9 @@ export class PartiallyVisibleRowsCalculationType {
   /**
    * Position of the first partially visible row (in px).
    *
-   * @type {number}
+   * @type {number|null}
    */
-  startPosition = 0;
+  startPosition = null;
   /**
    * Determines if the viewport is visible in the trimming container.
    *
@@ -33,8 +33,17 @@ export class PartiallyVisibleRowsCalculationType {
    */
   isVisibleInTrimmingContainer = false;
 
+  /**
+   * Initializes the calculation.
+   */
   initialize() {}
 
+  /**
+   * Processes the row.
+   *
+   * @param {number} row The row index.
+   * @param {ViewportRowsCalculator} viewportCalculator The viewport calculator object.
+   */
   process(row, viewportCalculator) {
     const {
       totalCalculatedHeight,
@@ -58,6 +67,11 @@ export class PartiallyVisibleRowsCalculationType {
     this.endRow = row;
   }
 
+  /**
+   * Finalizes the calculation.
+   *
+   * @param {ViewportRowsCalculator} viewportCalculator The viewport calculator object.
+   */
   finalize(viewportCalculator) {
     const {
       scrollOffset,

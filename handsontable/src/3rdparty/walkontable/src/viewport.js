@@ -299,12 +299,6 @@ class Viewport {
   createRowsCalculator() {
     const { wtSettings, wtTable } = this;
 
-    // if (wtSettings.getSetting('renderAllRows') && calculationType === RENDER_TYPE) {
-    //   return new RenderAllRowsCalculator({
-    //     totalRows: wtSettings.getSetting('totalRows'),
-    //   });
-    // }
-
     let height = this.getViewportHeight();
     let scrollbarHeight;
     let fixedRowsHeight;
@@ -335,9 +329,12 @@ class Viewport {
       scrollbarHeight = getScrollbarWidth(this.domBindings.rootDocument);
     }
 
+    const renderTypeCalculator = wtSettings.getSetting('renderAllRows') ?
+      new RenderedAllRowsCalculationType() : new RenderedRowsCalculationType();
+
     return new ViewportRowsCalculator({
       calculationTypes: new Map([
-        ['rendered', new RenderedRowsCalculationType()],
+        ['rendered', renderTypeCalculator],
         ['fullyVisible', new FullyVisibleRowsCalculationType()],
         ['partiallyVisible', new PartiallyVisibleRowsCalculationType()],
       ]),
@@ -360,12 +357,6 @@ class Viewport {
   createColumnsCalculator() {
     const { wtSettings, wtTable } = this;
 
-    // if (wtSettings.getSetting('renderAllColumns') && calculationType === RENDER_TYPE) {
-    //   return new RenderAllColumnsCalculator({
-    //     totalColumns: wtSettings.getSetting('totalColumns'),
-    //   });
-    // }
-
     let width = this.getViewportWidth();
     let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
 
@@ -383,9 +374,12 @@ class Viewport {
       width -= getScrollbarWidth(this.domBindings.rootDocument);
     }
 
+    const renderTypeCalculator = wtSettings.getSetting('renderAllColumns') ?
+      new RenderedAllColumnsCalculationType() : new RenderedColumnsCalculationType();
+
     return new ViewportColumnsCalculator({
       calculationTypes: new Map([
-        ['rendered', new RenderedColumnsCalculationType()],
+        ['rendered', renderTypeCalculator],
         ['fullyVisible', new FullyVisibleColumnsCalculationType()],
         ['partiallyVisible', new PartiallyVisibleColumnsCalculationType()],
       ]),
@@ -425,11 +419,11 @@ class Viewport {
     }
 
     if (!fastDraw) {
-      const rowsCalculator = this.createRowsCalculator();
-      const columnsCalculator = this.createColumnsCalculator();
+      const rowsRenderedCalculator = this.createRowsCalculator();
+      const columnsRenderedCalculator = this.createColumnsCalculator();
 
-      this.rowsRenderCalculator = rowsCalculator.getResultsFor('rendered');
-      this.columnsRenderCalculator = columnsCalculator.getResultsFor('rendered');
+      this.rowsRenderCalculator = rowsRenderedCalculator.getResultsFor('rendered');
+      this.columnsRenderCalculator = columnsRenderedCalculator.getResultsFor('rendered');
     }
 
     // delete temporarily to make sure that renderers always use rowsRenderCalculator, not rowsVisibleCalculator
@@ -438,34 +432,6 @@ class Viewport {
 
     return fastDraw;
   }
-
-
-
-  // createCalculators(fastDraw = false) {
-  //   const { wtSettings } = this;
-  //   const rowsCalculator = this.createRowsCalculator();
-  //   const columnsCalculator = this.createColumnsCalculator();
-
-  //   this.rowsRenderCalculator = rowsCalculator.getResultsFor('rendered');
-  //   this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
-  //   this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
-  //   this.columnsRenderCalculator = columnsCalculator.getResultsFor('rendered');
-  //   this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
-  //   this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
-
-  //   // if (fastDraw) {
-  //   //   fastDraw = this.areAllProposedVisibleRowsAlreadyRendered(this.rowsVisibleCalculator);
-  //   // }
-
-  //   // if (fastDraw) {
-  //   //   fastDraw = this.areAllProposedVisibleColumnsAlreadyRendered(this.columnsVisibleCalculator);
-  //   // }
-
-  //   console.log(fastDraw);
-
-  //   return false;
-  // }
-
 
   /**
    * Creates rowsVisibleCalculator and columnsVisibleCalculator (after draw, to determine what are

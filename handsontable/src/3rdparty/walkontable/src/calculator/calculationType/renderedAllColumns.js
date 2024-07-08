@@ -37,9 +37,25 @@ export class RenderedAllColumnsCalculationType {
    *
    * @type {boolean}
    */
-  isVisibleInTrimmingContainer = false;
+  isVisibleInTrimmingContainer = true;
 
-  initialize() {}
+  /**
+   * Initializes the calculation.
+   *
+   * @param {ViewportColumnsCalculator} viewportCalculator The viewport calculator object.
+   */
+  initialize({ totalColumns }) {
+    this.count = totalColumns;
+    this.endColumn = this.count - 1;
+  }
+
+  /**
+   * Processes the column.
+   */
   process() {}
+
+  /**
+   * Finalizes the calculation.
+   */
   finalize() {}
 }

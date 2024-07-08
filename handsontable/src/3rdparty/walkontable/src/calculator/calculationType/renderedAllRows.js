@@ -37,9 +37,25 @@ export class RenderedAllRowsCalculationType {
    *
    * @type {boolean}
    */
-  isVisibleInTrimmingContainer = false;
+  isVisibleInTrimmingContainer = true;
 
-  initialize() {}
+  /**
+   * Initializes the calculation.
+   *
+   * @param {ViewportRowsCalculator} viewportCalculator The viewport calculator object.
+   */
+  initialize({ totalRows }) {
+    this.count = totalRows;
+    this.endRow = this.count - 1;
+  }
+
+  /**
+   * Processes the row.
+   */
   process() {}
+
+  /**
+   * Finalizes the calculation.
+   */
   finalize() {}
 }

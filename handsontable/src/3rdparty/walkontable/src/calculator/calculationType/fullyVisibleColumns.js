@@ -23,9 +23,9 @@ export class FullyVisibleColumnsCalculationType {
   /**
    * Position of the first fully visible column (in px).
    *
-   * @type {number}
+   * @type {number|null}
    */
-  startPosition = 0;
+  startPosition = null;
   /**
    * Determines if the viewport is visible in the trimming container.
    *
@@ -33,8 +33,17 @@ export class FullyVisibleColumnsCalculationType {
    */
   isVisibleInTrimmingContainer = false;
 
+  /**
+   * Initializes the calculation.
+   */
   initialize() {}
 
+  /**
+   * Processes the column.
+   *
+   * @param {number} column The column index.
+   * @param {ViewportColumnsCalculator} viewportCalculator The viewport calculator object.
+   */
   process(column, viewportCalculator) {
     const {
       totalCalculatedWidth,
@@ -52,11 +61,16 @@ export class FullyVisibleColumnsCalculationType {
       if (this.startColumn === null || this.startColumn === undefined) {
         this.startColumn = column;
       }
-    }
 
-    this.endColumn = column;
+      this.endColumn = column;
+    }
   }
 
+  /**
+   * Finalizes the calculation.
+   *
+   * @param {ViewportColumnsCalculator} viewportCalculator The viewport calculator object.
+   */
   finalize(viewportCalculator) {
     const {
       scrollOffset,
@@ -79,7 +93,9 @@ export class FullyVisibleColumnsCalculationType {
           columnWidth -
           startPositions[this.startColumn - 1];
 
-        this.startColumn -= 1;
+        if (calculatedViewportHeight <= viewportWidth) {
+          this.startColumn -= 1;
+        }
 
         if (calculatedViewportHeight >= viewportWidth) {
           break;
@@ -91,13 +107,13 @@ export class FullyVisibleColumnsCalculationType {
 
     const compensatedViewportWidth = zeroBasedScrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
     const mostRightScrollOffset = scrollOffset + viewportWidth - compensatedViewportWidth;
-    const inlineStartColumnOffset = 0;
+    const inlineStartColumnOffset = this.startColumn === null ? 0 : viewportCalculator.getColumnWidth(this.startColumn);
 
     if (
       // the table is to the left of the viewport
       (
         mostRightScrollOffset < (-1) * inlineStartOffset ||
-        scrollOffset > startPositions.at(-1) + columnWidth
+        scrollOffset > startPositions.at(-1)
       ) ||
       // the table is to the right of the viewport
       (((-1) * scrollOffset) - viewportWidth > (-1) * inlineStartColumnOffset)
