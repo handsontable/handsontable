@@ -1,0 +1,9 @@
+{
+    "issuesOrigin": "private",
+    "title": "Update Release Notes URL/Page name and add redirect",
+    "type": "fixed",
+    "issueOrPR": 11074,
+    "breaking": true,
+    "framework": "none"
+  }
+  
