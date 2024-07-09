@@ -1360,14 +1360,21 @@ html.theme-dark {
 
         #mainInput, select:not(.htSelectEditor), input[type=text], input[type=search], .placeholder-input {
             border-radius: $radius
-            border:1px solid $borderColor
-            background: $editorColor
+            border: 1px solid $lightBorderColor
+            background: $borderColor
             color:$textColor
 
+            &::placeholder {
+                color:$text2Color
+            }
+            
             @media (hover: hover) {
-                &:hover {
-                    background: $bgColor
+                &:hover { 
+                    border: 1px solid $accentColor
                 }
+            }
+            &:focus-visible  { 
+                border: 1px solid $accentColor
             }
         }
     }
