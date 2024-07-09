@@ -4,6 +4,7 @@ import { BasePlugin } from '../base';
 export interface DetailedSettings {
   label: string;
   colspan: number;
+  headerClassName?: string;
 }
 
 export type Settings = Array<Array<string | DetailedSettings>>;

@@ -9,6 +9,7 @@ import {
   GridSettings,
   CellMeta,
   CellProperties,
+  ColumnSettings,
 } from './settings';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
@@ -67,6 +68,7 @@ export default class Core {
   getCellValidator(row: number, column: number): BaseValidator | RegExp | undefined;
   getColHeader(): Array<number | string>;
   getColHeader(column: number, headerLevel?: number): number | string;
+  getColumnMeta(column: number): ColumnSettings;
   getColWidth(column: number): number;
   getCoords(element: Element | null): CellCoords;
   getCopyableData(row: number, column: number): string;

@@ -347,6 +347,7 @@ export class NestedHeaders extends BasePlugin {
         colspan,
         isHidden,
         isPlaceholder,
+        headerClassNames,
       } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? { label: '' };
 
       if (isPlaceholder || isHidden) {
@@ -370,8 +371,18 @@ export class NestedHeaders extends BasePlugin {
         visualColumnIndex,
         TH,
         (...args) => this.getColumnHeaderValue(...args),
-        headerLevel
+        headerLevel,
       );
+
+      // Replace the higher-order `headerClassName`s with the one provided in the plugin config, if it was provided.
+      if (!isPlaceholder && !isHidden) {
+        const innerHeaderDiv = TH.querySelector('div.relative');
+
+        if (innerHeaderDiv && headerClassNames && headerClassNames.length > 0) {
+          removeClass(innerHeaderDiv, this.hot.getColumnMeta(visualColumnIndex).headerClassName);
+          addClass(innerHeaderDiv, headerClassNames);
+        }
+      }
     };
   }
 

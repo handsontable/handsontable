@@ -3326,6 +3326,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * Returns the meta information for the provided column.
+   *
+   * @param {number} column Visual column index.
+   * @returns {object}
+   */
+  this.getColumnMeta = function(column) {
+    return metaManager.getColumnMeta(this.toPhysicalColumn(column));
+  };
+
+  /**
    * Returns an array of cell meta objects for specified physical row index.
    *
    * @memberof Core#

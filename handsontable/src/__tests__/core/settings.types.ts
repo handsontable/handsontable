@@ -255,6 +255,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     },
   ),
   fragmentSelection: oneOf(true, 'cell'),
+  headerClassName: 'htCenter test',
   height: oneOf(500, () => 500),
   hiddenColumns: true,
   hiddenRows: true,

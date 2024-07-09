@@ -116,6 +116,7 @@ export function createColspanSettings(overwriteProps = {}) {
     collapsible: false,
     isRoot: true,
     isPlaceholder: false,
+    headerClassNames: [],
     ...overwriteProps,
   };
 }
