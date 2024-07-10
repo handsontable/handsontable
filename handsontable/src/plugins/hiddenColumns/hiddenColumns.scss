@@ -18,6 +18,14 @@
   position: relative;
 }
 
+.handsontable th.afterHiddenColumn div.htLeft {
+  margin-left: 10px;
+}
+
+.handsontable th.beforeHiddenColumn div.htRight {
+  margin-right: 10px;
+}
+
 .handsontable th.beforeHiddenColumn::after {
   right: 1px;
   content: '\25C0'; /* left arrow */
