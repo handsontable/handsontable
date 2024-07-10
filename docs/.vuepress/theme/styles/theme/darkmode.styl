@@ -741,17 +741,13 @@ html.theme-dark {
                 }
             }
 
-            .footer-support { 
+            .edit-link  { 
                 color: $text2Color
+                //i { filter: brightness(0) invert(.6) }
 
-                .edit-link a { 
-                    color: $linkColor
-                    i { filter: brightness(0) invert(.6) }
-
-                    @media (hover: hover) {
-                        &:hover {  
-                            color: $linkHoverColor
-                        }
+                @media (hover: hover) {
+                    &:hover {  
+                        color: $textColor
                     }
                 }
             }
@@ -1360,17 +1356,32 @@ html.theme-dark {
 
         #mainInput, select:not(.htSelectEditor), input[type=text], input[type=search], .placeholder-input {
             border-radius: $radius
-            border:1px solid $borderColor
-            background: $editorColor
+            border: 1px solid $lightBorderColor
+            background: $borderColor
             color:$textColor
 
+            &::placeholder {
+                color:$text2Color
+            }
+            
             @media (hover: hover) {
-                &:hover {
-                    background: $bgColor
+                &:hover { 
+                    border: 1px solid $accentColor
                 }
+            }
+            &:focus-visible  { 
+                border: 1px solid $accentColor
             }
         }
     }
+
+    
+    pre + .codeControls {
+        &:after { 
+            background: $editorColor 
+        }
+    }
+    
 }
 
 

@@ -47,12 +47,16 @@
             //color: $text2Color
         }
         a, span {
-            &:not(:last-child):after { 
+            &:not(:last-child):after, > span span:after { 
                 content: "/"
                 display: inline-block
-                padding-left: 4px
+                padding-left: 8px
+                padding-right: 4px
                 color: $text2Color !important
             }
+        }
+        a span span:after { 
+            padding-right: 8px
         }
     }
 }
