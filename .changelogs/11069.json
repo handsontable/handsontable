@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved rendering performance",
+  "type": "changed",
+  "issueOrPR": 11069,
+  "breaking": false,
+  "framework": "none"
+}
