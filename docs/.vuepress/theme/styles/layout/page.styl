@@ -78,6 +78,10 @@
             font-weight 400
             letter-spacing: 0//-0.16px
 
+            a {
+                font-weight: 500
+            }
+
             &:first-child {
                 margin-top 0
                 margin-bottom 16px
@@ -111,7 +115,7 @@
             margin:0!important
             padding: 40px 0 0
             position: relative
-            
+
             @media (max-width: $medium) {
                 font-size: $font-size-l
                 line-height: $line-height-l
@@ -244,6 +248,11 @@
     
     .checkbox-group > div > label {
         gap: 8px
+
+        + .external-link {
+            margin-left: 2px
+            margin-top: -3px
+        }
     }
 
     .checkbox-group { 
