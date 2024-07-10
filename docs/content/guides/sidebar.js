@@ -173,7 +173,7 @@ const technicalSpecificationItems = [
 ];
 
 const upgradeAndMigrationItems = [
-  { path: 'guides/upgrade-and-migration/release-notes/release-notes' },
+  { path: 'guides/upgrade-and-migration/changelog/changelog' },
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0' },
