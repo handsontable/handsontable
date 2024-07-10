@@ -33,15 +33,16 @@ const ExampleComponent = () => {
       <div className="controlsQuickFilter">
         <label htmlFor="columns" className="selectColumn">
           Select a column:{' '}
+       
+          <select name="columns" id="columns">
+            <option value="0">Brand</option>
+            <option value="1">Model</option>
+            <option value="2">Price</option>
+            <option value="3">Date</option>
+            <option value="4">Time</option>
+            <option value="5">In stock</option>
+          </select>
         </label>
-        <select name="columns" id="columns">
-          <option value="0">Brand</option>
-          <option value="1">Model</option>
-          <option value="2">Price</option>
-          <option value="3">Date</option>
-          <option value="4">Time</option>
-          <option value="5">In stock</option>
-        </select>
       </div>
       <div className="controlsQuickFilter">
         <input id="filterField" type="text" placeholder="Filter" />

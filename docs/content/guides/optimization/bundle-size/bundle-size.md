@@ -131,8 +131,4 @@ const App = () => {
 
 ## Related guides
 
-<div class="boxes-list gray">
-
 - [Modules](@/guides/tools-and-building/modules/modules.md)
-
-</div>
