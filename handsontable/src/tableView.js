@@ -1,5 +1,6 @@
 import {
   addClass,
+  clearClasses,
   clearTextSelection,
   empty,
   fastInnerHTML,
@@ -1309,11 +1310,23 @@ class TableView {
     label = this.hot.getColHeader,
     headerLevel = 0
   ) {
+    const getColumnHeaderClassNames = () => {
+      const metaHeaderClassNames =
+        visualColumnIndex >= 0 ?
+          this.hot.getColumnMeta(visualColumnIndex).headerClassName :
+          null;
+
+      return metaHeaderClassNames ? metaHeaderClassNames.split(' ') : [];
+    };
+
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
         this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label, headerLevel);
+
+        clearClasses(container);
+        addClass(container, ['relative', ...getColumnHeaderClassNames()]);
 
       } else {
         empty(TH);
@@ -1324,11 +1337,7 @@ class TableView {
       const { rootDocument } = this.hot;
       const div = rootDocument.createElement('div');
       const span = rootDocument.createElement('span');
-      const metaHeaderClassNames =
-        visualColumnIndex >= 0 ?
-          this.hot.getColumnMeta(visualColumnIndex).headerClassName :
-          null;
-      const classNames = metaHeaderClassNames ? metaHeaderClassNames.split(' ') : [];
+      const classNames = getColumnHeaderClassNames();
 
       div.classList.add('relative', ...classNames);
       span.className = 'colHeader';
