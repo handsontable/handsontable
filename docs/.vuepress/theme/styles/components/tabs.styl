@@ -176,7 +176,7 @@
 }
 
 .page .theme-default-content  .tabs-button-wrapper {
-    padding-top: 8px
+    padding-top: 16px
     padding-bottom: 8px
     display: flex
     flex-direction: column
@@ -345,13 +345,45 @@
         line-height: $line-height-xs
         color:$textColor
         border-radius: $radius
-        border:1px solid $borderColor
-        background: $editorColor
+        border: 1px solid $borderColor
+        background: $borderColor
+        outline: none !important
+
+        &::placeholder {
+            color:$text2Color
+        }
 
         @media (hover: hover) {
-            &:hover {
-                background: $bgColor
+            &:hover { 
+                border: 1px solid $accentColor
             }
+        }
+        &:focus-visible  { 
+            border: 1px solid $accentColor
+        }
+
+    }
+
+    select:not(.htSelectEditor) {
+        padding: 8px 32px 8px 16px; 
+        appearance none
+        position: relative
+    }
+
+    label:has(select) {
+        position relative
+        
+        &:after {
+            content:'';
+            display: inline-block;
+            border-bottom: 1px solid $borderColor;
+            border-right: 1px solid $borderColor;
+            width: 4px
+            height: 4px
+            transform: rotate(45deg)
+            position: relative
+            right: 24px
+            top:-2px
         }
     }
 
