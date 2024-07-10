@@ -1,11 +1,11 @@
 ---
 id: nbp8i3mk
-title: Release notes
-metaTitle: Release notes - JavaScript Data Grid | Handsontable
+title: Changelog
+metaTitle: Changelog - JavaScript Data Grid | Handsontable
 description:
   See the full history of changes made to Handsontable in each major, minor, and patch release.
-permalink: /release-notes
-canonicalUrl: /release-notes
+permalink: /changelog
+canonicalUrl: /changelog
 tags:
   - change log
   - changelog
@@ -14,12 +14,12 @@ tags:
   - breaking change
 react:
   id: 7y9fco03
-  metaTitle: Release notes - React Data Grid | Handsontable
+  metaTitle: Changelog - React Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
 
-# Release notes
+# Changelog
 
 See the full history of changes made to Handsontable in each major, minor, and patch release.
 
@@ -2125,5 +2125,5 @@ For more information on this release, see:
 
 ## Older versions
 
-The release notes about older versions of Handsontable are
+The changelogs from older versions of Handsontable are
 [available on GitHub](https://github.com/handsontable/handsontable/releases).

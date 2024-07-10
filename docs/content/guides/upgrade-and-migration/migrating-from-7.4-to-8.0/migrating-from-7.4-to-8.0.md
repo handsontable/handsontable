@@ -33,7 +33,7 @@ Handsontable 8.0.0 introduces [`IndexMapper`](@/api/indexMapper.md), a new API t
 
 - Check if you use any of the features listed in the [Keywords](#keywords-alphabetically) section. You need to address them first after installing Handsontable 8.0.0.
 - To keep backward compatibility, test solutions proposed in this guide. If you experience any problems, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
-- You can also check the release notes for a complete list of all changes.
+- You can also check the changelog for a complete list of all changes.
 
 ## Keywords (alphabetically)
 
