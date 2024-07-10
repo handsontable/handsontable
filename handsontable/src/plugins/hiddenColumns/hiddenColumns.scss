@@ -18,12 +18,18 @@
   position: relative;
 }
 
-.handsontable th.afterHiddenColumn div.htLeft {
+.handsontable[dir="ltr"] th.afterHiddenColumn div.htLeft {
   margin-left: 10px;
 }
-
-.handsontable th.beforeHiddenColumn div.htRight {
+.handsontable[dir="ltr"] th.beforeHiddenColumn div.htRight {
   margin-right: 10px;
+}
+
+.handsontable[dir="rtl"] th.afterHiddenColumn div.htRight {
+  margin-right: 10px;
+}
+.handsontable[dir="rtl"] th.beforeHiddenColumn div.htLeft {
+  margin-left: 10px;
 }
 
 .handsontable th.beforeHiddenColumn::after {
