@@ -49,7 +49,7 @@ export default {
     },
     getVersionUrl() {
       // eslint-disable-next-line max-len
-      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/release-notes/#_${this.getVersion.replaceAll('.', '-')}`;
+      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/changelog/#_${this.getVersion.replaceAll('.', '-')}`;
     },
   },
   mounted() {
