@@ -22,7 +22,7 @@ Since the front-end world changes quickly, we might shuffle the order of project
 
 The roadmap below was last updated on `May 14th, 2024`.
 
-Curious about our progress? Check out the [Release Notes](@/guides/upgrade-and-migration/changelog/changelog.md).
+Curious about our progress? Check out the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md).
 <br><br>
 
 | Accepted 🎯 | In progress ✨ | Done 🏁 |
