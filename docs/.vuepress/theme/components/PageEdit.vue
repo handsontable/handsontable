@@ -24,7 +24,7 @@
         <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a>
       </div>
 
-      <a 
+      <a
           v-if="editLink"
           class="edit-link"
           :href="editLink"
