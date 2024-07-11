@@ -1,6 +1,5 @@
 import {
   addClass,
-  clearClasses,
   clearTextSelection,
   empty,
   fastInnerHTML,
@@ -1325,7 +1324,7 @@ class TableView {
       if (hasClass(container, 'relative')) {
         this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label, headerLevel);
 
-        clearClasses(container);
+        container.className = '';
         addClass(container, ['relative', ...getColumnHeaderClassNames()]);
 
       } else {

@@ -324,15 +324,6 @@ export function removeClass(element, className) {
 }
 
 /**
- * Clear all the class names from the provided element.
- *
- * @param {HTMLElement} element The element to process.
- */
-export function clearClasses(element) {
-  element.className = '';
-}
-
-/**
  * Set a single attribute or multiple attributes at once.
  *
  * @param {HTMLElement} domElement The HTML element to be modified.
