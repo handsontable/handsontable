@@ -34,7 +34,6 @@ const ExampleComponent = () => {
       <div className="controlsQuickFilter">
         <label htmlFor="columns" className="selectColumn">
           Select a column:{' '}
-        
           <select name="columns" id="columns">
             <option value="0">Brand</option>
             <option value="1">Model</option>
