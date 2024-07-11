@@ -6,9 +6,9 @@ import {
 function createViewportColumnsCalculator(options) {
   return new ViewportColumnsCalculator({
     ...options,
-    calculationTypes: new Map([
+    calculationTypes: [
       ['rendered', new RenderedAllColumnsCalculationType()],
-    ]),
+    ],
   });
 }
 

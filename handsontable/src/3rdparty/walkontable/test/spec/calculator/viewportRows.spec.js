@@ -39,7 +39,7 @@ describe('Walkontable viewport rows calculator', () => {
       const tableOffset = spec().$container.offset().top;
 
       {
-        const calc = wt.wtViewport.createRowsCalculator();
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
 
         expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
         expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);
@@ -51,7 +51,7 @@ describe('Walkontable viewport rows calculator', () => {
       await sleep(100);
 
       {
-        const calc = wt.wtViewport.createRowsCalculator();
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
 
         expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
         expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);
@@ -63,7 +63,7 @@ describe('Walkontable viewport rows calculator', () => {
       await sleep(100);
 
       {
-        const calc = wt.wtViewport.createRowsCalculator();
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
 
         expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
         expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
@@ -75,7 +75,7 @@ describe('Walkontable viewport rows calculator', () => {
       await sleep(100);
 
       {
-        const calc = wt.wtViewport.createRowsCalculator();
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
 
         expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
         expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
@@ -87,7 +87,7 @@ describe('Walkontable viewport rows calculator', () => {
       await sleep(100);
 
       {
-        const calc = wt.wtViewport.createRowsCalculator();
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
 
         expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
         expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
@@ -115,7 +115,7 @@ describe('Walkontable viewport rows calculator', () => {
       const tableOffset = spec().$container.offset().top;
 
       {
-        const calc = wt.wtViewport.createRowsCalculator();
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
 
         expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
         expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
@@ -127,7 +127,7 @@ describe('Walkontable viewport rows calculator', () => {
       await sleep(100);
 
       {
-        const calc = wt.wtViewport.createRowsCalculator();
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
 
         expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
         expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
@@ -139,7 +139,7 @@ describe('Walkontable viewport rows calculator', () => {
       await sleep(100);
 
       {
-        const calc = wt.wtViewport.createRowsCalculator();
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
 
         expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
         expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
@@ -151,7 +151,7 @@ describe('Walkontable viewport rows calculator', () => {
       await sleep(100);
 
       {
-        const calc = wt.wtViewport.createRowsCalculator();
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
 
         expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
         expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);
@@ -163,7 +163,7 @@ describe('Walkontable viewport rows calculator', () => {
       await sleep(100);
 
       {
-        const calc = wt.wtViewport.createRowsCalculator();
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
 
         expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
         expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);

@@ -12,11 +12,11 @@ function allRows20() {
 function createViewportRowsCalculator(options) {
   return new ViewportRowsCalculator({
     ...options,
-    calculationTypes: new Map([
+    calculationTypes: [
       ['rendered', new RenderedRowsCalculationType()],
       ['fullyVisible', new FullyVisibleRowsCalculationType()],
       ['partiallyVisible', new PartiallyVisibleRowsCalculationType()],
-    ]),
+    ],
   });
 }
 

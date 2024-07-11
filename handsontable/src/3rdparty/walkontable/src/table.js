@@ -289,7 +289,7 @@ class Table {
     if (this.isMaster) {
       wtOverlays.beforeDraw();
       this.holderOffset = offset(this.holder);
-      runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
+      runFastDraw = wtViewport.createCalculators(runFastDraw);
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
         const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
@@ -362,7 +362,10 @@ class Table {
         }
 
         if (this.isMaster) {
-          // wtViewport.createVisibleCalculators();
+          if (!this.wtSettings.getSetting('externalRowCalculator')) {
+            wtViewport.createVisibleCalculators();
+          }
+
           wtOverlays.refresh(false);
           wtOverlays.applyToDOM();
 

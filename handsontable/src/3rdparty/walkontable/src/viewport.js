@@ -46,6 +46,18 @@ class Viewport {
     this.rowHeaderWidth = NaN;
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
+    this.rowsCalculatorTypes = new Map([
+      ['rendered', () => (this.wtSettings.getSetting('renderAllRows') ?
+        new RenderedAllRowsCalculationType() : new RenderedRowsCalculationType())],
+      ['fullyVisible', () => new FullyVisibleRowsCalculationType()],
+      ['partiallyVisible', () => new PartiallyVisibleRowsCalculationType()],
+    ]);
+    this.columnsCalculatorTypes = new Map([
+      ['rendered', () => (this.wtSettings.getSetting('renderAllColumns') ?
+        new RenderedAllColumnsCalculationType() : new RenderedColumnsCalculationType())],
+      ['fullyVisible', () => new FullyVisibleColumnsCalculationType()],
+      ['partiallyVisible', () => new PartiallyVisibleColumnsCalculationType()],
+    ]);
 
     this.eventManager = eventManager;
     this.eventManager.addEventListener(this.domBindings.rootWindow, 'resize', () => {
@@ -290,13 +302,15 @@ class Viewport {
   }
 
   /**
-   * Creates:
-   * - rowsRenderCalculator (before draw, to qualify rows for rendering)
-   * - rowsVisibleCalculator (after draw, to measure which rows are actually visible).
+   * Creates rows calculators. The type of the calculations can be chosen from the list:
+   *  - 'rendered' Calculates rows that should be rendered within the current table's viewport;
+   *  - 'fullyVisible' Calculates rows that are fully visible (used mostly for scrolling purposes);
+   *  - 'partiallyVisible' Calculates rows that are partially visible (used mostly for scrolling purposes).
    *
+   * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
    * @returns {ViewportRowsCalculator}
    */
-  createRowsCalculator() {
+  createRowsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
 
     let height = this.getViewportHeight();
@@ -329,15 +343,8 @@ class Viewport {
       scrollbarHeight = getScrollbarWidth(this.domBindings.rootDocument);
     }
 
-    const renderTypeCalculator = wtSettings.getSetting('renderAllRows') ?
-      new RenderedAllRowsCalculationType() : new RenderedRowsCalculationType();
-
     return new ViewportRowsCalculator({
-      calculationTypes: new Map([
-        ['rendered', renderTypeCalculator],
-        ['fullyVisible', new FullyVisibleRowsCalculationType()],
-        ['partiallyVisible', new PartiallyVisibleRowsCalculationType()],
-      ]),
+      calculationTypes: calculatorTypes.map(type => [type, this.rowsCalculatorTypes.get(type)()]),
       viewportHeight: height,
       scrollOffset: pos,
       totalRows: wtSettings.getSetting('totalRows'),
@@ -348,13 +355,15 @@ class Viewport {
   }
 
   /**
-   * Creates:
-   * - columnsRenderCalculator (before draw, to qualify columns for rendering)
-   * - columnsVisibleCalculator (after draw, to measure which columns are actually visible).
+   * Creates columns calculators. The type of the calculations can be chosen from the list:
+   *  - 'rendered' Calculates columns that should be rendered within the current table's viewport;
+   *  - 'fullyVisible' Calculates columns that are fully visible (used mostly for scrolling purposes);
+   *  - 'partiallyVisible' Calculates columns that are partially visible (used mostly for scrolling purposes).
    *
+   * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
    * @returns {ViewportColumnsCalculator}
    */
-  createColumnsCalculator() {
+  createColumnsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
 
     let width = this.getViewportWidth();
@@ -374,15 +383,8 @@ class Viewport {
       width -= getScrollbarWidth(this.domBindings.rootDocument);
     }
 
-    const renderTypeCalculator = wtSettings.getSetting('renderAllColumns') ?
-      new RenderedAllColumnsCalculationType() : new RenderedColumnsCalculationType();
-
     return new ViewportColumnsCalculator({
-      calculationTypes: new Map([
-        ['rendered', renderTypeCalculator],
-        ['fullyVisible', new FullyVisibleColumnsCalculationType()],
-        ['partiallyVisible', new PartiallyVisibleColumnsCalculationType()],
-      ]),
+      calculationTypes: calculatorTypes.map(type => [type, this.columnsCalculatorTypes.get(type)()]),
       viewportWidth: width,
       scrollOffset: pos,
       totalColumns: wtSettings.getSetting('totalColumns'),
@@ -400,7 +402,7 @@ class Viewport {
    *                           If `false` or `undefined`, will perform a full redraw.
    * @returns {boolean} The fastDraw value, possibly modified.
    */
-  createRenderCalculators(fastDraw = false) {
+  createCalculators(fastDraw = false) {
     const { wtSettings } = this;
     const rowsCalculator = this.createRowsCalculator();
     const columnsCalculator = this.createColumnsCalculator();
@@ -435,13 +437,13 @@ class Viewport {
    * the actually fully visible and partially visible rows and columns).
    */
   createVisibleCalculators() {
-    // const rowsCalculator = this.createRowsCalculator();
-    // const columnsCalculator = this.createColumnsCalculator();
+    const rowsCalculator = this.createRowsCalculator(['fullyVisible', 'partiallyVisible']);
+    const columnsCalculator = this.createColumnsCalculator(['fullyVisible', 'partiallyVisible']);
 
-    // this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
-    // this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
-    // this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
-    // this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
+    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
+    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
+    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
+    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
   }
 
   /**

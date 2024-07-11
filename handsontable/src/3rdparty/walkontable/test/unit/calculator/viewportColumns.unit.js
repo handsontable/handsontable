@@ -12,11 +12,11 @@ function allColumns20() {
 function createViewportColumnsCalculator(options) {
   return new ViewportColumnsCalculator({
     ...options,
-    calculationTypes: new Map([
+    calculationTypes: [
       ['rendered', new RenderedColumnsCalculationType()],
       ['fullyVisible', new FullyVisibleColumnsCalculationType()],
       ['partiallyVisible', new PartiallyVisibleColumnsCalculationType()],
-    ]),
+    ],
   });
 }
 

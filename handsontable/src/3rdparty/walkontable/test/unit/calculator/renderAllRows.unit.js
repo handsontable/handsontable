@@ -6,9 +6,9 @@ import {
 function createViewportRowsCalculator(options) {
   return new ViewportRowsCalculator({
     ...options,
-    calculationTypes: new Map([
+    calculationTypes: [
       ['rendered', new RenderedAllRowsCalculationType()],
-    ]),
+    ],
   });
 }
 
