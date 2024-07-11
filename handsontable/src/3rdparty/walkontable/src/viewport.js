@@ -402,7 +402,6 @@ class Viewport {
    */
   createRenderCalculators(fastDraw = false) {
     const { wtSettings } = this;
-
     const rowsCalculator = this.createRowsCalculator();
     const columnsCalculator = this.createColumnsCalculator();
 
@@ -419,44 +418,30 @@ class Viewport {
     }
 
     if (!fastDraw) {
-      const rowsRenderedCalculator = this.createRowsCalculator();
-      const columnsRenderedCalculator = this.createColumnsCalculator();
-
-      this.rowsRenderCalculator = rowsRenderedCalculator.getResultsFor('rendered');
-      this.columnsRenderCalculator = columnsRenderedCalculator.getResultsFor('rendered');
+      this.rowsRenderCalculator = rowsCalculator.getResultsFor('rendered');
+      this.columnsRenderCalculator = columnsCalculator.getResultsFor('rendered');
     }
 
-    // delete temporarily to make sure that renderers always use rowsRenderCalculator, not rowsVisibleCalculator
-    this.rowsVisibleCalculator = null;
-    this.columnsVisibleCalculator = null;
+    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
+    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
+    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
+    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
 
     return fastDraw;
   }
 
   /**
-   * Creates rowsVisibleCalculator and columnsVisibleCalculator (after draw, to determine what are
-   * the actually fully visible rows and columns).
+   * Creates rows and columns calculators (after draw, to determine what are
+   * the actually fully visible and partially visible rows and columns).
    */
   createVisibleCalculators() {
-    const rowsCalculator = this.createRowsCalculator();
-    const columnsCalculator = this.createColumnsCalculator();
+    // const rowsCalculator = this.createRowsCalculator();
+    // const columnsCalculator = this.createColumnsCalculator();
 
-    // this.rowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
-    // this.columnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
-    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
-    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
-  }
-
-  /**
-   * Creates rowsPartiallyVisibleCalculator and columnsPartiallyVisibleCalculator (after draw, to determine what are
-   * the actually partially visible rows and columns).
-   */
-  createPartiallyVisibleCalculators() {
-    const rowsCalculator = this.createRowsCalculator();
-    const columnsCalculator = this.createColumnsCalculator();
-
-    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
-    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
+    // this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
+    // this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
+    // this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
+    // this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
   }
 
   /**

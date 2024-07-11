@@ -288,9 +288,6 @@ class Table {
 
     if (this.isMaster) {
       wtOverlays.beforeDraw();
-    }
-
-    if (this.isMaster) {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
@@ -308,10 +305,6 @@ class Table {
 
     if (runFastDraw) {
       if (this.isMaster) {
-        // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
-        wtViewport.createVisibleCalculators();
-        wtViewport.createPartiallyVisibleCalculators();
-        // wtViewport.createCalculators();
         wtOverlays.refresh(true);
       }
     } else {
@@ -369,9 +362,7 @@ class Table {
         }
 
         if (this.isMaster) {
-          wtViewport.createVisibleCalculators();
-          wtViewport.createPartiallyVisibleCalculators();
-          // wtViewport.createCalculators();
+          // wtViewport.createVisibleCalculators();
           wtOverlays.refresh(false);
           wtOverlays.applyToDOM();
 

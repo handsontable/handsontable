@@ -18,10 +18,10 @@
  * @class ViewportBaseCalculator
  */
 export class ViewportBaseCalculator {
-  #calculationTypes = [];
+  calculationTypes = [];
 
   constructor(calculationTypes) {
-    this.#calculationTypes = calculationTypes;
+    this.calculationTypes = calculationTypes;
   }
 
   /**
@@ -30,7 +30,7 @@ export class ViewportBaseCalculator {
    * @param {*} context The context object (rows or columns viewport calculator).
    */
   _initialize(context) {
-    this.#calculationTypes.forEach(calculator => calculator.initialize(context));
+    this.calculationTypes.forEach(calculator => calculator.initialize(context));
   }
 
   /**
@@ -40,7 +40,7 @@ export class ViewportBaseCalculator {
    * @param {*} context The context object (rows or columns viewport calculator).
    */
   _process(index, context) {
-    this.#calculationTypes.forEach(calculator => calculator.process(index, context));
+    this.calculationTypes.forEach(calculator => calculator.process(index, context));
   }
 
   /**
@@ -49,7 +49,7 @@ export class ViewportBaseCalculator {
    * @param {*} context The context object (rows or columns viewport calculator).
    */
   _finalize(context) {
-    this.#calculationTypes.forEach(calculator => calculator.finalize(context));
+    this.calculationTypes.forEach(calculator => calculator.finalize(context));
   }
 
   /**
@@ -59,6 +59,6 @@ export class ViewportBaseCalculator {
    * @returns {ColumnsCalculationType | RowsCalculationType}
    */
   getResultsFor(calculatorId) {
-    return this.#calculationTypes.get(calculatorId);
+    return this.calculationTypes.get(calculatorId);
   }
 }
