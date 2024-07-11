@@ -17,6 +17,8 @@ import {
   A11Y_HIDDEN
 } from '../../helpers/a11y';
 
+import './collapsibleColumns.scss';
+
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
 const SETTING_KEYS = ['nestedHeaders'];

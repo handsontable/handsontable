@@ -39,7 +39,7 @@
         }
 
         td code {
-            white-space: pre-wrap
+            white-space: nowrap
         }
 
         .language-bash:before { 
@@ -308,10 +308,8 @@
     gap:10px
     transition: all $t ease-in-out !important
     z-index 1
-    overflow: hidden
-    padding: 12px 12px 12px 24px
+    padding: 11px 11px 8px 0
     border-radius: $radius
-    //opacity: 0
 
     @media (max-width: $small) {
         position: absolute;
@@ -319,7 +317,6 @@
         left: -16px;
         width: auto;
         background: inherit;
-        //padding: 0 8px 8px;
         opacity 1
     }
 }
@@ -329,12 +326,14 @@ pre + .codeControls {
         content:''
         display: block
         position absolute
-        top: -12px
-        right: -22px
+        top: 0
+        right: 0
         width: 128px;
-        height: 68px
+        height: 46px
+        border-radius: 0 $radius $radius 0
         background: $editorColor 
-        filter:blur(12px)
+        background: linear-gradient(90deg, rgba(247, 247, 249, 0) 0%, $editorColor 20%);
+        pointer-events: none
     }
     
     @media (max-width: $small) {
