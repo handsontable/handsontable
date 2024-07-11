@@ -79,6 +79,7 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Handsontable</title>
   </head>
 
@@ -160,6 +161,7 @@ ${js}`
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Handsontable</title>
     ${js.includes('import { HyperFormula } from \'hyperformula\';')
     ? '<script src="https://cdn.jsdelivr.net/npm/hyperformula/dist/hyperformula.full.min.js"></script>'

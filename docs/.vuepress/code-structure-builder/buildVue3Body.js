@@ -37,6 +37,7 @@ const buildVue3Body = ({ id, html, js, css, version, hyperformulaVersion, preset
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Handsontable</title>
   </head>
 
