@@ -466,6 +466,7 @@ html.theme-dark {
             p {
                 color: $text2Color
             }
+
             ul, ol { 
 
                 li {
@@ -480,9 +481,11 @@ html.theme-dark {
             pre { 
                 background: $editorColor 
             }
+
             .language-bash:before { 
                 display: none
             }
+
             div[class*="language-"] { 
                 background: $editorColor 
             }
@@ -500,6 +503,10 @@ html.theme-dark {
                         color: $linkHoverColor
                     }
                 }
+            }
+
+            .handsontable a { 
+                text-decoration: none
             }
             
             .source-code-link {
@@ -1378,7 +1385,7 @@ html.theme-dark {
     
     pre + .codeControls {
         &:after { 
-            background: $editorColor 
+            background: linear-gradient(90deg, rgba(34, 35, 38, 0) 0%, $editorColor 20%);
         }
     }
     
