@@ -209,7 +209,7 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
     <meta charset="utf-8" />
     <title>Handsontable for Angular example</title>
     <base href="." />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
   <body>
     ${html || '<app-root></app-root>'}

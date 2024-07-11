@@ -18,6 +18,7 @@ const buildJavascriptBody = ({ id, html, js, css, version, hyperformulaVersion, 
   <html>
     <head>
       <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>Handsontable</title>
     </head>
   
@@ -64,6 +65,7 @@ ${js}`
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Handsontable</title>
     <link rel="stylesheet" href="src/styles.css" />
     ${js.includes('import { HyperFormula } from \'hyperformula\';')
