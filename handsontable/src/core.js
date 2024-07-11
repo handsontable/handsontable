@@ -3328,6 +3328,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns the meta information for the provided column.
    *
+   * @since 14.5
+   * @memberof Core#
+   * @function getColumnMeta
    * @param {number} column Visual column index.
    * @returns {object}
    */
