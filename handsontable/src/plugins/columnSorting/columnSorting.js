@@ -29,6 +29,8 @@ import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
 import { A11Y_SORT } from '../../helpers/a11y';
 
+import './columnSorting.scss';
+
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;
 export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
