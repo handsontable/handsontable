@@ -27,7 +27,7 @@ export const PLUGIN_PRIORITY = 310;
  * @class HiddenColumns
  *
  * @description
- * The `HiddenColumns` plugin lets you [hide specified columns](@/guides/columns/column-hiding.md).
+ * The `HiddenColumns` plugin lets you [hide specified columns](@/guides/columns/column-hiding/column-hiding.md).
  *
  * "Hiding a column" means that the hidden column doesn't get rendered as a DOM element.
  *
@@ -39,9 +39,9 @@ export const PLUGIN_PRIORITY = 310;
  *
  * | Option | Required | Type | Default | Description |
  * |---|---|---|---|---|
- * | `columns` | No | Array | - | [Hides specified columns by default](@/guides/columns/column-hiding.md#step-1-specify-columns-hidden-by-default) |
- * | `indicators` | No | Boolean | `false` | [Shows UI indicators](@/guides/columns/column-hiding.md#step-2-show-ui-indicators) |
- * | `copyPasteEnabled` | No | Boolean | `true` | [Sets up copy/paste behavior](@/guides/columns/column-hiding.md#step-4-set-up-copy-and-paste-behavior) |
+ * | `columns` | No | Array | - | [Hides specified columns by default](@/guides/columns/column-hiding/column-hiding.md#step-1-specify-columns-hidden-by-default) |
+ * | `indicators` | No | Boolean | `false` | [Shows UI indicators](@/guides/columns/column-hiding/column-hiding.md#step-2-show-ui-indicators) |
+ * | `copyPasteEnabled` | No | Boolean | `true` | [Sets up copy/paste behavior](@/guides/columns/column-hiding/column-hiding.md#step-4-set-up-copy-and-paste-behavior) |
  *
  * @example
  *
@@ -184,7 +184,7 @@ export class HiddenColumns extends BasePlugin {
 
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.#onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.#onAfterGetCellMeta(row, col, cellProperties));
-    this.addHook('modifyColWidth', (width, col) => this.#onModifyColWidth(width, col));
+    this.addHook('modifyColWidth', (width, col) => this.#onModifyColWidth(width, col), 2);
     this.addHook('afterGetColHeader', (...args) => this.#onAfterGetColHeader(...args));
     this.addHook('modifyCopyableRange', ranges => this.#onModifyCopyableRange(ranges));
 

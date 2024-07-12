@@ -11,10 +11,13 @@ import {
   setAttribute
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import {
   A11Y_EXPANDED,
   A11Y_HIDDEN
 } from '../../helpers/a11y';
+
+import './collapsibleColumns.scss';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -264,9 +267,15 @@ export class CollapsibleColumns extends BasePlugin {
           } else {
             this.collapseSection({ row, col: columnIndex });
           }
+
+          // prevent default Enter behavior (move to the next row within a selection range)
+          return false;
         },
-        runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        runOnlyIf: () => this.hot.getSelectedRangeLast()?.isSingle() &&
+          this.hot.getSelectedRangeLast()?.highlight.isHeader(),
         group: SHORTCUTS_GROUP,
+        relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+        position: 'before',
       });
   }
 
@@ -473,6 +482,21 @@ export class CollapsibleColumns extends BasePlugin {
     }, true);
 
     const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length;
+    const selectionRange = this.hot.getSelectedRangeLast();
+
+    if (action === 'collapse' && isActionPerformed && selectionRange) {
+      const { row, col } = selectionRange.highlight;
+      const isHidden = this.hot.rowIndexMapper.isHidden(row) || this.hot.columnIndexMapper.isHidden(col);
+
+      if (isHidden && affectedColumnsIndexes.includes(col)) {
+        const nextRow = row >= 0 ? this.hot.rowIndexMapper.getNearestNotHiddenIndex(row, 1, true) : row;
+        const nextColumn = col >= 0 ? this.hot.columnIndexMapper.getNearestNotHiddenIndex(col, 1, true) : col;
+
+        if (nextRow !== null && nextColumn !== null) {
+          this.hot.selectCell(nextRow, nextColumn);
+        }
+      }
+    }
 
     this.hot.runHooks(
       actionTranslator.afterHook,
@@ -483,7 +507,7 @@ export class CollapsibleColumns extends BasePlugin {
     );
 
     this.hot.render();
-    this.hot.view.adjustElementsSize(true);
+    this.hot.view.adjustElementsSize();
   }
 
   /**

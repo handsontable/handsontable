@@ -8,6 +8,7 @@ import { addClass, removeClass } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 
 import './multiColumnSorting.scss';
 
@@ -103,6 +104,8 @@ export class MultiColumnSorting extends ColumnSorting {
   enablePlugin() {
     if (!this.enabled && this.hot.getSettings()[this.pluginKey] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY]) {
       warnAboutPluginsConflict();
+
+      this.hot.getPlugin(CONFLICTED_PLUGIN_KEY).disablePlugin();
     }
 
     super.enablePlugin();
@@ -132,12 +135,18 @@ export class MultiColumnSorting extends ColumnSorting {
           if (highlight.row === -1 && highlight.col >= 0) {
             this.sort(this.getNextSortConfig(highlight.col, APPEND_COLUMN_CONFIG_STRATEGY));
           }
+
+          // prevent default Enter behavior (move to the next row within a selection range)
+          return false;
         },
         runOnlyIf: () => {
           const highlight = this.hot.getSelectedRangeLast()?.highlight;
 
-          return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+          return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
+            this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
         },
+        relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+        position: 'before',
         group: SHORTCUTS_GROUP,
       });
   }

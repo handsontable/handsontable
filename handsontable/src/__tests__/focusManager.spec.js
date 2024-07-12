@@ -12,6 +12,14 @@ describe('Focus Manager', () => {
     }
   });
 
+  describe('`getRefocusDelay` method', () => {
+    it('should return default (very small) delay (#dev-1762)', () => {
+      handsontable({});
+
+      expect(getFocusManager().getRefocusDelay()).toBe(1);
+    });
+  });
+
   describe('`getFocusMode` method', () => {
     it('should set it\'s internal `focusMode` property to "cell" after HOT initialization with `imeFastEdit` not' +
       ' defined', () => {
@@ -52,6 +60,18 @@ describe('Focus Manager', () => {
       });
 
       expect(getFocusManager().getFocusMode()).toEqual('cell');
+    });
+
+    it('should not reset internal `focusMode` config after calling `updateSettings` with an empty object', () => {
+      handsontable({
+        imeFastEdit: true,
+      });
+
+      expect(getFocusManager().getFocusMode()).toEqual('mixed');
+
+      updateSettings({});
+
+      expect(getFocusManager().getFocusMode()).toEqual('mixed');
     });
 
     it('should be able to get and set the current `focusMode` with appropriate API options', () => {

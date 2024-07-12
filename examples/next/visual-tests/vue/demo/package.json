@@ -13,7 +13,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "vue-cli-service serve",
-    "serve": "http-server dist",
+    "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "test": "node spec/support/jasmine.config.js"
   },
@@ -24,11 +24,13 @@
     "vue": "2.7.14"
   },
   "devDependencies": {
+    "@ngneat/falso": "^7.2.0",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",
     "@vue/cli-plugin-eslint": "5.0.8",
     "@vue/cli-plugin-typescript": "5.0.8",
     "@vue/cli-service": "5.0.8",
+    "@vue/eslint-config-typescript": "7.0.0",
     "babel-eslint": "10.1.0",
     "eslint": "^7.5.0",
     "eslint-plugin-vue": "^7.5.0",
@@ -37,6 +39,7 @@
     "puppeteer": "14.3.0",
     "ts-loader": "8.4.0",
     "typescript": "4.9.5",
+    "vue-router": "^3.6.5",
     "vue-template-compiler": "2.7.14"
   },
   "license": "SEE LICENSE IN LICENSE.txt",

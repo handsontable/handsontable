@@ -1535,7 +1535,8 @@ describe('NestedHeaders', () => {
       keyDownUp('arrowright'); // "C"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(65);
+      // 300 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
+      expect(inlineStartOverlay().getScrollPosition()).toBe(66);
 
       keyDownUp('arrowright'); // "D"
 
@@ -1648,7 +1649,7 @@ describe('NestedHeaders', () => {
       keyDownUp('arrowup'); // "C"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
     });
 
     it('should scroll the viewport correctly while navigating vertically using arrows ' +
@@ -1706,12 +1707,12 @@ describe('NestedHeaders', () => {
       selectCell(-1, 20);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(800);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(801);
 
       keyDownUp('arrowup'); // "F"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(800);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(801);
     });
   });
 

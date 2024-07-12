@@ -1,9 +1,8 @@
 export const command = {
   name: 'editorCloseAndSave',
-  callback(hot, event, keys) {
+  callback(hot) {
     const editorManager = hot._getEditorManager();
 
-    editorManager.closeEditorAndSaveChanges(event.ctrlKey || event.metaKey);
-    editorManager.moveSelectionAfterEnter(keys.includes('shift'));
+    editorManager.closeEditorAndSaveChanges();
   },
 };

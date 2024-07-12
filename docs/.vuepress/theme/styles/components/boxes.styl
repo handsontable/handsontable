@@ -1,0 +1,328 @@
+.page {
+    .theme-default-content h3 + .boxes-list {
+        margin:0 
+        padding: 0
+    }
+    #introduction ~ .boxes-list,
+    #open-source-software-components ~ .boxes-list
+    #handsontable-api-reference  ~ .boxes-list  {
+        padding: 0
+
+        ul {
+            margin-top: 24px
+            margin-bottom: 24px
+            list-style: none
+            display: flex
+            flex-wrap: wrap
+            gap: 16px
+            padding: 0
+
+            li { 
+                display: flex 
+                flex-direction: column
+                gap: 0
+                border-radius: $radius
+                width: calc(50% - 16px)
+                transition: all $t ease-in-out
+                position: relative
+                padding: 24px
+                border: 1px solid $onsurfaceColor
+                box-sizing: border-box
+                font-size: $font-size-xs
+                line-height: $line-height-xs
+                margin:0
+
+                p {
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                    padding: 0
+                }
+
+                code {
+                    display: contents;
+                    font-family: Inter;
+                }
+
+                p > a {
+                    margin-top: 8px
+                    display: inline-block
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                }
+
+                strong { 
+                    color: $textColor
+                }
+
+                &:before {
+                    content:''
+                    border-radius: $radius
+                    transition: all $t ease-in-out
+                    position: absolute
+                    inset: -1px
+                    background: $onsurfaceColor
+                    opacity: 0
+                    z-index -1
+                }
+
+                i {
+                    height: 40px
+                    width: 40px
+                    border-radius: $radius
+                    padding: 12px
+                    box-sizing: border-box
+                    background-size: 20px
+                    background-position: center
+                    background-repeat: no-repeat
+                    margin-bottom: 16px
+                    z-index: 1
+
+                    + a:before {
+                        content:''
+                        transition: all $t ease-in-out
+                        height: 40px
+                        width: 40px
+                        position: absolute
+                        top: 24px
+                        left: 24px
+                        border-radius: $radius
+                        background-color: $borderColor
+                    }
+                }
+
+                a { 
+                    font-weight: 500
+                    font-size: $font-size-s
+                    color: $textColor
+                    word-break: break-all
+                    
+                    &:after {
+                        content: ''
+                        position absolute
+                        inset: 0
+                        display: block
+                        z-index 10
+                    }
+                }
+
+                @media (hover: hover) {
+                    &:has(a):hover { 
+                        background: $onsurfaceColor
+                        border: 1px solid $bgColor
+
+                        &:before { 
+                            opacity: 1
+                        }
+                        
+                        &:after { 
+                            background: $bgColor
+                        }
+                    }
+                }
+            }
+        }
+
+        &.gray {
+            li {
+                &:before { 
+                    opacity: 1
+                    background: $sideColor
+                }
+                i:after { 
+                    background: $onsurfaceColor 
+                }
+                
+
+                @media (hover: hover) {
+                    &:has(a):hover { 
+                        background: $bgColor
+                        box-shadow: 0 0 0 1px $accentColor
+
+                        &:after {
+                            background: $sideColor 
+                        }
+                    }
+                }
+            }
+        }
+
+        &.small {
+            li { 
+                padding: 16px
+                flex-direction: row
+                align-items: center
+                gap: 16px
+                i {
+                    margin-bottom: 0
+                    + a:before {
+                        top: 16px
+                        left: 16px
+                    }
+                }
+            }
+        }
+
+        &.col3 {
+            li {
+                width: calc(33% - 9px)
+            }
+        }
+
+        @media (max-width: $medium) {
+            ul li {
+                width: 100%
+            }
+            &.small {
+                li {
+                    gap: 4px
+
+                    i + a:before {
+                        top: 12px
+                        left: 12px
+                    }
+                }
+            }
+            &.col3 {
+                li {
+                    width: calc(50% - 8px)
+                    padding: 12px
+
+                    a { 
+                        font-size: 16px
+                    }
+                }
+            }
+        }
+        @media (max-width: 360px) {
+            &.col3 li {
+                width: 100%
+            }
+        }
+    }
+
+    .icons-only {
+        ul {
+            margin-top: 16px
+            margin-bottom: 16px
+            list-style: none
+            display: flex
+            flex-wrap: wrap
+            gap: 16px
+
+            li {
+                width: 80px
+                height: 80px
+                background: $sideColor
+                border-radius: $radius
+                transition: all $t ease-in-out
+                position: relative
+                
+                span { 
+                    display: none
+                }  
+                a {
+                    overflow: hidden
+                    display: block
+                    text-indent: -800px
+                    width: 100%
+                    height: 100%
+                }
+
+                i {
+                    position: absolute
+                    top: 50%
+                    left: 50%
+                    transform: translate( -50%,-50%)
+                    pointer-events: none
+                    background-size: 100%
+                    width: 24px
+                    height: 24px
+                    max-width: 24px
+                    max-height: 24px
+                    opacity:.6
+                }
+
+                @media (hover: hover) {
+                    &:hover { 
+                        background: $bgColor
+                        box-shadow: 0 0 0 1px $accentColor
+                    }
+                }
+            }
+        }
+    }
+
+    .theme-default-content .simple-list { 
+        ul { 
+            display: flex
+            flex-wrap: wrap
+            gap: 16px
+            margin-top: 16px
+            margin-bottom: 16px
+
+            li { 
+                display: flex
+                gap: 8px
+                list-style none
+                width: calc(50% - 16px)
+                align-items: center
+
+                i {
+                    opacity .6
+                }
+
+                a { 
+                    color: $text2Color
+                }
+
+                @media (max-width: $medium) { 
+                    width: 100%
+                }
+            }
+        }
+    }
+
+    .icons-wrapper {
+        display: flex
+        flex-wrap: wrap
+        gap: 24px
+        margin: 24px 0
+        @media (max-width: $medium) {
+            gap: 10px
+        }
+        > div  { 
+            position: relative
+            width: calc((100% / 4) - 18px)
+            background: $sideColor
+            border-radius: $radius
+            padding: 40px 20px 40px 20px
+            box-sizing: border-box
+            @media (max-width: $medium) {
+                width: calc((100% / 3) - 7px)
+                padding: 20px 5px 40px 5px
+            }
+            svg { 
+                display: block
+                height: 32px
+                width: auto
+                margin: 0 auto
+                fill: $textColor
+            }
+
+            span { 
+                font-size: $font-size-xxs
+                line-height: $line-height-xxs
+                display: block
+                text-align: center
+                padding-top: 16px
+                position: absolute
+                bottom: 8px
+                left 12px
+                right: 12px
+                @media (max-width: $medium) {
+                    line-height: 1.05
+                }
+            }
+        }
+    }
+}

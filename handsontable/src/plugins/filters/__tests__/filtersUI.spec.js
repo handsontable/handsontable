@@ -1069,7 +1069,7 @@ describe('Filters UI', () => {
         width: 500,
         height: 300,
         modifyFiltersMultiSelectValue: (value) => {
-          return `Custom ${value}`;
+          return `Pre ${value}`;
         },
       });
 
@@ -1082,7 +1082,7 @@ describe('Filters UI', () => {
       for (let i = 0; i < unifiedColDataSample.length; i++) {
         expect(
           byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
-        ).toBe(`Custom ${unifiedColDataSample[i]}`);
+        ).toBe(`Pre ${unifiedColDataSample[i]}`);
       }
       expect(unifiedColDataSample.length).toBe(6);
     });
@@ -2187,7 +2187,7 @@ describe('Filters UI', () => {
       }, 200);
     });
 
-    it('should filter values using "by value" method', (done) => {
+    it('should filter values using "by value" method (by changing checkbox states)', async() => {
       handsontable({
         data: getDataForFilters().slice(0, 15),
         columns: getColumnsForFilters(),
@@ -2199,20 +2199,19 @@ describe('Filters UI', () => {
 
       dropdownMenu(2);
 
-      setTimeout(() => {
-        // disable first 5 records
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(2) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(3) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(4) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(5) :checkbox').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(200);
 
-        expect(getData().length).toEqual(10);
-        expect(getDataAtCol(2).join())
-          .toBe('Jenkinsville,Gardiner,Saranap,Soham,Needmore,Wakarusa,Yukon,Layhill,Henrietta,Wildwood');
-        done();
-      }, 200);
+      // disable first 5 records
+      $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
+      $(byValueBoxRootElement()).find('tr:nth-child(2) :checkbox').simulate('click');
+      $(byValueBoxRootElement()).find('tr:nth-child(3) :checkbox').simulate('click');
+      $(byValueBoxRootElement()).find('tr:nth-child(4) :checkbox').simulate('click');
+      $(byValueBoxRootElement()).find('tr:nth-child(5) :checkbox').simulate('click');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      expect(getData().length).toBe(10);
+      expect(getDataAtCol(2).join())
+        .toBe('Jenkinsville,Gardiner,Saranap,Soham,Needmore,Wakarusa,Yukon,Layhill,Henrietta,Wildwood');
     });
 
     it('should overwrite condition filter when at specified column filter was already applied', async() => {

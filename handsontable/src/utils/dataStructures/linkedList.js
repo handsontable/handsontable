@@ -51,6 +51,7 @@ class LinkedList {
    * Add data to the end of linked list.
    *
    * @param {object} data Data which should be added.
+   * @returns {NodeStructure} Returns the node which has been added.
    */
   push(data) {
     const node = new NodeStructure(data);
@@ -66,6 +67,8 @@ class LinkedList {
       node.prev = temp;
       temp.next = node;
     }
+
+    return node;
   }
 
   /**
@@ -98,7 +101,12 @@ class LinkedList {
     let temp = this.first;
 
     while (temp) {
-      callback(temp);
+      const interrupt = callback(temp);
+
+      if (temp === this.last || interrupt === true) {
+        break;
+      }
+
       temp = temp.next;
     }
   }

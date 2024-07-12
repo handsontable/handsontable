@@ -1,0 +1,33 @@
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1::after {
+  content: '①';
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2::after {
+  content: '②';
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3::after {
+  content: '③';
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4::after {
+  content: '④';
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5::after {
+  content: '⑤';
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6::after {
+  content: '⑥';
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7::after {
+  content: '⑦';
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting::after {
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}

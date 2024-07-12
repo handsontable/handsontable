@@ -69,7 +69,7 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(121);
+    expect(colWidth(spec().$container, 0)).toBe(122);
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as an array', () => {
@@ -87,7 +87,7 @@ describe('AutoColumnSize', () => {
 
     updateSettings({ colHeaders: ['Identifier Longer text', 'Identifier Longer and longer text'] });
 
-    expect(colWidth(spec().$container, 0)).toBe(121);
+    expect(colWidth(spec().$container, 0)).toBe(122);
     expect(colWidth(spec().$container, 1)).toBeAroundValue(180);
   });
 
@@ -106,8 +106,8 @@ describe('AutoColumnSize', () => {
 
     updateSettings({ colHeaders: 'Identifier Longer text' });
 
-    expect(colWidth(spec().$container, 0)).toBe(121);
-    expect(colWidth(spec().$container, 1)).toBe(121);
+    expect(colWidth(spec().$container, 0)).toBe(122);
+    expect(colWidth(spec().$container, 1)).toBe(122);
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a function', () => {
@@ -129,7 +129,7 @@ describe('AutoColumnSize', () => {
       },
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(121);
+    expect(colWidth(spec().$container, 0)).toBe(122);
     expect(colWidth(spec().$container, 1)).toBeAroundValue(180);
   });
 
@@ -177,11 +177,10 @@ describe('AutoColumnSize', () => {
       ],
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(143);
+    expect(colWidth(spec().$container, 0)).toBe(144);
   });
 
-  // https://github.com/handsontable/handsontable/issues/2684
-  it('should correctly detect column width when table is hidden on init (display: none)', async() => {
+  it('should correctly detect column width when table is hidden on init (display: none) #2684', async() => {
     spec().$container.css('display', 'none');
     const hot = handsontable({
       data: arrayOfObjects(),
@@ -193,6 +192,8 @@ describe('AutoColumnSize', () => {
 
     spec().$container.css('display', 'block');
     hot.render();
+
+    await sleep(50);
 
     expect(colWidth(spec().$container, 0)).toBeAroundValue(58);
   });
@@ -389,7 +390,7 @@ describe('AutoColumnSize', () => {
     // Simulates a sequence of methods used in contextMenu commands for plugins like Hidden*, Freeze*
     // or internal plugins' methods like Filters, Manual*Move, Manual*Resize.
     hot.render();
-    hot.view.adjustElementsSize(true);
+    hot.view.adjustElementsSize();
 
     hot.updateSettings({
       colHeaders: getHeaders().reverse(),
@@ -598,14 +599,14 @@ describe('AutoColumnSize', () => {
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(108);
+    expect(colWidth(spec().$container, 2)).toBe(109);
 
     alter('insert_col_start', 0);
 
     expect(colWidth(spec().$container, 0)).toBe(50); // Added new row here.
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
-    expect(colWidth(spec().$container, 3)).toBe(108);
+    expect(colWidth(spec().$container, 3)).toBe(109);
     expect(colWidth(spec().$container, 4)).toBe(50);
 
     alter('insert_col_start', 3);
@@ -614,7 +615,7 @@ describe('AutoColumnSize', () => {
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
     expect(colWidth(spec().$container, 3)).toBe(50); // Added new row here.
-    expect(colWidth(spec().$container, 4)).toBe(108);
+    expect(colWidth(spec().$container, 4)).toBe(109);
     expect(colWidth(spec().$container, 5)).toBe(50);
 
     alter('insert_col_start', 5);
@@ -623,7 +624,7 @@ describe('AutoColumnSize', () => {
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
     expect(colWidth(spec().$container, 3)).toBe(50);
-    expect(colWidth(spec().$container, 4)).toBe(108);
+    expect(colWidth(spec().$container, 4)).toBe(109);
     expect(colWidth(spec().$container, 5)).toBe(50); // Added new row here.
     expect(colWidth(spec().$container, 6)).toBe(50);
   });
@@ -636,13 +637,13 @@ describe('AutoColumnSize', () => {
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(108);
+    expect(colWidth(spec().$container, 2)).toBe(109);
     expect(colWidth(spec().$container, 3)).toBe(50);
 
     alter('remove_col', 0);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).toBe(108);
+    expect(colWidth(spec().$container, 1)).toBe(109);
     expect(colWidth(spec().$container, 2)).toBe(50);
   });
 
@@ -655,14 +656,14 @@ describe('AutoColumnSize', () => {
     hot.columnIndexMapper.moveIndexes(2, 1);
     render();
 
-    expect(colWidth(spec().$container, 1)).toBe(108);
+    expect(colWidth(spec().$container, 1)).toBe(109);
     expect(colWidth(spec().$container, 2)).toBe(50);
 
     hot.columnIndexMapper.moveIndexes(1, 2);
     render();
 
     expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(108);
+    expect(colWidth(spec().$container, 2)).toBe(109);
   });
 
   it('should keep appropriate column size when columns order is changed and some column is cleared', () => {
@@ -675,13 +676,34 @@ describe('AutoColumnSize', () => {
     hot.columnIndexMapper.moveIndexes(2, 1);
     render();
 
-    expect(colWidth(spec().$container, 1)).toBe(108);
+    expect(colWidth(spec().$container, 1)).toBe(109);
     expect(colWidth(spec().$container, 2)).toBe(50);
 
     hot.populateFromArray(0, 1, [[null], [null], [null], [null], [null]]); // Empty values on the second visual column.
 
-    expect(colWidth(spec().$container, 1)).toBe(108);
+    expect(colWidth(spec().$container, 1)).toBe(109);
     expect(colWidth(spec().$container, 2)).toBe(50);
+  });
+
+  it('should keep the viewport position unchanged after resetting all columns widths (#dev-1888)', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 50),
+      width: 400,
+      height: 400,
+      autoColumnSize: true,
+      colHeaders: ['Longer header name'],
+      rowHeaders: true,
+    });
+
+    scrollViewportTo(0, 49);
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(2217);
+
+    selectRows(2, 2);
+    listen();
+    keyDownUp('delete');
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(2217);
   });
 
   describe('should cooperate with the `UndoRedo` plugin properly', () => {

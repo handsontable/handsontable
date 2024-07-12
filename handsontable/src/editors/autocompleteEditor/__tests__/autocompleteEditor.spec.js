@@ -50,7 +50,7 @@ describe('AutocompleteEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    keyDownUp('F2');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -665,6 +665,41 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('.autocompleteEditor .htCore td').width())
         .toEqual(editor.find('.handsontableInput').width() - 2);
       expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(187);
+    });
+
+    it('should display the autocomplete list with correct dimensions, after updating the choice list from no match' +
+    'to a match', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            trimDropdown: false,
+            source: choices
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      const autocompleteEditor = $('.autocompleteEditor');
+      const inputHolder = $('.handsontableInputHolder');
+
+      await sleep(50);
+
+      autocompleteEditor.siblings('textarea').first().val('ab');
+      keyDownUp('a');
+      keyDownUp('b');
+      await sleep(50);
+
+      autocompleteEditor.siblings('textarea').first().val('a');
+      keyDownUp('backspace');
+      await sleep(50);
+
+      expect(
+        inputHolder.find('.autocompleteEditor .ht_master').eq(0).width()
+      ).toBeGreaterThan(inputHolder.find('.handsontableInput').width());
+
     });
 
     it('autocomplete list should have the suggestion table dimensions, when trimDropdown option is set to false', async() => {

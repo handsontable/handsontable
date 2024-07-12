@@ -5,7 +5,7 @@ import CellCoords from './../cell/coords';
  * @description
  *
  * The `CellRange` class holds a set of cell coordinates ([`CellCoords`](@/api/cellCoords.md) instances)
- * that form a [selection range](@/guides/cell-features/selection.md#select-ranges).
+ * that form a [selection range](@/guides/cell-features/selection/selection.md#select-ranges).
  *
  * A single `CellRange` instance represents a single unit of selection
  * that contains either a single cell or multiple adjacent cells.
@@ -136,6 +136,19 @@ class CellRange {
   isSingleHeader() {
     return (this.from.row < 0 || this.from.col < 0) && this.from.row === this.to.row &&
            this.from.col === this.to.col;
+  }
+
+  /**
+   * Checks if your range covers only headers range (negative coordinates, without any cells).
+   *
+   * @returns {boolean}
+   */
+  isHeader() {
+    if (this.from.isHeader() && this.to.isHeader()) {
+      return true;
+    }
+
+    return this.from.col < 0 && this.to.col < 0 || this.from.row < 0 && this.to.row < 0;
   }
 
   /**
@@ -343,9 +356,11 @@ class CellRange {
    * Expand your range with another range (`expandingRange`).
    *
    * @param {CellRange} expandingRange A new range.
+   * @param {boolean} [changeDirection=true] If `true`, the direction of your range is changed to the direction
+   * of the `expandingRange` range.
    * @returns {boolean}
    */
-  expandByRange(expandingRange) {
+  expandByRange(expandingRange, changeDirection = true) {
     if (this.includesRange(expandingRange) || !this.overlaps(expandingRange)) {
       return false;
     }
@@ -370,12 +385,14 @@ class CellRange {
 
     this.setDirection(initialDirection);
 
-    if (this.highlight.row === this.getOuterBottomRightCorner().row && this.getVerticalDirection() === 'N-S') {
-      this.flipDirectionVertically();
-    }
+    if (changeDirection) {
+      if (this.highlight.row === this.getOuterBottomRightCorner().row && this.getVerticalDirection() === 'N-S') {
+        this.flipDirectionVertically();
+      }
 
-    if (this.highlight.col === this.getOuterTopRightCorner().col && this.getHorizontalDirection() === 'W-E') {
-      this.flipDirectionHorizontally();
+      if (this.highlight.col === this.getOuterTopRightCorner().col && this.getHorizontalDirection() === 'W-E') {
+        this.flipDirectionHorizontally();
+      }
     }
 
     return true;

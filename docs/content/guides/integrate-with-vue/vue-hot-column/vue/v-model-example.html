@@ -1,0 +1,12 @@
+<div id="v-model-example" class="v-model">
+  <div class="controls">
+    <label for="mainInput">List of row indexes (starting from 0):</label>
+    <input id="mainInput" v-model="highlightedRows"/>
+  </div>
+
+  <hot-table :settings="hotSettings" :row-headers="true" :col-headers="true">
+    <hot-column :width="50">
+      <custom-renderer hot-renderer></custom-renderer>
+    </hot-column>
+  </hot-table>
+</div>

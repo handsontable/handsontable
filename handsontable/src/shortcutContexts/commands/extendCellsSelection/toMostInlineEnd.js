@@ -2,13 +2,19 @@ export const command = {
   name: 'extendCellsSelectionToMostInlineEnd',
   callback(hot) {
     const { selection, columnIndexMapper } = hot;
-    const { highlight } = hot.getSelectedRangeLast();
+    const { highlight, from, to } = hot.getSelectedRangeLast();
 
-    if (highlight.isCell()) {
-      selection.setRangeEnd(hot._createCellCoords(
-        selection.selectedRange.current().from.row,
-        columnIndexMapper.getNearestNotHiddenIndex(hot.countCols() - 1, -1),
-      ));
+    if (
+      !hot.selection.isSelectedByRowHeader() &&
+      !hot.selection.isSelectedByCorner() &&
+      highlight.isCell()
+    ) {
+      const column = columnIndexMapper.getNearestNotHiddenIndex(hot.countCols() - 1, -1);
+      const newFrom = from.clone();
+
+      newFrom.col = highlight.col;
+      selection.setRangeStart(newFrom, undefined, false, highlight.clone());
+      selection.setRangeEnd(hot._createCellCoords(to.row, column));
     }
   },
 };

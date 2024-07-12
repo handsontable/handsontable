@@ -133,7 +133,68 @@ describe('NestedRows keyboard shortcut', () => {
       ]);
     });
 
-    it('should be possible to collapse a single row when a range of the rows are selected', () => {
+    it('should be possible to collapse a single row when a single row header is selected', () => {
+      handsontable({
+        data: getMoreComplexNestedData(),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedRows: true
+      });
+
+      selectCell(0, -1);
+      listen();
+      keyDownUp('enter');
+
+      expect(getData()).toEqual([
+        ['a0', 'b0'],
+        // ['a0-a0', 'b0-b0'],
+        // ['a0-a1', 'b0-b1'],
+        // ['a0-a2', 'b0-b2'],
+        // ['a0-a2-a0', 'b0-b2-b0'],
+        // ['a0-a2-a0-a0', 'b0-b2-b0-b0'],
+        // ['a0-a3', 'b0-b3'],
+        ['a1', 'b1'],
+        ['a2', 'b2'],
+        ['a2-a0', 'b2-b0'],
+        ['a2-a1', 'b2-b1'],
+        ['a2-a1-a0', 'b2-b1-b0'],
+        ['a2-a1-a1', 'b2-b1-b1'],
+      ]);
+    });
+
+    it('should be possible to collapse a single row when a single row header is selected and ColumnSorting plugin is enabled (#dev-1817)', () => {
+      handsontable({
+        data: getMoreComplexNestedData(),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedRows: true,
+        columnSorting: true,
+      });
+
+      selectCell(0, -1);
+      listen();
+      keyDownUp('enter');
+
+      expect(getData()).toEqual([
+        ['a0', 'b0'],
+        // ['a0-a0', 'b0-b0'],
+        // ['a0-a1', 'b0-b1'],
+        // ['a0-a2', 'b0-b2'],
+        // ['a0-a2-a0', 'b0-b2-b0'],
+        // ['a0-a2-a0-a0', 'b0-b2-b0-b0'],
+        // ['a0-a3', 'b0-b3'],
+        ['a1', 'b1'],
+        ['a2', 'b2'],
+        ['a2-a0', 'b2-b0'],
+        ['a2-a1', 'b2-b1'],
+        ['a2-a1-a0', 'b2-b1-b0'],
+        ['a2-a1-a1', 'b2-b1-b1'],
+      ]);
+    });
+
+    it('should not be possible to collapse a single row when a range of the rows are selected', () => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -148,12 +209,12 @@ describe('NestedRows keyboard shortcut', () => {
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
-        // ['a0-a0', 'b0-b0'], // collapsed data
-        // ['a0-a1', 'b0-b1'],
-        // ['a0-a2', 'b0-b2'],
-        // ['a0-a2-a0', 'b0-b2-b0'],
-        // ['a0-a2-a0-a0', 'b0-b2-b0-b0'],
-        // ['a0-a3', 'b0-b3'],
+        ['a0-a0', 'b0-b0'],
+        ['a0-a1', 'b0-b1'],
+        ['a0-a2', 'b0-b2'],
+        ['a0-a2-a0', 'b0-b2-b0'],
+        ['a0-a2-a0-a0', 'b0-b2-b0-b0'],
+        ['a0-a3', 'b0-b3'],
         ['a1', 'b1'],
         ['a2', 'b2'],
         ['a2-a0', 'b2-b0'],
@@ -254,7 +315,39 @@ describe('NestedRows keyboard shortcut', () => {
       ]);
     });
 
-    it('should be possible to expand a single row when a range of rows are selected', () => {
+    it('should be possible to expand a single row when a row header is selected', () => {
+      handsontable({
+        data: getMoreComplexNestedData(),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedRows: true
+      });
+
+      getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+
+      selectCell(0, -1);
+      listen();
+      keyDownUp('enter');
+
+      expect(getData()).toEqual([
+        ['a0', 'b0'],
+        ['a0-a0', 'b0-b0'],
+        ['a0-a1', 'b0-b1'],
+        ['a0-a2', 'b0-b2'],
+        ['a0-a2-a0', 'b0-b2-b0'],
+        ['a0-a2-a0-a0', 'b0-b2-b0-b0'],
+        ['a0-a3', 'b0-b3'],
+        ['a1', 'b1'],
+        ['a2', 'b2'],
+        ['a2-a0', 'b2-b0'],
+        ['a2-a1', 'b2-b1'],
+        ['a2-a1-a0', 'b2-b1-b0'],
+        ['a2-a1-a1', 'b2-b1-b1'],
+      ]);
+    });
+
+    it('should not be possible to expand a single row when a range of rows are selected', () => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -271,12 +364,6 @@ describe('NestedRows keyboard shortcut', () => {
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
-        ['a0-a0', 'b0-b0'],
-        ['a0-a1', 'b0-b1'],
-        ['a0-a2', 'b0-b2'],
-        ['a0-a2-a0', 'b0-b2-b0'],
-        ['a0-a2-a0-a0', 'b0-b2-b0-b0'],
-        ['a0-a3', 'b0-b3'],
         ['a1', 'b1'],
         ['a2', 'b2'],
         ['a2-a0', 'b2-b0'],

@@ -2,7 +2,6 @@ import Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
-// tslint:disable-next-line:no-null-undefined-union
 declare function oneOf<T extends Array<string | number | boolean | undefined | null | object>>(...args: T): T[number];
 declare const true_or_false: true | false;
 
@@ -14,6 +13,8 @@ enum SortDirection { asc = 'asc', desc = 'desc' }
 const contextMenuDemo: Handsontable.plugins.ContextMenu.Settings = {
   callback(key, selection, clickEvent) { },
   items: {
+    sep1: '---------',
+    row_above: 'row_above',
     item: {
       name() {
         return '';
@@ -188,6 +189,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   ]),
   data: oneOf([{}, {}, {}], [[], [], []]),
+  dataDotNotation: oneOf(true),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
   datePickerConfig: {
@@ -252,6 +254,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     },
   ),
   fragmentSelection: oneOf(true, 'cell'),
+  headerClassName: 'htCenter test',
   height: oneOf(500, () => 500),
   hiddenColumns: true,
   hiddenRows: true,
@@ -436,8 +439,24 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterLoadData: (sourceData, firstTime, source) => {},
   afterMergeCells: (cellRange, mergeParent, auto) => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
-  afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {},
-  afterModifyTransformStart: (coords, rowTransformDir, colTransformDir) => {},
+  afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+    const rowTransform: number = rowTransformDir;
+    const colTransform: number = colTransformDir;
+  },
+  afterModifyTransformFocus: (coords, rowTransformDir, colTransformDir) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+    const rowTransform: number = rowTransformDir;
+    const colTransform: number = colTransformDir;
+  },
+  afterModifyTransformStart: (coords, rowTransformDir, colTransformDir) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+    const rowTransform: number = rowTransformDir;
+    const colTransform: number = colTransformDir;
+  },
   afterMomentumScroll: () => {},
   afterNamedExpressionAdded: (namedExpressionName, changes) => {},
   afterNamedExpressionRemoved: (namedExpressionName, changes) => {},
@@ -470,6 +489,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSelectionByProp: (r, p, r2, p2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
   afterSelectionEnd: (r, c, r2, c2, selectionLayerLevel) => {},
   afterSelectionEndByProp: (r, p, r2, p2, selectionLayerLevel) => {},
+  afterSelectionFocusSet: (row, column, preventScrolling) => {
+    row.toFixed();
+    column.toFixed();
+    preventScrolling.value = true;
+  },
   afterSelectRows: (from, to, highlight) => {},
   afterSetCellMeta: (row, col, key, value) => {},
   afterSetDataAtCell: (changes, source) => {},
@@ -579,6 +603,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
     newCoords.clone();
   },
   beforeSelectColumns: (from, to, highlight) => {},
+  beforeSelectionFocusSet: (coords) => {
+    const row: number = coords.row;
+    const col: number = coords.col;
+  },
   beforeSelectionHighlightSet: () => {},
   beforeSelectRows: (from, to, highlight) => {},
   beforeSetCellMeta: (row, col, key, value) => {},
@@ -622,9 +650,27 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},
-  modifyRowHeight: (height, row) => {},
-  modifyTransformEnd: (delta) => {},
-  modifyTransformStart: (delta) => {},
+  modifyRowHeight: (height, row) => {
+    const _height: number = height;
+    const _row: number = row;
+  },
+  modifyRowHeightByOverlayName: (height, row, overlayType) => {
+    const _height: number = height;
+    const _row: number = row;
+    const _overlayType: string = overlayType;
+  },
+  modifyTransformEnd: (delta) => {
+    const rowDelta: number = delta.row;
+    const colDelta: number = delta.row;
+  },
+  modifyTransformFocus: (delta) => {
+    const rowDelta: number = delta.row;
+    const colDelta: number = delta.row;
+  },
+  modifyTransformStart: (delta) => {
+    const rowDelta: number = delta.row;
+    const colDelta: number = delta.row;
+  },
   persistentStateLoad: () => {},
   persistentStateReset: () => {},
   persistentStateSave: () => {},

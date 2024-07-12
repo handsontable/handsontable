@@ -185,13 +185,17 @@ export class BasePlugin {
    *
    * @param {string} name The hook name.
    * @param {Function} callback The listener function to add.
+   * @param {number} [orderIndex] Order index of the callback.
+   *                              If > 0, the callback will be added after the others, for example, with an index of 1, the callback will be added before the ones with an index of 2, 3, etc., but after the ones with an index of 0 and lower.
+   *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
+   *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
    */
-  addHook(name, callback) {
+  addHook(name, callback, orderIndex) {
     this.#hooks[name] = (this.#hooks[name] || []);
 
     const hooks = this.#hooks[name];
 
-    this.hot.addHook(name, callback);
+    this.hot.addHook(name, callback, orderIndex);
     hooks.push(callback);
     this.#hooks[name] = hooks;
   }

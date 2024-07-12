@@ -699,11 +699,27 @@ describe('CellRange', () => {
       expect(range).toEqualCellRange('highlight: 1,1 from: 0,0 to: 3,3');
     });
 
+    it('should expand a cell range in top-left direction without changing the selection initial direction', () => {
+      const range = createRange(1, 1, 1, 1, 3, 3);
+      const newRange = createRange(0, 0, 0, 0, 1, 1);
+
+      expect(range.expandByRange(newRange, false)).toBe(true);
+      expect(range).toEqualCellRange('highlight: 1,1 from: 0,0 to: 3,3');
+    });
+
     it('should expand a cell range in top-right direction', () => {
       const range = createRange(1, 1, 1, 1, 3, 3);
       const newRange = createRange(0, 3, 0, 3, 1, 4);
 
       expect(range.expandByRange(newRange)).toBe(true);
+      expect(range).toEqualCellRange('highlight: 1,1 from: 0,1 to: 3,4');
+    });
+
+    it('should expand a cell range in top-right direction without changing the selection initial direction', () => {
+      const range = createRange(1, 1, 1, 1, 3, 3);
+      const newRange = createRange(0, 3, 0, 3, 1, 4);
+
+      expect(range.expandByRange(newRange, false)).toBe(true);
       expect(range).toEqualCellRange('highlight: 1,1 from: 0,1 to: 3,4');
     });
 
@@ -715,11 +731,27 @@ describe('CellRange', () => {
       expect(range).toEqualCellRange('highlight: 1,1 from: 1,0 to: 4,3');
     });
 
+    it('should expand a cell range in bottom-left direction without changing the selection initial direction', () => {
+      const range = createRange(1, 1, 1, 1, 3, 3);
+      const newRange = createRange(3, 0, 3, 0, 4, 1);
+
+      expect(range.expandByRange(newRange, false)).toBe(true);
+      expect(range).toEqualCellRange('highlight: 1,1 from: 1,0 to: 4,3');
+    });
+
     it('should expand a cell range in bottom-right direction', () => {
       const range = createRange(1, 1, 1, 1, 3, 3);
       const newRange = createRange(0, 3, 0, 3, 1, 4);
 
       expect(range.expandByRange(newRange)).toBe(true);
+      expect(range).toEqualCellRange('highlight: 1,1 from: 0,1 to: 3,4');
+    });
+
+    it('should expand a cell range in bottom-right direction without changing the selection initial direction', () => {
+      const range = createRange(1, 1, 1, 1, 3, 3);
+      const newRange = createRange(0, 3, 0, 3, 1, 4);
+
+      expect(range.expandByRange(newRange, false)).toBe(true);
       expect(range).toEqualCellRange('highlight: 1,1 from: 0,1 to: 3,4');
     });
   });
@@ -1506,6 +1538,39 @@ describe('CellRange', () => {
 
         expect(range.isSingleHeader()).toBe(false);
       }
+    });
+  });
+
+  describe('isHeader()', () => {
+    it('should return `false` when one of the coordinates cover a cell', () => {
+      {
+        const range = createRange(0, -1, 0, -2, 3, 0);
+
+        expect(range.isHeader()).toBe(false);
+      }
+      {
+        const range = createRange(-1, 0, -2, 0, 0, 3);
+
+        expect(range.isHeader()).toBe(false);
+      }
+    });
+
+    it('should return `true` when only row headers are selected', () => {
+      const range = createRange(0, -1, 0, -2, 3, -1);
+
+      expect(range.isHeader()).toBe(true);
+    });
+
+    it('should return `true` when only column headers are selected', () => {
+      const range = createRange(-1, 0, -2, 0, -1, 3);
+
+      expect(range.isHeader()).toBe(true);
+    });
+
+    it('should return `true` when corner is selected', () => {
+      const range = createRange(-1, -1, -2, -2, -1, -1);
+
+      expect(range.isHeader()).toBe(true);
     });
   });
 

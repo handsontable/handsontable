@@ -15,6 +15,28 @@ new Handsontable(document.createElement('div'), {
   formulas: {
     engine: Hyperformula,
     sheetName: 'sheet1',
+    namedExpressions: [
+      {
+        name: 'ADDITIONAL_COST',
+        expression: 100,
+      },
+    ],
+  },
+});
+new Handsontable(document.createElement('div'), {
+  formulas: {
+    engine: Hyperformula,
+    sheetName: 'sheet1',
+    namedExpressions: [
+      {
+        name: 'ADDITIONAL_COST',
+        expression: 100,
+        scope: 0,
+        options: {
+          volatile: true,
+        },
+      },
+    ],
   },
 });
 const hot = new Handsontable(document.createElement('div'), {});

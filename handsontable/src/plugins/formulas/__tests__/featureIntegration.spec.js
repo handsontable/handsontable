@@ -1,10 +1,8 @@
 import HyperFormula from 'hyperformula';
 
 describe('Formulas: Integration with other features', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -186,18 +184,19 @@ describe('Formulas: Integration with other features', () => {
     it('should populate dates and formulas referencing to them properly', async() => {
       handsontable({
         data: [
-          ['28/02/1900', '28/02/1900', '28/02/1900'],
-          ['=A1', '=B1', '=C1'],
-          [null, null, null],
-          [null, null, null],
-          [null, null, null],
-          [null, null, null],
+          [null, null, null, null, null],
+          [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
+          [null, null, '=C2', '=D2', '=E2'],
+          [null, null, null, null, null],
+          [null, null, null, null, null],
+          [null, null, null, null, null],
+          [null, null, null, null, null],
         ],
         formulas: {
           engine: HyperFormula,
           sheetName: 'Sheet1'
         },
-        columns: [{
+        columns: [{}, {}, {
           type: 'date',
           dateFormat: 'MM/DD/YYYY'
         }, {
@@ -210,69 +209,73 @@ describe('Formulas: Integration with other features', () => {
         fillHandle: true,
       });
 
-      selectRows(0, 1);
+      selectCells([[1, 2, 2, 4]]);
 
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tr:last-child td:eq(0)').simulate('mouseover');
-      spec().$container.find('tr:last-child td:eq(2)').simulate('mouseup');
+      spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
+      spec().$container.find('tr:last-child td:eq(4)').simulate('mouseup');
 
       const formulasPlugin = getPlugin('formulas');
 
       await sleep(300);
 
       expect(getData()).toEqual([
-        ['28/02/1900', '28/02/1900', '28/02/1900'],
-        ['28/02/1900', '28/02/1900', '28/02/1900'],
-        ['28/02/1900', '28/02/1900', '28/02/1900'],
-        ['28/02/1900', '28/02/1900', '28/02/1900'],
-        ['28/02/1900', '28/02/1900', '28/02/1900'],
-        ['28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, null]
+        [null, null, null, null, null],
+        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
+        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
+        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
+        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
+        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
+        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
+        [null, null, null, null, null]
       ]);
 
       expect(getSourceData()).toEqual([
-        ['28/02/1900', '28/02/1900', '28/02/1900'],
-        ['=A1', '=B1', '=C1'],
-        ['28/02/1900', '28/02/1900', '28/02/1900'],
-        ['=A3', '=B3', '=C3'],
-        ['28/02/1900', '28/02/1900', '28/02/1900'],
-        ['=A5', '=B5', '=C5'],
-        [null, null, null]
+        [null, null, null, null, null],
+        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
+        [null, null, '=C2', '=D2', '=E2'],
+        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
+        [null, null, '=C4', '=D4', '=E4'],
+        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
+        [null, null, '=C6', '=D6', '=E6'],
+        [null, null, null, null, null]
       ]);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        ['28/02/1900', 60, '28/02/1900'],
-        ['28/02/1900', 60, '28/02/1900'],
-        ['28/02/1900', 60, '28/02/1900'],
-        ['28/02/1900', 60, '28/02/1900'],
-        ['28/02/1900', 60, '28/02/1900'],
-        ['28/02/1900', 60, '28/02/1900'],
+        [],
+        [null, null, '28/02/1900', 60, '28/02/1900'],
+        [null, null, '28/02/1900', 60, '28/02/1900'],
+        [null, null, '28/02/1900', 60, '28/02/1900'],
+        [null, null, '28/02/1900', 60, '28/02/1900'],
+        [null, null, '28/02/1900', 60, '28/02/1900'],
+        [null, null, '28/02/1900', 60, '28/02/1900'],
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['\'28/02/1900', '28/02/1900', '\'28/02/1900'],
-        ['=A1', '=B1', '=C1'],
-        ['\'28/02/1900', '28/02/1900', '\'28/02/1900'],
-        ['=A3', '=B3', '=C3'],
-        ['\'28/02/1900', '28/02/1900', '\'28/02/1900'],
-        ['=A5', '=B5', '=C5'],
+        [],
+        [null, null, '\'28/02/1900', '28/02/1900', '\'28/02/1900'],
+        [null, null, '=C2', '=D2', '=E2'],
+        [null, null, '\'28/02/1900', '28/02/1900', '\'28/02/1900'],
+        [null, null, '=C4', '=D4', '=E4'],
+        [null, null, '\'28/02/1900', '28/02/1900', '\'28/02/1900'],
+        [null, null, '=C6', '=D6', '=E6'],
       ]);
 
-      expect(getCellMeta(2, 0).valid).toBe(false);
-      expect(getCellMeta(2, 1).valid).toBe(true);
-      expect(getCellMeta(2, 2).valid).toBe(false);
-
-      expect(getCellMeta(3, 0).valid).toBe(false);
-      expect(getCellMeta(3, 1).valid).toBe(true);
       expect(getCellMeta(3, 2).valid).toBe(false);
+      expect(getCellMeta(3, 3).valid).toBe(true);
+      expect(getCellMeta(3, 4).valid).toBe(false);
 
-      expect(getCellMeta(4, 0).valid).toBe(false);
-      expect(getCellMeta(4, 1).valid).toBe(true);
       expect(getCellMeta(4, 2).valid).toBe(false);
+      expect(getCellMeta(4, 3).valid).toBe(true);
+      expect(getCellMeta(4, 4).valid).toBe(false);
 
-      expect(getCellMeta(5, 0).valid).toBe(false);
-      expect(getCellMeta(5, 1).valid).toBe(true);
       expect(getCellMeta(5, 2).valid).toBe(false);
+      expect(getCellMeta(5, 3).valid).toBe(true);
+      expect(getCellMeta(5, 4).valid).toBe(false);
+
+      expect(getCellMeta(6, 2).valid).toBe(false);
+      expect(getCellMeta(6, 3).valid).toBe(true);
+      expect(getCellMeta(6, 4).valid).toBe(false);
     });
   });
 

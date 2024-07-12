@@ -20,6 +20,7 @@ export default class CellRange {
   }): boolean;
   isSingleCell(): boolean;
   isSingleHeader(): boolean;
+  isHeader(): boolean;
   containsHeaders(): boolean;
   getOuterHeight(): number;
   getOuterWidth(): number;
@@ -35,7 +36,7 @@ export default class CellRange {
   isOverlappingHorizontally(cellRange: CellRange): boolean;
   isOverlappingVertically(cellRange: CellRange): boolean;
   expand(cellCoords: CellCoords): boolean;
-  expandByRange(expandingRange: CellRange): boolean;
+  expandByRange(expandingRange: CellRange, changeDirection: boolean): boolean;
   getDirection(): DirectionType;
   setDirection(direction: DirectionType): void;
   getVerticalDirection(): 'N-S' | 'S-N';

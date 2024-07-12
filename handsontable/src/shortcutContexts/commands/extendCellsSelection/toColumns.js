@@ -6,7 +6,7 @@ export const command = {
     if (hot.selection.isSelectedByRowHeader()) {
       hot.selection.selectAll(true, true);
     } else {
-      hot.selectColumns(from.col, to.col, highlight.row);
+      hot.selectColumns(from.col, to.col, highlight);
     }
   },
 };

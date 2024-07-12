@@ -5,6 +5,8 @@ on:
     paths:
       - 'docs/**'
   pull_request:
+    paths:
+      - 'docs/**'
     types: [ opened, synchronize, reopened ]
 
 env:
@@ -15,10 +17,10 @@ jobs:
     name: JS & CSS & VUE
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # https://github.com/actions/setup-node/releases/tag/v3.6.0
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'

@@ -41,7 +41,7 @@ export const PLUGIN_PRIORITY = 90;
  * of an array.
  *
  * See [`customBorders` configuration option](@/api/options.md#customBorders) or go to
- * [Custom cell borders demo](@/guides/cell-features/formatting-cells.md#custom-cell-borders) for more examples.
+ * [Custom cell borders demo](@/guides/cell-features/formatting-cells/formatting-cells.md#custom-cell-borders) for more examples.
  *
  * @example
  * ```js

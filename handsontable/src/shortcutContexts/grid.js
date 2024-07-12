@@ -37,6 +37,12 @@ export function shortcutsGridContext(hot) {
   context.addShortcuts([{
     keys: [['Control/Meta', 'A']],
     callback: () => commandsPool.selectAllCells(),
+    runOnlyIf: () => !hot.getSelectedRangeLast().highlight.isHeader(),
+  }, {
+    keys: [['Control/Meta', 'A']],
+    callback: () => {},
+    runOnlyIf: () => hot.getSelectedRangeLast().highlight.isHeader(),
+    preventDefault: true,
   }, {
     keys: [['Control/Meta', 'Shift', 'Space']],
     callback: () => commandsPool.selectAllCellsAndHeaders(),
@@ -156,12 +162,12 @@ export function shortcutsGridContext(hot) {
     keys: [['Tab']],
     // The property value is controlled by focusCatcher module (https://github.com/handsontable/handsontable/blob/master/handsontable/src/core/focusCatcher/index.js)
     preventDefault: false,
-    callback: () => commandsPool.moveCellSelectionInlineStart(),
+    callback: event => commandsPool.moveCellSelectionInlineStart(event),
   }, {
     keys: [['Shift', 'Tab']],
     // The property value is controlled by focusCatcher module (https://github.com/handsontable/handsontable/blob/master/handsontable/src/core/focusCatcher/index.js)
     preventDefault: false,
-    callback: () => commandsPool.moveCellSelectionInlineEnd(),
+    callback: event => commandsPool.moveCellSelectionInlineEnd(event),
   }, {
     keys: [['Control/Meta', 'Backspace']],
     callback: () => commandsPool.scrollToFocusedCell(),

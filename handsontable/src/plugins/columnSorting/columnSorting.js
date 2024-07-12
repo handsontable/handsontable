@@ -12,6 +12,7 @@ import { BasePlugin } from '../base';
 import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import Hooks from '../../pluginHooks';
 import { ColumnStatesManager } from './columnStatesManager';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import {
   HEADER_SPAN_CLASS,
   getNextSortOrder,
@@ -27,6 +28,8 @@ import {
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
 import { A11Y_SORT } from '../../helpers/a11y';
+
+import './columnSorting.scss';
 
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;
@@ -197,6 +200,8 @@ export class ColumnSorting extends BasePlugin {
       if (this.indexesSequenceCache !== null) {
         this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
         this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
+
+        this.indexesSequenceCache = null;
       }
     }, true);
 
@@ -222,15 +227,19 @@ export class ColumnSorting extends BasePlugin {
         callback: () => {
           const { highlight } = this.hot.getSelectedRangeLast();
 
-          if (highlight.row === -1 && highlight.col >= 0) {
-            this.sort(this.getColumnNextConfig(highlight.col));
-          }
+          this.sort(this.getColumnNextConfig(highlight.col));
+
+          // prevent default Enter behavior (move to the next row within a selection range)
+          return false;
         },
         runOnlyIf: () => {
           const highlight = this.hot.getSelectedRangeLast()?.highlight;
 
-          return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+          return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
+            this.hot.selection.isCellVisible(highlight) && highlight.row === -1 && highlight.col >= 0;
         },
+        relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+        position: 'before',
         group: SHORTCUTS_GROUP,
       });
   }
@@ -612,9 +621,9 @@ export class ColumnSorting extends BasePlugin {
    * @private
    */
   sortByPresetSortStates(sortConfigs) {
-    if (sortConfigs.length === 0) {
-      this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
+    this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
 
+    if (sortConfigs.length === 0) {
       return;
     }
 

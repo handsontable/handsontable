@@ -21,7 +21,7 @@ export interface Selection {
 }
 
 export interface MenuConfig {
-  [key: string]: MenuItemConfig;
+  [key: string]: MenuItemConfig | PredefinedMenuItemKey;
 }
 
 export interface MenuItemConfig {

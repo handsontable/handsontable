@@ -38,7 +38,7 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * @description
  * The plugin allows filtering the table data either by the built-in component or with the API.
  *
- * See [the filtering demo](@/guides/columns/column-filter.md) for examples.
+ * See [the filtering demo](@/guides/columns/column-filter/column-filter.md) for examples.
  *
  * @example
  * ::: only-for javascript
@@ -549,7 +549,7 @@ export class Filters extends BasePlugin {
 
     this.hot.runHooks('afterFilter', conditions);
 
-    this.hot.view.adjustElementsSize(true);
+    this.hot.view.adjustElementsSize();
     this.hot.render();
 
     if (this.hot.selection.isSelected()) {

@@ -217,42 +217,32 @@ export class SelectEditor extends BaseEditor {
   registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
-    const gridContext = shortcutManager.getContext('grid');
     const contextConfig = {
       group: SHORTCUTS_GROUP,
     };
 
-    // Actions from fast edit works.
-    if (this.isInFullEditMode() === false) {
-      return;
+    if (this.isInFullEditMode()) {
+      // The arrow-related shortcuts should work only in full edit mode.
+      editorContext.addShortcuts([{
+        keys: [['ArrowUp']],
+        callback: () => {
+          const previousOptionIndex = this.select.selectedIndex - 1;
+
+          if (previousOptionIndex >= 0) {
+            this.select[previousOptionIndex].selected = true;
+          }
+        },
+      }, {
+        keys: [['ArrowDown']],
+        callback: () => {
+          const nextOptionIndex = this.select.selectedIndex + 1;
+
+          if (nextOptionIndex <= this.select.length - 1) {
+            this.select[nextOptionIndex].selected = true;
+          }
+        }
+      }], contextConfig);
     }
-
-    editorContext.addShortcuts([{
-      keys: [
-        ['Tab'],
-        ['Shift', 'Tab'],
-      ],
-      forwardToContext: gridContext,
-      callback: () => {},
-    }, {
-      keys: [['ArrowUp']],
-      callback: () => {
-        const previousOptionIndex = this.select.selectedIndex - 1;
-
-        if (previousOptionIndex >= 0) {
-          this.select[previousOptionIndex].selected = true;
-        }
-      },
-    }, {
-      keys: [['ArrowDown']],
-      callback: () => {
-        const nextOptionIndex = this.select.selectedIndex + 1;
-
-        if (nextOptionIndex <= this.select.length - 1) {
-          this.select[nextOptionIndex].selected = true;
-        }
-      }
-    }], contextConfig);
   }
 
   /**

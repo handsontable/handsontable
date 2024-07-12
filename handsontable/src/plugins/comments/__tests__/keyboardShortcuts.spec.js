@@ -45,6 +45,7 @@ describe('Comments keyboard shortcut', () => {
         data: createSpreadsheetData(500, 50),
         width: 300,
         height: 300,
+        colWidths: 50,
         rowHeaders: true,
         colHeaders: true,
         comments: true,
@@ -71,8 +72,10 @@ describe('Comments keyboard shortcut', () => {
       expect(editor.value).toBe('');
       expect(document.activeElement).toBe(editor);
       expect(plugin.range).toEqualCellRange('highlight: 400,40 from: 400,40 to: 400,40');
+
+      // 2050 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1816);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(8965);
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(8966);
     });
 
     it('should open and edit a comment, make it active, and ready for typing', async() => {
@@ -200,7 +203,7 @@ describe('Comments keyboard shortcut', () => {
   });
 
   describe('"Cmd/Ctrl" + "Enter"', () => {
-    it('should close the comment and save the value', async() => {
+    it('should close the comment and save the value (comment opened by keyboard shortcut)', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         rowHeaders: true,
@@ -214,6 +217,28 @@ describe('Comments keyboard shortcut', () => {
       await sleep(10);
 
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
+
+      keyDownUp(['control/meta', 'enter']);
+
+      await sleep(50);
+
+      expect(getCellMeta(1, 1).comment.value).toBe('Test comment');
+    });
+
+    it('should close the comment and save the value (comment opened through the context menu)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        contextMenu: true,
+      });
+
+      selectCell(1, 1);
+      contextMenu();
+      selectContextMenuOption('Add comment');
+      getPlugin('comments').getEditorInputElement().value = 'Test comment';
+      deselectCell();
 
       keyDownUp(['control/meta', 'enter']);
 

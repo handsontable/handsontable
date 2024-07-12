@@ -48,7 +48,7 @@ describe('SelectEditor', () => {
     expect(editor.is('select')).toBe(true);
     expect(editor.is(':visible')).toBe(false);
 
-    keyDownUp('enter');
+    keyDownUp('F2');
 
     expect(editor.is(':visible')).toBe(true);
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());

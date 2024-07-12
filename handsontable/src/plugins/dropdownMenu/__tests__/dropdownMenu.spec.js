@@ -958,10 +958,11 @@ describe('DropdownMenu', () => {
 
     await sleep(10);
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(650);
+    // 900 column width - 250 viewport width + 1 header border compensation
+    expect(inlineStartOverlay().getScrollPosition()).toBe(651);
 
     dropdownMenu(6); // click on the column `G` header button
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(650);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(651);
   });
 });

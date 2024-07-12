@@ -1,8 +1,8 @@
 import { test } from '../src/test-runner';
 import { helpers } from '../src/helpers';
 
-test(__filename, async({ page }) => {
-  const table = page.locator(helpers.selectors.mainTable);
+test(__filename, async({ tablePage }) => {
+  const table = tablePage.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
 
@@ -13,13 +13,13 @@ test(__filename, async({ page }) => {
   // so in this case, it would deselect the checkbox
   // to avoid it, let's define coordinates inside of the cell, but outside of the checkbox
   await cell.click({ position: { x: 1, y: 1 } });
-  await page.screenshot({ path: helpers.screenshotPath() });
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   const cellCoordinates = await cell.boundingBox();
 
-  await page.mouse.move(cellCoordinates!.x + 1, cellCoordinates!.y + 1);
-  await page.mouse.down();
-  await page.mouse.move(cellCoordinates!.x + 1, cellCoordinates!.y - 50);
-  await page.mouse.up();
-  await page.screenshot({ path: helpers.screenshotPath() });
+  await tablePage.mouse.move(cellCoordinates!.x + 1, cellCoordinates!.y + 1);
+  await tablePage.mouse.down();
+  await tablePage.mouse.move(cellCoordinates!.x + 1, cellCoordinates!.y - 50);
+  await tablePage.mouse.up();
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

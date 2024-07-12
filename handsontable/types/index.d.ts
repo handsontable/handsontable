@@ -361,6 +361,7 @@ declare namespace Handsontable {
     export class CopyPaste extends _CopyPaste {}
     export class CustomBorders extends _CustomBorders {}
     export class DragToScroll extends _DragToScroll {}
+    export class DropdownMenu extends _DropdownMenu {}
     export class ExportFile extends _ExportFile {}
     export class Filters extends _Filters {}
     export class Formulas extends _Formulas {}
@@ -378,6 +379,7 @@ declare namespace Handsontable {
     export class NestedRows extends _NestedRows {}
     export class PersistentState extends _PersistentState {}
     export class Search extends _Search {}
+    export class TouchScroll extends _TouchScroll {}
     export class TrimRows extends _TrimRows {}
     export class UndoRedo extends _UndoRedo {}
 
@@ -439,6 +441,10 @@ declare namespace Handsontable {
 
     export namespace DragToScroll {
       export { DragToScrollSettings as Settings };
+    }
+
+    export namespace DropdownMenu {
+      export { DropdownMenuSettings as Settings };
     }
 
     export namespace ExportFile {
@@ -515,6 +521,10 @@ declare namespace Handsontable {
       export { SearchSettings as Settings };
       export { SearchCallback };
       export { SearchQueryMethod };
+    }
+
+    export namespace TouchScroll {
+      export { TouchScrollSettings as Settings };
     }
 
     export namespace TrimRows {

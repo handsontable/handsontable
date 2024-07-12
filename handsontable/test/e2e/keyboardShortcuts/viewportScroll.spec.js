@@ -252,7 +252,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 1100, y: 1835 });
+      expect(getCurrentScrollPosition()).toEqual({ x: 1100, y: 1836 });
     });
 
     it('should scroll the viewport horizontally when the column header is focused and all rows are trimmed', async() => {
@@ -321,7 +321,8 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 1745, y: 1035 });
+      // 2050 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
+      expect(getCurrentScrollPosition()).toEqual({ x: 1747, y: 1035 });
     });
 
     it('should scroll the viewport vertically when the row header is focused and all columns are trimmed', async() => {
@@ -388,11 +389,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       await sleep(100);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 995, y: 915 });
+      // 1300 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
+      expect(getCurrentScrollPosition()).toEqual({ x: 996, y: 916 });
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).toEqual({ x: 995, y: 915 });
+      expect(getCurrentScrollPosition()).toEqual({ x: 996, y: 916 });
     });
   });
 });

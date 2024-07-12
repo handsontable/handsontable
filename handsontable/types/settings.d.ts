@@ -133,6 +133,7 @@ export interface GridSettings extends Events {
   currentRowClassName?: string;
   customBorders?: CustomBordersSettings;
   data?: CellValue[][] | RowObject[];
+  dataDotNotation?: boolean;
   dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
   dateFormat?: string;
   datePickerConfig?: PikadayOptions;
@@ -154,6 +155,7 @@ export interface GridSettings extends Events {
   fixedRowsTop?: number;
   formulas?: FormulasSettings;
   fragmentSelection?: boolean | 'cell';
+  headerClassName?: string;
   height?: number | string | (() => number | string);
   hiddenColumns?: HiddenColumnsSettings;
   hiddenRows?: HiddenRowsSettings;

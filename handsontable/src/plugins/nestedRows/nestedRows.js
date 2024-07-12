@@ -6,6 +6,7 @@ import ContextMenuUI from './ui/contextMenu';
 import { error } from '../../helpers/console';
 import { isArrayOfObjects } from '../../helpers/data';
 import { TrimmingMap } from '../../translations';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import RowMoveController from './utils/rowMoveController';
 
 import './nestedRows.scss';
@@ -164,23 +165,26 @@ export class NestedRows extends BasePlugin {
         keys: [['Enter']],
         callback: () => {
           const { highlight } = this.hot.getSelectedRangeLast();
+          const row = this.collapsingUI.translateTrimmedRow(highlight.row);
 
-          if (highlight.col === -1 && highlight.row >= 0) {
-            const row = this.collapsingUI.translateTrimmedRow(highlight.row);
-
-            if (this.collapsingUI.areChildrenCollapsed(row)) {
-              this.collapsingUI.expandChildren(row);
-            } else {
-              this.collapsingUI.collapseChildren(row);
-            }
+          if (this.collapsingUI.areChildrenCollapsed(row)) {
+            this.collapsingUI.expandChildren(row);
+          } else {
+            this.collapsingUI.collapseChildren(row);
           }
+
+          // prevent default Enter behavior (move to the next row within a selection range)
+          return false;
         },
         runOnlyIf: () => {
           const highlight = this.hot.getSelectedRangeLast()?.highlight;
 
-          return highlight && this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+          return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
+            this.hot.selection.isCellVisible(highlight) && highlight.col === -1 && highlight.row >= 0;
         },
         group: SHORTCUTS_GROUP,
+        relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+        position: 'before',
       });
   }
 
@@ -201,10 +205,10 @@ export class NestedRows extends BasePlugin {
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements
    *   will be placed after the moving action. To check the visualization of the final index, please take a look at
-   *   [documentation](@/guides/rows/row-summary.md).
+   *   [documentation](@/guides/rows/row-summary/row-summary.md).
    * @param {undefined|number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we
    *   are going to drop the moved elements. To check visualization of drop index please take a look at
-   *   [documentation](@/guides/rows/row-summary.md).
+   *   [documentation](@/guides/rows/row-summary/row-summary.md).
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
    * @fires Hooks#afterRowMove
    * @returns {boolean}

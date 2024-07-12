@@ -13,15 +13,12 @@ import {
   DropdownMenu,
 } from './plugins/dropdownMenu';
 import {
-  ColumnSorting,
   Config as ColumnSortingConfig,
 } from './plugins/columnSorting';
 import {
-  Filters,
   ColumnConditions as FiltersColumnConditions,
 } from './plugins/filters';
 import {
-  UndoRedo,
   Action as UndoRedoAction,
 } from './plugins/undoRedo';
 import {
@@ -38,6 +35,7 @@ import {
   CellChange,
   ChangeSource,
   RangeType,
+  OverlayType,
 } from './common';
 
 type Bucket = {
@@ -101,6 +99,7 @@ export interface Events {
   afterLoadData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
   afterMergeCells?: (cellRange: CellRange, mergeParent: MergeCellsSettings, auto: boolean) => void;
   afterModifyTransformEnd?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
+  afterModifyTransformFocus?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
   afterModifyTransformStart?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
   afterMomentumScroll?: () => void;
   afterNamedExpressionAdded?: (namedExpressionName: string, changes: ExportedChange[]) => void;
@@ -133,6 +132,7 @@ export interface Events {
   afterSelectionByProp?: (row: number, prop: string, row2: number, prop2: string, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
   afterSelectionEnd?: (row: number, column: number, row2: number, column2: number, selectionLayerLevel: number) => void;
   afterSelectionEndByProp?: (row: number, prop: string, row2: number, prop2: string, selectionLayerLevel: number) => void;
+  afterSelectionFocusSet?: (row: number, column: number, preventScrolling: { value: boolean }) => void;
   afterSelectRows?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   afterSetCellMeta?: (row: number, column: number, key: string, value: any) => void;
   afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
@@ -211,6 +211,7 @@ export interface Events {
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
   beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: CellCoords, isRowFlipped: boolean) => void;
   beforeSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
+  beforeSelectionFocusSet?: (coords: CellCoords) => void;
   beforeSelectionHighlightSet?: () => void;
   beforeSelectRows?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   beforeSetCellMeta?: (row: number, column: number, key: string, value: any) => boolean | void;
@@ -250,9 +251,11 @@ export interface Events {
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
   modifyRowHeaderWidth?: (rowHeaderWidth: number) => void;
-  modifyRowHeight?: (height: number, row: number) => void;
+  modifyRowHeight?: (height: number, row: number) => void | number;
+  modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: OverlayType) => void | number;
   modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyTransformEnd?: (delta: CellCoords) => void;
+  modifyTransformFocus?: (delta: CellCoords) => void;
   modifyTransformStart?: (delta: CellCoords) => void;
   persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
   persistentStateReset?: (key: string) => void;
@@ -260,7 +263,7 @@ export interface Events {
 }
 
 export class Hooks {
-  add<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core): Hooks;
+  add<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core, orderIndex?: number): Hooks;
   createEmptyBucket(): Bucket;
   deregister(key: string): void;
   destroy(context?: Core): void;

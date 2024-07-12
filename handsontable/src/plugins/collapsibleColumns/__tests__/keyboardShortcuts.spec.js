@@ -73,7 +73,35 @@ describe('CollapsibleColumns keyboard shortcut', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should be possible to collapse a single column when a range columns are selected', () => {
+    it('should be possible to collapse a single column column header is selected', () => {
+      handsontable({
+        data: createSpreadsheetData(1, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [{ label: 'A1', colspan: 10 }],
+          ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
+          ['A3', { label: 'B3', colspan: 2 }, { label: 'D3', colspan: 2 }, { label: 'F3', colspan: 2 },
+            { label: 'H3', colspan: 2 }, 'J3'],
+        ],
+        collapsibleColumns: true,
+      });
+
+      selectCell(-1, 5);
+      listen();
+      keyDownUp('enter');
+
+      expect(`
+        |   ║                                   |
+        |   ║   :               :           :   |
+        |   ║   :       :       : # :       :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not be possible to collapse a single column when a range columns are selected', () => {
       handsontable({
         data: createSpreadsheetData(1, 10),
         colHeaders: true,
@@ -93,11 +121,11 @@ describe('CollapsibleColumns keyboard shortcut', () => {
       keyDownUp('enter');
 
       expect(`
-        |   ║                                   |
-        |   ║   :           :               :   |
-        |   ║   :       : # : *   * :       :   |
-        |===:===:===:===:===:===:===:===:===:===|
-        | - ║   :   :   : 0 : 0 : 0 :   :   :   |
+        |   ║                                       |
+        |   ║   :               :               :   |
+        |   ║   :       : *   * : *   * :       :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        | - ║   :   :   : A : 0 : 0 : 0 :   :   :   |
       `).toBeMatchToSelectionPattern();
     });
 
@@ -178,7 +206,38 @@ describe('CollapsibleColumns keyboard shortcut', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should be possible to expand a single column when a range columns are selected', () => {
+    it('should be possible to expand a single column when a column header is selected', () => {
+      handsontable({
+        data: createSpreadsheetData(1, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          [{ label: 'A1', colspan: 10 }],
+          ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
+          ['A3', { label: 'B3', colspan: 2 }, { label: 'D3', colspan: 2 }, { label: 'F3', colspan: 2 },
+            { label: 'H3', colspan: 2 }, 'J3'],
+        ],
+        collapsibleColumns: true,
+      });
+
+      getPlugin('collapsibleColumns').collapseSection({ row: -1, col: 3 }); // D3
+      getPlugin('collapsibleColumns').collapseSection({ row: -1, col: 5 }); // F3
+
+      selectCell(-1, 3);
+      listen();
+      keyDownUp('enter');
+
+      expect(`
+        |   ║                                   |
+        |   ║   :               :           :   |
+        |   ║   :       : #   # :   :       :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not be possible to expand a single column when a range columns are selected', () => {
       handsontable({
         data: createSpreadsheetData(1, 10),
         colHeaders: true,
@@ -201,11 +260,11 @@ describe('CollapsibleColumns keyboard shortcut', () => {
       keyDownUp('enter');
 
       expect(`
-        |   ║                                   |
-        |   ║   :               :           :   |
-        |   ║   :       : #   # : * :       :   |
-        |===:===:===:===:===:===:===:===:===:===|
-        | - ║   :   :   : 0 : 0 : 0 :   :   :   |
+        |   ║                               |
+        |   ║   :           :           :   |
+        |   ║   :       : * : * :       :   |
+        |===:===:===:===:===:===:===:===:===|
+        | - ║   :   :   : A : 0 :   :   :   |
       `).toBeMatchToSelectionPattern();
     });
 

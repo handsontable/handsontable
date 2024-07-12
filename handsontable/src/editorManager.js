@@ -2,9 +2,6 @@ import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
-import { isDefined } from './helpers/mixed';
-
-export const SHORTCUTS_GROUP_NAVIGATION = 'editorManager.navigation';
 
 class EditorManager {
   /**
@@ -43,13 +40,6 @@ class EditorManager {
    */
   destroyed = false;
   /**
-   * Determines if EditorManager is locked.
-   *
-   * @private
-   * @type {boolean}
-   */
-  lock = false;
-  /**
    * A reference to an instance of the activeEditor.
    *
    * @private
@@ -87,34 +77,6 @@ class EditorManager {
   }
 
   /**
-   * Lock the editor from being prepared and closed. Locking the editor prevents its closing and
-   * reinitialized after selecting the new cell. This feature is necessary for a mobile editor.
-   */
-  lockEditor() {
-    this.lock = true;
-  }
-
-  /**
-   * Unlock the editor from being prepared and closed. This method restores the original behavior of
-   * the editors where for every new selection its instances are closed.
-   */
-  unlockEditor() {
-    this.lock = false;
-  }
-
-  /**
-   * Destroy current editor, if exists.
-   *
-   * @param {boolean} revertOriginal If `false` and the cell using allowInvalid option,
-   *                                 then an editor won't be closed until validation is passed.
-   */
-  destroyEditor(revertOriginal) {
-    if (!this.lock) {
-      this.closeEditor(revertOriginal);
-    }
-  }
-
-  /**
    * Get active editor.
    *
    * @returns {BaseEditor}
@@ -127,10 +89,6 @@ class EditorManager {
    * Prepare text input to be displayed at given grid cell.
    */
   prepareEditor() {
-    if (this.lock) {
-      return;
-    }
-
     if (this.activeEditor && this.activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved) => {
         if (dataSaved) {
@@ -320,20 +278,23 @@ class EditorManager {
   }
 
   /**
-   * Controls selection's behaviour after clicking `Enter`.
+   * Controls selection's behavior after clicking `Enter`.
    *
    * @private
-   * @param {boolean} isShiftPressed If `true`, then the selection will move up after hit enter.
+   * @param {KeyboardEvent} event The keyboard event object.
    */
-  moveSelectionAfterEnter(isShiftPressed) {
-    const enterMoves = typeof this.tableMeta.enterMoves === 'function' ?
-      this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves;
+  moveSelectionAfterEnter(event) {
+    const enterMoves = { ...typeof this.tableMeta.enterMoves === 'function' ?
+      this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves };
 
-    if (isShiftPressed) {
-      // move selection up
-      this.selection.transformStart(-enterMoves.row, -enterMoves.col);
+    if (event.shiftKey) {
+      enterMoves.row = -enterMoves.row;
+      enterMoves.col = -enterMoves.col;
+    }
+
+    if (this.hot.selection.isMultiple()) {
+      this.selection.transformFocus(enterMoves.row, enterMoves.col);
     } else {
-      // move selection down (add a new row if needed)
       this.selection.transformStart(enterMoves.row, enterMoves.col, true);
     }
   }
@@ -358,35 +319,6 @@ class EditorManager {
 
     if (!this.activeEditor || (this.activeEditor && !this.activeEditor.isWaiting())) {
       if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
-        const shortcutManager = this.hot.getShortcutManager();
-        const editorContext = shortcutManager.getContext('editor');
-        const runOnlySelectedConfig = {
-          runOnlyIf: () => isDefined(this.hot.getSelected()),
-          group: SHORTCUTS_GROUP_NAVIGATION
-        };
-
-        editorContext.addShortcuts([{
-          keys: [['ArrowUp']],
-          callback: () => {
-            this.hot.selection.transformStart(-1, 0);
-          },
-        }, {
-          keys: [['ArrowDown']],
-          callback: () => {
-            this.hot.selection.transformStart(1, 0);
-          },
-        }, {
-          keys: [['ArrowLeft']],
-          callback: () => {
-            this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
-          },
-        }, {
-          keys: [['ArrowRight']],
-          callback: () => {
-            this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
-          },
-        }], runOnlySelectedConfig);
-
         this.openEditor('', event);
       }
     }

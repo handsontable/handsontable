@@ -53,11 +53,6 @@ class Transformation {
    * @returns {CellCoords} Visual coordinates after transformation.
    */
   transformStart(rowDelta, colDelta, createMissingRecords = false) {
-    this.#setOffsetSize({
-      x: this.#options.navigableHeaders() ? this.#options.countRowHeaders() : 0,
-      y: this.#options.navigableHeaders() ? this.#options.countColHeaders() : 0,
-    });
-
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
     let visualCoords = this.#range.current().highlight;
     const highlightRenderableCoords = this.#options.visualToRenderableCoords(visualCoords);
@@ -188,23 +183,54 @@ class Transformation {
    * @returns {CellCoords} Visual coordinates after transformation.
    */
   transformEnd(rowDelta, colDelta) {
-    this.#setOffsetSize({
-      x: this.#options.navigableHeaders() ? this.#options.countRowHeaders() : 0,
-      y: this.#options.navigableHeaders() ? this.#options.countColHeaders() : 0,
-    });
-
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
     const cellRange = this.#range.current();
     const highlightRenderableCoords = this.#options.visualToRenderableCoords(cellRange.highlight);
+    const toRow = this.#findFirstNonHiddenZeroBasedRow(cellRange.to.row, cellRange.from.row);
+    const toColumn = this.#findFirstNonHiddenZeroBasedColumn(cellRange.to.col, cellRange.from.col);
     const visualCoords = cellRange.to.clone();
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
     this.runLocalHooks('beforeTransformEnd', delta);
 
-    if (highlightRenderableCoords.row !== null && highlightRenderableCoords.col !== null) {
-      const { row, col } = this.#visualToZeroBasedCoords(cellRange.to);
-      const coords = this.#options.createCellCoords(row + delta.row, col + delta.col);
+    if (
+      highlightRenderableCoords.row !== null && highlightRenderableCoords.col !== null &&
+      toRow !== null && toColumn !== null
+    ) {
+      const {
+        row: highlightRow,
+        col: highlightColumn,
+      } = this.#visualToZeroBasedCoords(cellRange.highlight);
+      const coords = this.#options.createCellCoords(toRow + delta.row, toColumn + delta.col);
+      const topStartCorner = cellRange.getTopStartCorner();
+      const topEndCorner = cellRange.getTopEndCorner();
+      const bottomEndCorner = cellRange.getBottomEndCorner();
+
+      if (delta.col < 0 && toColumn >= highlightColumn && coords.col < highlightColumn) {
+        const columnRestDelta = coords.col - highlightColumn;
+
+        coords.col = this.#findFirstNonHiddenZeroBasedColumn(topStartCorner.col, topEndCorner.col) + columnRestDelta;
+
+      } else if (delta.col > 0 && toColumn <= highlightColumn && coords.col > highlightColumn) {
+        const endColumnIndex = this.#findFirstNonHiddenZeroBasedColumn(topEndCorner.col, topStartCorner.col);
+        const columnRestDelta = Math.max(coords.col - endColumnIndex, 1);
+
+        coords.col = endColumnIndex + columnRestDelta;
+      }
+
+      if (delta.row < 0 && toRow >= highlightRow && coords.row < highlightRow) {
+        const rowRestDelta = coords.row - highlightRow;
+
+        coords.row = this.#findFirstNonHiddenZeroBasedRow(topStartCorner.row, bottomEndCorner.row) + rowRestDelta;
+
+      } else if (delta.row > 0 && toRow <= highlightRow && coords.row > highlightRow) {
+        const bottomRowIndex = this.#findFirstNonHiddenZeroBasedRow(bottomEndCorner.row, topStartCorner.row);
+        const rowRestDelta = Math.max(coords.row - bottomRowIndex, 1);
+
+        coords.row = bottomRowIndex + rowRestDelta;
+      }
+
       const { rowDir, colDir } = this.#clampCoords(coords);
 
       rowTransformDir = rowDir;
@@ -235,8 +261,18 @@ class Transformation {
    *
    * @param {{x: number, y: number}} offset Offset as x and y properties.
    */
-  #setOffsetSize({ x, y }) {
+  setOffsetSize({ x, y }) {
     this.#offset = { x, y };
+  }
+
+  /**
+   * Resets the offset size to the default values.
+   */
+  resetOffsetSize() {
+    this.#offset = {
+      x: 0,
+      y: 0
+    };
   }
 
   /**
@@ -285,6 +321,40 @@ class Transformation {
   }
 
   /**
+   * Finds the first non-hidden zero-based row in the table range.
+   *
+   * @param {number} visualRowFrom The visual row from which the search should start.
+   * @param {number} visualRowTo The visual row to which the search should end.
+   * @returns {number | null}
+   */
+  #findFirstNonHiddenZeroBasedRow(visualRowFrom, visualRowTo) {
+    const row = this.#options.findFirstNonHiddenRenderableRow(visualRowFrom, visualRowTo);
+
+    if (row === null) {
+      return null;
+    }
+
+    return this.#offset.y + row;
+  }
+
+  /**
+   * Finds the first non-hidden zero-based column in the table range.
+   *
+   * @param {number} visualColumnFrom The visual column from which the search should start.
+   * @param {number} visualColumnTo The visual column to which the search should end.
+   * @returns {number | null}
+   */
+  #findFirstNonHiddenZeroBasedColumn(visualColumnFrom, visualColumnTo) {
+    const column = this.#options.findFirstNonHiddenRenderableColumn(visualColumnFrom, visualColumnTo);
+
+    if (column === null) {
+      return null;
+    }
+
+    return this.#offset.x + column;
+  }
+
+  /**
    * Translates the visual coordinates to zero-based ones.
    *
    * @param {CellCoords} visualCoords The visual coords to process.
@@ -292,6 +362,10 @@ class Transformation {
    */
   #visualToZeroBasedCoords(visualCoords) {
     const { row, col } = this.#options.visualToRenderableCoords(visualCoords);
+
+    if (row === null || col === null) {
+      throw new Error('Renderable coords are not visible.');
+    }
 
     return this.#options.createCellCoords(this.#offset.y + row, this.#offset.x + col);
   }

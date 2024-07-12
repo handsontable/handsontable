@@ -1,5 +1,6 @@
 import { columnHeaderScrollStrategy } from './scrollStrategies/columnHeaderScroll';
 import { cornerHeaderScrollStrategy } from './scrollStrategies/cornerHeaderScroll';
+import { focusScrollStrategy } from './scrollStrategies/focusScroll';
 import { multipleScrollStrategy } from './scrollStrategies/multipleScroll';
 import { noncontiguousScrollStrategy } from './scrollStrategies/noncontiguousScroll';
 import { rowHeaderScrollStrategy } from './scrollStrategies/rowHeaderScroll';
@@ -44,7 +45,10 @@ export function createViewportScroller(hot) {
 
       let scrollStrategy;
 
-      if (selection.isSelectedByCorner()) {
+      if (selection.isFocusSelectionChanged()) {
+        scrollStrategy = focusScrollStrategy(hot);
+
+      } else if (selection.isSelectedByCorner()) {
         scrollStrategy = cornerHeaderScrollStrategy(hot);
 
       } else if (selection.isSelectedByRowHeader()) {

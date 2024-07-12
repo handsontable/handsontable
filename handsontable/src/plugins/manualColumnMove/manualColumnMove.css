@@ -7,7 +7,8 @@
   cursor: -webkit-grab;
   cursor: grab;
 }
-.handsontable.ht__manualColumnMove.on-moving--columns,
+.handsontable.ht__manualColumnMove.on-moving--columns *,
+/* Additional specific selector may be needed, because `grab` got assigned very specificaly */
 .handsontable.ht__manualColumnMove.on-moving--columns thead th.ht__highlight {
   cursor: move;
   cursor: -moz-grabbing;

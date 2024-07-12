@@ -183,26 +183,28 @@ describe('MergeCells Selection', () => {
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
   });
 
-  it('should keep headers\' selection after toggleMergeOnSelection call', () => {
+  it('should keep headers\' selection after merging', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       colHeaders: true,
       rowHeaders: true,
       mergeCells: true,
+      contextMenu: true,
     });
 
     selectColumns(0, 2);
-    getPlugin('mergeCells').toggleMergeOnSelection();
+    contextMenu();
+    selectContextMenuOption('Merge cells');
 
     expect(getSelected()).toEqual([[-1, 0, 4, 2]]);
     expect(`
     |   ║ * : * : * :   :   |
     |===:===:===:===:===:===|
-    | - ║ A :   :   :   :   |
-    | - ║   :   :   :   :   |
-    | - ║   :   :   :   :   |
-    | - ║   :   :   :   :   |
-    | - ║   :   :   :   :   |
+    | - ║ A         :   :   |
+    | - ║           :   :   |
+    | - ║           :   :   |
+    | - ║           :   :   |
+    | - ║           :   :   |
     `).toBeMatchToSelectionPattern();
   });
 
@@ -243,5 +245,68 @@ describe('MergeCells Selection', () => {
     expect(getSelected()).toEqual([[1, 2, 2, 3]]);
 
     expect($borderLeft.position().left).toBe(leftPositionBefore + 50);
+  });
+
+  it('should correctly indicate that the selected merged cell is not multiple selection', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 }
+      ]
+    });
+
+    selectCell(1, 1, 2, 2);
+
+    expect(hot.selection.isMultiple()).toBe(false);
+    expect(`
+      |   ║   : - : - :   :   |
+      |===:===:===:===:===:===|
+      |   ║   :   :   :   :   |
+      | - ║   : #     :   :   |
+      | - ║   :       :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    selectCell(2, 2, 1, 1);
+
+    expect(hot.selection.isMultiple()).toBe(false);
+    expect(`
+      |   ║   : - : - :   :   |
+      |===:===:===:===:===:===|
+      |   ║   :   :   :   :   |
+      | - ║   : #     :   :   |
+      | - ║   :       :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should correctly select the neighboring merged cells', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 8),
+      colHeaders: true,
+      rowHeaders: true,
+      mergeCells: [
+        { row: 1, col: 3, rowspan: 1, colspan: 3 },
+        { row: 2, col: 1, rowspan: 2, colspan: 4 },
+        { row: 2, col: 5, rowspan: 2, colspan: 2 },
+      ]
+    });
+
+    selectCell(1, 2, 2, 2);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,1 to: 3,6']);
+    expect(`
+      |   ║   : - : - : - : - : - : - :   |
+      |===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   |
+      | - ║   : 0 : A : 0         : 0 :   |
+      | - ║   : 0             : 0     :   |
+      | - ║   :                       :   |
+      |   ║   :   :   :   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 });

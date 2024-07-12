@@ -25,6 +25,7 @@ export default {
               subTexts: this.$page.versionsWithPatches.get(v),
               link: this.getLink(v),
               target: '_self',
+              rel: this.$page.latestVersion === v ? undefined : 'nofollow',
               isHtmlLink: true,
             })) : []),
           ]
@@ -40,7 +41,9 @@ export default {
           version = this.$page.versionsWithPatches.get(latestMinor)[0]; // Latest version in a format major.minor.patch
         }
 
-        return `${version} (Latest)`;
+        // return `${version} (latest)`;
+        return `${version} latest`;
+
       }
 
       return version;
@@ -54,46 +57,18 @@ export default {
 
       // Using `location.origin` disables injecting `.html` postfix at the end of the URL
       return `${location.origin}/docs/${version}/redirect?pageId=${this.$page.frontmatter.id}`;
-    },
+    }
+  },
+  mounted() {
+
+    const version = document.querySelector('.nav-versions .title');
+
+    if (version && version.textContent && version.textContent.includes('latest')) {
+      const span = document.createElement('span');
+
+      span.textContent = 'latest';
+      version.innerHTML = version.textContent.replace('latest', `<span class="tag">${span.textContent}</span>`);
+    }
   }
 };
 </script>
-
-<style lang="stylus">
-.nav-versions
-  margin-right 1.5rem
-  display inline-block
-  position relative
-  top -1px
-  text-transform capitalize
-
-  .dropdown-title, .mobile-dropdown-title
-    text-transform capitalize
-
-  .icon.outbound
-    display none
-
-  .dropdown-wrapper
-    height 1.8rem
-
-  .dropdown-wrapper .nav-dropdown
-    min-width 150px
-    height auto !important
-    box-sizing border-box
-    max-height calc(100vh - 2.7rem)
-    overflow-y auto
-    position absolute
-    top 100%
-    background-color #fff
-    padding 0.6rem 0
-    border 1px solid #ddd
-    border-bottom-color #ccc
-    text-align left
-    border-radius 6px
-    white-space nowrap
-    margin 0
-    z-index 100
-.dropdown-wrapper .dropdown-title .arrow, .dropdown-wrapper .mobile-dropdown-title .arrow
-  margin-left 0.1rem
-
-</style>

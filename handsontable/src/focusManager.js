@@ -40,7 +40,7 @@ export class FocusManager {
    *
    * @type {number}
    */
-  #refocusDelay = 50;
+  #refocusDelay = 1;
   /**
    * Getter function for the element to be used when refocusing the browser after a delay. If `null`, the active
    * editor's `TEXTAREA` element will be used.
@@ -63,6 +63,7 @@ export class FocusManager {
 
     this.#hot.addHook('afterUpdateSettings', (...args) => this.#onUpdateSettings(...args));
     this.#hot.addHook('afterSelection', (...args) => this.#focusCell(...args));
+    this.#hot.addHook('afterSelectionFocusSet', (...args) => this.#focusCell(...args));
     this.#hot.addHook('afterSelectionEnd', (...args) => this.#focusEditorElement(...args));
   }
 
@@ -260,11 +261,8 @@ export class FocusManager {
    * @param {object} newSettings The new settings passed to the `updateSettings` method.
    */
   #onUpdateSettings(newSettings) {
-    if (newSettings.imeFastEdit && this.getFocusMode() !== FOCUS_MODES.MIXED) {
-      this.setFocusMode(FOCUS_MODES.MIXED);
-
-    } else if (!newSettings.imeFastEdit && this.getFocusMode() !== FOCUS_MODES.CELL) {
-      this.setFocusMode(FOCUS_MODES.CELL);
+    if (typeof newSettings.imeFastEdit === 'boolean') {
+      this.setFocusMode(newSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL);
     }
   }
 }
