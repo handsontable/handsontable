@@ -9,30 +9,35 @@ import { toSingleLine } from '../../../helpers/templateLiteralTag';
  * @class RowMoveController
  */
 export default class RowMoveController {
+  /**
+   * Reference to the Nested Rows plugin instance.
+   *
+   * @type {NestedRows}
+   */
+  plugin;
+  /**
+   * Reference to the Handsontable instance.
+   *
+   * @type {Handsontable.Core}
+   */
+  hot;
+  /**
+   * Reference to the Data Manager class instance.
+   *
+   * @type {DataManager}
+   */
+  dataManager;
+  /**
+   * Reference to the Collapsing UI class instance.
+   *
+   * @type {CollapsingUI}
+   */
+  collapsingUI;
+
   constructor(plugin) {
-    /**
-     * Reference to the Nested Rows plugin instance.
-     *
-     * @type {NestedRows}
-     */
     this.plugin = plugin;
-    /**
-     * Reference to the Handsontable instance.
-     *
-     * @type {Handsontable.Core}
-     */
     this.hot = plugin.hot;
-    /**
-     * Reference to the Data Manager class instance.
-     *
-     * @type {DataManager}
-     */
     this.dataManager = plugin.dataManager;
-    /**
-     * Reference to the Collapsing UI class instance.
-     *
-     * @type {CollapsingUI}
-     */
     this.collapsingUI = plugin.collapsingUI;
   }
 
@@ -42,10 +47,10 @@ export default class RowMoveController {
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements
    *   will be placed after the moving action. To check the visualization of the final index, please take a look at
-   *   [documentation](@/guides/rows/row-moving.md).
+   *   [documentation](@/guides/rows/row-moving/row-moving.md).
    * @param {undefined|number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we
    *   are going to drop the moved elements. To check visualization of drop index please take a look at
-   *   [documentation](@/guides/rows/row-moving.md).
+   *   [documentation](@/guides/rows/row-moving/row-moving.md).
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
    * @fires Hooks#afterRowMove
    * @returns {boolean}
@@ -186,7 +191,7 @@ export default class RowMoveController {
 
     // If we try to move an element to the place of a top-level parent, snap the element to the previous top-level
     // parent's children instead
-    if (targetParent === null || targetParent === void 0) {
+    if (targetParent === null || targetParent === undefined) {
       targetParent = this.dataManager.getRowParent(physicalDropIndex - 1);
     }
 
@@ -256,7 +261,7 @@ export default class RowMoveController {
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {undefined|number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we
    *   are going to drop the moved elements. To check visualization of drop index please take a look at
-   *   [documentation](@/guides/rows/row-moving.md).
+   *   [documentation](@/guides/rows/row-moving/row-moving.md).
    */
   selectCells(rows, dropIndex) {
     const rowsLen = rows.length;
@@ -306,7 +311,7 @@ export default class RowMoveController {
    * @param {Array} movedRows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements
    *   will be placed after the moving action. To check the visualization of the final index, please take a look at
-   *   [documentation](@/guides/rows/row-moving.md).
+   *   [documentation](@/guides/rows/row-moving/row-moving.md).
    * @returns {boolean}
    */
   isRowOrderChanged(movedRows, finalIndex) {

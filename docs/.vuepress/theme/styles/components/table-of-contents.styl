@@ -1,0 +1,115 @@
+/* Table of contents */
+
+ .page .theme-default-content .table-of-contents { 
+    position fixed
+    width: 320px
+    top: 80px
+    right: 16px
+    bottom: 0
+    margin-top: 12px
+    margin-bottom: 24px
+    box-sizing: border-box
+    display: flex
+    flex-direction:column
+    padding: 0
+
+    + p:empty { 
+        display: none
+    }
+
+    .toc-container-header { 
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+        font-weight: 400
+        padding: 16px 0
+        display: flex
+        align-items: center
+        gap: 16px
+    }
+
+    ul {
+        height: -webkit-fill-available;
+        overflow: auto;
+
+        li { 
+            list-style:none 
+            > ul { 
+                li {
+                    a {
+                        padding: 3px 16px 3px 32px
+
+                        &:before { 
+                            content: ''
+                            display: block
+                            height: 1px
+                            position absolute
+                            left: -8px
+                            width: 24px
+                            top: 14px
+                            border-top: 1px solid  $borderColor
+                        }
+                    }
+                }
+            }
+
+            a { 
+                color: $text2Color
+                font-size: $font-size-xs
+                line-height: $line-height-xs
+                padding: 6px 16px 6px 16px
+                margin: 0 16px
+                border:0
+                position: relative
+                transition all $ts ease
+                display: flex;
+                align-items: center;
+                text-decoration: none
+                display: inline-block
+                border-radius: $radius
+                word-break: break-word
+
+                span { 
+                    display: inline-block
+                }
+
+                &:after { 
+                    content: ''
+                    display: block
+                    position absolute
+                    top 0    
+                    left:-8px
+                    height: 100%
+                    border-left: 1px solid $borderColor
+                    transition all $t ease
+                }
+
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+
+                        &:after {
+                            background: $accentColor
+                        }
+                    }
+                }
+            }
+            &.active > a { 
+                color: $textColor
+                font-weight: 400
+                
+                &:before { 
+                    opacity: 1    
+                }
+
+                &:after { 
+                    border-color: $accentColor
+                }
+            }  
+        }
+    }
+
+    @media (max-width: $extraLarge) {
+        right: 0
+        padding-left: 32px
+    }
+}

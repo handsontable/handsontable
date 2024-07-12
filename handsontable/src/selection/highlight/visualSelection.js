@@ -57,12 +57,6 @@ class VisualSelection extends Selection {
     }
 
     if (visibleFromCoords.row > visibleToCoords.row || visibleFromCoords.col > visibleToCoords.col) {
-      const isHeaderTypeSelection = this.settings.type === 'header' || this.settings.type === 'active-header';
-
-      if (!isHeaderTypeSelection) {
-        return null;
-      }
-
       visibleFromCoords = from;
       visibleToCoords = to;
     }
@@ -83,7 +77,7 @@ class VisualSelection extends Selection {
    */
   getNearestNotHiddenCoords(coords, rowSearchDirection, columnSearchDirection = rowSearchDirection) {
     const nextVisibleRow = this.getNearestNotHiddenIndex(
-      this.settings.rowIndexMapper(), coords.row, rowSearchDirection);
+      this.settings.rowIndexMapper, coords.row, rowSearchDirection);
 
     // There are no more visual rows in the range.
     if (nextVisibleRow === null) {
@@ -91,7 +85,7 @@ class VisualSelection extends Selection {
     }
 
     const nextVisibleColumn = this.getNearestNotHiddenIndex(
-      this.settings.columnIndexMapper(), coords.col, columnSearchDirection);
+      this.settings.columnIndexMapper, coords.col, columnSearchDirection);
 
     // There are no more visual columns in the range.
     if (nextVisibleColumn === null) {
@@ -116,14 +110,7 @@ class VisualSelection extends Selection {
       return visualIndex;
     }
 
-    const nearestVisualIndex = indexMapper.getNearestNotHiddenIndex(visualIndex, searchDirection);
-    const isHeaderSelectionType = this.settings.type === 'header' || this.settings.type === 'active-header';
-
-    if (isHeaderSelectionType && nearestVisualIndex === null) {
-      return -1;
-    }
-
-    return nearestVisualIndex;
+    return indexMapper.getNearestNotHiddenIndex(visualIndex, searchDirection);
   }
 
   /**
@@ -162,31 +149,44 @@ class VisualSelection extends Selection {
    * @returns {VisualSelection}
    */
   syncWith(broaderCellRange) {
+    const coordsFrom = broaderCellRange.from.clone().normalize();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
-    const singleCellRangeVisual = this.getNearestNotHiddenCoords(
-      broaderCellRange.from.clone().normalize(),
-      rowDirection,
-      columnDirection
-    );
+    const renderableHighlight = this.settings.visualToRenderableCoords(this.visualCellRange.highlight);
+    let cellCoordsVisual = null;
 
-    if (singleCellRangeVisual !== null && broaderCellRange.overlaps(singleCellRangeVisual)) {
-      // We can't show selection visually now, but we found fist visible range in the broader cell range.
-      if (this.cellRange === null) {
-        const singleCellRangeRenderable = this.settings.visualToRenderableCoords(singleCellRangeVisual);
-
-        this.cellRange = this.settings.createCellRange(singleCellRangeRenderable);
-      }
-
-      // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
-      // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
-      broaderCellRange.setHighlight(singleCellRangeVisual);
-
-      return this;
+    if (renderableHighlight === null || renderableHighlight.col === null || renderableHighlight.row === null) {
+      cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
     }
 
-    // Fallback to the start of the range. It resets the previous highlight (for example, when all columns have been hidden).
-    broaderCellRange.setHighlight(broaderCellRange.from);
+    if (cellCoordsVisual !== null && broaderCellRange.overlaps(cellCoordsVisual)) {
+      const currentHighlight = broaderCellRange.highlight.clone();
+
+      if (currentHighlight.row >= 0) {
+        currentHighlight.row = cellCoordsVisual.row;
+      }
+      if (currentHighlight.col >= 0) {
+        currentHighlight.col = cellCoordsVisual.col;
+      }
+
+      // We can't show selection visually now, but we found first visible range in the broader cell range.
+      if (this.cellRange === null) {
+        const cellCoordsRenderable = this.settings.visualToRenderableCoords(currentHighlight);
+
+        this.cellRange = this.settings.createCellRange(cellCoordsRenderable);
+      }
+
+      // TODO
+      // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
+      // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
+      broaderCellRange.setHighlight(currentHighlight);
+    }
+
+    // TODO
+    // Sync the highlight coords from the visual selection layer with logical coords.
+    if (this.settings.selectionType === 'focus' && renderableHighlight !== null && cellCoordsVisual === null) {
+      broaderCellRange.setHighlight(this.visualCellRange.highlight);
+    }
 
     return this;
   }
@@ -202,22 +202,11 @@ class VisualSelection extends Selection {
   getCorners() {
     const { from, to } = this.cellRange;
 
-    const isRowUndefined = from.row === null || to.row === null;
-    const isColumnUndefined = from.col === null || to.col === null;
-    const topLeftCorner = this.settings.createCellCoords(
-      isRowUndefined ? null : Math.min(from.row, to.row),
-      isColumnUndefined ? null : Math.min(from.col, to.col),
-    );
-    const bottomRightCorner = this.settings.createCellCoords(
-      isRowUndefined ? null : Math.max(from.row, to.row),
-      isColumnUndefined ? null : Math.max(from.col, to.col),
-    );
-
     return [
-      topLeftCorner.row,
-      topLeftCorner.col,
-      bottomRightCorner.row,
-      bottomRightCorner.col,
+      Math.min(from.row, to.row),
+      Math.min(from.col, to.col),
+      Math.max(from.row, to.row),
+      Math.max(from.col, to.col),
     ];
   }
 
@@ -247,11 +236,16 @@ class VisualSelection extends Selection {
    *                                      points to the beginning of the selection.
    * @param {CellCoords} visualToCoords The CellCoords object which contains coordinates that
    *                                    points to the end of the selection.
-   * @returns {CellRange}
+   * @returns {CellRange|null}
    */
   createRenderableCellRange(visualFromCoords, visualToCoords) {
     const renderableFromCoords = this.settings.visualToRenderableCoords(visualFromCoords);
     const renderableToCoords = this.settings.visualToRenderableCoords(visualToCoords);
+
+    if (renderableFromCoords.row === null || renderableFromCoords.col === null ||
+        renderableToCoords.row === null || renderableToCoords.col === null) {
+      return null;
+    }
 
     return this.settings.createCellRange(renderableFromCoords, renderableFromCoords, renderableToCoords);
   }

@@ -80,7 +80,7 @@ describe('settings', () => {
           fixedColumnsStart: 0
         });
 
-        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(0);
         expect(getInlineStartClone().width()).toBe(0);
       });
 
@@ -103,7 +103,12 @@ describe('settings', () => {
         });
 
         setTimeout(() => {
-          hot.scrollViewportTo(30, 30);
+          hot.scrollViewportTo({
+            row: 30,
+            col: 30,
+            verticalSnap: 'top',
+            horizontalSnap: 'start',
+          });
         }, 100);
 
         setTimeout(() => {
@@ -180,6 +185,24 @@ describe('settings', () => {
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
+    });
+
+    it('should be possible to hide overlay when there are no headers enabled', () => {
+      const hot = handsontable({
+        colHeaders: false,
+        rowHeaders: false,
+        fixedColumnsStart: 2,
+      });
+
+      updateSettings({
+        fixedColumnsStart: 0,
+      });
+
+      hot.view.adjustElementsSize(); // this was causing a bug (#dev-678)
+
+      expect(getInlineStartClone().width()).toBe(0);
+      expect(getInlineStartClone().height()).toBe(0);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(0);
     });
   });
 
@@ -264,7 +287,7 @@ describe('settings', () => {
           fixedColumnsLeft: 0
         });
 
-        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(0);
         expect(getInlineStartClone().width()).toBe(0);
       });
 
@@ -287,7 +310,12 @@ describe('settings', () => {
         });
 
         setTimeout(() => {
-          hot.scrollViewportTo(30, 30);
+          hot.scrollViewportTo({
+            row: 30,
+            col: 30,
+            verticalSnap: 'top',
+            horizontalSnap: 'start',
+          });
         }, 100);
 
         setTimeout(() => {

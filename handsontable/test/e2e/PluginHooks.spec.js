@@ -231,7 +231,7 @@ describe('PluginHooks', () => {
     hot.addHook('afterChange', fn2);
 
     expect(fn.initialHook).toEqual(true);
-    expect(fn2.initialHook).toEqual(void 0);
+    expect(fn2.initialHook).toEqual(undefined);
   });
 
   it('should mark the hook callbacks added using the updateSettings method', () => {
@@ -247,7 +247,7 @@ describe('PluginHooks', () => {
     hot.addHook('afterChange', fn2);
 
     expect(fn.initialHook).toEqual(true);
-    expect(fn2.initialHook).toEqual(void 0);
+    expect(fn2.initialHook).toEqual(undefined);
   });
 
   it('should replace the existing hook callbacks, if they\'re updated using the updateSettings method (when there was a hook ' +

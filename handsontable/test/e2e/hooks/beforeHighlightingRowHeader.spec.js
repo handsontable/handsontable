@@ -14,15 +14,13 @@ describe('Hook', () => {
 
   function highlightMetaFactory(initialValues = {}) {
     const {
-      classNames: _classNames = [],
       rowCursor: _rowCursor,
       selectionHeight: _selectionHeight,
       selectionType: _selectionType,
     } = initialValues;
 
-    return ({ classNames, rowCursor, selectionHeight, selectionType } = {}) => {
+    return ({ rowCursor, selectionHeight, selectionType } = {}) => {
       return {
-        classNames: classNames ?? _classNames,
         rowCursor: rowCursor ?? _rowCursor,
         selectionHeight: selectionHeight ?? _selectionHeight,
         selectionType: selectionType ?? _selectionType,
@@ -43,7 +41,6 @@ describe('Hook', () => {
       selectCells([[2, 2, 4, 2]]);
 
       const createHighlightMeta = highlightMetaFactory({
-        classNames: ['ht__highlight'],
         selectionType: 'header',
         selectionHeight: 3,
       });
@@ -70,12 +67,10 @@ describe('Hook', () => {
       selectRows(2, 5);
 
       const createHighlightMeta = highlightMetaFactory({
-        classNames: ['ht__highlight'],
         selectionType: 'header',
         selectionHeight: 4,
       });
       const createActiveHighlightMeta = highlightMetaFactory({
-        classNames: ['ht__active_highlight'],
         selectionType: 'active-header',
         selectionHeight: 4,
       });

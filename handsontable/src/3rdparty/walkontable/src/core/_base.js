@@ -16,7 +16,7 @@ export default class CoreAbstract {
   wtScroll;
   wtViewport;
   wtOverlays;
-  selections;
+  selectionManager;
   wtEvent;
   /**
    * The walkontable instance id.
@@ -115,7 +115,7 @@ export default class CoreAbstract {
   draw(fastDraw = false) {
     this.drawInterrupted = false;
 
-    if (!fastDraw && !this.wtTable.isVisible()) {
+    if (!this.wtTable.isVisible()) {
       // draw interrupted because TABLE is not visible
       this.drawInterrupted = true;
     } else {
@@ -318,8 +318,8 @@ export default class CoreAbstract {
       get wtOverlays() {
         return wot.wtOverlays; // TODO refactoring: move outside dao, use IOC
       },
-      get selections() {
-        return wot.selections; // TODO refactoring: move outside dao, use IOC
+      get selectionManager() {
+        return wot.selectionManager; // TODO refactoring: move outside dao, use IOC
       },
       get drawn() {
         return wot.drawn;
@@ -336,11 +336,17 @@ export default class CoreAbstract {
       get startColumnVisible() {
         return wot.wtViewport.columnsVisibleCalculator.startColumn;
       },
+      get startColumnPartiallyVisible() {
+        return wot.wtViewport.columnsPartiallyVisibleCalculator.startColumn;
+      },
       get endColumnRendered() {
         return wot.wtViewport.columnsRenderCalculator.endColumn;
       },
       get endColumnVisible() {
         return wot.wtViewport.columnsVisibleCalculator.endColumn;
+      },
+      get endColumnPartiallyVisible() {
+        return wot.wtViewport.columnsPartiallyVisibleCalculator.endColumn;
       },
       get countColumnsRendered() {
         return wot.wtViewport.columnsRenderCalculator.count;
@@ -354,17 +360,29 @@ export default class CoreAbstract {
       get startRowVisible() {
         return wot.wtViewport.rowsVisibleCalculator.startRow;
       },
+      get startRowPartiallyVisible() {
+        return wot.wtViewport.rowsPartiallyVisibleCalculator.startRow;
+      },
       get endRowRendered() {
         return wot.wtViewport.rowsRenderCalculator.endRow;
       },
       get endRowVisible() {
         return wot.wtViewport.rowsVisibleCalculator.endRow;
       },
+      get endRowPartiallyVisible() {
+        return wot.wtViewport.rowsPartiallyVisibleCalculator.endRow;
+      },
       get countRowsRendered() {
         return wot.wtViewport.rowsRenderCalculator.count;
       },
       get countRowsVisible() {
         return wot.wtViewport.rowsVisibleCalculator.count;
+      },
+      get columnHeaders() {
+        return wot.wtSettings.getSetting('columnHeaders');
+      },
+      get rowHeaders() {
+        return wot.wtSettings.getSetting('rowHeaders');
       },
     };
   }

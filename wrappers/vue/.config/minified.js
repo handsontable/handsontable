@@ -1,6 +1,6 @@
 import { baseConfig } from './base';
 import { addLicenseBanner } from './helpers/licenseBanner';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 
 const minFilename = 'vue-handsontable.min.js';
 

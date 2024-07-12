@@ -2587,12 +2587,134 @@ describe('UndoRedo', () => {
         for (let i = 0; i < 9; i++) {
           for (let j = 0; j < 9; j++) {
             cellMeta = hot.getCellMeta(i, j);
-            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' ||
+            finish = cellMeta.className === undefined || cellMeta.className.trim() === '' ||
               cellMeta.className.trim() === 'htLeft';
 
             expect(finish).toBe(true);
           }
         }
+      });
+
+      it('should undo/redo row removal with cell meta', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          cells(row, column) {
+            const cellProperties = { readOnly: false };
+
+            if (row % 2 === 0 && column % 2 === 0) {
+              cellProperties.readOnly = true;
+            }
+
+            return cellProperties;
+          },
+        });
+
+        alter('remove_row', 0, 1);
+        alter('remove_row', 0, 2);
+        undo();
+        undo();
+
+        expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 4).readOnly).toBe(true);
+
+        expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 2).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 4).readOnly).toBe(false);
+
+        expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 4).readOnly).toBe(true);
+
+        redo();
+        redo();
+        undo();
+        undo();
+
+        expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 4).readOnly).toBe(true);
+
+        expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 2).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 4).readOnly).toBe(false);
+
+        expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 4).readOnly).toBe(true);
+      });
+
+      it('should undo/redo column removal with cell meta', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          cells(row, column) {
+            const cellProperties = { readOnly: false };
+
+            if (row % 2 === 0 && column % 2 === 0) {
+              cellProperties.readOnly = true;
+            }
+
+            return cellProperties;
+          },
+        });
+
+        alter('remove_col', 0, 1);
+        alter('remove_col', 0, 2);
+        undo();
+        undo();
+
+        expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 4).readOnly).toBe(true);
+
+        expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 2).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 4).readOnly).toBe(false);
+
+        expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 4).readOnly).toBe(true);
+
+        redo();
+        redo();
+        undo();
+        undo();
+
+        expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(0, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(0, 4).readOnly).toBe(true);
+
+        expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 2).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(1, 4).readOnly).toBe(false);
+
+        expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 1).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 2).readOnly).toBe(true);
+        expect(hot.getCellMeta(2, 3).readOnly).toBe(false);
+        expect(hot.getCellMeta(2, 4).readOnly).toBe(true);
       });
 
       it('should not throw an error after undoing the row header aligning', () => {
@@ -2688,7 +2810,7 @@ describe('UndoRedo', () => {
         for (let i = 0; i < 9; i++) {
           for (let j = 0; j < 9; j++) {
             cellMeta = hot.getCellMeta(i, j);
-            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' ||
+            finish = cellMeta.className === undefined || cellMeta.className.trim() === '' ||
               cellMeta.className.trim() === 'htLeft';
 
             expect(finish).toBe(true);
@@ -3051,7 +3173,7 @@ describe('UndoRedo', () => {
       alter('remove_row', 1, 3);
       undo();
 
-      expect(getSelected()).toEqual([[7, -1, 8, 9]]);
+      expect(getSelected()).toEqual([[4, -1, 5, 9]]);
       expect(`
         |   ║ - : - : - : - : - : - : - : - : - : - |
         |===:===:===:===:===:===:===:===:===:===:===|
@@ -3059,11 +3181,11 @@ describe('UndoRedo', () => {
         |   ║   :   :   :   :   :   :   :   :   :   |
         |   ║   :   :   :   :   :   :   :   :   :   |
         |   ║   :   :   :   :   :   :   :   :   :   |
-        |   ║   :   :   :   :   :   :   :   :   :   |
-        |   ║   :   :   :   :   :   :   :   :   :   |
-        |   ║   :   :   :   :   :   :   :   :   :   |
         | * ║ A : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
         |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
     });
@@ -3079,7 +3201,7 @@ describe('UndoRedo', () => {
       alter('remove_row', 1, 3);
       undo();
 
-      expect(getSelected()).toEqual([[3, 3, 3, 3], [8, 2, 9, 2]]);
+      expect(getSelected()).toEqual([[3, 3, 3, 3], [5, 2, 6, 2]]);
       // By design only last selection is interactive.
       expect(`
         |   ║   :   : - : - :   :   :   :   :   :   |
@@ -3089,11 +3211,11 @@ describe('UndoRedo', () => {
         |   ║   :   :   :   :   :   :   :   :   :   |
         | - ║   :   :   : 0 :   :   :   :   :   :   |
         |   ║   :   :   :   :   :   :   :   :   :   |
-        |   ║   :   :   :   :   :   :   :   :   :   |
-        |   ║   :   :   :   :   :   :   :   :   :   |
-        |   ║   :   :   :   :   :   :   :   :   :   |
         | - ║   :   : A :   :   :   :   :   :   :   |
         | - ║   :   : 0 :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
     });
 
@@ -3108,20 +3230,20 @@ describe('UndoRedo', () => {
       alter('remove_col', 1, 3);
       undo();
 
-      expect(getSelected()).toEqual([[-1, 7, 9, 8]]);
+      expect(getSelected()).toEqual([[-1, 4, 9, 5]]);
       expect(`
-        |   ║   :   :   :   :   :   :   : * : * :   |
+        |   ║   :   :   :   : * : * :   :   :   :   |
         |===:===:===:===:===:===:===:===:===:===:===|
-        | - ║   :   :   :   :   :   :   : A : 0 :   |
-        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
-        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
-        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
-        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
-        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
-        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
-        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
-        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
-        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   : A : 0 :   :   :   :   |
+        | - ║   :   :   :   : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   : 0 : 0 :   :   :   :   |
       `).toBeMatchToSelectionPattern();
     });
 
@@ -3136,14 +3258,14 @@ describe('UndoRedo', () => {
       alter('remove_col', 1, 3);
       undo();
 
-      expect(getSelected()).toEqual([[3, 3, 3, 3], [2, 8, 2, 9]]);
+      expect(getSelected()).toEqual([[3, 3, 3, 3], [2, 5, 2, 6]]);
       // By design only last selection is interactive.
       expect(`
-        |   ║   :   :   : - :   :   :   :   : - : - |
+        |   ║   :   :   : - :   : - : - :   :   :   |
         |===:===:===:===:===:===:===:===:===:===:===|
         |   ║   :   :   :   :   :   :   :   :   :   |
         |   ║   :   :   :   :   :   :   :   :   :   |
-        | - ║   :   :   :   :   :   :   :   : A : 0 |
+        | - ║   :   :   :   :   : A : 0 :   :   :   |
         | - ║   :   :   : 0 :   :   :   :   :   :   |
         |   ║   :   :   :   :   :   :   :   :   :   |
         |   ║   :   :   :   :   :   :   :   :   :   |
@@ -3166,6 +3288,83 @@ describe('UndoRedo', () => {
       undo();
 
       expect(hot.getSettings().fixedColumnsStart).toBe(1);
+    });
+  });
+
+  describe('scroll', () => {
+    it('should move to the already changed cell only vertically', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 500,
+        height: 400,
+      });
+
+      selectCell(4, 4);
+      setDataAtCell(4, 4, 'aaaa');
+      selectCell(5, 4);
+      scrollViewportTo({ row: 25, col: 4, verticalSnap: 'top' });
+      undo();
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(4);
+      expect(hot.view.getFirstFullyVisibleColumn()).toBe(0);
+    });
+
+    it('should move to the already changed cell only horizontally', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 500,
+        height: 400,
+      });
+
+      selectCell(4, 4);
+      setDataAtCell(4, 4, 'aaaa');
+      selectCell(5, 4);
+      scrollViewportTo({ row: 4, col: 25, horizontalSnap: 'start' });
+      undo();
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(0);
+      expect(hot.view.getFirstFullyVisibleColumn()).toBe(4);
+    });
+
+    it('should move to the already changed cell on both axis', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 500,
+        height: 400,
+      });
+
+      selectCell(4, 4);
+      setDataAtCell(4, 4, 'aaaa');
+      selectCell(5, 4);
+      scrollViewportTo({ row: 25, col: 25 });
+      undo();
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(4);
+      expect(hot.view.getFirstFullyVisibleColumn()).toBe(4);
+    });
+
+    it('should not move to the already changed cell when selection has not been changed', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 500,
+        height: 400,
+      });
+
+      selectCell(4, 4);
+      setDataAtCell(4, 4, 'aaaa');
+      scrollViewportTo({ row: 25, col: 25, horizontalSnap: 'start', verticalSnap: 'top' });
+      undo();
+
+      expect(hot.view.getFirstFullyVisibleRow()).toBe(25);
+      expect(hot.view.getFirstFullyVisibleColumn()).toBe(25);
     });
   });
 });

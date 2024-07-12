@@ -3,8 +3,6 @@ import { arrayEach } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
 import BaseUI from './_base';
 
-const privatePool = new WeakMap();
-
 /**
  * Class responsible for the Context Menu entries for the Nested Rows plugin.
  *
@@ -13,28 +11,26 @@ const privatePool = new WeakMap();
  * @augments BaseUI
  */
 class ContextMenuUI extends BaseUI {
-  constructor(nestedRowsPlugin, hotInstance) {
-    super(nestedRowsPlugin, hotInstance);
+  /**
+   * Reference to the DataManager instance connected with the Nested Rows plugin.
+   *
+   * @type {DataManager}
+   */
+  dataManager = this.plugin.dataManager;
 
-    privatePool.set(this, {
-      row_above: (key, selection) => {
-        const lastSelection = selection[selection.length - 1];
+  #menuEntries = {
+    row_above: (key, selection) => {
+      const lastSelection = selection[selection.length - 1];
 
-        this.dataManager.addSibling(lastSelection.start.row, 'above');
-      },
-      row_below: (key, selection) => {
-        const lastSelection = selection[selection.length - 1];
+      this.dataManager.addSibling(lastSelection.start.row, 'above');
+    },
+    row_below: (key, selection) => {
+      const lastSelection = selection[selection.length - 1];
 
-        this.dataManager.addSibling(lastSelection.start.row, 'below');
-      }
-    });
-    /**
-     * Reference to the DataManager instance connected with the Nested Rows plugin.
-     *
-     * @type {DataManager}
-     */
-    this.dataManager = this.plugin.dataManager;
-  }
+      this.dataManager.addSibling(lastSelection.start.row, 'below');
+    }
+  };
+
   /**
    * Append options to the context menu. (Propagated from the `afterContextMenuDefaultOptions` hook callback)
    * f.
@@ -106,12 +102,10 @@ class ContextMenuUI extends BaseUI {
    * @returns {*}
    */
   modifyRowInsertingOptions(defaultOptions) {
-    const priv = privatePool.get(this);
-
     rangeEach(0, defaultOptions.items.length - 1, (i) => {
-      const option = priv[defaultOptions.items[i].key];
+      const option = this.#menuEntries[defaultOptions.items[i].key];
 
-      if (option !== null && option !== void 0) {
+      if (option !== null && option !== undefined) {
         defaultOptions.items[i].callback = option;
       }
     });

@@ -22,13 +22,6 @@ export function addClassesToRows(TD, row, column, prop, value, cellProperties) {
     return;
   }
 
-  // Add class to selected rows
-  if (cellProperties.instance.getDataAtRowProp(row, "0")) {
-    Handsontable.dom.addClass(parentElement, SELECTED_CLASS);
-  } else {
-    Handsontable.dom.removeClass(parentElement, SELECTED_CLASS);
-  }
-
   // Add class to odd TRs
   if (row % 2 === 0) {
     Handsontable.dom.addClass(parentElement, ODD_ROW_CLASS);
@@ -37,19 +30,6 @@ export function addClassesToRows(TD, row, column, prop, value, cellProperties) {
   }
 }
 
-export function drawCheckboxInRowHeaders(row, TH) {
-  const input = document.createElement("input");
-
-  input.type = "checkbox";
-
-  if (row >= 0 && this.getDataAtRowProp(row, "0")) {
-    input.checked = true;
-  }
-
-  Handsontable.dom.empty(TH);
-
-  TH.appendChild(input);
-}
 
 export function alignHeaders(column, TH) {
   if (column < 0) {
@@ -65,15 +45,5 @@ export function alignHeaders(column, TH) {
     } else {
       Handsontable.dom.addClass(TH.firstChild, alignmentClass);
     }
-  }
-}
-
-export function changeCheckboxCell(event, coords) {
-  const target = event.target;
-
-  if (coords.col === -1 && target && target.nodeName === "INPUT") {
-    event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
-
-    this.setDataAtRowProp(coords.row, "0", !target.checked);
   }
 }

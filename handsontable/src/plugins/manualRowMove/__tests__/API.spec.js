@@ -107,7 +107,7 @@ describe('manualRowMove API', () => {
 
       const result = hot.getPlugin('manualRowMove').moveRow(0, 1000);
 
-      expect(afterMoveRowCallback).toHaveBeenCalledWith([0], 1000, void 0, false, false);
+      expect(afterMoveRowCallback).toHaveBeenCalledWith([0], 1000, undefined, false, false);
       expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       expect(result).toBeFalsy();
     });
@@ -125,7 +125,7 @@ describe('manualRowMove API', () => {
 
       const result = hot.getPlugin('manualRowMove').moveRow(0, -1);
 
-      expect(afterMoveRowCallback).toHaveBeenCalledWith([0], -1, void 0, false, false);
+      expect(afterMoveRowCallback).toHaveBeenCalledWith([0], -1, undefined, false, false);
       expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       expect(result).toBeFalsy();
     });
@@ -143,7 +143,7 @@ describe('manualRowMove API', () => {
 
       const result = hot.getPlugin('manualRowMove').moveRow(1000, 1);
 
-      expect(afterMoveRowCallback).toHaveBeenCalledWith([1000], 1, void 0, false, false);
+      expect(afterMoveRowCallback).toHaveBeenCalledWith([1000], 1, undefined, false, false);
       expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       expect(result).toBeFalsy();
     });
@@ -161,7 +161,7 @@ describe('manualRowMove API', () => {
 
       const result = hot.getPlugin('manualRowMove').moveRow(-1, 1);
 
-      expect(afterMoveRowCallback).toHaveBeenCalledWith([-1], 1, void 0, false, false);
+      expect(afterMoveRowCallback).toHaveBeenCalledWith([-1], 1, undefined, false, false);
       expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       expect(result).toBeFalsy();
     });

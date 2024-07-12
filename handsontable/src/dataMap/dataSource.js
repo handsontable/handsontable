@@ -15,29 +15,32 @@ import { isFunction } from '../helpers/function';
  * @private
  */
 class DataSource {
-  constructor(hotInstance, dataSource = []) {
-    /**
-     * Instance of Handsontable.
-     *
-     * @type {Handsontable}
-     */
-    this.hot = hotInstance;
-    /**
-     * Data source.
-     *
-     * @type {Array}
-     */
-    this.data = dataSource;
-    /**
-     * Type of data source.
-     *
-     * @type {string}
-     * @default 'array'
-     */
-    this.dataType = 'array';
+  /**
+   * Instance of Handsontable.
+   *
+   * @type {Handsontable}
+   */
+  hot;
+  /**
+   * Data source.
+   *
+   * @type {Array}
+   */
+  data;
+  /**
+   * Type of data source.
+   *
+   * @type {string}
+   * @default 'array'
+   */
+  dataType = 'array';
 
-    this.colToProp = () => {};
-    this.propToCol = () => {};
+  colToProp = () => {};
+  propToCol = () => {};
+
+  constructor(hotInstance, dataSource = []) {
+    this.hot = hotInstance;
+    this.data = dataSource;
   }
 
   /**
@@ -54,7 +57,7 @@ class DataSource {
       modifyRowData = this.hot.runHooks('modifyRowData', rowIndex);
     }
 
-    return (modifyRowData !== void 0 && !Number.isInteger(modifyRowData)) ? modifyRowData : this.data[rowIndex];
+    return (modifyRowData !== undefined && !Number.isInteger(modifyRowData)) ? modifyRowData : this.data[rowIndex];
   }
 
   /**
@@ -114,7 +117,8 @@ class DataSource {
    * @returns {Array|object}
    */
   getAtRow(row, startColumn, endColumn, toArray = false) {
-    const getAllProps = startColumn === void 0 && endColumn === void 0;
+    const getAllProps = startColumn === undefined && endColumn === undefined;
+    const { dataDotNotation } = this.hot.getSettings();
     let dataRow = null;
     let newDataRow = null;
 
@@ -155,15 +159,24 @@ class DataSource {
             if (toArray) {
               newDataRow.push(cellValue);
 
-            } else {
+            } else if (dataDotNotation) {
               setProperty(newDataRow, prop, cellValue);
+
+            } else {
+              newDataRow[prop] = cellValue;
             }
           }
         });
 
       } else {
         objectEach(dataRow, (value, prop) => {
-          setProperty(newDataRow, prop, this.getAtPhysicalCell(row, prop, dataRow));
+          const cellValue = this.getAtPhysicalCell(row, prop, dataRow);
+
+          if (dataDotNotation) {
+            setProperty(newDataRow, prop, cellValue);
+          } else {
+            newDataRow[prop] = cellValue;
+          }
         });
       }
     }
@@ -217,7 +230,9 @@ class DataSource {
 
     if (dataRow) {
       if (typeof column === 'string') {
-        result = getProperty(dataRow, column);
+        const { dataDotNotation } = this.hot.getSettings();
+
+        result = dataDotNotation ? getProperty(dataRow, column) : dataRow[column];
 
       } else if (typeof column === 'function') {
         result = column(dataRow);
@@ -286,7 +301,7 @@ class DataSource {
     rangeEach(startRow, endRow, (currentRow) => {
       result.push((
         getAllProps ?
-          this.getAtRow(currentRow, void 0, void 0, toArray) :
+          this.getAtRow(currentRow, undefined, undefined, toArray) :
           this.getAtRow(currentRow, startCol, endCol, toArray)
       ));
     });

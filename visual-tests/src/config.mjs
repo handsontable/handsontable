@@ -13,4 +13,4 @@ export const REFERENCE_FRAMEWORK = 'js';
 /**
  * The port for the static server that serves the examples.
  */
-export const EXAMPLES_SERVER_PORT = '8080';
+export const EXAMPLES_SERVER_PORT = '8082';

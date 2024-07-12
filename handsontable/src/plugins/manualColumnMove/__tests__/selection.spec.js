@@ -61,9 +61,8 @@ describe('manualColumnMove', () => {
       expect(getSelected()).toEqual([[-1, 1, 9, 3]]);
     });
 
-    // The `ManualColumnMove` plugin doesn't cooperate with the `UndoRedo` plugin.
     describe('should be shown properly after undo action', () => {
-      xit('when moving multiple columns from the left to the right', () => {
+      it('when moving multiple columns from the left to the right', () => {
         const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -86,10 +85,10 @@ describe('manualColumnMove', () => {
 
         hot.undo();
 
-        expect(getSelected()).toEqual([[0, 0, 9, 2]]);
+        expect(getSelected()).toEqual([[-1, 0, 9, 2]]);
       });
 
-      xit('when moving multiple columns from the right to the left', () => {
+      it('when moving multiple columns from the right to the left', () => {
         const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -112,12 +111,12 @@ describe('manualColumnMove', () => {
 
         hot.undo();
 
-        expect(getSelected()).toEqual([[0, 3, 9, 5]]);
+        expect(getSelected()).toEqual([[-1, 3, 9, 5]]);
       });
     });
 
     describe('should be shown properly after redo action', () => {
-      xit('when moving multiple columns from the left to the right', () => {
+      it('when moving multiple columns from the left to the right', () => {
         const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -141,10 +140,10 @@ describe('manualColumnMove', () => {
         hot.undo();
         hot.redo();
 
-        expect(getSelected()).toEqual([[0, 1, 9, 3]]);
+        expect(getSelected()).toEqual([[-1, 1, 9, 3]]);
       });
 
-      xit('when moving multiple columns from the right to the left', () => {
+      it('when moving multiple columns from the right to the left', () => {
         const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -168,7 +167,7 @@ describe('manualColumnMove', () => {
         hot.undo();
         hot.redo();
 
-        expect(getSelected()).toEqual([[0, 1, 9, 3]]);
+        expect(getSelected()).toEqual([[-1, 1, 9, 3]]);
       });
     });
   });

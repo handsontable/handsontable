@@ -1,12 +1,12 @@
 import moment from 'moment';
-import Pikaday from 'pikaday';
+import Pikaday from '@handsontable/pikaday';
+import { EDITOR_STATE } from '../baseEditor';
 import { TextEditor } from '../textEditor';
-import EventManager from '../../eventManager';
-import { addClass, outerHeight, outerWidth } from '../../helpers/dom/element';
+import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 
-import 'pikaday/css/pikaday.css';
+import '@handsontable/pikaday/css/pikaday.css';
 
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
@@ -20,19 +20,19 @@ export class DateEditor extends TextEditor {
     return EDITOR_TYPE;
   }
 
+  // TODO: Move this option to general settings
   /**
-   * @param {Core} hotInstance Handsontable instance.
-   * @private
+   * @type {string}
    */
-  constructor(hotInstance) {
-    super(hotInstance);
-
-    // TODO: Move this option to general settings
-    this.defaultDateFormat = 'DD/MM/YYYY';
-    this.isCellEdited = false;
-    this.parentDestroyed = false;
-    this.$datePicker = null;
-  }
+  defaultDateFormat = 'DD/MM/YYYY';
+  /**
+   * @type {boolean}
+   */
+  parentDestroyed = false;
+  /**
+   * @type {Pikaday}
+   */
+  $datePicker = null;
 
   init() {
     if (typeof moment !== 'function') {
@@ -43,7 +43,7 @@ export class DateEditor extends TextEditor {
       throw new Error('You need to include Pikaday to your project.');
     }
     super.init();
-    this.instance.addHook('afterDestroy', () => {
+    this.hot.addHook('afterDestroy', () => {
       this.parentDestroyed = true;
       this.destroyElements();
     });
@@ -67,12 +67,16 @@ export class DateEditor extends TextEditor {
     addClass(this.datePicker, 'htDatepickerHolder');
     this.hot.rootDocument.body.appendChild(this.datePicker);
 
-    const eventManager = new EventManager(this);
-
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table.
      */
-    eventManager.addEventListener(this.datePicker, 'mousedown', event => event.stopPropagation());
+    this.eventManager.addEventListener(this.datePicker, 'mousedown', (event) => {
+      if (hasClass(event.target, 'pika-day')) {
+        this.hideDatepicker();
+      }
+
+      event.stopPropagation();
+    });
   }
 
   /**
@@ -98,7 +102,7 @@ export class DateEditor extends TextEditor {
    * @param {number|string} prop The column property (passed when datasource is an array of objects).
    * @param {HTMLTableCellElement} td The rendered cell element.
    * @param {*} value The rendered value.
-   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+   * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
   prepare(row, col, prop, td, value, cellProperties) {
     super.prepare(row, col, prop, td, value, cellProperties);
@@ -113,16 +117,30 @@ export class DateEditor extends TextEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    super.open();
     this.showDatepicker(event);
+    super.open();
 
-    editorContext.addShortcut({
-      keys: [['Enter']],
-      callback: (keyboardEvent) => {
-        // Extra Pikaday's `onchange` listener captures events and performing extra `setDate` method call which causes
-        // flickering quite often.
-        keyboardEvent.stopPropagation();
+    editorContext.addShortcuts([{
+      keys: [['ArrowLeft']],
+      callback: () => {
+        this.$datePicker.adjustDate('subtract', 1);
       },
+    }, {
+      keys: [['ArrowRight']],
+      callback: () => {
+        this.$datePicker.adjustDate('add', 1);
+      },
+    }, {
+      keys: [['ArrowUp']],
+      callback: () => {
+        this.$datePicker.adjustDate('subtract', 7);
+      },
+    }, {
+      keys: [['ArrowDown']],
+      callback: () => {
+        this.$datePicker.adjustDate('add', 7);
+      },
+    }], {
       group: SHORTCUTS_GROUP_EDITOR,
     });
   }
@@ -138,8 +156,12 @@ export class DateEditor extends TextEditor {
       this.$datePicker.destroy();
     }
 
-    this.instance._registerTimeout(() => {
-      this.instance._refreshBorders();
+    this.hot._registerTimeout(() => {
+      const editorManager = this.hot._getEditorManager();
+
+      editorManager.closeEditor();
+      this.hot.view.render();
+      editorManager.prepareEditor();
     });
 
     const shortcutManager = this.hot.getShortcutManager();
@@ -157,15 +179,6 @@ export class DateEditor extends TextEditor {
    * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
    */
   finishEditing(restoreOriginalValue = false, ctrlDown = false) {
-    if (restoreOriginalValue) { // pressed ESC, restore original value
-      // var value = this.instance.getDataAtCell(this.row, this.col);
-      const value = this.originalValue;
-
-      if (value !== void 0) {
-        this.setValue(value);
-      }
-    }
-
     super.finishEditing(restoreOriginalValue, ctrlDown);
   }
 
@@ -175,28 +188,20 @@ export class DateEditor extends TextEditor {
    * @param {Event} event The event object.
    */
   showDatepicker(event) {
-    const offset = this.TD.getBoundingClientRect();
     const dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
-    const isMouseDown = this.instance.view.isMouseDown();
+    const isMouseDown = this.hot.view.isMouseDown();
     const isMeta = event ? isFunctionKey(event.keyCode) : false;
     let dateStr;
 
     this.datePicker.style.display = 'block';
 
     this.$datePicker = new Pikaday(this.getDatePickerConfig());
-    this.$datePicker._onInputFocus = function() {};
 
-    this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
-
-    let pickerLeftPosition = this.hot.rootWindow.pageXOffset;
-
-    if (this.hot.isRtl()) {
-      pickerLeftPosition = offset.right - outerWidth(this.datePicker);
-    } else {
-      pickerLeftPosition = offset.left;
+    if (typeof this.$datePicker.useMoment === 'function') {
+      this.$datePicker.useMoment(moment);
     }
 
-    this.datePickerStyle.left = `${pickerLeftPosition}px`;
+    this.$datePicker._onInputFocus = function() {};
 
     if (this.originalValue) {
       dateStr = this.originalValue;
@@ -258,6 +263,7 @@ export class DateEditor extends TextEditor {
     options.trigger = htInput;
     options.container = this.datePicker;
     options.bound = false;
+    options.keyboardInput = false;
     options.format = options.format || this.defaultDateFormat;
     options.reposition = options.reposition || false;
     // Set the RTL to `false`. Due to the https://github.com/Pikaday/Pikaday/issues/647 bug, the layout direction
@@ -270,8 +276,8 @@ export class DateEditor extends TextEditor {
       if (!isNaN(dateStr.getTime())) {
         dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
       }
+
       this.setValue(dateStr);
-      this.hideDatepicker();
 
       if (origOnSelect) {
         origOnSelect();
@@ -287,5 +293,58 @@ export class DateEditor extends TextEditor {
     };
 
     return options;
+  }
+
+  /**
+   * Refreshes datepicker's size and position. The method is called internally by Handsontable.
+   *
+   * @private
+   * @param {boolean} force Indicates if the refreshing editor dimensions should be triggered.
+   */
+  refreshDimensions(force) {
+    super.refreshDimensions(force);
+
+    if (this.state !== EDITOR_STATE.EDITING) {
+      return;
+    }
+
+    this.TD = this.getEditedCell();
+
+    if (!this.TD) {
+      this.hideDatepicker();
+
+      return;
+    }
+
+    const { rowIndexMapper, columnIndexMapper } = this.hot;
+    const { wtOverlays } = this.hot.view._wt;
+    const { wtTable } = wtOverlays.getParentOverlay(this.TD) ?? this.hot.view._wt;
+
+    const firstVisibleRow = rowIndexMapper.getVisualFromRenderableIndex(wtTable.getFirstPartiallyVisibleRow());
+    const lastVisibleRow = rowIndexMapper.getVisualFromRenderableIndex(wtTable.getLastPartiallyVisibleRow());
+    const firstVisibleColumn = columnIndexMapper.getVisualFromRenderableIndex(wtTable.getFirstPartiallyVisibleColumn());
+    const lastVisibleColumn = columnIndexMapper.getVisualFromRenderableIndex(wtTable.getLastPartiallyVisibleColumn());
+
+    if (
+      this.row >= firstVisibleRow && this.row <= lastVisibleRow &&
+      this.col >= firstVisibleColumn && this.col <= lastVisibleColumn
+    ) {
+      const offset = this.TD.getBoundingClientRect();
+
+      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
+
+      let pickerLeftPosition = this.hot.rootWindow.pageXOffset;
+
+      if (this.hot.isRtl()) {
+        pickerLeftPosition += offset.right - outerWidth(this.datePicker);
+      } else {
+        pickerLeftPosition += offset.left;
+      }
+
+      this.datePickerStyle.left = `${pickerLeftPosition}px`;
+
+    } else {
+      this.hideDatepicker();
+    }
   }
 }

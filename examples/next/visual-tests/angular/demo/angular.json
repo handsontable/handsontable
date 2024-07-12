@@ -23,7 +23,7 @@
             "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "aot": true,
             "styles": [
@@ -33,7 +33,7 @@
             "preserveSymlinks": true,
             "allowedCommonJsDependencies": [
               "core-js",
-              "pikaday"
+              "@handsontable/pikaday"
             ]
           },
           "configurations": {
@@ -86,5 +86,8 @@
       }
     }
   },
-  "defaultProject": "angular"
+  "defaultProject": "angular",
+  "cli": {
+    "analytics": false
+  }
 }

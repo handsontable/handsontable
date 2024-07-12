@@ -2,28 +2,26 @@
 
 ## Description
 
-This is a general purpose demo that showcases the most popular features of Handsontable in JavaScript.
+A general purpose demo showcasing some of the most popular features of Handsontable in JavaScript.
 
-## How to run this example
+## Installation
 
-### Installation
+Install all necessary dependencies from npm with `npm install`.
 
-Call `npm install` to install all necessary dependencies.
+## Development
 
-### Development
+To start local development server use `npm run start`. You can then visit http://localhost:8080 to view the project.
 
-To start local development server call `npm run start`. Now you can visit http://localhost:8080 to view this project.
+## Testing
 
-### Testing
+To run tests for this project, first launch the development server with `npm run start`. Once the server is running, execute `npm run test` to run the test specs.
 
-In order to run tests for this project call `npm run start` which will launch the development server and after the server is running, call `npm run test` to run test specs.
+## Forking
 
-### Forking
+There are two ways to fork this project in Handsontable's monorepo:
 
-This example is one of many projects in a common repository (monorepo). If you want to modify it, you have two options of forking it:
-
-1. you can fork this entire repository
-2. you can copy the example into a new repository. We have detailed instructions [here](../../../../README.md#copying-an-example-to-a-separate-repo) ("Copying an example to a separate repo").
+1. Fork the entire repository.
+2. Copy the example to a new repository. Detailed instructions are available [here](../../../../README.md#copying-an-example-to-a-separate-repo) in the section _Copying an example to a separate repo_.
 
 ## License
 
@@ -32,8 +30,8 @@ Handsontable is a commercial software with two licenses available:
 - Free for non-commercial purposes such as teaching, academic research, and evaluation. [Read it here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
 - Commercial license with support and maintenance included. See [pricing plans](https://handsontable.com/pricing).
 
-## Technical support
+## Get help
 
-If you have a commercial license and your support plan is active, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
+Join our [community](https://github.com/handsontable/handsontable/discussions) to get help, share ideas, and contribute to the ongoing development of Handsontable!
 
-We also support free-tier users through [GitHub issues](https://github.com/handsontable/handsontable/issues).
+Commercial license holders with an active support plan can contact our [Support Team](https://handsontable.com/contact?category=technical_support).

@@ -1,10 +1,8 @@
 import HyperFormula from 'hyperformula';
 
 describe('Formulas', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -65,6 +63,75 @@ describe('Formulas', () => {
         [1, 2, '=UPPER($A$1)', 4, 5, 6],
         [null, null, '=UPPER($A$1)', null, null, null],
         [null, null, null, null, null, null]
+      ]);
+    });
+
+    it('should cooperate properly with trimmed rows (populating not trimmed elements)', async() => {
+      const hot = handsontable({
+        data: [
+          ['=B1+10', 1, 2, 3, 4, 5, 6],
+          ['=B2+20', 7, 8, 9, 0, 1, 2],
+          ['=B3+30', 3, 4, 5, 6, 7, 8],
+          ['=B4+40', 9, 0, 1, 2, 3, 4],
+          ['=B5+50', 5, 6, 7, 8, 9, 0],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        trimRows: [0, 1],
+        fillHandle: true
+      });
+
+      selectRows(0);
+
+      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+      spec().$container.find('tr:last-child td:eq(0)').simulate('mouseover');
+
+      await sleep(300);
+
+      spec().$container.find('tr:last-child td:eq(0)').simulate('mouseup');
+
+      expect(hot.getData()).toEqual([
+        [33, 3, 4, 5, 6, 7, 8],
+        [33, 3, 4, 5, 6, 7, 8],
+        [33, 3, 4, 5, 6, 7, 8],
+        [null, null, null, null, null, null, null],
+      ]);
+    });
+
+    xit('should cooperate properly with trimmed rows (populating two elements placed next to trimmed element)', async() => {
+      const hot = handsontable({
+        data: [
+          ['=B1+10', 1, 2, 3, 4, 5, 6],
+          ['=B2+20', 7, 8, 9, 0, 1, 2],
+          ['=B3+30', 3, 4, 5, 6, 7, 8],
+          ['=B4+40', 9, 0, 1, 2, 3, 4],
+          ['=B5+50', 5, 6, 7, 8, 9, 0],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        trimRows: [1],
+        fillHandle: true
+      });
+
+      selectRows(0, 1);
+
+      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+      spec().$container.find('tr:last-child td:eq(0)').simulate('mouseover');
+
+      await sleep(300);
+
+      spec().$container.find('tr:last-child td:eq(0)').simulate('mouseup');
+
+      expect(hot.getData()).toEqual([
+        [11, 1, 2, 3, 4, 5, 6],
+        [33, 3, 4, 5, 6, 7, 8],
+        [11, 1, 2, 3, 4, 5, 6],
+        [33, 3, 4, 5, 6, 7, 8],
+        [null, null, null, null, null, null, null],
       ]);
     });
   });

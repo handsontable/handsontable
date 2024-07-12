@@ -15,7 +15,7 @@ describe('ContextMenu', () => {
   describe('alignment', () => {
     it('should align single cell text left', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -30,7 +30,7 @@ describe('ContextMenu', () => {
 
     it('should align multiple cells text left (selection from top-left to bottom-right)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -48,7 +48,7 @@ describe('ContextMenu', () => {
 
     it('should align multiple cells text left (selection from bottom-right to top-left)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -66,7 +66,7 @@ describe('ContextMenu', () => {
 
     it('should align single cell text center', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -81,7 +81,7 @@ describe('ContextMenu', () => {
 
     it('should align multiple cells text center (selection from top-left to bottom-right)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -99,7 +99,7 @@ describe('ContextMenu', () => {
 
     it('should align multiple cells text center (selection from bottom-right to top-left)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -117,7 +117,7 @@ describe('ContextMenu', () => {
 
     it('should align single cell text right', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -132,7 +132,7 @@ describe('ContextMenu', () => {
 
     it('should align multiple cells text right (selection from top-left to bottom-right)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -150,7 +150,7 @@ describe('ContextMenu', () => {
 
     it('should align multiple cells text right (selection from bottom-right to top-left)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -168,7 +168,7 @@ describe('ContextMenu', () => {
 
     it('should justify single cell text', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -183,7 +183,7 @@ describe('ContextMenu', () => {
 
     it('should justify multiple cells text (selection from top-left to bottom-right)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -201,7 +201,7 @@ describe('ContextMenu', () => {
 
     it('should justify multiple cells text (selection from bottom-right to top-left)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -219,7 +219,7 @@ describe('ContextMenu', () => {
 
     it('should vertical align text top of the single cell', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -234,7 +234,7 @@ describe('ContextMenu', () => {
 
     it('should vertical align text top of the multiple cells (selection from top-left to bottom-right)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -252,7 +252,7 @@ describe('ContextMenu', () => {
 
     it('should vertical align text top of the multiple cells (selection from bottom-right to top-left)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -270,7 +270,7 @@ describe('ContextMenu', () => {
 
     it('should vertical align text middle of the single cell', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -285,7 +285,7 @@ describe('ContextMenu', () => {
 
     it('should vertical align text middle of the multiple cells (selection from top-left to bottom-right)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -303,7 +303,7 @@ describe('ContextMenu', () => {
 
     it('should vertical align text middle of the multiple cells (selection from bottom-right to top-left)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -321,7 +321,7 @@ describe('ContextMenu', () => {
 
     it('should vertical align text bottom of the single cell', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -336,7 +336,7 @@ describe('ContextMenu', () => {
 
     it('should vertical align text bottom of the multiple cells (selection from top-left to bottom-right)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -354,7 +354,7 @@ describe('ContextMenu', () => {
 
     it('should vertical align text bottom of the multiple cells (selection from bottom-right to top-left)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
@@ -374,7 +374,7 @@ describe('ContextMenu', () => {
       const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -391,7 +391,7 @@ describe('ContextMenu', () => {
 
     it('should not add clasName to cell after changing alignment by context menu, if `beforeSetCellMeta` returned false', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -403,19 +403,85 @@ describe('ContextMenu', () => {
 
       await selectContextSubmenuOption('Alignment', 'Right');
 
-      expect(getCellMeta(2, 3).className).toBe(void 0);
+      expect(getCellMeta(2, 3).className).toBe(undefined);
     });
 
     describe('UI', () => {
       it('should display a disabled entry, when there\'s nothing selected', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          data: createSpreadsheetData(4, 4),
           contextMenu: true,
           beforeContextMenuShow() {
             this.deselectCell();
           }
         });
 
+        contextMenu();
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Alignment';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should display a disabled entry, when the column header is selected', () => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: true,
+          navigableHeaders: true,
+          beforeContextMenuShow() {
+            this.deselectCell();
+          }
+        });
+
+        selectCell(-1, 1);
+        contextMenu();
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Alignment';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should display a disabled entry, when the row header is selected', () => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: true,
+          navigableHeaders: true,
+          beforeContextMenuShow() {
+            this.deselectCell();
+          }
+        });
+
+        selectCell(1, -1);
+        contextMenu();
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Alignment';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should display a disabled entry, when the corner is selected', () => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: true,
+          navigableHeaders: true,
+          beforeContextMenuShow() {
+            this.deselectCell();
+          }
+        });
+
+        selectCell(-1, -1);
         contextMenu();
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {

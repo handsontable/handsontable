@@ -120,7 +120,7 @@ export function getEngineSettingsWithOverrides(hotSettings) {
  */
 export function haveEngineSettingsChanged(currentEngineSettings, newEngineSettings) {
   return Object.keys(newEngineSettings).some((settingOption) => {
-    return newEngineSettings[settingOption] !== void 0 &&
+    return newEngineSettings[settingOption] !== undefined &&
       newEngineSettings[settingOption] !== currentEngineSettings[settingOption];
   });
 }

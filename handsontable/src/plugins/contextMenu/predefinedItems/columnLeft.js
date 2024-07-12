@@ -1,4 +1,3 @@
-import { getValidSelection } from '../utils';
 import * as C from '../../../i18n/constants';
 
 export const KEY = 'col_left';
@@ -23,9 +22,13 @@ export default function columnLeftItem() {
         return true;
       }
 
-      const selected = getValidSelection(this);
+      const range = this.getSelectedRangeLast();
 
-      if (!selected) {
+      if (!range) {
+        return true;
+      }
+
+      if (range.isSingleHeader() && range.highlight.col < 0) {
         return true;
       }
 

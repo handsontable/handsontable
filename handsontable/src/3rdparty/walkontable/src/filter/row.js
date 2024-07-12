@@ -3,6 +3,19 @@
  */
 class RowFilter {
   /**
+   * @type {number}
+   */
+  offset;
+  /**
+   * @type {number}
+   */
+  total;
+  /**
+   * @type {number}
+   */
+  countTH;
+
+  /**
    * @param {number} offset The scroll vertical offset.
    * @param {number} total The total height of the table.
    * @param {number} countTH The number of rendered column headers.

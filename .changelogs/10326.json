@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where Handsontable's `updateSettings` method would reset the HyperFormula's Undo/Redo actions stack in the connected instance.",
-  "type": "fixed",
-  "issueOrPR": 10326,
-  "breaking": false,
-  "framework": "none"
-}

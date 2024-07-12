@@ -45,7 +45,7 @@ describe('Core_validate', () => {
     spec().$container.remove();
 
     expect(() => { validatorCallback(false); }).not.toThrow();
-    expect(validatorCallback(false)).toBe(void 0);
+    expect(validatorCallback(false)).toBe(undefined);
   });
 
   it('should call beforeValidate', () => {

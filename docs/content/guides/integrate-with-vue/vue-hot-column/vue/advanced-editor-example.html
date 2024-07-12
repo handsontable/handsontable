@@ -1,0 +1,43 @@
+<div id="advanced-editor-example">
+  <hot-table :settings="hotSettings">
+    <hot-column :width="100">
+      <stars-renderer hot-renderer></stars-renderer>
+    </hot-column>
+    <hot-column v-for="n in 2" :width="150" v-bind:key="'col' + n">
+      <color-picker hot-editor hot-renderer></color-picker>
+    </hot-column>
+  </hot-table>
+</div>
+
+<script type="text/x-template" id="color-picker-template">
+  <div style="display: flex">
+    <div
+      v-if="isEditor && isVisible"
+      id="colorPickerElement"
+      :style="style"
+      @mousedown="stopMousedownPropagation"
+    >
+      <chrome :value="value" @input="updateColor"></chrome>
+      <button v-on:click="applyColor">Apply</button>
+    </div>
+    <div v-if="isRenderer">
+      <div
+        :style="{background: value, width: '21px', height: '21px', float: 'left', marginRight: '5px'}"
+      ></div>
+      <span>{{value}}</span>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-template" id="star-rating-template">
+  <div class="rating-renderer">
+    <star-rating
+      v-on:rating-selected="saveRating"
+      :rating="rating"
+      :star-size="15"
+      :show-rating="false"
+      :active-color="this.$store.state.activeColors[this.row]"
+      :inactive-color="this.$store.state.inactiveColors[this.row]"
+    ></star-rating>
+  </div>
+</script>

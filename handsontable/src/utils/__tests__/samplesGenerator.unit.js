@@ -113,6 +113,33 @@ describe('SamplesGenerator', () => {
     expect(result.get('2').strings).toEqual([{ value: 'AA', col: 0 }]);
   });
 
+  it('should be possible to ignore generating row sample when `false` is returned', () => {
+    const sg = new SamplesGenerator((row, col) => {
+      const data = [
+        ['AA', false, 'C', 123456789],
+      ];
+
+      if (data[row][col] === false) {
+        return false;
+      }
+
+      return {
+        value: data[row][col]
+      };
+    });
+
+    spyOn(sg, 'dataFactory').and.callThrough();
+
+    const result = sg.generateSample('row', { from: 0, to: 3 }, 0);
+
+    expect(result.size).toBe(3);
+
+    expect(Array.from(result.keys())).toEqual(['2', '1', '9']);
+    expect(result.get('2').strings).toEqual([{ value: 'AA', col: 0 }]);
+    expect(result.get('1').strings).toEqual([{ value: 'C', col: 2 }]);
+    expect(result.get('9').strings).toEqual([{ value: 123456789, col: 3 }]);
+  });
+
   it('should generate row sample with limited generated items (when the data source contains the same values)', () => {
     const sg = new SamplesGenerator((row, col) => {
       const data = [
@@ -191,6 +218,36 @@ describe('SamplesGenerator', () => {
       { value: 'D', row: 1 }, { value: [4], row: 3 }, { value: { id: 4 }, row: 4 }
     ]);
     expect(result.get('2').strings).toEqual([{ value: 44, row: 0 }]);
+  });
+
+  it('should be possible to ignore generating column sample when `false` is returned', () => {
+    const sg = new SamplesGenerator((row, col) => {
+      const data = [
+        ['AA'],
+        [false],
+        ['C'],
+        [123456789],
+      ];
+
+      if (data[row][col] === false) {
+        return false;
+      }
+
+      return {
+        value: data[row][col]
+      };
+    });
+
+    spyOn(sg, 'dataFactory').and.callThrough();
+
+    const result = sg.generateSample('col', { from: 0, to: 3 }, 0);
+
+    expect(result.size).toBe(3);
+
+    expect(Array.from(result.keys())).toEqual(['2', '1', '9']);
+    expect(result.get('2').strings).toEqual([{ value: 'AA', row: 0 }]);
+    expect(result.get('1').strings).toEqual([{ value: 'C', row: 2 }]);
+    expect(result.get('9').strings).toEqual([{ value: 123456789, row: 3 }]);
   });
 
   it('should generate column sample with limited generated items (when the data source contains the same values)', () => {

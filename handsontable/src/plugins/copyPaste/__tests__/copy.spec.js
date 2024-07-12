@@ -47,11 +47,98 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
     });
 
+    it('should reset the clipboard when the column header is highlighted', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: true,
+        navigableHeaders: true,
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1);
+
+      plugin.copyCellsOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
+
+      await sleep(500);
+
+      selectCell(-1, 1);
+
+      plugin.copyCellsOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
+    });
+
+    it('should reset the clipboard when the row header is highlighted', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: true,
+        navigableHeaders: true,
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1);
+
+      plugin.copyCellsOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
+
+      await sleep(500);
+
+      selectCell(1, -1);
+
+      plugin.copyCellsOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
+    });
+
+    it('should reset the clipboard when the corner is highlighted', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: true,
+        navigableHeaders: true,
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1);
+
+      plugin.copyCellsOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
+
+      await sleep(500);
+
+      selectCell(-1, -1);
+
+      plugin.copyCellsOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
+    });
+
     it('should copy special characters to the clipboard', () => {
       handsontable({
-        colHeaders: ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~'],
+        colHeaders: ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~&LTE'],
         data: [
-          ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~']
+          ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~&LTE']
         ],
       });
 
@@ -64,13 +151,13 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain'))
-        .toBe('!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~\n!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~');
+        .toBe('!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~&LTE\n!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~&LTE');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
           '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody>',
-        '<tr><td>!@#$%^&*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~</td></tr>',
-        '<tr><td>!@#$%^&*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~</td></tr>',
+        '<tr><td>!@#$%^&amp;*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~&amp;LTE</td></tr>',
+        '<tr><td>!@#$%^&amp;*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~&amp;LTE</td></tr>',
         '</tbody></table>',
       ].join(''));
     });
@@ -99,10 +186,10 @@ describe('CopyPaste', () => {
         '<meta name="generator" content="Handsontable"/>' +
           '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody>',
-        '<tr><td>{"test":&nbsp;"value"}</td></tr>',
-        '<tr><td>{"test":&nbsp;"value"}</td></tr>',
-        '<tr><td>{"test2":&nbsp;{"testtest":&nbsp;""}}</td></tr>',
-        '<tr><td>{"test3":&nbsp;""}</td></tr>',
+        '<tr><td>{"test": "value"}</td></tr>',
+        '<tr><td>{"test": "value"}</td></tr>',
+        '<tr><td>{"test2": {"testtest": ""}}</td></tr>',
+        '<tr><td>{"test3": ""}</td></tr>',
         '</tbody></table>',
       ].join(''));
     });
@@ -131,6 +218,61 @@ describe('CopyPaste', () => {
         '<tr><td></td><td>0</td><td>false</td><td></td><td></td></tr>',
         '</tbody></table>',
       ].join(''));
+    });
+
+    it('should handle spaces properly (creates Excel compatible HTML)', () => {
+      handsontable({
+        colHeaders: ['a   b'],
+        data: [
+          ['c d'],
+          ['e  f'],
+          ['g      h'],
+        ],
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectAll();
+
+      plugin.copyWithColumnHeaders();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain'))
+        .toBe('a   b\nc d\ne  f\ng      h');
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody>',
+        '<tr><td>a<span style="mso-spacerun: yes">&nbsp;&nbsp; </span>b</td></tr>',
+        '<tr><td>c d</td></tr>',
+        '<tr><td>e<span style="mso-spacerun: yes">&nbsp; </span>f</td></tr>',
+        '<tr><td>g<span style="mso-spacerun: yes">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>h</td></tr>',
+        '</tbody></table>',
+      ].join(''));
+    });
+
+    it('should be possible to copy text outside the table when the `outsideClickDeselects` is disabled', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        outsideClickDeselects: false,
+      });
+
+      const testElement = $('<div id="testElement">Test</div>');
+
+      spec().$container.after(testElement);
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1);
+      copyEvent.target = testElement[0]; // native copy event is triggered on the element outside the table
+      plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
+
+      // the result is that the clipboard data is not overwritten by the HoT
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
+
+      testElement.remove();
     });
   });
 });

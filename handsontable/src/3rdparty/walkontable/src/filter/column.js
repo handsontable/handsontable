@@ -3,6 +3,19 @@
  */
 class ColumnFilter {
   /**
+   * @type {number}
+   */
+  offset;
+  /**
+   * @type {number}
+   */
+  total;
+  /**
+   * @type {number}
+   */
+  countTH;
+
+  /**
    * @param {number} offset The scroll horizontal offset.
    * @param {number} total The total width of the table.
    * @param {number} countTH The number of rendered row headers.

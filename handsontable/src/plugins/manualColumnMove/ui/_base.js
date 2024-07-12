@@ -11,32 +11,35 @@ const UNIT = 'px';
  * @private
  */
 class BaseUI {
+  /**
+   * Instance of Handsontable.
+   *
+   * @type {Core}
+   */
+  hot;
+  /**
+   * DOM element representing the ui element.
+   *
+   * @type {HTMLElement}
+   * @private
+   */
+  _element = null;
+  /**
+   * Flag which determines build state of element.
+   *
+   * @type {number}
+   */
+  state = STATE_INITIALIZED;
+  /**
+   * Defines the "start" physical CSS property name used within the class depending on what document
+   * layout direction the library runs.
+   *
+   * @type {string}
+   */
+  inlineProperty;
+
   constructor(hotInstance) {
-    /**
-     * Instance of Handsontable.
-     *
-     * @type {Core}
-     */
     this.hot = hotInstance;
-    /**
-     * DOM element representing the ui element.
-     *
-     * @type {HTMLElement}
-     * @private
-     */
-    this._element = null;
-    /**
-     * Flag which determines build state of element.
-     *
-     * @type {number}
-     */
-    this.state = STATE_INITIALIZED;
-    /**
-     * Defines the "start" physical CSS property name used within the class depending on what document
-     * layout direction the library runs.
-     *
-     * @type {string}
-     */
     this.inlineProperty = hotInstance.isRtl() ? 'right' : 'left';
   }
 

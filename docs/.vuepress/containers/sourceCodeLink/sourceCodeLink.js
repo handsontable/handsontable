@@ -14,7 +14,8 @@ module.exports = {
 
     if (href) {
       // opening tag
-      return `<a href="${href}" target="_blank" class="source-code-link"> Source code <OutboundLink /> </a>`;
+      // eslint-disable-next-line max-len
+      return `<a href="${href}" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i> </a>`;
     }
 
     return '';

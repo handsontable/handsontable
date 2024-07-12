@@ -30,7 +30,7 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
 
   console.log(chalk.green(`Building "${frameworkName}" examples...`));
 
-  await execa.command(`node --experimental-json-modules ./scripts/swap-package-links.mjs ${packageName}`, {
+  await execa.command(`node ./scripts/swap-package-links.mjs ${packageName}`, {
     stdio: 'inherit',
     cwd: dirs.monorepoRoot
   });

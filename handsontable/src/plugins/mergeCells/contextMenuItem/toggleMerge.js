@@ -23,7 +23,18 @@ export default function toggleMergeItem(plugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS);
     },
     callback() {
-      plugin.toggleMergeOnSelection();
+      const currentRange = this.getSelectedRangeLast();
+
+      if (!currentRange) {
+        return;
+      }
+
+      currentRange.setDirection(this.isRtl() ? 'NE-SW' : 'NW-SE');
+
+      const { from, to } = currentRange;
+
+      plugin.toggleMerge(currentRange);
+      this.selectCell(from.row, from.col, to.row, to.col, false);
     },
     disabled() {
       const sel = this.getSelectedLast();

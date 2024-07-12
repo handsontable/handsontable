@@ -484,5 +484,14 @@ export default {
         metaTitle: 'TrimmingMap - React Data Grid | Handsontable',
       },
     },
+    'EventManager.md': {
+      id: '3k9p5r7t',
+      metaTitle: 'EventManager - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s EventManager API.',
+      react: {
+        id: '5j7d9k2r',
+        metaTitle: 'EventManager - React Data Grid | Handsontable',
+      },
+    },
   }
 };

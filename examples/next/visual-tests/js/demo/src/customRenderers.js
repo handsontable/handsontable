@@ -3,7 +3,7 @@ import Handsontable from "handsontable";
 const addClassWhenNeeded = (td, cellProperties) => {
   const className = cellProperties.className;
 
-  if (className !== void 0) {
+  if (className !== undefined) {
     Handsontable.dom.addClass(td, className);
   }
 };

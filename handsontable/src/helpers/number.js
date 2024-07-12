@@ -4,13 +4,16 @@
  * are considered as numeric values:
  *  - 0.001
  *  - .001
- *  - - 10000
  *  - 10000
  *  - 1e+26
  *  - 22e-26
  *  - .45e+26
  *  - 0xabcdef (hex)
  *  - 0x1 (hex)
+ *
+ * these values are not considered as numeric:
+ *  - - 1000
+ *  - 100 000
  *
  * @param {*} value The value to check.
  * @param {string[]} additionalDelimiters An additional delimiters to be used while checking the numeric value.
@@ -34,7 +37,7 @@ export function isNumeric(value, additionalDelimiters = []) {
       .map(d => `\\${d}`)
       .join('|');
 
-    return new RegExp(`^[+-]?\\s*(((${delimiter})?\\d+((${delimiter})\\d+)?(e[+-]?\\d+)?)|(0x[a-f\\d]+))$`, 'i')
+    return new RegExp(`^[+-]?(((${delimiter})?\\d+((${delimiter})\\d+)?(e[+-]?\\d+)?)|(0x[a-f\\d]+))$`, 'i')
       .test(value.trim());
 
   } else if (type === 'object') {
@@ -115,4 +118,23 @@ export function valueAccordingPercent(value, percent) {
   percent = isNaN(percent) ? 0 : percent;
 
   return parseInt(value * percent / 100, 10);
+}
+
+/**
+ * Clamps the value between min and max.
+ *
+ * @param {number} value The base number value.
+ * @param {number} minValue The max number value.
+ * @param {number} maxValue The min number value.
+ * @returns {number}
+ */
+export function clamp(value, minValue, maxValue) {
+  if (Math.min(value, minValue) === value) {
+    return minValue;
+
+  } else if (Math.max(value, maxValue) === value) {
+    return maxValue;
+  }
+
+  return value;
 }

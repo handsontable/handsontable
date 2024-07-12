@@ -5,7 +5,7 @@ export const jsdocLinksFixer = text => text
         return all;
       }
 
-      let fixedAnchor = anchor.toLowerCase();
+      let fixedAnchor = anchor.toLowerCase().replace('#', '');
 
       // e.g. #Options+autoColumnSize or #getData
       if (!target) {

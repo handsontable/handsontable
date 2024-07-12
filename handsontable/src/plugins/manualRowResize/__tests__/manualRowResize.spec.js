@@ -107,7 +107,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(80);
 
     updateSettings({
-      manualRowResize: void 0
+      manualRowResize: undefined
     });
 
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2); // + Double border
@@ -135,7 +135,7 @@ describe('manualRowResize', () => {
 
   it('should keep proper row heights after inserting row', () => {
     handsontable({
-      manualRowResize: [void 0, void 0, 120]
+      manualRowResize: [undefined, undefined, 120]
     });
 
     expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
@@ -153,7 +153,7 @@ describe('manualRowResize', () => {
 
   it('should keep proper row heights after removing row', () => {
     handsontable({
-      manualRowResize: [void 0, void 0, 120]
+      manualRowResize: [undefined, undefined, 120]
     });
 
     expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
@@ -197,7 +197,7 @@ describe('manualRowResize', () => {
 
     hot.addHook('beforeRowResize', () => 100);
     hot.addHook('beforeRowResize', () => 200);
-    hot.addHook('beforeRowResize', () => void 0);
+    hot.addHook('beforeRowResize', () => undefined);
 
     const $th = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
 
@@ -496,6 +496,68 @@ describe('manualRowResize', () => {
     expect($rowsHeaders.eq(3).height()).toEqual(35);
   });
 
+  it('should show resizer for fixed top rows', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      colHeaders: true,
+      rowHeaders: true,
+      fixedRowsTop: 2,
+      manualRowResize: true
+    });
+
+    getInlineStartClone()
+      .find('tbody tr:eq(3) th:eq(0)')
+      .simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+
+    expect($resizer.position()).toEqual({
+      top: 113,
+      left: 0,
+    });
+
+    // after hovering over fixed row, resizer should be moved to the fixed row
+    getTopInlineStartClone()
+      .find('tbody tr:eq(1) th:eq(0)')
+      .simulate('mouseover');
+
+    expect($resizer.position()).toEqual({
+      top: 67,
+      left: 0,
+    });
+  });
+
+  it('should show resizer for fixed bottom rows', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      colHeaders: true,
+      rowHeaders: true,
+      fixedRowsBottom: 2,
+      manualRowResize: true
+    });
+
+    getInlineStartClone()
+      .find('tbody tr:eq(3) th:eq(0)')
+      .simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+
+    expect($resizer.position()).toEqual({
+      top: 113,
+      left: 0,
+    });
+
+    // after hovering over fixed row, resizer should be moved to the fixed row
+    getBottomInlineStartClone()
+      .find('tbody tr:eq(0) th:eq(0)')
+      .simulate('mouseover');
+
+    expect($resizer.position()).toEqual({
+      top: 18,
+      left: 0,
+    });
+  });
+
   it('should resize proper row after resizing element adjacent to a selection', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -589,6 +651,40 @@ describe('manualRowResize', () => {
 
     // Reassign the native onerror handler.
     window.onerror = nativeOnError;
+  });
+
+  it('should not throw any errors, when the cell renderers use HTML table to present the value (#dev-1298)', () => {
+    const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
+
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      rowHeaders: true,
+      manualRowResize: true,
+      renderer(hot, td, row, column, value) {
+        td.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>${value}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>${value}</th>
+              </tr>
+            </tbody>
+          </table>`;
+      }
+    });
+
+    const rendererTH = $(getCell(0, 0).querySelector('tbody th'));
+
+    rendererTH
+      .simulate('mouseover')
+      .simulate('mousedown')
+      .simulate('click');
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
   });
 
   describe('handle position in a table positioned using CSS\'s `transform`', () => {
@@ -933,6 +1029,32 @@ describe('manualRowResize', () => {
         expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
       });
     });
+
+    it('should remove resize handler when user clicks RMB', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      const $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $handle.position();
+
+      $handle.simulate('mousedown', { clientY: resizerPosition.top });
+
+      // To watch whether color has changed.
+      expect(getComputedStyle($handle[0]).backgroundColor).toBe('rgb(52, 169, 219)');
+
+      $handle.simulate('contextmenu');
+
+      await sleep(0);
+
+      expect(getComputedStyle($handle[0]).backgroundColor).not.toBe('rgb(52, 169, 219)');
+    });
   });
 
   describe('hooks', () => {
@@ -968,6 +1090,36 @@ describe('manualRowResize', () => {
 
       expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false]);
       expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false]);
+    });
+
+    it('should be able to get the last desired row height from the `getLastDesiredRowHeight` method in the ' +
+    '`afterRowResize` hook callback', async() => {
+      const desiredHeightsLog = [];
+
+      handsontable({
+        data: [['value \n value \n value \n value \n value']],
+        rowHeaders: true,
+        manualRowResize: true,
+        // eslint-disable-next-line object-shorthand
+        afterRowResize: function() {
+          desiredHeightsLog.push(this.getPlugin('manualRowResize').getLastDesiredRowHeight());
+        },
+      });
+
+      const $rowHeader = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $resizer.position();
+
+      await sleep(100);
+
+      $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+      $resizer.simulate('mousemove', { clientY: resizerPosition.top + $resizer.height() - 50 });
+      $resizer.simulate('mouseup');
+
+      expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 6]);
     });
   });
 });

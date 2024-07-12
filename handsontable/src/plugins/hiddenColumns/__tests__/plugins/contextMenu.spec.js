@@ -774,7 +774,7 @@ describe('HiddenColumns', () => {
           expect(getSelectedRangeLast().to.row).toBe(1);
           expect(getSelectedRangeLast().to.col).toBe(4);
           expect(`
-            |   ║ * : * : * : * : * |
+            | * ║ * : * : * : * : * |
             |===:===:===:===:===:===|
             | * ║ A : 0 : 0 : 0 : 0 |
             | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -875,14 +875,7 @@ describe('HiddenColumns', () => {
               .eq(0);
 
             simulateClick(header, 'RMB');
-            contextMenu(header);
-
-            $('.htContextMenu .ht_master .htCore')
-              .find('tbody td')
-              .not('.htSeparator')
-              .eq(0)
-              .simulate('mousedown')
-              .simulate('mouseup'); // Insert row above
+            selectContextMenuOption('Insert row above');
 
             expect(getSelected()).toEqual([[1, -1, 1, 3]]);
             expect(getSelectedRangeLast().highlight.row).toBe(1);
@@ -919,14 +912,7 @@ describe('HiddenColumns', () => {
               .eq(0);
 
             simulateClick(header, 'RMB');
-            contextMenu(header);
-
-            $('.htContextMenu .ht_master .htCore')
-              .find('tbody td')
-              .not('.htSeparator')
-              .eq(0)
-              .simulate('mousedown')
-              .simulate('mouseup'); // Insert row above
+            selectContextMenuOption('Insert row above');
 
             expect(getSelected()).toEqual([[1, -1, 1, 3]]);
             expect(getSelectedRangeLast().highlight.row).toBe(1);
@@ -965,14 +951,7 @@ describe('HiddenColumns', () => {
               .eq(0);
 
             simulateClick(header, 'RMB');
-            contextMenu(header);
-
-            $('.htContextMenu .ht_master .htCore')
-              .find('tbody td')
-              .not('.htSeparator')
-              .eq(1)
-              .simulate('mousedown')
-              .simulate('mouseup'); // Insert row below
+            selectContextMenuOption('Insert row below');
 
             expect(getSelected()).toEqual([[0, -1, 0, 3]]);
             expect(getSelectedRangeLast().highlight.row).toBe(0);
@@ -1009,14 +988,7 @@ describe('HiddenColumns', () => {
               .eq(0);
 
             simulateClick(header, 'RMB');
-            contextMenu(header);
-
-            $('.htContextMenu .ht_master .htCore')
-              .find('tbody td')
-              .not('.htSeparator')
-              .eq(1)
-              .simulate('mousedown')
-              .simulate('mouseup'); // Insert row below
+            selectContextMenuOption('Insert row below');
 
             expect(getSelected()).toEqual([[0, -1, 0, 3]]);
             expect(getSelectedRangeLast().highlight.row).toBe(0);

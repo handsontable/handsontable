@@ -1,4 +1,4 @@
-/* To learn more about this file see: https://angular.io/config/tsconfig. */
+/* To learn more about this file see: https://angular.io/guide/typescript-configuration. */
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
@@ -6,8 +6,7 @@
     "types": []
   },
   "files": [
-    "src/main.ts",
-    "src/polyfills.ts"
+    "src/main.ts"
   ],
   "include": [
     "src/**/*.d.ts"

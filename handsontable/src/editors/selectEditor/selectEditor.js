@@ -26,9 +26,11 @@ export class SelectEditor extends BaseEditor {
    * Initializes editor instance, DOM Element and mount hooks.
    */
   init() {
-    this.select = this.hot.rootDocument.createElement('SELECT');
-    addClass(this.select, 'htSelectEditor');
+    this.select = this.hot.rootDocument.createElement('select');
+    this.select.setAttribute('data-hot-input', 'true');
     this.select.style.display = 'none';
+
+    addClass(this.select, 'htSelectEditor');
 
     this.hot.rootElement.appendChild(this.select);
     this.registerHooks();
@@ -109,7 +111,7 @@ export class SelectEditor extends BaseEditor {
    * @param {number|string} prop The column property (passed when datasource is an array of objects).
    * @param {HTMLTableCellElement} td The rendered cell element.
    * @param {*} value The rendered value.
-   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+   * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
   prepare(row, col, prop, td, value, cellProperties) {
     super.prepare(row, col, prop, td, value, cellProperties);
@@ -215,35 +217,32 @@ export class SelectEditor extends BaseEditor {
   registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
-
     const contextConfig = {
       group: SHORTCUTS_GROUP,
     };
 
-    // Actions from fast edit works.
-    if (this.isInFullEditMode() === false) {
-      return;
+    if (this.isInFullEditMode()) {
+      // The arrow-related shortcuts should work only in full edit mode.
+      editorContext.addShortcuts([{
+        keys: [['ArrowUp']],
+        callback: () => {
+          const previousOptionIndex = this.select.selectedIndex - 1;
+
+          if (previousOptionIndex >= 0) {
+            this.select[previousOptionIndex].selected = true;
+          }
+        },
+      }, {
+        keys: [['ArrowDown']],
+        callback: () => {
+          const nextOptionIndex = this.select.selectedIndex + 1;
+
+          if (nextOptionIndex <= this.select.length - 1) {
+            this.select[nextOptionIndex].selected = true;
+          }
+        }
+      }], contextConfig);
     }
-
-    editorContext.addShortcuts([{
-      keys: [['ArrowUp']],
-      callback: () => {
-        const previousOptionIndex = this.select.selectedIndex - 1;
-
-        if (previousOptionIndex >= 0) {
-          this.select[previousOptionIndex].selected = true;
-        }
-      },
-    }, {
-      keys: [['ArrowDown']],
-      callback: () => {
-        const nextOptionIndex = this.select.selectedIndex + 1;
-
-        if (nextOptionIndex <= this.select.length - 1) {
-          this.select[nextOptionIndex].selected = true;
-        }
-      }
-    }], contextConfig);
   }
 
   /**

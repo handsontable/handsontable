@@ -48,7 +48,7 @@ describe('SelectEditor', () => {
     expect(editor.is('select')).toBe(true);
     expect(editor.is(':visible')).toBe(false);
 
-    keyDownUp('enter');
+    keyDownUp('F2');
 
     expect(editor.is(':visible')).toBe(true);
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
@@ -550,18 +550,5 @@ describe('SelectEditor', () => {
     const editableElement = getActiveEditor().select;
 
     expect(editableElement.getAttribute('dir')).toBeNull();
-  });
-
-  describe('IME support', () => {
-    it('should focus editable element (from copyPaste plugin) after selecting the cell', async() => {
-      handsontable({
-        editor: false,
-      });
-      selectCell(0, 0, 0, 0, true, false);
-
-      await sleep(10);
-
-      expect(document.activeElement).toBe(document.querySelector('.HandsontableCopyPaste'));
-    });
   });
 });

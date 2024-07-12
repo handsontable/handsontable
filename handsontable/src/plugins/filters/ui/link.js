@@ -1,24 +1,29 @@
 import { clone, extend } from '../../../helpers/object';
-import BaseUI from './_base';
-
-const privatePool = new WeakMap();
+import { BaseUI } from './_base';
 
 /**
  * @private
  * @class LinkUI
  */
-class LinkUI extends BaseUI {
+export class LinkUI extends BaseUI {
   static get DEFAULTS() {
     return clone({
       href: '#',
       tagName: 'a',
+      tabIndex: -1,
+      role: 'button',
     });
   }
 
+  /**
+   * The reference to the link element.
+   *
+   * @type {HTMLLinkElement}
+   */
+  #link;
+
   constructor(hotInstance, options) {
     super(hotInstance, extend(LinkUI.DEFAULTS, options));
-
-    privatePool.set(this, {});
   }
 
   /**
@@ -27,9 +32,7 @@ class LinkUI extends BaseUI {
   build() {
     super.build();
 
-    const priv = privatePool.get(this);
-
-    priv.link = this._element.firstChild;
+    this.#link = this._element.firstChild;
   }
 
   /**
@@ -40,8 +43,22 @@ class LinkUI extends BaseUI {
       return;
     }
 
-    privatePool.get(this).link.textContent = this.translateIfPossible(this.options.textContent);
+    this.#link.textContent = this.translateIfPossible(this.options.textContent);
+  }
+
+  /**
+   * Focus element.
+   */
+  focus() {
+    if (this.isBuilt()) {
+      this.#link.focus();
+    }
+  }
+
+  /**
+   * Activate the element.
+   */
+  activate() {
+    this.#link.click();
   }
 }
-
-export default LinkUI;

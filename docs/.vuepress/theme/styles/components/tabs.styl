@@ -1,0 +1,399 @@
+.page .theme-default-content .tabs-component {
+    border: none
+    margin: 0
+    border-radius: $radius
+    padding: 0
+    border: 1px solid $lightBorderColor
+
+    .select-type-button {
+        font-size: $font-size-xs
+
+        @media (max-width: $small) {
+            font-size: 12px
+        }
+    }
+    
+    [id*="html-tab"], [id*="css-tab"] {
+        .select-type {
+            display: none !important
+        }
+    }
+
+    div[class*="language-"] { 
+        .select-type {
+            display: none
+        }
+    }
+
+    div[class*="tab-content"] { 
+        div[class*="language-"] { 
+            .select-type {
+                display: block
+            }
+        }
+    }
+
+    .option-label {
+        color: $text2Color !important
+
+        input[type=checkbox] {
+            margin: 6px
+        }
+    }
+
+    .placeholder-input {
+        padding: 8px;
+        border:none
+        border-radius: $radius
+    }
+
+    .tabs-component-panels {
+        padding: 0
+        margin-top: 0
+        background: $borderColor
+        position: relative
+        min-height: 32px
+        border-radius: 0 0 $radius $radius !important
+
+        pre {
+            margin: -16px -16px -40px
+            border-radius: 0
+            border-radius: 0 0 $radius $radius !important
+        }
+
+        .tabs-component-panel {
+            padding: 16px
+        }
+    }
+
+    ul.tabs-component-tabs  {
+        background: $editorHeadColor
+        padding: 8px
+        border-bottom: none
+        box-sizing: border-box;
+        border-radius: $radius $radius 0 0 !important
+        display: flex
+        gap: 8px
+
+        li.tabs-component-tab  {
+            &:first-child:last-child {
+            //    visibility: hidden
+            }
+
+            a.tabs-component-tab-a {
+                padding: 6px 12px
+                margin:0
+                text-decoration: none
+                color: $text2Color
+                font-size: $font-size-xs
+                line-height: $line-height-xs
+                font-weight: 400
+                background: $onsurfaceColor
+                border-radius: $radius
+                background: $onsurfaceColor
+                border: 1px solid $onsurfaceColor
+                font-size: $font-size-xs
+
+                @media (hover: hover) {
+                    &:hover {
+                        color: $textColor
+                    }
+                }
+
+                @media (max-width: $small) {
+                    font-size: 12px
+                }
+            }
+
+            &.is-active {
+                font-weight: 400
+                border-bottom:0
+
+                a {
+                    color: $textColor
+                    background: white
+                    border: 1px solid $lightBorderColor
+                }
+            }
+        }
+    }
+
+    @media (max-width: $medium) {
+        margin: 0 -0
+
+        ul.tabs-component-tabs  {
+        }
+
+        .tabs-component-panels {
+
+            .tabs-component-panel {
+                padding: 16px 16px
+            }
+        }
+    }
+}
+
+.example-container {
+    .controls {
+        padding-bottom: 16px
+
+        > button {
+            margin-right: 8px
+        }
+    }
+    .example-controls-container .controls {
+        padding-bottom: 0
+    }
+
+    .checkbox-container {
+        margin: 16px 0
+        display: block
+
+        .checkbox-group > div {
+            display: flex
+            font-size: $font-size-xs
+            line-height: 32px
+
+
+            label { display: flex
+                align-items: center
+
+                &:focus-within {
+                    border:none
+                    outline: 1px solid  $accentColor
+                }
+            }
+
+            > a {
+                //margin-left: auto
+                margin-right: 0
+            }
+        }
+    }
+    #example1 {
+        margin: 0
+    }
+}
+
+.page .theme-default-content  .tabs-button-wrapper {
+    padding-top: 16px
+    padding-bottom: 8px
+    display: flex
+    flex-direction: column
+    gap 0
+
+    + p:empty {
+        padding: 0
+
+        + p:empty {
+            padding: 0
+        }
+    }
+
+    .tabs-button-list {
+        display: flex
+        flex-wrap: wrap
+        gap: 8px
+        background: $editorColor
+        border-radius: $radius
+        padding: 8px
+        margin 0
+        transition: all $t ease-in-out
+
+        &.active {
+            margin-bottom: 16px
+
+            .show-code {
+                background: $borderColor !important
+                //border: 1px solid $accentColor !important
+            }
+
+            + .example-container-code {
+                visibility visible
+                opacity 1
+                max-height: 100vh
+            }
+        }
+
+        .show-code {
+            padding: 7px 16px 7px 13px !important
+            border:none !important
+            display: flex
+            gap: 8px
+            background: $bgColor
+            transition: all $t ease-in-out
+            align-items: center
+            border: 1px solid $bgColor !important
+            font-size: $font-size-xs
+
+            @media (hover: hover) {
+                &:hover {
+                    background: $editorColor
+                }
+            }
+
+             @media (max-width: $small) {
+                font-size: 12px
+                padding: 7px 12px 7px 10px !important
+             }
+        }
+
+        .example-controls {
+            display: flex
+            height: 36px
+            .examples-buttons {
+                display: flex
+            }
+            button {
+                border: none !important
+                padding: 10px !important
+                background: none !important
+                width: 36px
+                position: relative
+
+                i, svg {
+                    opacity: .7
+                    transition: all $ts ease-in-out
+                }
+
+                svg {
+                    path {
+                        fill: black
+                    }
+                }
+
+                &:disabled {
+                    i {
+                        opacity: 0.3 !important
+                    }
+                }
+
+                @media (hover: hover) {
+                    &:hover {
+                        i, svg {
+                            opacity 1
+                        }
+                    }
+                }
+
+                &:after {
+                    content: attr(aria-label)
+                    position absolute
+                    white-space: pre;
+                    top: 40px;
+                    left: 50%
+                    transform: translateX(-50%)
+                    padding:4px 8px
+                    border-radius: $radius
+                    background: black
+                    border: 1px solid black
+                    color: white
+                    opacity: 0
+                    transition: all $t ease-in-out
+                    font-size: $font-size-xs
+                    line-height: $line-height-xs
+                    pointer-events: none
+                }
+
+                @media (hover: hover) {
+                    &:hover:after  {
+                        opacity 1
+                    }
+                }
+            }
+        }
+    }
+}
+
+.example-container-code {
+    opacity: 0
+    visibility: hidden
+    max-height: 0
+    transition: all $t ease-in-out
+}
+
+.example-controls-container {
+    padding: 0 0 16px
+}
+
+.controls:not(button), .example-container {
+    font-size: $font-size-xs
+    line-height: $line-height-xs
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 8px 8px 0 0;
+
+    br {
+        display: none
+    }
+
+    .handsontable br {
+        display: block
+    }
+
+    label input {
+        margin: 4px
+    }
+
+    #mainInput,
+    select:not(.htSelectEditor),
+    input[type=text]:not(.htFocusCatcher),
+    input[type=search],
+    .placeholder-input {
+        padding: 8px 16px;
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+        color:$textColor
+        border-radius: $radius
+        border: 1px solid $borderColor
+        background: $borderColor
+        outline: none !important
+
+        &::placeholder {
+            color:$text2Color
+        }
+
+        @media (hover: hover) {
+            &:hover { 
+                border: 1px solid $accentColor
+            }
+        }
+        &:focus-visible  { 
+            border: 1px solid $accentColor
+        }
+
+    }
+
+    select:not(.htSelectEditor) {
+        padding: 8px 32px 8px 16px; 
+        appearance none
+        position: relative
+    }
+
+    label:has(select) {
+        position relative
+        
+        &:after {
+            content:'';
+            display: inline-block;
+            border-bottom: 1px solid $borderColor;
+            border-right: 1px solid $borderColor;
+            width: 4px
+            height: 4px
+            transform: rotate(45deg)
+            position: relative
+            right: 24px
+            top:-2px
+        }
+    }
+
+    &.select-language {
+        label {
+            display: block
+        }
+    }
+
+    &:last-child {
+        margin-bottom:0
+    }
+}

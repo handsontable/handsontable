@@ -1,7 +1,6 @@
 module.exports = {
   testEnvironment: 'jsdom',
   roots: [
-    '<rootDir>/test/unit',
     '<rootDir>/src'
   ],
   coverageDirectory: '<rootDir>/coverage',

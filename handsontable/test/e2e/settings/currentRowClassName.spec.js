@@ -21,7 +21,7 @@ describe('settings', () => {
 
       selectCell(2, 2);
 
-      expect(spec().$container.find('td.currentRowClassName').length).toEqual(6);
+      expect(spec().$container.find('td.currentRowClassName').length).toEqual(7);
     });
 
     it('should apply currentRowClassName from cells after deselection', () => {
@@ -46,7 +46,7 @@ describe('settings', () => {
 
       selectCell(2, 2);
 
-      expect(spec().$container.find('td.currentColClassName').length).toEqual(4);
+      expect(spec().$container.find('td.currentColClassName').length).toEqual(5);
     });
 
     it('should remove currentColClassName from cells after deselection', () => {

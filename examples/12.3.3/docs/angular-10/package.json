@@ -1,8 +1,0 @@
-{
-  "name": "examples-angular-10-12.3.3",
-  "version": "12.3.3",
-  "private": true,
-  "workspaces": [
-    "@(!(node_modules))/"
-  ]
-}

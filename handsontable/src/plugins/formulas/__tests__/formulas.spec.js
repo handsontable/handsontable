@@ -13,10 +13,9 @@ const autofill = (endRow, endCol) => {
 
 describe('Formulas general', () => {
   const debug = false;
-  const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -510,6 +509,38 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('#CYCLE!');
   });
 
+  it('should get dates in proper format and do not throw an error while using `getDataAtCell` inside `cells` method', () => {
+    const data = [];
+
+    // Creating bigger dataset. Some of cells won't be rendered.
+    for (let i = 0; i < 50; i += 1) {
+      data.push(['28/02/1900', '=A1']);
+    }
+
+    handsontable({
+      data,
+      formulas: {
+        engine: HyperFormula
+      },
+      cells(row, col) {
+        const cellProperties = {};
+
+        expect(this.instance.getDataAtCell(row, col)).toBe('28/02/1900');
+
+        return cellProperties;
+      },
+      columns: [{
+        type: 'date',
+        dateFormat: 'DD/MM/YYYY'
+      }, {
+        type: 'date',
+        dateFormat: 'DD/MM/YYYY'
+      }],
+      width: 500,
+      height: 300
+    });
+  });
+
   // Discussion on why `null` instead of `#REF!` at
   // https://github.com/handsontable/handsontable/issues/7668
   describe('Out of range cells', () => {
@@ -685,6 +716,54 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(3)).toEqual([2012, 6033, 8049, '#REF!', 12, '=SUM(E5)']);
     });
 
+    it('should correctly remove rows with bigger index than 10 (#dev-1841)', () => {
+      handsontable({
+        data: createSpreadsheetData(20, 5),
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const engine = getPlugin('formulas').engine;
+
+      spyOn(engine, 'removeRows').and.callThrough();
+      alter('remove_row', 9, 3);
+
+      expect(engine.removeRows.calls.argsFor(0)).toEqual([0, [11, 1]]);
+      expect(engine.removeRows.calls.argsFor(1)).toEqual([0, [10, 1]]);
+      expect(engine.removeRows.calls.argsFor(2)).toEqual([0, [9, 1]]);
+    });
+
+    it('should not throw an error after removing all rows', () => {
+      expect(() => {
+        handsontable({
+          data: getDataSimpleExampleFormulas(),
+          formulas: {
+            engine: HyperFormula
+          },
+          width: 500,
+          height: 300
+        });
+
+        alter('remove_row', 0, 5);
+      }).not.toThrow();
+    });
+
+    it('should not throw an error after removing all columns', () => {
+      expect(() => {
+        handsontable({
+          data: getDataSimpleExampleFormulas(),
+          formulas: {
+            engine: HyperFormula
+          },
+          width: 500,
+          height: 300
+        });
+
+        alter('remove_col', 0, 6);
+      }).not.toThrow();
+    });
+
     it('should recalculate table and replace coordinates in formula expressions into #REF! value (removing 2 rows)',
       () => {
         const hot = handsontable({
@@ -823,6 +902,24 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(2)).toEqual([2010, 2905, 2867, 2016, '#REF!']);
       expect(hot.getDataAtRow(3)).toEqual([2011, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(4)).toEqual([2012, '#REF!', '#REF!', 12, '=SUM(E5)']);
+    });
+
+    it('should correctly remove columns with bigger index than 10 (#dev-1841)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 20),
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const engine = getPlugin('formulas').engine;
+
+      spyOn(engine, 'removeColumns').and.callThrough();
+      alter('remove_col', 9, 3);
+
+      expect(engine.removeColumns.calls.argsFor(0)).toEqual([0, [11, 1]]);
+      expect(engine.removeColumns.calls.argsFor(1)).toEqual([0, [10, 1]]);
+      expect(engine.removeColumns.calls.argsFor(2)).toEqual([0, [9, 1]]);
     });
 
     it('should recalculate table and replace coordinates in formula expressions into #REF! ' +
@@ -2885,6 +2982,97 @@ describe('Formulas general', () => {
     expect(getDataAtCell(1, 4)).toEqual(3);
   });
 
+  it('should display calculated formula after changing value using `beforeChange` hook #6932', () => {
+    handsontable({
+      data: [
+        ['2016', 1, 1, 2, 3],
+        ['2017', 10, 11, 12, 13],
+        ['2018', 20, 11, 14, 13],
+        ['2019', 30, 15, 12, 13],
+      ],
+      rowHeaders: true,
+      colHeaders: true,
+      formulas: {
+        engine: HyperFormula
+      },
+      beforeChange(beforeChanges) {
+        beforeChanges[0][3] = '=SUM(B3:E3)';
+      },
+    });
+
+    setDataAtCell(0, 0, 1);
+
+    expect(getData()).toEqual([
+      [58, 1, 1, 2, 3],
+      ['2017', 10, 11, 12, 13],
+      ['2018', 20, 11, 14, 13],
+      ['2019', 30, 15, 12, 13],
+    ]);
+    expect(getSourceData()).toEqual([
+      ['=SUM(B3:E3)', 1, 1, 2, 3],
+      ['2017', 10, 11, 12, 13],
+      ['2018', 20, 11, 14, 13],
+      ['2019', 30, 15, 12, 13],
+    ]);
+  });
+
+  describe('renaming sheet for HF instance', () => {
+    it('should update HOT\'s plugin internal property', () => {
+      let sheetNameInsideHook = '';
+      const hfInstance = HyperFormula.buildEmpty({});
+      const hot = handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      hot.addHook('afterSheetRenamed', () => {
+        sheetNameInsideHook = hot.getPlugin('formulas').sheetName;
+      });
+
+      hfInstance.renameSheet(0, 'Lorem Ipsum');
+
+      expect(hot.getPlugin('formulas').sheetName).toBe('Lorem Ipsum');
+      expect(sheetNameInsideHook).toBe('Lorem Ipsum');
+    });
+
+    it('should not throw an error while performing actions on HOT with renamed sheet', () => {
+      const hfInstance = HyperFormula.buildEmpty({});
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      hfInstance.renameSheet(0, 'Lorem Ipsum');
+
+      expect(() => {
+        setDataAtCell(0, 1, 'new value');
+      }).not.toThrow();
+
+      expect(getDataAtCell(0, 1)).toBe('new value');
+    });
+  });
+
   describe('handling dates', () => {
     it('should handle date functions properly', () => {
       handsontable({
@@ -2956,7 +3144,7 @@ describe('Formulas general', () => {
 
       validateCells();
 
-      await sleep(10);
+      await sleep(50);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
@@ -3001,7 +3189,7 @@ describe('Formulas general', () => {
 
       validateCells();
 
-      await sleep(10);
+      await sleep(50);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
@@ -3046,7 +3234,7 @@ describe('Formulas general', () => {
 
       validateCells();
 
-      await sleep(10);
+      await sleep(50);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -3071,7 +3259,7 @@ describe('Formulas general', () => {
 
       setDataAtCell(0, 0, '13/12/2022');
 
-      await sleep(10);
+      await sleep(50);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['13/12/2022'], // Not converted - improper date (we treat it as a string)
@@ -3095,7 +3283,7 @@ describe('Formulas general', () => {
 
       validateCells();
 
-      await sleep(10);
+      await sleep(50);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
@@ -3126,7 +3314,7 @@ describe('Formulas general', () => {
 
       validateCells();
 
-      await sleep(10);
+      await sleep(50);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -3171,14 +3359,14 @@ describe('Formulas general', () => {
 
       validateCells();
 
-      await sleep(10);
+      await sleep(50);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
 
       setDataAtCell(0, 0, '12/13/2022');
 
-      await sleep(10);
+      await sleep(50);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['12/13/2022'], // Not converted - improper date (we treat it as a string)
@@ -3202,14 +3390,14 @@ describe('Formulas general', () => {
 
       validateCells();
 
-      await sleep(10);
+      await sleep(50);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
 
       setDataAtCell(0, 0, '13/11/2022');
 
-      await sleep(10);
+      await sleep(50);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         [44878], // 13 Nov 2022
@@ -3233,7 +3421,7 @@ describe('Formulas general', () => {
 
       validateCells();
 
-      await sleep(0);
+      await sleep(50);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);

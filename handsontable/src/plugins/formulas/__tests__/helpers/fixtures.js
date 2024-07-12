@@ -402,7 +402,7 @@ export function getDataForFormulas(row, column, value) {
     }
   ];
 
-  if (row !== void 0) {
+  if (row !== undefined) {
     if (!Array.isArray(value)) {
       value = [value];
     }

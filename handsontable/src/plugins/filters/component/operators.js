@@ -1,12 +1,12 @@
 import { addClass } from '../../../helpers/dom/element';
 import { arrayEach } from '../../../helpers/array';
 import { toSingleLine } from '../../../helpers/templateLiteralTag';
-import BaseComponent from './_base';
+import { BaseComponent } from './_base';
 import { getOperationName } from '../logicalOperationRegisterer';
 import { OPERATION_ID as OPERATION_AND } from '../logicalOperations/conjunction';
 import { OPERATION_ID as OPERATION_OR } from '../logicalOperations/disjunction';
 import { OPERATION_ID as OPERATION_OR_THEN_VARIABLE } from '../logicalOperations/disjunctionWithExtraCondition';
-import RadioInputUI from '../ui/radioInput';
+import { RadioInputUI } from '../ui/radioInput';
 
 const SELECTED_AT_START_ELEMENT_INDEX = 0;
 
@@ -14,7 +14,14 @@ const SELECTED_AT_START_ELEMENT_INDEX = 0;
  * @private
  * @class OperatorsComponent
  */
-class OperatorsComponent extends BaseComponent {
+export class OperatorsComponent extends BaseComponent {
+  /**
+   * The name of the component.
+   *
+   * @type {string}
+   */
+  name = '';
+
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,
@@ -40,10 +47,7 @@ class OperatorsComponent extends BaseComponent {
       hidden: () => this.isHidden(),
       renderer: (hot, wrapper) => {
         addClass(wrapper.parentNode, 'htFiltersMenuOperators');
-
-        if (!wrapper.parentNode.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
-        }
+        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
 
         return wrapper;
       }
@@ -70,7 +74,7 @@ class OperatorsComponent extends BaseComponent {
         id: operation
       });
 
-      radioInput.addLocalHook('change', event => this.onRadioInputChange(event));
+      radioInput.addLocalHook('change', event => this.#onRadioInputChange(event));
       this.elements.push(radioInput);
     });
   }
@@ -155,12 +159,9 @@ class OperatorsComponent extends BaseComponent {
   /**
    * OnChange listener.
    *
-   * @private
    * @param {Event} event The DOM event object.
    */
-  onRadioInputChange(event) {
+  #onRadioInputChange(event) {
     this.setState(event.target.value);
   }
 }
-
-export default OperatorsComponent;

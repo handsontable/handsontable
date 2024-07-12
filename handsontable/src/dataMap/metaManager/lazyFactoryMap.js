@@ -124,31 +124,38 @@ import { assert, isUnsignedNumber, isNullish } from './utils';
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export default class LazyFactoryMap {
+  /**
+   * The data factory function.
+   *
+   * @type {Function}
+   */
+  valueFactory;
+  /**
+   * An array which contains data.
+   *
+   * @type {Array}
+   */
+  data = [];
+  /**
+   * An array of indexes where the key of the array is mapped to the value which points to the
+   * specific position of the data array.
+   *
+   * @type {number[]}
+   */
+  index = [];
+  /**
+   * The collection of indexes that points to the data items which can be replaced by obtaining new
+   * ones. The "holes" are an intended effect of deleting entries.
+   *
+   * The idea of "holes" generally allows us to not modify the "data" structure while removing
+   * items from the collection.
+   *
+   * @type {Set<number>}
+   */
+  holes = new Set();
+
   constructor(valueFactory) {
     this.valueFactory = valueFactory;
-    /**
-     * An array which contains data.
-     *
-     * @type {Array}
-     */
-    this.data = [];
-    /**
-     * An array of indexes where the key of the array is mapped to the value which points to the
-     * specific position of the data array.
-     *
-     * @type {number[]}
-     */
-    this.index = [];
-    /**
-     * The collection of indexes that points to the data items which can be replaced by obtaining new
-     * ones. The "holes" are an intended effect of deleting entries.
-     *
-     * The idea of "holes" generally allows us to not modify the "data" structure while removing
-     * items from the collection.
-     *
-     * @type {Set<number>}
-     */
-    this.holes = new Set();
   }
 
   /**
@@ -166,7 +173,7 @@ export default class LazyFactoryMap {
     if (dataIndex >= 0) {
       result = this.data[dataIndex];
 
-      if (result === void 0) {
+      if (result === undefined) {
         result = this.valueFactory(key);
         this.data[dataIndex] = result;
       }
@@ -204,7 +211,7 @@ export default class LazyFactoryMap {
 
     for (let i = 0; i < amount; i++) {
       newIndexes.push(dataLength + i);
-      this.data.push(void 0);
+      this.data.push(undefined);
     }
 
     const insertionIndex = isNullish(key) ? this.index.length : key;

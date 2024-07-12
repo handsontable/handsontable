@@ -11,7 +11,7 @@ const exportToWindow = (helpersHolder) => {
       return;
     }
 
-    if (window[key] !== void 0) {
+    if (window[key] !== undefined) {
       throw Error(`Cannot export "${key}" helper because this name is already assigned.`);
     }
 

@@ -22,6 +22,44 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(180);
   });
 
+  it('should show only single resize handler and not throw an error while performing a mouse down on HOT in HOT header', () => {
+    handsontable({
+      colHeaders: true,
+      manualColumnResize: true,
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: true,
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            manualColumnResize: true,
+          }
+        },
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    const $hotInHot = $('.handsontableEditor');
+
+    expect(() => {
+      // A "mouseover" event over a header of the main HOT has shown two resizers in some cases.
+      getTopClone().find('thead tr:eq(0) th:eq(1)').simulate('mouseover');
+
+      const $endOfFirstHeader = $hotInHot.find('.ht_clone_top thead tr:eq(0) th:eq(1)');
+
+      $endOfFirstHeader.simulate('mouseover');
+      $hotInHot.find('.manualColumnResizer').simulate('mouseover');
+
+      expect($hotInHot.find('.manualColumnResizer').size()).toBe(1);
+
+      $hotInHot.find('.manualColumnResizer').simulate('mousedown');
+      $hotInHot.find('.ht_clone_top thead tr:eq(0) th:eq(2)').simulate('mouseover');
+      $hotInHot.find('.ht_clone_top thead tr:eq(0) th:eq(2)').simulate('mousemove');
+    }).not.toThrow();
+  });
+
   it('should be enabled after specifying it in updateSettings config', () => {
     handsontable({
       data: [
@@ -87,7 +125,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(180);
 
     updateSettings({
-      manualColumnResize: void 0
+      manualColumnResize: undefined
     });
 
     expect(colWidth(spec().$container, 0)).toBe(50);
@@ -115,7 +153,7 @@ describe('manualColumnResize', () => {
 
   it('should keep proper column widths after inserting column', () => {
     handsontable({
-      manualColumnResize: [void 0, void 0, 120]
+      manualColumnResize: [undefined, undefined, 120]
     });
 
     expect(colWidth(spec().$container, 0)).toBe(50);
@@ -157,7 +195,7 @@ describe('manualColumnResize', () => {
 
   it('should keep proper column widths after removing column', () => {
     handsontable({
-      manualColumnResize: [void 0, void 0, 120]
+      manualColumnResize: [undefined, undefined, 120]
     });
 
     expect(colWidth(spec().$container, 0)).toBe(50);
@@ -239,9 +277,40 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(33);
+    expect($columnHeaders.eq(1).width()).toBe(34);
     expect($columnHeaders.eq(2).width()).toBe(34);
     expect($columnHeaders.eq(3).width()).toBe(34);
+  });
+
+  it('should show resizer for fixed columns', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      colHeaders: true,
+      rowHeaders: true,
+      fixedColumnsStart: 2,
+      manualColumnResize: true
+    });
+
+    getTopClone()
+      .find('thead tr:eq(0) th:eq(3)')
+      .simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+
+    expect($resizer.position()).toEqual({
+      top: 0,
+      left: 194,
+    });
+
+    // after hovering over fixed column, resizer should be moved to the fixed column
+    getTopInlineStartClone()
+      .find('thead tr:eq(0) th:eq(1)')
+      .simulate('mouseover');
+
+    expect($resizer.position()).toEqual({
+      top: 0,
+      left: 94,
+    });
   });
 
   it('should resize (expanding) selected columns', async() => {
@@ -272,7 +341,7 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(154);
+    expect($columnHeaders.eq(1).width()).toBe(155);
     expect($columnHeaders.eq(2).width()).toBe(155);
     expect($columnHeaders.eq(3).width()).toBe(155);
   });
@@ -325,8 +394,8 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(0).width()).toBe(63);
-    expect($columnHeaders.eq(1).width()).toBe(48);
+    expect($columnHeaders.eq(0).width()).toBe(64);
+    expect($columnHeaders.eq(1).width()).toBe(49);
     expect($columnHeaders.eq(2).width()).toBe(49);
     expect($columnHeaders.eq(3).width()).toBe(49);
     expect($columnHeaders.eq(4).width()).toBe(694);
@@ -343,7 +412,7 @@ describe('manualColumnResize', () => {
     await sleep(1000);
 
     expect($columnHeaders.eq(0).width()).toBeAroundValue(19);
-    expect($columnHeaders.eq(1).width()).toBe(48);
+    expect($columnHeaders.eq(1).width()).toBe(49);
     expect($columnHeaders.eq(2).width()).toBe(49);
     expect($columnHeaders.eq(3).width()).toBe(49);
     expect($columnHeaders.eq(4).width()).toBeAroundValue(738);
@@ -379,8 +448,8 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(24);
-      expect($columnHeaders.eq(1).width()).toBe(118);
+      expect($columnHeaders.eq(0).width()).toBe(25);
+      expect($columnHeaders.eq(1).width()).toBe(119);
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
       expect($columnHeaders.eq(4).width()).toBe(79);
@@ -397,8 +466,8 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(24);
-      expect($columnHeaders.eq(1).width()).toBe(69);
+      expect($columnHeaders.eq(0).width()).toBe(25);
+      expect($columnHeaders.eq(1).width()).toBe(70);
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
       expect($columnHeaders.eq(4).width()).toBe(79);
@@ -462,7 +531,7 @@ describe('manualColumnResize', () => {
     hot.addHook('beforeColumnResize', () => 100);
     hot.addHook('beforeColumnResize', () => 200);
 
-    hot.addHook('beforeColumnResize', () => void 0);
+    hot.addHook('beforeColumnResize', () => undefined);
 
     const $th = getTopClone().find('thead tr:eq(0) th:eq(0)');
 
@@ -707,7 +776,7 @@ describe('manualColumnResize', () => {
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
   });
 
-  it('should resize proper row after resizing element adjacent to a selection', () => {
+  it('should resize the correct column after resizing element adjacent to a selection', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -799,6 +868,40 @@ describe('manualColumnResize', () => {
 
     // Reassign the native onerror handler.
     window.onerror = nativeOnError;
+  });
+
+  it('should not throw any errors, when the cell renderers use HTML table to present the value (#dev-1298)', () => {
+    const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
+
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      colHeaders: true,
+      manualColumnResize: true,
+      renderer(hot, td, row, column, value) {
+        td.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>${value}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>${value}</th>
+              </tr>
+            </tbody>
+          </table>`;
+      }
+    });
+
+    const rendererTH = $(getCell(0, 0).querySelector('thead th'));
+
+    rendererTH
+      .simulate('mouseover')
+      .simulate('mousedown')
+      .simulate('click');
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
   });
 
   describe('handle position in a table positioned using CSS\'s `transform`', () => {
@@ -1086,6 +1189,32 @@ describe('manualColumnResize', () => {
 
         expect($handle.css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
       });
+    });
+
+    it('should remove resize handler when user clicks RMB', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        manualColumnResize: true
+      });
+
+      const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
+
+      $colHeader.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualColumnResizer');
+      const resizerPosition = $handle.position();
+
+      $handle.simulate('mousedown', { clientX: resizerPosition.left });
+
+      // To watch whether color has changed.
+      expect(getComputedStyle($handle[0]).backgroundColor).toBe('rgb(52, 169, 219)');
+
+      $handle.simulate('contextmenu');
+
+      await sleep(0);
+
+      expect(getComputedStyle($handle[0]).backgroundColor).not.toBe('rgb(52, 169, 219)');
     });
   });
 });

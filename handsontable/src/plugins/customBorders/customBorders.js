@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { hasOwnProperty, objectEach, deepClone } from '../../helpers/object';
+import { hasOwnProperty, deepClone } from '../../helpers/object';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayReduce, arrayMap } from '../../helpers/array';
 import * as C from '../../i18n/constants';
@@ -41,7 +41,7 @@ export const PLUGIN_PRIORITY = 90;
  * of an array.
  *
  * See [`customBorders` configuration option](@/api/options.md#customBorders) or go to
- * [Custom cell borders demo](@/guides/cell-features/formatting-cells.md#custom-cell-borders) for more examples.
+ * [Custom cell borders demo](@/guides/cell-features/formatting-cells/formatting-cells.md#custom-cell-borders) for more examples.
  *
  * @example
  * ```js
@@ -117,8 +117,8 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
-    this.addHook('init', () => this.onAfterInit());
+    this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
+    this.addHook('init', () => this.#onAfterInit());
 
     super.enablePlugin();
   }
@@ -179,18 +179,17 @@ export class CustomBorders extends BasePlugin {
     }
 
     const selectionType = detectSelectionType(selectionRanges);
-    const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
+    const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
+      createCellCoords: this.hot._createCellCoords.bind(this.hot),
+      createCellRange: this.hot._createCellRange.bind(this.hot),
+    });
 
     arrayEach(selectionRanges, (selection) => {
-      const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
-
-      for (let row = rowStart; row <= rowEnd; row += 1) {
-        for (let col = columnStart; col <= columnEnd; col += 1) {
-          arrayEach(borderKeys, (borderKey) => {
-            this.prepareBorderFromCustomAdded(row, col, normBorder, toInlinePropName(borderKey));
-          });
-        }
-      }
+      selectionSchemaNormalizer(selection).forAll((row, col) => {
+        arrayEach(borderKeys, (borderKey) => {
+          this.prepareBorderFromCustomAdded(row, col, normBorder, toInlinePropName(borderKey));
+        });
+      });
     });
 
     /*
@@ -230,21 +229,20 @@ export class CustomBorders extends BasePlugin {
     }
 
     const selectionType = detectSelectionType(selectionRanges);
-    const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
+    const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
+      createCellCoords: this.hot._createCellCoords.bind(this.hot),
+      createCellRange: this.hot._createCellRange.bind(this.hot),
+    });
     const selectedBorders = [];
 
     arrayEach(selectionRanges, (selection) => {
-      const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
-
-      for (let row = rowStart; row <= rowEnd; row += 1) {
-        for (let col = columnStart; col <= columnEnd; col += 1) {
-          arrayEach(this.savedBorders, (border) => {
-            if (border.row === row && border.col === col) {
-              selectedBorders.push(denormalizeBorder(border));
-            }
-          });
-        }
-      }
+      selectionSchemaNormalizer(selection).forAll((row, col) => {
+        arrayEach(this.savedBorders, (border) => {
+          if (border.row === row && border.col === col) {
+            selectedBorders.push(denormalizeBorder(border));
+          }
+        });
+      });
     });
 
     return selectedBorders;
@@ -431,7 +429,7 @@ export class CustomBorders extends BasePlugin {
   setBorder(row, column, place, remove) {
     let bordersMeta = this.hot.getCellMeta(row, column).borders;
 
-    if (!bordersMeta || bordersMeta.border === void 0) {
+    if (!bordersMeta || bordersMeta.border === undefined) {
       bordersMeta = createEmptyBorders(row, column);
     } else {
       bordersMeta = normalizeBorder(bordersMeta);
@@ -674,7 +672,9 @@ export class CustomBorders extends BasePlugin {
 
     arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
       if (border.id === customSelection.settings.id) {
-        objectEach(customSelection.instanceBorders, (borderObject) => {
+        const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection);
+
+        arrayEach(borders, (borderObject) => {
           borderObject.toggleHiddenClass(place, remove); // TODO this also bad?
         });
 
@@ -712,7 +712,9 @@ export class CustomBorders extends BasePlugin {
           customSelection.commit();
 
           if (place) {
-            objectEach(customSelection.instanceBorders, (borderObject) => {
+            const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection);
+
+            arrayEach(borders, (borderObject) => {
               borderObject.changeBorderStyle(place, border);
             });
           }
@@ -746,7 +748,7 @@ export class CustomBorders extends BasePlugin {
 
       this.createCustomBorders(bordersClone);
 
-    } else if (customBorders !== void 0) {
+    } else if (customBorders !== undefined) {
       this.createCustomBorders(this.savedBorders);
     }
   }
@@ -775,10 +777,9 @@ export class CustomBorders extends BasePlugin {
   /**
    * Add border options to context menu.
    *
-   * @private
    * @param {object} defaultOptions Context menu items.
    */
-  onAfterContextMenuDefaultOptions(defaultOptions) {
+  #onAfterContextMenuDefaultOptions(defaultOptions) {
     if (!this.hot.getSettings()[PLUGIN_KEY]) {
       return;
     }
@@ -791,6 +792,16 @@ export class CustomBorders extends BasePlugin {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
       },
       disabled() {
+        const range = this.getSelectedRangeLast();
+
+        if (!range) {
+          return true;
+        }
+
+        if (range.isSingleHeader()) {
+          return true;
+        }
+
         return this.selection.isSelectedByCorner();
       },
       submenu: {
@@ -807,10 +818,8 @@ export class CustomBorders extends BasePlugin {
 
   /**
    * `afterInit` hook callback.
-   *
-   * @private
    */
-  onAfterInit() {
+  #onAfterInit() {
     this.changeBorderSettings();
   }
 

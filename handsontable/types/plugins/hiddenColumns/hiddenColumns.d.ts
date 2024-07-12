@@ -4,6 +4,7 @@ import { BasePlugin } from '../base';
 export interface DetailedSettings {
   columns?: number[];
   indicators?: boolean;
+  copyPasteEnabled?: boolean;
 }
 
 export type Settings = boolean | DetailedSettings;

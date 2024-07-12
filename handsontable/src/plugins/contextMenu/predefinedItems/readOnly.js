@@ -41,6 +41,16 @@ export default function readOnlyItem() {
       this.render();
     },
     disabled() {
+      const range = this.getSelectedRangeLast();
+
+      if (!range) {
+        return true;
+      }
+
+      if (range.isSingleHeader()) {
+        return true;
+      }
+
       if (this.selection.isSelectedByCorner()) {
         return true;
       }

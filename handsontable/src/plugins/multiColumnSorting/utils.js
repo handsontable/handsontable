@@ -6,5 +6,5 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
  */
 export function warnAboutPluginsConflict() {
   warn(toSingleLine`Plugins \`columnSorting\` and \`multiColumnSorting\` should not be enabled simultaneously. 
-    Only \`multiColumnSorting\` will work.`);
+    Only \`multiColumnSorting\` will work. The \`columnSorting\` plugin will be disabled.`);
 }

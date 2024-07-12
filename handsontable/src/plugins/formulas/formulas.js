@@ -55,7 +55,7 @@ const isBlockedSource = source => source === 'UndoRedo.undo' || source === 'Undo
  * integration with our other product, [HyperFormula](https://github.com/handsontable/hyperformula/), which is a
  * powerful calculation engine with an extensive number of features.
  *
- * To test out HyperFormula, see [this guide](@/guides/formulas/formula-calculation.md#available-functions).
+ * To test out HyperFormula, see [this guide](@/guides/formulas/formula-calculation/formula-calculation.md#available-functions).
  *
  * @plugin Formulas
  * @class Formulas
@@ -98,12 +98,12 @@ export class Formulas extends BasePlugin {
    * @type {Array}
    */
   #engineListeners = [
-    ['valuesUpdated', (...args) => this.onEngineValuesUpdated(...args)],
-    ['namedExpressionAdded', (...args) => this.onEngineNamedExpressionsAdded(...args)],
-    ['namedExpressionRemoved', (...args) => this.onEngineNamedExpressionsRemoved(...args)],
-    ['sheetAdded', (...args) => this.onEngineSheetAdded(...args)],
-    ['sheetRenamed', (...args) => this.onEngineSheetRenamed(...args)],
-    ['sheetRemoved', (...args) => this.onEngineSheetRemoved(...args)],
+    ['valuesUpdated', (...args) => this.#onEngineValuesUpdated(...args)],
+    ['namedExpressionAdded', (...args) => this.#onEngineNamedExpressionsAdded(...args)],
+    ['namedExpressionRemoved', (...args) => this.#onEngineNamedExpressionsRemoved(...args)],
+    ['sheetAdded', (...args) => this.#onEngineSheetAdded(...args)],
+    ['sheetRenamed', (...args) => this.#onEngineSheetRenamed(...args)],
+    ['sheetRemoved', (...args) => this.#onEngineSheetRemoved(...args)],
   ];
 
   /**
@@ -193,32 +193,32 @@ export class Formulas extends BasePlugin {
       }
     }
 
-    this.addHook('beforeLoadData', (...args) => this.onBeforeLoadData(...args));
-    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
+    this.addHook('beforeLoadData', (...args) => this.#onBeforeLoadData(...args));
+    this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
 
     // The `updateData` hooks utilize the same logic as the `loadData` hooks.
-    this.addHook('beforeUpdateData', (...args) => this.onBeforeLoadData(...args));
-    this.addHook('afterUpdateData', (...args) => this.onAfterLoadData(...args));
+    this.addHook('beforeUpdateData', (...args) => this.#onBeforeLoadData(...args));
+    this.addHook('afterUpdateData', (...args) => this.#onAfterLoadData(...args));
 
-    this.addHook('modifyData', (...args) => this.onModifyData(...args));
-    this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
-    this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
+    this.addHook('modifyData', (...args) => this.#onModifyData(...args));
+    this.addHook('modifySourceData', (...args) => this.#onModifySourceData(...args));
+    this.addHook('beforeValidate', (...args) => this.#onBeforeValidate(...args));
 
-    this.addHook('afterSetSourceDataAtCell', (...args) => this.onAfterSetSourceDataAtCell(...args));
-    this.addHook('afterSetDataAtCell', (...args) => this.onAfterSetDataAtCell(...args));
-    this.addHook('afterSetDataAtRowProp', (...args) => this.onAfterSetDataAtCell(...args));
+    this.addHook('afterSetSourceDataAtCell', (...args) => this.#onAfterSetSourceDataAtCell(...args));
+    this.addHook('afterSetDataAtCell', (...args) => this.#onAfterSetDataAtCell(...args));
+    this.addHook('afterSetDataAtRowProp', (...args) => this.#onAfterSetDataAtCell(...args));
 
-    this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
-    this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
+    this.addHook('beforeCreateRow', (...args) => this.#onBeforeCreateRow(...args));
+    this.addHook('beforeCreateCol', (...args) => this.#onBeforeCreateCol(...args));
 
-    this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
-    this.addHook('afterCreateCol', (...args) => this.onAfterCreateCol(...args));
+    this.addHook('afterCreateRow', (...args) => this.#onAfterCreateRow(...args));
+    this.addHook('afterCreateCol', (...args) => this.#onAfterCreateCol(...args));
 
-    this.addHook('beforeRemoveRow', (...args) => this.onBeforeRemoveRow(...args));
-    this.addHook('beforeRemoveCol', (...args) => this.onBeforeRemoveCol(...args));
+    this.addHook('beforeRemoveRow', (...args) => this.#onBeforeRemoveRow(...args));
+    this.addHook('beforeRemoveCol', (...args) => this.#onBeforeRemoveCol(...args));
 
-    this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
-    this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
+    this.addHook('afterRemoveRow', (...args) => this.#onAfterRemoveRow(...args));
+    this.addHook('afterRemoveCol', (...args) => this.#onAfterRemoveCol(...args));
 
     this.indexSyncer = new IndexSyncer(this.hot.rowIndexMapper, this.hot.columnIndexMapper, (postponedAction) => {
       this.hot.addHookOnce('init', () => {
@@ -271,7 +271,7 @@ export class Formulas extends BasePlugin {
     // TODO: Actions related to overwriting dates from HOT format to HF default format are done as callback to this
     // hook, because some hooks, such as `afterLoadData` doesn't have information about composed cell properties.
     // Another hooks are triggered to late for setting HF's engine data needed for some actions.
-    this.addHook('afterCellMetaReset', (...args) => this.onAfterCellMetaReset(...args));
+    this.addHook('afterCellMetaReset', (...args) => this.#onAfterCellMetaReset(...args));
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => {
@@ -295,9 +295,8 @@ export class Formulas extends BasePlugin {
       this.indexSyncer.setPerformRedo(false);
     });
 
-    this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));
-
-    this.addHook('beforeAutofill', (...args) => this.onBeforeAutofill(...args));
+    this.addHook('afterDetachChild', (...args) => this.#onAfterDetachChild(...args));
+    this.addHook('beforeAutofill', (...args) => this.#onBeforeAutofill(...args));
 
     this.#engineListeners.forEach(([eventName, listener]) => this.engine.on(eventName, listener));
 
@@ -349,7 +348,7 @@ export class Formulas extends BasePlugin {
         this.switchSheet(this.sheetName);
 
       } else {
-        this.sheetName = this.addSheet(sheetName ?? void 0, this.hot.getSourceDataArray());
+        this.sheetName = this.addSheet(sheetName ?? undefined, this.hot.getSourceDataArray());
       }
     }
 
@@ -387,14 +386,14 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    if (sheetName !== void 0 && sheetName !== null && this.engine.doesSheetExist(sheetName)) {
+    if (sheetName !== undefined && sheetName !== null && this.engine.doesSheetExist(sheetName)) {
       warn('Sheet with the provided name already exists.');
 
       return false;
     }
 
     try {
-      const actualSheetName = this.engine.addSheet(sheetName ?? void 0);
+      const actualSheetName = this.engine.addSheet(sheetName ?? undefined);
 
       if (sheetData) {
         this.engine.setSheetContent(this.engine.getSheetId(actualSheetName), sheetData);
@@ -487,7 +486,7 @@ export class Formulas extends BasePlugin {
       // For the Named expression the address is empty, hence the `sheetId` is undefined.
       const sheetId = change?.address?.sheet;
 
-      if (sheetId !== void 0) {
+      if (sheetId !== undefined) {
         if (!affectedSheetIds.has(sheetId)) {
           affectedSheetIds.add(sheetId);
         }
@@ -539,7 +538,7 @@ export class Formulas extends BasePlugin {
 
       // Validate the cells that depend on the calculated formulas. Skip that cells
       // where the user directly changes the values - the Core triggers those validators.
-      if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
+      if (sheetId !== undefined && !changedCellsSet.has(addressId)) {
         const boundHot = getRegisteredHotInstances(this.engine).get(sheetId);
 
         // if `sheetId` is not bound to any Handsontable instance, skip the validation process
@@ -599,13 +598,12 @@ export class Formulas extends BasePlugin {
    * The hook allows to translate the formula value to calculated value before it goes to the
    * validator function.
    *
-   * @private
    * @param {*} value The cell value to validate.
    * @param {number} visualRow The visual row index.
    * @param {number|string} prop The visual column index or property name of the column.
    * @returns {*} Returns value to validate.
    */
-  onBeforeValidate(value, visualRow, prop) {
+  #onBeforeValidate(value, visualRow, prop) {
     const visualColumn = this.hot.propToCol(prop);
 
     if (this.isFormulaCellType(visualRow, visualColumn)) {
@@ -632,24 +630,42 @@ export class Formulas extends BasePlugin {
   /**
    * `onBeforeAutofill` hook callback.
    *
-   * @private
    * @param {Array[]} fillData The data that was used to fill the `targetRange`. If `beforeAutofill` was used
    * and returned `[[]]`, this will be the same object that was returned from `beforeAutofill`.
    * @param {CellRange} sourceRange The range values will be filled from.
    * @param {CellRange} targetRange The range new values will be filled into.
    * @returns {boolean|*}
    */
-  onBeforeAutofill(fillData, sourceRange, targetRange) {
-    const withSheetId = range => ({ ...range, sheet: this.sheetId });
+  #onBeforeAutofill(fillData, sourceRange, targetRange) {
+    const { row: sourceTopStartRow, col: sourceTopStartColumn } = sourceRange.getTopStartCorner();
+    const { row: sourceBottomEndRow, col: sourceBottomEndColumn } = sourceRange.getBottomEndCorner();
+    const { row: targetTopStartRow, col: targetTopStartColumn } = targetRange.getTopStartCorner();
+    const { row: targetBottomEndRow, col: targetBottomEndColumn } = targetRange.getBottomEndCorner();
 
     const engineSourceRange = {
-      start: withSheetId(sourceRange.getTopStartCorner()),
-      end: withSheetId(sourceRange.getBottomEndCorner())
+      start: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartColumn),
+        sheet: this.sheetId,
+      },
+      end: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndColumn),
+        sheet: this.sheetId,
+      },
     };
 
     const engineTargetRange = {
-      start: withSheetId(targetRange.getTopStartCorner()),
-      end: withSheetId(targetRange.getBottomEndCorner())
+      start: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetTopStartRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetTopStartColumn),
+        sheet: this.sheetId,
+      },
+      end: {
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndColumn),
+        sheet: this.sheetId,
+      },
     };
 
     // Blocks the autofill operation if HyperFormula says that at least one of
@@ -674,8 +690,8 @@ export class Formulas extends BasePlugin {
       for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
         populatedColumnIndex += 1) {
         const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
-        const sourceRow = populatedRowIndex % populationRowLength;
-        const sourceColumn = populatedColumnIndex % populationColumnLength;
+        const sourceRow = sourceStartRow + (populatedRowIndex % populationRowLength);
+        const sourceColumn = sourceStartColumn + (populatedColumnIndex % populationColumnLength);
         const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
 
         if (isDate(populatedValue, sourceCellMeta.type)) {
@@ -701,9 +717,8 @@ export class Formulas extends BasePlugin {
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    * @param {string} [source] Source of the call.
-   * @private
    */
-  onBeforeLoadData(sourceData, initialLoad, source = '') {
+  #onBeforeLoadData(sourceData, initialLoad, source = '') {
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
@@ -715,10 +730,8 @@ export class Formulas extends BasePlugin {
 
   /**
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
-   *
-   * @private
    */
-  onAfterCellMetaReset() {
+  #onAfterCellMetaReset() {
     const sourceDataArray = this.hot.getSourceDataArray();
     let valueChanged = false;
 
@@ -757,9 +770,8 @@ export class Formulas extends BasePlugin {
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    * @param {string} [source] Source of the call.
-   * @private
    */
-  onAfterLoadData(sourceData, initialLoad, source = '') {
+  #onAfterLoadData(sourceData, initialLoad, source = '') {
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
@@ -788,14 +800,13 @@ export class Formulas extends BasePlugin {
   /**
    * `modifyData` hook callback.
    *
-   * @private
    * @param {number} physicalRow Physical row index.
    * @param {number} visualColumn Visual column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
-  onModifyData(physicalRow, visualColumn, valueHolder, ioMode) {
+  #onModifyData(physicalRow, visualColumn, valueHolder, ioMode) {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
@@ -840,7 +851,17 @@ export class Formulas extends BasePlugin {
     }
 
     let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+
+    // TODO: Workaround. We use HOT's `getCellsMeta` method instead of HOT's `getCellMeta` method. Getting cell meta
+    // using the second method lead to execution of the `cells` method. Using the `getDataAtCell` (which may be useful)
+    // in a callback to the `cells` method leads to triggering the `modifyData` hook. Thus, the `onModifyData` callback
+    // is executed once again and it cause creation of an infinite loop.
+    let cellMeta = this.hot.getCellsMeta().find(singleCellMeta => singleCellMeta.visualRow === visualRow &&
+      singleCellMeta.visualCol === visualColumn);
+
+    if (cellMeta === undefined) {
+      cellMeta = {};
+    }
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
@@ -855,14 +876,13 @@ export class Formulas extends BasePlugin {
   /**
    * `modifySourceData` hook callback.
    *
-   * @private
    * @param {number} row Physical row index.
    * @param {number|string} columnOrProp Physical column index or prop.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
-  onModifySourceData(row, columnOrProp, valueHolder, ioMode) {
+  #onModifySourceData(row, columnOrProp, valueHolder, ioMode) {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
@@ -912,12 +932,11 @@ export class Formulas extends BasePlugin {
   /**
    * `onAfterSetDataAtCell` hook callback.
    *
-   * @private
    * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  onAfterSetDataAtCell(changes, source) {
+  #onAfterSetDataAtCell(changes, source) {
     if (isBlockedSource(source)) {
       return;
     }
@@ -968,12 +987,11 @@ export class Formulas extends BasePlugin {
   /**
    * `onAfterSetSourceDataAtCell` hook callback.
    *
-   * @private
    * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  onAfterSetSourceDataAtCell(changes, source) {
+  #onAfterSetSourceDataAtCell(changes, source) {
     if (isBlockedSource(source)) {
       return;
     }
@@ -1011,12 +1029,11 @@ export class Formulas extends BasePlugin {
   /**
    * `beforeCreateRow` hook callback.
    *
-   * @private
    * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  onBeforeCreateRow(visualRow, amount) {
+  #onBeforeCreateRow(visualRow, amount) {
     let hfRowIndex = this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow);
 
     if (visualRow >= this.hot.countRows()) {
@@ -1035,12 +1052,11 @@ export class Formulas extends BasePlugin {
   /**
    * `beforeCreateCol` hook callback.
    *
-   * @private
    * @param {number} visualColumn Represents the visual index of first newly created column in the data source.
    * @param {number} amount Number of newly created columns in the data source.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  onBeforeCreateCol(visualColumn, amount) {
+  #onBeforeCreateCol(visualColumn, amount) {
     let hfColumnIndex = this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn);
 
     if (visualColumn >= this.hot.countCols()) {
@@ -1059,51 +1075,48 @@ export class Formulas extends BasePlugin {
   /**
    * `beforeRemoveRow` hook callback.
    *
-   * @private
    * @param {number} row Visual index of starter row.
    * @param {number} amount Amount of rows to be removed.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  onBeforeRemoveRow(row, amount, physicalRows) {
+  #onBeforeRemoveRow(row, amount, physicalRows) {
     const hfRows = this.rowAxisSyncer.setRemovedHfIndexes(physicalRows);
 
     const possible = hfRows.every((hfRow) => {
       return this.engine.isItPossibleToRemoveRows(this.sheetId, [hfRow, 1]);
     });
 
-    return possible === false ? false : void 0;
+    return possible === false ? false : undefined;
   }
 
   /**
    * `beforeRemoveCol` hook callback.
    *
-   * @private
    * @param {number} col Visual index of starter column.
    * @param {number} amount Amount of columns to be removed.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  onBeforeRemoveCol(col, amount, physicalColumns) {
+  #onBeforeRemoveCol(col, amount, physicalColumns) {
     const hfColumns = this.columnAxisSyncer.setRemovedHfIndexes(physicalColumns);
 
     const possible = hfColumns.every((hfColumn) => {
       return this.engine.isItPossibleToRemoveColumns(this.sheetId, [hfColumn, 1]);
     });
 
-    return possible === false ? false : void 0;
+    return possible === false ? false : undefined;
   }
 
   /**
    * `afterCreateRow` hook callback.
    *
-   * @private
    * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  onAfterCreateRow(visualRow, amount, source) {
+  #onAfterCreateRow(visualRow, amount, source) {
     if (isBlockedSource(source)) {
       return;
     }
@@ -1117,13 +1130,12 @@ export class Formulas extends BasePlugin {
   /**
    * `afterCreateCol` hook callback.
    *
-   * @private
    * @param {number} visualColumn Represents the visual index of first newly created column in the data source.
    * @param {number} amount Number of newly created columns in the data source.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  onAfterCreateCol(visualColumn, amount, source) {
+  #onAfterCreateCol(visualColumn, amount, source) {
     if (isBlockedSource(source)) {
       return;
     }
@@ -1137,19 +1149,21 @@ export class Formulas extends BasePlugin {
   /**
    * `afterRemoveRow` hook callback.
    *
-   * @private
    * @param {number} row Visual index of starter row.
    * @param {number} amount An amount of removed rows.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  onAfterRemoveRow(row, amount, physicalRows, source) {
+  #onAfterRemoveRow(row, amount, physicalRows, source) {
     if (isBlockedSource(source)) {
       return;
     }
 
-    const descendingHfRows = this.rowAxisSyncer.getRemovedHfIndexes().sort().reverse();
+    const descendingHfRows = this.rowAxisSyncer
+      .getRemovedHfIndexes()
+      .sort((a, b) => b - a); // sort numeric values descending
+
     const changes = this.engine.batch(() => {
       descendingHfRows.forEach((hfRow) => {
         this.engine.removeRows(this.sheetId, [hfRow, 1]);
@@ -1162,19 +1176,20 @@ export class Formulas extends BasePlugin {
   /**
    * `afterRemoveCol` hook callback.
    *
-   * @private
    * @param {number} col Visual index of starter column.
    * @param {number} amount An amount of removed columns.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  onAfterRemoveCol(col, amount, physicalColumns, source) {
+  #onAfterRemoveCol(col, amount, physicalColumns, source) {
     if (isBlockedSource(source)) {
       return;
     }
 
-    const descendingHfColumns = this.columnAxisSyncer.getRemovedHfIndexes().sort().reverse();
+    const descendingHfColumns = this.columnAxisSyncer
+      .getRemovedHfIndexes()
+      .sort((a, b) => b - a); // sort numeric values descending
 
     const changes = this.engine.batch(() => {
       descendingHfColumns.forEach((hfColumn) => {
@@ -1189,12 +1204,11 @@ export class Formulas extends BasePlugin {
    * `afterDetachChild` hook callback.
    * Used to sync the data of the rows detached in the Nested Rows plugin with the engine's dataset.
    *
-   * @private
    * @param {object} parent An object representing the parent from which the element was detached.
    * @param {object} element The detached element.
    * @param {number} finalElementRowIndex The final row index of the detached element.
    */
-  onAfterDetachChild(parent, element, finalElementRowIndex) {
+  #onAfterDetachChild(parent, element, finalElementRowIndex) {
     this.#internalOperationPending = true;
 
     const rowsData = this.hot.getSourceDataArray(
@@ -1220,70 +1234,66 @@ export class Formulas extends BasePlugin {
   /**
    * Called when a value is updated in the engine.
    *
-   * @private
    * @fires Hooks#afterFormulasValuesUpdate
    * @param {Array} changes The values and location of applied changes.
    */
-  onEngineValuesUpdated(changes) {
+  #onEngineValuesUpdated(changes) {
     this.hot.runHooks('afterFormulasValuesUpdate', changes);
   }
 
   /**
    * Called when a named expression is added to the engine instance.
    *
-   * @private
    * @fires Hooks#afterNamedExpressionAdded
    * @param {string} namedExpressionName The name of the added expression.
    * @param {Array} changes The values and location of applied changes.
    */
-  onEngineNamedExpressionsAdded(namedExpressionName, changes) {
+  #onEngineNamedExpressionsAdded(namedExpressionName, changes) {
     this.hot.runHooks('afterNamedExpressionAdded', namedExpressionName, changes);
   }
 
   /**
    * Called when a named expression is removed from the engine instance.
    *
-   * @private
    * @fires Hooks#afterNamedExpressionRemoved
    * @param {string} namedExpressionName The name of the removed expression.
    * @param {Array} changes The values and location of applied changes.
    */
-  onEngineNamedExpressionsRemoved(namedExpressionName, changes) {
+  #onEngineNamedExpressionsRemoved(namedExpressionName, changes) {
     this.hot.runHooks('afterNamedExpressionRemoved', namedExpressionName, changes);
   }
 
   /**
    * Called when a new sheet is added to the engine instance.
    *
-   * @private
    * @fires Hooks#afterSheetAdded
    * @param {string} addedSheetDisplayName The name of the added sheet.
    */
-  onEngineSheetAdded(addedSheetDisplayName) {
+  #onEngineSheetAdded(addedSheetDisplayName) {
     this.hot.runHooks('afterSheetAdded', addedSheetDisplayName);
   }
 
   /**
    * Called when a sheet in the engine instance is renamed.
    *
-   * @private
    * @fires Hooks#afterSheetRenamed
    * @param {string} oldDisplayName The old name of the sheet.
    * @param {string} newDisplayName The new name of the sheet.
    */
-  onEngineSheetRenamed(oldDisplayName, newDisplayName) {
+  #onEngineSheetRenamed(oldDisplayName, newDisplayName) {
+    this.sheetName = newDisplayName;
+
     this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
   }
 
   /**
    * Called when a sheet is removed from the engine instance.
    *
-   * @private
    * @fires Hooks#afterSheetRemoved
    * @param {string} removedSheetDisplayName The removed sheet name.
    * @param {Array} changes The values and location of applied changes.
    */
-  onEngineSheetRemoved(removedSheetDisplayName, changes) {
+  #onEngineSheetRemoved(removedSheetDisplayName, changes) {
     this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
   }
 

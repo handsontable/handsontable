@@ -1,6 +1,6 @@
 import { addLicenseBanner } from './helpers/licenseBanner';
 import { baseConfig } from './base';
-import replace from 'rollup-plugin-replace';
+import replace from '@rollup/plugin-replace';
 
 const env = process.env.NODE_ENV;
 const filename = 'react-handsontable.js';
@@ -17,11 +17,16 @@ const umdConfig = {
       react: 'React',
       'react-dom': 'ReactDOM',
       'handsontable/base': 'Handsontable',
+      'handsontable/renderers/registry': 'Handsontable.renderers',
+      'handsontable/editors/registry': 'Handsontable.editors',
     }
   },
   plugins: baseConfig.plugins.concat([
     replace({
-      'process.env.NODE_ENV': JSON.stringify('production')
+      preventAssignment: true,
+      values: {
+        'process.env.NODE_ENV': JSON.stringify('production')
+      },
     })
   ])
 };

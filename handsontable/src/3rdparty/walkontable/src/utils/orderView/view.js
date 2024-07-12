@@ -10,43 +10,47 @@ import ViewSizeSet from './viewSizeSet';
  * @class {OrderView}
  */
 export default class OrderView {
+  /**
+   * The root node to manage with.
+   *
+   * @type {HTMLElement}
+   */
+  rootNode;
+  /**
+   * Factory for newly created DOM elements.
+   *
+   * @type {Function}
+   */
+  nodesPool;
+  /**
+   * Holder for sizing and positioning of the view.
+   *
+   * @type {ViewSizeSet}
+   */
+  sizeSet = new ViewSizeSet();
+  /**
+   * Node type which the order view will manage while rendering the DOM elements.
+   *
+   * @type {string}
+   */
+  childNodeType;
+  /**
+   * The visual index of currently processed row.
+   *
+   * @type {number}
+   */
+  visualIndex = 0;
+  /**
+   * The list of DOM elements which are rendered for this render cycle.
+   *
+   * @type {HTMLElement[]}
+   */
+  collectedNodes = [];
+
   constructor(rootNode, nodesPool, childNodeType) {
-    /**
-     * The root node to manage with.
-     *
-     * @type {HTMLElement}
-     */
     this.rootNode = rootNode;
-    /**
-     * Factory for newly created DOM elements.
-     *
-     * @type {Function}
-     */
     this.nodesPool = nodesPool;
-    /**
-     * Holder for sizing and positioning of the view.
-     *
-     * @type {ViewSizeSet}
-     */
-    this.sizeSet = new ViewSizeSet();
-    /**
-     * Node type which the order view will manage while rendering the DOM elements.
-     *
-     * @type {string}
-     */
     this.childNodeType = childNodeType.toUpperCase();
-    /**
-     * The visual index of currently processed row.
-     *
-     * @type {number}
-     */
-    this.visualIndex = 0;
-    /**
-     * The list of DOM elements which are rendered for this render cycle.
-     *
-     * @type {HTMLElement[]}
-     */
-    this.collectedNodes = [];
   }
 
   /**

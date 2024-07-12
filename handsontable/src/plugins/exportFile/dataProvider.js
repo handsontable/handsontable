@@ -4,19 +4,21 @@ import { rangeEach } from '../../helpers/number';
  * @private
  */
 class DataProvider {
+  /**
+   * Handsontable instance.
+   *
+   * @type {Core}
+   */
+  hot;
+  /**
+   * Format type class options.
+   *
+   * @type {object}
+   */
+  options = {};
+
   constructor(hotInstance) {
-    /**
-     * Handsontable instance.
-     *
-     * @type {Core}
-     */
     this.hot = hotInstance;
-    /**
-     * Format type class options.
-     *
-     * @type {object}
-     */
-    this.options = {};
   }
 
   /**

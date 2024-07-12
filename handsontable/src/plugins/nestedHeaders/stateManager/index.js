@@ -3,6 +3,7 @@ import SourceSettings from './sourceSettings';
 import HeadersTree from './headersTree';
 import { triggerNodeModification } from './nodeModifiers';
 import { generateMatrix } from './matrixGenerator';
+import { TRAVERSAL_DF_PRE } from '../../../utils/dataStructures/tree';
 
 /**
  * The state manager is a source of truth for nested headers configuration.
@@ -143,7 +144,7 @@ export default class StateManager {
       rootNode.walkDown((node) => {
         const result = callback(node.data);
 
-        if (result !== void 0) {
+        if (result !== undefined) {
           acc.push(result);
         }
       });
@@ -304,6 +305,25 @@ export default class StateManager {
    * @returns {object|null}
    */
   getHeaderTreeNodeData(headerLevel, columnIndex) {
+    const node = this.getHeaderTreeNode(headerLevel, columnIndex);
+
+    if (!node) {
+      return null;
+    }
+
+    return {
+      ...node.data,
+    };
+  }
+
+  /**
+   * Gets tree node that is connected to the column header.
+   *
+   * @param {number} headerLevel Header level (there is support for negative and positive values).
+   * @param {number} columnIndex A visual column index.
+   * @returns {TreeNode|null}
+   */
+  getHeaderTreeNode(headerLevel, columnIndex) {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel);
     }
@@ -318,9 +338,61 @@ export default class StateManager {
       return null;
     }
 
-    return {
-      ...node.data,
-    };
+    return node;
+  }
+
+  /**
+   * Finds the most top header level of the column header that is rendered entirely within
+   * the passed visual columns range. If multiple columns headers are found within the range the
+   * most top header level value will be returned.
+   *
+   * @param {number} columnIndexFrom A visual column index.
+   * @param {number} [columnIndexTo] A visual column index.
+   * @returns {number} Returns a header level in format -1 to -N.
+   */
+  findTopMostEntireHeaderLevel(columnIndexFrom, columnIndexTo = columnIndexFrom) {
+    const columnsWidth = (columnIndexTo - columnIndexFrom) + 1;
+    let atLeastOneRootFound = false;
+    let headerLevel = null;
+
+    for (let columnIndex = columnIndexFrom; columnIndex <= columnIndexTo; columnIndex++) {
+      const rootNode = this.#headersTree.getRootByColumn(columnIndex);
+
+      if (!rootNode) {
+        break;
+      }
+
+      atLeastOneRootFound = true;
+
+      // eslint-disable-next-line
+      rootNode.walkDown((node) => {
+        const {
+          columnIndex: nodeColumnIndex,
+          headerLevel: nodeHeaderLevel,
+          origColspan,
+          isHidden,
+        } = node.data;
+
+        if (isHidden) {
+          return;
+        }
+
+        // if the header fits entirely within the columns range get and save the node header level
+        if (origColspan <= columnsWidth &&
+            nodeColumnIndex >= columnIndexFrom &&
+            nodeColumnIndex + origColspan - 1 <= columnIndexTo &&
+            (headerLevel === null || nodeHeaderLevel < headerLevel)) {
+
+          headerLevel = nodeHeaderLevel;
+        }
+      }, TRAVERSAL_DF_PRE);
+    }
+
+    if (atLeastOneRootFound && headerLevel === null) {
+      return -1;
+    }
+
+    return this.levelToRowCoords(headerLevel ?? 0);
   }
 
   /**
@@ -356,6 +428,42 @@ export default class StateManager {
     }
 
     return stepBackColumn;
+  }
+
+  /**
+   * The method is helpful in cases where the column index targets in-between currently
+   * collapsed column. In that case, the method returns the right-most column index
+   * where the nested header ends.
+   *
+   * @param {number} headerLevel Header level (there is support for negative and positive values).
+   * @param {number} columnIndex A visual column index.
+   * @returns {number}
+   */
+  findRightMostColumnIndex(headerLevel, columnIndex) {
+    const {
+      isRoot,
+      origColspan,
+    } = this.getHeaderSettings(headerLevel, columnIndex) ?? { isRoot: true, origColspan: 1 };
+
+    if (isRoot) {
+      return columnIndex + origColspan - 1;
+    }
+
+    let stepForthColumn = columnIndex + 1;
+
+    while (stepForthColumn < this.getColumnsCount()) {
+      const {
+        isRoot: isRootNode,
+      } = this.getHeaderSettings(headerLevel, stepForthColumn) ?? { isRoot: true };
+
+      if (isRootNode) {
+        break;
+      }
+
+      stepForthColumn += 1;
+    }
+
+    return stepForthColumn - 1;
   }
 
   /**

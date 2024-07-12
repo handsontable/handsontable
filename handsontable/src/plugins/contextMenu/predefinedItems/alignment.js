@@ -18,6 +18,16 @@ export default function alignmentItem() {
         return true;
       }
 
+      const range = this.getSelectedRangeLast();
+
+      if (!range) {
+        return true;
+      }
+
+      if (range.isSingleHeader()) {
+        return true;
+      }
+
       return !(this.getSelectedRange() && !this.selection.isSelectedByCorner());
     },
     submenu: {

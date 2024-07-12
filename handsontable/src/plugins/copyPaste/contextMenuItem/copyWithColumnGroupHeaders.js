@@ -1,4 +1,5 @@
 import { CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS } from '../../../i18n/constants';
+import { clamp } from '../../../helpers/number';
 
 /**
  * @param {CopyPaste} copyPastePlugin The plugin instance.
@@ -9,7 +10,7 @@ export default function copyWithColumnGroupHeadersItem(copyPastePlugin) {
     key: 'copy_with_column_group_headers',
     name() {
       const selectedRange = this.getSelectedRangeLast();
-      const nounForm = selectedRange ? Math.min(selectedRange.getWidth() - 1, 1) : 0;
+      const nounForm = selectedRange ? clamp(selectedRange.getWidth() - 1, 0, 1) : 0;
 
       return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS, nounForm);
     },
@@ -18,6 +19,16 @@ export default function copyWithColumnGroupHeadersItem(copyPastePlugin) {
     },
     disabled() {
       if (!this.hasColHeaders() || !this.getSettings().nestedHeaders) {
+        return true;
+      }
+
+      const range = this.getSelectedRangeLast();
+
+      if (!range) {
+        return true;
+      }
+
+      if (range.isSingleHeader()) {
         return true;
       }
 

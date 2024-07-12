@@ -15,7 +15,7 @@ describe('HiddenColumns', () => {
   describe('MergeCells', () => {
     it('should display properly merged cells basing on the settings', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+        data: createSpreadsheetObjectData(5, 5),
         mergeCells: [
           { row: 0, col: 0, rowspan: 2, colspan: 3 }
         ],
@@ -50,7 +50,7 @@ describe('HiddenColumns', () => {
 
     it('should display properly merged cells containing hidden columns (merge area from visible cell to visible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -88,7 +88,7 @@ describe('HiddenColumns', () => {
 
     it('should display properly merged cells containing hidden columns (merge area from invisible cell to visible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -136,7 +136,7 @@ describe('HiddenColumns', () => {
 
     it('should display properly merged cells containing hidden columns (merge area from visible cell to invisible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -180,7 +180,7 @@ describe('HiddenColumns', () => {
 
     it('should display properly merged cells containing hidden columns (merge area from invisible cell to invisible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -234,7 +234,7 @@ describe('HiddenColumns', () => {
 
     it('should return proper values from the `getCell` function', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -264,7 +264,7 @@ describe('HiddenColumns', () => {
       // index translation (from renderable to visual columns indexes and the other way around).
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 7),
+        data: createSpreadsheetData(1, 7),
         hiddenColumns: {
           columns: [0, 2],
         },
@@ -283,7 +283,7 @@ describe('HiddenColumns', () => {
     it('should select proper cells when calling the `selectCell` within area of merge ' +
       '(contains few hidden columns)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2],
         },
@@ -299,15 +299,9 @@ describe('HiddenColumns', () => {
 
       // Second and third columns are not displayed (CSS - display: none).
       expect(`
-      | # :   :   |
+      | #         |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[0, 1, 0, 4]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
-      expect(getSelectedRangeLast().from.row).toBe(0);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(0);
-      expect(getSelectedRangeLast().to.col).toBe(4);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,4']);
       expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -325,15 +319,9 @@ describe('HiddenColumns', () => {
 
       // Second and third columns are not displayed (CSS - display: none).
       expect(`
-      | # :   :   |
+      | #         |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[0, 1, 0, 4]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
-      expect(getSelectedRangeLast().from.row).toBe(0);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(0);
-      expect(getSelectedRangeLast().to.col).toBe(4);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,4']);
       expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -351,15 +339,9 @@ describe('HiddenColumns', () => {
 
       // Second and third columns are not displayed (CSS - display: none).
       expect(`
-      | # :   :   |
+      | #         |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[0, 1, 0, 4]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
-      expect(getSelectedRangeLast().from.row).toBe(0);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(0);
-      expect(getSelectedRangeLast().to.col).toBe(4);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,4']);
       expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -372,13 +354,30 @@ describe('HiddenColumns', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
-      // TODO: `selectCell(0, 4)` should give the same effect. There is bug at least from Handsontable 7.
+      deselectCell();
+      selectCell(0, 4);
+
+      expect(`
+      | #         |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,4']);
+      expect($mergeArea.hasClass('area')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
 
     it('should select proper cells when calling the `selectCell` within area of merge ' +
       '(contains just one hidden and one not hidden column)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0],
         },
@@ -395,13 +394,7 @@ describe('HiddenColumns', () => {
       expect(`
       | # :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[0, 0, 0, 1]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
-      expect(getSelectedRangeLast().from.row).toBe(0);
-      expect(getSelectedRangeLast().from.col).toBe(0);
-      expect(getSelectedRangeLast().to.row).toBe(0);
-      expect(getSelectedRangeLast().to.col).toBe(1);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,0 to: 0,1']);
       expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -420,13 +413,7 @@ describe('HiddenColumns', () => {
       expect(`
       | # :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[0, 0, 0, 1]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
-      expect(getSelectedRangeLast().from.row).toBe(0);
-      expect(getSelectedRangeLast().from.col).toBe(0);
-      expect(getSelectedRangeLast().to.row).toBe(0);
-      expect(getSelectedRangeLast().to.col).toBe(1);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,0 to: 0,1']);
       expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -443,7 +430,7 @@ describe('HiddenColumns', () => {
     it('should select proper cells when calling the `selectCells` within area of merge ' +
       '(contains just one hidden and one not hidden column) + singe cell', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0],
         },
@@ -460,17 +447,13 @@ describe('HiddenColumns', () => {
       expect(`
       | 0 :   :   : A |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[0, 0, 0, 1], [0, 4, 0, 4]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(4);
-      expect(getSelectedRangeLast().from.row).toBe(0);
-      expect(getSelectedRangeLast().from.col).toBe(4);
-      expect(getSelectedRangeLast().to.row).toBe(0);
-      expect(getSelectedRangeLast().to.col).toBe(4);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,1 from: 0,0 to: 0,1',
+        'highlight: 0,4 from: 0,4 to: 0,4',
+      ]);
       expect($mergeArea.hasClass('area')).toBeTrue();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
-      // TODO: Probably it should return `false`.
-      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeTrue();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       // Probably it should return `true`, changed since 8.0.0.
       expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeTrue();
       expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();
@@ -484,7 +467,7 @@ describe('HiddenColumns', () => {
 
     it('should open properly merged cells containing hidden columns (merge area from visible cell to visible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -494,7 +477,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 1, 0, 3);
 
       selectCell(0, 1);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -511,7 +494,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -528,7 +511,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -556,7 +539,7 @@ describe('HiddenColumns', () => {
 
     it('should open properly merged cells containing hidden columns (merge area from invisible cell to visible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -566,7 +549,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 0, 0, 3);
 
       selectCell(0, 0);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -583,7 +566,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 1);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
@@ -596,7 +579,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -613,7 +596,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -641,7 +624,7 @@ describe('HiddenColumns', () => {
 
     it('should open properly merged cells containing hidden columns (merge area from visible cell to invisible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -651,7 +634,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 1, 0, 4);
 
       selectCell(0, 1);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -668,7 +651,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -685,7 +668,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -702,7 +685,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 4);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -730,7 +713,7 @@ describe('HiddenColumns', () => {
 
     it('should open properly merged cells containing hidden columns (merge area from invisible cell to invisible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -740,7 +723,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 0, 0, 4);
 
       selectCell(0, 0);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -757,7 +740,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 1);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -774,7 +757,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -791,7 +774,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -808,7 +791,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 4);
-      keyDownUp('enter');
+      keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -836,7 +819,7 @@ describe('HiddenColumns', () => {
 
     it('should edit merged cells properly (merge area from visible cell to visible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -860,7 +843,7 @@ describe('HiddenColumns', () => {
 
     it('should edit merged cells properly (merge area from invisible cell to visible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -884,7 +867,7 @@ describe('HiddenColumns', () => {
 
     it('should edit merged cells properly (merge area from visible cell to invisible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -908,7 +891,7 @@ describe('HiddenColumns', () => {
 
     it('should edit merged cells properly (merge area from invisible cell to invisible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -932,7 +915,7 @@ describe('HiddenColumns', () => {
 
     it('should work properly when hidden column is read only', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -969,7 +952,7 @@ describe('HiddenColumns', () => {
 
     it('should work properly when editor is set to `false` for hidden column', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -1006,7 +989,7 @@ describe('HiddenColumns', () => {
 
     it('should edit merged cells properly (merge area from visible cell to visible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -1030,7 +1013,7 @@ describe('HiddenColumns', () => {
 
     it('should edit merged cells properly (merge area from invisible cell to visible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -1054,7 +1037,7 @@ describe('HiddenColumns', () => {
 
     it('should edit merged cells properly (merge area from visible cell to invisible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -1078,7 +1061,7 @@ describe('HiddenColumns', () => {
 
     it('should edit merged cells properly (merge area from invisible cell to invisible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -1102,7 +1085,7 @@ describe('HiddenColumns', () => {
 
     it('should populate merged cells properly (merge area from visible cell to visible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -1128,7 +1111,7 @@ describe('HiddenColumns', () => {
 
     it('should populate merged cells properly (merge area from invisible cell to visible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -1154,7 +1137,7 @@ describe('HiddenColumns', () => {
 
     it('should populate merged cells properly (merge area from visible cell to invisible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -1180,7 +1163,7 @@ describe('HiddenColumns', () => {
 
     it('should populate merged cells properly (merge area from invisible cell to invisible cell)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenColumns: {
           columns: [0, 2, 4],
         },
@@ -1206,7 +1189,7 @@ describe('HiddenColumns', () => {
 
     it('should select single merged area properly when it starts with hidden column', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -1225,18 +1208,12 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║   : # :   :   |
-      | - ║   :   :   :   |
-      | - ║   :   :   :   |
+      | - ║   : #     :   |
+      | - ║   :       :   |
+      | - ║   :       :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[1, 1, 3, 3]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(2);
-      expect(getSelectedRangeLast().from.row).toBe(1);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(3);
-      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,1 to: 3,3']);
       expect($(mergedCell).hasClass('area')).toBeFalse();
       expect($(mergedCell).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(mergedCell).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -1253,7 +1230,7 @@ describe('HiddenColumns', () => {
     it('should select cells properly when there is a merged area within the selection' +
       '(selecting from non-merged cell to the merged cell; from the left to the right)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -1276,18 +1253,12 @@ describe('HiddenColumns', () => {
       |   ║ - : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║ A : 0 :   :   |
+      | - ║ A : 0     :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[1, 0, 1, 3]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(0);
-      expect(getSelectedRangeLast().from.row).toBe(1);
-      expect(getSelectedRangeLast().from.col).toBe(0);
-      expect(getSelectedRangeLast().to.row).toBe(1);
-      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,3']);
       expect($(dragEnd).hasClass('area')).toBeTrue();
       expect($(dragEnd).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -1304,7 +1275,7 @@ describe('HiddenColumns', () => {
     it('should select cells properly when there is a merged area within the selection' +
       '(selecting from non-merged cell to the merged cell; from the top to the bottom)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -1327,18 +1298,12 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       | - ║   : A : 0 :   |
-      | - ║   : 0 :   :   |
+      | - ║   : 0     :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[0, 1, 1, 3]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(2);
-      expect(getSelectedRangeLast().from.row).toBe(0);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(1);
-      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,1 to: 1,3']);
       expect($(dragEnd).hasClass('area')).toBeTrue();
       expect($(dragEnd).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -1355,7 +1320,7 @@ describe('HiddenColumns', () => {
     it('should select cells properly when there is a merged area within the selection' +
       '(selecting from non-merged cell to the merged cell; from the right to the left)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -1379,18 +1344,12 @@ describe('HiddenColumns', () => {
       |   ║   : - : - : - |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║   : 0 :   : A |
+      | - ║   : 0     : A |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[1, 4, 1, 1]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(4);
-      expect(getSelectedRangeLast().from.row).toBe(1);
-      expect(getSelectedRangeLast().from.col).toBe(4);
-      expect(getSelectedRangeLast().to.row).toBe(1);
-      expect(getSelectedRangeLast().to.col).toBe(1);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,4 from: 1,4 to: 1,1']);
       expect($(dragEnd).hasClass('area')).toBeTrue();
       expect($(dragEnd).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -1407,7 +1366,7 @@ describe('HiddenColumns', () => {
     it('should select cells properly when there is a merged area within the selection' +
       '(selecting from non-merged cell to the merged cell; from the bottom to the top)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -1431,18 +1390,12 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║   : 0 :   :   |
+      | - ║   : 0     :   |
       | - ║   : A : 0 :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[2, 3, 1, 1]]); // TODO: There should be [2, 1, 1, 3] probably.
-      expect(getSelectedRangeLast().highlight.row).toBe(2);
-      expect(getSelectedRangeLast().highlight.col).toBe(3); // TODO: There should be 2 probably.
-      expect(getSelectedRangeLast().from.row).toBe(2);
-      expect(getSelectedRangeLast().from.col).toBe(3); // TODO: There should be 1 probably.
-      expect(getSelectedRangeLast().to.row).toBe(1);
-      expect(getSelectedRangeLast().to.col).toBe(1); // TODO: There should be 3 probably.
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,3 to: 1,1']);
       expect($(dragEnd).hasClass('area')).toBeTrue();
       expect($(dragEnd).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -1459,7 +1412,7 @@ describe('HiddenColumns', () => {
     it('should select cells properly when there is a merged area within the selection' +
       '(selecting from the merged cell to non-merged cell; from the left to the right)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -1483,18 +1436,12 @@ describe('HiddenColumns', () => {
       |   ║   : - : - : - |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║   : A :   : 0 |
+      | - ║   : A     : 0 |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[1, 1, 1, 4]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(2);
-      expect(getSelectedRangeLast().from.row).toBe(1);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(1);
-      expect(getSelectedRangeLast().to.col).toBe(4);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,1 to: 1,4']);
       expect($(dragStart).hasClass('area')).toBeTrue();
       expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -1511,7 +1458,7 @@ describe('HiddenColumns', () => {
     it('should select cells properly when there is a merged area within the selection' +
       '(selecting from the merged cell to non-merged cell; from the top to the bottom)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -1535,18 +1482,12 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║   : A :   :   |
+      | - ║   : A     :   |
       | - ║   : 0 : 0 :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[1, 1, 2, 3]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(2);
-      expect(getSelectedRangeLast().from.row).toBe(1);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(2);
-      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,1 to: 2,3']);
       expect($(dragStart).hasClass('area')).toBeTrue();
       expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -1563,7 +1504,7 @@ describe('HiddenColumns', () => {
     it('should select cells properly when there is a merged area within the selection' +
       '(selecting from the merged cell to non-merged cell; from the right to the left)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -1586,18 +1527,12 @@ describe('HiddenColumns', () => {
       |   ║ - : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║ 0 : A :   :   |
+      | - ║ 0 : A     :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[1, 3, 1, 0]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(3);
-      expect(getSelectedRangeLast().from.row).toBe(1);
-      expect(getSelectedRangeLast().from.col).toBe(3);
-      expect(getSelectedRangeLast().to.row).toBe(1);
-      expect(getSelectedRangeLast().to.col).toBe(0);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,0']);
       expect($(dragStart).hasClass('area')).toBeTrue();
       expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -1612,9 +1547,9 @@ describe('HiddenColumns', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from the merged cell to non-merged cell; from the bottom to the top', () => {
+      '(selecting from the merged cell to non-merged cell; from the bottom to the top)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -1637,18 +1572,12 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       | - ║   : 0 : 0 :   |
-      | - ║   : A :   :   |
+      | - ║   : A     :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[1, 1, 0, 3]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(2);
-      expect(getSelectedRangeLast().from.row).toBe(1);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(0);
-      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,1 to: 0,3']);
       expect($(dragStart).hasClass('area')).toBeTrue();
       expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
@@ -1664,7 +1593,7 @@ describe('HiddenColumns', () => {
 
     it('should add highlight to an area of merged cells only when selected every merged cell', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -1683,18 +1612,12 @@ describe('HiddenColumns', () => {
       |   ║   : * : * :   |
       |===:===:===:===:===|
       | - ║   : A : 0 :   |
-      | - ║   : 0 :   :   |
+      | - ║   : 0     :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[-1, 2, 4, 3]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(2);
-      expect(getSelectedRangeLast().from.row).toBe(-1);
-      expect(getSelectedRangeLast().from.col).toBe(2);
-      expect(getSelectedRangeLast().to.row).toBe(4);
-      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 4,3']);
       expect($(mergeArea).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(mergeArea).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(mergeArea).hasClass('fullySelectedMergedCell-0')).toBeFalse();
@@ -1712,18 +1635,12 @@ describe('HiddenColumns', () => {
       |   ║   : * : * :   |
       |===:===:===:===:===|
       | - ║   : A : 0 :   |
-      | - ║   : 0 :   :   |
+      | - ║   : 0     :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[-1, 1, 4, 3]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(2);
-      expect(getSelectedRangeLast().from.row).toBe(-1);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(4);
-      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,1 to: 4,3']);
       expect($(mergeArea).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(mergeArea).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(mergeArea).hasClass('fullySelectedMergedCell-0')).toBeTrue();
@@ -1739,7 +1656,7 @@ describe('HiddenColumns', () => {
     it('should add proper highlight to an area of merged cells when selected every cell ' +
       '(few layers, every layer contain merge area)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -1759,18 +1676,16 @@ describe('HiddenColumns', () => {
       |   ║   : - : - :   |
       |===:===:===:===:===|
       | - ║   : C : 2 :   |
-      | - ║   : 2 :   :   |
+      | - ║   : 2     :   |
       | - ║   : 2 : 2 :   |
       | - ║   : 2 : 2 :   |
       | - ║   : 2 : 2 :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[0, 1, 4, 3], [0, 1, 4, 3], [0, 1, 4, 3]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(2);
-      expect(getSelectedRangeLast().from.row).toBe(0);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(4);
-      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,2 from: 0,1 to: 4,3',
+        'highlight: 0,2 from: 0,1 to: 4,3',
+        'highlight: 0,2 from: 0,1 to: 4,3',
+      ]);
       expect($(mergeArea).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(mergeArea).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(mergeArea).hasClass('fullySelectedMergedCell-0')).toBeTrue();
@@ -1786,7 +1701,7 @@ describe('HiddenColumns', () => {
     it('should add proper highlight to an area of merged cells when selected every cell ' +
       '(few layers, every layer contain part of merge area)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -1817,18 +1732,16 @@ describe('HiddenColumns', () => {
       |   ║   : * : * :   |
       |===:===:===:===:===|
       | - ║   : A : 0 :   |
-      | - ║   : 1 :   :   |
+      | - ║   : 1     :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[-1, 1, 4, 1], [-1, 3, 4, 3], [-1, 2, 4, 2]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(2);
-      expect(getSelectedRangeLast().from.row).toBe(-1);
-      expect(getSelectedRangeLast().from.col).toBe(2);
-      expect(getSelectedRangeLast().to.row).toBe(4);
-      expect(getSelectedRangeLast().to.col).toBe(2);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,1 from: -1,1 to: 4,1',
+        'highlight: 0,3 from: -1,3 to: 4,3',
+        'highlight: 0,2 from: -1,2 to: 4,2',
+      ]);
       expect($(mergeArea).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(mergeArea).hasClass('fullySelectedMergedCell-multiple')).toBeTrue();
       expect($(mergeArea).hasClass('fullySelectedMergedCell-0')).toBeFalse();
@@ -1848,7 +1761,7 @@ describe('HiddenColumns', () => {
         let coordsOnCellMouseDown;
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           rowHeaders: true,
           colHeaders: true,
           hiddenColumns: {
@@ -1877,7 +1790,7 @@ describe('HiddenColumns', () => {
         let coordsOnCellMouseDown;
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           rowHeaders: true,
           colHeaders: true,
           hiddenColumns: {

@@ -728,94 +728,6 @@ describe('IndexMapper', () => {
     });
   });
 
-  describe('getFirstNotHiddenIndex() - legacy method', () => {
-    it('should find the nearest non-hidden index searching by forward', () => {
-      const indexMapper = new IndexMapper();
-      const trimmingMap = new TrimmingMap();
-      const hidingMap = new HidingMap();
-
-      indexMapper.registerMap('trimmingMap', trimmingMap);
-      indexMapper.registerMap('hidingMap', hidingMap);
-      indexMapper.initToLength(10);
-      trimmingMap.setValues([true, false, false, false, false, false, false, false, false, true]);
-      hidingMap.setValues([false, true, true, false, false, true, true, false, true, false]);
-
-      // is renderable?  |    -  -  +  +  -  -  +  -
-      // visual          |    0  1  2  3  4  5  6  7
-      // physical        | 0  1  2  3  4  5  6  7  8  9
-
-      expect(indexMapper.getFirstNotHiddenIndex(-1, 1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(0, 1)).toBe(2);
-      expect(indexMapper.getFirstNotHiddenIndex(1, 1)).toBe(2);
-      expect(indexMapper.getFirstNotHiddenIndex(2, 1)).toBe(2);
-      expect(indexMapper.getFirstNotHiddenIndex(3, 1)).toBe(3);
-      expect(indexMapper.getFirstNotHiddenIndex(4, 1)).toBe(6);
-      expect(indexMapper.getFirstNotHiddenIndex(5, 1)).toBe(6);
-      expect(indexMapper.getFirstNotHiddenIndex(6, 1)).toBe(6);
-      expect(indexMapper.getFirstNotHiddenIndex(7, 1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(8, 1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(9, 1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(1000, 1)).toBe(null);
-
-      indexMapper.unregisterMap('trimmingMap');
-      indexMapper.unregisterMap('hidingMap');
-    });
-
-    it('should find the nearest non-hidden index searching by backward', () => {
-      const indexMapper = new IndexMapper();
-      const trimmingMap = new TrimmingMap();
-      const hidingMap = new HidingMap();
-
-      indexMapper.registerMap('trimmingMap', trimmingMap);
-      indexMapper.registerMap('hidingMap', hidingMap);
-      indexMapper.initToLength(10);
-      trimmingMap.setValues([true, false, false, false, false, false, false, false, false, true]);
-      hidingMap.setValues([false, true, true, false, false, true, true, false, true, false]);
-
-      // is renderable?  |    -  -  +  +  -  -  +  -
-      // visual          |    0  1  2  3  4  5  6  7
-      // physical        | 0  1  2  3  4  5  6  7  8  9
-
-      expect(indexMapper.getFirstNotHiddenIndex(-1, -1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(0, -1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(1, -1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(2, -1)).toBe(2);
-      expect(indexMapper.getFirstNotHiddenIndex(3, -1)).toBe(3);
-      expect(indexMapper.getFirstNotHiddenIndex(4, -1)).toBe(3);
-      expect(indexMapper.getFirstNotHiddenIndex(5, -1)).toBe(3);
-      expect(indexMapper.getFirstNotHiddenIndex(6, -1)).toBe(6);
-      expect(indexMapper.getFirstNotHiddenIndex(7, -1)).toBe(6);
-      expect(indexMapper.getFirstNotHiddenIndex(8, -1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(9, -1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(1000, -1)).toBe(null);
-
-      indexMapper.unregisterMap('trimmingMap');
-      indexMapper.unregisterMap('hidingMap');
-    });
-
-    it('should return `null` for an empty dataset', () => {
-      const indexMapper = new IndexMapper();
-      const trimmingMap = new TrimmingMap();
-      const hidingMap = new HidingMap();
-
-      indexMapper.registerMap('trimmingMap', trimmingMap);
-      indexMapper.registerMap('hidingMap', hidingMap);
-      indexMapper.initToLength(0);
-      trimmingMap.setValues([]);
-      hidingMap.setValues([]);
-
-      expect(indexMapper.getFirstNotHiddenIndex(-1, -1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(0, -1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(1, -1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(-1, 1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(0, 1)).toBe(null);
-      expect(indexMapper.getFirstNotHiddenIndex(1, 1)).toBe(null);
-
-      indexMapper.unregisterMap('trimmingMap');
-      indexMapper.unregisterMap('hidingMap');
-    });
-  });
-
   describe('getNearestNotHiddenIndex()', () => {
     it('should find the nearest non-hidden index searching by forward', () => {
       const indexMapper = new IndexMapper();
@@ -2295,18 +2207,31 @@ describe('IndexMapper', () => {
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([1, 2, 3, 0, 5, 6, 7, 8, 9]);
       });
 
-      it('from the bottom up to element before trimmed index', () => {
+      it('from the top down to the last position', () => {
         const indexMapper = new IndexMapper();
         const trimmingMap = new TrimmingMap();
 
         indexMapper.registerMap('trimmingMap', trimmingMap);
         indexMapper.initToLength(10);
-        trimmingMap.setValues([false, false, false, false, true, false, false, false, false, false]);
+        trimmingMap.setValues([false, false, false, false, false, false, false, true, true, false]);
 
-        indexMapper.moveIndexes([5], 3); // physical index 6, there is one trimmed index before the element.
+        indexMapper.moveIndexes([0], 7);
 
-        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 6, 3, 4, 5, 7, 8, 9]);
-        expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 1, 2, 6, 3, 5, 7, 8, 9]);
+        expect(indexMapper.getIndexesSequence()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
+        expect(indexMapper.getNotTrimmedIndexes()).toEqual([1, 2, 3, 4, 5, 6, 9, 0]);
+      });
+
+      it('from the bottom up to position of trimmed index', () => {
+        const indexMapper = new IndexMapper();
+        const trimmingMap = new TrimmingMap();
+
+        indexMapper.registerMap('trimmingMap', trimmingMap);
+        indexMapper.initToLength(10);
+        trimmingMap.setValues([false, false, false, false, true, true, false, false, false, false]);
+        indexMapper.moveIndexes([5], 4); // physical index 7, there are two trimmed index before the element.
+
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 7, 6, 8, 9]);
+        expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 1, 2, 3, 7, 6, 8, 9]);
       });
 
       it('when first few starting indexes are trimmed', () => {
@@ -2323,7 +2248,7 @@ describe('IndexMapper', () => {
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([5, 6, 3, 4, 7, 8, 9]);
       });
 
-      it('when few last indexes are trimmed #1', () => {
+      it('when few last indexes are trimmed (final index at the last position)', () => {
         const indexMapper = new IndexMapper();
         const trimmingMap = new TrimmingMap();
 
@@ -2334,9 +2259,10 @@ describe('IndexMapper', () => {
         indexMapper.moveIndexes([0, 1], 5); // Elements will be moved at 5th and 6th position.
 
         expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 0, 1, 7, 8, 9]);
+        expect(indexMapper.getNotTrimmedIndexes()).toEqual([2, 3, 4, 5, 6, 0, 1]);
       });
 
-      it('when few last indexes are trimmed #2', () => {
+      it('when few last indexes are trimmed (final index out of the range of visible elements - fallback)', () => {
         const indexMapper = new IndexMapper();
         const trimmingMap = new TrimmingMap();
 
@@ -2344,9 +2270,11 @@ describe('IndexMapper', () => {
         indexMapper.initToLength(10);
         trimmingMap.setValues([false, false, false, false, false, false, false, true, true, true]);
 
-        indexMapper.moveIndexes([0, 1], 6); // Elements can't be moved at 6th and 7th position, they will be placed at 5th and 6th position.
+        // Elements can't be moved at 6th and 7th position, they will be placed at 5th and 6th position.
+        indexMapper.moveIndexes([0, 1], 6);
 
         expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 0, 1, 7, 8, 9]);
+        expect(indexMapper.getNotTrimmedIndexes()).toEqual([2, 3, 4, 5, 6, 0, 1]);
       });
     });
 

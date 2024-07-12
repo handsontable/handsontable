@@ -1,4 +1,3 @@
-import { getValidSelection } from '../utils';
 import * as C from '../../../i18n/constants';
 
 export const KEY = 'row_above';
@@ -18,9 +17,13 @@ export default function rowAboveItem() {
       this.alter('insert_row_above', latestSelection.row, 1, 'ContextMenu.rowAbove');
     },
     disabled() {
-      const selected = getValidSelection(this);
+      const range = this.getSelectedRangeLast();
 
-      if (!selected) {
+      if (!range) {
+        return true;
+      }
+
+      if (range.isSingleHeader() && range.highlight.row < 0) {
         return true;
       }
 

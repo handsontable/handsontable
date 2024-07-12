@@ -59,7 +59,7 @@ describe('settings', () => {
         expect(getBottomClone().find('tbody tr').length).toEqual(2);
       });
 
-      it('should create fixed rows when they are disabled eariler', () => {
+      it('should create fixed rows when they are disabled earlier', () => {
         handsontable({
           fixedRowsBottom: 0
         });
@@ -80,7 +80,7 @@ describe('settings', () => {
           fixedRowsBottom: 0
         });
 
-        expect(getBottomClone().find('tbody tr').length).toEqual(2);
+        expect(getBottomClone().find('tbody tr').length).toBe(0);
         expect(getInlineStartClone().height()).toBe(0);
       });
 
@@ -91,7 +91,7 @@ describe('settings', () => {
         window.onerror = function() {
           spy.test();
         };
-        const hot = handsontable({
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
@@ -104,7 +104,12 @@ describe('settings', () => {
 
         await sleep(100);
 
-        hot.scrollViewportTo(30, 30);
+        scrollViewportTo({
+          row: 30,
+          col: 30,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         await sleep(100);
 

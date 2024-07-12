@@ -124,7 +124,7 @@ export function stringify(arr) {
           str += val;
         }
 
-      } else if (val === null || val === void 0) { // void 0 resolves to undefined
+      } else if (val === null || val === undefined) { // undefined resolves to undefined
         str += '';
 
       } else {

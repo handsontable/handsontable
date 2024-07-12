@@ -1,4 +1,5 @@
 import { toUpperCaseFirst } from '../../../helpers/string';
+import { getMoves } from '../../../helpers/moves';
 
 /**
  * @private
@@ -146,89 +147,6 @@ class AxisSyncer {
   }
 
   /**
-   * Gets first position where to move element (respecting the fact that some element will be sooner or later
-   * taken out of the dataset in order to move them).
-   *
-   * @param {Array<number>} movedHfIndexes Sequence of moved HF indexes for certain axis.
-   * @param {number} finalHfIndex Final HF place where to move rows.
-   * @returns {number} HF's index informing where to move the first element.
-   * @private
-   */
-  getMoveLine(movedHfIndexes, finalHfIndex) {
-    const numberOfElements = this.#indexMapper.getNumberOfIndexes();
-    const notMovedElements = Array.from(Array(numberOfElements).keys())
-      .filter(index => movedHfIndexes.includes(index) === false);
-
-    if (finalHfIndex === 0) {
-      return notMovedElements[finalHfIndex] ?? 0; // Moving before the first dataset's element.
-    }
-
-    return notMovedElements[finalHfIndex - 1] + 1; // Moving before another element.
-  }
-
-  /**
-   * Gets initially calculated HF's move positions.
-   *
-   * @private
-   * @param {Array<number>} movedHfIndexes Sequence of moved HF indexes for certain axis.
-   * @param {number} finalHfIndex Final HF place where to move rows.
-   * @returns {Array<{from: number, to: number}>} Initially calculated HF's move positions.
-   */
-  getInitiallyCalculatedMoves(movedHfIndexes, finalHfIndex) {
-    let moveLine = this.getMoveLine(movedHfIndexes, finalHfIndex);
-    const moves = [];
-
-    movedHfIndexes.forEach((movedHfIndex) => {
-      const move = {
-        from: movedHfIndex,
-        to: moveLine,
-      };
-
-      moves.forEach((previouslyMovedIndex) => {
-        const isMovingFromEndToStart = previouslyMovedIndex.from > previouslyMovedIndex.to;
-        const isMovingElementBefore = previouslyMovedIndex.to <= move.from;
-        const isMovingAfterElement = previouslyMovedIndex.from > move.from;
-
-        if (isMovingAfterElement && isMovingElementBefore && isMovingFromEndToStart) {
-          move.from += 1;
-        }
-      });
-
-      // Moved element from right to left (or bottom to top).
-      if (move.from >= moveLine) {
-        moveLine += 1;
-      }
-
-      moves.push(move);
-    });
-
-    return moves;
-  }
-
-  /**
-   * Gets finally calculated HF's move positions (after adjusting).
-   *
-   * @private
-   * @param {Array<{from: number, to: number}>} moves Initially calculated HF's move positions.
-   * @returns {Array<{from: number, to: number}>} Finally calculated HF's move positions (after adjusting).
-   */
-  adjustedCalculatedMoves(moves) {
-    moves.forEach((move, index) => {
-      const nextMoved = moves.slice(index + 1);
-
-      nextMoved.forEach((nextMovedIndex) => {
-        const isMovingFromStartToEnd = nextMovedIndex.from < nextMovedIndex.to;
-
-        if (nextMovedIndex.from > move.from && isMovingFromStartToEnd) {
-          nextMovedIndex.from -= 1;
-        }
-      });
-    });
-
-    return moves;
-  }
-
-  /**
    * Calculating where to move HF elements and performing already calculated moves.
    *
    * @param {boolean} movePossible Indicates if it was possible to move HOT indexes to the desired position.
@@ -243,9 +161,7 @@ class AxisSyncer {
       return;
     }
 
-    const calculatedMoves = this.adjustedCalculatedMoves(
-      this.getInitiallyCalculatedMoves(this.#movedIndexes, this.#finalIndex)
-    );
+    const calculatedMoves = getMoves(this.#movedIndexes, this.#finalIndex, this.#indexMapper.getNumberOfIndexes());
 
     if (this.#indexSyncer.getSheetId() === null) {
       this.#indexSyncer.getPostponeAction(() => this.syncMoves(calculatedMoves));
@@ -270,7 +186,7 @@ class AxisSyncer {
 
       const newSequence = this.#indexMapper.getIndexesSequence();
 
-      if (source === 'update') {
+      if (source === 'update' && newSequence.length > 0) {
         const relativeTransformation = this.#indexesSequence.map(index => newSequence.indexOf(index));
         const sheetDimensions = this.#indexSyncer.getEngine().getSheetDimensions(this.#indexSyncer.getSheetId());
         let sizeForAxis;

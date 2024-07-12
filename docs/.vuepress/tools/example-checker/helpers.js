@@ -1,8 +1,8 @@
-const chalk = require('chalk');
+const fs = require('fs');
 const path = require('path');
+const chalk = require('chalk');
 const replaceInFiles = require('replace-in-files');
 const puppeteer = require('puppeteer');
-const fs = require('fs');
 const { spawnProcess } = require('../utils');
 const {
   FRAMEWORK_SUFFIX
@@ -34,7 +34,7 @@ function logCheck(valid) {
 async function sleep(timeout) {
   return Promise.resolve({
     then(resolve) {
-      setTimeout(resolve, timeout || 300);
+      setTimeout(resolve, timeout || 100);
     }
   });
 }

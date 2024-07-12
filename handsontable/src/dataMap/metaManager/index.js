@@ -214,7 +214,7 @@ export default class MetaManager {
 
   /**
    * Returns all cell meta objects that were created during the Handsontable operation but for
-   * specyfic row index.
+   * specific row index.
    *
    * @param {number} physicalRow The physical row index.
    * @returns {object[]}

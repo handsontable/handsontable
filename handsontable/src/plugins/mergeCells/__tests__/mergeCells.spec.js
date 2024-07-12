@@ -67,6 +67,36 @@ describe('MergeCells', () => {
       ]);
     });
 
+    it('should provide information about the source of the change in the `beforeChange` and `afterChange` hooks', () => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: [
+          [1, 2, 3, 4],
+          [5, 6, 7, 8],
+          [9, 10, 11, 12],
+          [13, 14, 15, 16],
+        ],
+        mergeCells: [{
+          row: 0,
+          col: 0,
+          rowspan: 2,
+          colspan: 2
+        }],
+        beforeChange,
+        afterChange,
+      });
+
+      expect(beforeChange.calls.mostRecent().args[1]).toEqual('MergeCells');
+      expect(afterChange.calls.mostRecent().args[1]).toEqual('MergeCells');
+
+      getPlugin('mergeCells').merge(2, 2, 3, 3);
+
+      expect(beforeChange.calls.mostRecent().args[1]).toEqual('MergeCells');
+      expect(afterChange.calls.mostRecent().args[1]).toEqual('MergeCells');
+    });
+
     it('should merge cells on startup respecting indexes sequence changes', () => {
       handsontable({
         data: [
@@ -321,36 +351,39 @@ describe('MergeCells', () => {
 
     });
 
-    // TODO: After some changes please take a look at #7010.
+    // TODO: After some changes please take a look at #7010 (test for unspecified behavior)
     it('should select cells in the correct direction when changing selections around a merged range', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      handsontable({
+        data: createSpreadsheetObjectData(10, 10),
         mergeCells: [
           { row: 4, col: 4, rowspan: 2, colspan: 2 }
         ]
       });
 
-      hot.selectCell(5, 5, 5, 2);
-      expect(hot.getSelectedRangeLast().getDirection()).toEqual('SE-NW');
+      selectCell(5, 5, 5, 2);
+
+      expect(getSelectedRangeLast().getDirection()).toEqual('NE-SW');
       // Rectangular area from the marginal cell to the cell on the opposite.
-      expect(hot.getSelected()).toEqual([[5, 5, 4, 2]]);
+      expect(getSelected()).toEqual([[4, 5, 5, 2]]);
 
-      // What about, for example: hot.selectCell(5, 4, 5, 2);
+      // What about, for example: selectCell(5, 4, 5, 2);
       // Is it specified properly?
+      selectCell(4, 4, 2, 5);
 
-      hot.selectCell(4, 4, 2, 5);
-      expect(hot.getSelectedRangeLast().getDirection()).toEqual('SW-NE');
+      expect(getSelectedRangeLast().getDirection()).toEqual('SW-NE');
       // It flips the selection direction vertically.
-      expect(hot.getSelected()).toEqual([[5, 4, 2, 5]]);
+      expect(getSelected()).toEqual([[5, 4, 2, 5]]);
 
-      hot.selectCell(4, 4, 5, 7);
-      expect(hot.getSelectedRangeLast().getDirection()).toEqual('NW-SE');
-      expect(hot.getSelected()).toEqual([[4, 4, 5, 7]]);
+      selectCell(4, 4, 5, 7);
 
-      hot.selectCell(4, 5, 7, 5);
-      expect(hot.getSelectedRangeLast().getDirection()).toEqual('NE-SW');
+      expect(getSelectedRangeLast().getDirection()).toEqual('NW-SE');
+      expect(getSelected()).toEqual([[4, 4, 5, 7]]);
+
+      selectCell(4, 5, 7, 5);
+
+      expect(getSelectedRangeLast().getDirection()).toEqual('NW-SE');
       // It flips the selection direction horizontally.
-      expect(hot.getSelected()).toEqual([[4, 5, 7, 4]]);
+      expect(getSelected()).toEqual([[4, 4, 7, 5]]);
     });
 
     it('should not add an area class to the selected cell if a single merged cell is selected', () => {
@@ -431,7 +464,6 @@ describe('MergeCells', () => {
       });
 
       hot.setDataAtCell(8, 8, 'top-left-corner!');
-
       hot.selectCell(7, 9);
 
       keyDownUp('enter');
@@ -443,15 +475,15 @@ describe('MergeCells', () => {
       keyDownUp('enter');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       keyDownUp('enter');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
     });
 
-    it('should select the cell in the top-left corner of the merged cell, when navigating down using the TAB key on the' +
+    it('should not select the cell in the top-left corner of the merged cell, when navigating down using the TAB key on the' +
       ' bottom edge of the table', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -463,7 +495,6 @@ describe('MergeCells', () => {
       });
 
       hot.setDataAtCell(8, 8, 'top-left-corner!');
-
       hot.selectCell(9, 7);
 
       keyDownUp('enter');
@@ -475,12 +506,12 @@ describe('MergeCells', () => {
       keyDownUp('tab');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('');
 
       keyDownUp('tab');
       keyDownUp('enter');
 
-      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('');
     });
 
     it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + ENTER key on the' +
@@ -1229,231 +1260,52 @@ describe('MergeCells', () => {
     });
   });
 
-  xdescribe('canMergeRange', () => {
-    it('should return false if start and end cell is the same', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
-      });
-      const mergeCells = new Handsontable.plugins.MergeCells(hot);
-      const result = mergeCells.canMergeRange({
-        from: {
-          row: 0, col: 1
-        },
-        to: {
-          row: 0, col: 1
-        }
+  describe('canMergeRange', () => {
+    it('should return false if coords point to negative values', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(10, 5)
       });
 
-      expect(result).toBe(false);
+      const plugin = getPlugin('mergeCells');
+
+      expect(plugin.canMergeRange({ row: -1, col: 1, rowspan: 2, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: -1, rowspan: 2, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: -2, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 2, colspan: -2 })).toBe(false);
     });
 
-    it('should return true for 2 consecutive cells in the same column', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
-      });
-      const mergeCells = new Handsontable.plugins.MergeCells(hot);
-      const result = mergeCells.canMergeRange({
-        from: {
-          row: 0, col: 1
-        },
-        to: {
-          row: 1, col: 1
-        }
+    it('should return false if coords point out of table dataset range', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(10, 5)
       });
 
-      expect(result).toBe(true);
+      const plugin = getPlugin('mergeCells');
+
+      expect(plugin.canMergeRange({ row: 50, col: 1, rowspan: 2, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 50, rowspan: 2, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 50, colspan: 2 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 2, colspan: 50 })).toBe(false);
     });
 
-    it('should return true for 2 consecutive cells in the same row', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
-      });
-      const mergeCells = hot.getPlugin('mergeCells');
-      const result = mergeCells.canMergeRange({
-        from: {
-          row: 0, col: 1
-        },
-        to: {
-          row: 0, col: 2
-        }
+    it('should return false if coords point to single cell', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(10, 5)
       });
 
-      expect(result).toBe(true);
+      const plugin = getPlugin('mergeCells');
+
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 1, colspan: 1 })).toBe(false);
     });
 
-    it('should return true for 4 neighboring cells', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(10, 5)
-      });
-      const mergeCells = hot.getPlugin('mergeCells');
-      const result = mergeCells.canMergeRange({
-        from: {
-          row: 0, col: 1
-        },
-        to: {
-          row: 1, col: 2
-        }
+    it('should return false if coords contain invalid rowspan/colspan', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(10, 5)
       });
 
-      expect(result).toBe(true);
-    });
-  });
+      const plugin = getPlugin('mergeCells');
 
-  xdescribe('modifyTransform', () => {
-    it('should not transform arrow right when entering a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 0);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(0, 1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(0, 1));
-    });
-
-    it('should transform arrow right when leaving a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(0, 1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(0, 3));
-    });
-
-    it('should transform arrow right when leaving a merged cell (return to desired row)', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-
-      let coords = new CellCoords(2, 0);
-      let currentSelection = new CellRange(coords, coords, coords);
-      let inDelta = new CellCoords(0, 1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(-1, 1));
-
-      coords = new CellCoords(1, 1);
-      currentSelection = new CellRange(coords, coords, coords);
-      inDelta = new CellCoords(0, 1);
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(1, 3));
-    });
-
-    it('should transform arrow left when entering a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 4);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(0, -1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(0, -3));
-    });
-
-    it('should not transform arrow left when leaving a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(0, -1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(0, -1));
-    });
-
-    it('should transform arrow left when leaving a merged cell (return to desired row)', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-
-      let coords = new CellCoords(2, 4);
-      let currentSelection = new CellRange(coords, coords, coords);
-      let inDelta = new CellCoords(0, -1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(-1, -3));
-
-      coords = new CellCoords(1, 1);
-      currentSelection = new CellRange(coords, coords, coords);
-      inDelta = new CellCoords(0, -1);
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(1, -1));
-    });
-
-    it('should not transform arrow down when entering a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(0, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(0, -1);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(0, -1));
-    });
-
-    it('should transform arrow down when leaving a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(1, 0);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(3, 0));
-    });
-
-    it('should transform arrow up when entering a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(4, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(-1, 0);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(-3, 0));
-    });
-
-    it('should not transform arrow up when leaving a merged cell', () => {
-      const mergeCellsSettings = [
-        { row: 1, col: 1, rowspan: 3, colspan: 3 }
-      ];
-      const coords = new CellCoords(1, 1);
-      const currentSelection = new CellRange(coords, coords, coords);
-      const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
-      const inDelta = new CellCoords(-1, 0);
-
-      mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
-
-      expect(inDelta).toEqual(new CellCoords(-1, 0));
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 0, colspan: 1 })).toBe(false);
+      expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 1, colspan: 0 })).toBe(false);
     });
   });
 
@@ -1531,7 +1383,7 @@ describe('MergeCells', () => {
 
       hot.selectColumns(5);
 
-      expect(hot.getSelectedLast()).toEqual([-1, 5, 9, 5]);
+      expect(hot.getSelectedLast()).toEqual([0, 5, 9, 5]);
 
       // it should work only for selecting the entire column
       hot.selectCell(4, 5, 7, 5);
@@ -1549,7 +1401,7 @@ describe('MergeCells', () => {
 
       hot.selectRows(5);
 
-      expect(hot.getSelectedLast()).toEqual([5, -1, 5, 9]);
+      expect(hot.getSelectedLast()).toEqual([5, 0, 5, 9]);
 
       // it should work only for selecting the entire row
       hot.selectCell(6, 3, 6, 7);
@@ -1720,5 +1572,149 @@ describe('MergeCells', () => {
       expect(columnOnCellMouseDown).toEqual(0);
       expect(coordsOnCellMouseDown).toEqual(jasmine.objectContaining({ row: 0, col: 0 }));
     });
+  });
+
+  it('should set/unset "copyable" cell meta attribute after performing merge/unmerge', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      mergeCells: true
+    });
+
+    selectCell(2, 2, 4, 4);
+    keyDownUp(['control', 'm']);
+
+    expect(getCellMeta(2, 2).copyable).toBe(true);
+    expect(getCellMeta(2, 3).copyable).toBe(false);
+    expect(getCellMeta(2, 4).copyable).toBe(false);
+    expect(getCellMeta(3, 3).copyable).toBe(false);
+    expect(getCellMeta(3, 4).copyable).toBe(false);
+    expect(getCellMeta(4, 4).copyable).toBe(false);
+
+    keyDownUp(['control', 'm']);
+
+    expect(getCellMeta(2, 2).copyable).toBe(true);
+    expect(getCellMeta(2, 3).copyable).toBe(true);
+    expect(getCellMeta(2, 4).copyable).toBe(true);
+    expect(getCellMeta(3, 3).copyable).toBe(true);
+    expect(getCellMeta(3, 4).copyable).toBe(true);
+    expect(getCellMeta(4, 4).copyable).toBe(true);
+
+    keyDownUp(['control', 'm']);
+
+    expect(getCellMeta(2, 2).copyable).toBe(true);
+    expect(getCellMeta(2, 3).copyable).toBe(false);
+    expect(getCellMeta(2, 4).copyable).toBe(false);
+    expect(getCellMeta(3, 3).copyable).toBe(false);
+    expect(getCellMeta(3, 4).copyable).toBe(false);
+    expect(getCellMeta(4, 4).copyable).toBe(false);
+  });
+
+  it('should not collapse the main table\'s row height when the merge cell covers all cells width', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      mergeCells: true,
+    });
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 5 }],
+    });
+
+    expect(getCell(0, 0).offsetHeight).toBe(70);
+  });
+
+  it('should not collapse the left overlay height when the merge cell covers all overlay cells width', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      fixedColumnsStart: 1,
+      mergeCells: true,
+    });
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 1 }],
+    });
+
+    expect(getInlineStartClone().find('.htCore').height()).toBe(116);
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 2 }],
+    });
+
+    expect(getInlineStartClone().find('.htCore').height()).toBe(116);
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 3 }],
+    });
+
+    expect(getInlineStartClone().find('.htCore').height()).toBe(116);
+  });
+
+  xit('should not collapse the top overlay height when the merge cell covers all overlay cells width', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      fixedRowsTop: 2,
+      mergeCells: true,
+    });
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 5 }],
+    });
+
+    expect(getTopClone().height()).toBe(70);
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 5 }],
+    });
+
+    expect(getTopClone().height()).toBe(47);
+
+    updateSettings({
+      mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 5 }],
+    });
+
+    expect(getTopClone().height()).toBe(47);
+  });
+
+  it('should correctly render all overlay\'s heights when they are contain merge cells', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      width: 600,
+      height: 400,
+      fixedColumnsStart: 1,
+      fixedRowsTop: 3,
+      mergeCells: [
+        { row: 0, col: 0, rowspan: 5, colspan: 1 },
+        { row: 0, col: 3, rowspan: 3, colspan: 1 },
+        { row: 0, col: 5, rowspan: 8, colspan: 1 },
+      ],
+    });
+
+    expect(getTopInlineStartClone().height()).toBe(70);
+    expect(getTopClone().height()).toBe(70);
+    expect(getInlineStartClone().height()).toBe(400);
+  });
+
+  it('should expand the all overlays size after changing the row height', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      width: 600,
+      height: 400,
+      autoRowSize: true, // the autoRowSize plugin is mandatory
+      fixedColumnsStart: 1,
+      fixedRowsTop: 3,
+      mergeCells: [
+        { row: 0, col: 0, rowspan: 5, colspan: 1 },
+        { row: 0, col: 3, rowspan: 3, colspan: 1 },
+        { row: 0, col: 5, rowspan: 8, colspan: 1 },
+      ],
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().TEXTAREA.value = 'test\n\ntest';
+    keyDownUp('enter');
+
+    expect(getTopInlineStartClone().height()).toBe(111);
+    expect(getTopClone().height()).toBe(111);
+    expect(getInlineStartClone().height()).toBe(400);
   });
 });

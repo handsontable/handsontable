@@ -8,7 +8,7 @@ describe('Filters condition (`empty`)', () => {
 
     expect(condition(data(''), [])).toBe(true);
     expect(condition(data(null), [])).toBe(true);
-    expect(condition(data(void 0), [])).toBe(true);
+    expect(condition(data(undefined), [])).toBe(true);
   });
 
   it('should filter not matching values', () => {

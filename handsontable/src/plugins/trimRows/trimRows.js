@@ -101,16 +101,14 @@ export class TrimRows extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Map of skipped rows by the plugin.
-     *
-     * @private
-     * @type {null|TrimmingMap}
-     */
-    this.trimmedRowsMap = null;
-  }
+  /**
+   * Map of skipped rows by the plugin.
+   *
+   * @private
+   * @type {null|TrimmingMap}
+   */
+  trimmedRowsMap = null;
+
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link AutoRowSize#enablePlugin} method is called.
@@ -130,7 +128,7 @@ export class TrimRows extends BasePlugin {
     }
 
     this.trimmedRowsMap = this.hot.rowIndexMapper.registerMap('trimRows', new TrimmingMap());
-    this.trimmedRowsMap.addLocalHook('init', () => this.onMapInit());
+    this.trimmedRowsMap.addLocalHook('init', () => this.#onMapInit());
 
     super.enablePlugin();
   }
@@ -305,10 +303,8 @@ export class TrimRows extends BasePlugin {
 
   /**
    * On map initialized hook callback.
-   *
-   * @private
    */
-  onMapInit() {
+  #onMapInit() {
     const trimmedRows = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(trimmedRows)) {

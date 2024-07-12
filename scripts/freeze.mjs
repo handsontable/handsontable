@@ -112,20 +112,17 @@ displaySeparator();
   // Install the "next" package for examples
   await spawnProcess('npm run examples:install next');
 
-  // Build the examples/next directory.
+  // Build the examples directory.
   await spawnProcess('npm run in examples build');
 
   // Test all packages.
   await spawnProcess('npm run all test');
 
   // Verify if the bundles have the same (and correct) version.
-  await spawnProcess('node --experimental-json-modules ./scripts/verify-bundles.mjs');
+  await spawnProcess('node ./scripts/verify-bundles.mjs');
 
   // Generate the CHANGELOG.md file.
   await spawnProcess('npm run changelog consume', { stdin: 'pipe' });
-
-  // Create the examples/[version] directory.
-  await spawnProcess(`npm run examples:version ${finalVersion}`);
 
   if (argv.commit === true) {
     // Commit the changes to the release branch.

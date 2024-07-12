@@ -87,41 +87,6 @@ describe('manualRowMove', () => {
       expect($('.ht__manualRowMove--guideline').css('z-index')).toBeGreaterThan(getInlineStartClone().css('z-index'));
     });
 
-    describe('backlight', () => {
-      it('should set proper left position of element when colWidths is undefined', () => {
-        handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
-          rowHeaders: true,
-          manualRowMove: true
-        });
-
-        const $headerTH = spec().$container.find('tbody tr:eq(0) th:eq(0)');
-
-        $headerTH.simulate('mousedown');
-        $headerTH.simulate('mouseup');
-        $headerTH.simulate('mousedown');
-
-        expect(spec().$container.find('.ht__manualRowMove--backlight')[0].offsetLeft).toBe(50);
-      });
-
-      it('should set proper left position of element when colWidths is defined', () => {
-        handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
-          rowHeaders: true,
-          manualRowMove: true,
-          colWidths: 100,
-        });
-
-        const $headerTH = spec().$container.find('tbody tr:eq(0) th:eq(0)');
-
-        $headerTH.simulate('mousedown');
-        $headerTH.simulate('mouseup');
-        $headerTH.simulate('mousedown');
-
-        expect(spec().$container.find('.ht__manualRowMove--backlight')[0].offsetLeft).toBe(50);
-      });
-    });
-
     describe('guideline', () => {
       it('should set proper top position of element when target is first row and column headers are disabled', () => {
         handsontable({

@@ -1,5 +1,5 @@
-const { SiteChecker } = require('broken-link-checker'); // eslint-disable-line import/no-unresolved
 const path = require('path');
+const { SiteChecker } = require('broken-link-checker'); // eslint-disable-line import/no-unresolved
 const { Renderer } = require('xlsx-renderer');
 const { logger, spawnProcess } = require('./utils');
 

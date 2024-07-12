@@ -1,12 +1,30 @@
 import Handsontable from 'handsontable';
 
-const hot = new Handsontable(document.createElement('div'), {});
-const hiddenColumns = hot.getPlugin('hiddenColumns');
+const hot = new Handsontable(document.createElement('div'), {
+  hiddenColumns: true,
+});
+new Handsontable(document.createElement('div'), {
+  hiddenColumns: {
+    columns: [1, 2],
+  },
+});
+new Handsontable(document.createElement('div'), {
+  hiddenColumns: {
+    indicators: true,
+  },
+});
+new Handsontable(document.createElement('div'), {
+  hiddenColumns: {
+    copyPasteEnabled: true,
+  },
+});
+const plugin = hot.getPlugin('hiddenColumns');
 
-hiddenColumns.showColumns([1, 2, 3]);
-hiddenColumns.showColumn(1);
-hiddenColumns.hideColumns([1, 2, 3]);
-hiddenColumns.hideColumn(1);
-hiddenColumns.isHidden(1);
-hiddenColumns.getHiddenColumns();
-hiddenColumns.isValidConfig([1, 2, 3, 4]);
+plugin.showColumns([1, 2, 3]);
+plugin.showColumn(1);
+plugin.hideColumns([1, 2, 3]);
+plugin.hideColumn(1);
+
+const isHidden: boolean = plugin.isHidden(1);
+const hiddenColumns: number[] = plugin.getHiddenColumns();
+const isValidConfig: boolean = plugin.isValidConfig([1, 2, 3, 4]);

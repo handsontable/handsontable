@@ -3,11 +3,17 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     constructor() {
       this.rootDocument = document;
     }
+
     renderedRowToSource(visibleRowIndex) {
       return visibleRowIndex;
     }
+
     renderedColumnToSource(visibleColumnIndex) {
       return visibleColumnIndex;
+    }
+
+    isAriaEnabled() {
+      return true;
     }
   }
 
@@ -27,6 +33,15 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
 
     return { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode };
   }
+
+  beforeEach(function() {
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class', 'dir', 'style']
+      }
+    };
+  });
 
   it('should not generate any cells', () => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();

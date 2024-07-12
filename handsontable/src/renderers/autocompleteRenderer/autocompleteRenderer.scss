@@ -5,10 +5,18 @@ AutocompleteRenderer down arrow
 .handsontable .htAutocompleteArrow {
   float: inline-end;
   font-size: 10px;
-  color: #EEE;
+  color: #bbbbbb;
   cursor: default;
   width: 16px;
   text-align: center;
+}
+
+.handsontable td.htInvalid .htAutocompleteArrow {
+  color: #555555;
+}
+
+.handsontable td.htInvalid .htAutocompleteArrow:hover {
+  color: #1a1a1a;
 }
 
 .handsontable td .htAutocompleteArrow:hover {

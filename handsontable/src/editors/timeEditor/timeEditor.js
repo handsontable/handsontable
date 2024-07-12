@@ -19,7 +19,7 @@ export class TimeEditor extends TextEditor {
    * @param {number|string} prop The column property (passed when datasource is an array of objects).
    * @param {HTMLTableCellElement} td The rendered cell element.
    * @param {*} value The rendered value.
-   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+   * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
   prepare(row, col, prop, td, value, cellProperties) {
     super.prepare(row, col, prop, td, value, cellProperties);

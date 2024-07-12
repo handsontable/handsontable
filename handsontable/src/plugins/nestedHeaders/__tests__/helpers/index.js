@@ -101,7 +101,7 @@ const colspanSettingsAbbreviations = new Map([
  */
 export function createColspanSettings(overwriteProps = {}) {
   colspanSettingsAbbreviations.forEach((fullKey, abbrKey) => {
-    if (overwriteProps[abbrKey] !== void 0) {
+    if (overwriteProps[abbrKey] !== undefined) {
       overwriteProps[fullKey] = overwriteProps[abbrKey];
       delete overwriteProps[abbrKey];
     }
@@ -116,6 +116,7 @@ export function createColspanSettings(overwriteProps = {}) {
     collapsible: false,
     isRoot: true,
     isPlaceholder: false,
+    headerClassNames: [],
     ...overwriteProps,
   };
 }

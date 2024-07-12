@@ -7,21 +7,24 @@ import { isDefined } from '../../helpers/mixed';
  * can be used to calculate a single result for particular index.
  */
 export class AggregatedCollection extends MapCollection {
+  /**
+   * List of merged values. Value for each index is calculated using values inside registered maps.
+   *
+   * @type {Array}
+   */
+  mergedValuesCache = [];
+  /**
+   * Function which do aggregation on the values for particular index.
+   */
+  aggregationFunction;
+  /**
+   * Fallback value when there is no calculated value for particular index.
+   */
+  fallbackValue;
+
   constructor(aggregationFunction, fallbackValue) {
     super();
-    /**
-     * List of merged values. Value for each index is calculated using values inside registered maps.
-     *
-     * @type {Array}
-     */
-    this.mergedValuesCache = [];
-    /**
-     * Function which do aggregation on the values for particular index.
-     */
     this.aggregationFunction = aggregationFunction;
-    /**
-     * Fallback value when there is no calculated value for particular index.
-     */
     this.fallbackValue = fallbackValue;
   }
 

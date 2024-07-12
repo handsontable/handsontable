@@ -15,6 +15,13 @@ describe('TrimRows', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class']
+      }
+    };
   });
 
   afterEach(function() {

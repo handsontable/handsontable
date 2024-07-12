@@ -3,6 +3,9 @@ module.exports = {
     ['@babel/preset-env']
   ],
   plugins: [
-    ['@babel/plugin-proposal-private-property-in-object', { 'loose': true }]
+    ['@babel/plugin-transform-typescript', {
+      allExtensions: true,
+      isTSX: true
+    }]
   ]
 };

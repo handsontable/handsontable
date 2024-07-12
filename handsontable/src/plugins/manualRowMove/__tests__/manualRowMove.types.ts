@@ -1,6 +1,8 @@
 import Handsontable from 'handsontable';
 
-const hot = new Handsontable(document.createElement('div'), {});
+const hot = new Handsontable(document.createElement('div'), {
+  manualRowMove: true,
+});
 const manualRowMove = new Handsontable.plugins.ManualRowMove(hot);
 
 manualRowMove.isMovePossible([0], 3);

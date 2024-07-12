@@ -1,4 +1,6 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { ColumnConditions, OperationType } from 'handsontable/plugins/filters';
+import { Condition } from 'handsontable/plugins/filters/conditionCollection';
 
 const hot = new Handsontable(document.createElement('div'), {
   filters: true,
@@ -36,14 +38,22 @@ if (conditionCollection) {
   conditionCollection.addCondition(2, condition);
   conditionCollection.addCondition(2, condition, 'conjunction');
   conditionCollection.addCondition(2, condition, 'conjunction', 3);
-  conditionCollection.getConditions(3);
-  conditionCollection.getFilteredColumns();
-  conditionCollection.getColumnStackPosition(3);
-  conditionCollection.getOperation(3);
-  conditionCollection.exportAllConditions();
-  conditionCollection.importAllConditions([condition]);
+  conditionCollection.importAllConditions([{
+    column: 1,
+    conditions: [{
+      name: 'gt',
+      args: [],
+    }],
+    operation: 'conjunction',
+  }]);
   conditionCollection.removeConditions(3);
   conditionCollection.hasConditions(3, 'eq');
   conditionCollection.clean();
   conditionCollection.destroy();
+
+  const conditions: Condition[] = conditionCollection.getConditions(3);
+  const filteredColumns = conditionCollection.getFilteredColumns();
+  const columnStackPosition: Maybe<number> = conditionCollection.getColumnStackPosition(3);
+  const operation: Maybe<OperationType> = conditionCollection.getOperation(3);
+  const exportAllConditions: ColumnConditions[] = conditionCollection.exportAllConditions();
 }

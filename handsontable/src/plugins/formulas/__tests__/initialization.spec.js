@@ -5,12 +5,11 @@ import plPL from 'hyperformula/es/i18n/languages/plPL';
 
 describe('Formulas general', () => {
   const debug = false;
-  const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-    this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
-    this.$container3 = $(`<div id="${id}-3"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+    this.$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
+    this.$container3 = $('<div id="testContainer-3"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -202,13 +201,13 @@ describe('Formulas general', () => {
       const relatedHotInstanceEntry = hotInstances.get(hot.getPlugin('formulas').engine);
       const sharedHotIdsEntry = sharedHotIds ?
         sharedHotIds.get(hot.getPlugin('formulas').engine) :
-        void 0;
+        undefined;
       // The registry (for the related HF instance) can be empty or undefined, depending on the context:
       // - if it's the first HOT instance on the page, it will be undefined (no registry will be ever created, because
       //   there's no need for it
       // - if it's not the first HOT instance (which will be usually the case with the test cases), the registry can be
       //   already created, but there should be no entry for the provided HyperFormula instance.
-      const noEntryInRegistry = sharedHotIds === void 0 || sharedHotIdsEntry === void 0;
+      const noEntryInRegistry = sharedHotIds === undefined || sharedHotIdsEntry === undefined;
 
       expect(getDataAtCell(4, 1)).toBe(8042);
       expect(noEntryInRegistry).toBe(true);
@@ -396,8 +395,8 @@ describe('Formulas general', () => {
         const sharedHotIds = staticRegister.getItem('shared_engine_usage');
         const relatedHotInstanceEntry1 = hotInstances.get(formulasPlugin1.engine);
         const relatedHotInstanceEntry2 = hotInstances.get(formulasPlugin2.engine);
-        const sharedHotIdsEntry1 = sharedHotIds ? sharedHotIds.get(formulasPlugin1.engine) : void 0;
-        const sharedHotIdsEntry2 = sharedHotIds ? sharedHotIds.get(formulasPlugin2.engine) : void 0;
+        const sharedHotIdsEntry1 = sharedHotIds ? sharedHotIds.get(formulasPlugin1.engine) : undefined;
+        const sharedHotIdsEntry2 = sharedHotIds ? sharedHotIds.get(formulasPlugin2.engine) : undefined;
 
         // The registry (for the related HF instance) can be empty or undefined, depending on the context:
         // - if it's the first HOT instance on the page, it will be undefined (no registry will be ever created,
@@ -405,8 +404,8 @@ describe('Formulas general', () => {
         //   there's no need for it
         // - if it's not the first HOT instance (which will be usually the case with the test cases), the registry can
         // be already created, but there should be no entry for the provided HyperFormula instance.
-        const noEntryInRegistry1 = sharedHotIds === void 0 || sharedHotIdsEntry1 === void 0;
-        const noEntryInRegistry2 = sharedHotIds === void 0 || sharedHotIdsEntry2 === void 0;
+        const noEntryInRegistry1 = sharedHotIds === undefined || sharedHotIdsEntry1 === undefined;
+        const noEntryInRegistry2 = sharedHotIds === undefined || sharedHotIdsEntry2 === undefined;
 
         expect(formulasPlugin1.engine !== formulasPlugin2.engine).withContext('Both of the HOT instances' +
           ' should have separate HF instances.').toBe(true);

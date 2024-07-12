@@ -27,13 +27,7 @@ describe('ContextMenu', () => {
 
       selectCell(0, 0);
       contextMenu();
-
-      $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(8) // "Read only"
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectContextMenuOption('Read only');
 
       expect(getCellMeta(0, 0).readOnly).toBe(true);
     });
@@ -53,13 +47,7 @@ describe('ContextMenu', () => {
 
       selectCell(0, 0);
       contextMenu();
-
-      $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(8) // "Read only"
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectContextMenuOption('Read only');
 
       expect(getCellMeta(0, 0).readOnly).toBe(false);
     });
@@ -78,13 +66,7 @@ describe('ContextMenu', () => {
 
       selectCell(0, 0, 2, 2);
       contextMenu();
-
-      $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(8) // "Read only"
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toEqual(true);
       expect(hot.getCellMeta(0, 1).readOnly).toEqual(true);
@@ -107,13 +89,7 @@ describe('ContextMenu', () => {
 
       selectCell(0, 0, 2, 2);
       contextMenu();
-
-      $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(8) // "Read only"
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
@@ -135,13 +111,7 @@ describe('ContextMenu', () => {
 
       selectCell(2, 2, 0, 0);
       contextMenu();
-
-      $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(8) // "Read only"
-        .simulate('mousedown')
-        .simulate('mouseup');
+      selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
@@ -165,13 +135,7 @@ describe('ContextMenu', () => {
 
       selectCell(0, 0, 2, 2);
       contextMenu();
-
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
-        .not('.htSeparator')
-        .eq(8)
-        .simulate('mousedown')
-        .simulate('mouseup'); // Make writable
+      selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
@@ -195,13 +159,7 @@ describe('ContextMenu', () => {
 
       selectCell(2, 2, 0, 0);
       contextMenu();
-
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
-        .not('.htSeparator')
-        .eq(8)
-        .simulate('mousedown')
-        .simulate('mouseup'); // Make writable
+      selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
@@ -224,12 +182,8 @@ describe('ContextMenu', () => {
 
       selectCell(2, 3);
       contextMenu();
+      selectContextMenuOption('Read only');
 
-      const changeToReadOnlyButton = $('.htItemWrapper').filter(function() {
-        return this.textContent === 'Read only';
-      })[0];
-
-      $(changeToReadOnlyButton).simulate('mousedown').simulate('mouseup');
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'readOnly', true);
     });
 
@@ -291,6 +245,63 @@ describe('ContextMenu', () => {
         });
 
         expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
+      });
+
+      it('should disable the item when the row header is focused', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          navigableHeaders: true,
+        });
+
+        selectCell(1, -1);
+        getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Read only';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should disable the item when the column header is focused', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          navigableHeaders: true,
+        });
+
+        selectCell(-1, 1);
+        getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Read only';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should disable the item when the corner is focused', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: true,
+          navigableHeaders: true,
+        });
+
+        selectCell(-1, -1);
+        getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Read only';
+        });
+
+        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
       });
 
       it('should disable the item when all rows are trimmed', () => {

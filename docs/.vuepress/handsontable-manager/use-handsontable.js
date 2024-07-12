@@ -6,10 +6,23 @@ const {
 
 const ATTR_VERSION = 'data-hot-version';
 
+class AbortError extends Error {}
+
 const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode = 'production') => {
   const getDependency = buildDependencyGetter(version, buildMode);
+  const abortSignal = register.getAbortSignal();
 
-  const loadDependency = dep => new Promise((resolve) => {
+  const loadDependency = dep => new Promise((resolve, reject) => {
+    const abortHandler = () => {
+      reject(new AbortError());
+    };
+
+    if (abortSignal.aborted) {
+      reject(abortHandler());
+    }
+
+    abortSignal.addEventListener('abort', abortHandler);
+
     const getId = depName => `dependency-reloader_${depName}`;
     const [jsUrl, dependentVars = [], cssUrl = undefined, globalVarSharedDependency] = getDependency(dep);
     const id = getId(dep);
@@ -63,16 +76,17 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     // execute callback
     if (script.loaded) {
       setTimeout(() => {
+        abortSignal.removeEventListener('abort', abortHandler);
         register.listen();
         resolve();
       });
     } else {
       script.addEventListener('load', () => {
+        abortSignal.removeEventListener('abort', abortHandler);
         register.listen();
         resolve();
       });
     }
-
   });
 
   const loadPreset = async() => {
@@ -81,12 +95,22 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     for (let i = 0; i < dependencies.length; i++) {
       const dep = dependencies[i];
 
+      if (abortSignal.aborted) {
+        break;
+      }
+
       // The order of loading is really important. For that purpose await was used.
       await loadDependency(dep); // eslint-disable-line no-await-in-loop
     }
   };
 
-  loadPreset().then(callback);
+  loadPreset()
+    .then(callback)
+    .catch((err) => {
+      if (!(err instanceof AbortError)) {
+        throw err;
+      }
+    });
 };
 
 module.exports = { useHandsontable };

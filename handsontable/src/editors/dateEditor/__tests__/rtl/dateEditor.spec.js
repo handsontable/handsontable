@@ -114,5 +114,89 @@ describe('DateEditor (RTL mode)', () => {
       expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
     });
+
+    it('should move a datepicker together with the edited cell when the table is scrolled left', async() => {
+      handsontable({
+        layoutDirection,
+        data: createSpreadsheetData(50, 20),
+        width: 200,
+        height: 200,
+        type: 'date',
+      });
+
+      selectCell(2, 10);
+      keyDownUp('enter');
+
+      const cellOffset = $(getActiveEditor().TD).offset();
+      const cellWidth = $(getActiveEditor().TD).outerWidth();
+      const pikaElement = $('.pika-single');
+      const datePicker = $('.htDatepickerHolder');
+      const datePickerOffset = datePicker.offset();
+      const datePickerWidth = datePicker.outerWidth();
+
+      await sleep(50);
+
+      // 23 is a height of the editor's cell
+      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+      expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
+      expect(pikaElement.is(':visible')).toBe(true);
+
+      setScrollLeft(-520); // scroll the viewport so the edited cell is partially visible from right
+
+      await sleep(50);
+
+      // 23 is a height of the editor's cell
+      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+      expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
+      expect(pikaElement.is(':visible')).toBe(true);
+
+      setScrollLeft(-550); // scroll the viewport so the edited cell is not visible
+
+      await sleep(50);
+
+      expect(pikaElement.is(':visible')).toBe(false);
+    });
+
+    it('should move a datepicker together with the edited cell when the table is scrolled right', async() => {
+      handsontable({
+        layoutDirection,
+        data: createSpreadsheetData(50, 20),
+        width: 200,
+        height: 200,
+        type: 'date',
+      });
+
+      selectCell(2, 10);
+      keyDownUp('enter');
+
+      await sleep(50);
+
+      const cellOffset = $(getActiveEditor().TD).offset();
+      const cellWidth = $(getActiveEditor().TD).outerWidth();
+      const pikaElement = $('.pika-single');
+      const datePicker = $('.htDatepickerHolder');
+      const datePickerOffset = datePicker.offset();
+      const datePickerWidth = datePicker.outerWidth();
+
+      // 23 is a height of the editor's cell
+      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+      expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
+      expect(pikaElement.is(':visible')).toBe(true);
+
+      setScrollLeft(-340); // scroll the viewport so the edited cell is partially visible from left
+
+      await sleep(50);
+
+      // 23 is a height of the editor's cell
+      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+      expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
+      expect(pikaElement.is(':visible')).toBe(true);
+
+      setScrollLeft(-310); // scroll the viewport so the edited cell is not visible
+
+      await sleep(50);
+
+      expect(pikaElement.is(':visible')).toBe(false);
+    });
   });
 });

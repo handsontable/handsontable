@@ -99,7 +99,7 @@ describe('Core.resumeRender', () => {
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
-    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
 
   it('should render the table only on the last resume call (a call that resets the counter of nested suspend calls)', () => {
@@ -136,6 +136,6 @@ describe('Core.resumeRender', () => {
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw
-    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
 });

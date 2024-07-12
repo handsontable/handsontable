@@ -12,7 +12,7 @@ export const PLUGIN_PRIORITY = 240;
  * @description
  * The `ExportFile` plugin lets you export table data as a string, blob, or downloadable CSV file.
  *
- * See [the export file demo](@/guides/accessories-and-menus/export-to-csv.md) for examples.
+ * See [the export file demo](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md) for examples.
  *
  * @example
  * ::: only-for javascript
@@ -150,7 +150,7 @@ export class ExportFile extends BasePlugin {
     const a = rootDocument.createElement('a');
     const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
 
-    if (a.download !== void 0) {
+    if (a.download !== undefined) {
       const url = URL.createObjectURL(blob);
 
       a.style.display = 'none';

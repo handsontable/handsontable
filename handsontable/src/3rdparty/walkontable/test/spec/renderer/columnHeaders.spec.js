@@ -6,6 +6,10 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     renderedColumnToSource(visibleColumnIndex) {
       return visibleColumnIndex;
     }
+
+    isAriaEnabled() {
+      return true;
+    }
   }
 
   function createRenderer() {
@@ -17,6 +21,15 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
 
     return { renderer, tableMock, rootNode };
   }
+
+  beforeEach(function() {
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class']
+      }
+    };
+  });
 
   it('should generate as many TR (with TH) as the `columnHeadersCount`, `rowHeadersCount` and `columnsToRender` is set', () => {
     const { renderer, tableMock, rootNode } = createRenderer();

@@ -5,7 +5,7 @@ import {
 import {
   createSpreadsheetData,
   mockElementDimensions,
-  mountComponent
+  mountComponentWithRef
 } from './_helpers';
 
 /**
@@ -24,7 +24,7 @@ describe('React PureComponents', () => {
       }
     }
 
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}

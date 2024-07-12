@@ -77,6 +77,8 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should update the previously initialized Handsontable instance only once with multiple changed properties', async() => {
+    const initialAfterChangeHook = () => { /* initial hook */ };
+    const modifiedAfterChangeHook = () => { /* modified hook */ };
     const App = {
       components: { HotTable },
       template: `
@@ -85,6 +87,7 @@ describe('Updating the Handsontable settings', () => {
           :rowHeaders="rowHeaders"
           :colHeaders="colHeaders"
           :readOnly="readOnly"
+          :afterChange="afterChange"
           :afterUpdateSettings="() => { this.updateSettingsCalls ++ }"
           ></HotTable>`,
       data() {
@@ -93,6 +96,7 @@ describe('Updating the Handsontable settings', () => {
           colHeaders: true,
           readOnly: true,
           updateSettingsCalls: 0,
+          afterChange: initialAfterChangeHook,
         };
       },
       methods: {
@@ -100,6 +104,7 @@ describe('Updating the Handsontable settings', () => {
           this.rowHeaders = false;
           this.colHeaders = false;
           this.readOnly = false;
+          this.afterChange = modifiedAfterChangeHook;
         },
       },
     };
@@ -112,6 +117,8 @@ describe('Updating the Handsontable settings', () => {
     expect(hotTableComponent.hotInstance.getSettings().rowHeaders).toBe(true);
     expect(hotTableComponent.hotInstance.getSettings().colHeaders).toBe(true);
     expect(hotTableComponent.hotInstance.getSettings().readOnly).toBe(true);
+    expect(hotTableComponent.hotInstance.pluginHookBucket.afterChange.includes(initialAfterChangeHook)).toBe(true);
+    expect(hotTableComponent.hotInstance.pluginHookBucket.afterChange.includes(modifiedAfterChangeHook)).toBe(false);
 
     await testWrapper.vm.updateData();
 
@@ -119,6 +126,8 @@ describe('Updating the Handsontable settings', () => {
     expect(hotTableComponent.hotInstance.getSettings().rowHeaders).toBe(false);
     expect(hotTableComponent.hotInstance.getSettings().colHeaders).toBe(false);
     expect(hotTableComponent.hotInstance.getSettings().readOnly).toBe(false);
+    expect(hotTableComponent.hotInstance.pluginHookBucket.afterChange.includes(initialAfterChangeHook)).toBe(false);
+    expect(hotTableComponent.hotInstance.pluginHookBucket.afterChange.includes(modifiedAfterChangeHook)).toBe(true);
 
     testWrapper.unmount();
   });
@@ -431,8 +440,8 @@ describe('HOT-based CRUD actions', () => {
     });
     const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
-    hotInstance.alter('insert_row', 2, 2);
-    hotInstance.alter('insert_col', 2, 2);
+    hotInstance.alter('insert_row_above', 2, 2);
+    hotInstance.alter('insert_col_end', 2, 2);
 
     await nextTick();
 

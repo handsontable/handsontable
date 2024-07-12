@@ -114,7 +114,7 @@ export const keyUp = triggerKeys('keyup');
 function triggerKeys(type) {
   return function(keys, { extend = {}, target = document.activeElement, ime = false } = {}) {
     // Adds support for a single key as a string and as an array of strings.
-    keys = typeof keys === 'string' ? [keys] : keys;
+    keys = (typeof keys === 'string' ? [keys] : keys).map(key => key.toLowerCase());
     const isKeyUp = type === 'keyup';
 
     if (isKeyUp) {

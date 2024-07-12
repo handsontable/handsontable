@@ -1,0 +1,1394 @@
+html.theme-dark .handsontable {
+    color-scheme: light;
+}
+
+html.theme-dark {
+    color-scheme dark
+
+    $accentColor        = var(--color-accentblue)
+    $textColor          = var(--color-gray-200)
+    $hoverWhiteColor    = var(--color-gray-400)
+    $text2Color         = var(--color-gray-500)
+    $borderColor        = var(--color-gray-700)
+    $bgColor            = var(--color-gray-900)
+    $sideColor          = var(--color-gray-800)
+    $bgCode             = $borderColor 
+    $onsurfaceColor     = var(--color-gray-700)
+    $linkColor          = var(--color-lightblue)
+    $linkHoverColor     = var(--color-lighterblue)
+    $editorColor        = var(--color-gray-700)
+    $editorHeadColor    = var(--color-gray-800)
+    $lightBorderColor   = var(--color-gray-600)
+    $depricatedColor    = var(--color-yellow) 
+    $depricatedBgColor  = var(--color-yellow-20)  
+
+    $editorText                 = rgb(156, 220, 254)
+    $editorCommentColor         = #999
+    $editorTagColor             = #e2777a
+    $editorFunctionNameColor    = #6196cc
+    $editorFunctionColor        = #f08d49
+    $editorSymbolColor          = #f8c555
+    $editorSelectorColor        = #cc99cd
+    $editorStringColor          = #7ec699
+    $editorOperatorColor        = #67cdcc
+    $editorInsertedColor        = rgb(100, 102, 149)
+    $editorPunctuationColor     = #999
+
+    /*
+    $editorText = $text2Color
+    $editorCommentColor =  rgb(106, 153, 85);
+    $editorTagColor = #85dbd8;
+    $editorFunctionNameColor = #f08d49;
+    $editorFunctionColor = #f8c555;
+    $editorSymbolColor = rgb(78, 201, 176);
+    $editorSelectorColor = rgb(70, 114, 174);
+    $editorStringColor = rgb(206, 66, 40);
+    $editorOperatorColor = rgb(46, 46, 46);
+    $editorInsertedColor = rgb(41, 105, 176);
+    $editorPunctuationColor = 3999
+    */
+    //rgb(100, 102, 149)
+
+    $dropColor          = $dropColorDark
+
+    background: $bgColor //url('{{$basePath}}/img/noise.png') repeat
+    color: $textColor
+
+    ::selection {
+        //background-color: $accentColor
+        //color: $textColor
+    }
+
+    body { 
+        background: $bgColor //url('{{$basePath}}/img/noise.png') repeat
+    }
+
+    .layout-container {
+        scrollbar-color: $borderColor transparent;
+
+        pre { scrollbar-color: $lightBorderColor transparent;}
+    }
+    i.Logo { background:  url('{{$basePath}}/img/logo-white.svg');}
+    i.ico { filter: brightness(0) invert(1)}
+
+    :not(.handsontable) {
+        * { 
+            outline: $accentColor solid 0 ;
+        }
+        *:focus-visible {
+            outline: $accentColor solid 1px 
+        }
+    }
+
+    a { 
+        color: $linkColor 
+
+        @media (hover: hover) {
+            &:hover { 
+                color: $linkHoverColor
+            }
+        }
+    }
+
+    #nprogress .bar { 
+        background: $accentColor 
+    }
+
+    .decoration-left {
+    
+    }
+    .decoration-right {
+        opacity 1
+    }
+
+    /* Sidebar 
+    ------------------------------- */
+    .sidebar { 
+        //background: $darkDrop
+
+        .info-box { 
+            background: $gradient2
+
+            span { 
+                background-color: $accentColor
+                
+                i { 
+                    //filter: hue-rotate(190deg) invert(1); /* 190 degrees shifts the hue towards #27C2FF */
+                }
+            }
+            div {
+                p {
+                    color: $textColor
+                }
+                a { 
+                    color:$text2Color
+
+                    &:before {
+                        box-shadow: 0 0 0 1px $accentColor
+                    }
+                }
+
+                .close {
+                    filter brightness(0) invert(1)
+                }
+            }
+        }
+        
+        .sidebar-links > li {
+            > a { 
+                color: $text2Color
+
+                &.active { 
+                    color: $textColor
+                    .i-arrow { 
+                        transform: rotate(180deg)
+                    }
+                }
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $hoverWhiteColor
+                    }
+                }
+            }
+            > .sidebar-group {
+                p, a { 
+                    color:  $textColor 
+
+                    &.open { 
+                        color: $textColor
+                    }
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $hoverWhiteColor
+                        }
+                    }
+                }
+                > .sidebar-links {
+                    a { 
+                        color: $text2Color
+
+                        &:after {
+                            border-color: $borderColor
+                        }
+
+                        &:before{ 
+                            background: $sideColor 
+                        }
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $hoverWhiteColor
+                            }
+                        }
+                        
+                        &.active {
+                            color: $textColor
+                            
+                            &:after {
+                                border-color: $accentColor
+                            }
+                        }
+
+                        .tag-update  { 
+                            background-color: $successColor
+                            color: $bgColor
+                        }
+                        .tag-new {
+                            background: $accentColor
+                            color: $textColor
+                        }
+                        .tag-deprecated {
+                            background: $depricatedBgColor
+                            color: $depricatedColor
+                        }
+                    }
+                }
+            }
+        }
+
+        .mobile-show {
+            .nav-links {
+                .nav-item {
+                    a, button { 
+                        color: $text2Color
+
+                        &.router-link-active { 
+                            color: $textColor
+                        }
+                    }
+
+                    button { 
+                        color: $text2Color
+                    }
+                }
+            }
+
+            .dropdown-wrapper { 
+                .nav-dropdown { 
+                    background: $sideColor
+
+                    a { 
+                        color: $text2Color
+
+                        &:before { 
+                            background: $bgColor
+                        }
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $hoverWhiteColor
+                            }
+                        }
+                        
+                        &.active { 
+                            color: $textColor
+                        }  
+                    }
+                }
+            } 
+
+            //Icons
+            .icons-nav {
+                > a, > span, button, label {
+                    @media (hover: hover) {
+                        &:hover { 
+                            background: $onsurfaceColor
+                        }
+                    }
+                }
+
+                #HW_badge_cont .HW_badge.HW_softHidden { 
+                    background: $linkColor
+                }
+            }   
+        }
+
+        @media (max-width: $xLarge) {
+            .mobile-nav {
+                border-bottom: 1px solid $borderColor
+
+
+                .nav-frameworks {
+                    .nav-dropdown { 
+                        background: $sideColor
+                    }
+                }
+
+                /* active item */
+                .i-react + .nav-item .nav-dropdown .dropdown-item:nth-child(2) a,
+                .i-javascript + .nav-item .nav-dropdown .dropdown-item:nth-child(1) a  {
+                    background: $borderColor
+                }
+
+                .nav-links {
+                    a { 
+                        color: $text2Color
+
+                        &.active { 
+                            color: $textColor
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /* Navbar 
+    ------------------------------- */
+    .navbar {
+        background: $dropColor
+        border-bottom: 0 none
+
+
+        .tag  { 
+            background-color: $linkColor
+            color: $bgColor
+        }  
+
+        .navbar-wrapper { 
+            .dropdown-wrapper { 
+
+                .nav-dropdown { 
+                    background: $borderColor
+                    border:0
+
+                    a { 
+                        color: $text2Color
+
+                        &:before { 
+                            background: $onsurfaceColor
+                        }
+
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $hoverWhiteColor
+                            }
+                        }
+                    }
+                }
+            }
+
+            .framework-and-version { 
+                .nav-frameworks { 
+                    .dropdown-wrapper {
+                        > button { 
+                            color: $text2Color
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $hoverWhiteColor
+                                }
+                            }
+                        }
+                        &.open { 
+                            > button { 
+                                color: $hoverWhiteColor
+                            }
+                        }
+                    }
+                }
+            }
+
+            .menu {
+                .nav-links {
+                    .nav-item {
+
+                        &:not(.no-active) {
+                            a, button { 
+                                &.router-link-active { 
+                                    color: $textColor
+
+                                    &:before {
+                                        background: $linkColor    
+                                    }
+                                }
+                            }
+                        }
+
+                        .open { 
+                            > button { 
+                                color: $hoverWhiteColor
+                            }
+                        }
+                        
+                        a, button { 
+                            color: $text2Color
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $hoverWhiteColor
+                                }
+                            }
+                        }
+                    }
+                }
+            }   
+
+            .icons-nav {
+                > a, > span, button, label {
+                    @media (hover: hover) {
+                        &:hover { 
+                            background: $borderColor
+                        }
+                    }
+                }
+
+                .github-stars {
+                    border: 1px solid $borderColor
+                    color: $text2Color
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $hoverWhiteColor
+                        }
+                    }
+                }
+            }   
+        }
+    }
+
+    //Page
+    .page {
+        .breadcrumbs {
+            a {
+                color: $text2Color
+                
+                @media (hover: hover) {
+                    &:hover {
+                        color: $hoverWhiteColor
+                    }
+                }
+            }
+            span { 
+                //color: $text2Color
+            }
+            a, span {
+                &:after {
+                    color: $text2Color !important
+                }
+            }
+        }
+        
+        #example1_events {
+            border: 1px solid $borderColor
+
+            div {
+                &:nth-child(odd) {
+                    background-color: $borderColor
+                }
+            }
+        }
+        
+        .theme-default-content {  
+            color: $text2Color
+            
+            h1, h2, h3, h4, h5, h6 {
+                color: $textColor
+
+                a { 
+                    text-decoration: none
+                }
+            }
+            
+            h1 {
+                + p {
+                    border-bottom: 1px solid $lightBorderColor
+                }
+            }
+            
+            .instalationPage h2 code:first-child {
+                border: 1px solid $text2Color
+                background: $borderColor
+                color: $textColor
+            }
+
+            p {
+                color: $text2Color
+            }
+
+            ul, ol { 
+
+                li {
+                    color: $text2Color
+                }
+            }
+
+            li > a { 
+                text-decoration: none
+            }
+
+            pre { 
+                background: $editorColor 
+            }
+
+            .language-bash:before { 
+                display: none
+            }
+
+            div[class*="language-"] { 
+                background: $editorColor 
+            }
+
+            a {
+                color: $linkColor
+                text-decoration: underline
+                text-decoration-color: $lightBorderColor
+                text-decoration-style: dashed
+                text-underline-offset: 2px;
+
+                @media (hover: hover) {
+                    &:hover { 
+                        text-decoration-color: var(--color-gray-550) // $hoverWhiteColor
+                        color: $linkHoverColor
+                    }
+                }
+            }
+
+            .handsontable a { 
+                text-decoration: none
+            }
+            
+            .source-code-link {
+                color: $text2Color
+                //background: $sideColor
+                border-color: $borderColor
+
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+                        border-color: $linkColor
+                    }
+                }
+            }
+            
+            code {
+                background: $editorColor 
+                color:$textColor
+            }
+            a:has(code) {
+                text-decoration: none
+            }
+
+            a code {
+                color: $linkColor
+                
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $linkHoverColor
+                    }
+                }
+            }
+
+            th code {
+                background: $sideColor
+            }
+            
+            a > code,
+            li > code,
+            p > code {
+                background: $borderColor 
+                box-shadow: 0 0 0 1px $lightBorderColor
+            }
+            
+            .table-of-contents {
+                ul {
+                    li { 
+                        > ul {
+                            li a {
+                                &:before {
+                                    border-top: 1px solid  $borderColor
+                                }
+                            }
+                        }
+                        a { 
+                            color: $text2Color
+
+                            &:after { 
+                                border-left: 1px solid $borderColor
+                            }
+
+                            @media (hover: hover) {
+                                &:hover { 
+                                    color: $hoverWhiteColor
+
+                                    &:after {
+                                        background: $accentColor
+                                    }
+                                }
+                            }
+                        }
+                        &.active > a { 
+                            color: $textColor
+
+                            &:after { 
+                                border-color: $accentColor
+                            }
+                        }  
+                    }
+                }
+            }
+            
+            .theme-code-group { 
+                .theme-code-group__nav {
+                    background: $editorColor
+
+                    .theme-code-group__ul {
+                        .theme-code-group__li {
+                            button {
+                                color: $text2Color
+                                background: $onsurfaceColor
+                                border: 1px solid $onsurfaceColor
+
+                                &.theme-code-group__nav-tab-active {
+                                    color: $textColor
+                                    background: $lightBorderColor
+                                    border: 1px solid $lightBorderColor
+                                }
+
+                                @media (hover: hover) {
+                                    &:hover { 
+                                        color: $textColor
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                &.is-active { 
+                    a {
+                        color: $textColor
+                        background: $lightBorderColor
+                        border: 1px solid $lightBorderColor
+                    }
+                }
+            }
+            
+            .custom-block {
+                background: $borderColor
+                border: 1px solid $lightBorderColor
+
+                &.tip {
+                    border-color: $accentColor
+                }
+                &.success {
+                    border-color: $successColor
+                }
+                &.warning {
+                    border-color: $errorColor
+                }
+                &.details {
+                    background: $editorColor
+
+                    summary {
+                        @media (hover: hover) {
+                            &:hover { 
+                                color: $textColor
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .page-nav {             
+            .inner { 
+                > span { 
+                    border: 1px solid $borderColor
+                    color: $linkColor
+
+                    &:before {
+                        color: $text2Color
+                    }
+                    
+                    @media (hover: hover) {
+                        &:hover { 
+                            a:after {
+                                background: $borderColor
+                            }
+                        }
+                    }
+
+                    a { 
+                        @media (hover: hover) {
+                            &:hover:after {  
+                                background: $borderColor
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        kbd {
+            border: 1px solid $lightBorderColor
+            border-bottom: 4px solid $lightBorderColor
+            background: $borderColor
+            text-shadow: 0 -1px black
+        }
+        
+        table:not(.htCore) { 
+            box-shadow: 0 0 0 1px $borderColor 
+
+            thead { 
+                tr { 
+                    th { 
+                        background: $onsurfaceColor
+                        border-bottom:1px solid $lightBorderColor
+                        color:$textColor
+                    }
+                }
+            }
+
+            tbody {
+                tr {
+                    background: $bgColor
+                    td {
+                        border-top: 1px solid $borderColor
+                    }
+                    &:nth-child(2n) { 
+                        background: $sideColor
+                    }
+                }
+            }
+        }
+        
+        .footer {
+            border-top: 1px solid $borderColor   
+            color: $text2Color
+
+            .copyright {
+                border-top: 1px solid $borderColor
+            }
+
+            .footer-links { 
+                color: $text2Color
+
+                div { 
+                    a { 
+                        color: $text2Color
+
+                        @media (hover: hover) {
+                            &:hover {  
+                                color: $hoverWhiteColor
+                            }
+                        }
+                    }
+                }
+
+                .socail-links {                    
+                    a {
+                        @media (hover: hover) {
+                            &:hover {  
+                                background: $borderColor
+                            }
+                        }
+                    }
+                }
+            }
+
+            .edit-link  { 
+                color: $text2Color
+                //i { filter: brightness(0) invert(.6) }
+
+                @media (hover: hover) {
+                    &:hover {  
+                        color: $textColor
+                    }
+                }
+            }
+
+            .rate-post { 
+                button { 
+                    background: $borderColor !important
+                    @media (hover: hover) {
+                        &:hover {  
+                            background: $bgColor !important
+                        }
+                    }
+                }
+            }
+
+            .dark-mode { 
+                .inner { 
+                    background: $borderColor 
+                    color: $textColor
+
+                    @media (hover: hover) {
+                        &:hover {  
+                            background: $sideColor
+                        }
+                    }
+                }
+            }
+        }
+
+        button:not(.theme-code-group__nav-tab, .handsontable *), .report {
+            background: $sideColor 
+            border: 1px solid $lightBorderColor
+            color: $textColor
+
+            @media (hover: hover) {
+                &:hover { 
+                    background: $borderColor 
+                    border: 1px solid $accentColor
+                }
+            }
+        }
+    }
+
+    .handsontable-drawing p:last-child { 
+        display: block
+    }
+    .handsontable-drawing p:first-child { 
+        display: none
+    }
+
+    .token, .page .theme-default-content pre[class*="language-"] code {
+        color: $editorText
+    }
+
+    .token.comment,
+    .token.block-comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+        color: $editorCommentColor
+    }
+
+    .token.punctuation {
+        color: $editorPunctuationColor
+    }
+
+    .token.tag,
+    .token.attr-name,
+    .token.namespace,
+    .token.deleted {
+        color: $editorTagColor
+    }
+
+    .token.function-name {
+        color: $editorFunctionNameColor;
+    }
+
+    .token.boolean,
+    .token.number,
+    .token.function {
+        color: $editorFunctionColor
+    }
+
+    .token.property,
+    .token.class-name,
+    .token.constant,
+    .token.symbol {
+        color: $editorSymbolColor
+    }
+
+    .token.selector,
+    .token.important,
+    .token.atrule,
+    .token.keyword,
+    .token.builtin {
+        color: $editorSelectorColor
+    }
+
+    .token.string,
+    .token.char,
+    .token.attr-value,
+    .token.regex,
+    .token.variable {
+            color: $editorStringColor
+    }
+
+    .token.operator,
+    .token.entity,
+    .token.url {
+        color: $editorOperatorColor
+    }
+
+    .token.inserted {
+        color: $editorInsertedColor
+    }
+
+    .theme-default-content  .tabs-component {
+        border: 1px solid $lightBorderColor
+
+        .tabs-component-panels {
+            background: $borderColor
+        }  
+
+        .option-label {
+            color: $text2Color !important
+        }
+        
+        ul.tabs-component-tabs  {
+            background: $borderColor
+           
+            li.tabs-component-tab  {
+                a.tabs-component-tab-a {
+                    color: $text2Color
+                    background: $onsurfaceColor
+                    border: 1px solid $onsurfaceColor
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            color: $textColor
+                        }
+                    }
+                }
+
+                &.is-active { 
+                    a {
+                        color: $textColor
+                        background: $lightBorderColor
+                        border: 1px solid $lightBorderColor
+                    }
+                }
+            }
+        }
+    }
+    /*
+    .form-jsfiddle-external {
+        .js-fiddle-link { 
+            button { 
+                background: $sideColor !important
+                
+                @media (hover: hover) {
+                    &:hover {
+                        background: $bgColor !important
+                    }
+                }
+            }
+        }
+    }
+    */
+
+    div[class*="language-"]::before { 
+        color: $text2Color
+        background: $bgColor 
+    }
+
+    .page #introduction ~ .boxes-list,
+    #open-source-software-components ~ .boxes-list
+    #handsontable-api-reference  ~ .boxes-list {
+        li {
+            border: 1px solid $borderColor
+            background: $gradient0
+            
+            i+a:before {
+                background-color: $sideColor
+            }
+
+            &:before { 
+                background: $gradient
+            }
+
+            a {
+                color: $textColor
+            }
+
+            strong { 
+                color: $textColor
+            }
+
+            @media (hover: hover) {
+                &:has(a):hover { 
+                    border: 1px solid $bgColor
+                    background: transparent
+
+                    &:after { 
+                        background: $accentColor
+                    }
+                    
+                }
+            }
+        }
+
+        &.gray {
+            li {
+                &:before { 
+                    opacity: 1
+                    background: $sideColor
+                }
+                i+a:before { 
+                    background: $borderColor 
+                }
+
+                @media (hover: hover) {
+                    &:has(a):hover { 
+                        background: $bgColor
+                        box-shadow: 0 0 0 1px $accentColor
+                    }
+                }
+            }
+        }
+    }
+
+    .icons-only {
+            li {
+                background: $sideColor;
+
+            @media (hover: hover) {
+                &:hover { 
+                    background: $bgColor
+                    box-shadow: 0 0 0 1px $accentColor
+                }
+            }
+        }
+    }
+
+    .icons-wrapper {
+        > div  { 
+            background: $sideColor
+
+            svg { 
+                fill: $textColor
+            }
+        }
+    }
+
+    .theme-default-content .simple-list { 
+        ul li a { 
+            color: $text2Color
+        }
+    }
+
+
+    .theme-default-content pre code, 
+    .theme-default-content pre[class*="language-"] code {
+        color: $textColor
+    }
+
+    [class*="language-"] {
+        .copycode, .report, .github { 
+            //background: transparent !important
+
+            &:after {
+                color: $textColor
+                background: black //$sideColor
+                border: 0 solid $lightBorderColor
+            }
+        }
+    }
+
+    .select-type {
+        > button {
+            &:after {
+                border-left: 1px solid $textColor
+                border-bottom: 1px solid $textColor
+            }
+        }
+
+        ul { 
+            background: $editorHeadColor 
+
+            li {
+                button:not(.theme-code-group__nav-tab) {
+                    color: $text2Color !important
+
+                    &.active { 
+                        background: $borderColor !important
+                        color: $textColor !important
+                        
+                        @media (hover: hover) {
+                            &:hover { 
+                                background: $borderColor !important
+                                color: $textColor !important
+                            }
+                        }
+                    }
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            background: none !important
+                            color: $textColor !important
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @media (max-width: $large) {
+        .sidebar { 
+            background: $bgColor
+        }
+        .page .footer {
+            background: $borderColor
+        }
+    }
+
+    #CybotCookiebotDialog { 
+        background: $borderColor
+        color: $text2Color
+
+        h2 { 
+            color: $textColor
+        }
+
+        svg path {
+            fill: $textColor
+        }
+
+        #CybotCookiebotDialogBodyEdgeMoreDetails a {
+            color: $linkColor
+
+            &:after {
+                border-color: $linkColor
+            }
+        }
+
+        #CybotCookiebotDialogFooter #CybotCookiebotDialogBodyButtonAccept, 
+        #CybotCookiebotDialogFooter #CybotCookiebotDialogBodyLevelButtonAccept, 
+        #CybotCookiebotDialogFooter #CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll {
+            border-color: $linkColor
+            background: $linkColor
+            color: $textColor
+
+            &:hover {
+                background: $linkHoverColor
+            }
+        }
+
+        #CybotCookiebotDialogFooter .CybotCookiebotDialogBodyButton {
+            border-color: $bgColor
+            background: $bgColor
+            color: $linkColor
+
+            &:hover {
+                border-color: $accentColor
+            }
+        }
+
+        .CybotCookiebotScrollContainer .CybotCookiebotScrollbarContainer {
+            background: $bgColor
+        }
+
+        #CybotCookiebotDialogHeader,
+        .CybotCookiebotScrollContainer { 
+            border-color: $bgColor
+        }
+
+        #CybotCookiebotDialogPoweredByText a {
+            color: $text2Color
+        }
+
+        .CookieCard {
+            border-color: $bgColor
+        }
+
+        .CybotCookiebotDialogBodyLevelButtonIABContainerToggleHide, 
+        .CybotCookiebotDialogBodyLevelButtonIABContainerToggleShow, 
+        a:after, 
+        a:before, 
+        button:after, 
+        button:before {
+            border-color: $text2Color
+        }
+
+        .CookieCard .CybotCookiebotDialogDetailBodyContentCookieContainerButton:hover, 
+        .CookieCard .CybotCookiebotDialogDetailBodyContentIABv2Tab:hover, 
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieProvider:not(.CybotCookiebotDialogDetailBodyContentCookieInfoCount):hover {
+            color: $linkColor
+        }
+
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieGroup {
+            border-color: $bgColor
+        }
+
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieProvider:not(.CybotCookiebotDialogDetailBodyContentCookieInfoCount) {
+            color: $textColor
+        }
+
+        #CybotCookiebotDialogTabContent .CybotCookiebotDialogDetailBulkConsentCount {
+            background: $bgColor
+        }
+
+        #CybotCookiebotDialogBodyContentText a, 
+        #CybotCookiebotDialogBodyLevelButtonIABHeaderViewPartnersLink, 
+        #CybotCookiebotDialogDetailBulkConsentList dt a, 
+        #CybotCookiebotDialogDetailFooter a, 
+        .CybotCookiebotDialogBodyLevelButtonIABDescription a, 
+        .CybotCookiebotDialogDetailBodyContentCookieLink, 
+        #CybotCookiebotDialogDetailBodyContentTextAbout a {
+            color: $linkColor
+        }
+
+        .CybotExternalLinkArrow {
+            filter: invert(1);
+        }
+
+        #CybotCookiebotDialogNav .CybotCookiebotDialogNavItemLink {
+            color: $text2Color
+            border-color: $bgColor
+        }
+        
+        #CybotCookiebotDialogNav .CybotCookiebotDialogNavItemLink.CybotCookiebotDialogActive {
+            color: $linkColor
+            border-color: $linkColor
+        }
+
+        #CybotCookiebotDialogNav {
+            border-color: $bgColor
+        }
+
+        #CybotCookiebotDialogDetailBulkConsent {
+            border-color: $bgColor
+        }
+
+        #CybotCookiebotDialogDetailBulkConsentLink {
+            color: $text2Color
+        }
+
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfoFooter,
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo,
+        #CybotCookiebotDialogDetailBulkConsentListWrapper,
+        #CybotCookiebotDialogDetailBulkConsentListWrapper>span,
+        #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieInfo.CybotCookiebotDialogShow:first-of-type:before {
+            border-color: $borderColor
+        }
+    }
+
+    .HW_frame { 
+        filter: invert(.86) hue-rotate(195deg)
+    }
+    .HW_frame_cont { 
+        border-radius: $radius
+        background: none
+    }
+
+    output.console {
+        border: 1px solid $borderColor
+        background: $sideColor
+    }
+
+    // Algolia
+    #algolia-search {
+
+        .DocSearch-Button {
+            border: 1px solid $lightBorderColor
+            background: $borderColor
+            transition: all $ts ease-in-out
+
+            @media (hover: hover) {
+                &:hover { 
+                    border: 1px solid $accentColor
+                }
+            }
+
+            &:focus-visible  { 
+                border: 1px solid $accentColor
+            }
+
+            .DocSearch-Search-Icon { 
+                path { 
+                    color: $textColor
+                }
+            }
+
+            .DocSearch-Button-Placeholder {
+                color: $text2Color
+            }
+
+            &:hover {
+                .DocSearch-Button-Placeholder {
+                }
+            }
+
+            &:focus-visible {
+            }
+            
+        }
+    }
+
+    .DocSearch-Button-Keys {
+        kbd { 
+            background: $lightBorderColor
+            color: $text2Color
+        }
+    }
+
+    .cls-1, .cls-2 { 
+        fill:$linkColor
+    }
+    .DocSearch-Hit[aria-selected=true] a {
+        background: $bgColor
+        box-shadow:0 0 0 1px $accentColor inset
+    }
+
+    &[data-theme=dark] {
+       .DocSearch {
+            --docsearch-primary-color: $linkColor;
+            --docsearch-text-color: $textColor;
+            --docsearch-spacing: 12px;
+            --docsearch-icon-stroke-width: 1;
+            --docsearch-icon-color: $text2Color;
+            --docsearch-highlight-color: $linkColor;
+            --docsearch-muted-color: $text2Color;
+            --docsearch-container-background: $dropColorSearchDark;
+            --docsearch-logo-color: $linkColor;
+
+            --docsearch-modal-width: 560px;
+            --docsearch-modal-height: 600px;
+            --docsearch-modal-background: $borderColor;
+            --docsearch-modal-shadow: none //inset 1px 1px 0 0 hsla(0, 0%, 100%, 0.5), 0 3px 8px 0 #555a64;
+
+            --docsearch-searchbox-height: 56px;
+            --docsearch-searchbox-background: transparent // $borderColor;
+            --docsearch-searchbox-focus-background: transparent //$bgColor;
+            --docsearch-searchbox-shadow: none //inset 0 0 0 2px var(--docsearch-primary-color);
+
+            --docsearch-hit-height: 56px;
+            --docsearch-hit-color: $text2Color // #444950;
+            --docsearch-hit-active-color: $textColor;
+            --docsearch-hit-background: $bgColor;
+            --docsearch-hit-shadow: none // 0 1px 3px 0 #d4d9e1;
+
+            --docsearch-key-gradient: $borderColor //linear-gradient(-225deg, #d5dbe4, #f8f8f8);
+            --docsearch-key-shadow: none //inset 0 -2px 0 0 #cdcde6, inset 0 0 1px 1px #fff, 0 1px 2px 1px rgba(30, 35, 90, 0.4);
+            --docsearch-key-pressed-shadow: none //inset 0 -2px 0 0 #cdcde6, inset 0 0 1px 1px #fff, 0 1px 1px 0 rgba(30, 35, 90, 0.4);
+            
+            --docsearch-footer-height: 44px;
+            --docsearch-footer-background: $borderColor;
+            --docsearch-footer-shadow: none // 0 -1px 0 0 #e0e3e8, 0 -3px 6px 0 rgba(69, 98, 155, 0.12);
+        }
+    }
+
+    //Editor 
+    .page .theme-default-content  .tabs-button-wrapper {
+
+        .tabs-button-list {
+            background: $borderColor
+
+            &.active {
+                .show-code {
+                    //border: 1px solid $accentColor !important
+                    background: $lightBorderColor !important
+                }
+            }
+            
+            .show-code {
+                border: 1px solid $lightBorderColor !important
+            }
+
+            .example-controls { 
+
+                button {
+
+                    i, svg { 
+                    }
+
+                    svg {
+                        path {
+                            fill: white
+                        }
+                    }
+
+                    &:after {
+                        color: $textColor
+                        background: black //$sideColor
+                        border: 0 solid $lightBorderColor
+                    }
+                }
+            }
+        }
+    }
+    
+    .page .theme-default-content a.header-link {
+        color: $textColor
+    }
+    
+    .controls:not(button), .example-container {
+
+        #mainInput, select:not(.htSelectEditor), input[type=text], input[type=search], .placeholder-input {
+            border-radius: $radius
+            border: 1px solid $lightBorderColor
+            background: $borderColor
+            color:$textColor
+
+            &::placeholder {
+                color:$text2Color
+            }
+            
+            @media (hover: hover) {
+                &:hover { 
+                    border: 1px solid $accentColor
+                }
+            }
+            &:focus-visible  { 
+                border: 1px solid $accentColor
+            }
+        }
+    }
+
+    
+    pre + .codeControls {
+        &:after { 
+            background: linear-gradient(90deg, rgba(34, 35, 38, 0) 0%, $editorColor 20%);
+        }
+    }
+    
+}
+
+

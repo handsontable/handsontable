@@ -3,6 +3,7 @@ import {
   SELECTED_CLASS,
   ODD_ROW_CLASS
 } from "./constants";
+import { Events } from "handsontable/pluginHooks";
 
 const headerAlignments = new Map([
   ["9", "htCenter"],
@@ -10,21 +11,12 @@ const headerAlignments = new Map([
   ["12", "htCenter"]
 ]);
 
-type AddClassesToRows = (
-  TD: HTMLTableCellElement,
-  row: number,
-  column: number,
-  prop: number | string,
-  value: any,
-  cellProperties: Handsontable.CellProperties
-) => void;
-
-export const addClassesToRows: AddClassesToRows = (
+export const addClassesToRows: Events["beforeRenderer"] = (
   TD,
   row,
   column,
-  prop,
-  value,
+  _prop,
+  _value,
   cellProperties
 ) => {
   // Adding classes to `TR` just while rendering first visible `TD` element
@@ -53,19 +45,15 @@ export const addClassesToRows: AddClassesToRows = (
   }
 };
 
-type DrawCheckboxInRowHeaders = (
+export const drawCheckboxInRowHeaders: Events["afterGetRowHeader"] = function drawCheckboxInRowHeaders(
   this: Handsontable,
-  row: number,
-  TH: HTMLTableCellElement
-) => void;
-
-export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawCheckboxInRowHeaders(
   row,
   TH
 ) {
   const input = document.createElement("input");
 
   input.type = "checkbox";
+  input.tabIndex = -1;
 
   if (row >= 0 && this.getDataAtRowProp(row, "0")) {
     input.checked = true;
@@ -76,7 +64,11 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
   TH.appendChild(input);
 };
 
-export function alignHeaders(this: Handsontable, column: number, TH: HTMLTableCellElement) {
+export const alignHeaders: Events["afterGetColHeader"] = function alignHeaders(
+  this: Handsontable,
+  column,
+  TH
+) {
   if (column < 0) {
     return;
   }
@@ -93,13 +85,8 @@ export function alignHeaders(this: Handsontable, column: number, TH: HTMLTableCe
   }
 }
 
-type ChangeCheckboxCell = (
+export const changeCheckboxCell: Events["afterOnCellMouseDown"] = function changeCheckboxCell(
   this: Handsontable,
-  event: MouseEvent,
-  coords: { row: number; col: number }
-) => void;
-
-export const changeCheckboxCell: ChangeCheckboxCell = function changeCheckboxCell(
   event,
   coords
 ) {

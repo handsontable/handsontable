@@ -37,6 +37,7 @@ describe('settings', () => {
 
       expect(spec().$container.find('.ht_master th.ht__highlight').length).toEqual(0);
     });
+
     it('should apply custom currentHeaderClassName to cells in row where there is a selection', () => {
       handsontable({
         rowHeaders: true,

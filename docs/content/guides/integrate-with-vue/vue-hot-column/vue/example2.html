@@ -1,0 +1,12 @@
+<div id="example2">
+  <hot-table :data="hotData" :settings="settings">
+    <hot-column title="ID" data="id">
+    </hot-column>
+    <hot-column :settings="secondColumnSettings" read-only="true" data="name">
+    </hot-column>
+    <hot-column title="Price" data="payment.price">
+    </hot-column>
+    <hot-column title="Currency" data="payment.currency">
+    </hot-column>
+  </hot-table>
+</div>

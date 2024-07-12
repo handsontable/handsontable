@@ -72,11 +72,11 @@ export function createArrayAssertion(initialData) {
  * @returns {string}
  */
 export function toEmptyString(value) {
-  return value === null || value === void 0 ? '' : value;
+  return value === null || value === undefined ? '' : value;
 }
 
 /**
- * Unify column values (replace `null` and `undefined` values into empty string, unique values and sort them).
+ * Unify column values (remove duplicated values and sort them).
  *
  * @param {Array} values An array of values.
  * @returns {Array}

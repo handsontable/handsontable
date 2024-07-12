@@ -14,6 +14,8 @@
  *                            For example for header with colspan = 8 the 7 blank objects are generated to fill the array settings
  *                            to length = 8.
  * @property {boolean} isPlaceholder The flag determines whether the column header at the specified index is non-renderable.
+ * @property {string[]} headerClassNames The list of CSS classes that will be added to the `div` element inside the
+ * header Acts as a replacement for the analogous property from the Handsontable settings.
  */
 
 /**
@@ -32,6 +34,7 @@ export function createDefaultHeaderSettings({
   isHidden = false,
   isRoot = false,
   isPlaceholder = false,
+  headerClassNames = []
 } = {}) {
   return {
     label,
@@ -43,6 +46,7 @@ export function createDefaultHeaderSettings({
     isHidden,
     isRoot,
     isPlaceholder,
+    headerClassNames,
   };
 }
 

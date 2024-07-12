@@ -32,6 +32,7 @@ export abstract class BaseEditor {
   finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
   abstract focus(): void;
   getEditedCell(): HTMLTableCellElement | null;
+  getEditedCellRect(): { top: number, start: number, width: number, maxWidth: number, height: number, maxHeight: number } | undefined;
   getEditedCellsZIndex(): string;
   abstract getValue(): any;
   init(): void;
@@ -39,7 +40,7 @@ export abstract class BaseEditor {
   isOpened(): boolean;
   isWaiting(): boolean;
   abstract open(event?: Event): void;
-  prepare(row: number, col: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: CellProperties): void;
+  prepare(row: number, column: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: CellProperties): void;
   saveValue(value?: any, ctrlDown?: boolean): void;
   abstract setValue(newValue?: any): void;
 }
