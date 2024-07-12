@@ -23,11 +23,6 @@
   -webkit-appearance: none;
 }
 
-.topSelectionHandle:not(.ht_master .topSelectionHandle),
-.topSelectionHandle-HitArea:not(.ht_master .topSelectionHandle-HitArea) {
-  z-index: 9999;
-}
-
 /* Initial left/top coordinates - overwritten when actual position is set */
 .handsontable .topSelectionHandle,
 .handsontable .topSelectionHandle-HitArea,
@@ -36,6 +31,7 @@
   inset-inline-start: -10000px;
   inset-inline-end: unset;
   top: -10000px;
+  z-index: 9999;
 }
 
 .handsontable.hide-tween {

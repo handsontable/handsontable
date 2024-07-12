@@ -20,6 +20,7 @@ describe('`registerAllCellTypes`', () => {
       'handsontable',
       'numeric',
       'password',
+      'select',
       'time',
     ]);
     expect(getRegisteredEditorNames()).toEqual([
@@ -31,6 +32,7 @@ describe('`registerAllCellTypes`', () => {
       'handsontable',
       'numeric',
       'password',
+      'select',
       'time',
     ]);
     expect(getPluginsNames()).toEqual([]);
@@ -43,6 +45,7 @@ describe('`registerAllCellTypes`', () => {
       'handsontable',
       'numeric',
       'password',
+      'select',
       'time',
     ]);
     expect(getRegisteredValidatorNames()).toEqual([

@@ -3,6 +3,13 @@ describe('NestedHeaders', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class', 'colspan']
+      }
+    };
   });
 
   afterEach(function() {
@@ -1009,8 +1016,12 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(i, i % 2 !== 0);
       }
 
-      hot.scrollViewportTo(void 0, 25); // Scroll to column AA4
-      hot.render();
+      scrollViewportTo({ // Scroll to column AA4
+        col: 25,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1031,8 +1042,6 @@ describe('NestedHeaders', () => {
             <th class="">AK1</th>
             <th class="" colspan="4">AL1</th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
             <th class="" colspan="2">K2</th>
@@ -1050,8 +1059,6 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="">AK2</th>
             <th class="" colspan="2">AL2</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AP2</th>
             <th class="hiddenHeader"></th>
           </tr>
           <tr>
@@ -1071,8 +1078,6 @@ describe('NestedHeaders', () => {
             <th class="">AK3</th>
             <th class="">AL3</th>
             <th class="">AN3</th>
-            <th class="">AP3</th>
-            <th class="">AR3</th>
           </tr>
           <tr>
             <th class="">K4</th>
@@ -1091,8 +1096,6 @@ describe('NestedHeaders', () => {
             <th class="">AK4</th>
             <th class="">AM4</th>
             <th class="">AO4</th>
-            <th class="">AQ4</th>
-            <th class="">AS4</th>
           </tr>
         </thead>
         <tbody>
@@ -1113,8 +1116,6 @@ describe('NestedHeaders', () => {
             <td class="">AK1</td>
             <td class="">AM1</td>
             <td class="">AO1</td>
-            <td class="">AQ1</td>
-            <td class="">AS1</td>
           </tr>
         </tbody>
         `);
@@ -1129,8 +1130,12 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(45, false); // Show column that contains cells AT{n}
       hot.render();
 
-      hot.scrollViewportTo(void 0, 38); // Scroll to column AM4
-      hot.render();
+      scrollViewportTo({ // Scroll to column AM4
+        col: 38,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>

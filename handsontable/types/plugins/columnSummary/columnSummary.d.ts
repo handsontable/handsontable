@@ -8,7 +8,7 @@ export type DetailedSettings = {
   reversedRowCoords?: boolean;
   suppressDataTypeErrors?: boolean;
   readOnly?: boolean;
-  roundFloat?: boolean;
+  roundFloat?: boolean | number;
   ranges?: number[][];
   sourceColumn?: number;
 } & ({
@@ -18,7 +18,7 @@ export type DetailedSettings = {
   customFunction: (this: ColumnSummary, endpoint: Endpoint) => number;
 });
 
-export type Settings = DetailedSettings[] | (() => DetailedSettings[]);
+export type Settings = DetailedSettings[] | ((this: ColumnSummary) => DetailedSettings[]);
 
 export interface Endpoint {
   destinationRow: number;
@@ -27,7 +27,7 @@ export interface Endpoint {
   reversedRowCoords: boolean;
   suppressDataTypeErrors: boolean;
   readOnly: boolean;
-  roundFloat: boolean;
+  roundFloat: boolean | number;
   ranges: number[][];
   sourceColumn: number;
   type: 'sum' | 'min' | 'max' | 'count' | 'average' | 'custom';
@@ -60,13 +60,13 @@ export class ColumnSummary extends BasePlugin {
   endpoints: Endpoints | undefined;
 
   isEnabled(): boolean;
-  calculate(endpoint: Endpoints): void;
-  calculateAverage(endpoint: Endpoints): number;
-  calculateMinMax(endpoint: Endpoints, type: string): number;
-  calculateSum(endpoint: Endpoints): void;
-  countEmpty(rowRange: any[], col: number): number;
-  countEntries(endpoint: Endpoints): number;
-  getCellValue(row: number, col: number): string;
-  getPartialMinMax(rowRange: any[], col: number, type: string): number;
-  getPartialSum(rowRange: any[], col: number): number;
+  calculate(endpoint: Endpoint): void;
+  calculateSum(endpoint: Endpoint): number;
+  calculateAverage(endpoint: Endpoint): number;
+  calculateMinMax(endpoint: Endpoint, type: 'min' | 'max'): number | string;
+  countEmpty(rowRange: number[][], column: number): number;
+  countEntries(endpoint: Endpoint): number;
+  getCellValue(row: number, column: number): any;
+  getPartialMinMax(rowRange: number[][], column: number, type: 'min' | 'max'): number;
+  getPartialSum(rowRange: number[][], column: number): number;
 }

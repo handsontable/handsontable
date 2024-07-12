@@ -75,7 +75,7 @@ export function substitute(template, variables = {}) {
       return match.substr(1, match.length - 1);
     }
 
-    return variables[name] === void 0 ? '' : variables[name];
+    return variables[name] === undefined ? '' : variables[name];
   });
 }
 

@@ -8,53 +8,65 @@ import { warn } from '../../helpers/console';
  * @class Endpoints
  */
 class Endpoints {
+  /**
+   * The main plugin instance.
+   */
+  plugin;
+  /**
+   * Handsontable instance.
+   *
+   * @type {object}
+   */
+  hot;
+  /**
+   * Array of declared plugin endpoints (calculation destination points).
+   *
+   * @type {Array}
+   * @default {Array} Empty array.
+   */
+  endpoints = [];
+  /**
+   * The plugin settings, taken from Handsontable configuration.
+   *
+   * @type {object|Function}
+   * @default null
+   */
+  settings;
+  /**
+   * Settings type. Can be either 'array' or 'function'.
+   *
+   * @type {string}
+   * @default {'array'}
+   */
+  settingsType = 'array';
+  /**
+   * The current endpoint (calculation destination point) in question.
+   *
+   * @type {object}
+   * @default null
+   */
+  currentEndpoint = null;
+  /**
+   * Array containing a list of changes to be applied.
+   *
+   * @private
+   * @type {Array}
+   * @default {[]}
+   */
+  cellsToSetCache = [];
+
   constructor(plugin, settings) {
-    /**
-     * The main plugin instance.
-     */
     this.plugin = plugin;
-    /**
-     * Handsontable instance.
-     *
-     * @type {object}
-     */
     this.hot = this.plugin.hot;
-    /**
-     * Array of declared plugin endpoints (calculation destination points).
-     *
-     * @type {Array}
-     * @default {Array} Empty array.
-     */
-    this.endpoints = [];
-    /**
-     * The plugin settings, taken from Handsontable configuration.
-     *
-     * @type {object|Function}
-     * @default null
-     */
     this.settings = settings;
-    /**
-     * Settings type. Can be either 'array' or 'function.
-     *
-     * @type {string}
-     * @default {'array'}
-     */
-    this.settingsType = 'array';
-    /**
-     * The current endpoint (calculation destination point) in question.
-     *
-     * @type {object}
-     * @default null
-     */
-    this.currentEndpoint = null;
-    /**
-     * Array containing a list of changes to be applied.
-     *
-     * @private
-     * @type {Array}
-     * @default {[]}
-     */
-    this.cellsToSetCache = [];
+  }
+
+  /**
+   * Initialize the endpoints provided in the settings.
+   */
+  initEndpoints() {
+    this.endpoints = this.parseSettings();
+    this.refreshAllEndpoints();
   }
 
   /**
@@ -130,7 +142,6 @@ class Endpoints {
       this.assignSetting(val, newEndpoint, 'type', 'sum');
       this.assignSetting(val, newEndpoint, 'forceNumeric', false);
       this.assignSetting(val, newEndpoint, 'suppressDataTypeErrors', true);
-      this.assignSetting(val, newEndpoint, 'suppressDataTypeErrors', true);
       this.assignSetting(val, newEndpoint, 'customFunction', null);
       this.assignSetting(val, newEndpoint, 'readOnly', true);
       this.assignSetting(val, newEndpoint, 'roundFloat', false);
@@ -150,7 +161,7 @@ class Endpoints {
    * @param {object} defaultValue Default value for the settings.
    */
   assignSetting(settings, endpoint, name, defaultValue) {
-    if (name === 'ranges' && settings[name] === void 0) {
+    if (name === 'ranges' && settings[name] === undefined) {
       endpoint[name] = defaultValue;
 
       return;
@@ -158,7 +169,7 @@ class Endpoints {
       return;
     }
 
-    if (settings[name] === void 0) {
+    if (settings[name] === undefined) {
       if (defaultValue instanceof Error) {
         throw defaultValue;
 
@@ -285,8 +296,8 @@ class Endpoints {
    * @param {object} endpoint And endpoint object.
    */
   clearOffsetInformation(endpoint) {
-    endpoint.alterRowOffset = void 0;
-    endpoint.alterColumnOffset = void 0;
+    endpoint.alterRowOffset = undefined;
+    endpoint.alterColumnOffset = undefined;
   }
 
   /**
@@ -479,6 +490,26 @@ class Endpoints {
   }
 
   /**
+   * Refreshes the cell meta information for the all endpoints after the `updateSettings` method call which in some
+   * cases (call with `columns` option) can reset the cell metas to the initial state.
+   */
+  refreshCellMetas() {
+    this.endpoints.forEach((endpoint) => {
+      const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow);
+
+      if (destinationVisualRow !== null) {
+        const cellMeta = this.hot.getCellMeta(
+          destinationVisualRow,
+          endpoint.destinationColumn
+        );
+
+        cellMeta.readOnly = endpoint.readOnly;
+        cellMeta.className = 'columnSummaryResult';
+      }
+    });
+  }
+
+  /**
    * Calculate and refresh a single endpoint.
    *
    * @param {object} endpoint Contains the endpoint information.
@@ -537,8 +568,22 @@ class Endpoints {
       }
     }
 
-    if (endpoint.roundFloat && !isNaN(endpoint.result)) {
-      endpoint.result = endpoint.result.toFixed(endpoint.roundFloat);
+    if (
+      (
+        endpoint.roundFloat === true ||
+        Number.isInteger(endpoint.roundFloat)
+      ) &&
+      !isNaN(endpoint.result)
+    ) {
+      const roundFloatValue = endpoint.roundFloat;
+      let decimalPlacesCount = 0;
+
+      // `toFixed` method accepts only values between 0 and 100
+      if (Number.isInteger(roundFloatValue)) {
+        decimalPlacesCount = Math.min(Math.max(0, roundFloatValue), 100);
+      }
+
+      endpoint.result = endpoint.result.toFixed(decimalPlacesCount);
     }
 
     if (render) {
@@ -547,8 +592,8 @@ class Endpoints {
       this.cellsToSetCache.push([visualEndpointRowIndex, endpoint.destinationColumn, endpoint.result]);
     }
 
-    endpoint.alterRowOffset = void 0;
-    endpoint.alterColumnOffset = void 0;
+    endpoint.alterRowOffset = undefined;
+    endpoint.alterColumnOffset = undefined;
   }
 
   /**

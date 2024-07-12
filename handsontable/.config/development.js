@@ -32,11 +32,11 @@ module.exports.create = function create(envArgs) {
         commonjs: 'moment',
         amd: 'moment',
       },
-      pikaday: {
+      '@handsontable/pikaday': {
         root: 'Pikaday',
-        commonjs2: 'pikaday',
-        commonjs: 'pikaday',
-        amd: 'pikaday',
+        commonjs2: '@handsontable/pikaday',
+        commonjs: '@handsontable/pikaday',
+        amd: '@handsontable/pikaday',
       },
       dompurify: {
         root: 'DOMPurify',

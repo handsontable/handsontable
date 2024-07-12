@@ -10,7 +10,7 @@ export const VALIDATOR_TYPE = 'autocomplete';
 export function autocompleteValidator(value, callback) {
   let valueToValidate = value;
 
-  if (valueToValidate === null || valueToValidate === void 0) {
+  if (valueToValidate === null || valueToValidate === undefined) {
     valueToValidate = '';
   }
 

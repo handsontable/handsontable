@@ -286,9 +286,9 @@ describe('IndexMapper integrated with ChangesObservable', () => {
         { op: 'replace', index: 0, oldValue: true, newValue: false },
         { op: 'replace', index: 2, oldValue: true, newValue: false },
         { op: 'replace', index: 3, oldValue: true, newValue: false },
-        { op: 'insert', index: 5, oldValue: void 0, newValue: false },
-        { op: 'insert', index: 6, oldValue: void 0, newValue: false },
-        { op: 'insert', index: 7, oldValue: void 0, newValue: false },
+        { op: 'insert', index: 5, oldValue: undefined, newValue: false },
+        { op: 'insert', index: 6, oldValue: undefined, newValue: false },
+        { op: 'insert', index: 7, oldValue: undefined, newValue: false },
       ]);
     });
 
@@ -315,9 +315,9 @@ describe('IndexMapper integrated with ChangesObservable', () => {
 
       expect(observerListener).toHaveBeenLastCalledWith([
         { op: 'replace', index: 2, oldValue: true, newValue: false },
-        { op: 'remove', index: 5, oldValue: true, newValue: void 0 },
-        { op: 'remove', index: 6, oldValue: false, newValue: void 0 },
-        { op: 'remove', index: 7, oldValue: true, newValue: void 0 },
+        { op: 'remove', index: 5, oldValue: true, newValue: undefined },
+        { op: 'remove', index: 6, oldValue: false, newValue: undefined },
+        { op: 'remove', index: 7, oldValue: true, newValue: undefined },
       ]);
     });
 
@@ -410,10 +410,10 @@ describe('IndexMapper integrated with ChangesObservable', () => {
         { op: 'replace', index: 3, oldValue: true, newValue: false },
         { op: 'replace', index: 6, oldValue: true, newValue: false },
         { op: 'replace', index: 7, oldValue: false, newValue: true },
-        { op: 'insert', index: 8, oldValue: void 0, newValue: false },
-        { op: 'insert', index: 9, oldValue: void 0, newValue: false },
-        { op: 'insert', index: 10, oldValue: void 0, newValue: true },
-        { op: 'insert', index: 11, oldValue: void 0, newValue: false },
+        { op: 'insert', index: 8, oldValue: undefined, newValue: false },
+        { op: 'insert', index: 9, oldValue: undefined, newValue: false },
+        { op: 'insert', index: 10, oldValue: undefined, newValue: true },
+        { op: 'insert', index: 11, oldValue: undefined, newValue: false },
       ]);
 
       indexMapper.insertIndexes(0, 2);
@@ -425,8 +425,8 @@ describe('IndexMapper integrated with ChangesObservable', () => {
         { op: 'replace', index: 7, oldValue: true, newValue: false },
         { op: 'replace', index: 9, oldValue: false, newValue: true },
         { op: 'replace', index: 10, oldValue: true, newValue: false },
-        { op: 'insert', index: 12, oldValue: void 0, newValue: true },
-        { op: 'insert', index: 13, oldValue: void 0, newValue: false },
+        { op: 'insert', index: 12, oldValue: undefined, newValue: true },
+        { op: 'insert', index: 13, oldValue: undefined, newValue: false },
       ]);
     });
 
@@ -457,10 +457,10 @@ describe('IndexMapper integrated with ChangesObservable', () => {
       expect(observerListener).toHaveBeenCalledTimes(2);
       expect(observerListener).toHaveBeenLastCalledWith([
         { op: 'replace', index: 7, oldValue: true, newValue: false },
-        { op: 'remove', index: 10, oldValue: true, newValue: void 0 },
-        { op: 'remove', index: 11, oldValue: false, newValue: void 0 },
-        { op: 'remove', index: 12, oldValue: false, newValue: void 0 },
-        { op: 'remove', index: 13, oldValue: false, newValue: void 0 },
+        { op: 'remove', index: 10, oldValue: true, newValue: undefined },
+        { op: 'remove', index: 11, oldValue: false, newValue: undefined },
+        { op: 'remove', index: 12, oldValue: false, newValue: undefined },
+        { op: 'remove', index: 13, oldValue: false, newValue: undefined },
       ]);
 
       indexMapper.removeIndexes([1, 2, 3, 5]);
@@ -468,10 +468,10 @@ describe('IndexMapper integrated with ChangesObservable', () => {
       expect(observerListener).toHaveBeenCalledTimes(3);
       expect(observerListener).toHaveBeenLastCalledWith([
         { op: 'replace', index: 3, oldValue: true, newValue: false },
-        { op: 'remove', index: 6, oldValue: true, newValue: void 0 },
-        { op: 'remove', index: 7, oldValue: false, newValue: void 0 },
-        { op: 'remove', index: 8, oldValue: false, newValue: void 0 },
-        { op: 'remove', index: 9, oldValue: false, newValue: void 0 },
+        { op: 'remove', index: 6, oldValue: true, newValue: undefined },
+        { op: 'remove', index: 7, oldValue: false, newValue: undefined },
+        { op: 'remove', index: 8, oldValue: false, newValue: undefined },
+        { op: 'remove', index: 9, oldValue: false, newValue: undefined },
       ]);
     });
   });

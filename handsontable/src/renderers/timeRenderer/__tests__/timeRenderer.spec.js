@@ -61,7 +61,7 @@ describe('TimeRenderer', () => {
     handsontable({
       renderer: 'time',
     });
-    setDataAtCell(2, 2, void 0);
+    setDataAtCell(2, 2, undefined);
 
     expect(getCell(2, 2).innerHTML).toEqual('');
   });

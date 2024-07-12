@@ -98,6 +98,55 @@ describe('NestedRows', () => {
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('-2px');
       });
     });
+
+    it('should render row header with correct default width', async() => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        rowHeaders: true,
+      });
+
+      expect(getCell(0, -1).offsetWidth).toBe(56);
+    });
+
+    it('should take into account the `rowHeaderWidth` option when nested rows are enabled', async() => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        rowHeaders: true,
+        rowHeaderWidth: 100,
+      });
+
+      expect(getCell(0, -1).offsetWidth).toBe(100);
+    });
+
+    it('should increase the row header width every time the new child is inserted', async() => {
+      handsontable({
+        data: getSimplerNestedData(),
+        contextMenu: true,
+        nestedRows: true,
+        rowHeaders: true,
+        rowHeaderWidth: 70,
+      });
+
+      selectCell(2, 0);
+      contextMenu();
+      selectContextMenuOption('Insert child row');
+
+      expect(getCell(0, -1).offsetWidth).toBe(70);
+
+      selectCell(3, 0);
+      contextMenu();
+      selectContextMenuOption('Insert child row');
+
+      expect(getCell(0, -1).offsetWidth).toBe(76);
+
+      selectCell(4, 0);
+      contextMenu();
+      selectContextMenuOption('Insert child row');
+
+      expect(getCell(0, -1).offsetWidth).toBe(86);
+    });
   });
 
   it('should remove collapsed indexes properly', async() => {
@@ -145,9 +194,7 @@ describe('NestedRows', () => {
 
     selectCell(0, 0);
     contextMenu();
-
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
-      .simulate('mousedown').simulate('mouseup'); // Insert child row.
+    selectContextMenuOption('Insert child row');
 
     expect(countRows()).toEqual(19);
     expect(getDataAtCell(0, 0)).toEqual('Best Rock Performance');
@@ -163,9 +210,7 @@ describe('NestedRows', () => {
 
     selectCell(1, 0);
     contextMenu();
-
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
-      .simulate('mousedown').simulate('mouseup'); // Insert child row.
+    selectContextMenuOption('Insert child row');
 
     expect(countRows()).toEqual(20);
     expect(getDataAtCell(0, 0)).toEqual('Best Rock Performance');
@@ -193,13 +238,11 @@ describe('NestedRows', () => {
 
     selectCell(0, 0);
     contextMenu();
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
-      .simulate('mousedown').simulate('mouseup'); // Insert child row.
+    selectContextMenuOption('Insert child row');
 
     selectCell(6, 0);
     contextMenu();
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1)
-      .simulate('mousedown').simulate('mouseup'); // Detach from parent.
+    selectContextMenuOption('Detach from parent');
 
     expect(getDataAtCell(6, 0)).toEqual('Best Metal Performance');
     expect(getDataAtCell(18, 1)).toEqual(null);
@@ -217,9 +260,8 @@ describe('NestedRows', () => {
 
     selectCell(0, 0);
     contextMenu();
+    selectContextMenuOption('Insert row above');
 
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2)
-      .simulate('mousedown').simulate('mouseup'); // Insert row above.
     expect(getDataAtRow(0)).toEqual([null, null, null, null]);
     expect(getDataAtRow(1)).toEqual(['Best Rock Performance', null, null, null]);
     expect(getDataAtRow(2)).toEqual([null, 'Alabama Shakes', 'Don\'t Wanna Fight', 'ATO Records']);
@@ -227,9 +269,7 @@ describe('NestedRows', () => {
 
     selectCell(1, 0);
     contextMenu();
-
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3)
-      .simulate('mousedown').simulate('mouseup'); // Insert row below.
+    selectContextMenuOption('Insert row below');
 
     expect(getDataAtRow(0)).toEqual([null, null, null, null]);
     expect(getDataAtRow(1)).toEqual(['Best Rock Performance', null, null, null]);
@@ -281,33 +321,31 @@ describe('NestedRows', () => {
   });
 
   it('should display the right amount of entries when calling loadData ' +
-    'after being initialized with empty data', (done) => {
+    'after being initialized with empty data', async() => {
     const hot = handsontable({
       data: [],
       nestedRows: true
     });
 
-    setTimeout(() => {
-      // The plugin is disabled after being initialized with the wrong type of dataset.
-      hot.getPlugin('nestedRows').enablePlugin();
+    await sleep(50);
 
-      hot.loadData(getMoreComplexNestedData());
-      expect(hot.countRows()).toEqual(13);
-      done();
-    }, 100);
+    // The plugin is disabled after being initialized with the wrong type of dataset.
+    hot.getPlugin('nestedRows').enablePlugin();
+
+    hot.loadData(getMoreComplexNestedData());
+    expect(hot.countRows()).toEqual(13);
   });
 
-  it('should display the right amount of entries when calling loadData with another set of data', (done) => {
+  it('should display the right amount of entries when calling loadData with another set of data', async() => {
     const hot = handsontable({
       data: getMoreComplexNestedData(),
       nestedRows: true
     });
 
-    setTimeout(() => {
-      hot.loadData(getMoreComplexNestedData().slice(0, 1));
-      expect(hot.countRows()).toEqual(7);
-      done();
-    }, 100);
+    await sleep(50);
+
+    hot.loadData(getMoreComplexNestedData().slice(0, 1));
+    expect(hot.countRows()).toEqual(7);
   });
 
   it('should display proper row headers after collapsing one parent - ' +

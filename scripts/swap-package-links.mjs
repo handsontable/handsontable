@@ -2,8 +2,8 @@
  * Modifies the symlinks in `node_modules` for the defined packages.
  * Used to alias packages for internal importing.
  */
-import fse from 'fs-extra';
 import path from 'path';
+import fse from 'fs-extra';
 import {
   displayConfirmationMessage,
   displayWarningMessage

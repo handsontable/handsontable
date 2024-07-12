@@ -77,7 +77,7 @@ export function hasPlugin(pluginName) {
 export function registerPlugin(pluginName, pluginClass, priority) {
   [pluginName, pluginClass, priority] = unifyPluginArguments(pluginName, pluginClass, priority);
 
-  if (getPlugin(pluginName) === void 0) {
+  if (getPlugin(pluginName) === undefined) {
     _registerPlugin(pluginName, pluginClass, priority);
   }
 }
@@ -96,7 +96,7 @@ function _registerPlugin(pluginName, pluginClass, priority) {
     throw new Error(ERROR_PLUGIN_REGISTERED(unifiedPluginName));
   }
 
-  if (priority === void 0) {
+  if (priority === undefined) {
     uniquePluginsQueue.addItem(unifiedPluginName);
   } else {
     priorityPluginsQueue.addItem(priority, unifiedPluginName);

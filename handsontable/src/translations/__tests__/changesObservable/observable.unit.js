@@ -185,8 +185,8 @@ describe('ChangesObservable', () => {
       expect(observerListener).toHaveBeenCalledTimes(2);
       expect(observerListener).toHaveBeenLastCalledWith([
         { op: 'replace', index: 3, oldValue: true, newValue: false },
-        { op: 'insert', index: 4, oldValue: void 0, newValue: false },
-        { op: 'insert', index: 5, oldValue: void 0, newValue: true },
+        { op: 'insert', index: 4, oldValue: undefined, newValue: false },
+        { op: 'insert', index: 5, oldValue: undefined, newValue: true },
       ]);
     });
 
@@ -214,8 +214,8 @@ describe('ChangesObservable', () => {
       expect(observerListener).toHaveBeenLastCalledWith([
         { op: 'replace', index: 1, oldValue: true, newValue: false },
         { op: 'replace', index: 2, oldValue: false, newValue: true },
-        { op: 'remove', index: 3, oldValue: true, newValue: void 0 },
-        { op: 'remove', index: 4, oldValue: true, newValue: void 0 },
+        { op: 'remove', index: 3, oldValue: true, newValue: undefined },
+        { op: 'remove', index: 4, oldValue: true, newValue: undefined },
       ]);
     });
 

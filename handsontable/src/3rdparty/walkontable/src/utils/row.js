@@ -5,6 +5,15 @@
  */
 export default class RowUtils {
   /**
+   * @type {TableDao}
+   */
+  dataAccessObject;
+  /**
+   * @type {Settings}
+   */
+  wtSettings;
+
+  /**
    * @param {TableDao} dataAccessObject The table Data Access Object.
    * @param {Settings} wtSettings The walkontable settings.
    */
@@ -23,8 +32,26 @@ export default class RowUtils {
     let height = this.wtSettings.getSetting('rowHeight', sourceIndex);
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
 
-    if (oversizedHeight !== void 0) {
-      height = height === void 0 ? oversizedHeight : Math.max(height, oversizedHeight);
+    if (oversizedHeight !== undefined) {
+      height = height === undefined ? oversizedHeight : Math.max(height, oversizedHeight);
+    }
+
+    return height;
+  }
+
+  /**
+   * Returns row height based on passed source index for the specified overlay type.
+   *
+   * @param {number} sourceIndex Row source index.
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName The overlay name.
+   * @returns {number}
+   */
+  getHeightByOverlayName(sourceIndex, overlayName) {
+    let height = this.wtSettings.getSetting('rowHeightByOverlayName', sourceIndex, overlayName);
+    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
+
+    if (oversizedHeight !== undefined) {
+      height = height === undefined ? oversizedHeight : Math.max(height, oversizedHeight);
     }
 
     return height;

@@ -16,6 +16,8 @@ import {
 registerCellType(TextCellType);
 
 describe('checkboxRenderer', () => {
+  const toMatchHTMLConfig = ['class', 'noValue', 'type', 'autocomplete', 'tabindex', 'data-row', 'data-col', 'style'];
+
   describe('registering', () => {
     it('should throw an error if renderer is not registered', () => {
       expect(getRegisteredRendererNames()).toEqual(['text']);
@@ -42,12 +44,12 @@ describe('checkboxRenderer', () => {
       const instance = getInstance();
       const cellMeta = {};
 
-      checkboxRenderer(instance, TD, 0, 0, void 0, null, cellMeta);
+      checkboxRenderer(instance, TD, 0, 0, undefined, null, cellMeta);
 
-      expect(TD.outerHTML).toBe([
+      expect(TD.outerHTML).toMatchHTML([
         '<td><input class="htCheckboxRendererInput noValue" type="checkbox" ',
-        'autocomplete="off" tabindex="-1" data-row="0" data-col="0"></td>'
-      ].join(''));
+        'tabindex="-1" data-row="0" data-col="0"></td>'
+      ].join(''), toMatchHTMLConfig);
     });
 
     it('should render checkbox with its coords as data-attr', () => {
@@ -55,12 +57,12 @@ describe('checkboxRenderer', () => {
       const instance = getInstance();
       const cellMeta = {};
 
-      checkboxRenderer(instance, TD, 100, 50, void 0, null, cellMeta);
+      checkboxRenderer(instance, TD, 100, 50, undefined, null, cellMeta);
 
-      expect(TD.outerHTML).toBe([
+      expect(TD.outerHTML).toMatchHTML([
         '<td><input class="htCheckboxRendererInput noValue" type="checkbox" ',
-        'autocomplete="off" tabindex="-1" data-row="100" data-col="50"></td>'
-      ].join(''));
+        'tabindex="-1" data-row="100" data-col="50"></td>'
+      ].join(''), toMatchHTMLConfig);
     });
 
     it('should hide checkbox if value cannot be matched to any template', () => {
@@ -68,12 +70,12 @@ describe('checkboxRenderer', () => {
       const instance = getInstance();
       const cellMeta = {};
 
-      checkboxRenderer(instance, TD, 100, 50, void 0, 'yes', cellMeta);
+      checkboxRenderer(instance, TD, 100, 50, undefined, 'yes', cellMeta);
 
-      expect(TD.outerHTML).toBe([
-        '<td><input class="htCheckboxRendererInput htBadValue" type="checkbox" autocomplete="off" ',
+      expect(TD.outerHTML).toMatchHTML([
+        '<td><input class="htCheckboxRendererInput htBadValue" type="checkbox" ',
         'tabindex="-1" style="display: none;" data-row="100" data-col="50">#bad-value#</td>'
-      ].join(''));
+      ].join(''), toMatchHTMLConfig);
     });
   });
 });

@@ -1,5 +1,9 @@
 import BaseRenderer from './_base';
+import { warn } from './../../../../helpers/console';
+import { toSingleLine } from './../../../../helpers/templateLiteralTag';
 import { addClass } from './../../../../helpers/dom/element';
+
+let performanceWarningAppeared = false;
 
 /**
  * Colgroup renderer responsible for managing (inserting, tracking, rendering) COL elements.
@@ -42,6 +46,13 @@ export default class ColGroupRenderer extends BaseRenderer {
     this.adjust();
 
     const { columnsToRender, rowHeadersCount } = this.table;
+
+    if (!performanceWarningAppeared && columnsToRender > 1000) {
+      performanceWarningAppeared = true;
+      warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible columns.\x20
+        Consider limiting the number of rendered columns by specifying the table width and/or\x20
+        turning off the "renderAllColumns" option.`);
+    }
 
     // Render column nodes for row headers
     for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {

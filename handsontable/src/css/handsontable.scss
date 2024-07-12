@@ -19,11 +19,21 @@
 
 .handsontable td.htInvalid {
   /*gives priority over td.area selection background*/
-  background-color: #ff4c42 !important;
+  background-color: #ffbeba !important;
 }
 
 .handsontable td.htNoWrap {
   white-space: nowrap;
+}
+
+.handsontable td.invisibleSelection,
+.handsontable th.invisibleSelection {
+  outline: none;
+}
+
+.handsontable td.invisibleSelection::selection,
+.handsontable th.invisibleSelection::selection {
+  background: rgb(255 255 255 / 0%);
 }
 
 .hot-display-license-info {
@@ -38,6 +48,17 @@
 .hot-display-license-info a {
   color: #104acc;
   font-size: 10px;
+}
+
+.handsontable .htFocusCatcher {
+  position: absolute;
+  z-index: -1;
+  opacity: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  width: 0;
+  height: 0;
 }
 
 /* plugins */
@@ -96,55 +117,6 @@
 .handsontable .manualRowResizerGuide.active {
   display: block;
   z-index: 209;
-}
-
-.handsontable .columnSorting {
-  position: relative;
-}
-
-.handsontable .columnSorting.sortAction:hover {
-  text-decoration: underline;
-  cursor: pointer;
-}/* Arrow position */
-.handsontable span.colHeader.columnSorting::before {
-  /* Centering start */
-  top: 50%;
-  /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
-  margin-top: -6px;
-  /* Centering end */
-
-  /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
-  padding-inline-start: 8px;
-  padding-inline-end: 0;
-  position: absolute;
-  inset-inline-end: -9px;
-  inset-inline-start: unset;
-
-  content: '';
-  height: 10px;
-  width: 5px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position-x: inline-end;
-}
-
-.handsontable span.colHeader.columnSorting.ascending::before {
-  /* arrow up; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC");
-}
-
-.handsontable span.colHeader.columnSorting.descending::before {
-  /* arrow down; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=");
-}
-
-.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::after {
-  content: '*';
-  display: inline-block;
-  position: relative;
-  /* The multi-line header and header with longer text need more padding to not hide arrow,
-  we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
-  padding-right: 20px;
 }
 
 .handsontable td.area,
@@ -216,6 +188,11 @@
   opacity: 0.58;
 }
 
+.handsontable tbody th.current,
+.handsontable thead th.current {
+  box-shadow: inset 0 0 0 2px #4b89ff;
+}
+
 .handsontable tbody th.ht__highlight,
 .handsontable thead th.ht__highlight {
   background-color: #dcdcdc;
@@ -278,7 +255,7 @@ TextRenderer readOnly cell
 }
 
 .handsontable .htSubmenu :after {
-  content: '\25B6';
+  content: '\25B6'; // right-pointing triangle
   color: #777;
   position: absolute;
   right: 5px;
@@ -290,7 +267,7 @@ TextRenderer readOnly cell
 }
 
 [dir=rtl].handsontable .htSubmenu :before {
-  content: '\25C0';
+  content: '\25C0'; // left-pointing triangle
   color: #777;
   position: absolute;
   left: 5px;
@@ -387,25 +364,4 @@ TextRenderer placeholder value
 .handsontable td.htSearchResult {
   background: #fcedd9;
   color: #583707;
-}
-
-.handsontable .collapsibleIndicator {
-  position: absolute;
-  top: 50%;
-  transform: translate(0% ,-50%);
-  inset-inline-start: unset;
-  inset-inline-end: 5px;
-  border: 1px solid #A6A6A6;
-  line-height: 8px;
-  color: #222;
-  border-radius: 10px;
-  font-size: 10px;
-  width: 10px;
-  height: 10px;
-  cursor: pointer;
-  -webkit-box-shadow: 0 0 0 6px rgba(238,238,238,1);
-  -moz-box-shadow: 0 0 0 6px rgba(238,238,238,1);
-  box-shadow: 0 0 0 6px rgba(238,238,238,1);
-  background: #eee;
-  text-align: center;
 }

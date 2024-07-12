@@ -43,7 +43,7 @@ What you **should modify** though is the `README.md` file. You should add code e
 
 Another important file is a `package.json` file. Some properties of this file should be the same for every new code example and **shouldn't be modified** (except `"@handsontable/{{ WRAPPER NAME }}"`):
 
-```javascript
+```js
 {
   "version": "0.0.0", // will be overwritten on new version created,
   "homepage": "https://handsontable.com/",

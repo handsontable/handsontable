@@ -147,7 +147,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo({
+          row: 0,
+          col: 20,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         await sleep(100);
 
@@ -175,7 +180,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo({
+          row: 0,
+          col: 20,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         await sleep(100);
 
@@ -213,7 +223,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo({
+          row: 0,
+          col: 20,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         await sleep(100);
 
@@ -248,7 +263,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo({
+          row: 0,
+          col: 20,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         await sleep(100);
 
@@ -274,7 +294,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo({
+          row: 0,
+          col: 20,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         await sleep(100);
 
@@ -310,7 +335,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo(0, 20);
+        scrollViewportTo({
+          row: 0,
+          col: 20,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
         await sleep(100);
 

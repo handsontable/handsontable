@@ -37,9 +37,9 @@ describe('textRenderer', () => {
         placeholder: 'Placeholder'
       };
 
-      textRenderer(instance, TD, void 0, void 0, void 0, '', cellMeta);
+      textRenderer(instance, TD, undefined, undefined, undefined, '', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>Placeholder</td>');
+      expect(TD.outerHTML).toMatchHTML('<td>Placeholder</td>');
     });
 
     it('should replace white spaces with nbsp entity', () => {
@@ -50,9 +50,9 @@ describe('textRenderer', () => {
       });
       const cellMeta = {};
 
-      textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
+      textRenderer(instance, TD, undefined, undefined, undefined, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>Long   text </td>');
+      expect(TD.outerHTML).toMatchHTML('<td>Long   text </td>');
     });
 
     it('should trim whitespaces if trimWhitespace is set as true', () => {
@@ -62,9 +62,9 @@ describe('textRenderer', () => {
       });
       const cellMeta = { trimWhitespace: true }; // cell meta layer has priority
 
-      textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
+      textRenderer(instance, TD, undefined, undefined, undefined, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>Long   text</td>');
+      expect(TD.outerHTML).toMatchHTML('<td>Long   text</td>');
     });
 
     it('should trim whitespaces if wordWrap is set as true and trimWhitespace is set as true', () => {
@@ -75,9 +75,9 @@ describe('textRenderer', () => {
       });
       const cellMeta = { trimWhitespace: true }; // cell meta layer has priority
 
-      textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
+      textRenderer(instance, TD, undefined, undefined, undefined, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>Long   text</td>');
+      expect(TD.outerHTML).toMatchHTML('<td>Long   text</td>');
     });
 
     it('should insert stringified value', () => {
@@ -86,9 +86,9 @@ describe('textRenderer', () => {
       const value = [1, 2, 3];
       const cellMeta = {};
 
-      textRenderer(instance, TD, void 0, void 0, void 0, value, cellMeta);
+      textRenderer(instance, TD, undefined, undefined, undefined, value, cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>1,2,3</td>');
+      expect(TD.outerHTML).toMatchHTML('<td>1,2,3</td>');
     });
   });
 });

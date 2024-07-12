@@ -1,18 +1,14 @@
 import { test } from '../src/test-runner';
 import { helpers } from '../src/helpers';
+import { openHeaderDropdownMenu, selectFromDropdownMenu } from '../src/page-helpers';
 
-test(__filename, async({ page }) => {
-  const table = page.locator(helpers.selectors.mainTable);
+test(__filename, async({ tablePage }) => {
+  await openHeaderDropdownMenu(2);
 
-  await table.waitFor();
+  // The dropdown menu should be open
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
+  await selectFromDropdownMenu('"Clear column"');
 
-  const changeTypeButton = table.locator(helpers.findDropdownMenuExpander({ col: 2 }));
-
-  await changeTypeButton.click();
-
-  const dropdownMenu = page.locator(helpers.selectors.dropdownMenu);
-
-  await page.screenshot({ path: helpers.screenshotPath() });
-  await dropdownMenu.locator('"Clear column"').click();
-  await page.screenshot({ path: helpers.screenshotPath() });
+  // column should be cleared
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

@@ -1,5 +1,4 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
@@ -13,7 +12,7 @@ licenseBody += '\nRelease date: ' + process.env.HOT_RELEASE_DATE + ' (built at '
 module.exports.create = function create(envArgs) {
   const config = {
     devtool: false,
-    entry: ['./src/index.js'],
+    entry: [],
     performance: {
       maxEntrypointSize: 2000000,
       maxAssetSize: 2000000,
@@ -62,24 +61,13 @@ module.exports.create = function create(envArgs) {
       ]
     },
     plugins: [
-      new ProgressBarPlugin({
-        format: '  build [:bar] \u001b[32m:percent\u001b[0m (:elapsed seconds)',
-        summary: false,
-      }),
-      // This helps ensure the builds are consistent if source code hasn't changed
-      new webpack.optimize.OccurrenceOrderPlugin(),
       new webpack.BannerPlugin(licenseBody),
       new webpack.DefinePlugin({
         '__ENV_ARGS__': JSON.stringify(envArgs),
       }),
       compilationDoneMarker(),
     ],
-    node: {
-      global: false,
-      process: false,
-      Buffer: false,
-      setImmediate: false,
-    },
+    node: false,
   };
 
   return [config];

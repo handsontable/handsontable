@@ -47,14 +47,14 @@ const FILE_SERVE_TIMEOUT = 300;
  *
  * @type {number}
  */
-const EXAMPLE_INIT_TIMEOUT = 100;
+const EXAMPLE_INIT_TIMEOUT = 300;
 
 /**
  * Number of tries to perform if the number of the rendered examples differs from the expected count.
  *
  * @type {number}
  */
-const CHECK_TRIES = 15;
+const CHECK_TRIES = 20;
 
 (async() => {
   const FRAMEWORKS_TO_CHECK = getFrameworks();
@@ -98,8 +98,8 @@ const CHECK_TRIES = 15;
 
         // If the test fails, do another try after a timeout (some instances might have not been initialized yet).
         while (
-          (!pageEvaluation.result && tryCount < CHECK_TRIES) ||
-          pageEvaluation.elementsNotYetRendered
+          (tryCount < CHECK_TRIES) &&
+          (!pageEvaluation.result || pageEvaluation.elementsNotYetRendered)
         ) {
           tryCount += 1;
 

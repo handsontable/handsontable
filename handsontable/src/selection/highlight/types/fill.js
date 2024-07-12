@@ -1,4 +1,4 @@
-import { FILL_TYPE } from '../constants';
+import { HIGHLIGHT_FILL_TYPE } from '../../../3rdparty/walkontable/src';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -8,18 +8,14 @@ import VisualSelection from '../visualSelection';
  * @param {object} highlightParams A configuration object to create a highlight.
  * @returns {Selection}
  */
-function createHighlight({ ...restOptions }) {
-  const s = new VisualSelection({
+export function createHighlight({ ...restOptions }) {
+  return new VisualSelection({
     className: 'fill',
     border: {
       width: 1,
       color: '#ff0000',
     },
     ...restOptions,
-    selectionType: FILL_TYPE,
+    selectionType: HIGHLIGHT_FILL_TYPE,
   });
-
-  return s;
 }
-
-export default createHighlight;

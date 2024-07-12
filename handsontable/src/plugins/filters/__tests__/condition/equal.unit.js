@@ -19,7 +19,7 @@ describe('Filters condition (`eq`)', () => {
 
     expect(condition(data(null), [null])).toBe(true);
     expect(condition(data(null), [''])).toBe(true);
-    expect(condition(data(null), [void 0])).toBe(true);
+    expect(condition(data(null), [undefined])).toBe(true);
   });
 
   it('should filter not matching values', () => {

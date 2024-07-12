@@ -23,7 +23,7 @@ describe('editors', () => {
         this.TEXTAREA_PARENT = document.createElement('DIV');
 
         this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
-        this.instance.rootElement.appendChild(this.TEXTAREA_PARENT);
+        this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
       }
       getValue() {
         return `--${this.TEXTAREA.value}--`;

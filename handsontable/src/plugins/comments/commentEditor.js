@@ -1,4 +1,7 @@
 import { addClass, outerWidth, outerHeight } from '../../helpers/dom/element';
+import { mixin } from '../../helpers/object';
+import localHooks from '../../mixins/localHooks';
+import { EditorResizeObserver } from './editorResizeObserver';
 
 /**
  * Comment editor for the Comments plugin.
@@ -23,14 +26,42 @@ class CommentEditor {
     return 'htCommentCell';
   }
 
-  constructor(rootDocument, isRtl) {
-    this.rootDocument = rootDocument;
-    this.isRtl = isRtl;
-    this.container = null;
-    this.editor = this.createEditor();
-    this.editorStyle = this.editor.style;
+  /**
+   * @type {Document}
+   */
+  #rootDocument;
+  /**
+   * @type {boolean}
+   */
+  #isRtl = false;
+  /**
+   * @type {HTMLElement}
+   */
+  #container = null;
+  /**
+   * @type {HTMLElement}
+   */
+  #editor;
+  /**
+   * @type {CSSStyleDeclaration}
+   */
+  #editorStyle;
+  /**
+   * @type {boolean}
+   */
+  #hidden = true;
+  /**
+   * @type {EditorResizeObserver}
+   */
+  #resizeObserver = new EditorResizeObserver();
 
-    this.hidden = true;
+  constructor(rootDocument, isRtl) {
+    this.#rootDocument = rootDocument;
+    this.#isRtl = isRtl;
+    this.#editor = this.createEditor();
+    this.#editorStyle = this.#editor.style;
+    this.#resizeObserver.setObservedElement(this.getInputElement());
+    this.#resizeObserver.addLocalHook('resize', (...args) => this.runLocalHooks('resize', ...args));
 
     this.hide();
   }
@@ -42,8 +73,8 @@ class CommentEditor {
    * @param {number} y Y position (in pixels).
    */
   setPosition(x, y) {
-    this.editorStyle.left = `${x}px`;
-    this.editorStyle.top = `${y}px`;
+    this.#editorStyle.left = `${x}px`;
+    this.#editorStyle.top = `${y}px`;
   }
 
   /**
@@ -74,6 +105,13 @@ class CommentEditor {
   }
 
   /**
+   * Starts observing the editor size.
+   */
+  observeSize() {
+    this.#resizeObserver.observe();
+  }
+
+  /**
    * Reset the editor size to its initial state.
    */
   resetSize() {
@@ -98,19 +136,21 @@ class CommentEditor {
    * Show the comments editor.
    */
   show() {
-    this.editorStyle.display = 'block';
-    this.hidden = false;
+    this.#editorStyle.display = 'block';
+    this.#hidden = false;
   }
 
   /**
    * Hide the comments editor.
    */
   hide() {
-    if (!this.hidden) {
-      this.editorStyle.display = 'none';
+    this.#resizeObserver.unobserve();
+
+    if (!this.#hidden) {
+      this.#editorStyle.display = 'none';
     }
 
-    this.hidden = true;
+    this.#hidden = true;
   }
 
   /**
@@ -119,7 +159,7 @@ class CommentEditor {
    * @returns {boolean}
    */
   isVisible() {
-    return this.editorStyle.display === 'block';
+    return this.#editorStyle.display === 'block';
   }
 
   /**
@@ -148,7 +188,7 @@ class CommentEditor {
    * @returns {boolean}
    */
   isFocused() {
-    return this.rootDocument.activeElement === this.getInputElement();
+    return this.#rootDocument.activeElement === this.getInputElement();
   }
 
   /**
@@ -164,23 +204,24 @@ class CommentEditor {
    * @returns {HTMLElement}
    */
   createEditor() {
-    const editor = this.rootDocument.createElement('div');
-    const textArea = this.rootDocument.createElement('textarea');
+    const editor = this.#rootDocument.createElement('div');
+    const textarea = this.#rootDocument.createElement('textarea');
 
     editor.style.display = 'none';
 
-    this.container = this.rootDocument.createElement('div');
-    this.container.setAttribute('dir', this.isRtl ? 'rtl' : 'ltr');
+    this.#container = this.#rootDocument.createElement('div');
+    this.#container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
-    addClass(this.container, CommentEditor.CLASS_EDITOR_CONTAINER);
+    addClass(this.#container, CommentEditor.CLASS_EDITOR_CONTAINER);
 
-    this.rootDocument.body.appendChild(this.container);
+    this.#rootDocument.body.appendChild(this.#container);
 
     addClass(editor, CommentEditor.CLASS_EDITOR);
-    addClass(textArea, CommentEditor.CLASS_INPUT);
+    addClass(textarea, CommentEditor.CLASS_INPUT);
+    textarea.setAttribute('data-hot-input', true);
 
-    editor.appendChild(textArea);
-    this.container.appendChild(editor);
+    editor.appendChild(textarea);
+    this.#container.appendChild(editor);
 
     return editor;
   }
@@ -191,23 +232,26 @@ class CommentEditor {
    * @returns {HTMLElement}
    */
   getInputElement() {
-    return this.editor.querySelector(`.${CommentEditor.CLASS_INPUT}`);
+    return this.#editor.querySelector(`.${CommentEditor.CLASS_INPUT}`);
   }
 
   /**
    * Destroy the comments editor.
    */
   destroy() {
-    const containerParentElement = this.container ? this.container.parentNode : null;
+    const containerParentElement = this.#container ? this.#container.parentNode : null;
 
-    this.editor.parentNode.removeChild(this.editor);
-    this.editor = null;
-    this.editorStyle = null;
+    this.#editor.parentNode.removeChild(this.#editor);
+    this.#editor = null;
+    this.#editorStyle = null;
+    this.#resizeObserver.destroy();
 
     if (containerParentElement) {
-      containerParentElement.removeChild(this.container);
+      containerParentElement.removeChild(this.#container);
     }
   }
 }
+
+mixin(CommentEditor, localHooks);
 
 export default CommentEditor;

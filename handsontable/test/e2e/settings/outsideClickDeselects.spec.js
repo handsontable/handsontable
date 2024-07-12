@@ -341,5 +341,36 @@ describe('settings', () => {
 
       textarea.remove();
     });
+
+    it('should not re-render all the rows when outsideClickDeselects is set as false and the user toggles the visibility' +
+    'of the table with an outside button (dev-handsontable#1610)', () => {
+      const onAfterRenderer = jasmine.createSpy('onAfterRenderer');
+      const $externalButton = $('<button>test</button>').prependTo('body');
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 1),
+        rowHeaders: true,
+        colHeaders: true,
+        outsideClickDeselects: false,
+        width: 600,
+        height: 300
+      });
+
+      $externalButton.on('click', () => {
+        spec().$container.toggle();
+      });
+
+      hot.selectCell(0, 0);
+
+      $externalButton.simulate('click');
+
+      hot.addHook('afterRenderer', onAfterRenderer);
+
+      $externalButton.simulate('mousedown');
+      $externalButton.simulate('mouseup');
+
+      expect(onAfterRenderer).toHaveBeenCalledTimes(0);
+
+      $externalButton.remove();
+    });
   });
 });

@@ -5,6 +5,7 @@ import deDE from './de-DE';
 import enUS from './en-US';
 import esMX from './es-MX';
 import frFR from './fr-FR';
+import hrHR from './hr-HR';
 import itIT from './it-IT';
 import jaJP from './ja-JP';
 import koKR from './ko-KR';
@@ -26,6 +27,7 @@ export {
   enUS,
   esMX,
   frFR,
+  hrHR,
   itIT,
   jaJP,
   koKR,

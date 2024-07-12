@@ -17,6 +17,7 @@ module.exports.create = function create(envArgs) {
     c.target = 'web';
     c.cache = true;
     c.output = {
+      library: '__hot_tests__',
       libraryTarget: 'var',
       filename: '[name].entry.js',
       path: path.resolve(__dirname, '../test/dist'),
@@ -46,7 +47,7 @@ module.exports.create = function create(envArgs) {
         externalCssFiles: [
           'lib/normalize.css',
           '../dist/handsontable.css',
-          `${getClosest('../node_modules/pikaday', true)}/css/pikaday.css`,
+          `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
           'helpers/common.css',
         ],
         externalJsFiles: [
@@ -57,7 +58,7 @@ module.exports.create = function create(envArgs) {
           `${getClosest('../node_modules/numbro', true)}/dist/numbro.js`,
           `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
           `${getClosest('../node_modules/moment', true)}/moment.js`,
-          `${getClosest('../node_modules/pikaday', true)}/pikaday.js`,
+          `${getClosest('../node_modules/@handsontable/pikaday', true)}/pikaday.js`,
           `${getClosest('../node_modules/dompurify', true)}/dist/purify.js`,
           `../dist/handsontable.js`,
           `../dist/languages/all.js`,
@@ -65,7 +66,9 @@ module.exports.create = function create(envArgs) {
       })
     );
 
-    c.node.global = true;
+    c.node = {
+      global: true,
+    }
   });
 
   return [].concat(config);

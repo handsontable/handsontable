@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon-32x32.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/style.css" />
+    <title>Handsontable Accessibility Demo</title>
+  </head>
+
+  <body>
+    <div class="checkbox-container">
+      <div class="checkbox-group">
+        <div>
+          <label
+            class="option-label"
+            for="enable-tab-navigation"
+            id="tab-navigation-label"
+            ><input
+              checked
+              type="checkbox"
+              id="enable-tab-navigation"
+              name="enable-tab-navigation"
+              aria-labelledby="tab-navigation-label"
+            />
+            Enable navigation with the Tab key
+          </label>
+          <a
+            href="https://handsontable.com/docs/javascript-data-grid/api/options/#tabNavigation"
+            target="_blank"
+            class="external-link"
+            rel="noopener noreferrer"
+            aria-label="Learn more enabling/disabling tab navigation (opens in a new window)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable="false"
+              x="0px"
+              y="0px"
+              viewBox="0 0 100 100"
+              width="15"
+              height="15"
+              class="icon outbound" 
+            >
+              <path
+                fill="currentColor"
+                d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
+              ></path>
+              <polygon
+                fill="currentColor"
+                points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
+              ></polygon>
+            </svg>
+          </a>
+        </div>
+        <div>
+          <label
+            class="option-label"
+            for="enable-header-navigation"
+            id="header-navigation-label"
+          >
+            <input
+              checked
+              type="checkbox"
+              id="enable-header-navigation"
+              name="enable-header-navigation"
+              aria-labelledby="header-navigation-label"
+            />
+            Enable navigation across headers
+          </label>
+          <a
+            href="https://handsontable.com/docs/javascript-data-grid/api/options/#navigableheaders"
+            target="_blank"
+            class="external-link"
+            rel="noopener noreferrer"
+            aria-label="Learn more about enabling/disabling tab navigation across headers (opens in a new window)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable="false"
+              x="0px"
+              y="0px"
+              viewBox="0 0 100 100"
+              width="15"
+              height="15"
+              class="icon outbound" 
+            >
+              <path
+                fill="currentColor"
+                d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
+              ></path>
+              <polygon
+                fill="currentColor"
+                points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
+              ></polygon>
+            </svg>
+          </a>
+        </div>
+        <div>
+          <label
+            class="option-label"
+            for="enable-cell-virtualization"
+            id="cell-virtualization-label"
+          >
+            <input
+              checked
+              type="checkbox"
+              id="enable-cell-virtualization"
+              name="enable-cell-virtualization"
+              aria-labelledby="cell-virtualization-label"
+            />
+            Enable cells virtualization
+          </label>
+          <a
+            href="https://handsontable.com/docs/javascript-data-grid/api/options/#renderAllRows"
+            target="_blank"
+            class="external-link"
+            rel="noopener noreferrer"
+            aria-label="Learn more about row virtualization (opens in a new window)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable="false"
+              x="0px"
+              y="0px"
+              viewBox="0 0 100 100"
+              width="15"
+              height="15"
+              class="icon outbound" 
+            >
+              <path
+                fill="currentColor"
+                d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
+              ></path>
+              <polygon
+                fill="currentColor"
+                points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
+              ></polygon>
+            </svg>
+          </a>
+        </div>
+        <div>
+          <label
+            class="option-label"
+            for="enable-cell-enter-editing"
+            id="cell-enter-editing-label"
+            ><input
+              checked
+              type="checkbox"
+              id="enable-cell-enter-editing"
+              name="enable-cell-enter-editing"
+              aria-labelledby="cell-enter-editing-label"
+            />
+            The Enter key begins cell editing
+          </label>
+          <a
+            href="https://handsontable.com/docs/javascript-data-grid/api/options/#enterbeginsediting"
+            target="_blank"
+            class="external-link"
+            rel="noopener noreferrer"
+            aria-label="Learn more about Enter key cell editing (opens in a new window)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable="false"
+              x="0px"
+              y="0px"
+              viewBox="0 0 100 100"
+              width="15"
+              height="15"
+              class="icon outbound" 
+            >
+              <path
+                fill="currentColor"
+                d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
+              ></path>
+              <polygon
+                fill="currentColor"
+                points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
+              ></polygon>
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div class="checkbox-group">
+        <div>
+          <label
+            class="option-label"
+            for="enable-arrow-rl-first-last-column"
+            id="arrow-rl-first-last-column-label"
+            ><input
+              checked
+              type="checkbox"
+              id="enable-arrow-rl-first-last-column"
+              name="enable-arrow-first-last-column"
+              aria-labelledby="arrow-rl-first-last-column-label"
+            />
+            The right/left arrow keys move the focus to the first/last column
+          </label>
+          <a
+            href="https://handsontable.com/docs/javascript-data-grid/api/options/#autowrapcol"
+            target="_blank"
+            class="external-link"
+            rel="noopener noreferrer"
+            aria-label="Learn more about right/left arrow key behavior (opens in a new window)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable="false"
+              x="0px"
+              y="0px"
+              viewBox="0 0 100 100"
+              width="15"
+              height="15"
+              class="icon outbound" 
+            >
+              <path
+                fill="currentColor"
+                d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
+              ></path>
+              <polygon
+                fill="currentColor"
+                points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
+              ></polygon>
+            </svg>
+          </a>
+        </div>
+        <div>
+          <label
+            class="option-label"
+            for="enable-arrow-td-first-last-column"
+            id="arrow-td-first-last-column-label"
+          >
+            <input
+              checked
+              type="checkbox"
+              id="enable-arrow-td-first-last-column"
+              name="enable-arrow-td-first-last-column"
+              aria-labelledby="arrow-td-first-last-column-label"
+            />
+            The up/down arrow keys move the focus to the first/last row
+          </label>
+          <a
+            href="https://handsontable.com/docs/javascript-data-grid/api/options/#autowraprow"
+            target="_blank"
+            class="external-link"
+            rel="noopener noreferrer"
+            aria-label="Learn more about up/down arrow key behavior (opens in a new window)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable="false"
+              x="0px"
+              y="0px"
+              viewBox="0 0 100 100"
+              width="15"
+              height="15"
+              class="icon outbound" 
+            >
+              <path
+                fill="currentColor"
+                d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
+              ></path>
+              <polygon
+                fill="currentColor"
+                points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
+              ></polygon>
+            </svg>
+          </a>
+        </div>
+        <div>
+          <label
+            class="option-label"
+            for="enable-enter-focus-editing"
+            id="enter-focus-editing-label"
+          >
+            <input
+              checked
+              type="checkbox"
+              id="enable-enter-focus-editing"
+              name="enable-enter-focus-editing"
+              aria-labelledby="enter-focus-editing-label"
+            />
+            The Enter key moves the focus after cell edition
+          </label>
+          <a
+            href="https://handsontable.com/docs/javascript-data-grid/api/options/#entermoves"
+            target="_blank"
+            class="external-link"
+            rel="noopener noreferrer"
+            aria-label="Learn more about Enter key focus behavior (opens in a new window)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable="false"
+              x="0px"
+              y="0px"
+              viewBox="0 0 100 100"
+              width="15"
+              height="15"
+              class="icon outbound" 
+            >
+              <path
+                fill="currentColor"
+                d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
+              ></path>
+              <polygon
+                fill="currentColor"
+                points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
+              ></polygon>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <input
+      class="placeholder-input"
+      type="text"
+      placeholder="Focusable text input"
+    />
+
+    <div id="handsontable"></div>
+
+    <input
+      class="placeholder-input"
+      type="text"
+      placeholder="Focusable text input"
+    />
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Removed deprecated React method from the wrapper.",
-  "type": "fixed",
-  "issueOrPR": 10263,
-  "breaking": false,
-  "framework": "react"
-}

@@ -14,14 +14,20 @@ const allowedE2EModules = [
   './keyboardEvents',
   './../bootstrap',
   './helpers/custom-matchers',
+  './custom-matchers',
   './helpers/jasmine-helpers',
   './asciiTable',
+  '../../../../../test/helpers/asciiTable',
   './MemoryLeakTest',
   '../MemoryLeakTest',
 ];
 
 module.exports = {
   extends: '../babel.config.js',
+  assumptions: {
+    // save 21 kB (July 12, 2023) https://babeljs.io/docs/assumptions#noincompletensimportdetection
+    noIncompleteNsImportDetection: true,
+  },
   env: {
     // Environment for unit testing, source code and languages building via webpack (UMD).
     commonjs: {

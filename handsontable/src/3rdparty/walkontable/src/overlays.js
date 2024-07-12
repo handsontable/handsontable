@@ -6,6 +6,7 @@ import { requestAnimationFrame } from '../../../helpers/feature';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { isChrome } from '../../../helpers/browser';
+import { warn } from '../../../helpers/console';
 import {
   InlineStartOverlay,
   TopOverlay,
@@ -25,6 +26,13 @@ class Overlays {
    * @type {Walkontable}
    */
   wot = null;
+
+  /**
+   * An array of the all overlays.
+   *
+   * @type {Overlay[]}
+   */
+  #overlays = [];
 
   /**
    * Refer to the TopOverlay instance.
@@ -83,6 +91,27 @@ class Overlays {
   wtSettings = null;
 
   /**
+   * Indicates whether the rendering state has changed for one of the overlays.
+   *
+   * @type {boolean}
+   */
+  #hasRenderingStateChanged = false;
+
+  /**
+   * The amount of times the ResizeObserver callback was fired in direct succession.
+   *
+   * @type {number}
+   */
+  #containerDomResizeCount = 0;
+
+  /**
+   * The timeout ID for the ResizeObserver endless-loop-blocking logic.
+   *
+   * @type {number}
+   */
+  #containerDomResizeCountTimeout = null;
+
+  /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
    * In case of the size change detection the `onContainerElementResize` is fired.
    *
@@ -94,6 +123,27 @@ class Overlays {
       if (!Array.isArray(entries) || !entries.length) {
         return;
       }
+
+      this.#containerDomResizeCount += 1;
+
+      if (this.#containerDomResizeCount === 100) {
+        warn('The ResizeObserver callback was fired too many times in direct succession.' +
+          '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
+          'with the `dvh` units) to a Handsontable container\'s parent. ' +
+          '\nThe observer will be disconnected.');
+
+        this.resizeObserver.disconnect();
+      }
+
+      // This logic is required to prevent an endless loop of the ResizeObserver callback.
+      // https://github.com/handsontable/dev-handsontable/issues/1898#issuecomment-2154794817
+      if (this.#containerDomResizeCountTimeout !== null) {
+        clearTimeout(this.#containerDomResizeCountTimeout);
+      }
+
+      this.#containerDomResizeCountTimeout = setTimeout(() => {
+        this.#containerDomResizeCount = 0;
+      }, 100);
 
       this.wtSettings.getSetting('onContainerElementResize');
     });
@@ -156,13 +206,7 @@ class Overlays {
    * @returns {(TopOverlay|TopInlineStartCornerOverlay|InlineStartOverlay|BottomOverlay|BottomInlineStartCornerOverlay)[]}
    */
   getOverlays(includeMaster = false) {
-    const overlays = [
-      this.topOverlay,
-      this.topInlineStartCornerOverlay,
-      this.inlineStartOverlay,
-      this.bottomOverlay,
-      this.bottomInlineStartCornerOverlay
-    ];
+    const overlays = [...this.#overlays];
 
     if (includeMaster) {
       overlays.push(this.wtTable);
@@ -209,31 +253,41 @@ class Overlays {
       this.topOverlay, this.inlineStartOverlay);
     this.bottomInlineStartCornerOverlay = new BottomInlineStartCornerOverlay(...args,
       this.bottomOverlay, this.inlineStartOverlay);
+
+    this.#overlays = [
+      this.topOverlay,
+      this.bottomOverlay,
+      this.inlineStartOverlay,
+      this.topInlineStartCornerOverlay,
+      this.bottomInlineStartCornerOverlay,
+    ];
   }
 
   /**
-   * Update state of rendering, check if changed.
-   *
-   * @package
-   * @returns {boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
+   * Runs logic for the overlays before the table is drawn.
    */
-  updateStateOfRendering() {
-    let syncScroll = this.topOverlay.updateStateOfRendering();
+  beforeDraw() {
+    this.#hasRenderingStateChanged = this.#overlays.reduce((acc, overlay) => {
+      return overlay.hasRenderingStateChanged() || acc;
+    }, false);
 
-    syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
-    syncScroll = this.inlineStartOverlay.updateStateOfRendering() || syncScroll;
+    this.#overlays.forEach(overlay => overlay.updateStateOfRendering('before'));
+  }
 
-    // todo refactoring: move conditions into updateStateOfRendering(),
-    if (this.inlineStartOverlay.needFullRender) {
-      if (this.topOverlay.needFullRender) {
-        syncScroll = this.topInlineStartCornerOverlay.updateStateOfRendering() || syncScroll;
+  /**
+   * Runs logic for the overlays after the table is drawn.
+   */
+  afterDraw() {
+    this.syncScrollWithMaster();
+    this.#overlays.forEach((overlay) => {
+      const hasRenderingStateChanged = overlay.hasRenderingStateChanged();
+
+      overlay.updateStateOfRendering('after');
+
+      if (hasRenderingStateChanged && !overlay.needFullRender) {
+        overlay.reset();
       }
-      if (this.bottomOverlay.needFullRender) {
-        syncScroll = this.bottomInlineStartCornerOverlay.updateStateOfRendering() || syncScroll;
-      }
-    }
-
-    return syncScroll;
+    });
   }
 
   /**
@@ -332,6 +386,9 @@ class Overlays {
 
       resizeTimeout = setTimeout(() => {
         this.wtSettings.getSetting('onWindowResize');
+
+        // Remove resizing the window from the ResizeObserver's endless-loop-blocking logic.
+        this.#containerDomResizeCount = 0;
       }, 200);
     });
 
@@ -395,7 +452,11 @@ class Overlays {
     const shouldNotWheelHorizontally = masterHorizontal !== rootWindow &&
       target !== rootWindow && !target.contains(masterHorizontal);
 
-    if (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally)) {
+    if (
+      (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally))
+       ||
+      this.scrollableElement === rootWindow
+    ) {
       return;
     }
 
@@ -514,6 +575,10 @@ class Overlays {
    * Synchronize overlay scrollbars with the master scrollbar.
    */
   syncScrollWithMaster() {
+    if (!this.#hasRenderingStateChanged) {
+      return;
+    }
+
     const master = this.topOverlay.mainTableScrollableElement;
     const { scrollLeft, scrollTop } = master;
 
@@ -526,6 +591,8 @@ class Overlays {
     if (this.inlineStartOverlay.needFullRender) {
       this.inlineStartOverlay.clone.wtTable.holder.scrollTop = scrollTop; // todo rethink, *overlay.setScroll*()
     }
+
+    this.#hasRenderingStateChanged = false;
   }
 
   /**
@@ -626,20 +693,37 @@ class Overlays {
 
   /**
    * Adjust overlays elements size and master table size.
-   *
-   * @param {boolean} [force=false] When `true`, it adjust the DOM nodes sizes for all overlays.
    */
-  adjustElementsSize(force = false) {
+  adjustElementsSize() {
     const { wtViewport } = this.wot;
     const { wtTable } = this;
+    const { rootWindow } = this.domBindings;
+    const isWindowScrolled = this.scrollableElement === rootWindow;
     const totalColumns = this.wtSettings.getSetting('totalColumns');
     const totalRows = this.wtSettings.getSetting('totalRows');
     const headerRowSize = wtViewport.getRowHeaderWidth();
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
-    const hiderStyle = wtTable.hider.style;
+    const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1;
+    const proposedHiderWidth = headerRowSize + this.inlineStartOverlay.sumCellSizes(0, totalColumns);
+    const hiderElement = wtTable.hider;
+    const hiderStyle = hiderElement.style;
+    const isScrolledBeyondHiderHeight = () => {
+      return isWindowScrolled ?
+        false :
+        (this.scrollableElement.scrollTop > Math.max(0, proposedHiderHeight - wtTable.holder.clientHeight));
+    };
+    const isScrolledBeyondHiderWidth = () => {
+      return isWindowScrolled ?
+        false :
+        (this.scrollableElement.scrollLeft > Math.max(0, proposedHiderWidth - wtTable.holder.clientWidth));
+    };
+    const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;
+    const rowHeaderBorderCompensation = isScrolledBeyondHiderWidth() ? 1 : 0;
 
-    hiderStyle.width = `${headerRowSize + this.inlineStartOverlay.sumCellSizes(0, totalColumns)}px`;
-    hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;
+    // If the elements are being adjusted after scrolling the table from the very beginning to the very end,
+    // we need to adjust the hider dimensions by the header border size. (https://github.com/handsontable/dev-handsontable/issues/1772)
+    hiderStyle.width = `${proposedHiderWidth + rowHeaderBorderCompensation}px`;
+    hiderStyle.height = `${proposedHiderHeight + columnHeaderBorderCompensation}px`;
 
     if (this.scrollbarSize > 0) { // todo refactoring, looking as a part of logic which should be moved outside the class
       const {
@@ -661,9 +745,31 @@ class Overlays {
       }
     }
 
-    this.topOverlay.adjustElementsSize(force);
-    this.inlineStartOverlay.adjustElementsSize(force);
-    this.bottomOverlay.adjustElementsSize(force);
+    this.topOverlay.adjustElementsSize();
+    this.inlineStartOverlay.adjustElementsSize();
+    this.bottomOverlay.adjustElementsSize();
+  }
+
+  /**
+   * Expand the hider vertically element by the provided delta value.
+   *
+   * @param {number} heightDelta The delta value to expand the hider element by.
+   */
+  expandHiderVerticallyBy(heightDelta) {
+    const { wtTable } = this;
+
+    wtTable.hider.style.height = `${parseInt(wtTable.hider.style.height, 10) + heightDelta}px`;
+  }
+
+  /**
+   * Expand the hider horizontally element by the provided delta value.
+   *
+   * @param {number} widthDelta The delta value to expand the hider element by.
+   */
+  expandHiderHorizontallyBy(widthDelta) {
+    const { wtTable } = this;
+
+    wtTable.hider.style.width = `${parseInt(wtTable.hider.style.width, 10) + widthDelta}px`;
   }
 
   /**

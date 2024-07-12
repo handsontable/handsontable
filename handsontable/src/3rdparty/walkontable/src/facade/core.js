@@ -50,8 +50,8 @@ export default class WalkontableFacade {
   get cloneOverlay() {
     return this._wot.cloneOverlay; // todo create facade
   }
-  get selections() {
-    return this._wot.selections; // todo create facade
+  get selectionManager() {
+    return this._wot.selectionManager; // todo create facade
   }
   get wtViewport() {
     return this._wot.wtViewport; // todo create facade
@@ -147,6 +147,10 @@ export default class WalkontableFacade {
 
   getOverlayName() {
     return this._wot.cloneOverlay ? this._wot.cloneOverlay.type : 'master';
+  }
+
+  getOverlayByName(overlayName) {
+    return this._wot.getOverlayByName(overlayName);
   }
 
   exportSettingsAsClassNames() {

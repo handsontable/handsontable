@@ -128,6 +128,37 @@ describe('Core_listen', () => {
     $container2.remove();
   });
 
+  it('should unlisten after click outside an iframe', () => {
+    const $iframe = $('<iframe width="500px" height="300px"/>').appendTo(spec().$container);
+    const doc = $iframe[0].contentDocument;
+
+    doc.open('text/html', 'replace');
+    doc.write(`
+      <!doctype html>
+      <head>
+        <link type="text/css" rel="stylesheet" href="../dist/handsontable.css">
+      </head>
+    `);
+    doc.close();
+
+    const $iframeContainer = $('<div/>').appendTo(doc.body);
+    const $input = $('<input id="text"/>').appendTo(spec().$container);
+    const afterUnlisten = jasmine.createSpy();
+
+    $iframeContainer.handsontable({
+      afterUnlisten,
+    });
+
+    simulateClick($iframeContainer.find('tr:eq(0) td:eq(0)'));
+    simulateClick(spec().$container.find('#text'));
+
+    expect(afterUnlisten).toHaveBeenCalledOnceWith();
+
+    $iframeContainer.handsontable('destroy');
+    $iframe.remove();
+    $input.remove();
+  });
+
   describe('hooks', () => {
     it('should call `afterListen` after set listen on instance', () => {
       const afterListenCallback = jasmine.createSpy('afterListenCallback');

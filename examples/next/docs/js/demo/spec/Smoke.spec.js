@@ -24,16 +24,4 @@ describe('Smoke check', () => {
     // assertion
     await expect(hotCell).toBeTruthy();
   });
-
-  it('should use progressBarRenderer', async () => {
-    const progressBarRendererCell = await page.$('.handsontable tbody tr td:nth-child(7) .progressBar');
-    const progressBarRendererCellContent = await progressBarRendererCell.evaluate(el => el.getAttribute('style'));
-    await expect(progressBarRendererCellContent).toBe('width: 20px;');
-  });
-
-  it('should use startRenderer', async () => {
-    const startRendererCell = await page.$('.handsontable tbody tr td:nth-child(8)');
-    const startRendererCellContent = await startRendererCell.evaluate(el => el.textContent);
-    await expect(startRendererCellContent).toBe('★★');
-  });
 });

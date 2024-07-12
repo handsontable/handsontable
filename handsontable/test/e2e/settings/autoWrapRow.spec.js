@@ -15,49 +15,12 @@ describe('settings', () => {
   describe('autoWrapRow', () => {
     it('should be `false` by default', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5)
+        data: createSpreadsheetData(5, 5)
       });
 
       expect(hot.getSettings().autoWrapRow).toBe(false);
     });
 
-    it('should move to the neighboring row when it reaches the end of the current', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
-        autoWrapRow: true
-      });
-
-      selectCell(0, 4);
-
-      expect(getSelected()).toEqual([[0, 4, 0, 4]]);
-
-      keyDownUp('arrowright');
-
-      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
-
-      keyDownUp('arrowleft');
-
-      expect(getSelected()).toEqual([[0, 4, 0, 4]]);
-    });
-
-    it('should move to the start of the table when it reaches the end of the table', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
-        autoWrapRow: true
-      });
-
-      selectCell(4, 4);
-
-      expect(getSelected()).toEqual([[4, 4, 4, 4]]);
-
-      keyDownUp('arrowright');
-
-      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-
-      keyDownUp('arrowleft');
-
-      expect(getSelected()).toEqual([[4, 4, 4, 4]]);
-
-    });
+    // The rest of the E2E tests you can find in the Selection module ./handsontable/src/selection/__tests__/keyboardShortcuts/navigation.spec.js
   });
 });

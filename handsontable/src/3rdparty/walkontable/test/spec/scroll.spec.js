@@ -180,9 +180,9 @@ describe('WalkontableScroll', () => {
       const firstRow = getTableMaster().find('tbody tr:first');
       const lastRow = getTableMaster().find('tbody tr:last');
 
-      expect(firstRow.find('td:first').text()).toBe('H1');
+      expect(firstRow.find('td:first').text()).toBe('I1');
       expect(firstRow.find('td:last').text()).toBe('K1');
-      expect(lastRow.find('td:first').text()).toBe('H8');
+      expect(lastRow.find('td:first').text()).toBe('I8');
       expect(lastRow.find('td:last').text()).toBe('K8');
     });
 
@@ -314,8 +314,8 @@ describe('WalkontableScroll', () => {
 
       expect(firstRow.find('td:first').text()).toBe('A45');
       expect(firstRow.find('td:last').text()).toBe('D45');
-      expect(lastRow.find('td:first').text()).toBe('A51');
-      expect(lastRow.find('td:last').text()).toBe('D51');
+      expect(lastRow.find('td:first').text()).toBe('A52');
+      expect(lastRow.find('td:last').text()).toBe('D52');
     });
 
     it('should scroll to the cell so that it sticks to the bottom edge of the viewport (forced by method flag)', () => {
@@ -1272,6 +1272,35 @@ describe('WalkontableScroll', () => {
         topHolder.removeEventListener('scroll', topCallback);
         bottomHolder.removeEventListener('scroll', bottomCallback);
         leftHolder.removeEventListener('scroll', leftCallback);
+      });
+
+      it('should not try to set the window\'s `scrollTop`/`scrollLeft` and `scrollY`/`scrollX` properties ' +
+      'when the window-scrolled table is scrolled', async() => {
+        spec().$wrapper.eq(0).css({ overflow: '', height: '', width: '' });
+
+        const wt = walkontable({
+          data: getData,
+          totalRows: getTotalRows,
+          totalColumns: getTotalColumns,
+        });
+
+        spyOn(wt.wtOverlays, 'scrollVertically').and.callThrough();
+        spyOn(wt.wtOverlays, 'scrollHorizontally').and.callThrough();
+
+        wt.draw();
+
+        const masterRootElement = wt.wtTable.wtRootElement;
+
+        wheelOnElement(masterRootElement, 400);
+        wt.draw();
+
+        await sleep(200);
+
+        expect(window.scrollTop).toEqual(undefined);
+        expect(window.scrollLeft).toEqual(undefined);
+
+        expect(wt.wtOverlays.scrollVertically).not.toHaveBeenCalled();
+        expect(wt.wtOverlays.scrollHorizontally).not.toHaveBeenCalled();
       });
     });
 

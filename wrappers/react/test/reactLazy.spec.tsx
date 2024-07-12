@@ -1,11 +1,12 @@
 import React, { Suspense, lazy } from 'react';
+import { act } from '@testing-library/react';
 import {
   HotTable
 } from '../src/hotTable';
 import {
   createSpreadsheetData,
   mockElementDimensions,
-  mountComponent,
+  mountComponentWithRef,
   sleep,
 } from './_helpers';
 
@@ -36,7 +37,7 @@ describe('React.lazy', () => {
       )
     }
 
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(1, 1)}
@@ -55,9 +56,11 @@ describe('React.lazy', () => {
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>loading-message</div>');
 
-    promiseResolve({
-      default: RendererComponent2,
-      __esModule: true
+    await act(async () => {
+      promiseResolve({
+        default: RendererComponent2,
+        __esModule: true
+      });
     });
 
     await sleep(40);

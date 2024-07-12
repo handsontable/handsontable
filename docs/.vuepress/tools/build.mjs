@@ -1,7 +1,7 @@
 import path from 'path';
+import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
-import fs from 'fs/promises';
 import utils from './utils.js';
 import { getThisDocsVersion } from '../helpers.js';
 
@@ -33,14 +33,14 @@ async function buildVersion(version) {
 
   if (version !== 'next' || buildMode === 'staging') {
     await spawnProcess(
-      'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
+      'node node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
         `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
       { cwd, env: { DOCS_BASE: version }, }
     );
   }
 
   await spawnProcess(
-    'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
+    'node node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
       `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
     { cwd, env: { DOCS_BASE: 'latest' }, }
   );

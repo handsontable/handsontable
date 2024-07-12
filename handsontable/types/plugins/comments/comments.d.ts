@@ -33,6 +33,7 @@ export class Comments extends BasePlugin {
   range: CommentsRangeObject;
 
   isEnabled(): boolean;
+  focusEditor(): void;
   setRange(range: CommentsRangeObject): void;
   clearRange(): void;
   setComment(value: string): void;

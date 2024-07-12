@@ -1,32 +1,62 @@
 import Handsontable from 'handsontable';
 
-const hot = new Handsontable(document.createElement('div'), {});
-const columnSorting = hot.getPlugin('multiColumnSorting');
+const hot = new Handsontable(document.createElement('div'), {
+  multiColumnSorting: true,
+});
+new Handsontable(document.createElement('div'), {
+  multiColumnSorting: {
+    sortEmptyCells: true,
+    indicator: true,
+    headerAction: true,
+    compareFunctionFactory(sortOrder, columnMeta) {
+      return (a: any, b: any) => columnMeta.type === 'text' && sortOrder === 'asc' ? -1 : 1;
+    },
+    initialConfig: {
+      column: 1,
+      sortOrder: 'asc'
+    }
+  }
+});
+new Handsontable(document.createElement('div'), {
+  multiColumnSorting: {
+    initialConfig: [
+      {
+        column: 1,
+        sortOrder: 'desc'
+      },
+      {
+        column: 3,
+        sortOrder: 'asc'
+      }
+    ]
+  }
+});
 
-columnSorting.clearSort();
+const plugin = hot.getPlugin('multiColumnSorting');
 
-columnSorting.getSortConfig();
-columnSorting.getSortConfig(0);
+plugin.clearSort();
+plugin.getSortConfig();
+plugin.getSortConfig(0);
 
-const sortConfig0 = columnSorting.getSortConfig(0);
+const sortConfig0 = plugin.getSortConfig(0);
 
 if (typeof sortConfig0 !== 'undefined' && !Array.isArray(sortConfig0)) {
   sortConfig0.column;
   sortConfig0.sortOrder;
 }
 
-const sortConfigs = columnSorting.getSortConfig();
+const sortConfigs = plugin.getSortConfig();
 
 if (Array.isArray(sortConfigs)) {
   sortConfigs[0].column;
   sortConfigs[0].sortOrder;
 }
 
-columnSorting.setSortConfig({ column: 0, sortOrder: 'asc' });
-columnSorting.setSortConfig([{ column: 0, sortOrder: 'asc' }]);
-columnSorting.setSortConfig([]);
+plugin.setSortConfig({ column: 0, sortOrder: 'asc' });
+plugin.setSortConfig([{ column: 0, sortOrder: 'asc' }]);
+plugin.setSortConfig([]);
 
-columnSorting.isSorted();
+const isSorted: boolean = plugin.isSorted();
 
-columnSorting.sort({ column: 0, sortOrder: 'asc' });
-columnSorting.sort([{ column: 1, sortOrder: 'desc' }, { column: 2, sortOrder: 'asc' }]);
+plugin.sort({ column: 0, sortOrder: 'asc' });
+plugin.sort([{ column: 1, sortOrder: 'desc' }, { column: 2, sortOrder: 'asc' }]);

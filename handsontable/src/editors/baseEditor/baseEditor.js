@@ -1,6 +1,5 @@
-import { isDefined, stringify } from '../../helpers/mixed';
+import { stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
-import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
@@ -20,8 +19,6 @@ export const EDITOR_STATE = Object.freeze({
   FINISHED: 'STATE_FINISHED'
 });
 
-export const SHORTCUTS_GROUP_EDITOR = 'baseEditor';
-
 /**
  * @class BaseEditor
  */
@@ -31,88 +28,81 @@ export class BaseEditor {
   }
 
   /**
-   * @param {Handsontable} instance A reference to the source instance of the Handsontable.
+   * A reference to the source instance of the Handsontable.
+   *
+   * @type {Handsontable}
    */
-  constructor(instance) {
-    /**
-     * A reference to the source instance of the Handsontable.
-     *
-     * @type {Handsontable}
-     */
-    this.hot = instance;
-    /**
-     * A reference to the source instance of the Handsontable.
-     *
-     * @deprecated
-     *
-     * @type {Handsontable}
-     */
-    this.instance = instance;
-    /**
-     * Editor's state.
-     *
-     * @type {string}
-     */
-    this.state = EDITOR_STATE.VIRGIN;
-    /**
-     * Flag to store information about editor's opening status.
-     *
-     * @private
-     *
-     * @type {boolean}
-     */
-    this._opened = false;
-    /**
-     * Defines the editor's editing mode. When false, then an editor works in fast editing mode.
-     *
-     * @private
-     *
-     * @type {boolean}
-     */
-    this._fullEditMode = false;
-    /**
-     * Callback to call after closing editor.
-     *
-     * @type {Function}
-     */
-    this._closeCallback = null;
-    /**
-     * Currently rendered cell's TD element.
-     *
-     * @type {HTMLTableCellElement}
-     */
-    this.TD = null;
-    /**
-     * Visual row index.
-     *
-     * @type {number}
-     */
-    this.row = null;
-    /**
-     * Visual column index.
-     *
-     * @type {number}
-     */
-    this.col = null;
-    /**
-     * Column property name or a column index, if datasource is an array of arrays.
-     *
-     * @type {number|string}
-     */
-    this.prop = null;
-    /**
-     * Original cell's value.
-     *
-     * @type {*}
-     */
-    this.originalValue = null;
-    /**
-     * Object containing the cell's properties.
-     *
-     * @type {object}
-     */
-    this.cellProperties = null;
+  hot;
+  /**
+   * Editor's state.
+   *
+   * @type {string}
+   */
+  state = EDITOR_STATE.VIRGIN;
+  /**
+   * Flag to store information about editor's opening status.
+   *
+   * @private
+   *
+   * @type {boolean}
+   */
+  _opened = false;
+  /**
+   * Defines the editor's editing mode. When false, then an editor works in fast editing mode.
+   *
+   * @private
+   *
+   * @type {boolean}
+   */
+  _fullEditMode = false;
+  /**
+   * Callback to call after closing editor.
+   *
+   * @type {Function}
+   */
+  _closeCallback = null;
+  /**
+   * Currently rendered cell's TD element.
+   *
+   * @type {HTMLTableCellElement}
+   */
+  TD = null;
+  /**
+   * Visual row index.
+   *
+   * @type {number}
+   */
+  row = null;
+  /**
+   * Visual column index.
+   *
+   * @type {number}
+   */
+  col = null;
+  /**
+   * Column property name or a column index, if datasource is an array of arrays.
+   *
+   * @type {number|string}
+   */
+  prop = null;
+  /**
+   * Original cell's value.
+   *
+   * @type {*}
+   */
+  originalValue = null;
+  /**
+   * Object containing the cell's properties.
+   *
+   * @type {object}
+   */
+  cellProperties = null;
 
+  /**
+   * @param {Handsontable} hotInstance A reference to the source instance of the Handsontable.
+   */
+  constructor(hotInstance) {
+    this.hot = hotInstance;
     this.init();
   }
 
@@ -170,7 +160,7 @@ export class BaseEditor {
    * @param {number|string} prop The column property (passed when datasource is an array of objects).
    * @param {HTMLTableCellElement} td The rendered cell element.
    * @param {*} value The rendered value.
-   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+   * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
   prepare(row, col, prop, td, value, cellProperties) {
     this.TD = td;
@@ -179,7 +169,7 @@ export class BaseEditor {
     this.prop = prop;
     this.originalValue = value;
     this.cellProperties = cellProperties;
-    this.state = EDITOR_STATE.VIRGIN;
+    this.state = this.isOpened() ? this.state : EDITOR_STATE.VIRGIN;
   }
 
   /**
@@ -220,37 +210,6 @@ export class BaseEditor {
 
     if (Array.isArray(modifiedCellCoords)) {
       [visualRowFrom, visualColumnFrom] = modifiedCellCoords;
-    }
-
-    const shortcutManager = this.hot.getShortcutManager();
-    const editorContext = shortcutManager.getContext('editor');
-    const contextConfig = {
-      runOnlyIf: () => isDefined(this.hot.getSelected()),
-      group: SHORTCUTS_GROUP_EDITOR,
-    };
-
-    if (this.isInFullEditMode()) {
-      editorContext.addShortcuts([{
-        keys: [['ArrowUp']],
-        callback: () => {
-          this.hot.selection.transformStart(-1, 0);
-        },
-      }, {
-        keys: [['ArrowDown']],
-        callback: () => {
-          this.hot.selection.transformStart(1, 0);
-        },
-      }, {
-        keys: [['ArrowLeft']],
-        callback: () => {
-          this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
-        },
-      }, {
-        keys: [['ArrowRight']],
-        callback: () => {
-          this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
-        },
-      }], contextConfig);
     }
 
     // Saving values using the modified coordinates.
@@ -322,12 +281,6 @@ export class BaseEditor {
     if (this.isWaiting()) {
       return;
     }
-
-    const shortcutManager = this.hot.getShortcutManager();
-    const editorContext = shortcutManager.getContext('editor');
-
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_NAVIGATION);
 
     if (this.state === EDITOR_STATE.VIRGIN) {
       this.hot._registerTimeout(() => {
@@ -531,24 +484,37 @@ export class BaseEditor {
     const horizontalScrollPosition = Math.abs(wtOverlays.inlineStartOverlay.getScrollPosition());
     const verticalScrollPosition = wtOverlays.topOverlay.getScrollPosition();
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
-    const cellTopOffset = TD.offsetTop + firstRowOffset - verticalScrollPosition;
-    let cellStartOffset = 0;
+    let cellTopOffset = TD.offsetTop;
+
+    if (['inline_start', 'master'].includes(overlayName)) {
+      cellTopOffset += firstRowOffset - verticalScrollPosition;
+    }
+
+    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName)) {
+      const {
+        wtViewport: bottomWtViewport,
+        wtTable: bottomWtTable,
+      } = wtOverlays.bottomOverlay.clone;
+
+      cellTopOffset += bottomWtViewport.getWorkspaceHeight() - bottomWtTable.getHeight() - scrollbarWidth;
+    }
+
+    let cellStartOffset = TD.offsetLeft;
 
     if (this.hot.isRtl()) {
-      const cellOffset = TD.offsetLeft;
-
-      if (cellOffset >= 0) {
+      if (cellStartOffset >= 0) {
         cellStartOffset = overlayTable.getWidth() - TD.offsetLeft;
       } else {
         // The `offsetLeft` returns negative values when the parent offset element has position relative
         // (it happens when on the cell the selection is applied - the `area` CSS class).
         // When it happens the `offsetLeft` value is calculated from the right edge of the parent element.
-        cellStartOffset = Math.abs(cellOffset);
+        cellStartOffset = Math.abs(cellStartOffset);
       }
 
       cellStartOffset += firstColumnOffset - horizontalScrollPosition - cellWidth;
-    } else {
-      cellStartOffset = TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
+
+    } else if (['top', 'master', 'bottom'].includes(overlayName)) {
+      cellStartOffset += firstColumnOffset - horizontalScrollPosition;
     }
 
     const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);

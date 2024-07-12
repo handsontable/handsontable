@@ -1,176 +1,79 @@
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
-import { stopImmediatePropagation } from './helpers/dom/event';
-import { isOutsideInput } from './helpers/dom/element';
+import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
-import { isDefined } from './helpers/mixed';
-
-export const SHORTCUTS_GROUP_NAVIGATION = 'editorManager.navigation';
-export const SHORTCUTS_GROUP_EDITOR = 'editorManager.handlingEditor';
 
 class EditorManager {
   /**
-   * @param {Core} instance The Handsontable instance.
+   * Instance of {@link Handsontable}.
+   *
+   * @private
+   * @type {Handsontable}
+   */
+  hot;
+  /**
+   * Reference to an instance's private GridSettings object.
+   *
+   * @private
+   * @type {GridSettings}
+   */
+  tableMeta;
+  /**
+   * Instance of {@link Selection}.
+   *
+   * @private
+   * @type {Selection}
+   */
+  selection;
+  /**
+   * Instance of {@link EventManager}.
+   *
+   * @private
+   * @type {EventManager}
+   */
+  eventManager;
+  /**
+   * Determines if EditorManager is destroyed.
+   *
+   * @private
+   * @type {boolean}
+   */
+  destroyed = false;
+  /**
+   * A reference to an instance of the activeEditor.
+   *
+   * @private
+   * @type {BaseEditor}
+   */
+  activeEditor;
+  /**
+   * Keeps a reference to the cell's properties object.
+   *
+   * @type {object}
+   */
+  cellProperties;
+
+  /**
+   * @param {Core} hotInstance The Handsontable instance.
    * @param {TableMeta} tableMeta The table meta instance.
    * @param {Selection} selection The selection instance.
    */
-  constructor(instance, tableMeta, selection) {
-    /**
-     * Instance of {@link Handsontable}.
-     *
-     * @private
-     * @type {Handsontable}
-     */
-    this.instance = instance;
-    /**
-     * Reference to an instance's private GridSettings object.
-     *
-     * @private
-     * @type {GridSettings}
-     */
+  constructor(hotInstance, tableMeta, selection) {
+    this.hot = hotInstance;
     this.tableMeta = tableMeta;
-    /**
-     * Instance of {@link Selection}.
-     *
-     * @private
-     * @type {Selection}
-     */
     this.selection = selection;
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(instance);
-    /**
-     * Determines if EditorManager is destroyed.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.destroyed = false;
-    /**
-     * Determines if EditorManager is locked.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.lock = false;
-    /**
-     * A reference to an instance of the activeEditor.
-     *
-     * @private
-     * @type {BaseEditor}
-     */
-    this.activeEditor = void 0;
-    /**
-     * Keeps a reference to the cell's properties object.
-     *
-     * @type {object}
-     */
-    this.cellProperties = void 0;
+    this.eventManager = new EventManager(hotInstance);
 
-    const shortcutManager = this.instance.getShortcutManager();
-
-    shortcutManager.addContext('editor');
-
-    this.registerShortcuts();
-
-    this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
+    this.hot.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
 
     // Open editor when text composition is started (IME editor)
-    this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'compositionstart', (event) => {
-      if (!this.destroyed && this.instance.isListening()) {
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'compositionstart', (event) => {
+      if (!this.destroyed && this.hot.isListening()) {
         this.openEditor('', event);
       }
     });
 
-    this.instance.view._wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
-  }
-
-  /**
-   * Register shortcuts responsible for handling some actions related to an editor.
-   *
-   * @private
-   */
-  registerShortcuts() {
-    const shortcutManager = this.instance.getShortcutManager();
-    const gridContext = shortcutManager.getContext('grid');
-    const editorContext = shortcutManager.getContext('editor');
-    const config = { group: SHORTCUTS_GROUP_EDITOR };
-
-    editorContext.addShortcuts([{
-      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control/Meta'], ['Enter', 'Control/Meta', 'Shift']],
-      callback: (event, keys) => {
-        this.closeEditorAndSaveChanges(shortcutManager.isCtrlPressed());
-        this.moveSelectionAfterEnter(keys.includes('shift'));
-      }
-    }, {
-      keys: [['Escape'], ['Escape', 'Control/Meta']],
-      callback: () => {
-        this.closeEditorAndRestoreOriginalValue(shortcutManager.isCtrlPressed());
-        this.activeEditor.focus();
-      },
-    }], config);
-
-    gridContext.addShortcuts([{
-      keys: [['F2']],
-      callback: (event) => {
-        this.openEditor(null, event, true);
-      },
-    }, {
-      keys: [['Backspace'], ['Delete']],
-      callback: () => {
-        this.instance.emptySelectedCells();
-        this.prepareEditor();
-      },
-    }, {
-      keys: [['Enter'], ['Enter', 'Shift']],
-      callback: (event, keys) => {
-        if (this.instance.getSettings().enterBeginsEditing) {
-          if (this.cellProperties.readOnly) {
-            this.moveSelectionAfterEnter();
-
-          } else {
-            this.openEditor(null, event, true);
-          }
-
-        } else {
-          this.moveSelectionAfterEnter(keys.includes('shift'));
-        }
-
-        stopImmediatePropagation(event); // required by HandsontableEditor
-      },
-    }], config);
-  }
-
-  /**
-   * Lock the editor from being prepared and closed. Locking the editor prevents its closing and
-   * reinitialized after selecting the new cell. This feature is necessary for a mobile editor.
-   */
-  lockEditor() {
-    this.lock = true;
-  }
-
-  /**
-   * Unlock the editor from being prepared and closed. This method restores the original behavior of
-   * the editors where for every new selection its instances are closed.
-   */
-  unlockEditor() {
-    this.lock = false;
-  }
-
-  /**
-   * Destroy current editor, if exists.
-   *
-   * @param {boolean} revertOriginal If `false` and the cell using allowInvalid option,
-   *                                 then an editor won't be closed until validation is passed.
-   */
-  destroyEditor(revertOriginal) {
-    if (!this.lock) {
-      this.closeEditor(revertOriginal);
-    }
+    this.hot.view._wt.update('onCellDblClick', (event, coords, elem) => this.#onCellDblClick(event, coords, elem));
   }
 
   /**
@@ -186,10 +89,6 @@ class EditorManager {
    * Prepare text input to be displayed at given grid cell.
    */
   prepareEditor() {
-    if (this.lock) {
-      return;
-    }
-
     if (this.activeEditor && this.activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved) => {
         if (dataSaved) {
@@ -200,8 +99,14 @@ class EditorManager {
       return;
     }
 
-    const { row, col } = this.instance.getSelectedRangeLast().highlight;
-    const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', row, col);
+    const highlight = this.hot.getSelectedRangeLast()?.highlight;
+
+    if (!highlight || highlight.isHeader()) {
+      return;
+    }
+
+    const { row, col } = highlight;
+    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', row, col);
     let visualRowToCheck = row;
     let visualColumnToCheck = col;
 
@@ -210,17 +115,7 @@ class EditorManager {
     }
 
     // Getting values using the modified coordinates.
-    this.cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);
-
-    const { activeElement } = this.instance.rootDocument;
-
-    // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
-    // and resets the `document.activeElement` property. The blurring should happen only when the
-    // previously selected input element has not belonged to the Handsontable editor. If blurring is
-    // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
-    if (activeElement && isOutsideInput(activeElement)) {
-      activeElement.blur();
-    }
+    this.cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
 
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
@@ -228,17 +123,17 @@ class EditorManager {
       return;
     }
 
-    const td = this.instance.getCell(row, col, true);
+    const td = this.hot.getCell(row, col, true);
 
     // Skip the preparation when the cell is not rendered in the DOM. The cell is scrolled out of
     // the table's viewport.
     if (td) {
-      const editorClass = this.instance.getCellEditor(this.cellProperties);
-      const prop = this.instance.colToProp(visualColumnToCheck);
+      const editorClass = this.hot.getCellEditor(this.cellProperties);
+      const prop = this.hot.colToProp(visualColumnToCheck);
       const originalValue =
-        this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
+        this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
 
-      this.activeEditor = getEditorInstance(editorClass, this.instance);
+      this.activeEditor = getEditorInstance(editorClass, this.hot);
       // Using not modified coordinates, as we need to get the table element using selection coordinates.
       // There is an extra translation in the editor for saving value.
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
@@ -269,13 +164,31 @@ class EditorManager {
       return;
     }
 
-    if (!this.activeEditor) {
-      const { row, col } = this.instance.getSelectedRangeLast().highlight;
-      const renderableRowIndex = this.instance.rowIndexMapper.getRenderableFromVisualIndex(row);
-      const renderableColumnIndex = this.instance.columnIndexMapper.getRenderableFromVisualIndex(col);
+    const selection = this.hot.getSelectedRangeLast();
+    let allowOpening = this.hot.runHooks(
+      'beforeBeginEditing',
+      selection.highlight.row,
+      selection.highlight.col,
+      newInitialValue,
+      event,
+      enableFullEditMode,
+    );
 
-      this.instance.view.scrollViewport(this.instance._createCellCoords(renderableRowIndex, renderableColumnIndex));
-      this.instance.view.render();
+    // If the above hook does not return boolean apply default behavior which disallows opening
+    // an editor after double mouse click for non-contiguous selection (while pressing Ctrl/Cmd) and
+    // for multiple selected cells (while pressing SHIFT).
+    if (event instanceof MouseEvent && typeof allowOpening !== 'boolean') {
+      allowOpening = this.hot.selection.getLayerLevel() === 0 && selection.isSingle();
+    }
+
+    if (allowOpening === false) {
+      this.clearActiveEditor();
+
+      return;
+    }
+
+    if (!this.activeEditor) {
+      this.hot.scrollToFocusedCell();
       this.prepareEditor();
     }
 
@@ -328,7 +241,7 @@ class EditorManager {
    * @private
    */
   clearActiveEditor() {
-    this.activeEditor = void 0;
+    this.activeEditor = undefined;
   }
 
   /**
@@ -342,14 +255,20 @@ class EditorManager {
    * @returns {boolean}
    */
   isCellEditable() {
-    const editorClass = this.instance.getCellEditor(this.cellProperties);
-    const { row, col } = this.instance.getSelectedRangeLast().highlight;
+    const selection = this.hot.getSelectedRangeLast();
+
+    if (!selection) {
+      return false;
+    }
+
+    const editorClass = this.hot.getCellEditor(this.cellProperties);
+    const { row, col } = selection.highlight;
     const {
       rowIndexMapper,
       columnIndexMapper
-    } = this.instance;
-    const isCellHidden = rowIndexMapper.isHidden(this.instance.toPhysicalRow(row)) ||
-      columnIndexMapper.isHidden(this.instance.toPhysicalColumn(col));
+    } = this.hot;
+    const isCellHidden = rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)) ||
+      columnIndexMapper.isHidden(this.hot.toPhysicalColumn(col));
 
     if (this.cellProperties.readOnly || !editorClass || isCellHidden) {
       return false;
@@ -359,20 +278,23 @@ class EditorManager {
   }
 
   /**
-   * Controls selection's behaviour after clicking `Enter`.
+   * Controls selection's behavior after clicking `Enter`.
    *
    * @private
-   * @param {boolean} isShiftPressed If `true`, then the selection will move up after hit enter.
+   * @param {KeyboardEvent} event The keyboard event object.
    */
-  moveSelectionAfterEnter(isShiftPressed) {
-    const enterMoves = typeof this.tableMeta.enterMoves === 'function' ?
-      this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves;
+  moveSelectionAfterEnter(event) {
+    const enterMoves = { ...typeof this.tableMeta.enterMoves === 'function' ?
+      this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves };
 
-    if (isShiftPressed) {
-      // move selection up
-      this.selection.transformStart(-enterMoves.row, -enterMoves.col);
+    if (event.shiftKey) {
+      enterMoves.row = -enterMoves.row;
+      enterMoves.col = -enterMoves.col;
+    }
+
+    if (this.hot.selection.isMultiple()) {
+      this.selection.transformFocus(enterMoves.row, enterMoves.col);
     } else {
-      // move selection down (add a new row if needed)
       this.selection.transformStart(enterMoves.row, enterMoves.col, true);
     }
   }
@@ -380,54 +302,23 @@ class EditorManager {
   /**
    * OnAfterDocumentKeyDown callback.
    *
-   * @private
    * @param {KeyboardEvent} event The keyboard event object.
    */
-  onAfterDocumentKeyDown(event) {
-    if (!this.instance.isListening()) {
+  #onAfterDocumentKeyDown(event) {
+    const selection = this.hot.getSelectedRangeLast();
+
+    if (!this.hot.isListening() || !selection || selection.highlight.isHeader() ||
+        isImmediatePropagationStopped(event)) {
       return;
     }
 
     const { keyCode } = event;
-
-    if (!this.selection.isSelected()) {
-      return;
-    }
 
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (!this.activeEditor || (this.activeEditor && !this.activeEditor.isWaiting())) {
       if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
-        const shortcutManager = this.instance.getShortcutManager();
-        const editorContext = shortcutManager.getContext('editor');
-        const runOnlySelectedConfig = {
-          runOnlyIf: () => isDefined(this.instance.getSelected()),
-          group: SHORTCUTS_GROUP_NAVIGATION
-        };
-
-        editorContext.addShortcuts([{
-          keys: [['ArrowUp']],
-          callback: () => {
-            this.instance.selection.transformStart(-1, 0);
-          },
-        }, {
-          keys: [['ArrowDown']],
-          callback: () => {
-            this.instance.selection.transformStart(1, 0);
-          },
-        }, {
-          keys: [['ArrowLeft']],
-          callback: () => {
-            this.instance.selection.transformStart(0, -1 * this.instance.getDirectionFactor());
-          },
-        }, {
-          keys: [['ArrowRight']],
-          callback: () => {
-            this.instance.selection.transformStart(0, this.instance.getDirectionFactor());
-          },
-        }], runOnlySelectedConfig);
-
         this.openEditor('', event);
       }
     }
@@ -436,14 +327,11 @@ class EditorManager {
   /**
    * OnCellDblClick callback.
    *
-   * @private
    * @param {MouseEvent} event The mouse event object.
    * @param {object} coords The cell coordinates.
-   * @param {HTMLTableCellElement|HTMLTableHeaderCellElement} elem The element which triggers the action.
    */
-  onCellDblClick(event, coords, elem) {
-    // may be TD or TH
-    if (elem.nodeName === 'TD') {
+  #onCellDblClick(event, coords) {
+    if (coords.isCell()) {
       this.openEditor(null, event, true);
     }
   }

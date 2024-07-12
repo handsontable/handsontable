@@ -1,0 +1,11 @@
+/* the icon for ascending order */
+.custom-sort-icon-example-2 span.colHeader.columnSorting.ascending::before {
+  content: '△';
+  background-image: none !important;
+}
+
+/* the icon for descending order */
+.custom-sort-icon-example-2 span.colHeader.columnSorting.descending::before {
+  content: '▽';
+  background-image: none !important;
+}

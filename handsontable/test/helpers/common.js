@@ -1,3 +1,25 @@
+const specContext = {};
+
+beforeEach(function() {
+  specContext.spec = this;
+});
+afterEach(() => {
+  specContext.spec = null;
+});
+
+beforeAll(() => {
+  // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').hide();
+  }
+});
+afterAll(() => {
+  // After the test are finished show the test suite dots
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').show();
+  }
+});
+
 /**
  * @param {number} [delay=100] The delay in ms after which the Promise is resolved.
  * @returns {Promise}
@@ -62,6 +84,10 @@ export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
 export const countRows = handsontableMethodFactory('countRows');
 export const countSourceCols = handsontableMethodFactory('countSourceCols');
 export const countSourceRows = handsontableMethodFactory('countSourceRows');
+export const countRenderedRows = handsontableMethodFactory('countRenderedRows');
+export const countRenderedCols = handsontableMethodFactory('countRenderedCols');
+export const countRowHeaders = handsontableMethodFactory('countRowHeaders');
+export const countColHeaders = handsontableMethodFactory('countColHeaders');
 export const countVisibleCols = handsontableMethodFactory('countVisibleCols');
 export const deselectCell = handsontableMethodFactory('deselectCell');
 export const destroy = handsontableMethodFactory('destroy');
@@ -76,6 +102,8 @@ export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
 export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
 export const getCellValidator = handsontableMethodFactory('getCellValidator');
 export const getColHeader = handsontableMethodFactory('getColHeader');
+export const getColumnMeta = handsontableMethodFactory('getColumnMeta');
+export const getColWidth = handsontableMethodFactory('getColWidth');
 export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
@@ -86,15 +114,18 @@ export const getDataAtProp = handsontableMethodFactory('getDataAtProp');
 export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
 export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 export const getDataType = handsontableMethodFactory('getDataType');
+export const getFocusManager = handsontableMethodFactory('getFocusManager');
 export const getInstance = handsontableMethodFactory('getInstance');
 export const getPlugin = handsontableMethodFactory('getPlugin');
 export const getRowHeader = handsontableMethodFactory('getRowHeader');
+export const getRowHeight = handsontableMethodFactory('getRowHeight');
 export const getSchema = handsontableMethodFactory('getSchema');
 export const getSelected = handsontableMethodFactory('getSelected');
 export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
 export const getSelectedRange = handsontableMethodFactory('getSelectedRange');
 export const getSelectedRangeLast = handsontableMethodFactory('getSelectedRangeLast');
 export const getSettings = handsontableMethodFactory('getSettings');
+export const getShortcutManager = handsontableMethodFactory('getShortcutManager');
 export const getSourceData = handsontableMethodFactory('getSourceData');
 export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray');
 export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
@@ -112,6 +143,7 @@ export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const render = handsontableMethodFactory('render');
 export const updateData = handsontableMethodFactory('updateData');
 export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
+export const scrollToFocusedCell = handsontableMethodFactory('scrollToFocusedCell');
 export const selectAll = handsontableMethodFactory('selectAll');
 export const selectCell = handsontableMethodFactory('selectCell');
 export const selectCells = handsontableMethodFactory('selectCells');
@@ -129,28 +161,7 @@ export const undo = handsontableMethodFactory('undo');
 export const updateSettings = handsontableMethodFactory('updateSettings');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
-
-const specContext = {};
-
-beforeEach(function() {
-  specContext.spec = this;
-});
-afterEach(() => {
-  specContext.spec = null;
-});
-
-beforeAll(() => {
-  // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
-  if (!process.env.JEST_WORKER_ID) {
-    $('.jasmine_html-reporter').hide();
-  }
-});
-afterAll(() => {
-  // After the test are finished show the test suite dots
-  if (!process.env.JEST_WORKER_ID) {
-    $('.jasmine_html-reporter').show();
-  }
-});
+export const unlisten = handsontableMethodFactory('unlisten');
 
 /**
  * @returns {object} Returns the spec object for currently running test.
@@ -167,25 +178,98 @@ export function hot() {
 }
 
 /**
+ * @returns {IndexMapper} Returns the row index mapper instance.
+ */
+export function rowIndexMapper() {
+  return hot().rowIndexMapper;
+}
+
+/**
+ * @returns {IndexMapper} Returns the column index mapper instance.
+ */
+export function columnIndexMapper() {
+  return hot().columnIndexMapper;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topOverlay() {
+  return hot().view._wt.wtOverlays.topOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomOverlay() {
+  return hot().view._wt.wtOverlays.bottomOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topInlineStartCornerOverlay() {
+  return hot().view._wt.wtOverlays.topInlineStartCornerOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function inlineStartOverlay() {
+  return hot().view._wt.wtOverlays.inlineStartOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomInlineStartCornerOverlay() {
+  return hot().view._wt.wtOverlays.bottomInlineStartCornerOverlay;
+}
+
+/**
+ * Moves the table's viewport to the specified y scroll position.
+ *
+ * @param {number} y The scroll position.
+ */
+export function setScrollTop(y) {
+  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
+    window.scrollTo(window.scrollX, y);
+  } else {
+    getMaster().find('.wtHolder')[0].scrollTop = y;
+  }
+}
+
+/**
+ * Moves the table's viewport to the specified x scroll position.
+ *
+ * @param {number} x The scroll position.
+ */
+export function setScrollLeft(x) {
+  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
+    window.scrollTo(x, window.scrollY);
+  } else {
+    getMaster().find('.wtHolder')[0].scrollLeft = x;
+  }
+}
+
+/**
  * Creates the Handsontable instance.
  *
  * @param {object} options The Handsontable options.
  * @param {boolean} explicitOptions If set to `true`, the options will be passed to the Handsontable instance as-is
  * and license key won't be added automatically.
+ * @param {jQuery} container The root element where the Handsontable will be injected.
  * @returns {Handsontable}
  */
-export function handsontable(options, explicitOptions = false) {
-  const currentSpec = spec();
-
+export function handsontable(options, explicitOptions = false, container = spec().$container) {
   // Add a license key to every Handsontable instance.
   if (options && !explicitOptions) {
     options.licenseKey = 'non-commercial-and-evaluation';
   }
 
-  currentSpec.$container.handsontable(options);
-  currentSpec.$container[0].focus(); // otherwise TextEditor tests do not pass in IE8
+  container.handsontable(options);
 
-  return currentSpec.$container.data('handsontable');
+  return container.data('handsontable');
 }
 
 /**
@@ -241,6 +325,54 @@ export function getBottomClone() {
  */
 export function getBottomInlineStartClone() {
   return spec().$container.find('.ht_clone_bottom_inline_start_corner');
+}
+
+/**
+ * Emulates the browser's TAB navigation to the Handsontable (from element above).
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
+ */
+export function triggerTabNavigationFromTop(hotInstance = hot()) {
+  $(hotInstance.rootElement).find('.htFocusCatcher').first().focus();
+}
+
+/**
+ * Emulates the browser's Shift+TAB navigation to the Handsontable (from element below).
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
+ */
+export function triggerTabNavigationFromBottom(hotInstance = hot()) {
+  $(hotInstance.rootElement).find('.htFocusCatcher').last().focus();
+}
+
+/**
+ * Returns an instance of the CellCoords class.
+ *
+ * @param {number} row The row index.
+ * @param {number} col The column index.
+ * @returns {CellCoords}
+ */
+export function cellCoords(row, col) {
+  return hot()._createCellCoords(row, col);
+}
+
+/**
+ * Returns an instance of the CellRange class.
+ *
+ * @param {number} rowFrom The row start index of the range.
+ * @param {number} colFrom The column start index.of the range.
+ * @param {number} rowTo The row end index of the range.
+ * @param {number} colTo The column end index of the range.
+ * @param {number} [rowFocus] The row focus/highlight index.
+ * @param {number} [colFocus] The column focus/highlight index.
+ * @returns {CellRange}
+ */
+export function cellRange(rowFrom, colFrom, rowTo, colTo, rowFocus = rowFrom, colFocus = colFrom) {
+  return hot()._createCellRange(
+    hot()._createCellCoords(rowFocus, colFocus),
+    hot()._createCellCoords(rowFrom, colFrom),
+    hot()._createCellCoords(rowTo, colTo),
+  );
 }
 
 /**
@@ -332,6 +464,24 @@ export function contextMenu(cell, instance) {
 }
 
 /**
+ * Opens and executes the context menu item action and closes the menu.
+ *
+ * @param {string} optionName The context menu item name to click.
+ * @returns {HTMLElement}
+ */
+export function selectContextMenuOption(optionName) {
+  const item = $('.htContextMenu .ht_master .htCore')
+    .find(`tbody td:contains(${optionName})`);
+
+  item.simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+
+  return item;
+}
+
+/**
  * Open (and not close) the sub menu of the context menu.
  *
  * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
@@ -342,7 +492,9 @@ export function openContextSubmenuOption(submenuName, cell) {
 
   const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
 
-  item.simulate('mouseover');
+  item
+    .simulate('mouseenter')
+    .simulate('mouseover');
 }
 
 /**
@@ -360,7 +512,11 @@ export async function selectContextSubmenuOption(submenuName, optionName, cell) 
   const contextSubMenu = $(`.htContextMenuSub_${submenuName}`);
   const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
 
-  button.simulate('mousedown').simulate('mouseup');
+  button
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
   closeContextMenu();
 }
 
@@ -374,9 +530,9 @@ export function closeContextMenu() {
 /**
  * Shows dropdown menu.
  *
- * @param {number|HTMLTableCellElement} columnIndexOrCell The column index or TD element under which the dropdown menu is triggered.
+ * @param {number|HTMLTableCellElement} [columnIndexOrCell=0] The column index or TD element under which the dropdown menu is triggered.
  */
-export function dropdownMenu(columnIndexOrCell) {
+export function dropdownMenu(columnIndexOrCell = 0) {
   let th = columnIndexOrCell;
 
   if (!(columnIndexOrCell instanceof HTMLTableCellElement)) {
@@ -395,6 +551,25 @@ export function dropdownMenu(columnIndexOrCell) {
 }
 
 /**
+ * Opens and executes the dropdown menu item action and closes the menu.
+ *
+ * @param {string} optionName The dropdown menu item name to click.
+ * @returns {HTMLElement}
+ */
+export function selectDropdownMenuOption(optionName) {
+  const item = $('.htDropdownMenu .ht_master .htCore')
+    .find(`tbody td:contains(${optionName})`);
+
+  item
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+
+  return item;
+}
+
+/**
  * Open (and not close) the sub menu of the dropdown menu.
  *
  * @param {string} submenuName The dropdown menu item name (it has to be a submenu) to hover.
@@ -405,7 +580,43 @@ export function openDropdownSubmenuOption(submenuName, cell) {
 
   const item = $(`.htDropdownMenu .ht_master .htCore tbody td:contains(${submenuName})`);
 
-  item.simulate('mouseover');
+  item
+    .simulate('mouseenter')
+    .simulate('mouseover');
+}
+
+/**
+ * Opens the condition menu of the dropdown menu.
+ *
+ * @param {'first' | 'second'} menuName The menu name to select.
+ */
+export function openDropdownByConditionMenu(menuName = 'first') {
+  $(conditionSelectRootElements()[menuName])
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+}
+
+/**
+ * Selects and executes the action of the condition menu of the dropdown menu.
+ *
+ * @param {string} optionName The condition menu item name to click.
+ * @param {'first' | 'second'} menuName The menu name to select.
+ * @returns {HTMLElement}
+ */
+export function selectDropdownByConditionMenuOption(optionName, menuName = 'first') {
+  const item = $(conditionMenuRootElements()[menuName])
+    .find('tbody td')
+    .filter((index, element) => element.textContent === optionName);
+
+  item
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+
+  return item;
 }
 
 /**
@@ -427,8 +638,8 @@ export function dropdownMenuRootElement() {
  * @returns {Event}
  */
 export function serveImmediatePropagation(event) {
-  if ((event !== null || event !== void 0)
-    && (event.isImmediatePropagationEnabled === null || event.isImmediatePropagationEnabled === void 0)) {
+  if ((event !== null || event !== undefined)
+    && (event.isImmediatePropagationEnabled === null || event.isImmediatePropagationEnabled === undefined)) {
     event.stopImmediatePropagation = function() {
       this.isImmediatePropagationEnabled = false;
       this.cancelBubble = true;

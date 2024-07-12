@@ -1,18 +1,3 @@
-import "core-js/modules/es.symbol.to-primitive.js";
-import "core-js/modules/es.date.to-primitive.js";
-import "core-js/modules/es.symbol.js";
-import "core-js/modules/es.symbol.description.js";
-import "core-js/modules/es.object.to-string.js";
-import "core-js/modules/es.number.constructor.js";
-import "core-js/modules/es.symbol.iterator.js";
-import "core-js/modules/es.array.iterator.js";
-import "core-js/modules/es.string.iterator.js";
-import "core-js/modules/web.dom-collections.iterator.js";
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-var _dictionary;
-function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 /**
  * @preserve
  * Authors: Alexey Rogachev
@@ -21,9 +6,81 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
  * Description: Definition file for Russian - Russia language-country.
  */
 import Handsontable from "handsontable";
-var C = Handsontable.languages.dictionaryKeys;
-var dictionary = (_dictionary = {
-  languageCode: 'ru-RU'
-}, _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ROW_ABOVE, 'Вставить строку выше'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ROW_BELOW, 'Вставить строку ниже'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_INSERT_LEFT, 'Вставить столбец слева'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_INSERT_RIGHT, 'Вставить столбец справа'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_ROW, ['Удалить строку', 'Удалить строки']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, ['Удалить столбец', 'Удалить столбцы']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_UNDO, 'Отменить'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REDO, 'Повторить'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_READ_ONLY, 'Только для чтения'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_CLEAR_COLUMN, 'Очистить столбец'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT, 'Выравнивание'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT, 'По левому краю'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER, 'По центру'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT, 'По правому краю'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY, 'По ширине'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP, 'По верхнему краю'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE, 'По центру'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM, 'По нижнему краю'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_FREEZE_COLUMN, 'Закрепить столбец'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN, 'Открепить столбец'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS, 'Границы'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_TOP, 'Сверху'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_RIGHT, 'Справа'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM, 'Снизу'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_BORDERS_LEFT, 'Слева'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_BORDERS, 'Удалить границу(ы)'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_ADD_COMMENT, 'Добавить комментарий'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_EDIT_COMMENT, 'Редактировать комментарий'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_REMOVE_COMMENT, 'Удалить комментарий'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT, 'Комментарий только для чтения'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_MERGE_CELLS, 'Объединить ячейки'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_UNMERGE_CELLS, 'Разделить ячейки'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_COPY, 'Копировать'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_CUT, 'Вырезать'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD, 'Вставить дочернюю строку'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD, 'Отделить от родителя'), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_HIDE_COLUMN, ['Скрыть столбец', 'Скрыть столбцы']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_SHOW_COLUMN, ['Показать столбец', 'Показать столбцы']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_HIDE_ROW, ['Скрыть строку', 'Скрыть строки']), _defineProperty(_dictionary, C.CONTEXTMENU_ITEMS_SHOW_ROW, ['Показать строку', 'Показать строки']), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NONE, 'Отсутствует'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_EMPTY, 'Пусто'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_EMPTY, 'Не пусто'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_EQUAL, 'Равно'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_EQUAL, 'Не равно'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_BEGINS_WITH, 'Начинается на'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_ENDS_WITH, 'Заканчивается на'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_CONTAINS, 'Содержит'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_CONTAIN, 'Не содержит'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_GREATER_THAN, 'Больше чем'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL, 'Больше или равно'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_LESS_THAN, 'Меньше чем'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL, 'Меньше или равно'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_BETWEEN, 'Между'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_NOT_BETWEEN, 'Не между'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_AFTER, 'После'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_BEFORE, 'До'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_TODAY, 'Сегодня'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_TOMORROW, 'Завтра'), _defineProperty(_dictionary, C.FILTERS_CONDITIONS_YESTERDAY, 'Вчера'), _defineProperty(_dictionary, C.FILTERS_VALUES_BLANK_CELLS, 'Пустые ячейки'), _defineProperty(_dictionary, C.FILTERS_DIVS_FILTER_BY_CONDITION, 'Фильтр по условию'), _defineProperty(_dictionary, C.FILTERS_DIVS_FILTER_BY_VALUE, 'Фильтр по значению'), _defineProperty(_dictionary, C.FILTERS_LABELS_CONJUNCTION, 'И'), _defineProperty(_dictionary, C.FILTERS_LABELS_DISJUNCTION, 'Или'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_SELECT_ALL, 'Выбрать все'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_CLEAR, 'Убрать'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_OK, 'OK'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_CANCEL, 'Отмена'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH, 'Поиск'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_PLACEHOLDER_VALUE, 'Значение'), _defineProperty(_dictionary, C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE, 'Второе значение'), _dictionary);
+const C = Handsontable.languages.dictionaryKeys;
+const dictionary = {
+  languageCode: 'ru-RU',
+  [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Вставить строку выше',
+  [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Вставить строку ниже',
+  [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Вставить столбец слева',
+  [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'Вставить столбец справа',
+  [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Удалить строку', 'Удалить строки'],
+  [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['Удалить столбец', 'Удалить столбцы'],
+  [C.CONTEXTMENU_ITEMS_UNDO]: 'Отменить',
+  [C.CONTEXTMENU_ITEMS_REDO]: 'Повторить',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY]: 'Только для чтения',
+  [C.CONTEXTMENU_ITEMS_CLEAR_COLUMN]: 'Очистить столбец',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT]: 'Выравнивание',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT]: 'По левому краю',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER]: 'По центру',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT]: 'По правому краю',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY]: 'По ширине',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP]: 'По верхнему краю',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE]: 'По центру',
+  [C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM]: 'По нижнему краю',
+  [C.CONTEXTMENU_ITEMS_FREEZE_COLUMN]: 'Закрепить столбец',
+  [C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN]: 'Открепить столбец',
+  [C.CONTEXTMENU_ITEMS_BORDERS]: 'Границы',
+  [C.CONTEXTMENU_ITEMS_BORDERS_TOP]: 'Сверху',
+  [C.CONTEXTMENU_ITEMS_BORDERS_RIGHT]: 'Справа',
+  [C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM]: 'Снизу',
+  [C.CONTEXTMENU_ITEMS_BORDERS_LEFT]: 'Слева',
+  [C.CONTEXTMENU_ITEMS_REMOVE_BORDERS]: 'Удалить границу(ы)',
+  [C.CONTEXTMENU_ITEMS_ADD_COMMENT]: 'Добавить комментарий',
+  [C.CONTEXTMENU_ITEMS_EDIT_COMMENT]: 'Редактировать комментарий',
+  [C.CONTEXTMENU_ITEMS_REMOVE_COMMENT]: 'Удалить комментарий',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Комментарий только для чтения',
+  [C.CONTEXTMENU_ITEMS_MERGE_CELLS]: 'Объединить ячейки',
+  [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Разделить ячейки',
+  [C.CONTEXTMENU_ITEMS_COPY]: 'Копировать',
+  [C.CONTEXTMENU_ITEMS_CUT]: 'Вырезать',
+  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Вставить дочернюю строку',
+  [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Отделить от родителя',
+  [C.CONTEXTMENU_ITEMS_HIDE_COLUMN]: ['Скрыть столбец', 'Скрыть столбцы'],
+  [C.CONTEXTMENU_ITEMS_SHOW_COLUMN]: ['Показать столбец', 'Показать столбцы'],
+  [C.CONTEXTMENU_ITEMS_HIDE_ROW]: ['Скрыть строку', 'Скрыть строки'],
+  [C.CONTEXTMENU_ITEMS_SHOW_ROW]: ['Показать строку', 'Показать строки'],
+  [C.FILTERS_CONDITIONS_NONE]: 'Отсутствует',
+  [C.FILTERS_CONDITIONS_EMPTY]: 'Пусто',
+  [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Не пусто',
+  [C.FILTERS_CONDITIONS_EQUAL]: 'Равно',
+  [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Не равно',
+  [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Начинается на',
+  [C.FILTERS_CONDITIONS_ENDS_WITH]: 'Заканчивается на',
+  [C.FILTERS_CONDITIONS_CONTAINS]: 'Содержит',
+  [C.FILTERS_CONDITIONS_NOT_CONTAIN]: 'Не содержит',
+  [C.FILTERS_CONDITIONS_GREATER_THAN]: 'Больше чем',
+  [C.FILTERS_CONDITIONS_GREATER_THAN_OR_EQUAL]: 'Больше или равно',
+  [C.FILTERS_CONDITIONS_LESS_THAN]: 'Меньше чем',
+  [C.FILTERS_CONDITIONS_LESS_THAN_OR_EQUAL]: 'Меньше или равно',
+  [C.FILTERS_CONDITIONS_BETWEEN]: 'Между',
+  [C.FILTERS_CONDITIONS_NOT_BETWEEN]: 'Не между',
+  [C.FILTERS_CONDITIONS_AFTER]: 'После',
+  [C.FILTERS_CONDITIONS_BEFORE]: 'До',
+  [C.FILTERS_CONDITIONS_TODAY]: 'Сегодня',
+  [C.FILTERS_CONDITIONS_TOMORROW]: 'Завтра',
+  [C.FILTERS_CONDITIONS_YESTERDAY]: 'Вчера',
+  [C.FILTERS_VALUES_BLANK_CELLS]: 'Пустые ячейки',
+  [C.FILTERS_DIVS_FILTER_BY_CONDITION]: 'Фильтр по условию',
+  [C.FILTERS_DIVS_FILTER_BY_VALUE]: 'Фильтр по значению',
+  [C.FILTERS_LABELS_CONJUNCTION]: 'И',
+  [C.FILTERS_LABELS_DISJUNCTION]: 'Или',
+  [C.FILTERS_BUTTONS_SELECT_ALL]: 'Выбрать все',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Убрать',
+  [C.FILTERS_BUTTONS_OK]: 'OK',
+  [C.FILTERS_BUTTONS_CANCEL]: 'Отмена',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Поиск',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Значение',
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Второе значение'
+};
 Handsontable.languages.registerLanguageDictionary(dictionary);
 export default dictionary;

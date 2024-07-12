@@ -1,7 +1,7 @@
-const { types } = require('@babel/core');
-const { declare } = require('@babel/helper-plugin-utils');
 const { existsSync, lstatSync } = require('fs');
 const { dirname, resolve } = require('path');
+const { types } = require('@babel/core');
+const { declare } = require('@babel/helper-plugin-utils');
 
 const VALID_EXTENSIONS = ['js', 'mjs'];
 

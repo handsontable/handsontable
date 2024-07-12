@@ -27,14 +27,14 @@ describe('NestedRows', () => {
 
         nrPlugin.disableCoreAPIModifiers();
 
-        expect(nrPlugin.onModifyRowData()).toBe(void 0);
-        expect(nrPlugin.onModifySourceLength()).toBe(void 0);
+        expect(nrPlugin.onModifyRowData()).toBe(undefined);
+        expect(nrPlugin.onModifySourceLength()).toBe(undefined);
         expect(nrPlugin.onBeforeDataSplice(1)).toBe(true);
 
         nrPlugin.enableCoreAPIModifiers();
 
-        expect(nrPlugin.onModifyRowData()).not.toBe(void 0);
-        expect(nrPlugin.onModifySourceLength()).not.toBe(void 0);
+        expect(nrPlugin.onModifyRowData()).not.toBe(undefined);
+        expect(nrPlugin.onModifySourceLength()).not.toBe(undefined);
         expect(nrPlugin.onBeforeDataSplice(1)).toBe(false);
       });
     });

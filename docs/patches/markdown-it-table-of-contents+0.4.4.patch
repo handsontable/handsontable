@@ -1,0 +1,15 @@
+diff --git a/node_modules/markdown-it-table-of-contents/index.js b/node_modules/markdown-it-table-of-contents/index.js
+index 92c5b62..fd91396 100644
+--- a/node_modules/markdown-it-table-of-contents/index.js
++++ b/node_modules/markdown-it-table-of-contents/index.js
+@@ -143,8 +143,8 @@ module.exports = (md, o) => {
+           headings.push(buffer);
+         }
+       }
+-      var slugifiedContent = options.slugify(heading.content);
+-      var link = "#"+slugifiedContent;
++      var linkToken = heading.children.find(element => element.type === 'link_open');
++      var link = linkToken ? linkToken.attrGet('href') : "#" + options.slugify(heading.content);
+       if (options.transformLink) {
+           link = options.transformLink(link);
+       }

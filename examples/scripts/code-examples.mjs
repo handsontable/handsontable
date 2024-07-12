@@ -29,7 +29,11 @@ const getExamplesFolders = (dirPath, exampleFolders, onlyWorkspaceConfigs = fals
   exampleFolders = exampleFolders || [];
 
   files.forEach((file) => {
-    if (file !== '.cache' && file !== 'node_modules' && fs.statSync(path.join(dirPath, file)).isDirectory()) {
+    if (
+      file !== '.cache' &&
+      file !== 'node_modules' &&
+      fs.statSync(path.join(dirPath, file)).isDirectory()
+    ) {
       exampleFolders = getExamplesFolders(path.join(dirPath, file), exampleFolders, onlyWorkspaceConfigs);
       return;
     }
@@ -73,12 +77,17 @@ const updatePackageJsonWithVersion = (projectDir, version) => {
   fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
 };
 
-const updateFrameworkWorkspacesNames = (projectDir, version) => {
+const updateFrameworkWorkspacesInformation = (projectDir, version) => {
   const packageJsonPath = path.join(projectDir, 'package.json');
   const packageJson = fs.readJsonSync(packageJsonPath);
 
   packageJson.name += `-${version}`;
   packageJson.version = version;
+
+  if (packageJson.scripts?.postinstall) {
+    packageJson.scripts.postinstall = packageJson.scripts.postinstall.replace(
+      'examples-version next', `examples-version ${version}`);
+  }
 
   fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
 };
@@ -139,7 +148,7 @@ switch (shellCommand) {
         displayConfirmationMessage('package.json updated for code examples');
 
         workspaceConfigFolders.forEach((frameworkFolder) => {
-          updateFrameworkWorkspacesNames(frameworkFolder, hotVersion);
+          updateFrameworkWorkspacesInformation(frameworkFolder, hotVersion);
         });
         displayConfirmationMessage('package.json updated for examples workspaces');
       });

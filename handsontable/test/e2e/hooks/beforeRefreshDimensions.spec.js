@@ -87,6 +87,37 @@ describe('Hook', () => {
       );
     });
 
+    it('should not be fired when the table\'s root element is hidden', async() => {
+      const beforeRefreshDimensions = jasmine.createSpy('beforeRefreshDimensions');
+      const hot = handsontable({
+        width: 120,
+        height: 100,
+        beforeRefreshDimensions,
+      });
+
+      hot.rootElement.style.display = 'none';
+      await sleep(50);
+
+      expect(beforeRefreshDimensions).not.toHaveBeenCalled();
+    });
+
+    it('should not be fired when the document body element is hidden', async() => {
+      const beforeRefreshDimensions = jasmine.createSpy('beforeRefreshDimensions');
+
+      handsontable({
+        width: 120,
+        height: 100,
+        beforeRefreshDimensions,
+      });
+
+      document.body.style.display = 'none';
+      await sleep(50);
+
+      expect(beforeRefreshDimensions).not.toHaveBeenCalled();
+
+      document.body.style.display = '';
+    });
+
     it('should be synced with `requestAnimationFrame` call', async() => {
       const beforeRefreshDimensions = jasmine.createSpy('beforeRefreshDimensions');
 
@@ -115,7 +146,7 @@ describe('Hook', () => {
         doc.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../dist/handsontable.full.min.css">
+            <link type="text/css" rel="stylesheet" href="../dist/handsontable.css">
           </head>`);
         doc.close();
 
@@ -169,7 +200,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].style.width = '50px';
 
-        await sleep(300);
+        await sleep(500);
 
         expect(beforeRefreshDimensions).toHaveBeenCalledWith(
           { width: 469, height: 0 },
@@ -189,7 +220,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].style.width = '50px';
 
-        await sleep(300);
+        await sleep(500);
 
         expect(beforeRefreshDimensions).toHaveBeenCalledWith(
           { width: 300, height: 300 },

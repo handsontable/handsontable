@@ -23,12 +23,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, 1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(1); // "insert row below"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
@@ -44,12 +39,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(1); // "insert row below"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', null, 'A3', 'A4', 'A5']);
@@ -75,25 +65,74 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(1); // "insert row below"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', null]);
       expect(`
-        |   ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ A : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
+    });
+
+    it('should insert row above when the menu is triggered by focused row header', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, -1);
+      getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+      const item = selectContextMenuOption('Insert row below');
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', null, 'A3', 'A4', 'A5']);
+    });
+
+    it('should not insert row above when the menu is triggered by focused corner', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, -1);
+      getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+      const item = selectContextMenuOption('Insert row below');
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
+    });
+
+    it('should not insert row above when the menu is triggered by focused column header', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+      getPlugin('contextMenu').open({ top: 0, left: 0 });
+
+      const item = selectContextMenuOption('Insert row below');
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
     });
 
     it('should insert row below when the menu is triggered by corner and all rows are trimmed', () => {
@@ -107,19 +146,14 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(1); // "insert row below"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual([null]);
       expect(`
-        |   ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
+        | - ║ A : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -133,12 +167,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(1); // "insert row below"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       // Currently HoT doesn't support row headers shift as it support columns.
@@ -147,12 +176,12 @@ describe('ContextMenu', () => {
       expect(`
         |   |
         |===|
-        | * |
-        | * |
-        | * |
-        | * |
-        | * |
-        | * |
+        | - |
+        | - |
+        | - |
+        | - |
+        | - |
+        | - |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -166,12 +195,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, -1, true));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(1); // "insert row below"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       // Currently HoT doesn't support row headers shift as it support columns.
@@ -180,7 +204,7 @@ describe('ContextMenu', () => {
       expect(`
         |   |
         |===|
-        | * |
+        | - |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -194,12 +218,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, 1));
 
-      const item = $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(1); // "insert row below"
-
-      simulateClick(item);
+      const item = selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', null, 'A3', 'A4', 'A5']);
@@ -228,10 +247,7 @@ describe('ContextMenu', () => {
 
         contextMenu();
 
-        const item = $('.htContextMenu .ht_master .htCore tbody')
-          .find('td')
-          .not('.htSeparator')
-          .eq(1); // "Insert row below"
+        const item = selectContextMenuOption('Insert row below');
 
         expect(item.hasClass('htDisabled')).toBe(true);
       });

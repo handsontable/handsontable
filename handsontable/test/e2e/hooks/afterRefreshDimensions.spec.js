@@ -15,7 +15,6 @@ describe('Hook', () => {
   describe('afterRefreshDimensions', () => {
     it('should be fired after root element size change', async() => {
       const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-
       const hot = handsontable({
         width: 120,
         height: 100,
@@ -28,9 +27,8 @@ describe('Hook', () => {
       expect(afterRefreshDimensions.calls.count()).toBe(1);
     });
 
-    it('should be fired with proper arguments (when root element is size changed)', async() => {
+    it('should be fired with proper arguments (when root element size is changed)', async() => {
       const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-
       const hot = handsontable({
         width: 120,
         height: 100,
@@ -49,7 +47,6 @@ describe('Hook', () => {
 
     it('should be fired with proper arguments (when root element size does not changed)', async() => {
       const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-
       const hot = handsontable({
         width: 120,
         height: 100,
@@ -64,6 +61,37 @@ describe('Hook', () => {
         { width: 120, height: 100 },
         false,
       );
+    });
+
+    it('should not be fired when the table\'s root element is hidden', async() => {
+      const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
+      const hot = handsontable({
+        width: 120,
+        height: 100,
+        afterRefreshDimensions,
+      });
+
+      hot.rootElement.style.display = 'none';
+      await sleep(50);
+
+      expect(afterRefreshDimensions).not.toHaveBeenCalled();
+    });
+
+    it('should not be fired when the document body element is hidden', async() => {
+      const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
+
+      handsontable({
+        width: 120,
+        height: 100,
+        afterRefreshDimensions,
+      });
+
+      document.body.style.display = 'none';
+      await sleep(50);
+
+      expect(afterRefreshDimensions).not.toHaveBeenCalled();
+
+      document.body.style.display = '';
     });
 
     it('should be synced with `requestAnimationFrame` call', async() => {
@@ -84,6 +112,40 @@ describe('Hook', () => {
       expect(afterRefreshDimensions.calls.count()).toBe(0);
     });
 
+    it('should not be stuck in an infinite loop when the parent container is sized with dynamic units (`dvh`) and' +
+      ' additional elements were added to the parent container - it should break the cycle and display an' +
+      ' appropriate warning message', async() => {
+      spyOn(console, 'warn');
+      const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
+      const $parentContainer = $('<div id="parentContainer"></div>').appendTo('body');
+
+      spec().$container.detach().appendTo($parentContainer);
+      $parentContainer
+        .css('width', '100%')
+        .css('min-height', '100dvh')
+        .css('overflow', 'hidden')
+        .append('<div id="additionalElement">Test</div>');
+
+      handsontable({
+        data: [[1, 2], [3, 4]],
+        afterRefreshDimensions,
+      });
+
+      await sleep(2000);
+
+      expect(afterRefreshDimensions).toHaveBeenCalledTimes(100);
+      // eslint-disable-next-line no-console
+      expect(console.warn).toHaveBeenCalledWith(
+        'The ResizeObserver callback was fired too many times in direct succession.' +
+        '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
+        'with the `dvh` units) to a Handsontable container\'s parent. ' +
+        '\nThe observer will be disconnected.'
+      );
+
+      destroy();
+      $parentContainer.remove();
+    });
+
     describe('running in iframe', () => {
       beforeEach(function() {
         this.$iframe = $('<iframe width="500px" height="60px"/>').appendTo(this.$container);
@@ -94,7 +156,7 @@ describe('Hook', () => {
         doc.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../dist/handsontable.full.min.css">
+            <link type="text/css" rel="stylesheet" href="../dist/handsontable.css">
           </head>`);
         doc.close();
 

@@ -1,15 +1,15 @@
-import nodeResolve from 'rollup-plugin-node-resolve';
-import babel from 'rollup-plugin-babel';
+import nodeResolve from '@rollup/plugin-node-resolve';
+import babel from '@rollup/plugin-babel';
 import typescript from 'rollup-plugin-typescript2';
-import json from 'rollup-plugin-json';
-import commonjs from 'rollup-plugin-commonjs';
+import json from '@rollup/plugin-json';
+import commonjs from '@rollup/plugin-commonjs';
 
 export const plugins = {
   typescript: typescript({
-    objectHashIgnoreUnknownHack: true,
     clean: true
   }),
   babel: babel({
+    babelHelpers: 'bundled',
     babelrc: false,
     exclude: ['/node_modules/', '**.json'],
     extensions: ['.js', '.ts', '.tsx', '.jsx'],
@@ -33,6 +33,13 @@ export const plugins = {
 
 export const baseConfig = {
   input: 'src/index.tsx',
+  output: {
+    interop: 'compat',
+    generatedCode: {
+			reservedNamesAsProps: false
+		},
+    systemNullSetters: false,
+  },
   plugins: [
     plugins.json,
     plugins.replace,
@@ -45,5 +52,7 @@ export const baseConfig = {
     'react',
     'react-dom',
     'handsontable/base',
+    'handsontable/renderers/registry',
+    'handsontable/editors/registry',
   ],
 };

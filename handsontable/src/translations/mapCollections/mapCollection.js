@@ -9,14 +9,12 @@ let registeredMaps = 0;
  * Collection of index maps having unique names. It allow us to perform bulk operations such as init, remove, insert on all index maps that have been registered in the collection.
  */
 export class MapCollection {
-  constructor() {
-    /**
-     * Collection of index maps.
-     *
-     * @type {Map<string, IndexMap>}
-     */
-    this.collection = new Map();
-  }
+  /**
+   * Collection of index maps.
+   *
+   * @type {Map<string, IndexMap>}
+   */
+  collection = new Map();
 
   /**
    * Register custom index map.

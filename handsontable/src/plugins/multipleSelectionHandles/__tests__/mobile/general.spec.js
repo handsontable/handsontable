@@ -81,4 +81,93 @@ describe('MultipleSelectionHandles', () => {
     expect(bottomSelectionHandle.is(':visible')).toBe(false);
     expect(bottomSelectionHandleHitArea.is(':visible')).toBe(false);
   });
+
+  it('should not show the selection handlers on context menu', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 8),
+      contextMenu: true,
+    });
+
+    selectCell(0, 0);
+
+    contextMenu();
+
+    getPlugin('contextMenu').menu.hotMenu.selectCell(0, 0);
+
+    const topSelectionHandle = $('.htContextMenu').eq(0)
+      .find('.ht_master .htBorders div:first-child .topSelectionHandle');
+    const topSelectionHandleHitArea = $('.htContextMenu').eq(0)
+      .find('.ht_master .htBorders div:first-child .topSelectionHandle-HitArea');
+    const bottomSelectionHandle = $('.htContextMenu').eq(0)
+      .find('.ht_master .htBorders div:first-child .bottomSelectionHandle');
+    const bottomSelectionHandleHitArea = $('.htContextMenu').eq(0)
+      .find('.ht_master .htBorders div:first-child .bottomSelectionHandle-HitArea');
+
+    expect(topSelectionHandle.size()).toBe(0);
+    expect(topSelectionHandleHitArea.size()).toBe(0);
+    expect(bottomSelectionHandle.size()).toBe(0);
+    expect(bottomSelectionHandleHitArea.size()).toBe(0);
+  });
+
+  it('should not show the selection handlers on the autocomplete dropdown', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 1),
+      columns: [
+        {
+          type: 'autocomplete',
+          source: ['1', '2', '3'],
+          filter: false,
+          strict: true
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+
+    keyDownUp('enter');
+
+    await sleep(50);
+
+    getActiveEditor().htEditor.selectCell(0, 0);
+
+    const topSelectionHandle = $('.autocompleteEditor').eq(0)
+      .find('.ht_master .htBorders div:first-child .topSelectionHandle');
+    const topSelectionHandleHitArea = $('.autocompleteEditor').eq(0)
+      .find('.ht_master .htBorders div:first-child .topSelectionHandle-HitArea');
+    const bottomSelectionHandle = $('.autocompleteEditor').eq(0)
+      .find('.ht_master .htBorders div:first-child .bottomSelectionHandle');
+    const bottomSelectionHandleHitArea = $('.autocompleteEditor').eq(0)
+      .find('.ht_master .htBorders div:first-child .bottomSelectionHandle-HitArea');
+
+    expect(topSelectionHandle.size()).toBe(0);
+    expect(topSelectionHandleHitArea.size()).toBe(0);
+    expect(bottomSelectionHandle.size()).toBe(0);
+    expect(bottomSelectionHandleHitArea.size()).toBe(0);
+  });
+
+  it('should not show the selection handlers on the dropdown menu', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 1),
+      colHeaders: true,
+      dropdownMenu: true,
+    });
+
+    dropdownMenu(0);
+
+    await sleep(50);
+
+    const topSelectionHandle = $('.htDropdownMenu').eq(0)
+      .find('.ht_master .htBorders div:first-child .topSelectionHandle');
+    const topSelectionHandleHitArea = $('.htDropdownMenu').eq(0)
+      .find('.ht_master .htBorders div:first-child .topSelectionHandle-HitArea');
+    const bottomSelectionHandle = $('.htDropdownMenu').eq(0)
+      .find('.ht_master .htBorders div:first-child .bottomSelectionHandle');
+    const bottomSelectionHandleHitArea = $('.htDropdownMenu').eq(0)
+      .find('.ht_master .htBorders div:first-child .bottomSelectionHandle-HitArea');
+
+    expect(topSelectionHandle.size()).toBe(0);
+    expect(topSelectionHandleHitArea.size()).toBe(0);
+    expect(bottomSelectionHandle.size()).toBe(0);
+    expect(bottomSelectionHandleHitArea.size()).toBe(0);
+  });
 });

@@ -194,7 +194,7 @@ describe('autocompleteValidator', () => {
 
       setTimeout(() => {
         expect(onAfterValidate.calls.argsFor(0)).toEqual([false, null, 0, 0]);
-        expect(onAfterValidate.calls.argsFor(1)).toEqual([false, void 0, 0, 1]);
+        expect(onAfterValidate.calls.argsFor(1)).toEqual([false, undefined, 0, 1]);
         expect(onAfterValidate.calls.argsFor(2)).toEqual([false, '', 0, 2]);
         done();
       }, 100);

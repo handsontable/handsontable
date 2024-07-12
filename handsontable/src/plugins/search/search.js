@@ -65,30 +65,27 @@ export class Search extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Function called during querying for each cell from the {@link DataMap}.
-     *
-     * @private
-     * @type {Function}
-     */
-    this.callback = DEFAULT_CALLBACK;
-    /**
-     * Query function is responsible for determining whether a query matches the value stored in a cell.
-     *
-     * @private
-     * @type {Function}
-     */
-    this.queryMethod = DEFAULT_QUERY_METHOD;
-    /**
-     * Class name added to each cell that belongs to the searched query.
-     *
-     * @private
-     * @type {string}
-     */
-    this.searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
-  }
+  /**
+   * Function called during querying for each cell from the {@link DataMap}.
+   *
+   * @private
+   * @type {Function}
+   */
+  callback = DEFAULT_CALLBACK;
+  /**
+   * Query function is responsible for determining whether a query matches the value stored in a cell.
+   *
+   * @private
+   * @type {Function}
+   */
+  queryMethod = DEFAULT_QUERY_METHOD;
+  /**
+   * Class name added to each cell that belongs to the searched query.
+   *
+   * @private
+   * @type {string}
+   */
+  searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -112,7 +109,7 @@ export class Search extends BasePlugin {
 
     this.updatePluginSettings(searchSettings);
 
-    this.addHook('beforeRenderer', (...args) => this.onBeforeRenderer(...args));
+    this.addHook('beforeRenderer', (...args) => this.#onBeforeRenderer(...args));
 
     super.enablePlugin();
   }
@@ -121,7 +118,7 @@ export class Search extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const beforeRendererCallback = (...args) => this.onBeforeRenderer(...args);
+    const beforeRendererCallback = (...args) => this.#onBeforeRenderer(...args);
 
     this.hot.addHook('beforeRenderer', beforeRendererCallback);
     this.hot.addHookOnce('afterViewRender', () => {
@@ -264,7 +261,6 @@ export class Search extends BasePlugin {
   /**
    * The `beforeRenderer` hook callback.
    *
-   * @private
    * @param {HTMLTableCellElement} TD The rendered `TD` element.
    * @param {number} row Visual row index.
    * @param {number} col Visual column index.
@@ -272,7 +268,7 @@ export class Search extends BasePlugin {
    * @param {string} value Value of the rendered cell.
    * @param {object} cellProperties Object containing the cell's properties.
    */
-  onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
+  #onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
     // TODO: #4972
     const className = cellProperties.className || [];
     let classArray = [];

@@ -30,6 +30,8 @@ class CellCoords {
    */
   col = null;
   /**
+   * A flag which determines if the coordinates run in RTL mode.
+   *
    * @type {boolean}
    */
   #isRtl = false;
@@ -45,26 +47,43 @@ class CellCoords {
 
   /**
    * Checks if the coordinates in your `CellCoords` instance are valid
-   * in the context of a given Walkontable instance.
+   * in the context of given table parameters.
    *
    * The `row` index:
-   * - Can't be negative.
-   * - Can't be higher than the total number of rows in the Walkontable instance.
+   * - Must be an integer.
+   * - Must be higher than the number of column headers in the table.
+   * - Must be lower than the total number of rows in the table.
    *
    * The `col` index:
-   * - Can't be negative.
-   * - Can't be higher than the total number of columns in the Walkontable instance.
+   * - Must be an integer.
+   * - Must be higher than the number of row headers in the table.
+   * - Must be lower than the total number of columns in the table.
    *
-   * @param {Walkontable} wot A Walkontable instance.
+   * @param {object} [tableParams] An object with a defined table size.
+   * @param {number} [tableParams.countRows=0] The total number of rows.
+   * @param {number} [tableParams.countCols=0] The total number of columns.
+   * @param {number} [tableParams.countRowHeaders=0] A number of row headers.
+   * @param {number} [tableParams.countColHeaders=0] A number of column headers.
    * @returns {boolean} `true`: The coordinates are valid.
    */
-  isValid(wot) {
-    // check if the row and column indexes are valid (0 or higher)
-    if (this.row < 0 || this.col < 0) {
+  isValid(tableParams) {
+    const { countRows, countCols, countRowHeaders, countColHeaders } = {
+      countRows: 0,
+      countCols: 0,
+      countRowHeaders: 0,
+      countColHeaders: 0,
+      ...tableParams,
+    };
+
+    if (!Number.isInteger(this.row) || !Number.isInteger(this.col)) {
       return false;
     }
-    // check if the selection fits in the total of rows and columns
-    if (this.row >= wot.getSetting('totalRows') || this.col >= wot.getSetting('totalColumns')) {
+
+    if (this.row < -countColHeaders || this.col < -countRowHeaders) {
+      return false;
+    }
+
+    if (this.row >= countRows || this.col >= countCols) {
       return false;
     }
 
@@ -72,18 +91,47 @@ class CellCoords {
   }
 
   /**
-   * Checks if another set of coordinates (`cellCoords`)
+   * Checks if another set of coordinates (`coords`)
    * is equal to the coordinates in your `CellCoords` instance.
    *
-   * @param {CellCoords} cellCoords Coordinates to check.
+   * @param {CellCoords} coords Coordinates to check.
    * @returns {boolean}
    */
-  isEqual(cellCoords) {
-    if (cellCoords === this) {
+  isEqual(coords) {
+    if (coords === this) {
       return true;
     }
 
-    return this.row === cellCoords.row && this.col === cellCoords.col;
+    return this.row === coords.row && this.col === coords.col;
+  }
+
+  /**
+   * Checks if the coordinates point to the headers range. If one of the axis (row or col) point to
+   * the header (negative value) then method returns `true`.
+   *
+   * @returns {boolean}
+   */
+  isHeader() {
+    return !this.isCell();
+  }
+
+  /**
+   * Checks if the coordinates point to the cells range. If all axis (row and col) point to
+   * the cell (positive value) then method returns `true`.
+   *
+   * @returns {boolean}
+   */
+  isCell() {
+    return this.row >= 0 && this.col >= 0;
+  }
+
+  /**
+   * Checks if the coordinates runs in RTL mode.
+   *
+   * @returns {boolean}
+   */
+  isRtl() {
+    return this.#isRtl;
   }
 
   /**
@@ -144,6 +192,29 @@ class CellCoords {
   normalize() {
     this.row = this.row === null ? this.row : Math.max(this.row, 0);
     this.col = this.col === null ? this.col : Math.max(this.col, 0);
+
+    return this;
+  }
+
+  /**
+   * Assigns the coordinates from another `CellCoords` instance (or compatible literal object)
+   * to your `CellCoords` instance.
+   *
+   * @param {CellCoords | { row: number | undefined, col: number | undefined }} coords The CellCoords
+   * instance or compatible literal object.
+   * @returns {CellCoords}
+   */
+  assign(coords) {
+    if (Number.isInteger(coords?.row)) {
+      this.row = coords.row;
+    }
+    if (Number.isInteger(coords?.col)) {
+      this.col = coords.col;
+    }
+
+    if (coords instanceof CellCoords) {
+      this.#isRtl = coords.isRtl();
+    }
 
     return this;
   }

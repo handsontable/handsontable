@@ -80,7 +80,7 @@ export function columnFactory(TableMeta, conflictList = []) {
 
   // Clear conflict settings
   for (let i = 0; i < conflictList.length; i++) {
-    ColumnMeta.prototype[conflictList[i]] = void 0;
+    ColumnMeta.prototype[conflictList[i]] = undefined;
   }
 
   return ColumnMeta;
@@ -115,5 +115,5 @@ export function assert(condition, errorMessage) {
  * @returns {boolean}
  */
 export function isNullish(variable) {
-  return variable === null || variable === void 0;
+  return variable === null || variable === undefined;
 }

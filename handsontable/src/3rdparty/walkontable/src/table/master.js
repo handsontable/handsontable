@@ -43,7 +43,8 @@ class MasterTable extends Table {
       const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
       const holderStyle = this.holder.style;
       const { scrollWidth, scrollHeight } = trimmingElement;
-      let { width, height } = trimmingElement.getBoundingClientRect();
+      let width = trimmingElement.offsetWidth;
+      let height = trimmingElement.offsetHeight;
       const overflow = ['auto', 'hidden', 'scroll'];
 
       if (trimmingElementParent && overflow.includes(trimmingOverflow)) {

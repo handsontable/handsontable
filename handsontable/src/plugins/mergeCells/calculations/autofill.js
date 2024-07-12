@@ -8,26 +8,29 @@ import { arrayEach } from '../../../helpers/array';
  * @class AutofillCalculations
  */
 class AutofillCalculations {
+  /**
+   * Reference to the Merge Cells plugin.
+   *
+   * @type {MergeCells}
+   */
+  plugin;
+  /**
+   * Reference to the MergedCellsCollection class instance.
+   *
+   * @type {MergedCellsCollection}
+   */
+  mergedCellsCollection;
+  /**
+   * Cache of the currently processed autofill data.
+   *
+   * @private
+   * @type {object}
+   */
+  currentFillData = null;
+
   constructor(plugin) {
-    /**
-     * Reference to the Merge Cells plugin.
-     *
-     * @type {MergeCells}
-     */
     this.plugin = plugin;
-    /**
-     * Reference to the MergedCellsCollection class instance.
-     *
-     * @type {MergedCellsCollection}
-     */
     this.mergedCellsCollection = this.plugin.mergedCellsCollection;
-    /**
-     * Cache of the currently processed autofill data.
-     *
-     * @private
-     * @type {object}
-     */
-    this.currentFillData = null;
   }
 
   /**
@@ -432,7 +435,7 @@ class AutofillCalculations {
     const bottomRight = this.plugin.hot._createCellCoords(dragAreaEndRow, dragAreaEndColumn);
     const dragRange = this.plugin.hot._createCellRange(topLeft, topLeft, bottomRight);
 
-    return !!this.mergedCellsCollection.getWithinRange(dragRange, true);
+    return this.mergedCellsCollection.getWithinRange(dragRange, true).length > 0;
   }
 }
 

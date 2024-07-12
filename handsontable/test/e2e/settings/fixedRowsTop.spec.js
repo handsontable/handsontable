@@ -80,7 +80,7 @@ describe('settings', () => {
           fixedRowsTop: 0
         });
 
-        expect(getTopClone().find('tbody tr').length).toEqual(2);
+        expect(getTopClone().find('tbody tr').length).toBe(0);
         expect(getInlineStartClone().height()).toBe(0);
       });
 
@@ -91,7 +91,7 @@ describe('settings', () => {
         window.onerror = function() {
           spy.test();
         };
-        const hot = handsontable({
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
@@ -103,7 +103,12 @@ describe('settings', () => {
         });
 
         setTimeout(() => {
-          hot.scrollViewportTo(30, 30);
+          scrollViewportTo({
+            row: 30,
+            col: 30,
+            verticalSnap: 'top',
+            horizontalSnap: 'start',
+          });
         }, 100);
 
         setTimeout(() => {
@@ -180,6 +185,24 @@ describe('settings', () => {
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(3);
+    });
+
+    it('should be possible to hide overlay when there are no headers enabled', () => {
+      const hot = handsontable({
+        colHeaders: false,
+        rowHeaders: false,
+        fixedRowsTop: 2,
+      });
+
+      updateSettings({
+        fixedRowsTop: 0,
+      });
+
+      hot.view.adjustElementsSize(); // this was causing a bug (#dev-678)
+
+      expect(getTopClone().width()).toBe(0);
+      expect(getTopClone().height()).toBe(0);
+      expect(getTopClone().find('tbody tr').length).toBe(0);
     });
 
     it('should not render column header with doubled border after inserting a new row (#7065)', () => {

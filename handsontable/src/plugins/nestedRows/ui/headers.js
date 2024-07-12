@@ -1,7 +1,8 @@
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
-import { addClass } from '../../../helpers/dom/element';
+import { addClass, setAttribute } from '../../../helpers/dom/element';
 import BaseUI from './_base';
+import { A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
 
 /**
  * Class responsible for the UI in the Nested Rows' row headers.
@@ -70,6 +71,7 @@ class HeadersUI extends BaseUI {
     const innerDiv = TH.getElementsByTagName('DIV')[0];
     const innerSpan = innerDiv.querySelector('span.rowHeader');
     const previousIndicators = innerDiv.querySelectorAll('[class^="ht_nesting"]');
+    const ariaEnabled = this.hot.getSettings().ariaTags;
 
     arrayEach(previousIndicators, (elem) => {
       if (elem) {
@@ -98,13 +100,31 @@ class HeadersUI extends BaseUI {
     if (this.dataManager.hasChildren(rowObject)) {
       const buttonsContainer = this.hot.rootDocument.createElement('DIV');
 
+      if (ariaEnabled) {
+        setAttribute(buttonsContainer, [
+          A11Y_HIDDEN(),
+        ]);
+      }
+
       addClass(TH, HeadersUI.CSS_CLASSES.parent);
 
       if (this.collapsingUI.areChildrenCollapsed(rowIndex)) {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.expandButton}`);
 
+        if (ariaEnabled) {
+          setAttribute(TH, [
+            A11Y_EXPANDED(false)
+          ]);
+        }
+
       } else {
         addClass(buttonsContainer, `${HeadersUI.CSS_CLASSES.button} ${HeadersUI.CSS_CLASSES.collapseButton}`);
+
+        if (ariaEnabled) {
+          setAttribute(TH, [
+            A11Y_EXPANDED(true)
+          ]);
+        }
       }
 
       innerDiv.appendChild(buttonsContainer);

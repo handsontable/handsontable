@@ -23,11 +23,11 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, 1));
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+      const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Cut';
       });
 
-      expect(readOnlyItem[0]).not.toBeUndefined();
+      expect(menuItem[0]).not.toBeUndefined();
     });
 
     it('should call plugin\'s `cut()` method after menu item click', () => {
@@ -41,7 +41,7 @@ describe('ContextMenu', () => {
       spyOn(getPlugin('copyPaste'), 'cut');
 
       contextMenu(getCell(1, 1));
-      simulateClick($('.htContextMenu tbody tr td:contains("Cut")'));
+      selectContextMenuOption('Cut');
 
       expect(getPlugin('copyPaste').cut).toHaveBeenCalled();
     });
@@ -59,11 +59,11 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, 1)); // Column header "B"
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+      const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Cut';
       });
 
-      expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
+      expect(menuItem.hasClass('htDisabled')).toBe(false);
     });
 
     it('should enable the item when all columns are hidden', () => {
@@ -79,11 +79,11 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, -1)); // Row header "2"
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+      const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Cut';
       });
 
-      expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
+      expect(menuItem.hasClass('htDisabled')).toBe(false);
     });
 
     it('should disable the item when all rows are trimmed', () => {
@@ -99,11 +99,11 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, 1)); // Column header "B"
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+      const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Cut';
       });
 
-      expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      expect(menuItem.hasClass('htDisabled')).toBe(true);
     });
 
     it('should disable the item when all columns are trimmed', () => {
@@ -119,11 +119,68 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, -1)); // Row header "2"
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+      const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Cut';
       });
 
-      expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+      expect(menuItem.hasClass('htDisabled')).toBe(true);
+    });
+
+    it('should be disabled when the single row header is selected', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(1, -1);
+      getPlugin('contextMenu').open($(getCell(1, -1)).offset());
+
+      const menuItem = $('.htContextMenu tbody tr td').filter(function() {
+        return this.textContent === 'Cut';
+      });
+
+      expect(menuItem.hasClass('htDisabled')).toBe(true);
+    });
+
+    it('should be disabled when the single column header is selected', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, 1);
+      getPlugin('contextMenu').open($(getCell(-1, 1)).offset());
+
+      const menuItem = $('.htContextMenu tbody tr td').filter(function() {
+        return this.textContent === 'Cut';
+      });
+
+      expect(menuItem.hasClass('htDisabled')).toBe(true);
+    });
+
+    it('should be disabled when the single corner is selected', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        navigableHeaders: true,
+      });
+
+      selectCell(-1, -1);
+      getPlugin('contextMenu').open($(getCell(-1, -1)).offset());
+
+      const menuItem = $('.htContextMenu tbody tr td').filter(function() {
+        return this.textContent === 'Cut';
+      });
+
+      expect(menuItem.hasClass('htDisabled')).toBe(true);
     });
   });
 });

@@ -12,8 +12,16 @@ export default class CellRange {
   setHighlight(coords: CellCoords): CellRange;
   setFrom(coords: CellCoords): CellRange;
   setTo(coords: CellCoords): CellRange;
-  isValid(wot: any): boolean;
-  isSingle(): boolean;
+  isValid(tableParams: {
+    countRows?: number;
+    countCols?: number;
+    countRowHeaders?: number;
+    countColHeaders?: number;
+  }): boolean;
+  isSingleCell(): boolean;
+  isSingleHeader(): boolean;
+  isHeader(): boolean;
+  containsHeaders(): boolean;
   getOuterHeight(): number;
   getOuterWidth(): number;
   getHeight(): number;
@@ -23,12 +31,12 @@ export default class CellRange {
   includesRange(cellRange: CellRange): boolean;
   isEqual(cellRange: CellRange): boolean;
   overlaps(cellRange: CellRange): boolean;
-  isSouthEastOf(cellRange: CellRange): boolean;
-  isNorthWestOf(cellRange: CellRange): boolean;
+  isSouthEastOf(coords: CellCoords): boolean;
+  isNorthWestOf(coords: CellCoords): boolean;
   isOverlappingHorizontally(cellRange: CellRange): boolean;
   isOverlappingVertically(cellRange: CellRange): boolean;
   expand(cellCoords: CellCoords): boolean;
-  expandByRange(expandingRange: CellRange): boolean;
+  expandByRange(expandingRange: CellRange, changeDirection: boolean): boolean;
   getDirection(): DirectionType;
   setDirection(direction: DirectionType): void;
   getVerticalDirection(): 'N-S' | 'S-N';
@@ -51,12 +59,12 @@ export default class CellRange {
   getOuterTopRightCorner(): CellCoords;
   getOuterBottomStartCorner(): CellCoords;
   getOuterBottomLeftCorner(): CellCoords;
-  isCorner(coords: CellCoords, expandedRange?: CellRange): boolean;
-  getOppositeCorner(coords: CellCoords, expandedRange?: CellRange): CellCoords;
+  isCorner(coords: CellCoords): boolean;
+  getOppositeCorner(coords: CellCoords): CellCoords;
   getBordersSharedWith(range: CellRange): Array<'top' | 'right' | 'bottom' | 'left'>;
   getInner(): CellCoords[];
   getAll(): CellCoords[];
   forAll(callback: (row: number, column: number) => boolean): void;
   clone(): CellRange;
-  toObject(): { from: { row: number, col: number}, to: { row: number, col: number} };
+  toObject(): { from: { row: number, col: number }, to: { row: number, col: number } };
 }

@@ -50,7 +50,7 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    keyDownUp('F2');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -319,6 +319,43 @@ describe('DropdownEditor', () => {
 
       window.onerror = prevError;
     });
+
+    // https://github.com/handsontable/dev-handsontable/issues/1724
+    it('should not throw any errors after opening the editor, when the saved value is represented by a option-cell ' +
+    'outside of the editor\'s initially loaded viewport', async() => {
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = function() {
+        spy.test();
+      };
+
+      handsontable({
+        data: [['49']],
+        columns: [
+          {
+            editor: 'dropdown',
+            source: (() => {
+              const arr = [];
+
+              for (let i = 0; i < 50; i++) {
+                arr.push(`${i}`);
+              }
+
+              return arr;
+            })(),
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      await sleep(100);
+
+      expect(spy.test).not.toHaveBeenCalled();
+
+      window.onerror = prevError;
+    });
   });
 
   describe('closing the editor', () => {
@@ -388,7 +425,7 @@ describe('DropdownEditor', () => {
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
-  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
+  it('should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)', async() => {
     const hot = handsontable({
       data: [
         ['one', 'two'],
@@ -401,9 +438,13 @@ describe('DropdownEditor', () => {
         },
         {},
       ],
+      imeFastEdit: true,
     });
 
     selectCell(0, 0);
+
+    // The `imeFastEdit` timeout is set to 50ms.
+    await sleep(55);
 
     const activeElement = hot.getActiveEditor().TEXTAREA;
 
@@ -411,7 +452,26 @@ describe('DropdownEditor', () => {
     expect(activeElement).not.toBe(null);
     expect(document.activeElement).toBe(activeElement);
 
-    await sleep(50);
+    keyDownUp('enter');
+
+    expect(document.activeElement).toBe(activeElement);
+
+    await sleep(200);
+
+    expect(document.activeElement).toBe(activeElement);
+
+    hot.getActiveEditor().TEXTAREA.value = 't';
+    keyDownUp('t');
+
+    expect(document.activeElement).toBe(activeElement);
+
+    hot.getActiveEditor().TEXTAREA.value = 'te';
+    keyDownUp('e');
+
+    expect(document.activeElement).toBe(activeElement);
+
+    hot.getActiveEditor().TEXTAREA.value = 'teo';
+    keyDownUp('o');
 
     expect(document.activeElement).toBe(activeElement);
   });
@@ -500,18 +560,21 @@ describe('DropdownEditor', () => {
   });
 
   describe('IME support', () => {
-    it('should focus editable element after selecting the cell', async() => {
+    it('should focus editable element after a timeout when selecting the cell if `imeFastEdit` is enabled', async() => {
       handsontable({
         columns: [
           {
             type: 'dropdown',
             source: choices,
           }
-        ]
+        ],
+        imeFastEdit: true,
       });
+
       selectCell(0, 0, 0, 0, true, false);
 
-      await sleep(10);
+      // The `imeFastEdit` timeout is set to 50ms.
+      await sleep(55);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

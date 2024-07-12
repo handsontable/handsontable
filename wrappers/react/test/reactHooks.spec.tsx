@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { act } from '@testing-library/react';
 import {
   HotTable
 } from '../src/hotTable';
@@ -6,7 +7,7 @@ import {
   createSpreadsheetData,
   mockElementDimensions,
   simulateMouseEvent,
-  mountComponent
+  mountComponentWithRef
 } from './_helpers';
 
 describe('Using hooks within HotTable renderers', () => {
@@ -24,7 +25,7 @@ describe('Using hooks within HotTable renderers', () => {
       );
     }
 
-    const hotInstance = mountComponent((
+    const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -41,15 +42,21 @@ describe('Using hooks within HotTable renderers', () => {
       </HotTable>
     )).hotInstance;
 
-    expect(hotInstance.getCell(0,0).querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
-    expect(hotInstance.getCell(1,1).querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
+    expect(hotInstance.getCell(0, 0).querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
+    expect(hotInstance.getCell(1, 1).querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
 
-    simulateMouseEvent(hotInstance.getCell(0,0).querySelector('button'), 'click');
-    simulateMouseEvent(hotInstance.getCell(0,0).querySelector('button'), 'click');
-    simulateMouseEvent(hotInstance.getCell(0,0).querySelector('button'), 'click');
+    await act(async () => {
+      simulateMouseEvent(hotInstance.getCell(0, 0).querySelector('button'), 'click');
+    });
+    await act(async () => {
+      simulateMouseEvent(hotInstance.getCell(0, 0).querySelector('button'), 'click');
+    });
+    await act(async () => {
+      simulateMouseEvent(hotInstance.getCell(0, 0).querySelector('button'), 'click');
+    });
 
-    expect(hotInstance.getCell(0,0).querySelector('span').innerHTML).toEqual('3');
-    expect(hotInstance.getCell(1,1).querySelector('span').innerHTML).toEqual('0');
+    expect(hotInstance.getCell(0, 0).querySelector('span').innerHTML).toEqual('3');
+    expect(hotInstance.getCell(1, 1).querySelector('span').innerHTML).toEqual('0');
   });
 });
 

@@ -5,26 +5,17 @@ import { isNumeric } from '../../helpers/number';
 export const RENDERER_TYPE = 'numeric';
 
 /**
- * Numeric cell renderer.
+ * Get the rendered value.
  *
- * @private
- * @param {Core} instance The Handsontable instance.
- * @param {HTMLTableCellElement} TD The rendered cell element.
- * @param {number} row The visual row index.
- * @param {number} col The visual column index.
- * @param {number|string} prop The column property (passed when datasource is an array of objects).
- * @param {*} value The rendered value.
- * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+ * @param {*} value Value to be rendered.
+ * @param {CellMeta} cellProperties Cell meta object.
+ * @returns {*} Returns the rendered value.
  */
-export function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  let newValue = value;
-
-  if (isNumeric(newValue)) {
+export function getRenderedValue(value, cellProperties) {
+  if (isNumeric(value)) {
     const numericFormat = cellProperties.numericFormat;
     const cellCulture = numericFormat && numericFormat.culture || '-';
     const cellFormatPattern = numericFormat && numericFormat.pattern;
-    const className = cellProperties.className || '';
-    const classArr = className.length ? className.split(' ') : [];
 
     if (typeof cellCulture !== 'undefined' && !numbro.languages()[cellCulture]) {
       const shortTag = cellCulture.replace('-', '');
@@ -37,7 +28,32 @@ export function numericRenderer(instance, TD, row, col, prop, value, cellPropert
 
     numbro.setLanguage(cellCulture);
 
-    newValue = numbro(newValue).format(cellFormatPattern || '0');
+    value = numbro(value).format(cellFormatPattern || '0');
+  }
+
+  return value;
+}
+
+/**
+ * Numeric cell renderer.
+ *
+ * @private
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {HTMLTableCellElement} TD The rendered cell element.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
+ * @param {number|string} prop The column property (passed when datasource is an array of objects).
+ * @param {*} value The rendered value.
+ * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
+ */
+export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+  let newValue = value;
+
+  if (isNumeric(newValue)) {
+    const className = cellProperties.className || '';
+    const classArr = className.length ? className.split(' ') : [];
+
+    newValue = getRenderedValue(newValue, cellProperties);
 
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
       classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
@@ -53,7 +69,7 @@ export function numericRenderer(instance, TD, row, col, prop, value, cellPropert
     TD.dir = 'ltr';
   }
 
-  textRenderer(instance, TD, row, col, prop, newValue, cellProperties);
+  textRenderer(hotInstance, TD, row, col, prop, newValue, cellProperties);
 }
 
 numericRenderer.RENDERER_TYPE = RENDERER_TYPE;

@@ -292,7 +292,7 @@ describe('LazyFactoryMap', () => {
       expect(iterator.next()).toEqual({ done: false, value: 90 });
       expect(iterator.next()).toEqual({ done: false, value: 12 });
       expect(iterator.next()).toEqual({ done: false, value: 13 });
-      expect(iterator.next()).toEqual({ done: true, value: void 0 });
+      expect(iterator.next()).toEqual({ done: true, value: undefined });
     });
 
     it('should return all values in the collection except that marked as "hole"', () => {
@@ -311,7 +311,7 @@ describe('LazyFactoryMap', () => {
 
       expect(iterator.next()).toEqual({ done: false, value: 12 });
       expect(iterator.next()).toEqual({ done: false, value: 13 });
-      expect(iterator.next()).toEqual({ done: true, value: void 0 });
+      expect(iterator.next()).toEqual({ done: true, value: undefined });
     });
   });
 
@@ -332,7 +332,7 @@ describe('LazyFactoryMap', () => {
       expect(iterator.next()).toEqual({ done: false, value: [90, 45] });
       expect(iterator.next()).toEqual({ done: false, value: [12, 6] });
       expect(iterator.next()).toEqual({ done: false, value: [13, 6.5] });
-      expect(iterator.next()).toEqual({ done: true, value: void 0 });
+      expect(iterator.next()).toEqual({ done: true, value: undefined });
     });
 
     it('should return all values in the collection except that marked as "hole"', () => {
@@ -351,7 +351,7 @@ describe('LazyFactoryMap', () => {
 
       expect(iterator.next()).toEqual({ done: false, value: [10, 6] });
       expect(iterator.next()).toEqual({ done: false, value: [11, 6.5] });
-      expect(iterator.next()).toEqual({ done: true, value: void 0 });
+      expect(iterator.next()).toEqual({ done: true, value: undefined });
     });
   });
 

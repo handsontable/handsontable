@@ -122,7 +122,7 @@ export default class SourceSettings {
 
     const headersSettings = this.#data[headerLevel];
 
-    if (columnIndex >= headersSettings.length) {
+    if (Array.isArray(headersSettings) === false || columnIndex >= headersSettings.length) {
       return null;
     }
 

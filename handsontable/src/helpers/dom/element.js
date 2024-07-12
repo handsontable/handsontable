@@ -1,11 +1,5 @@
-import {
-  hasCaptionProblem,
-  isClassListSupported,
-  isTextContentSupported,
-  isGetComputedStyleSupported,
-} from '../feature';
-import { isSafari, isIE9 } from '../browser';
 import { sanitize } from '../string';
+import { A11Y_HIDDEN } from '../a11y';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -38,6 +32,23 @@ export function getParent(element, level = 0) {
 }
 
 /**
+ * Check if the provided element is a child of the provided Handsontable container.
+ *
+ * @param {HTMLElement} element Element to be analyzed.
+ * @param {HTMLElement} thisHotContainer The Handsontable container.
+ * @returns {boolean}
+ */
+export function isThisHotChild(element, thisHotContainer) {
+  const closestHandsontableContainer = element.closest('.handsontable');
+
+  return !!closestHandsontableContainer &&
+    (
+      closestHandsontableContainer.parentNode === thisHotContainer ||
+      closestHandsontableContainer === thisHotContainer
+    );
+}
+
+/**
  * Gets `frameElement` of the specified frame. Returns null if it is a top frame or if script has no access to read property.
  *
  * @param {Window} frame Frame from which should be get frameElement in safe way.
@@ -50,7 +61,7 @@ export function getFrameElement(frame) {
 /**
  * Gets parent frame of the specified frame. Returns null if it is a top frame or if script has no access to read property.
  *
- * @param {Window} frame Frame from which should be get frameElement in safe way.
+ * @param {Window} frame Frame from which should get frameElement in a safe way.
  * @returns {Window|null}
  */
 export function getParentWindow(frame) {
@@ -60,7 +71,7 @@ export function getParentWindow(frame) {
 /**
  * Checks if script has access to read from parent frame of specified frame.
  *
- * @param {Window} frame Frame from which should be get frameElement in safe way.
+ * @param {Window} frame Frame from which should get frameElement in a safe way.
  * @returns {boolean}
  */
 export function hasAccessToParentWindow(frame) {
@@ -80,7 +91,7 @@ export function closest(element, nodes = [], until) {
   const { ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE } = Node;
   let elementToCheck = element;
 
-  while (elementToCheck !== null && elementToCheck !== void 0 && elementToCheck !== until) {
+  while (elementToCheck !== null && elementToCheck !== undefined && elementToCheck !== until) {
     const { nodeType, nodeName } = elementToCheck;
 
     if (nodeType === ELEMENT_NODE && (nodes.includes(nodeName) || nodes.includes(elementToCheck))) {
@@ -201,12 +212,8 @@ export function overlayContainsElement(overlayType, element, root) {
   return overlayElement ? overlayElement.contains(element) : null;
 }
 
-let _hasClass;
-let _addClass;
-let _removeClass;
-
 /**
- * @param {string} classNames The element "class" attribute string.
+ * @param {string[]} classNames The element "class" attribute string.
  * @returns {string[]}
  */
 function filterEmptyClassNames(classNames) {
@@ -217,127 +224,35 @@ function filterEmptyClassNames(classNames) {
   return classNames.filter(x => !!x);
 }
 
-if (isClassListSupported()) {
-  const isSupportMultipleClassesArg = function(rootDocument) {
-    const element = rootDocument.createElement('div');
+/**
+ * Filter out the RegExp entries from an array.
+ *
+ * @param {(string|RegExp)[]} list Array of either strings, Regexes or a mix of both.
+ * @param {boolean} [returnBoth] If `true`, both the array without regexes and an array of regexes will be returned.
+ * @returns {string[]|{regexFree: string[], regexes: RegExp[]}}
+ */
+function filterRegexes(list, returnBoth) {
+  if (!list || !list.length) {
+    return returnBoth ? { regexFree: [], regexes: [] } : [];
+  }
 
-    element.classList.add('test', 'test2');
+  const regexes = [];
+  const regexFree = [];
 
-    return element.classList.contains('test2');
-  };
+  regexFree.push(...list.filter((entry) => {
+    const isRegex = entry instanceof RegExp;
 
-  _hasClass = function(element, className) {
-    if (element.classList === void 0 || typeof className !== 'string' || className === '') {
-      return false;
+    if (isRegex && returnBoth) {
+      regexes.push(entry);
     }
 
-    return element.classList.contains(className);
-  };
+    return !isRegex;
+  }));
 
-  _addClass = function(element, classes) {
-    const rootDocument = element.ownerDocument;
-    let className = classes;
-
-    if (typeof className === 'string') {
-      className = className.split(' ');
-    }
-
-    className = filterEmptyClassNames(className);
-
-    if (className.length > 0) {
-      if (isSupportMultipleClassesArg(rootDocument)) {
-        element.classList.add(...className);
-
-      } else {
-        let len = 0;
-
-        while (className[len]) {
-          element.classList.add(className[len]);
-          len += 1;
-        }
-      }
-    }
-  };
-
-  _removeClass = function(element, classes) {
-    const rootDocument = element.ownerDocument;
-    let className = classes;
-
-    if (typeof className === 'string') {
-      className = className.split(' ');
-    }
-
-    className = filterEmptyClassNames(className);
-
-    if (className.length > 0) {
-      if (isSupportMultipleClassesArg(rootDocument)) {
-        element.classList.remove(...className);
-
-      } else {
-        let len = 0;
-
-        while (className[len]) {
-          element.classList.remove(className[len]);
-          len += 1;
-        }
-      }
-    }
-  };
-
-} else {
-  const createClassNameRegExp = function(className) {
-    return new RegExp(`(\\s|^)${className}(\\s|$)`);
-  };
-
-  _hasClass = function(element, className) {
-    // http://snipplr.com/view/3561/addclass-removeclass-hasclass/
-    return element.className !== void 0 && createClassNameRegExp(className).test(element.className);
-  };
-
-  _addClass = function(element, classes) {
-    let _className = element.className;
-    let className = classes;
-
-    if (typeof className === 'string') {
-      className = className.split(' ');
-    }
-
-    className = filterEmptyClassNames(className);
-
-    if (_className === '') {
-      _className = className.join(' ');
-
-    } else {
-      for (let len = 0; len < className.length; len++) {
-        if (className[len] && !createClassNameRegExp(className[len]).test(_className)) {
-          _className += ` ${className[len]}`;
-        }
-      }
-    }
-
-    element.className = _className;
-  };
-
-  _removeClass = function(element, classes) {
-    let len = 0;
-    let _className = element.className;
-    let className = classes;
-
-    if (typeof className === 'string') {
-      className = className.split(' ');
-    }
-
-    className = filterEmptyClassNames(className);
-
-    while (className[len]) {
-      // String.prototype.trim is defined in polyfill.js
-      _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
-      len += 1;
-    }
-    if (element.className !== _className) {
-      element.className = _className;
-    }
-  };
+  return returnBoth ? {
+    regexFree,
+    regexes
+  } : regexFree;
 }
 
 /**
@@ -348,7 +263,11 @@ if (isClassListSupported()) {
  * @returns {boolean}
  */
 export function hasClass(element, className) {
-  return _hasClass(element, className);
+  if (element.classList === undefined || typeof className !== 'string' || className === '') {
+    return false;
+  }
+
+  return element.classList.contains(className);
 }
 
 /**
@@ -358,17 +277,108 @@ export function hasClass(element, className) {
  * @param {string|Array} className Class name as string or array of strings.
  */
 export function addClass(element, className) {
-  _addClass(element, className);
+  if (typeof className === 'string') {
+    className = className.split(' ');
+  }
+
+  className = filterEmptyClassNames(className);
+
+  if (className.length > 0) {
+    element.classList.add(...className);
+  }
 }
 
 /**
  * Remove class name from an element.
  *
  * @param {HTMLElement} element An element to process.
- * @param {string|Array} className Class name as string or array of strings.
+ * @param {string|Array<string|RegExp>} className Class name as string or array of strings.
  */
 export function removeClass(element, className) {
-  _removeClass(element, className);
+  if (typeof className === 'string') {
+    className = className.split(' ');
+
+  } else if (className instanceof RegExp) {
+    className = [className];
+  }
+
+  let {
+    regexFree: stringClasses,
+    // eslint-disable-next-line prefer-const
+    regexes: regexClasses
+  } = filterRegexes(className, true);
+
+  stringClasses = filterEmptyClassNames(stringClasses);
+
+  if (stringClasses.length > 0) {
+    element.classList.remove(...stringClasses);
+  }
+
+  regexClasses.forEach((regexClassName) => {
+    element.classList.forEach((currentClassName) => {
+      if (regexClassName.test(currentClassName)) {
+        element.classList.remove(currentClassName);
+      }
+    });
+  });
+}
+
+/**
+ * Set a single attribute or multiple attributes at once.
+ *
+ * @param {HTMLElement} domElement The HTML element to be modified.
+ * @param {Array[]|string} attributes If setting multiple attributes at once, `attributes` holds an array containing the
+ * attributes to be added. Each element of the array should be an array in a form of `[attributeName,
+ * attributeValue]`. If setting a single attribute, `attributes` holds the name of the attribute.
+ * @param {string|number|undefined} [attributeValue] If setting a single attribute, `attributeValue` holds the attribute
+ * value.
+ */
+export function setAttribute(domElement, attributes = [], attributeValue) {
+  if (!Array.isArray(attributes)) {
+    attributes = [[attributes, attributeValue]];
+  }
+
+  attributes.forEach((attributeInfo) => {
+    if (Array.isArray(attributeInfo) && attributeInfo[0] !== '') {
+      domElement.setAttribute(...attributeInfo);
+    }
+  });
+}
+
+/**
+ * Remove a single attribute or multiple attributes from the provided element at once.
+ *
+ * @param {HTMLElement} domElement The HTML element to be processed.
+ * @param {Array<string|RegExp>|string} attributesToRemove If removing multiple attributes, `attributesToRemove`
+ * holds an array of attribute names to be removed from the provided element. If removing a single attribute, it
+ * holds the attribute name.
+ */
+export function removeAttribute(domElement, attributesToRemove = []) {
+  if (typeof attributesToRemove === 'string') {
+    attributesToRemove = attributesToRemove.split(' ');
+
+  } else if (attributesToRemove instanceof RegExp) {
+    attributesToRemove = [attributesToRemove];
+  }
+
+  const {
+    regexFree: stringAttributes,
+    regexes: regexAttributes
+  } = filterRegexes(attributesToRemove, true);
+
+  stringAttributes.forEach((attributeNameToRemove) => {
+    if (attributeNameToRemove !== '') {
+      domElement.removeAttribute(attributeNameToRemove);
+    }
+  });
+
+  regexAttributes.forEach((attributeRegex) => {
+    domElement.getAttributeNames().forEach((attributeName) => {
+      if (attributeRegex.test(attributeName)) {
+        domElement.removeAttribute(attributeName);
+      }
+    });
+  });
 }
 
 /**
@@ -388,7 +398,7 @@ export function removeTextNodes(element) {
 }
 
 /**
- * Remove childs function
+ * Remove children function
  * WARNING - this doesn't unload events and data attached by jQuery
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method.
@@ -407,7 +417,7 @@ export function empty(element) {
 export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
 
 /**
- * Insert content into element trying avoid innerHTML method.
+ * Insert content into element trying to avoid innerHTML method.
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
@@ -432,14 +442,8 @@ export function fastInnerText(element, content) {
 
   if (child && child.nodeType === 3 && child.nextSibling === null) {
     // fast lane - replace existing text node
+    child.textContent = content;
 
-    if (isTextContentSupported) {
-      // http://jsperf.com/replace-text-vs-reuse
-      child.textContent = content;
-    } else {
-      // http://jsperf.com/replace-text-vs-reuse
-      child.data = content;
-    }
   } else {
     // slow lane - empty element and insert a text node
     empty(element);
@@ -470,7 +474,6 @@ export function isVisible(element) {
 
         } else if (next.host) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
           return isVisible(next.host);
-
         }
         throw new Error('Lost in Web Components world');
 
@@ -478,7 +481,7 @@ export function isVisible(element) {
         return false; // this is a node detached from document in IE8
       }
 
-    } else if (next.style && next.style.display === 'none') {
+    } else if (getComputedStyle(next).display === 'none') {
       return false;
     }
 
@@ -502,18 +505,7 @@ export function offset(element) {
   let offsetLeft;
   let offsetTop;
   let lastElem;
-  let box;
 
-  if (hasCaptionProblem() && elementToCheck.firstChild && elementToCheck.firstChild.nodeName === 'CAPTION') {
-    // fixes problem with Firefox ignoring <caption> in TABLE offset (see also export outerHeight)
-    // http://jsperf.com/offset-vs-getboundingclientrect/8
-    box = elementToCheck.getBoundingClientRect();
-
-    return {
-      top: box.top + (rootWindow.pageYOffset || documentElement.scrollTop) - (documentElement.clientTop || 0),
-      left: box.left + (rootWindow.pageXOffset || documentElement.scrollLeft) - (documentElement.clientLeft || 0)
-    };
-  }
   offsetLeft = elementToCheck.offsetLeft;
   offsetTop = elementToCheck.offsetTop;
   lastElem = elementToCheck;
@@ -522,6 +514,11 @@ export function offset(element) {
   while (elementToCheck = elementToCheck.offsetParent) {
     // from my observation, document.body always has scrollLeft/scrollTop == 0
     if (elementToCheck === rootDocument.body) {
+      break;
+    }
+    // If the element is inside an SVG context, the `offsetParent` can be
+    // a <foreignObject> that does not have properties `offsetLeft` and `offsetTop` defined.
+    if (!('offsetLeft' in elementToCheck)) {
       break;
     }
     offsetLeft += elementToCheck.offsetLeft;
@@ -550,13 +547,7 @@ export function offset(element) {
  */
 // eslint-disable-next-line no-restricted-globals
 export function getWindowScrollTop(rootWindow = window) {
-  let res = rootWindow.scrollY;
-
-  if (res === void 0) { // IE8-11
-    res = rootWindow.document.documentElement.scrollTop;
-  }
-
-  return res;
+  return rootWindow.scrollY;
 }
 
 /**
@@ -567,13 +558,7 @@ export function getWindowScrollTop(rootWindow = window) {
  */
 // eslint-disable-next-line no-restricted-globals
 export function getWindowScrollLeft(rootWindow = window) {
-  let res = rootWindow.scrollX;
-
-  if (res === void 0) { // IE8-11
-    res = rootWindow.document.documentElement.scrollLeft;
-  }
-
-  return res;
+  return rootWindow.scrollX;
 }
 
 /**
@@ -616,7 +601,7 @@ export function getScrollLeft(element, rootWindow = window) {
  */
 export function getScrollableElement(element) {
   let rootDocument = element.ownerDocument;
-  let rootWindow = rootDocument ? rootDocument.defaultView : void 0;
+  let rootWindow = rootDocument ? rootDocument.defaultView : undefined;
 
   if (!rootDocument) {
     rootDocument = element.document ? element.document : element;
@@ -624,7 +609,6 @@ export function getScrollableElement(element) {
   }
 
   const props = ['auto', 'scroll'];
-  const supportedGetComputedStyle = isGetComputedStyleSupported();
   let el = element.parentNode;
 
   while (el && el.style && rootDocument.body !== el) {
@@ -633,7 +617,7 @@ export function getScrollableElement(element) {
     if ([overflow, overflowX, overflowY].includes('scroll')) {
       return el;
 
-    } else if (supportedGetComputedStyle) {
+    } else {
       ({ overflow, overflowX, overflowY } = rootWindow.getComputedStyle(el));
 
       if (props.includes(overflow) || props.includes(overflowX) || props.includes(overflowY)) {
@@ -653,6 +637,26 @@ export function getScrollableElement(element) {
   }
 
   return rootWindow;
+}
+
+/**
+ * Get the maximum available `scrollTop` value for the provided element.
+ *
+ * @param {HTMLElement} element The element to get the maximum scroll top value from.
+ * @returns {number} The maximum scroll top value.
+ */
+export function getMaximumScrollTop(element) {
+  return element.scrollHeight - element.clientHeight;
+}
+
+/**
+ * Get the maximum available `scrollLeft` value for the provided element.
+ *
+ * @param {HTMLElement} element The element to get the maximum scroll left value from.
+ * @returns {number} The maximum scroll left value.
+ */
+export function getMaximumScrollLeft(element) {
+  return element.scrollWidth - element.clientWidth;
 }
 
 /**
@@ -716,13 +720,13 @@ export function getStyle(element, prop, rootWindow = window) {
 
   const styleProp = element.style[prop];
 
-  if (styleProp !== '' && styleProp !== void 0) {
+  if (styleProp !== '' && styleProp !== undefined) {
     return styleProp;
   }
 
   const computedStyle = getComputedStyle(element, rootWindow);
 
-  if (computedStyle[prop] !== '' && computedStyle[prop] !== void 0) {
+  if (computedStyle[prop] !== '' && computedStyle[prop] !== undefined) {
     return computedStyle[prop];
   }
 }
@@ -779,17 +783,6 @@ export function outerWidth(element) {
  * @returns {number} Element's outer height.
  */
 export function outerHeight(element) {
-  if (hasCaptionProblem() && element.firstChild && element.firstChild.nodeName === 'CAPTION') {
-    // fixes problem with Firefox ignoring <caption> in TABLE.offsetHeight
-    // jQuery (1.10.1) still has this unsolved
-    // may be better to just switch to getBoundingClientRect
-    // http://bililite.com/blog/2009/03/27/finding-the-size-of-a-table/
-    // http://lists.w3.org/Archives/Public/www-style/2009Oct/0089.html
-    // http://bugs.jquery.com/ticket/2196
-    // http://lists.w3.org/Archives/Public/www-style/2009Oct/0140.html#start140
-    return element.offsetHeight + element.firstChild.offsetHeight;
-  }
-
   return element.offsetHeight;
 }
 
@@ -839,26 +832,8 @@ export function removeEvent(element, event, callback) {
  * @returns {number}
  */
 export function getCaretPosition(el) {
-  const rootDocument = el.ownerDocument;
-
   if (el.selectionStart) {
     return el.selectionStart;
-
-  } else if (rootDocument.selection) { // IE8
-    el.focus();
-
-    const r = rootDocument.selection.createRange();
-
-    if (r === null) {
-      return 0;
-    }
-    const re = el.createTextRange();
-    const rc = re.duplicate();
-
-    re.moveToBookmark(r.getBookmark());
-    rc.setEndPoint('EndToStart', re);
-
-    return rc.text.length;
   }
 
   return 0;
@@ -871,21 +846,8 @@ export function getCaretPosition(el) {
  * @returns {number}
  */
 export function getSelectionEndPosition(el) {
-  const rootDocument = el.ownerDocument;
-
   if (el.selectionEnd) {
     return el.selectionEnd;
-
-  } else if (rootDocument.selection) { // IE8
-    const r = rootDocument.selection.createRange();
-
-    if (r === null) {
-      return 0;
-    }
-
-    const re = el.createTextRange();
-
-    return re.text.indexOf(r.text) + r.text.length;
   }
 
   return 0;
@@ -904,6 +866,7 @@ export function getSelectionText(rootWindow = window) {
 
   if (rootWindow.getSelection) {
     text = rootWindow.getSelection().toString();
+
   } else if (rootDocument.selection && rootDocument.selection.type !== 'Control') {
     text = rootDocument.selection.createRange().text;
   }
@@ -918,8 +881,6 @@ export function getSelectionText(rootWindow = window) {
  */
 // eslint-disable-next-line no-restricted-globals
 export function clearTextSelection(rootWindow = window) {
-  const rootDocument = rootWindow.document;
-
   // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
   if (rootWindow.getSelection) {
     if (rootWindow.getSelection().empty) { // Chrome
@@ -927,8 +888,6 @@ export function clearTextSelection(rootWindow = window) {
     } else if (rootWindow.getSelection().removeAllRanges) { // Firefox
       rootWindow.getSelection().removeAllRanges();
     }
-  } else if (rootDocument.selection) { // IE?
-    rootDocument.selection.empty();
   }
 }
 
@@ -941,7 +900,7 @@ export function clearTextSelection(rootWindow = window) {
  * @param {number} endPos The selection end position.
  */
 export function setCaretPosition(element, pos, endPos) {
-  if (endPos === void 0) {
+  if (endPos === undefined) {
     endPos = pos;
   }
   if (element.setSelectionRange) {
@@ -1011,7 +970,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollbarWidth(rootDocument = document) {
-  if (cachedScrollbarWidth === void 0) {
+  if (cachedScrollbarWidth === undefined) {
     cachedScrollbarWidth = walkontableCalculateScrollbarWidth(rootDocument);
   }
 
@@ -1046,14 +1005,7 @@ export function hasHorizontalScrollbar(element) {
  * @param {number|string} top The top position of the overlay.
  */
 export function setOverlayPosition(overlayElem, left, top) {
-  if (isIE9()) {
-    overlayElem.style.top = top;
-    overlayElem.style.left = left;
-  } else if (isSafari()) {
-    overlayElem.style['-webkit-transform'] = `translate3d(${left},${top},0)`;
-  } else {
-    overlayElem.style.transform = `translate3d(${left},${top},0)`;
-  }
+  overlayElem.style.transform = `translate3d(${left},${top},0)`;
 }
 
 /**
@@ -1065,10 +1017,6 @@ export function getCssTransform(element) {
 
   if (element.style.transform && (transform = element.style.transform) !== '') {
     return ['transform', transform];
-
-  } else if (element.style['-webkit-transform'] && (transform = element.style['-webkit-transform']) !== '') {
-
-    return ['-webkit-transform', transform];
   }
 
   return -1;
@@ -1080,8 +1028,6 @@ export function getCssTransform(element) {
 export function resetCssTransform(element) {
   if (element.style.transform && element.style.transform !== '') {
     element.style.transform = '';
-  } else if (element.style['-webkit-transform'] && element.style['-webkit-transform'] !== '') {
-    element.style['-webkit-transform'] = '';
   }
 }
 
@@ -1152,4 +1098,73 @@ export function observeVisibilityChangeOnce(elementToBeObserved, callback) {
   });
 
   visibilityObserver.observe(elementToBeObserved);
+}
+
+/**
+ * Add a `contenteditable` attribute, select the contents and optionally add the `invisibleSelection`
+ * class to the provided element.
+ *
+ * @param {HTMLElement} element Element to be processed.
+ * @param {boolean} [invisibleSelection=true] `true` if the class should be added to the element.
+ * @param {boolean} [ariaHidden=true] `true` if the `aria-hidden` attribute should be added to the processed element.
+ */
+export function makeElementContentEditableAndSelectItsContent(element, invisibleSelection = true, ariaHidden = true) {
+  const ownerDocument = element.ownerDocument;
+  const range = ownerDocument.createRange();
+  const sel = ownerDocument.defaultView.getSelection();
+
+  setAttribute(element, 'contenteditable', true);
+
+  if (ariaHidden) {
+    setAttribute(element, ...A11Y_HIDDEN());
+  }
+
+  if (invisibleSelection) {
+    addClass(element, 'invisibleSelection');
+  }
+
+  range.selectNodeContents(element);
+
+  sel.removeAllRanges();
+
+  sel.addRange(range);
+}
+
+/**
+ * Remove the `contenteditable` attribute, deselect the contents and optionally remove the `invisibleSelection`
+ * class from the provided element.
+ *
+ * @param {HTMLElement} selectedElement The element to be deselected.
+ * @param {boolean} [removeInvisibleSelectionClass=true] `true` if the class should be removed from the element.
+ */
+export function removeContentEditableFromElementAndDeselect(selectedElement, removeInvisibleSelectionClass = true) {
+  const sel = selectedElement.ownerDocument.defaultView.getSelection();
+
+  if (selectedElement.hasAttribute('aria-hidden')) {
+    selectedElement.removeAttribute('aria-hidden');
+  }
+
+  sel.removeAllRanges();
+
+  if (removeInvisibleSelectionClass) {
+    removeClass(selectedElement, 'invisibleSelection');
+  }
+
+  selectedElement.removeAttribute('contenteditable');
+}
+
+/**
+ * Run the provided callback while the provided element is selected and modified to have the `contenteditable`
+ * attribute added. Optionally, the selection can be configured to be invisible.
+ *
+ * @param {HTMLElement} element Element to be selected.
+ * @param {Function} callback Callback to be called.
+ * @param {boolean} [invisibleSelection=true] `true` if the selection should be invisible.
+ */
+export function runWithSelectedContendEditableElement(element, callback, invisibleSelection = true) {
+  makeElementContentEditableAndSelectItsContent(element, invisibleSelection);
+
+  callback();
+
+  removeContentEditableFromElementAndDeselect(element, invisibleSelection);
 }

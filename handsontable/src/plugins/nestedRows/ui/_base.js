@@ -5,16 +5,19 @@
  * @class
  */
 class BaseUI {
+  /**
+   * Instance of Handsontable.
+   *
+   * @type {Core}
+   */
+  hot;
+  /**
+   * Reference to the main plugin instance.
+   */
+  plugin;
+
   constructor(pluginInstance, hotInstance) {
-    /**
-     * Instance of Handsontable.
-     *
-     * @type {Core}
-     */
     this.hot = hotInstance;
-    /**
-     * Reference to the main plugin instance.
-     */
     this.plugin = pluginInstance;
   }
 }

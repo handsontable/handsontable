@@ -747,7 +747,7 @@ describe('Core_loadData', () => {
       // this lets us remember `attr` for when when it is get/set
       return {
         data(model, value) {
-          if (value === void 0) {
+          if (value === undefined) {
             return model.get(attribute);
           }
 
@@ -820,7 +820,7 @@ describe('Core_loadData', () => {
       // this lets us remember `attr` for when when it is get/set
       return {
         data(car, value) {
-          if (value === void 0) {
+          if (value === undefined) {
             return car.get(attribute);
           }
 

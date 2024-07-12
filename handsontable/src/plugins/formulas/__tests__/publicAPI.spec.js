@@ -2,10 +2,9 @@ import HyperFormula from 'hyperformula';
 
 describe('Formulas public API', () => {
   const debug = false;
-  const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -29,7 +28,7 @@ describe('Formulas public API', () => {
           ['', ''],
           ['=A1', '\'=A1'],
           [0, true],
-          [null, void 0],
+          [null, undefined],
         ],
         formulas: {
           engine: HyperFormula
@@ -64,7 +63,7 @@ describe('Formulas public API', () => {
           [null, null],
           ['=A1', '\'=A1'],
           [0, true],
-          [null, void 0],
+          [null, undefined],
           ['', 1.1],
         ],
         formulas: {

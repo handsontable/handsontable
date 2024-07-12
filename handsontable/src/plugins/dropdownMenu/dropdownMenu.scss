@@ -12,6 +12,11 @@
   margin: 3px 1px 0 5px;
   float: inline-end;
 }
+
+.handsontable[dir="rtl"] .changeType {
+  margin: 3px 5px 0 1px;
+}
+
 .handsontable .changeType:before {
   content: '\25BC\ ';
 }
@@ -46,6 +51,10 @@
   border-inline-end-width: 2px;
 }
 
+.htDropdownMenu.handsontable:focus {
+  outline: none;
+}
+
 .htDropdownMenu .wtBorder {
   visibility: hidden;
 }
@@ -72,8 +81,7 @@
   color: #323232;
 }
 
-.htDropdownMenu table tbody tr td.current,
-.htDropdownMenu table tbody tr td.zeroclipboard-is-hover {
+.htDropdownMenu table tbody tr td.current {
   background: #e9e9e9;
 }
 
@@ -99,14 +107,15 @@
 }
 
 .htDropdownMenu table tbody tr td .htItemWrapper {
-  margin-left: 10px;
-  margin-right: 10px;
+  margin-inline-start: 10px;
+  margin-inline-end: 10px;
 }
 
 .htDropdownMenu table tbody tr td div span.selected {
   margin-top: -2px;
   position: absolute;
-  left: 4px;
+  inset-inline-start: 4px;
+  inset-inline-end: 0;
 }
 
 .htDropdownMenu .ht_master .wtHolder {

@@ -2,7 +2,6 @@ import MergedCellCoords from './cellCoords';
 import { rangeEach, rangeEachReverse } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
-import { applySpanProperties } from './utils';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 /**
@@ -12,35 +11,45 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
  * @class MergedCellsCollection
  */
 class MergedCellsCollection {
-  constructor(plugin) {
-    /**
-     * Reference to the Merge Cells plugin.
-     *
-     * @type {MergeCells}
-     */
-    this.plugin = plugin;
-    /**
-     * Array of merged cells.
-     *
-     * @type {Array}
-     */
-    this.mergedCells = [];
-    /**
-     * The Handsontable instance.
-     *
-     * @type {Handsontable}
-     */
-    this.hot = plugin.hot;
+  /**
+   * Reference to the Merge Cells plugin.
+   *
+   * @type {MergeCells}
+   */
+  plugin;
+  /**
+   * Array of merged cells.
+   *
+   * @type {MergedCellCoords[]}
+   */
+  mergedCells = [];
+  /**
+   * Matrix of cells (row, col) that points to the instances of the MergedCellCoords objects.
+   *
+   * @type {Array}
+   */
+  mergedCellsMatrix = new Map();
+  /**
+   * The Handsontable instance.
+   *
+   * @type {Handsontable}
+   */
+  hot;
+
+  constructor(mergeCellsPlugin) {
+    this.plugin = mergeCellsPlugin;
+    this.hot = mergeCellsPlugin.hot;
   }
 
   /**
    * Get a warning message for when the declared merged cell data overlaps already existing merged cells.
    *
-   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCell Object containing information
+   * about the merged cells that was about to be added.
    * @returns {string}
    */
-  static IS_OVERLAPPING_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}], overlaps\x20
+  static IS_OVERLAPPING_WARNING({ row, col }) {
+    return toSingleLine`The merged cell declared at [${row}, ${col}], overlaps\x20
       with the other declared merged cell. The overlapping merged cell was not added to the table, please\x20
       fix your setup.`;
   }
@@ -54,34 +63,23 @@ class MergedCellsCollection {
    * @returns {MergedCellCoords|boolean} Returns a wanted merged cell on success and `false` on failure.
    */
   get(row, column) {
-    const mergedCells = this.mergedCells;
-    let result = false;
+    if (!this.mergedCellsMatrix.has(row)) {
+      return false;
+    }
 
-    arrayEach(mergedCells, (mergedCell) => {
-      if (mergedCell.row <= row && mergedCell.row + mergedCell.rowspan - 1 >= row &&
-        mergedCell.col <= column && mergedCell.col + mergedCell.colspan - 1 >= column) {
-        result = mergedCell;
-
-        return false;
-      }
-
-      return true;
-    });
-
-    return result;
+    return this.mergedCellsMatrix.get(row).get(column) ?? false;
   }
 
   /**
-   * Get a merged cell containing the provided range.
+   * Get the first-found merged cell containing the provided range.
    *
    * @param {CellRange|object} range The range to search merged cells for.
    * @returns {MergedCellCoords|boolean}
    */
   getByRange(range) {
-    const mergedCells = this.mergedCells;
     let result = false;
 
-    arrayEach(mergedCells, (mergedCell) => {
+    arrayEach(this.mergedCells, (mergedCell) => {
       if (mergedCell.row <= range.from.row && mergedCell.row + mergedCell.rowspan - 1 >= range.to.row &&
         mergedCell.col <= range.from.col && mergedCell.col + mergedCell.colspan - 1 >= range.to.col) {
         result = mergedCell;
@@ -96,53 +94,95 @@ class MergedCellsCollection {
   }
 
   /**
-   * Get a merged cell contained in the provided range.
+   * Filters merge cells objects provided by users from overlapping cells.
    *
-   * @param {CellRange|object} range The range to search merged cells in.
-   * @param {boolean} [countPartials=false] If set to `true`, all the merged cells overlapping the range will be taken into calculation.
-   * @returns {Array|boolean} Array of found merged cells of `false` if none were found.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCellsInfo The merged cell information object.
+   * Has to contain `row`, `col`, `colspan` and `rowspan` properties.
+   * @returns {Array<{ row: number, col: number, rowspan: number, colspan: number }>}
    */
-  getWithinRange(range, countPartials = false) {
-    const mergedCells = this.mergedCells;
-    const foundMergedCells = [];
-    let testedRange = range;
+  filterOverlappingMergeCells(mergedCellsInfo) {
+    const occupiedCells = new Set();
 
-    if (!testedRange.includesRange) {
-      const from = this.hot._createCellCoords(testedRange.from.row, testedRange.from.col);
-      const to = this.hot._createCellCoords(testedRange.to.row, testedRange.to.col);
+    this.mergedCells.forEach((mergedCell) => {
+      const { row, col, colspan, rowspan } = mergedCell;
 
-      testedRange = this.hot._createCellRange(from, from, to);
-    }
-
-    arrayEach(mergedCells, (mergedCell) => {
-      const mergedCellTopLeft = this.hot._createCellCoords(mergedCell.row, mergedCell.col);
-      const mergedCellBottomRight = this.hot._createCellCoords(
-        mergedCell.row + mergedCell.rowspan - 1,
-        mergedCell.col + mergedCell.colspan - 1
-      );
-      const mergedCellRange = this.hot._createCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
-
-      if (countPartials) {
-        if (testedRange.overlaps(mergedCellRange)) {
-          foundMergedCells.push(mergedCell);
+      for (let r = row; r < row + rowspan; r++) {
+        for (let c = col; c < col + colspan; c++) {
+          occupiedCells.add(`r${r},c${c}`);
         }
-
-      } else if (testedRange.includesRange(mergedCellRange)) {
-        foundMergedCells.push(mergedCell);
       }
     });
 
-    return foundMergedCells.length ? foundMergedCells : false;
+    const filteredMergeCells = mergedCellsInfo.filter((mergedCell) => {
+      const { row, col, colspan, rowspan } = mergedCell;
+      const localOccupiedCells = new Set();
+      let isOverlapping = false;
+
+      for (let r = row; r < row + rowspan; r++) {
+        for (let c = col; c < col + colspan; c++) {
+          const cellId = `r${r},c${c}`;
+
+          if (occupiedCells.has(cellId)) {
+            warn(MergedCellsCollection.IS_OVERLAPPING_WARNING(mergedCell));
+            isOverlapping = true;
+            break;
+          }
+
+          localOccupiedCells.add(cellId);
+        }
+
+        if (isOverlapping) {
+          break;
+        }
+      }
+
+      if (!isOverlapping) {
+        occupiedCells.add(...localOccupiedCells);
+      }
+
+      return !isOverlapping;
+    });
+
+    return filteredMergeCells;
+  }
+
+  /**
+   * Get a merged cell contained in the provided range.
+   *
+   * @param {CellRange} range The range to search merged cells in.
+   * @param {boolean} [countPartials=false] If set to `true`, all the merged cells overlapping the range will be taken into calculation.
+   * @returns {MergedCellCoords[]} Array of found merged cells.
+   */
+  getWithinRange(range, countPartials = false) {
+    const { row: rowStart, col: columnStart } = range.getTopStartCorner();
+    const { row: rowEnd, col: columnEnd } = range.getBottomEndCorner();
+    const result = [];
+
+    for (let row = rowStart; row <= rowEnd; row++) {
+      for (let column = columnStart; column <= columnEnd; column++) {
+        const mergedCell = this.get(row, column);
+
+        if (
+          mergedCell &&
+          (countPartials ||
+          !countPartials && mergedCell.row === row && mergedCell.col === column)
+        ) {
+          result.push(mergedCell);
+        }
+      }
+    }
+
+    return result;
   }
 
   /**
    * Add a merged cell to the container.
    *
    * @param {object} mergedCellInfo The merged cell information object. Has to contain `row`, `col`, `colspan` and `rowspan` properties.
+   * @param {boolean} [auto=false] `true` if called internally by the plugin (usually in batch).
    * @returns {MergedCellCoords|boolean} Returns the new merged cell on success and `false` on failure.
    */
-  add(mergedCellInfo) {
-    const mergedCells = this.mergedCells;
+  add(mergedCellInfo, auto = false) {
     const row = mergedCellInfo.row;
     const column = mergedCellInfo.col;
     const rowspan = mergedCellInfo.rowspan;
@@ -150,14 +190,15 @@ class MergedCellsCollection {
     const newMergedCell = new MergedCellCoords(row, column, rowspan, colspan,
       this.hot._createCellCoords, this.hot._createCellRange);
     const alreadyExists = this.get(row, column);
-    const isOverlapping = this.isOverlapping(newMergedCell);
+    const isOverlapping = auto ? false : this.isOverlapping(newMergedCell);
 
     if (!alreadyExists && !isOverlapping) {
       if (this.hot) {
         newMergedCell.normalize(this.hot);
       }
 
-      mergedCells.push(newMergedCell);
+      this.mergedCells.push(newMergedCell);
+      this.#addMergedCellToMatrix(newMergedCell);
 
       return newMergedCell;
     }
@@ -176,14 +217,14 @@ class MergedCellsCollection {
    * @returns {MergedCellCoords|boolean} Returns the removed merged cell on success and `false` on failure.
    */
   remove(row, column) {
-    const mergedCells = this.mergedCells;
-    const wantedCollection = this.get(row, column);
-    const wantedCollectionIndex = wantedCollection ? this.mergedCells.indexOf(wantedCollection) : -1;
+    const mergedCell = this.get(row, column);
+    const mergedCellIndex = mergedCell ? this.mergedCells.indexOf(mergedCell) : -1;
 
-    if (wantedCollection && wantedCollectionIndex !== -1) {
-      mergedCells.splice(wantedCollectionIndex, 1);
+    if (mergedCell && mergedCellIndex !== -1) {
+      this.mergedCells.splice(mergedCellIndex, 1);
+      this.#removeMergedCellFromMatrix(mergedCell);
 
-      return wantedCollection;
+      return mergedCell;
     }
 
     return false;
@@ -193,75 +234,43 @@ class MergedCellsCollection {
    * Clear all the merged cells.
    */
   clear() {
-    const mergedCells = this.mergedCells;
-    const mergedCellParentsToClear = [];
-    const hiddenCollectionElements = [];
+    arrayEach(this.mergedCells, ({ row, col, rowspan, colspan }) => {
+      rangeEach(row, row + rowspan, (r) => {
+        rangeEach(col, col + colspan, (c) => {
+          const TD = this.hot.getCell(r, c);
 
-    arrayEach(mergedCells, (mergedCell) => {
-      const TD = this.hot.getCell(mergedCell.row, mergedCell.col);
-
-      if (TD) {
-        mergedCellParentsToClear.push([TD, this.get(mergedCell.row, mergedCell.col), mergedCell.row, mergedCell.col]);
-      }
-    });
-
-    this.mergedCells.length = 0;
-
-    arrayEach(mergedCellParentsToClear, (mergedCell, i) => {
-      rangeEach(0, mergedCell.rowspan - 1, (j) => {
-        rangeEach(0, mergedCell.colspan - 1, (k) => {
-          if (k !== 0 || j !== 0) {
-            const TD = this.hot.getCell(mergedCell.row + j, mergedCell.col + k);
-
-            if (TD) {
-              hiddenCollectionElements.push([TD, null, null, null]);
-            }
+          if (TD) {
+            TD.removeAttribute('rowspan');
+            TD.removeAttribute('colspan');
+            TD.style.display = '';
           }
         });
       });
-
-      mergedCellParentsToClear[i][1] = null;
     });
 
-    arrayEach(mergedCellParentsToClear, (mergedCellParents) => {
-      applySpanProperties(...mergedCellParents);
-    });
-
-    arrayEach(hiddenCollectionElements, (hiddenCollectionElement) => {
-      applySpanProperties(...hiddenCollectionElement);
-    });
+    this.mergedCells.length = 0;
+    this.mergedCellsMatrix = new Map();
   }
 
   /**
-   * Check if the provided merged cell overlaps with the others in the container.
+   * Check if the provided merged cell overlaps with the others already added.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to check against all others in the container.
    * @returns {boolean} `true` if the provided merged cell overlaps with the others, `false` otherwise.
    */
   isOverlapping(mergedCell) {
-    const mergedCellRange = this.hot._createCellRange(
-      this.hot._createCellCoords(0, 0),
-      this.hot._createCellCoords(mergedCell.row, mergedCell.col),
-      this.hot._createCellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1));
-    let result = false;
+    const mergedCellRange = mergedCell.getRange();
 
-    arrayEach(this.mergedCells, (col) => {
-      const currentRange = this.hot._createCellRange(
-        this.hot._createCellCoords(0, 0),
-        this.hot._createCellCoords(col.row, col.col),
-        this.hot._createCellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1)
-      );
+    for (let i = 0; i < this.mergedCells.length; i++) {
+      const otherMergedCell = this.mergedCells[i];
+      const otherMergedCellRange = otherMergedCell.getRange();
 
-      if (currentRange.overlaps(mergedCellRange)) {
-        result = true;
-
-        return false;
+      if (otherMergedCellRange.overlaps(mergedCellRange)) {
+        return true;
       }
+    }
 
-      return true;
-    });
-
-    return result;
+    return false;
   }
 
   /**
@@ -301,6 +310,136 @@ class MergedCellsCollection {
   }
 
   /**
+   * Gets the start-most visual column index that do not intersect with other merged cells within the provided range.
+   *
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualColumnIndex The visual column index to start the search from.
+   * @returns {number}
+   */
+  getStartMostColumnIndex(range, visualColumnIndex) {
+    const indexes = this.#getNonIntersectingIndexes(range, 'col', -1);
+    let startMostIndex = visualColumnIndex;
+
+    for (let i = 0; i < indexes.length; i++) {
+      if (indexes[i] <= visualColumnIndex) {
+        startMostIndex = indexes[i];
+        break;
+      }
+    }
+
+    return startMostIndex;
+  }
+
+  /**
+   * Gets the end-most visual column index that do not intersect with other merged cells within the provided range.
+   *
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualColumnIndex The visual column index to start the search from.
+   * @returns {number}
+   */
+  getEndMostColumnIndex(range, visualColumnIndex) {
+    const indexes = this.#getNonIntersectingIndexes(range, 'col', 1);
+    let endMostIndex = visualColumnIndex;
+
+    for (let i = 0; i < indexes.length; i++) {
+      if (indexes[i] >= visualColumnIndex) {
+        endMostIndex = indexes[i];
+        break;
+      }
+    }
+
+    return endMostIndex;
+  }
+
+  /**
+   * Gets the top-most visual row index that do not intersect with other merged cells within the provided range.
+   *
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualRowIndex The visual row index to start the search from.
+   * @returns {number}
+   */
+  getTopMostRowIndex(range, visualRowIndex) {
+    const indexes = this.#getNonIntersectingIndexes(range, 'row', -1);
+    let topMostIndex = visualRowIndex;
+
+    for (let i = 0; i < indexes.length; i++) {
+      if (indexes[i] <= visualRowIndex) {
+        topMostIndex = indexes[i];
+        break;
+      }
+    }
+
+    return topMostIndex;
+  }
+
+  /**
+   * Gets the bottom-most visual row index that do not intersect with other merged cells within the provided range.
+   *
+   * @param {CellRange} range The range to search within.
+   * @param {number} visualRowIndex The visual row index to start the search from.
+   * @returns {number}
+   */
+  getBottomMostRowIndex(range, visualRowIndex) {
+    const indexes = this.#getNonIntersectingIndexes(range, 'row', 1);
+    let bottomMostIndex = visualRowIndex;
+
+    for (let i = 0; i < indexes.length; i++) {
+      if (indexes[i] >= visualRowIndex) {
+        bottomMostIndex = indexes[i];
+        break;
+      }
+    }
+
+    return bottomMostIndex;
+  }
+
+  /**
+   * Gets the list of the indexes that do not intersect with other merged cells within the provided range.
+   *
+   * @param {CellRange} range The range to search within.
+   * @param {'row' | 'col'} axis The axis to search within.
+   * @param {number} scanDirection  The direction to scan the range. `1` for forward, `-1` for backward.
+   * @returns {number[]}
+   */
+  #getNonIntersectingIndexes(range, axis, scanDirection = 1) {
+    const indexes = new Map();
+    const from = scanDirection === 1 ? range.getTopStartCorner() : range.getBottomEndCorner();
+    const to = scanDirection === 1 ? range.getBottomEndCorner() : range.getTopStartCorner();
+
+    for (
+      let row = from.row;
+      scanDirection === 1 ? row <= to.row : row >= to.row;
+      row += scanDirection
+    ) {
+      for (
+        let column = from.col;
+        scanDirection === 1 ? column <= to.col : column >= to.col;
+        column += scanDirection
+      ) {
+        const index = axis === 'row' ? row : column;
+        const mergedCell = this.get(row, column);
+        let lastIndex = index;
+
+        if (mergedCell) {
+          lastIndex = scanDirection === 1 ? mergedCell[axis] + mergedCell[`${axis}span`] - 1 : mergedCell[axis];
+        }
+
+        if (!indexes.has(index)) {
+          indexes.set(index, new Set());
+        }
+
+        indexes.get(index).add(lastIndex);
+      }
+    }
+
+    return Array.from(
+      new Set(Array.from(indexes.entries())
+        .filter(([, set]) => set.size === 1)
+        .flatMap(([, set]) => Array.from(set)))
+    );
+  }
+
+  /**
    * Shift the merged cell in the direction and by an offset defined in the arguments.
    *
    * @param {string} direction `right`, `left`, `up` or `down`.
@@ -331,7 +470,9 @@ class MergedCellsCollection {
     }
 
     arrayEach(this.mergedCells, (currentMerge) => {
+      this.#removeMergedCellFromMatrix(currentMerge);
       currentMerge.shift(shiftVector, index);
+      this.#addMergedCellToMatrix(currentMerge);
     });
 
     rangeEachReverse(this.mergedCells.length - 1, 0, (i) => {
@@ -339,8 +480,39 @@ class MergedCellsCollection {
 
       if (currentMerge && currentMerge.removed) {
         this.mergedCells.splice(this.mergedCells.indexOf(currentMerge), 1);
+        this.#removeMergedCellFromMatrix(currentMerge);
       }
     });
+  }
+
+  /**
+   * Adds a merged cell to the matrix.
+   *
+   * @param {MergedCellCoords} mergedCell The merged cell to add.
+   */
+  #addMergedCellToMatrix(mergedCell) {
+    for (let row = mergedCell.row; row < mergedCell.row + mergedCell.rowspan; row++) {
+      for (let col = mergedCell.col; col < mergedCell.col + mergedCell.colspan; col++) {
+        if (!this.mergedCellsMatrix.has(row)) {
+          this.mergedCellsMatrix.set(row, new Map());
+        }
+
+        this.mergedCellsMatrix.get(row).set(col, mergedCell);
+      }
+    }
+  }
+
+  /**
+   * Removes a merged cell from the matrix.
+   *
+   * @param {MergedCellCoords} mergedCell The merged cell to remove.
+   */
+  #removeMergedCellFromMatrix(mergedCell) {
+    for (let row = mergedCell.row; row < mergedCell.row + mergedCell.rowspan; row++) {
+      for (let col = mergedCell.col; col < mergedCell.col + mergedCell.colspan; col++) {
+        this.mergedCellsMatrix.get(row).delete(col);
+      }
+    }
   }
 }
 

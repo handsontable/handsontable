@@ -52,7 +52,7 @@ export function throttle(func, wait = 200) {
         result.lastCallThrottled = false;
         func.apply(this, args);
         lastCalled = 0;
-        lastTimer = void 0;
+        lastTimer = undefined;
       }, remaining);
     }
 

@@ -161,7 +161,7 @@ describe('Walkontable.OrderView', () => {
     expect(rootNode.childNodes[0]).toBe(prevChildren[0]);
     expect(rootNode.childNodes[1]).toBe(prevChildren[1]);
     expect(rootNode.childNodes[2]).toBe(prevChildren[2]);
-    expect(rootNode.childNodes[3]).toBe(void 0);
+    expect(rootNode.childNodes[3]).toBe(undefined);
   });
 
   it('should return count of rendered children', () => {

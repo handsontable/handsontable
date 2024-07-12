@@ -8,44 +8,48 @@ class Interval {
     return new Interval(func, delay);
   }
 
+  /**
+   * Number of milliseconds that function should wait before next call.
+   *
+   * @type {number}
+   */
+  delay;
+  /**
+   * Animation frame request id.
+   *
+   * @type {number}
+   */
+  #timer = null;
+  /**
+   * Function to invoke repeatedly.
+   *
+   * @type {Function}
+   */
+  #func;
+  /**
+   * Flag which indicates if interval object was stopped.
+   *
+   * @type {boolean}
+   * @default true
+   */
+  #stopped = true;
+  /**
+   * Interval time (in milliseconds) of the last callback call.
+   *
+   * @type {number}
+   */
+  #then = null;
+  /**
+   * Bounded function `func`.
+   *
+   * @type {Function}
+   */
+  #callback;
+
   constructor(func, delay) {
-    /**
-     * Animation frame request id.
-     *
-     * @type {number}
-     */
-    this.timer = null;
-    /**
-     * Function to invoke repeatedly.
-     *
-     * @type {Function}
-     */
-    this.func = func;
-    /**
-     * Number of milliseconds that function should wait before next call.
-     */
+    this.#func = func;
     this.delay = parseDelay(delay);
-    /**
-     * Flag which indicates if interval object was stopped.
-     *
-     * @type {boolean}
-     * @default true
-     */
-    this.stopped = true;
-    /**
-     * Interval time (in milliseconds) of the last callback call.
-     *
-     * @private
-     * @type {number}
-     */
-    this._then = null;
-    /**
-     * Bounded function `func`.
-     *
-     * @private
-     * @type {Function}
-     */
-    this._callback = () => this.__callback();
+    this.#callback = () => this.#__callback();
   }
 
   /**
@@ -54,10 +58,10 @@ class Interval {
    * @returns {Interval}
    */
   start() {
-    if (this.stopped) {
-      this._then = Date.now();
-      this.stopped = false;
-      this.timer = requestAnimationFrame(this._callback);
+    if (this.#stopped) {
+      this.#then = Date.now();
+      this.#stopped = false;
+      this.#timer = requestAnimationFrame(this.#callback);
     }
 
     return this;
@@ -69,10 +73,10 @@ class Interval {
    * @returns {Interval}
    */
   stop() {
-    if (!this.stopped) {
-      this.stopped = true;
-      cancelAnimationFrame(this.timer);
-      this.timer = null;
+    if (!this.#stopped) {
+      this.#stopped = true;
+      cancelAnimationFrame(this.#timer);
+      this.#timer = null;
     }
 
     return this;
@@ -80,22 +84,20 @@ class Interval {
 
   /**
    * Loop callback, fired on every animation frame.
-   *
-   * @private
    */
-  __callback() {
-    this.timer = requestAnimationFrame(this._callback);
+  #__callback() {
+    this.#timer = requestAnimationFrame(this.#callback);
 
     if (this.delay) {
       const now = Date.now();
-      const elapsed = now - this._then;
+      const elapsed = now - this.#then;
 
       if (elapsed > this.delay) {
-        this._then = now - (elapsed % this.delay);
-        this.func();
+        this.#then = now - (elapsed % this.delay);
+        this.#func();
       }
     } else {
-      this.func();
+      this.#func();
     }
   }
 }

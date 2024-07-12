@@ -1,4 +1,5 @@
 import React from 'react';
+import { act } from '@testing-library/react';
 import { createStore, combineReducers } from 'redux';
 import { Provider, connect } from 'react-redux';
 import {
@@ -84,9 +85,11 @@ describe('Using Redux store within HotTable renderers and editors', () => {
       expect(component.props.bgColor).toEqual('#fff');
     });
 
-    reduxStore.dispatch({
-      type: 'updateColor',
-      hexColor: '#B57267'
+    await act(async () => {
+      reduxStore.dispatch({
+        type: 'updateColor',
+        hexColor: '#B57267'
+      });
     });
 
     rendererInstances.forEach((component, key, map) => {
@@ -138,9 +141,11 @@ describe('Using Redux store within HotTable renderers and editors', () => {
       expect(value.props.bgColor).toEqual('#fff');
     });
 
-    reduxStore.dispatch({
-      type: 'updateColor',
-      hexColor: '#B57267'
+    await act(async () => {
+      reduxStore.dispatch({
+        type: 'updateColor',
+        hexColor: '#B57267'
+      });
     });
 
     editorInstances.forEach((value, key, map) => {

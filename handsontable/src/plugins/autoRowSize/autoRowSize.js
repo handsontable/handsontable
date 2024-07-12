@@ -1,7 +1,5 @@
 import { BasePlugin } from '../base';
-import { arrayEach, arrayFilter } from '../../helpers/array';
 import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
-import { isVisible } from '../../helpers/dom/element';
 import GhostTable from '../../utils/ghostTable';
 import { isObject, hasOwnProperty } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
@@ -36,10 +34,10 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * To configure the sync/async distribution, you can pass an absolute value (number of rows) or a percentage value to a config object:
  * ```js
  * // as a number (300 rows in sync, rest async)
- * autoRowSize: {syncLimit: 300},.
+ * autoRowSize: {syncLimit: 300},
  *
  * // as a string (percent)
- * autoRowSize: {syncLimit: '40%'},.
+ * autoRowSize: {syncLimit: '40%'},
  *
  * // allow sample duplication
  * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
@@ -118,78 +116,87 @@ export class AutoRowSize extends BasePlugin {
     return 500;
   }
 
+  /**
+   * Columns header's height cache.
+   *
+   * @private
+   * @type {number}
+   */
+  headerHeight = null;
+  /**
+   * Instance of {@link GhostTable} for rows and columns size calculations.
+   *
+   * @private
+   * @type {GhostTable}
+   */
+  ghostTable = new GhostTable(this.hot);
+  /**
+   * Instance of {@link SamplesGenerator} for generating samples necessary for rows height calculations.
+   *
+   * @private
+   * @type {SamplesGenerator}
+   */
+  samplesGenerator = new SamplesGenerator((row, column) => {
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+
+    if (this.hot.rowIndexMapper.isHidden(physicalRow) || this.hot.columnIndexMapper.isHidden(physicalColumn)) {
+      return false;
+    }
+
+    if (row >= 0 && column >= 0) {
+      const cellMeta = this.hot.getCellMeta(row, column);
+
+      if (cellMeta.hidden) {
+        // do not generate samples for cells that are covered by merged cell (null values)
+        return false;
+      }
+    }
+
+    let cellValue;
+
+    if (row >= 0) {
+      cellValue = this.hot.getDataAtCell(row, column);
+
+    } else if (row === -1) {
+      cellValue = this.hot.getColHeader(column);
+    }
+
+    return { value: cellValue };
+  });
+  /**
+   * `true` if the size calculation is in progress.
+   *
+   * @type {boolean}
+   */
+  inProgress = false;
+  /**
+   * Number of already measured rows (we already know their sizes).
+   *
+   * @type {number}
+   */
+  measuredRows = 0;
+  /**
+   * PhysicalIndexToValueMap to keep and track heights for physical row indexes.
+   *
+   * @private
+   * @type {PhysicalIndexToValueMap}
+   */
+  rowHeightsMap = new IndexToValueMap();
+  /**
+   * An array of row indexes whose height will be recalculated.
+   *
+   * @type {number[]}
+   */
+  #visualRowsToRefresh = [];
+
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * PhysicalIndexToValueMap to keep and track heights for physical row indexes.
-     *
-     * @private
-     * @type {PhysicalIndexToValueMap}
-     */
-    this.rowHeightsMap = void 0;
-    /**
-     * Columns header's height cache.
-     *
-     * @private
-     * @type {number}
-     */
-    this.headerHeight = null;
-    /**
-     * Instance of {@link GhostTable} for rows and columns size calculations.
-     *
-     * @private
-     * @type {GhostTable}
-     */
-    this.ghostTable = new GhostTable(this.hot);
-    /**
-     * Instance of {@link SamplesGenerator} for generating samples necessary for rows height calculations.
-     *
-     * @private
-     * @type {SamplesGenerator}
-     */
-    this.samplesGenerator = new SamplesGenerator((row, col) => {
-      let cellValue;
-
-      if (row >= 0) {
-        cellValue = this.hot.getDataAtCell(row, col);
-
-      } else if (row === -1) {
-        cellValue = this.hot.getColHeader(col);
-      }
-
-      return { value: cellValue };
-    });
-    /**
-     * `true` if only the first calculation was performed.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.firstCalculation = true;
-    /**
-     * `true` if the size calculation is in progress.
-     *
-     * @type {boolean}
-     */
-    this.inProgress = false;
-    /**
-     * Number of already measured rows (we already know their sizes).
-     *
-     * @type {number}
-     */
-    this.measuredRows = 0;
-    /**
-     * PhysicalIndexToValueMap to keep and track heights for physical row indexes.
-     *
-     * @private
-     * @type {PhysicalIndexToValueMap}
-     */
-    this.rowHeightsMap = new IndexToValueMap();
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
-    // This is necesseary for height recalculation for resize handler doubleclick (ManualRowResize).
-    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
+    // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
+    this.addHook('beforeRowResize', (size, row, isDblClick) => this.#onBeforeRowResize(size, row, isDblClick));
   }
 
   /**
@@ -214,11 +221,13 @@ export class AutoRowSize extends BasePlugin {
 
     this.setSamplingOptions();
 
-    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('beforeChangeRender', changes => this.onBeforeChange(changes));
+    this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
+    this.addHook('beforeChangeRender', (...args) => this.#onBeforeChange(...args));
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
-    this.addHook('beforeViewRender', force => this.onBeforeViewRender(force));
+    this.addHook('afterFormulasValuesUpdate', (...args) => this.#onAfterFormulasValuesUpdate(...args));
+    this.addHook('beforeRender', () => this.#onBeforeRender());
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
+    this.addHook('init', () => this.#onInit());
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
 
     super.enablePlugin();
@@ -233,8 +242,29 @@ export class AutoRowSize extends BasePlugin {
     super.disablePlugin();
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
-    // This is necesseary for height recalculation for resize handler doubleclick (ManualRowResize).
-    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
+    // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
+    this.addHook('beforeRowResize', (size, row, isDblClick) => this.#onBeforeRowResize(size, row, isDblClick));
+  }
+
+  /**
+   * Calculates heights for visible rows in the viewport only.
+   */
+  calculateVisibleRowsHeight() {
+    // Keep last row heights unchanged for situation when all columns was deleted or trimmed
+    if (!this.hot.countCols()) {
+      return;
+    }
+
+    const firstVisibleRow = this.getFirstVisibleRow();
+    const lastVisibleRow = this.getLastVisibleRow();
+
+    if (firstVisibleRow === -1 || lastVisibleRow === -1) {
+      return;
+    }
+
+    const overwriteCache = this.hot.renderCall;
+
+    this.calculateRowsHeight({ from: firstVisibleRow, to: lastVisibleRow }, undefined, overwriteCache);
   }
 
   /**
@@ -242,9 +272,13 @@ export class AutoRowSize extends BasePlugin {
    *
    * @param {number|object} rowRange Row index or an object with `from` and `to` indexes as a range.
    * @param {number|object} colRange Column index or an object with `from` and `to` indexes as a range.
-   * @param {boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
+   * @param {boolean} [overwriteCache=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateRowsHeight(rowRange = { from: 0, to: this.hot.countRows() - 1 }, colRange = { from: 0, to: this.hot.countCols() - 1 }, force = false) { // eslint-disable-line max-len
+  calculateRowsHeight(
+    rowRange = { from: 0, to: this.hot.countRows() - 1 },
+    colRange = { from: 0, to: this.hot.countCols() - 1 },
+    overwriteCache = false
+  ) {
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
     const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
 
@@ -254,13 +288,19 @@ export class AutoRowSize extends BasePlugin {
       this.ghostTable.addColumnHeadersRow(samples.get(-1));
     }
 
-    rangeEach(rowsRange.from, rowsRange.to, (row) => {
+    rangeEach(rowsRange.from, rowsRange.to, (visualRow) => {
+      let physicalRow = this.hot.toPhysicalRow(visualRow);
+
+      if (physicalRow === null) {
+        physicalRow = visualRow;
+      }
+
       // For rows we must calculate row height even when user had set height value manually.
       // We can shrink column but cannot shrink rows!
-      if (force || this.rowHeightsMap.getValueAtIndex(row) === null) {
-        const samples = this.samplesGenerator.generateRowSamples(row, columnsRange);
+      if (overwriteCache || this.rowHeightsMap.getValueAtIndex(physicalRow) === null) {
+        const samples = this.samplesGenerator.generateRowSamples(visualRow, columnsRange);
 
-        arrayEach(samples, ([rowIndex, sample]) => this.ghostTable.addRow(rowIndex, sample));
+        samples.forEach((sample, row) => this.ghostTable.addRow(row, sample));
       }
     });
 
@@ -276,7 +316,6 @@ export class AutoRowSize extends BasePlugin {
       }, true);
 
       this.measuredRows = rowsRange.to + 1;
-
       this.ghostTable.clean();
     }
   }
@@ -286,8 +325,9 @@ export class AutoRowSize extends BasePlugin {
    * To retrieve height for specified row use {@link AutoRowSize#getRowHeight} method.
    *
    * @param {object|number} colRange Row index or an object with `from` and `to` properties which define row range.
+   * @param {boolean} [overwriteCache] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateAllRowsHeight(colRange = { from: 0, to: this.hot.countCols() - 1 }) {
+  calculateAllRowsHeight(colRange = { from: 0, to: this.hot.countCols() - 1 }, overwriteCache = false) {
     let current = 0;
     const length = this.hot.countRows() - 1;
     let timer = null;
@@ -302,10 +342,12 @@ export class AutoRowSize extends BasePlugin {
 
         return;
       }
+
       this.calculateRowsHeight({
         from: current,
         to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)
-      }, colRange);
+      }, colRange, overwriteCache);
+
       current = current + AutoRowSize.CALCULATION_STEP + 1;
 
       if (current < length) {
@@ -315,7 +357,7 @@ export class AutoRowSize extends BasePlugin {
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.adjustElementsSize(true);
+        this.hot.view.adjustElementsSize();
 
         // tmp
         if (this.hot.view._wt.wtOverlays.inlineStartOverlay.needFullRender) {
@@ -327,9 +369,8 @@ export class AutoRowSize extends BasePlugin {
     const syncLimit = this.getSyncCalculationLimit();
 
     // sync
-    if (this.firstCalculation && syncLimit >= 0) {
-      this.calculateRowsHeight({ from: 0, to: syncLimit }, colRange);
-      this.firstCalculation = false;
+    if (syncLimit >= 0) {
+      this.calculateRowsHeight({ from: 0, to: syncLimit }, colRange, overwriteCache);
       current = syncLimit + 1;
     }
     // async
@@ -337,7 +378,39 @@ export class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
-      this.hot.view.adjustElementsSize(false);
+      this.hot.view.adjustElementsSize();
+    }
+  }
+
+  /**
+   * Calculates specific rows height (overwrite cache values).
+   *
+   * @param {number[]} visualRows List of visual rows to calculate.
+   */
+  #calculateSpecificRowsHeight(visualRows) {
+    const columnsRange = {
+      from: 0,
+      to: this.hot.countCols() - 1,
+    };
+
+    visualRows.forEach((visualRow) => {
+      // For rows we must calculate row height even when user had set height value manually.
+      // We can shrink column but cannot shrink rows!
+      const samples = this.samplesGenerator.generateRowSamples(visualRow, columnsRange);
+
+      samples.forEach((sample, row) => this.ghostTable.addRow(row, sample));
+    });
+
+    if (this.ghostTable.rows.length) {
+      this.hot.batchExecution(() => {
+        this.ghostTable.getHeights((visualRow, height) => {
+          const physicalRow = this.hot.toPhysicalRow(visualRow);
+
+          this.rowHeightsMap.setValueAtIndex(physicalRow, height);
+        });
+      }, true);
+
+      this.ghostTable.clean();
     }
   }
 
@@ -349,9 +422,9 @@ export class AutoRowSize extends BasePlugin {
   setSamplingOptions() {
     const setting = this.hot.getSettings()[PLUGIN_KEY];
     const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
-      setting.samplingRatio : void 0;
+      setting.samplingRatio : undefined;
     const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
-      setting.allowSampleDuplicates : void 0;
+      setting.allowSampleDuplicates : undefined;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -366,9 +439,8 @@ export class AutoRowSize extends BasePlugin {
    * Recalculates all rows height (overwrite cache values).
    */
   recalculateAllRowsHeight() {
-    if (isVisible(this.hot.view._wt.wtTable.TABLE)) {
-      this.clearCache();
-      this.calculateAllRowsHeight();
+    if (this.hot.view.isVisible()) {
+      this.calculateAllRowsHeight({ from: 0, to: this.hot.countCols() - 1 }, true);
     }
   }
 
@@ -411,7 +483,7 @@ export class AutoRowSize extends BasePlugin {
    * @param {number} [defaultHeight] If no height is found, `defaultHeight` is returned instead.
    * @returns {number} The height of the specified row, in pixels.
    */
-  getRowHeight(row, defaultHeight = void 0) {
+  getRowHeight(row, defaultHeight) {
     const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
     let height = defaultHeight;
 
@@ -437,16 +509,7 @@ export class AutoRowSize extends BasePlugin {
    * @returns {number} Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.
    */
   getFirstVisibleRow() {
-    const wot = this.hot.view._wt;
-
-    if (wot.wtViewport.rowsVisibleCalculator) {
-      return wot.wtTable.getFirstVisibleRow();
-    }
-    if (wot.wtViewport.rowsRenderCalculator) {
-      return wot.wtTable.getFirstRenderedRow();
-    }
-
-    return -1;
+    return this.hot.view.getFirstRenderedVisibleRow() ?? -1;
   }
 
   /**
@@ -455,24 +518,28 @@ export class AutoRowSize extends BasePlugin {
    * @returns {number} Returns row index or -1 if table is not rendered.
    */
   getLastVisibleRow() {
-    const wot = this.hot.view._wt;
-
-    if (wot.wtViewport.rowsVisibleCalculator) {
-      return wot.wtTable.getLastVisibleRow();
-    }
-    if (wot.wtViewport.rowsRenderCalculator) {
-      return wot.wtTable.getLastRenderedRow();
-    }
-
-    return -1;
+    return this.hot.view.getLastRenderedVisibleRow() ?? -1;
   }
 
   /**
-   * Clears cached heights.
+   * Clears cache of calculated row heights. If you want to clear only selected rows pass an array with their indexes.
+   * Otherwise whole cache will be cleared.
+   *
+   * @param {number[]} [physicalRows] List of physical row indexes to clear.
    */
-  clearCache() {
+  clearCache(physicalRows) {
     this.headerHeight = null;
-    this.rowHeightsMap.init();
+
+    if (Array.isArray(physicalRows)) {
+      this.hot.batchExecution(() => {
+        physicalRows.forEach((physicalIndex) => {
+          this.rowHeightsMap.setValueAtIndex(physicalIndex, null);
+        });
+      }, true);
+
+    } else {
+      this.rowHeightsMap.clear();
+    }
   }
 
   /**
@@ -496,64 +563,35 @@ export class AutoRowSize extends BasePlugin {
    * @returns {boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.rowHeightsMap.getValues().slice(0, this.measuredRows), item => (item === null)).length;
+    return !!this.rowHeightsMap.getValues()
+      .slice(0, this.measuredRows).filter(item => (item === null)).length;
   }
 
   /**
    * On before view render listener.
-   *
-   * @private
    */
-  onBeforeViewRender() {
-    const force = this.hot.renderCall;
-    const fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
-    const firstVisibleRow = this.getFirstVisibleRow();
-    const lastVisibleRow = this.getLastVisibleRow();
+  #onBeforeRender() {
+    this.calculateVisibleRowsHeight();
 
-    if (firstVisibleRow === -1 || lastVisibleRow === -1) {
-      return;
+    if (!this.inProgress) {
+      this.#calculateSpecificRowsHeight(this.#visualRowsToRefresh);
+      this.#visualRowsToRefresh = [];
     }
-
-    this.calculateRowsHeight({ from: firstVisibleRow, to: lastVisibleRow }, void 0, force);
-
-    // Calculate rows height synchronously for bottom overlay
-    if (fixedRowsBottom) {
-      const totalRows = this.hot.countRows() - 1;
-
-      this.calculateRowsHeight({ from: totalRows - fixedRowsBottom, to: totalRows });
-    }
-
-    if (this.isNeedRecalculate() && !this.inProgress) {
-      this.calculateAllRowsHeight();
-    }
-  }
-
-  /**
-   * On before row move listener.
-   *
-   * @private
-   * @param {number} from Row index where was grabbed.
-   * @param {number} to Destination row index.
-   */
-  onBeforeRowMove(from, to) {
-    this.clearCacheByRange({ from, to });
-    this.calculateAllRowsHeight();
   }
 
   /**
    * On before row resize listener.
    *
-   * @private
    * @param {number} size The size of the current row index.
    * @param {number} row Current row index.
    * @param {boolean} isDblClick Indicates if the resize was triggered by doubleclick.
    * @returns {number}
    */
-  onBeforeRowResize(size, row, isDblClick) {
+  #onBeforeRowResize(size, row, isDblClick) {
     let newSize = size;
 
     if (isDblClick) {
-      this.calculateRowsHeight(row, void 0, true);
+      this.calculateRowsHeight(row, undefined, true);
 
       newSize = this.getRowHeight(row);
     }
@@ -564,41 +602,60 @@ export class AutoRowSize extends BasePlugin {
   /**
    * On after load data listener.
    *
-   * @private
+   * @param {Array} sourceData Source data.
+   * @param {boolean} isFirstLoad `true` if this is the first load.
    */
-  onAfterLoadData() {
-    if (this.hot.view) {
+  #onAfterLoadData(sourceData, isFirstLoad) {
+    if (!isFirstLoad) {
       this.recalculateAllRowsHeight();
-    } else {
-      // first load - initialization
-      setTimeout(() => {
-        if (this.hot) {
-          this.recalculateAllRowsHeight();
-        }
-      }, 0);
     }
   }
 
   /**
    * On before change listener.
    *
-   * @private
    * @param {Array} changes 2D array containing information about each of the edited cells.
    */
-  onBeforeChange(changes) {
-    let range = null;
+  #onBeforeChange(changes) {
+    const changedRows = changes.reduce((acc, [row]) => {
+      if (acc.indexOf(row) === -1) {
+        acc.push(row);
+      }
 
-    if (changes.length === 1) {
-      range = changes[0][0];
-    } else if (changes.length > 1) {
-      range = {
-        from: changes[0][0],
-        to: changes[changes.length - 1][0],
-      };
-    }
-    if (range !== null) {
-      this.clearCacheByRange(range);
-    }
+      return acc;
+    }, []);
+
+    this.#visualRowsToRefresh.push(...changedRows);
+  }
+
+  /**
+   * On after Handsontable init plugin with all necessary values.
+   */
+  #onInit() {
+    this.recalculateAllRowsHeight();
+  }
+
+  /**
+   * After formulas values updated listener.
+   *
+   * @param {Array} changes An array of modified data.
+   */
+  #onAfterFormulasValuesUpdate(changes) {
+    const changedRows = changes.reduce((acc, change) => {
+      const physicalRow = change.address?.row;
+
+      if (Number.isInteger(physicalRow)) {
+        const visualRow = this.hot.toVisualRow(physicalRow);
+
+        if (acc.indexOf(visualRow) === -1) {
+          acc.push(visualRow);
+        }
+      }
+
+      return acc;
+    }, []);
+
+    this.#visualRowsToRefresh.push(...changedRows);
   }
 
   /**

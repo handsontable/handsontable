@@ -205,21 +205,21 @@ describe('Core_modifySourceData', () => {
 
         changesList.forEach((change) => {
           const [rowIndex, prop, dataCellValue] = change;
-          const columnIndex = propToCol(prop);
-          const modifiedSourceCellValue = `${dataCellValue}->${rowIndex}-${columnIndex}-set`;
+          const visualColumnIndex = propToCol(prop);
+          const modifiedSourceCellValue = `${dataCellValue}->${rowIndex}-${prop}-set`;
 
-          expect(getDataAtCell(rowIndex, columnIndex)).toEqual(modifiedSourceCellValue);
-          expect(getDataAtRow(rowIndex)[columnIndex]).toEqual(modifiedSourceCellValue);
-          expect(getData()[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
+          expect(getDataAtCell(rowIndex, visualColumnIndex)).toEqual(modifiedSourceCellValue);
+          expect(getDataAtRow(rowIndex)[visualColumnIndex]).toEqual(modifiedSourceCellValue);
+          expect(getData()[rowIndex][visualColumnIndex]).toEqual(modifiedSourceCellValue);
 
           // Check for multiple API endpoints
-          expect(getSourceDataAtCell(rowIndex, columnIndex)).toEqual(modifiedSourceCellValue);
+          expect(getSourceDataAtCell(rowIndex, visualColumnIndex)).toEqual(modifiedSourceCellValue);
           expect(getSourceDataAtRow(rowIndex)[prop]).toEqual(modifiedSourceCellValue);
-          expect(getSourceDataAtCol(columnIndex)[rowIndex]).toEqual(modifiedSourceCellValue);
+          expect(getSourceDataAtCol(visualColumnIndex)[rowIndex]).toEqual(modifiedSourceCellValue);
           expect(getSourceData()[rowIndex][prop]).toEqual(modifiedSourceCellValue);
           expect(getSourceData(0, 0, 1, 2)[rowIndex][prop]).toEqual(modifiedSourceCellValue);
-          expect(getSourceDataArray()[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
-          expect(getSourceDataArray(0, 0, 1, 2)[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
+          expect(getSourceDataArray()[rowIndex][visualColumnIndex]).toEqual(modifiedSourceCellValue);
+          expect(getSourceDataArray(0, 0, 1, 2)[rowIndex][visualColumnIndex]).toEqual(modifiedSourceCellValue);
         });
       });
     });

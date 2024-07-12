@@ -462,6 +462,27 @@ describe('Core.alter', () => {
       `).toBeMatchToSelectionPattern();
     });
 
+    it('should not scroll the table after shifting the selection down', async() => {
+      const onAfterScroll = jasmine.createSpy('onAfterScroll');
+
+      handsontable({
+        data: createSpreadsheetData(5, 30),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+        afterScroll: onAfterScroll,
+      });
+
+      selectRows(2);
+
+      alter('insert_row_above', 2, 1);
+
+      await sleep(20);
+
+      expect(onAfterScroll).not.toHaveBeenCalled();
+    });
+
     it('should not shift down the selected row when the new row is inserted below that selection', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
@@ -505,7 +526,7 @@ describe('Core.alter', () => {
       selectAll();
 
       expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -515,24 +536,24 @@ describe('Core.alter', () => {
       alter('insert_row_above', 0); // add to the beginning of the table
 
       expect(`
-        |   ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ A : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
 
       alter('insert_row_above', 100); // add to the end of the table
 
       expect(`
-        |   ║ * : * : * : * : * |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
-        | * ║ A : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
-        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ A : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
     });
 

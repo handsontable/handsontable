@@ -1,11 +1,14 @@
 <template>
   <nav class="nav-links">
     <!-- user links -->
-    <div class="nav-item">
+    <div :class="{'nav-item': true, 'no-active': isChangelogLinkActive}">
       <NavLink :item="guideLink"/>
     </div>
     <div class="nav-item">
       <NavLink :item="apiLink"/>
+    </div>
+    <div class="nav-item changelog">
+      <NavLink :item="changelogLink"/>
     </div>
   </nav>
 </template>
@@ -32,9 +35,19 @@ export default {
     apiLink() {
       return {
         link: `${this.frameworkUrlPrefix}/api/`,
-        text: 'API reference'
+        text: 'API Reference'
       };
+    },
+    changelogLink() {
+      return {
+        link: `${this.frameworkUrlPrefix}/changelog/`,
+        text: 'Changelog'
+      };
+    },
+    isChangelogLinkActive() {
+      return this.$route.path.includes('/changelog');
     }
   }
 };
+
 </script>

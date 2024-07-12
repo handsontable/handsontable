@@ -212,7 +212,7 @@ describe('numericValidator', () => {
       setDataAtCell(2, 0);
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 2, 'id');
+        expect(onAfterValidate).toHaveBeenCalledWith(false, undefined, 2, 'id');
         done();
       }, 100);
     });

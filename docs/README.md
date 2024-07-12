@@ -2,16 +2,7 @@
 
 We treat documentation as an integral part of the Handsontable developer experience.
 
-That's why Handsontable comes with a vibrant, frequently-updated documentation portal.
-
 View the documentation's latest production version at [handsontable.com/docs](https://handsontable.com/docs).
-
-## Documentation overview
-
-The Handsontable documentation is made up of three main sections:
-- **Guides**: Carefully-written implementation guides.
-- **Examples**: Code examples covering real-life use cases.
-- **API reference**: API reference, automatically generated from the source code of each respective Handsontable version.
 
 We update the documentation:
 - With every Handsontable version release.
@@ -40,6 +31,17 @@ To start a local Handsontable documentation server:
    ```
 4. In your browser, go to: http://localhost:8080/docs/.
 
+## Handsontable documentation code examples
+
+Most code examples in the `content/guides` directory are kept in 2 versions: TS/TSX and JS/JSX. When modifying the code example or adding a new one, you should always update the TS/TSX version and then generate the JS/JSX version:
+
+E.g.:
+1. Modify `content/guides/some/example.ts` file.
+2. Run `npm run docs:code-examples:generate-js content/guides/some/example.ts` to generate `content/guides/some/example.js`.
+3. Commit both `content/guides/some/example.ts` and `content/guides/some/example.js`.
+
+In case of TSX file, the script will generate JSX version of the code example, so the workflow is the same as above.
+
 ## Documentation npm scripts:
 
 From the `docs` directory, you can run the following npm scripts:
@@ -57,6 +59,9 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:scripts:link-assets` – Prepares the `next` documentation version's CSS and JavaScript.
 * `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
 * `npm run docs:test:example-checker` – Runs the tests that checks if all Docs examples work.
+* `npm run docs:code-examples:generate-js content/guides/path/to/example.ts` – Generate JS/JSX version of the code example (needs to be run before commiting any change to TS/TSX code example)
+* `npm run docs:code-examples:generate-all-js` – Generate all JS/JSX versions of the TS/TSX code examples in content/guides/ directory
+* `npm run docs:code-examples:format-all-ts"` – Runs the autoformatter on all TS and TSX example files in the content/guides/ directory
 
 ## Handsontable documentation directory structure
 
@@ -84,7 +89,7 @@ docs                            # All documentation files
 │   │   ├── jsdoc-convert       # JSDoc-to-Markdown converter
 │   │   ├── utils.js            # Tools utilities
 │   ├── config.js               # VuePress configuration
-│   ├── docs-links.js           # Lets us link within the currently-selected docs version and framework with `@` (e.g. [link](@/guides/path/file.md).)
+│   ├── docs-links.js           # Lets us link within the currently-selected docs version and framework with `@` (e.g. [link](@/guides/path/file/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
 │   ├── helpers.js              # Common helpers that set up sidebars and the documentation version and framework picker
 │   └── highlight.js            # Code highlight configuration

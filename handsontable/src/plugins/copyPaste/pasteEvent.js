@@ -7,4 +7,5 @@ export default class PasteEvent {
   constructor() {
     this.clipboardData = new ClipboardData();
   }
+  preventDefault() {}
 }

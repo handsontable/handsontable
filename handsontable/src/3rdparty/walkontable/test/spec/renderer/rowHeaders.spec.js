@@ -9,6 +9,10 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     renderedColumnToSource(visibleColumnIndex) {
       return visibleColumnIndex;
     }
+
+    isAriaEnabled() {
+      return true;
+    }
   }
 
   function createRenderer() {
@@ -27,6 +31,15 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
 
     return { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode };
   }
+
+  beforeEach(function() {
+    // Matchers configuration.
+    this.matchersConfig = {
+      toMatchHTML: {
+        keepAttributes: ['class']
+      }
+    };
+  });
 
   it('should not generate any row headers', () => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();

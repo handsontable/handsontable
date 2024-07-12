@@ -1,6 +1,6 @@
-import rimraf from 'rimraf';
-import { fileURLToPath } from 'url';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import rimraf from 'rimraf';
 
 /// shared dependencies
 import utils from '../utils.js';

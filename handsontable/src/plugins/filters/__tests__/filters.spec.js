@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 describe('Filters', () => {
   const id = 'testContainer';
 
@@ -25,10 +23,8 @@ describe('Filters', () => {
     });
 
     dropdownMenu(1);
-    $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-    $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'))
-      .simulate('mousedown')
-      .simulate('mouseup');
+    openDropdownByConditionMenu();
+    selectDropdownByConditionMenuOption('Begins with');
 
     setTimeout(() => {
       // Begins with 'c'

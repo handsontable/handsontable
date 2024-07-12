@@ -306,11 +306,11 @@ describe('Function helper', () => {
       const func = jasmine.createSpy('func');
       const context = {};
 
-      fastCall(func, context, 'a', void 0, 'c', 1, void 0, 3);
+      fastCall(func, context, 'a', undefined, 'c', 1, undefined, 3);
 
       expect(func).toHaveBeenCalledTimes(1);
       expect(func.calls.first().object).toBe(context);
-      expect(func).toHaveBeenCalledWith('a', void 0, 'c', 1, void 0, 3);
+      expect(func).toHaveBeenCalledWith('a', undefined, 'c', 1, undefined, 3);
     });
   });
 });

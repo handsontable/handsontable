@@ -506,6 +506,38 @@ describe('AutoFill', () => {
     });
   });
 
+  describe('beforeChange hook autofill value overrides', () => {
+    it('should use a custom value when introducing changes', () => {
+      handsontable({
+        data: [
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+        ],
+        beforeChange(changes) {
+          changes[0][3] = 'test2';
+          changes[1][3] = 'test3';
+          changes[2][3] = 'test4';
+        }
+      });
+      selectCell(0, 0);
+
+      spec().$container.find('.wtBorder.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
+      spec().$container.find('tr:eq(3) td:eq(0)').simulate('mouseover');
+      spec().$container.find('.wtBorder.corner').simulate('mouseup');
+
+      expect(getSelected()).toEqual([[0, 0, 3, 0]]);
+      expect(getData()).toEqual([
+        [1, 2, 3, 4, 5, 6],
+        ['test2', 2, 3, 4, 5, 6],
+        ['test3', 2, 3, 4, 5, 6],
+        ['test4', 2, 3, 4, 5, 6]
+      ]);
+    });
+  });
+
   it('should pass correct arguments to `afterAutofill`', () => {
     const afterAutofill = jasmine.createSpy();
 
@@ -700,7 +732,7 @@ describe('AutoFill', () => {
     document.body.removeChild($table[0]);
   });
 
-  it('should fill cells below until the end of content in the neighbouring column with current cell\'s data', () => {
+  it('should fill empty cells below until the end of content in the neighbouring column with current cell\'s data', () => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -723,6 +755,37 @@ describe('AutoFill', () => {
 
     expect(getDataAtCell(2, 2)).toEqual(3);
     expect(getDataAtCell(3, 2)).toEqual(3);
+  });
+
+  // https://github.com/handsontable/dev-handsontable/issues/1757
+  it('should fill empty cells below until the end of content in the neighbouring column with current cell\'s data' +
+    'and NOT treat cells filled with 0s as empty', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 0, 4, 5, 6],
+        [1, 2, 0, null, null, null],
+        [1, 2, 0, null, null, null],
+        [1, 2, null, null, null, null]
+      ]
+    });
+
+    selectCell(0, 2);
+    const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
+
+    mouseDoubleClick(fillHandle);
+
+    expect(getDataAtCell(1, 2)).toEqual(0);
+    expect(getDataAtCell(2, 2)).toEqual(0);
+    expect(getDataAtCell(3, 2)).toEqual(0);
+    expect(getDataAtCell(4, 2)).toEqual(null);
+
+    selectCell(1, 3);
+    mouseDoubleClick(fillHandle);
+
+    expect(getDataAtCell(2, 3)).toEqual(4);
+    expect(getDataAtCell(3, 3)).toEqual(4);
+    expect(getDataAtCell(4, 3)).toEqual(null);
   });
 
   it('should fill cells below until the end of content in the neighbouring column with the currently selected area\'s data', () => {

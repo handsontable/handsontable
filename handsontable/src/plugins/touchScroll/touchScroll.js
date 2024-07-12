@@ -24,36 +24,32 @@ export class TouchScroll extends BasePlugin {
     return true;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-
-    /**
-     * Collection of scrollbars to update.
-     *
-     * @type {Array}
-     */
-    this.scrollbars = [];
-    /**
-     * Collection of overlays to update.
-     *
-     * @type {Array}
-     */
-    this.clones = [];
-    /**
-     * Flag which determines if collection of overlays should be refilled on every table render.
-     *
-     * @type {boolean}
-     * @default false
-     */
-    this.lockedCollection = false;
-    /**
-     * Flag which determines if walkontable should freeze overlays while scrolling.
-     *
-     * @type {boolean}
-     * @default false
-     */
-    this.freezeOverlays = false;
-  }
+  /**
+   * Collection of scrollbars to update.
+   *
+   * @type {Array}
+   */
+  scrollbars = [];
+  /**
+   * Collection of overlays to update.
+   *
+   * @type {Array}
+   */
+  clones = [];
+  /**
+   * Flag which determines if collection of overlays should be refilled on every table render.
+   *
+   * @type {boolean}
+   * @default false
+   */
+  lockedCollection = false;
+  /**
+   * Flag which determines if walkontable should freeze overlays while scrolling.
+   *
+   * @type {boolean}
+   * @default false
+   */
+  freezeOverlays = false;
 
   /**
    * Check if plugin is enabled.
@@ -72,7 +68,7 @@ export class TouchScroll extends BasePlugin {
       return;
     }
 
-    this.addHook('afterViewRender', () => this.onAfterViewRender());
+    this.addHook('afterViewRender', () => this.#onAfterViewRender());
     this.registerEvents();
 
     super.enablePlugin();
@@ -100,16 +96,14 @@ export class TouchScroll extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.addHook('beforeTouchScroll', () => this.onBeforeTouchScroll());
-    this.addHook('afterMomentumScroll', () => this.onAfterMomentumScroll());
+    this.addHook('beforeTouchScroll', () => this.#onBeforeTouchScroll());
+    this.addHook('afterMomentumScroll', () => this.#onAfterMomentumScroll());
   }
 
   /**
    * After view render listener.
-   *
-   * @private
    */
-  onAfterViewRender() {
+  #onAfterViewRender() {
     if (this.lockedCollection) {
       return;
     }
@@ -160,10 +154,8 @@ export class TouchScroll extends BasePlugin {
 
   /**
    * Touch scroll listener.
-   *
-   * @private
    */
-  onBeforeTouchScroll() {
+  #onBeforeTouchScroll() {
     this.freezeOverlays = true;
 
     arrayEach(this.clones, (clone) => {
@@ -173,10 +165,8 @@ export class TouchScroll extends BasePlugin {
 
   /**
    * After momentum scroll listener.
-   *
-   * @private
    */
-  onAfterMomentumScroll() {
+  #onAfterMomentumScroll() {
     this.freezeOverlays = false;
 
     arrayEach(this.clones, (clone) => {
