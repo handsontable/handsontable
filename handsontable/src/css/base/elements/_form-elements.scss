@@ -25,7 +25,7 @@
         text-align: center;
     
         input {
-            border-radius: var(--hot-form-input-radius);
+            border-radius: var(--hot-border-radius);
             border: var(--hot-form-input-border-size) solid var(--hot-form-input-border-color);
         }
     }
@@ -41,7 +41,7 @@
             display: inline-block;
     
             input {
-                border-radius: var(--hot-button-radius);
+                border-radius: var(--hot-border-radius);
                 border: var(--hot-button-border-size) solid var(--hot-button-border-color);
                 background-color: var(--hot-button-background-color);
                 color: var(--hot-button-text-color);
@@ -93,7 +93,7 @@
 
     .htUISelectCaption {
         background-color: var(--hot-select-background-color);
-        border-radius: var(--hot-select-radius);
+        border-radius: var(--hot-border-radius);
         color: var(--hot-select-text-color);
         border: var(--hot-select-border-size) solid var(--hot-select-border-color);
         font-family: inherit;
@@ -145,7 +145,7 @@
 
     /* Search */
     .htUIMultipleSelectSearch input {
-        border-radius: var(--hot-form-input-radius);
+        border-radius: var(--hot-border-radius);
         border: var(--hot-form-input-border-size) solid var(--hot-form-input-border-color);
     }
 

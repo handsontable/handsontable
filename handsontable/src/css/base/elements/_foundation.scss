@@ -14,7 +14,7 @@
 	}
 
 	a {
-		color: var(--hot-link-color);
+		color: var(--hot-accent-color);
 	}
 
 	.htAutoSize {
@@ -27,7 +27,6 @@
 	td, th {
         border-color:  var(--hot-border-color);
         color: var(--hot-foreground-color);
-        /*background-color: var(--hot-background-color); // moved into htCore */
 
 		&.invisibleSelection {
 			outline: none;
@@ -91,34 +90,3 @@
         }
     }
 }
-
-/* TODO SCSS Refactoring
---------------- */
-.ht_editor_hidden {
-    z-index: -1;
-}
-
-.ht_editor_visible {
-    z-index: 200;
-}
-    
-.handsontable .collapsibleIndicator {
-    position: absolute;
-    top: 50%;
-    transform: translate(0% ,-50%);
-    inset-inline-start: unset;
-    inset-inline-end: 5px;
-    border: 1px solid #A6A6A6;
-    line-height: 8px;
-    color: #222;
-    border-radius: 10px;
-    font-size: 10px;
-    width: 10px;
-    height: 10px;
-    cursor: pointer;
-    -webkit-box-shadow: 0 0 0 6px rgba(238,238,238,1);
-    -moz-box-shadow: 0 0 0 6px rgba(238,238,238,1);
-    box-shadow: 0 0 0 3px rgba(238,238,238,1);
-    background: #eee;
-    text-align: center;
-}  

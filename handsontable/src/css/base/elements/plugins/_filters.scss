@@ -30,9 +30,9 @@
     }
 
     table.htCore {
-		border-color: var(--hot-filters-border-color);
+		border-color: var(--hot-dropdown-border-color);
 		border-style: solid;
-		border-width: var(--hot-filters-border-width);
+		border-width: var(--hot-dropdown-border-width)
 	}
 
 	table tbody tr td {
@@ -57,11 +57,11 @@
 		}
 
 		&.current {
-			background: var(--hot-filters-menu-item-active);
+			background: var(--hot-dropdown-item-active);
 		}
 
 		&.htSeparator {
-			border-top: var(--hot-filters-separator-size) solid var(--hot-filters-separator-color);
+			border-top: var(--hot-dropdown-separator-size) solid var(--hot-separator-color);
 			height: 0;
 			padding: 0;
 		}
@@ -71,14 +71,14 @@
 
 
 			&:hover {
-				background: var(--hot-filters-menu-background);
+				background: var(--hot-dropdown-background);
 				color: var(--hot-read-only-text);
 				cursor: default;
 			}
 		}
 
 		.htItemWrapper {
-			margin-inline: var(--hot-filters-menu-item-inner-padding);
+			margin-inline: var(--hot-dropdown-item-margin);
 		}
 
 		div span.selected {
@@ -93,7 +93,7 @@
 
     /* Menu filtering*/
     .htMenuFiltering {
-        border-bottom: var(--hot-filters-menu-filtering-border-width) var(--hot-filters-menu-filtering-border-style) var(--hot-filters-menu-filtering-border-color); //#ccc;
+        border-bottom: var(--hot-filters-menu-filtering-border-width) var(--hot-filters-menu-filtering-border-style) var(--hot-border-color); //#ccc;
         height: var(--hot-filters-menu-filtering-height);
         overflow: hidden;
     }
@@ -117,13 +117,13 @@
 
     /* Component filter by conditional */
     .htFiltersMenuCondition.border {
-        border-bottom: var(--hot-filters-menu-conditional-border-width) var(--hot-filters-menu-conditional-border-style) var(--hot-filters-menu-conditional-border-color) !important;
+        border-bottom: var(--hot-filters-menu-border-width) var(--hot-filters-menu-border-style) var(--hot-border-color) !important;
     }
     .htFiltersMenuCondition .htUIInput {
-        padding: var(--hot-filters-menu-conditional-input-padding);
+        padding: var(--hot-filters-menu-input-padding);
     }
     .htFiltersMenuValue {
-        border-bottom: var(--hot-filters-menu-value-border-width) var(--hot-filters-menu-value-border-style) var(--hot-filters-menu-value-border-color) !important;
+        border-bottom: var(--hot-filters-menu-border-width) var(--hot-filters-menu-border-style) var(--hot-border-color) !important;
 
         .htUIMultipleSelectSearch {
             padding: var(--hot-filters-menu-value-search-padding);

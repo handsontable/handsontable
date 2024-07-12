@@ -19,9 +19,9 @@
     }
 
     .ht_master table.htCore {
-        border-color: var(--hot-contextmenu-border-color);
+        border-color: var(--hot-dropdown-border-color);
         border-style: solid;
-        border-width: var(--hot-contextmenu-border-width);
+        border-width: var(--hot-dropdown-border-width);
     }
 
     &.handsontable:focus {
@@ -38,9 +38,9 @@
         }
 
         td {
-            background: var(--hot-contextmenu-background-color);
+            background: var(--hot-dropdown-background);
             border-width: 0;
-            padding: var(--hot-contextmenu-item-padding);
+            padding: var(--hot-dropdown-item-padding);
             cursor: pointer;
             overflow: hidden;
             white-space: nowrap;
@@ -59,11 +59,11 @@
             }
 
             &.current {
-                background: var(--hot-contextmenu-item-current-background-color);
+                background: var(--hot-dropdown-item-active);
             }
 
             &.htSeparator {
-                border-top: var(--hot-contextmenu-separator-size) solid var(--hot-contextmenu-separator-color);
+                border-top: var(--hot-dropdown-separator-size) solid var(--hot-separator-color);
                 height: 0;
                 padding: 0;
                 cursor: default;
@@ -81,7 +81,7 @@
             }
 
             .htItemWrapper {
-                margin-inline: var(--hot-contextmenu-item-inner-padding);
+                margin-inline: var(--hot-contextmenu-item-margin);
             }
 
             div span.selected {

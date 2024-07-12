@@ -25,3 +25,11 @@
 .ht_clone_top_inline_start_corner {
     z-index: 180;
 }
+
+.ht_editor_hidden {
+    z-index: -1;
+}
+
+.ht_editor_visible {
+    z-index: 200;
+}

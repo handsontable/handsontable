@@ -6,9 +6,9 @@
     margin: 0;
     
     .ht_master table {
-        border: var(--hot-lsitbox-border-size) solid var(--hot-lsitbox-border-color);
+        border: var(--hot-listbox-border-size) solid var(--hot-listbox-border-color);
         border-collapse: separate;
-        background: var(--hot-lsitbox-background-color);
+        background: var(--hot-listbox-background-color);
     }
 
     th,
@@ -37,6 +37,10 @@
 
     tr td.current,
     tr:hover td {
-        background: var(--hot-lsitbox-background-current-color);
+        background: var(--hot-dropdown-item-active);
+
+        strong {
+            font-weight: var(--hot-listbox-background-current-font-weight);
+        }
     }
 }

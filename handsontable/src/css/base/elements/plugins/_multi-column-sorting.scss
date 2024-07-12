@@ -17,7 +17,7 @@
             padding-inline-start: 5px;
             font-size: calc(var(--hot-base-font-size) - 5px);
             height: calc(var(--hot-base-font-size) - 5px);
-            line-height: var(--hot-header-line-height);
+            line-height: var(--hot-cell-line-height);
             
             /* Workaround for IE9 - IE11, https://stackoverflow.com/a/21902566, https://stackoverflow.com/a/32120247 */
             //text-decoration: underline;

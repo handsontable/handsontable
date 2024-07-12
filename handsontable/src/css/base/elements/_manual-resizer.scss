@@ -9,8 +9,8 @@
         top: 0;
         cursor: col-resize;
         z-index: 210;
-        width: var(--hot-resizer-width);
-        height: calc(var(--hot-cell-height) + var(--hot-header-horizontal-padding));
+        width: var(--hot-resizer-size);
+        height: calc(var(--hot-cell-height) + var(--hot-cell-horizontal-padding));
 
         &:hover, 
         &.active {
@@ -23,7 +23,7 @@
         left: 0;
         cursor: row-resize;
         z-index: 210;
-        height: var(--hot-resizer-width);
+        height: var(--hot-resizer-size);
         width: var(--hot-col-width);
 
         &:hover, 
@@ -41,7 +41,7 @@
         width: 0;
         border-inline-end: var(--hot-border-vertical-size) dashed var(--hot-column-resizer-guide-color);
         border-inline-start: none;
-        margin-inline-start: var(--hot-resizer-width);
+        margin-inline-start: var(--hot-resizer-size);
         margin-inline-end: unset;
     }
 

@@ -1,0 +1,117 @@
+/*
+    Core Variables
+*/
+
+@use "sass:color";
+
+:root {
+    /* Sizing */
+    --hot-border-horizontal-size: 1px;
+    --hot-border-vertical-size: 1px;
+    --hot-base-padding: 4px;
+    --hot-border-radius: 2px;
+
+    /* Cell */
+    --hot-cell-height: 22px;
+    --hot-cell-line-height: 21px;
+    --hot-cell-horizontal-padding: var(--hot-base-padding);
+    --hot-cell-vertical-padding: 0px;
+
+    /* Header */
+    --hot-resizer-size: 5px;
+    --hot-header-horizontal-padding: 2px;
+    --hot-header-vertical-padding: 2px;
+
+    /* Listbox */
+    --hot-listbox-border-size: 1px;
+
+    /* Header Menu Button */
+    --hot-header-menu-button-background: var(--hot-button-background-color);
+    --hot-header-menu-button-color:#bbbbbb;
+    --hot-header-menu-button-hover-color: #777777;
+    --hot-header-menu-button-background-active: #d2e0d9;
+    --hot-header-menu-button-background-active-color: #18804e;
+    --hot-header-menu-button-border-active-color: #509272;
+    --hot-header-menu-button-border-color: #bbbbbb;
+    --hot-header-menu-button-border-size: 1px;
+    --hot-header-menu-button-margin: 3px 1px 0 5px;
+    --hot-header-menu-button-padding: 2px;
+
+    /* Filters */
+    --hot-filters-menu-filtering-border-width: 1px;
+    --hot-filters-menu-filtering-border-style: dotted;
+    --hot-filters-menu-filtering-height: 135px;
+    --hot-filters-menu-label-font-size: .75em;
+    --hot-filters-menu-label-line-height: auto;
+    --hot-filters-menu-label-padding: 0;
+    --hot-filters-menu-action-bar-padding: 10px 0 3px 0;
+    --hot-filters-menu-action-bar-align: center;
+    --hot-filters-menu-input-padding: 0 0 5px 0;
+    --hot-filters-menu-border-width: 1px;
+    --hot-filters-menu-border-style: dotted;
+    --hot-filters-menu-value-search-padding: 0;
+    --hot-filters-menu-input-font-size: var(--hot-button-font-size);
+    --hot-filters-menu-input-padding: var(--hot-base-padding);
+    --hot-filters-menu-operators-padding: 4px 6px 5px;
+    
+    /* Input */
+    --hot-form-input-wrapper-padding: 3px 0 7px 0;
+    --hot-form-input-border-color: #d2d1d1;
+    --hot-form-input-border-size: 1px;
+
+    /* Button */
+    --hot-button-background-color: #eeeeee;
+    --hot-button-text-color: var(--hot-foreground-color-active);
+    --hot-button-font-size: .75em;
+    --hot-button-font-weight: bold;
+    --hot-button-height: 19px;
+    --hot-button-width: 64px;
+    --hot-button-border-color: var(--hot-border-color);
+    --hot-button-border-size: 0px;
+    --hot-button-hover-border-color: #b9b9b9;
+    --hot-button-hover-background-color: var(--hot-button-background-color);
+    --hot-button-hover-text-color: var(--hot-button-text-color);
+    --hot-button-margin: 10px;
+
+    /* Primary Button */
+    --hot-button-primary-border-color: #0f9d58;
+    --hot-button-primary-background-color: #18804e;
+    --hot-button-primary-text-color: #fff;
+    --hot-button-primary-hover-border-color: #1a6f46;
+    --hot-button-primary-hover-background-color: var(--hot-button-primary-background-color);
+    --hot-button-primary-hover-text-color: var(--hot-button-primary-text-color);
+    --hot-button-primary-focus-border-color: #7cb878;
+    --hot-button-primary-focus-background-color: #92dd8d;
+    --hot-button-primary-focus-text-color: #000;
+
+    /* Select */
+    --hot-select-wrapper-margin: 0 0 7px;
+    --hot-select-background-color: #e8e8e8;
+    --hot-select-border-color: var(--hot-form-input-border-color);
+    --hot-select-border-size: var(--hot-form-input-border-size);
+    --hot-select-font-size: var(--hot-button-font-size);
+    --hot-select-padding: 3px 20px 3px 10px;
+    --hot-select-font-weight: bold;
+    --hot-select-hover-border-color: var(--hot-button-hover-border-color);
+    --hot-select-hover-background-color: var(--hot-select-background-color);
+    --hot-select-hover-text-color: var(--hot-button-text-color);
+    --hot-select-text-color: var(--hot-foreground-color);
+    
+    /* Radio */
+    --hot-radio-wrapper-margin: 5px;
+    --hot-radio-margin: 0.5ex;
+
+    /* Checkbox */
+    --hot-checkbox-margin-top: 0;
+    --hot-checkbox-margin-bottom: 0;
+    --hot-checkbox-margin-bottom-start: 0;
+    --hot-checkbox-margin-bottom-end: 5px;
+    --hot-checkbox-height: 1em;
+
+    /* Hidden Dimensions */
+    --hot-hidden-dimension-indicator-margin-column: 1px;
+    --hot-hidden-dimension-indicator-margin-row: 2px;
+    --hot-hidden-dimension-indicator-color: #bbbbbb;
+    --hot-hidden-dimension-indicator-color-highlighted: #eeeeee;
+    
+}

@@ -7,7 +7,7 @@
     .htAutocompleteArrow {
       float: inline-end;
       font-size: 10px;
-      color: var(--hot-AutocompleteArrow-color);
+      color: var(--hot-autocomplete-arrow-color);
       cursor: default;
       width: 16px;
       text-align: center;
@@ -15,19 +15,19 @@
   
     td {
       &.htInvalid .htAutocompleteArrow {
-        color: var(--hot-AutocompleteArrow-invalid-color);
+        color: var(--hot-autocomplete-arrow-invalid-color);
   
         &:hover {
-          color: var(--hot-AutocompleteArrow-invalid-hover-color);
+          color: var(--hot-autocomplete-arrow-invalid-hover-color);
         }
       }
   
       .htAutocompleteArrow:hover {
-        color: var(--hot-AutocompleteArrow-hover-color);
+        color: var(--hot-autocomplete-arrow-hover-color);
       }
   
       &.area .htAutocompleteArrow {
-        color: var(--hot-AutocompleteArrow-area-color);
+        color: var(--hot-autocomplete-arrow-area-color);
       }
     }
   }

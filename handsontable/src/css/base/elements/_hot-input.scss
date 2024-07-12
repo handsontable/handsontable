@@ -18,11 +18,10 @@
         resize: none;
         /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
         display: block;
-        color: var(--hot-editor-text-color);
+        color: var(--hot-foreground-color-active);
         border-radius: 0;
-        background-color: var(--hot-editor-background-color);
+        background-color: var(--hot-background-color);
         /*overwrite styles potentionally made by a framework*/
-        // height: calc( var(--hot-border-vertical-size) + var(--hot-cell-line-height) ) !important;
         &:focus {
             outline: none;
         }
