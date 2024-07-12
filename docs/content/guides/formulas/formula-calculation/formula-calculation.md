@@ -395,7 +395,7 @@ For the list of available settings and methods, visit the [API reference](@/api/
 
 This plugin inherits the calculation powers from _HyperFormula_. The complete functions reference
 can be found in the
-[HyperFormula documentation](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
+[HyperFormula documentation](https://hyperformula.handsontable.com/guide/cell-references.html#relative-references).
 
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
