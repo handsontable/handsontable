@@ -1,0 +1,72 @@
+/* manualColumnResizer */
+.manualColumnResizer {
+    width: 10px;
+    background: none;
+    margin: 0;
+    opacity: 0;
+    transition: opacity .2s ease-in-out ;
+
+    &::before, &::after {
+        content: '';
+        height: calc(100% - 8px);
+        width: 2px;
+        display: block;
+        background: var(--hot-read-only-text);
+        border-radius: 2px;
+        margin: 4px 0;
+        top:0;
+        left:1px;
+        position: absolute;
+    }
+    &:after {
+        right: 0;
+        left: auto
+    }
+
+    &:hover, 
+    &.active {
+        opacity: 1;
+    }
+}
+
+.manualRowResizer {
+    height: 10px;
+    background: none;
+    margin: 0;
+    opacity: 0;
+    transition: opacity .2s ease-in-out ;
+
+    &::before, &::after {
+        content: '';
+        width: calc(100% - 8px);
+        height: 2px;
+        display: block;
+        background: var(--hot-read-only-text);
+        border-radius: 2px;
+        margin: 0 4px;
+        top:1px;
+        left:0;
+        position: absolute;
+    }
+    &:after {
+        bottom: 0;
+        top: auto
+    }
+
+    &:hover, 
+    &.active {
+        opacity: 1;
+    }
+}
+
+.manualColumnResizerGuide,
+.manualRowResizerGuide {
+    border-style: solid;
+}
+
+.manualColumnResizerGuide {
+    border-left: 0;
+}
+.manualRowResizerGuide {
+    border-top: 0;
+}
