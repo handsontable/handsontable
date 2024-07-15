@@ -41,7 +41,7 @@
         color: $text2Color
         align-items: center;
         gap: 24px;
-        padding-top: 40px
+        padding-top: 0
 
         p,a { 
             font-size: $font-size-xs
@@ -101,6 +101,28 @@
                 }
             }
             
+        }
+        .edit-link  { 
+            display: flex
+            gap: 8px
+            font-weight: 300
+            align-items: center
+            margin-left: auto
+            color: $text2Color
+            
+            i { 
+                opacity: .6
+            }
+            
+            @media (hover: hover) {
+                &:hover {  
+                    color: $textColor
+
+                    i { 
+                        opacity: .8
+                    }
+                }
+            }
         }
     }
 
@@ -209,6 +231,11 @@
 
             .hot-links {
                 flex-direction: column
+            }
+
+            .edit-link  { 
+                order: -1
+                margin-left: 0
             }
         }
     }

@@ -8,24 +8,27 @@ registerAllModules();
 
 // generate an array of arrays with dummy data
 const data = new Array(100) // number of rows
-  .fill()
-  .map((_, row) => new Array(50) // number of columns
-    .fill()
-    .map((_, column) => `${row}, ${column}`)
+  .fill(null)
+  .map((_, row) =>
+    new Array(50) // number of columns
+      .fill(null)
+      .map((_, column) => `${row}, ${column}`)
   );
 
 const ExampleComponent = () => {
   const [isContainerExpanded, setIsContainerExpanded] = useState(false);
   const hotRef = useRef(null);
-
   const triggerBtnClickCallback = () => {
     setIsContainerExpanded(!isContainerExpanded);
   };
 
   useEffect(() => {
     // simulate layout change outside of React lifecycle
-    document.getElementById('exampleParent').style.height = isContainerExpanded ? '410px' : '157px';
-    hotRef.current.hotInstance.refreshDimensions();
+    // @ts-ignore
+    document.getElementById('exampleParent').style.height = isContainerExpanded
+      ? '410px'
+      : '157px';
+    hotRef.current?.hotInstance?.refreshDimensions();
   });
 
   return (
@@ -34,7 +37,7 @@ const ExampleComponent = () => {
         <button
           id="triggerBtn"
           className="button button--primary"
-          onClick={(...args) => triggerBtnClickCallback(...args)}
+          onClick={() => triggerBtnClickCallback()}
         >
           {isContainerExpanded ? 'Collapse container' : 'Expand container'}
         </button>

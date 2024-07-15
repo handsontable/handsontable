@@ -5,6 +5,34 @@
     padding: 0
     border: 1px solid $lightBorderColor
 
+    .select-type-button {
+        font-size: $font-size-xs
+
+        @media (max-width: $small) {
+            font-size: 12px
+        }
+    }
+    
+    [id*="html-tab"], [id*="css-tab"] {
+        .select-type {
+            display: none !important
+        }
+    }
+
+    div[class*="language-"] { 
+        .select-type {
+            display: none
+        }
+    }
+
+    div[class*="tab-content"] { 
+        div[class*="language-"] { 
+            .select-type {
+                display: block
+            }
+        }
+    }
+
     .option-label {
         color: $text2Color !important
 
@@ -64,11 +92,16 @@
                 border-radius: $radius
                 background: $onsurfaceColor
                 border: 1px solid $onsurfaceColor
+                font-size: $font-size-xs
 
                 @media (hover: hover) {
                     &:hover {
                         color: $textColor
                     }
+                }
+
+                @media (max-width: $small) {
+                    font-size: 12px
                 }
             }
 
@@ -143,7 +176,7 @@
 }
 
 .page .theme-default-content  .tabs-button-wrapper {
-    padding-top: 8px
+    padding-top: 16px
     padding-bottom: 8px
     display: flex
     flex-direction: column
@@ -159,6 +192,7 @@
 
     .tabs-button-list {
         display: flex
+        flex-wrap: wrap
         gap: 8px
         background: $editorColor
         border-radius: $radius
@@ -190,18 +224,26 @@
             transition: all $t ease-in-out
             align-items: center
             border: 1px solid $bgColor !important
+            font-size: $font-size-xs
 
             @media (hover: hover) {
                 &:hover {
                     background: $editorColor
                 }
             }
+
+             @media (max-width: $small) {
+                font-size: 12px
+                padding: 7px 12px 7px 10px !important
+             }
         }
 
         .example-controls {
             display: flex
             height: 36px
-
+            .examples-buttons {
+                display: flex
+            }
             button {
                 border: none !important
                 padding: 10px !important
@@ -303,13 +345,45 @@
         line-height: $line-height-xs
         color:$textColor
         border-radius: $radius
-        border:1px solid $borderColor
-        background: $editorColor
+        border: 1px solid $borderColor
+        background: $borderColor
+        outline: none !important
+
+        &::placeholder {
+            color:$text2Color
+        }
 
         @media (hover: hover) {
-            &:hover {
-                background: $bgColor
+            &:hover { 
+                border: 1px solid $accentColor
             }
+        }
+        &:focus-visible  { 
+            border: 1px solid $accentColor
+        }
+
+    }
+
+    select:not(.htSelectEditor) {
+        padding: 8px 32px 8px 16px; 
+        appearance none
+        position: relative
+    }
+
+    label:has(select) {
+        position relative
+        
+        &:after {
+            content:'';
+            display: inline-block;
+            border-bottom: 1px solid $borderColor;
+            border-right: 1px solid $borderColor;
+            width: 4px
+            height: 4px
+            transform: rotate(45deg)
+            position: relative
+            right: 24px
+            top:-2px
         }
     }
 

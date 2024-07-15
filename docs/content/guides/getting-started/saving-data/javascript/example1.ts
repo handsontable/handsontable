@@ -1,11 +1,11 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example1')!;
-const exampleConsole = document.querySelector('#output') as HTMLElement;
-const autosave = document.querySelector('#autosave') as HTMLInputElement;
-const load = document.querySelector('#load')!;
-const save = document.querySelector('#save')!;
+const container = document.querySelector<HTMLDivElement>('#example1')!;
+const exampleConsole = document.querySelector<HTMLDivElement>('#output')!;
+const autosave = document.querySelector<HTMLInputElement>('#autosave')!;
+const load = document.querySelector<HTMLButtonElement>('#load')!;
+const save = document.querySelector<HTMLButtonElement>('#save')!;
 
 const hot = new Handsontable(container, {
   startRows: 8,
@@ -14,7 +14,10 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
-  afterChange(change, source) {
+  afterChange(
+    change: Handsontable.CellChange[] | null,
+    source: Handsontable.ChangeSource
+  ) {
     if (source === 'loadData') {
       return; // don't save this change
     }
@@ -31,43 +34,43 @@ const hot = new Handsontable(container, {
       method: 'POST',
       mode: 'no-cors',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ data: change })
-    })
-      .then(() => {
-        exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
-        console.log('The POST request is only used here for the demo purposes');
-      });
+      body: JSON.stringify({ data: change }),
+    }).then(() => {
+      exampleConsole.innerText = `Autosaved (${change.length} cell${
+        change.length > 1 ? 's' : ''
+      })`;
+      console.log('The POST request is only used here for the demo purposes');
+    });
   },
   autoWrapRow: true,
   autoWrapCol: true,
 });
 
 load.addEventListener('click', () => {
-  fetch('{{$basePath}}/scripts/json/load.json')
-    .then((response) => {
-      response.json().then((data) => {
-        hot.loadData(data.data);
-        // or, use `updateData()` to replace `data` without resetting states
-        exampleConsole.innerText = 'Data loaded';
-      });
+  fetch('{{$basePath}}/scripts/json/load.json').then((response) => {
+    response.json().then((data) => {
+      hot.loadData(data.data);
+      // or, use `updateData()` to replace `data` without resetting states
+      exampleConsole.innerText = 'Data loaded';
     });
+  });
 });
+
 save.addEventListener('click', () => {
   // save all cell's data
   fetch('{{$basePath}}/scripts/json/save.json', {
     method: 'POST',
     mode: 'no-cors',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ data: hot.getData() })
-  })
-    .then(() => {
-      exampleConsole.innerText = 'Data saved';
-      console.log('The POST request is only used here for the demo purposes');
-    });
+    body: JSON.stringify({ data: hot.getData() }),
+  }).then(() => {
+    exampleConsole.innerText = 'Data saved';
+    console.log('The POST request is only used here for the demo purposes');
+  });
 });
 
 autosave.addEventListener('click', () => {

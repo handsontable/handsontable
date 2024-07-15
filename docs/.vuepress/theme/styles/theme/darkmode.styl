@@ -466,6 +466,7 @@ html.theme-dark {
             p {
                 color: $text2Color
             }
+
             ul, ol { 
 
                 li {
@@ -480,9 +481,11 @@ html.theme-dark {
             pre { 
                 background: $editorColor 
             }
+
             .language-bash:before { 
                 display: none
             }
+
             div[class*="language-"] { 
                 background: $editorColor 
             }
@@ -500,6 +503,10 @@ html.theme-dark {
                         color: $linkHoverColor
                     }
                 }
+            }
+
+            .handsontable a { 
+                text-decoration: none
             }
             
             .source-code-link {
@@ -741,17 +748,13 @@ html.theme-dark {
                 }
             }
 
-            .footer-support { 
+            .edit-link  { 
                 color: $text2Color
+                //i { filter: brightness(0) invert(.6) }
 
-                .edit-link a { 
-                    color: $linkColor
-                    i { filter: brightness(0) invert(.6) }
-
-                    @media (hover: hover) {
-                        &:hover {  
-                            color: $linkHoverColor
-                        }
+                @media (hover: hover) {
+                    &:hover {  
+                        color: $textColor
                     }
                 }
             }
@@ -1360,17 +1363,32 @@ html.theme-dark {
 
         #mainInput, select:not(.htSelectEditor), input[type=text], input[type=search], .placeholder-input {
             border-radius: $radius
-            border:1px solid $borderColor
-            background: $editorColor
+            border: 1px solid $lightBorderColor
+            background: $borderColor
             color:$textColor
 
+            &::placeholder {
+                color:$text2Color
+            }
+            
             @media (hover: hover) {
-                &:hover {
-                    background: $bgColor
+                &:hover { 
+                    border: 1px solid $accentColor
                 }
+            }
+            &:focus-visible  { 
+                border: 1px solid $accentColor
             }
         }
     }
+
+    
+    pre + .codeControls {
+        &:after { 
+            background: linear-gradient(90deg, rgba(34, 35, 38, 0) 0%, $editorColor 20%);
+        }
+    }
+    
 }
 
 

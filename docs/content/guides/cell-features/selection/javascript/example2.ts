@@ -25,7 +25,7 @@ const hot = new Handsontable(container, {
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 const getButton = document.querySelector('#getButton')!;
@@ -36,7 +36,7 @@ getButton.addEventListener('click', () => {
   let data: Handsontable.CellValue[] = [];
 
   if (selected.length === 1) {
-  	data = hot.getData(...selected[0]!);
+    data = hot.getData(...selected[0]!);
   } else {
     for (let i = 0; i < selected.length; i += 1) {
       data.push(hot.getData(...selected[i]!));

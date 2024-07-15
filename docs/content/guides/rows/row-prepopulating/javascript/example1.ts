@@ -2,17 +2,16 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 import { BaseRenderer } from 'handsontable/renderers';
 
-
 const templateValues: string[] = ['one', 'two', 'three'];
 const data: (string | number)[][] = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
   ['2017', 10, 11, 12, 13],
   ['2018', 20, 11, 14, 13],
-  ['2019', 30, 15, 12, 13]
+  ['2019', 30, 15, 12, 13],
 ];
 
-function isEmptyRow(instance, _row) {
-  const rowData = instance.countRows();
+function isEmptyRow(instance: Handsontable, row: number) {
+  const rowData = instance.getDataAtRow(row);
 
   for (let i = 0, ilen = rowData.length; i < ilen; i++) {
     if (rowData[i] !== null) {
@@ -23,17 +22,32 @@ function isEmptyRow(instance, _row) {
   return true;
 }
 
-const defaultValueRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+const defaultValueRenderer: BaseRenderer = (
+  instance,
+  td,
+  row,
+  col,
+  prop,
+  value,
+  cellProperties
+) => {
   if (value === null && isEmptyRow(instance, row)) {
     value = templateValues[col];
     td.style.color = '#999';
-
   } else {
     td.style.color = '';
   }
 
-  Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
-}
+  Handsontable.renderers.TextRenderer(
+    instance,
+    td,
+    row,
+    col,
+    prop,
+    value,
+    cellProperties
+  );
+};
 
 const container = document.querySelector('#example1')!;
 
@@ -52,7 +66,7 @@ const hot = new Handsontable(container, {
     const columns = instance.countCols();
     const rowColumnSeen = {};
     const rowsToFill = {};
-    const ch = changes === null ? [] : changes as Handsontable.CellChange;
+    const ch = changes === null ? [] : (changes as Handsontable.CellChange);
 
     for (let i = 0; i < changes.length; i++) {
       // if oldVal is empty
