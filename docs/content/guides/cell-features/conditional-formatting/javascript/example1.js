@@ -43,7 +43,7 @@ const negativeValueRenderer = (
   if (!value || value === '') {
     td.style.background = '#EEE';
   } else {
-    if (value === 'Nissan') {
+    if (instance.getDataAtCell(0,col) === 'Nissan') {
       td.style.fontStyle = 'italic';
     }
 
