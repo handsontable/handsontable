@@ -395,7 +395,7 @@ For the list of available settings and methods, visit the [API reference](@/api/
 
 This plugin inherits the calculation powers from _HyperFormula_. The complete functions reference
 can be found in the
-[HyperFormula documentation](https://hyperformula.handsontable.com/guide/cell-references.html#relative-references).
+[HyperFormula documentation](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
 
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
@@ -476,7 +476,7 @@ pass an array with `name` and `expression` to your `formulas` configuration obje
 :::
 
 For more information about named expressions, refer to the
-[HyperFormula docs](https://handsontable.github.io/hyperformula/guide/named-ranges.html).
+[HyperFormula docs](https://hyperformula.handsontable.com/guide/cell-references.html#relative-references).
 
 ## View the explainer video
 
