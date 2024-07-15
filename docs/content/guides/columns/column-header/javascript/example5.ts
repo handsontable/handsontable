@@ -20,5 +20,5 @@ const hot = new Handsontable(container, {
     { headerClassName: 'htRight bold-text italic-text' },
     {},
   ],
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
