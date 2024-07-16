@@ -4,16 +4,19 @@
     "description": "",
     "main": "index.html",
     "scripts": {
-      "start": "parcel --no-source-maps index.html --open",
-      "build": "parcel build index.html"
+      "start": "parcel index.html --open",
+      "build": "parcel build index.html",
+      "check-types": "tsc --noEmit --skipLibCheck"
     },
     "dependencies": {
-      "hyperformula": "^2.4.0",
-      "handsontable": "14.4.0"
+      "handsontable": "14.4.0",
+      "parcel": "^2.x"
     },
     "devDependencies": {
-      "@babel/core": "7.2.0",
-      "parcel-bundler": "^1.6.1"
+      "typescript": "^4.7"
+    },
+    "resolutions": {
+      "@babel/preset-env": "7.13.8"
     },
     "keywords": []
   }
