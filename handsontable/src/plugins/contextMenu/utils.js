@@ -107,14 +107,6 @@ function applyAlignClassName(row, col, type, alignment, cellDescriptor, property
  * @param {string} label The label text.
  * @returns {string}
  */
-export function markLabelAsChecked(label) {
-  return `${label} checked`;
-}
-
-/**
- * @param {string} label The label text.
- * @returns {string}
- */
 export function markLabelAsSelected(label) {
   // workaround for https://github.com/handsontable/handsontable/issues/1946
   return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`;
