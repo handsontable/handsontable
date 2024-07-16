@@ -11,6 +11,7 @@ const data: string[][] = new Array(1000) // number of rows
   );
 
 const container = document.querySelector('#example1')!;
+
 new Handsontable(container, {
   data,
   colWidths: 100,

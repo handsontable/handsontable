@@ -11,13 +11,13 @@ const RendererComponent = (props) => {
   // - `cellProperties` (the `cellProperties` object for the edited cell)
   return (
     <>
-      <i style={{ color: "#a9a9a9" }}>
+      <i style={{ color: '#a9a9a9' }}>
         Row: {props.row}, column: {props.col},
-      </i>{" "}
+      </i>{' '}
       value: {props.value}
     </>
   );
-}
+};
 
 const hotData = [
   ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -33,7 +33,8 @@ const hotData = [
 
 const ExampleComponent = () => {
   return (
-    <HotTable data={hotData}
+    <HotTable
+      data={hotData}
       autoWrapRow={true}
       autoWrapCol={true}
       autoRowSize={false}

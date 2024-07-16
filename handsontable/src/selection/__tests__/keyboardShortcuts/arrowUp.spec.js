@@ -132,6 +132,27 @@ describe('Selection navigation', () => {
         expect(getSelectedRange()).toEqualCellRange(['highlight: 4,0 from: 4,0 to: 4,0']);
       });
 
+      it('should move the cell selection to the last row of the previous column, if the first row is already' +
+        ' selected (navigableHeaders: on -> navigableHeaders: off)', () => {
+        handsontable({
+          startRows: 5,
+          startCols: 5,
+          colHeaders: true,
+          navigableHeaders: true,
+          autoWrapCol: true
+        });
+
+        selectCell(0, 1);
+        keyDownUp('arrowup');
+
+        updateSettings({ navigableHeaders: false });
+
+        selectCell(0, 1);
+        keyDownUp('arrowup');
+
+        expect(getSelectedRange()).toEqualCellRange(['highlight: 4,0 from: 4,0 to: 4,0']);
+      });
+
       it('should move the cell selection to the last row of the previous column, if the first row is already selected (with headers)', () => {
         handsontable({
           startRows: 5,

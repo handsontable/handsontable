@@ -1,10 +1,11 @@
 .page {
     .breadcrumbs {
         max-width: 720px
-        display: flex
-        margin:0 auto
+        margin: 0 auto
         padding: 28px 0 0 0 !important
+        display: flex
         flex-wrap: wrap
+        gap: 4px
         position: relative
         box-sizing: border-box
         
@@ -46,12 +47,16 @@
             //color: $text2Color
         }
         a, span {
-            &:not(:last-child):after { 
+            &:not(:last-child):after, > span span:after { 
                 content: "/"
                 display: inline-block
-                padding: 0 8px 0 8px
+                padding-left: 8px
+                padding-right: 4px
                 color: $text2Color !important
             }
+        }
+        a span span:after { 
+            padding-right: 8px
         }
     }
 }

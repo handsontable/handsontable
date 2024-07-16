@@ -40,12 +40,12 @@ export default {
     },
     changelogLink() {
       return {
-        link: `${this.frameworkUrlPrefix}/release-notes/`,
+        link: `${this.frameworkUrlPrefix}/changelog/`,
         text: 'Changelog'
       };
     },
     isChangelogLinkActive() {
-      return this.$route.path.includes('/release-notes');
+      return this.$route.path.includes('/changelog');
     }
   }
 };

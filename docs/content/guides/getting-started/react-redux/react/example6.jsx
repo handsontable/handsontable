@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect, createRef } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect } from 'react-redux';
@@ -102,59 +102,57 @@ const UnconnectedColorPickerEditor = (props) => {
 const ColorPickerEditor = connect(function(state) {
   return {
     activeColors: state.appReducer.activeColors,
-    inactiveColors: state.appReducer.inactiveColors
+    inactiveColors: state.appReducer.inactiveColors,
   };
 })(UnconnectedColorPickerEditor);
 
 // a Redux component
 const initialReduxStoreState = {
   activeColors: [],
-  inactiveColors: []
+  inactiveColors: [],
 };
 
 const appReducer = (state = initialReduxStoreState, action) => {
   switch (action.type) {
     case 'initRatingColors': {
       const { hotData } = action;
-
       const activeColors = hotData.map((data) => data[1]);
       const inactiveColors = hotData.map((data) => data[2]);
 
       return {
         ...state,
         activeColors,
-        inactiveColors
+        inactiveColors,
       };
     }
-
     case 'updateActiveStarColor': {
       const rowIndex = action.row;
       const newColor = action.hexColor;
-
-      const activeColorArray = [...state.activeColors];
+      const activeColorArray = state.activeColors
+        ? [...state.activeColors]
+        : [];
 
       activeColorArray[rowIndex] = newColor;
 
       return {
         ...state,
-        activeColors: activeColorArray
+        activeColors: activeColorArray,
       };
     }
-
     case 'updateInactiveStarColor': {
       const rowIndex = action.row;
       const newColor = action.hexColor;
-
-      const inactiveColorArray = [...state.inactiveColors];
+      const inactiveColorArray = state.inactiveColors
+        ? [...state.inactiveColors]
+        : [];
 
       inactiveColorArray[rowIndex] = newColor;
 
       return {
         ...state,
-        inactiveColors: inactiveColorArray
+        inactiveColors: inactiveColorArray,
       };
     }
-
     default:
       return state;
   }
@@ -162,22 +160,21 @@ const appReducer = (state = initialReduxStoreState, action) => {
 
 const actionReducers = combineReducers({ appReducer });
 const reduxStore = createStore(actionReducers);
-
 // a custom renderer component
 const UnconnectedStarRatingRenderer = ({
   row,
   col,
   value,
   activeColors,
-  inactiveColors
+  inactiveColors,
 }) => {
   return (
     <StarRatingComponent
       name={`${row}-${col}`}
       value={value}
       starCount={5}
-      starColor={activeColors[row]}
-      emptyStarColor={inactiveColors[row]}
+      starColor={activeColors?.[row || 0]}
+      emptyStarColor={inactiveColors?.[row || 0]}
       editing={true}
     />
   );
@@ -185,7 +182,7 @@ const UnconnectedStarRatingRenderer = ({
 
 const StarRatingRenderer = connect((state) => ({
   activeColors: state.appReducer.activeColors,
-  inactiveColors: state.appReducer.inactiveColors
+  inactiveColors: state.appReducer.inactiveColors,
 }))(UnconnectedStarRatingRenderer);
 
 const data = [
@@ -200,7 +197,7 @@ const ExampleComponent = () => {
   useEffect(() => {
     reduxStore.dispatch({
       type: 'initRatingColors',
-      hotData: data
+      hotData: data,
     });
   }, []);
 

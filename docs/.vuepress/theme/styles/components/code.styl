@@ -39,7 +39,7 @@
         }
 
         td code {
-            white-space: pre-wrap
+            white-space: nowrap
         }
 
         .language-bash:before { 
@@ -84,11 +84,12 @@
         pre { 
             margin-top: 16px
             background: $editorColor 
-            padding: 16px 24px
+            padding: 16px 104px 16px 24px
             margin: 16px 0 0
             border-radius: $radius
             font-size: $font-size-s
             line-height: $line-height-s
+            position: relative
 
             table {
                 margin: 8px 0 24px
@@ -188,6 +189,15 @@
         border-radius: $radius
         margin-bottom: 24px
         padding: 0
+
+        @media (max-width: $small) {
+            &:not(:first-child) {
+                pre {
+                    padding: 16px 104px 16px 16px
+                    // padding-top: 60px
+                }
+            }
+        }
     }
 
     @media (max-width: 419px) {
@@ -204,8 +214,12 @@
 }
 
 .theme-code-block [class*="language-"] {
+    &:has(.codeControls) {
+        padding-top: 64px
+    }
     .codeControls {
-        top:-42px
+        padding: 8px 8px 8px 24px
+        top:-52px
     }
 }
 
@@ -285,25 +299,83 @@
             }
         }
     }
-
-    @media (hover: hover) {
-        &:hover  {
-            .codeControls {
-                opacity 1
-            }
-        }
-    }
 }
 .codeControls {
     position absolute
-    top: 11px
-    right: 11px
+    top: 0
+    right: 0
     display: flex
     gap:10px
-    opacity: 0
     transition: all $t ease-in-out !important
     z-index 1
-    padding-bottom: 8px
+    padding: 11px 11px 8px 0
+    border-radius: $radius
+
+    @media (max-width: $small) {
+        position: absolute;
+        right: -16px !important;
+        left: -16px;
+        width: auto;
+        background: inherit;
+        opacity 1
+    }
+}
+
+pre + .codeControls {
+    &:after { 
+        content:''
+        display: block
+        position absolute
+        top: 0
+        right: 0
+        width: 128px;
+        height: 46px
+        border-radius: 0 $radius $radius 0
+        background: $editorColor 
+        background: linear-gradient(90deg, rgba(247, 247, 249, 0) 0%, $editorColor 20%);
+        pointer-events: none
+    }
+    
+    @media (max-width: $small) {
+        left: auto
+        right: 0 !important
+        background: none
+    }
+}
+
+
+/*.tabs-component:has(.codeControls),
+div[class*="language-"]:has(.codeControls),
+.theme-code-group:has(.codeControls) {
+    @media (hover: hover) {
+        &:hover .codeControls { 
+            opacity 1
+        }
+    }
+}*/
+
+.tabs-component-panel:has(.codeControls) {
+    .codeControls { 
+        padding: 0
+        
+        &:after {
+            display: none
+        }
+    }
+
+    @media (max-width: $small) {
+        padding-top: 64px !important
+
+        .codeControls {
+            padding: 0 8px
+            right: -16px !important;
+            left: -16px;
+
+            &:after {
+                display: none
+            }
+        }
+    }
 }
 
 .hideElement { 
@@ -312,6 +384,7 @@
 
 .page .select-type {
     height: 36px
+    display: none
 
     > button {
         padding-right: 32px !important

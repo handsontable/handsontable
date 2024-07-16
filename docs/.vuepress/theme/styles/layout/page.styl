@@ -78,6 +78,10 @@
             font-weight 400
             letter-spacing: 0//-0.16px
 
+            a {
+                font-weight: 500
+            }
+
             &:first-child {
                 margin-top 0
                 margin-bottom 16px
@@ -111,7 +115,7 @@
             margin:0!important
             padding: 40px 0 0
             position: relative
-            
+
             @media (max-width: $medium) {
                 font-size: $font-size-l
                 line-height: $line-height-l
@@ -170,7 +174,7 @@
             font-size: $font-size-s
             line-height: $line-height-s
             font-weight: 400
-            padding: 8px 0 0 
+            padding: 16px 0 8px 
             color: $text2Color
             letter-spacing: $letterSpacingText
             display: block
@@ -184,7 +188,7 @@
             }
 
             &:empty { 
-                //display:none 
+                display:none 
             }
 
             > img {
@@ -199,14 +203,14 @@
         }
 
         > ul, > ol, .boxes-list > ul, .instalationPage > ul { 
-            padding: 16px 8px 8px
+            padding: 8px 8px 16px
             word-wrap: break-word
 
             li {
                 font-size: $font-size-s
                 line-height: $line-height-s
                 font-weight: 400
-                list-style square 
+                list-style: square 
                 margin-left: 24px
                 color: $text2Color
                 padding-bottom: 8px
@@ -215,6 +219,10 @@
                     padding: 8px 8px 8px
                 }
             }
+        }
+
+        > ol li {
+            list-style: decimal
         }
         
         img { 
@@ -244,6 +252,11 @@
     
     .checkbox-group > div > label {
         gap: 8px
+
+        + .external-link {
+            margin-left: 2px
+            margin-top: -3px
+        }
     }
 
     .checkbox-group { 
@@ -296,7 +309,7 @@
         border-radius: $radius
         overflow: auto
         display: table
-        table-layout: fixed;
+        table-layout: auto;
         overflow-wrap: break-word;
 
         img {
@@ -326,6 +339,11 @@
                 background: $bgColor
                 td {
                     border-top: 1px solid $borderColor
+
+                    ul {
+                        list-style-position: inside
+                        list-style-type: square 
+                    }
                 }
                 &:nth-child(2n) { 
                     background: $sideColor

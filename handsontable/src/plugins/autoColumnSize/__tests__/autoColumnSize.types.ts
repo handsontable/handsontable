@@ -34,6 +34,7 @@ autoColumnSize.calculateAllColumnsWidth();
 autoColumnSize.calculateAllColumnsWidth({ from: 1, to: 2 });
 autoColumnSize.recalculateAllColumnsWidth();
 autoColumnSize.clearCache();
+autoColumnSize.clearCache([1, 2, 3]);
 
 const syncCalculationLimit: number = autoColumnSize.getSyncCalculationLimit();
 const columnWidth1: number = autoColumnSize.getColumnWidth(1);

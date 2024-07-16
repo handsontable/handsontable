@@ -122,7 +122,7 @@ new Handsontable(container, {
     },
   ],
   columnSorting: true,
-  height: "auto",
+  height: 'auto',
   stretchH: 'all',
   autoWrapRow: true,
   autoWrapCol: true,

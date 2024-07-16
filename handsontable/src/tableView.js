@@ -1303,12 +1303,29 @@ class TableView {
    * @param {number} [headerLevel=0] The index of header level counting from the top (positive
    *                                 values counting from 0 to N).
    */
-  appendColHeader(visualColumnIndex, TH, label = this.hot.getColHeader, headerLevel = 0) {
+  appendColHeader(
+    visualColumnIndex,
+    TH,
+    label = this.hot.getColHeader,
+    headerLevel = 0
+  ) {
+    const getColumnHeaderClassNames = () => {
+      const metaHeaderClassNames =
+        visualColumnIndex >= 0 ?
+          this.hot.getColumnMeta(visualColumnIndex).headerClassName :
+          null;
+
+      return metaHeaderClassNames ? metaHeaderClassNames.split(' ') : [];
+    };
+
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
         this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label, headerLevel);
+
+        container.className = '';
+        addClass(container, ['relative', ...getColumnHeaderClassNames()]);
 
       } else {
         empty(TH);
@@ -1319,8 +1336,9 @@ class TableView {
       const { rootDocument } = this.hot;
       const div = rootDocument.createElement('div');
       const span = rootDocument.createElement('span');
+      const classNames = getColumnHeaderClassNames();
 
-      div.className = 'relative';
+      div.classList.add('relative', ...classNames);
       span.className = 'colHeader';
 
       if (this.settings.ariaTags) {
@@ -1425,43 +1443,59 @@ class TableView {
   }
 
   /**
-   * Returns the first rendered row in the DOM (usually is not visible).
+   * Returns the first rendered row in the DOM (usually is not visible in the table's viewport).
    *
-   * @returns {number}
+   * @returns {number | null}
    */
   getFirstRenderedVisibleRow() {
+    if (!this._wt.wtViewport.rowsRenderCalculator) {
+      return null;
+    }
+
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedRow());
+      .getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedRow(), 1);
   }
 
   /**
-   * Returns the last rendered row in the DOM (usually is not visible).
+   * Returns the last rendered row in the DOM (usually is not visible in the table's viewport).
    *
-   * @returns {number}
+   * @returns {number | null}
    */
   getLastRenderedVisibleRow() {
+    if (!this._wt.wtViewport.rowsRenderCalculator) {
+      return null;
+    }
+
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedRow());
+      .getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedRow(), -1);
   }
 
   /**
-   * Returns the first rendered column in the DOM (usually is not visible).
+   * Returns the first rendered column in the DOM (usually is not visible in the table's viewport).
    *
-   * @returns {number}
+   * @returns {number | null}
    */
   getFirstRenderedVisibleColumn() {
+    if (!this._wt.wtViewport.columnsRenderCalculator) {
+      return null;
+    }
+
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedColumn());
+      .getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedColumn(), 1);
   }
 
   /**
-   * Returns the last rendered column in the DOM (usually is not visible).
+   * Returns the last rendered column in the DOM (usually is not visible in the table's viewport).
    *
-   * @returns {number}
+   * @returns {number | null}
    */
   getLastRenderedVisibleColumn() {
+    if (!this._wt.wtViewport.columnsRenderCalculator) {
+      return null;
+    }
+
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedColumn());
+      .getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedColumn(), -1);
   }
 
   /**
@@ -1628,6 +1662,15 @@ class TableView {
    */
   getOverlayByName(overlayName) {
     return this._wt.getOverlayByName(overlayName);
+  }
+
+  /**
+   * Checks if the table is visible or not.
+   *
+   * @returns {boolean}
+   */
+  isVisible() {
+    return this._wt.wtTable.isVisible();
   }
 
   /**

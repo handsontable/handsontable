@@ -71,7 +71,6 @@
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-babel": "6.0.4",
     "@vue/test-utils": "^1.0.3",
-    "babel-core": "^7.0.0-bridge.0",
     "cross-env": "^7.0.3",
     "css-loader": "^6.10.0",
     "handsontable": "^14.0.0",
