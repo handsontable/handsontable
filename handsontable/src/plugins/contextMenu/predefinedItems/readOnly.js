@@ -10,6 +10,17 @@ export const KEY = 'make_read_only';
 export default function readOnlyItem() {
   return {
     key: KEY,
+
+    ariaLabel() {
+      const rawName = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
+      const atLeastOneReadOnly = checkSelectionConsistency(
+        this.getSelectedRange(),
+        (row, col) => this.getCellMeta(row, col).readOnly
+      );
+
+      return`${rawName} ${atLeastOneReadOnly ? this.getTranslatedPhrase(C.CHECKBOX_CHECKED) : this.getTranslatedPhrase(C.CHECKBOX_UNCHECKED)}`;
+    },
+
     name() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
       const atLeastOneReadOnly = checkSelectionConsistency(

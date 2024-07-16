@@ -8,6 +8,7 @@ export const A11Y_COLUMNHEADER = () => ['role', 'columnheader'];
 export const A11Y_ROW = () => ['role', 'row'];
 export const A11Y_MENU = () => ['role', 'menu'];
 export const A11Y_MENU_ITEM = () => ['role', 'menuitem'];
+export const A11Y_MENU_ITEM_CHECKBOX = () => ['role', 'menuitemcheckbox'];
 export const A11Y_COMBOBOX = () => ['role', 'combobox'];
 export const A11Y_LISTBOX = () => ['role', 'listbox'];
 export const A11Y_OPTION = () => ['role', 'option'];
