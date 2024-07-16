@@ -3,6 +3,7 @@ import {
   isItemDisabled,
   isItemSelectionDisabled,
   isItemSeparator,
+  isCheckboxable
 } from './utils';
 import {
   addClass,
@@ -11,12 +12,15 @@ import {
   setAttribute,
 } from '../../../helpers/dom/element';
 import {
+  A11Y_MENU_ITEM_CHECKBOX,
   A11Y_DISABLED,
   A11Y_EXPANDED,
   A11Y_LABEL,
   A11Y_MENU_ITEM,
   A11Y_TABINDEX,
 } from '../../../helpers/a11y';
+
+import {CHECKBOX_UNCHECKED, CHECKBOX_CHECKED} from '../../../i18n/constants';
 
 /**
  * Creates the menu renderer function.
@@ -45,18 +49,25 @@ export function createMenuItemRenderer(mainTableHot) {
     const item = menuHot.getSourceDataAtRow(row);
     const wrapper = mainTableHot.rootDocument.createElement('div');
     const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
+    const ariaLabel = typeof item.ariaLabel === 'function' ? item.ariaLabel.call(mainTableHot) : item.ariaLabel;
 
     empty(TD);
+
     addClass(wrapper, 'htItemWrapper');
 
     if (mainTableHot.getSettings().ariaTags) {
+
+      if (item.key == 'make_read_only') {
+        const meta =  menuHot.getCellMeta(row,col)
+        console.log('readonly', item, meta)
+      }
+
       const isFocusable = !isItemDisabled(item, mainTableHot) &&
         !isItemSelectionDisabled(item) &&
         !isItemSeparator(item);
-
       setAttribute(TD, [
-        A11Y_MENU_ITEM(),
-        A11Y_LABEL(itemValue),
+        isCheckboxable(item) ? A11Y_MENU_ITEM_CHECKBOX(): A11Y_MENU_ITEM(),
+        isCheckboxable(item) ? A11Y_LABEL(`${ariaLabel}`): A11Y_LABEL(itemValue),
         ...(isFocusable ? [A11Y_TABINDEX(-1)] : []),
         ...(isItemDisabled(item, mainTableHot) ? [A11Y_DISABLED()] : []),
         ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),

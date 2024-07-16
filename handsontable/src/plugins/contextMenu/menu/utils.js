@@ -46,6 +46,13 @@ export function isItemDisabled(itemToTest, hot) {
          (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(hot) === true);
 }
 
+export function isItemSelectable(itemToTest, hot) {
+
+  hasClass('selected')
+  return itemToTest.disabled === true ||
+         (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(hot) === true);
+}
+
 /**
  * Check if the provided element presents the disabled selection menu item.
  *
@@ -168,4 +175,26 @@ export function filterSeparators(items, separator = SEPARATOR) {
   result = removeDuplicatedSeparators(result);
 
   return result;
+}
+
+
+/**
+ * Check if the provided element presents the checkboxable menu item.
+ *
+ * @param {object} itemToTest Item element.
+ * @returns {boolean}
+ */
+export function isCheckboxable(itemToTest) {
+  const checkboxKeys = [
+    'alignment:left',
+    'alignment:center',
+    'alignment:right',
+    'alignment:justify',
+    'alignment:top',
+    'alignment:middle',
+    'alignment:bottom',
+    'make_read_only'
+  ];
+
+  return checkboxKeys.includes(itemToTest.key);
 }
