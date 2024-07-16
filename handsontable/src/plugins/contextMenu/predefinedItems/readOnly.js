@@ -17,8 +17,11 @@ export default function readOnlyItem() {
         this.getSelectedRange(),
         (row, col) => this.getCellMeta(row, col).readOnly
       );
+      const state = atLeastOneReadOnly
+        ? this.getTranslatedPhrase(C.CHECKBOX_CHECKED)
+        : this.getTranslatedPhrase(C.CHECKBOX_UNCHECKED);
 
-      return`${rawName} ${atLeastOneReadOnly ? this.getTranslatedPhrase(C.CHECKBOX_CHECKED) : this.getTranslatedPhrase(C.CHECKBOX_UNCHECKED)}`;
+      return `${rawName} ${state}`;
     },
 
     name() {

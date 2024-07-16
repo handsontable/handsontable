@@ -20,8 +20,6 @@ import {
   A11Y_TABINDEX,
 } from '../../../helpers/a11y';
 
-import {CHECKBOX_UNCHECKED, CHECKBOX_CHECKED} from '../../../i18n/constants';
-
 /**
  * Creates the menu renderer function.
  *
@@ -57,17 +55,13 @@ export function createMenuItemRenderer(mainTableHot) {
 
     if (mainTableHot.getSettings().ariaTags) {
 
-      if (item.key == 'make_read_only') {
-        const meta =  menuHot.getCellMeta(row,col)
-        console.log('readonly', item, meta)
-      }
-
       const isFocusable = !isItemDisabled(item, mainTableHot) &&
         !isItemSelectionDisabled(item) &&
         !isItemSeparator(item);
+
       setAttribute(TD, [
-        isCheckboxable(item) ? A11Y_MENU_ITEM_CHECKBOX(): A11Y_MENU_ITEM(),
-        isCheckboxable(item) ? A11Y_LABEL(`${ariaLabel}`): A11Y_LABEL(itemValue),
+        isCheckboxable(item) ? A11Y_MENU_ITEM_CHECKBOX() : A11Y_MENU_ITEM(),
+        isCheckboxable(item) ? A11Y_LABEL(`${ariaLabel}`) : A11Y_LABEL(itemValue),
         ...(isFocusable ? [A11Y_TABINDEX(-1)] : []),
         ...(isItemDisabled(item, mainTableHot) ? [A11Y_DISABLED()] : []),
         ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),

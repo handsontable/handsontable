@@ -120,7 +120,6 @@ export function markLabelAsSelected(label) {
   return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`;
 }
 
-
 /**
  * @param {CellRange[]} ranges An array of the cell ranges.
  * @param {Function} comparator The comparator function.
