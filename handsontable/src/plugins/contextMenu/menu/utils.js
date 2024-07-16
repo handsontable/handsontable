@@ -47,19 +47,6 @@ export function isItemDisabled(itemToTest, hot) {
 }
 
 /**
- * @param {object} itemToTest Item element.
- * @param {object} hot The context for the item function.
- * @returns {boolean}
- */
-export function isItemSelectable(itemToTest, hot) {
-
-  hasClass('selected');
-
-  return itemToTest.disabled === true ||
-         (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(hot) === true);
-}
-
-/**
  * Check if the provided element presents the disabled selection menu item.
  *
  * @param {object} itemToTest Item element.
@@ -189,7 +176,7 @@ export function filterSeparators(items, separator = SEPARATOR) {
  * @param {object} itemToTest Item element.
  * @returns {boolean}
  */
-export function isCheckboxable(itemToTest) {
+export function isItemCheckboxable(itemToTest) {
   const checkboxKeys = [
     'alignment:left',
     'alignment:center',
