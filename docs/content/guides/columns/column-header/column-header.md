@@ -100,7 +100,7 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 :::
 
-## Header labels alignment and styling
+## Customize column headers
 
 You can align the text in the header label with the [`headerClassName`](@/api/options.md#headerclassname) option. Setting it to `htLeft`, `htCenter`, or `htRight` will align the header labels to the left, center, or right, respectively.
 
