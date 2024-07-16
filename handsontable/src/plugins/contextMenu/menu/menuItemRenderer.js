@@ -18,6 +18,7 @@ import {
   A11Y_LABEL,
   A11Y_MENU_ITEM,
   A11Y_TABINDEX,
+  A11Y_CHECKED,
 } from '../../../helpers/a11y';
 
 /**
@@ -61,6 +62,7 @@ export function createMenuItemRenderer(mainTableHot) {
       setAttribute(TD, [
         isItemCheckboxable(item) ? A11Y_MENU_ITEM_CHECKBOX() : A11Y_MENU_ITEM(),
         isItemCheckboxable(item) ? A11Y_LABEL(`${ariaLabel}`) : A11Y_LABEL(itemValue),
+        isItemCheckboxable(item) ? A11Y_CHECKED(item.checked) : '',
         ...(isFocusable ? [A11Y_TABINDEX(-1)] : []),
         ...(isItemDisabled(item, mainTableHot) ? [A11Y_DISABLED()] : []),
         ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
