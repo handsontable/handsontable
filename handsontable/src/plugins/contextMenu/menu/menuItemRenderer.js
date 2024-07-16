@@ -3,7 +3,7 @@ import {
   isItemDisabled,
   isItemSelectionDisabled,
   isItemSeparator,
-  isCheckboxable
+  isItemCheckboxable
 } from './utils';
 import {
   addClass,
@@ -47,21 +47,20 @@ export function createMenuItemRenderer(mainTableHot) {
     const item = menuHot.getSourceDataAtRow(row);
     const wrapper = mainTableHot.rootDocument.createElement('div');
     const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
-    const ariaLabel = typeof item.ariaLabel === 'function' ? item.ariaLabel.call(mainTableHot) : item.ariaLabel;
 
     empty(TD);
-
     addClass(wrapper, 'htItemWrapper');
 
     if (mainTableHot.getSettings().ariaTags) {
-
       const isFocusable = !isItemDisabled(item, mainTableHot) &&
         !isItemSelectionDisabled(item) &&
         !isItemSeparator(item);
 
+      const ariaLabel = typeof item.ariaLabel === 'function' ? item.ariaLabel.call(mainTableHot) : item.ariaLabel;
+
       setAttribute(TD, [
-        isCheckboxable(item) ? A11Y_MENU_ITEM_CHECKBOX() : A11Y_MENU_ITEM(),
-        isCheckboxable(item) ? A11Y_LABEL(`${ariaLabel}`) : A11Y_LABEL(itemValue),
+        isItemCheckboxable(item) ? A11Y_MENU_ITEM_CHECKBOX() : A11Y_MENU_ITEM(),
+        isItemCheckboxable(item) ? A11Y_LABEL(`${ariaLabel}`) : A11Y_LABEL(itemValue),
         ...(isFocusable ? [A11Y_TABINDEX(-1)] : []),
         ...(isItemDisabled(item, mainTableHot) ? [A11Y_DISABLED()] : []),
         ...(isItemSubMenu(item) ? [A11Y_EXPANDED(false)] : []),
