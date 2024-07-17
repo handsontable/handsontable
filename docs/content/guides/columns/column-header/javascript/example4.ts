@@ -14,10 +14,6 @@ const hot = new Handsontable(container, {
   autoWrapCol: true,
   height: 'auto',
   headerClassName: 'htCenter',
-  columns: [
-    { headerClassName: 'htRight' },
-    { headerClassName: 'htLeft' },
-    {},
-  ],
-  licenseKey: 'non-commercial-and-evaluation'
+  columns: [{ headerClassName: 'htRight' }, { headerClassName: 'htLeft' }, {}],
+  licenseKey: 'non-commercial-and-evaluation',
 });
