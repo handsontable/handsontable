@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 14.4.0
- * Release date: 11/06/2024 (built at 06/06/2024 10:09:19)
+ * Version: 14.5.0
+ * Release date: 24/07/2024 (built at 17/07/2024 11:58:19)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -44,9 +44,9 @@ return /******/ (() => { // webpackBootstrap
 /* 1 */
 /***/ ((module) => {
 
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : {
-    "default": obj
+function _interopRequireDefault(e) {
+  return e && e.__esModule ? e : {
+    "default": e
   };
 }
 module.exports = _interopRequireDefault, module.exports.__esModule = true, module.exports["default"] = module.exports;
@@ -107,8 +107,8 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "06/06/2024 10:09:19";
-Handsontable.version = "14.4.0";
+Handsontable.buildDate = "17/07/2024 11:58:19";
+Handsontable.version = "14.5.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
   getLanguageDictionary: _registry.getLanguageDictionary,
@@ -1270,16 +1270,17 @@ function Core(rootElement, userSettings) {
    */
   function validateChanges(changes, source, callback) {
     if (!changes.length) {
+      callback();
       return;
     }
     const activeEditor = instance.getActiveEditor();
     const waitingForValidator = new ValidatorsQueue();
     let shouldBeCanceled = true;
-    waitingForValidator.onQueueEmpty = isValid => {
+    waitingForValidator.onQueueEmpty = () => {
       if (activeEditor && shouldBeCanceled) {
         activeEditor.cancelChanges();
       }
-      callback(isValid); // called when async validators are resolved and beforeChange was not async
+      callback(); // called when async validators are resolved and beforeChange was not async
     };
     for (let i = changes.length - 1; i >= 0; i--) {
       const [row, prop,, newValue] = changes[i];
@@ -1311,11 +1312,6 @@ function Core(rootElement, userSettings) {
               shouldBeCanceled = false;
               changes.splice(index, 1); // cancel the change
               cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
-
-              const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
-              if (cell !== null) {
-                (0, _element.removeClass)(cell, tableMeta.invalidCellClassName);
-              }
             }
             waitingForValidator.removeValidatorFormQueue();
           };
@@ -1335,11 +1331,7 @@ function Core(rootElement, userSettings) {
    * @fires Hooks#afterChange
    */
   function applyChanges(changes, source) {
-    let i = changes.length - 1;
-    if (i < 0) {
-      return;
-    }
-    for (; i >= 0; i--) {
+    for (let i = changes.length - 1; i >= 0; i--) {
       let skipThisChange = false;
       if (changes[i] === null) {
         changes.splice(i, 1);
@@ -1382,17 +1374,23 @@ function Core(rootElement, userSettings) {
       }
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
     }
-    instance.forceFullRender = true; // used when data was changed
-    grid.adjustRowsAndCols();
-    instance.runHooks('beforeChangeRender', changes, source);
-    editorManager.closeEditor();
-    instance.view.render();
-    editorManager.prepareEditor();
-    instance.view.adjustElementsSize();
-    instance.runHooks('afterChange', changes, source || 'edit');
-    const activeEditor = instance.getActiveEditor();
-    if (activeEditor && (0, _mixed.isDefined)(activeEditor.refreshValue)) {
-      activeEditor.refreshValue();
+    const hasChanges = changes.length > 0;
+    instance.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
+
+    if (hasChanges) {
+      grid.adjustRowsAndCols();
+      instance.runHooks('beforeChangeRender', changes, source);
+      editorManager.closeEditor();
+      instance.view.render();
+      editorManager.prepareEditor();
+      instance.view.adjustElementsSize();
+      instance.runHooks('afterChange', changes, source || 'edit');
+      const activeEditor = instance.getActiveEditor();
+      if (activeEditor && (0, _mixed.isDefined)(activeEditor.refreshValue)) {
+        activeEditor.refreshValue();
+      }
+    } else {
+      instance.view.render();
     }
   }
 
@@ -1952,7 +1950,7 @@ function Core(rootElement, userSettings) {
   this.render = function () {
     if (this.view) {
       this.renderCall = true;
-      this.forceFullRender = true; // used when data was changed
+      this.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
 
       if (!this.isRenderSuspended()) {
         instance.view.render();
@@ -3229,6 +3227,19 @@ function Core(rootElement, userSettings) {
   };
 
   /**
+   * Returns the meta information for the provided column.
+   *
+   * @since 14.5.0
+   * @memberof Core#
+   * @function getColumnMeta
+   * @param {number} column Visual column index.
+   * @returns {object}
+   */
+  this.getColumnMeta = function (column) {
+    return metaManager.getColumnMeta(this.toPhysicalColumn(column));
+  };
+
+  /**
    * Returns an array of cell meta objects for specified physical row index.
    *
    * @memberof Core#
@@ -3666,12 +3677,6 @@ function Core(rootElement, userSettings) {
    * @returns {number}
    */
   this._getRowHeightFromSettings = function (row) {
-    // let cellProperties = instance.getCellMeta(row, 0);
-    // let height = cellProperties.height;
-    //
-    // if (height === undefined || height === tableMeta.height) {
-    //  height = cellProperties.rowHeights;
-    // }
     let height = tableMeta.rowHeights;
     if (height !== undefined && height !== null) {
       switch (typeof height) {
@@ -9129,7 +9134,7 @@ const domMessages = {
 function _injectProductInfo(key, element) {
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  const hotVersion = "14.4.0";
+  const hotVersion = "14.5.0";
   let keyValidityDate;
   let consoleMessageState = 'invalid';
   let domMessageState = 'invalid';
@@ -9137,7 +9142,7 @@ function _injectProductInfo(key, element) {
   const schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = (0, _moment.default)("11/06/2024", 'DD/MM/YYYY');
+      const releaseDate = (0, _moment.default)("24/07/2024", 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
@@ -10745,8 +10750,8 @@ var _unicode = __webpack_require__(157);
 var _event = __webpack_require__(158);
 var _registry = __webpack_require__(159);
 var _eventManager = _interopRequireDefault(__webpack_require__(168));
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 var _EditorManager_brand = /*#__PURE__*/new WeakSet();
 class EditorManager {
@@ -11083,19 +11088,13 @@ var _default = exports["default"] = EditorManager;
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var toPropertyKey = __webpack_require__(154);
-function _defineProperty(obj, key, value) {
-  key = toPropertyKey(key);
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-  return obj;
+function _defineProperty(e, r, t) {
+  return (r = toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
+    value: t,
+    enumerable: !0,
+    configurable: !0,
+    writable: !0
+  }) : e[r] = t, e;
 }
 module.exports = _defineProperty, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
@@ -11315,6 +11314,7 @@ exports.__esModule = true;
 exports.isImmediatePropagationStopped = isImmediatePropagationStopped;
 exports.isLeftClick = isLeftClick;
 exports.isRightClick = isRightClick;
+exports.isTouchEvent = isTouchEvent;
 exports.offsetRelativeTo = offsetRelativeTo;
 exports.stopImmediatePropagation = stopImmediatePropagation;
 /**
@@ -11355,6 +11355,16 @@ function isRightClick(event) {
  */
 function isLeftClick(event) {
   return event.button === 0;
+}
+
+/**
+ * Check if the provided event is a touch event.
+ *
+ * @param {Event} event The event object.
+ * @returns {boolean}
+ */
+function isTouchEvent(event) {
+  return event instanceof TouchEvent;
 }
 
 /**
@@ -12917,6 +12927,17 @@ const REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-s
  * @param {number} row Visual row index.
  */
 'modifyRowHeight',
+/**
+ * Fired when a row height is about to be modified by a callback function. The hook allows to change the row height
+ * for the specified overlay type.
+ *
+ * @since 14.5.0
+ * @event Hooks#modifyRowHeightByOverlayName
+ * @param {number} height Row height.
+ * @param {number} row Visual row index.
+ * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName Overlay name.
+ */
+'modifyRowHeightByOverlayName',
 /**
  * Fired when a data was retrieved or modified.
  *
@@ -15183,9 +15204,9 @@ __webpack_require__(8);
 var _console = __webpack_require__(166);
 var _element = __webpack_require__(138);
 var _function = __webpack_require__(146);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -16612,9 +16633,9 @@ var _src = _interopRequireDefault(__webpack_require__(184));
 var _mouseEventHandler = __webpack_require__(252);
 var _rootInstance = __webpack_require__(253);
 var _a11y = __webpack_require__(145);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -16938,7 +16959,7 @@ class TableView {
       // immediate click on "holder" means click on the right side of vertical scrollbar
       const {
         holder
-      } = this.hot.view._wt.wtTable;
+      } = this._wt.wtTable;
       if (next === holder) {
         const scrollbarWidth = (0, _element.getScrollbarWidth)(rootDocument);
         if (rootDocument.elementFromPoint(eventX + scrollbarWidth, eventY) !== holder || rootDocument.elementFromPoint(eventX, eventY + scrollbarWidth) !== holder) {
@@ -17285,6 +17306,11 @@ class TableView {
         const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
         return this.hot.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex);
       },
+      rowHeightByOverlayName: (renderedRowIndex, overlayType) => {
+        const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
+        const visualRowIndex = visualIndex === null ? renderedRowIndex : visualIndex;
+        return this.hot.runHooks('modifyRowHeightByOverlayName', this.hot.getRowHeight(visualRowIndex), visualRowIndex, overlayType);
+      },
       cellRenderer: (renderedRowIndex, renderedColumnIndex, TD) => {
         const [visualRowIndex, visualColumnIndex] = this.translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
 
@@ -17613,7 +17639,7 @@ class TableView {
     if ((0, _element.isInput)(el)) {
       return true;
     }
-    const isChildOfTableBody = (0, _element.isChildOf)(el, this.hot.view._wt.wtTable.spreader);
+    const isChildOfTableBody = (0, _element.isChildOf)(el, this._wt.wtTable.spreader);
     if (this.settings.fragmentSelection === true && isChildOfTableBody) {
       return true;
     }
@@ -17733,10 +17759,16 @@ class TableView {
   appendColHeader(visualColumnIndex, TH) {
     let label = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.hot.getColHeader;
     let headerLevel = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+    const getColumnHeaderClassNames = () => {
+      const metaHeaderClassNames = visualColumnIndex >= 0 ? this.hot.getColumnMeta(visualColumnIndex).headerClassName : null;
+      return metaHeaderClassNames ? metaHeaderClassNames.split(' ') : [];
+    };
     if (TH.firstChild) {
       const container = TH.firstChild;
       if ((0, _element.hasClass)(container, 'relative')) {
         this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label, headerLevel);
+        container.className = '';
+        (0, _element.addClass)(container, ['relative', ...getColumnHeaderClassNames()]);
       } else {
         (0, _element.empty)(TH);
         this.appendColHeader(visualColumnIndex, TH, label, headerLevel);
@@ -17747,7 +17779,8 @@ class TableView {
       } = this.hot;
       const div = rootDocument.createElement('div');
       const span = rootDocument.createElement('span');
-      div.className = 'relative';
+      const classNames = getColumnHeaderClassNames();
+      div.classList.add('relative', ...classNames);
       span.className = 'colHeader';
       if (this.settings.ariaTags) {
         (0, _element.setAttribute)(div, ...(0, _a11y.A11Y_PRESENTATION)());
@@ -17844,75 +17877,131 @@ class TableView {
   }
 
   /**
-   * Returns the first fully visible row in the table viewport.
+   * Returns the first rendered row in the DOM (usually is not visible in the table's viewport).
+   *
+   * @returns {number | null}
+   */
+  getFirstRenderedVisibleRow() {
+    if (!this._wt.wtViewport.rowsRenderCalculator) {
+      return null;
+    }
+    return this.hot.rowIndexMapper.getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedRow(), 1);
+  }
+
+  /**
+   * Returns the last rendered row in the DOM (usually is not visible in the table's viewport).
+   *
+   * @returns {number | null}
+   */
+  getLastRenderedVisibleRow() {
+    if (!this._wt.wtViewport.rowsRenderCalculator) {
+      return null;
+    }
+    return this.hot.rowIndexMapper.getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedRow(), -1);
+  }
+
+  /**
+   * Returns the first rendered column in the DOM (usually is not visible in the table's viewport).
+   *
+   * @returns {number | null}
+   */
+  getFirstRenderedVisibleColumn() {
+    if (!this._wt.wtViewport.columnsRenderCalculator) {
+      return null;
+    }
+    return this.hot.columnIndexMapper.getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedColumn(), 1);
+  }
+
+  /**
+   * Returns the last rendered column in the DOM (usually is not visible in the table's viewport).
+   *
+   * @returns {number | null}
+   */
+  getLastRenderedVisibleColumn() {
+    if (!this._wt.wtViewport.columnsRenderCalculator) {
+      return null;
+    }
+    return this.hot.columnIndexMapper.getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedColumn(), -1);
+  }
+
+  /**
+   * Returns the first fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getFirstFullyVisibleRow() {
-    return this.hot.rowIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstVisibleRow());
+    return this.hot.rowIndexMapper.getVisualFromRenderableIndex(this._wt.wtScroll.getFirstVisibleRow());
   }
 
   /**
-   * Returns the last fully visible row in the table viewport.
+   * Returns the last fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getLastFullyVisibleRow() {
-    return this.hot.rowIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastVisibleRow());
+    return this.hot.rowIndexMapper.getVisualFromRenderableIndex(this._wt.wtScroll.getLastVisibleRow());
   }
 
   /**
-   * Returns the first fully visible column in the table viewport.
+   * Returns the first fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getFirstFullyVisibleColumn() {
-    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstVisibleColumn());
+    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(this._wt.wtScroll.getFirstVisibleColumn());
   }
 
   /**
-   * Returns the last fully visible column in the table viewport.
+   * Returns the last fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getLastFullyVisibleColumn() {
-    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastVisibleColumn());
+    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(this._wt.wtScroll.getLastVisibleColumn());
   }
 
   /**
-   * Returns the first partially visible row in the table viewport.
+   * Returns the first partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getFirstPartiallyVisibleRow() {
-    return this.hot.rowIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleRow());
+    return this.hot.rowIndexMapper.getVisualFromRenderableIndex(this._wt.wtScroll.getFirstPartiallyVisibleRow());
   }
 
   /**
-   * Returns the last partially visible row in the table viewport.
+   * Returns the last partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getLastPartiallyVisibleRow() {
-    return this.hot.rowIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleRow());
+    return this.hot.rowIndexMapper.getVisualFromRenderableIndex(this._wt.wtScroll.getLastPartiallyVisibleRow());
   }
 
   /**
-   * Returns the first partially visible column in the table viewport.
+   * Returns the first partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getFirstPartiallyVisibleColumn() {
-    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleColumn());
+    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(this._wt.wtScroll.getFirstPartiallyVisibleColumn());
   }
 
   /**
-   * Returns the last partially visible column in the table viewport.
+   * Returns the last partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getLastPartiallyVisibleColumn() {
-    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleColumn());
+    return this.hot.columnIndexMapper.getVisualFromRenderableIndex(this._wt.wtScroll.getLastPartiallyVisibleColumn());
   }
 
   /**
@@ -17941,7 +18030,7 @@ class TableView {
    * @returns {number}
    */
   getViewportWidth() {
-    return this.hot.view._wt.wtViewport.getViewportWidth();
+    return this._wt.wtViewport.getViewportWidth();
   }
 
   /**
@@ -17950,7 +18039,7 @@ class TableView {
    * @returns {number}
    */
   getWorkspaceWidth() {
-    return this.hot.view._wt.wtViewport.getWorkspaceWidth();
+    return this._wt.wtViewport.getWorkspaceWidth();
   }
 
   /**
@@ -17961,7 +18050,7 @@ class TableView {
    * @returns {number}
    */
   getViewportHeight() {
-    return this.hot.view._wt.wtViewport.getViewportHeight();
+    return this._wt.wtViewport.getViewportHeight();
   }
 
   /**
@@ -17970,7 +18059,37 @@ class TableView {
    * @returns {number}
    */
   getWorkspaceHeight() {
-    return this.hot.view._wt.wtViewport.getWorkspaceHeight();
+    return this._wt.wtViewport.getWorkspaceHeight();
+  }
+
+  /**
+   * Checks to what overlay the provided element belongs.
+   *
+   * @param {HTMLElement} element The DOM element to check.
+   * @returns {'master'|'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'}
+   */
+  getElementOverlayName(element) {
+    var _this$_wt$wtOverlays$;
+    return ((_this$_wt$wtOverlays$ = this._wt.wtOverlays.getParentOverlay(element)) !== null && _this$_wt$wtOverlays$ !== void 0 ? _this$_wt$wtOverlays$ : this._wt).wtTable.name;
+  }
+
+  /**
+   * Gets the overlay instance by its name.
+   *
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
+   * @returns {Overlay | null}
+   */
+  getOverlayByName(overlayName) {
+    return this._wt.getOverlayByName(overlayName);
+  }
+
+  /**
+   * Checks if the table is visible or not.
+   *
+   * @returns {boolean}
+   */
+  isVisible() {
+    return this._wt.wtTable.isVisible();
   }
   /**
    * Destroys internal WalkOnTable's instance. Detaches all of the bonded listeners.
@@ -18187,8 +18306,8 @@ __webpack_require__(189);
 __webpack_require__(90);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _constants = __webpack_require__(190);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -18440,8 +18559,8 @@ __webpack_require__(189);
 __webpack_require__(90);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _constants = __webpack_require__(190);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -18621,8 +18740,8 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -18876,8 +18995,8 @@ __webpack_require__(8);
 __webpack_require__(90);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _coords = _interopRequireDefault(__webpack_require__(192));
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -19880,6 +19999,9 @@ class WalkontableFacade {
   getOverlayName() {
     return this._wot.cloneOverlay ? this._wot.cloneOverlay.type : 'master';
   }
+  getOverlayByName(overlayName) {
+    return this._wot.getOverlayByName(overlayName);
+  }
   exportSettingsAsClassNames() {
     return this._wot.exportSettingsAsClassNames();
   }
@@ -19911,6 +20033,7 @@ exports.__esModule = true;
 __webpack_require__(90);
 var _event = _interopRequireDefault(__webpack_require__(196));
 var _overlays = _interopRequireDefault(__webpack_require__(197));
+var _overlay = __webpack_require__(198);
 var _settings = _interopRequireDefault(__webpack_require__(249));
 var _master = _interopRequireDefault(__webpack_require__(250));
 var _viewport = _interopRequireDefault(__webpack_require__(251));
@@ -19959,6 +20082,21 @@ class Walkontable extends _base.default {
     });
     (0, _element.removeClass)(this.wtTable.wtRootElement.parentNode, allClassNames);
     (0, _element.addClass)(this.wtTable.wtRootElement.parentNode, newClassNames);
+  }
+
+  /**
+   * Gets the overlay instance by its name.
+   *
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
+   * @returns {Overlay | null}
+   */
+  getOverlayByName(overlayName) {
+    var _this$wtOverlays;
+    if (!_overlay.CLONE_TYPES.includes(overlayName)) {
+      return null;
+    }
+    const camelCaseOverlay = overlayName.replace(/_([a-z])/g, match => match[1].toUpperCase());
+    return (_this$wtOverlays = this.wtOverlays[`${camelCaseOverlay}Overlay`]) !== null && _this$wtOverlays !== void 0 ? _this$wtOverlays : null;
   }
 
   /**
@@ -20016,8 +20154,8 @@ var _function = __webpack_require__(146);
 var _feature = __webpack_require__(151);
 var _browser = __webpack_require__(147);
 var _mixed = __webpack_require__(141);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -20393,9 +20531,10 @@ var _feature = __webpack_require__(151);
 var _array = __webpack_require__(144);
 var _unicode = __webpack_require__(157);
 var _browser = __webpack_require__(147);
+var _console = __webpack_require__(166);
 var _overlay = __webpack_require__(198);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -20404,6 +20543,8 @@ function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.h
  */
 var _overlays = /*#__PURE__*/new WeakMap();
 var _hasRenderingStateChanged = /*#__PURE__*/new WeakMap();
+var _containerDomResizeCount = /*#__PURE__*/new WeakMap();
+var _containerDomResizeCountTimeout = /*#__PURE__*/new WeakMap();
 class Overlays {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
@@ -20483,6 +20624,18 @@ class Overlays {
      */
     _classPrivateFieldInitSpec(this, _hasRenderingStateChanged, false);
     /**
+     * The amount of times the ResizeObserver callback was fired in direct succession.
+     *
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _containerDomResizeCount, 0);
+    /**
+     * The timeout ID for the ResizeObserver endless-loop-blocking logic.
+     *
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _containerDomResizeCountTimeout, null);
+    /**
      * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
      * In case of the size change detection the `onContainerElementResize` is fired.
      *
@@ -20494,6 +20647,20 @@ class Overlays {
         if (!Array.isArray(entries) || !entries.length) {
           return;
         }
+        _classPrivateFieldSet(_containerDomResizeCount, this, _classPrivateFieldGet(_containerDomResizeCount, this) + 1);
+        if (_classPrivateFieldGet(_containerDomResizeCount, this) === 100) {
+          (0, _console.warn)('The ResizeObserver callback was fired too many times in direct succession.' + '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' + 'with the `dvh` units) to a Handsontable container\'s parent. ' + '\nThe observer will be disconnected.');
+          this.resizeObserver.disconnect();
+        }
+
+        // This logic is required to prevent an endless loop of the ResizeObserver callback.
+        // https://github.com/handsontable/dev-handsontable/issues/1898#issuecomment-2154794817
+        if (_classPrivateFieldGet(_containerDomResizeCountTimeout, this) !== null) {
+          clearTimeout(_classPrivateFieldGet(_containerDomResizeCountTimeout, this));
+        }
+        _classPrivateFieldSet(_containerDomResizeCountTimeout, this, setTimeout(() => {
+          _classPrivateFieldSet(_containerDomResizeCount, this, 0);
+        }, 100));
         this.wtSettings.getSetting('onContainerElementResize');
       });
     }));
@@ -20685,6 +20852,9 @@ class Overlays {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         this.wtSettings.getSetting('onWindowResize');
+
+        // Remove resizing the window from the ResizeObserver's endless-loop-blocking logic.
+        _classPrivateFieldSet(_containerDomResizeCount, this, 0);
       }, 200);
     });
     if (!isScrollOnWindow) {
@@ -20744,7 +20914,7 @@ class Overlays {
     // by hot.refreshBorder
     const shouldNotWheelVertically = masterVertical !== rootWindow && target !== rootWindow && !target.contains(masterVertical);
     const shouldNotWheelHorizontally = masterHorizontal !== rootWindow && target !== rootWindow && !target.contains(masterHorizontal);
-    if (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally)) {
+    if (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally) || this.scrollableElement === rootWindow) {
       return;
     }
     const isScrollPossible = this.translateMouseWheelToScroll(event);
@@ -21585,7 +21755,7 @@ class Table {
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
         this.resetOversizedRows();
-        this.tableRenderer.setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount()).setFilters(this.rowFilter, this.columnFilter).render();
+        this.tableRenderer.setActiveOverlayName(this.name).setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount()).setFilters(this.rowFilter, this.columnFilter).render();
         let workspaceWidth;
         if (this.isMaster) {
           workspaceWidth = this.dataAccessObject.workspaceWidth;
@@ -22570,6 +22740,17 @@ class Renderer {
       cells: new _cells.default()
     });
     this.renderer.setAxisUtils(rowUtils, columnUtils);
+  }
+
+  /**
+   * Sets the overlay that is currently rendered. If `null` is provided, the master overlay is set.
+   *
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName The overlay name.
+   * @returns {Renderer}
+   */
+  setActiveOverlayName(overlayName) {
+    this.renderer.setActiveOverlayName(overlayName);
+    return this;
   }
 
   /**
@@ -23902,9 +24083,24 @@ class TableRenderer {
      * @type {Function}
      */
     (0, _defineProperty2.default)(this, "cellRenderer", void 0);
+    /**
+     * Holds the name of the currently active overlay.
+     *
+     * @type {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'}
+     */
+    (0, _defineProperty2.default)(this, "activeOverlayName", void 0);
     this.rootNode = rootNode;
     this.rootDocument = this.rootNode.ownerDocument;
     this.cellRenderer = cellRenderer;
+  }
+
+  /**
+   * Sets the overlay that is currently rendered. If `null` is provided, the master overlay is set.
+   *
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName The overlay name.
+   */
+  setActiveOverlayName(overlayName) {
+    this.activeOverlayName = overlayName;
   }
 
   /**
@@ -24040,7 +24236,7 @@ class TableRenderer {
       const TR = rows.getRenderedNode(visibleRowIndex);
       if (TR.firstChild) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
-        const rowHeight = this.rowUtils.getHeight(sourceRowIndex);
+        const rowHeight = this.rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
         if (rowHeight) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
           TR.firstChild.style.height = `${rowHeight - 1}px`;
@@ -24200,8 +24396,8 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -24441,6 +24637,22 @@ class RowUtils {
    */
   getHeight(sourceIndex) {
     let height = this.wtSettings.getSetting('rowHeight', sourceIndex);
+    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
+    if (oversizedHeight !== undefined) {
+      height = height === undefined ? oversizedHeight : Math.max(height, oversizedHeight);
+    }
+    return height;
+  }
+
+  /**
+   * Returns row height based on passed source index for the specified overlay type.
+   *
+   * @param {number} sourceIndex Row source index.
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName The overlay name.
+   * @returns {number}
+   */
+  getHeightByOverlayName(sourceIndex, overlayName) {
+    let height = this.wtSettings.getSetting('rowHeightByOverlayName', sourceIndex, overlayName);
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
     if (oversizedHeight !== undefined) {
       height = height === undefined ? oversizedHeight : Math.max(height, oversizedHeight);
@@ -25498,8 +25710,8 @@ exports.__esModule = true;
 __webpack_require__(8);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _element = __webpack_require__(138);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 /**
  * @class Scroll
@@ -27139,9 +27351,9 @@ __webpack_require__(122);
 var _element = __webpack_require__(138);
 var _scanner2 = __webpack_require__(242);
 var _border = _interopRequireDefault(__webpack_require__(243));
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -27427,9 +27639,9 @@ __webpack_require__(116);
 __webpack_require__(119);
 __webpack_require__(122);
 var _element = __webpack_require__(138);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); } /* eslint-disable no-continue */
@@ -29077,7 +29289,8 @@ var _object = __webpack_require__(148);
  * @property {Option} renderAllColumns Option `renderAllColumns`.
  * @property {Option} renderAllRows Option `renderAllRows`.
  * @property {Option} rowHeaders Option `rowHeaders`.
- * @property {Option} rowHeight Option `,`.
+ * @property {Option} rowHeightOption `rowHeight`.
+ * @property {Option} rowHeightByOverlayName Option `rowHeightByOverlayName`.
  * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
  * @property {Option} shouldRenderInlineStartOverlay Option `shouldRenderInlineStartOverlay`.
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
@@ -29219,6 +29432,9 @@ class Settings {
         // return undefined means use default size for the rendered cell content
       },
       rowHeight() {
+        // return undefined means use default size for the rendered cell content
+      },
+      rowHeightByOverlayName() {
         // return undefined means use default size for the rendered cell content
       },
       defaultRowHeight: 23,
@@ -32378,8 +32594,8 @@ __webpack_require__(119);
 __webpack_require__(122);
 var _observer = __webpack_require__(273);
 var _utils = __webpack_require__(274);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -32518,8 +32734,8 @@ exports.__esModule = true;
 __webpack_require__(8);
 var _object = __webpack_require__(148);
 var _localHooks = _interopRequireDefault(__webpack_require__(237));
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -33239,8 +33455,8 @@ var _templateLiteralTag = __webpack_require__(143);
 var _a11y = __webpack_require__(145);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -33783,6 +33999,8 @@ class Selection {
         x: this.tableProps.countRowHeaders(),
         y: this.tableProps.countColHeaders()
       });
+    } else {
+      _classPrivateFieldGet(_transformation, this).resetOffsetSize();
     }
     this.setRangeStart(_classPrivateFieldGet(_transformation, this).transformStart(rowDelta, colDelta, createMissingRecords));
   }
@@ -33799,6 +34017,8 @@ class Selection {
         x: this.tableProps.countRowHeaders(),
         y: this.tableProps.countColHeaders()
       });
+    } else {
+      _classPrivateFieldGet(_transformation, this).resetOffsetSize();
     }
     this.setRangeEnd(_classPrivateFieldGet(_transformation, this).transformEnd(rowDelta, colDelta));
   }
@@ -34478,8 +34698,8 @@ exports.HEADER_TYPE = _src.HIGHLIGHT_HEADER_TYPE;
 exports.ROW_TYPE = _src.HIGHLIGHT_ROW_TYPE;
 exports.COLUMN_TYPE = _src.HIGHLIGHT_COLUMN_TYPE;
 var _array = __webpack_require__(144);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 /**
  * Highlight class responsible for managing Walkontable Selection classes.
@@ -35599,9 +35819,9 @@ exports.__esModule = true;
 __webpack_require__(8);
 var _object = __webpack_require__(148);
 var _localHooks = _interopRequireDefault(__webpack_require__(237));
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -35818,6 +36038,16 @@ class Transformation {
     _classPrivateFieldSet(_offset, this, {
       x,
       y
+    });
+  }
+
+  /**
+   * Resets the offset size to the default values.
+   */
+  resetOffsetSize() {
+    _classPrivateFieldSet(_offset, this, {
+      x: 0,
+      y: 0
     });
   }
 }
@@ -40212,6 +40442,31 @@ var _default = () => {
      */
     fragmentSelection: false,
     /**
+     * The `headerClassName` option allows adding one or more class names to the column headers' inner `div` element.
+     * It can be used to align the labels in the column headers to left, center or right by setting this option to
+     * `htLeft`, `htCenter`, or `htRight` respectively.
+     *
+     * @since 14.5.0
+     * @memberof Options#
+     * @type {string}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // Adding class names to all column headers
+     * headerClassName: 'htRight my-class',
+     *
+     * columns: [
+     *  {
+     *    // Adding class names to the column header of a single column
+     *    headerClassName: 'htRight my-class',
+     *  }
+     * ]
+     * ```
+     */
+    headerClassName: undefined,
+    /**
      * The `height` option configures the height of your grid.
      *
      * You can set `height` option to one of the following:
@@ -43702,8 +43957,8 @@ __webpack_require__(116);
 __webpack_require__(119);
 __webpack_require__(122);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 var _initOnlyCallback = /*#__PURE__*/new WeakMap();
@@ -46893,19 +47148,12 @@ exports.createContext = createContext;
 
 /***/ }),
 /* 379 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-__webpack_require__(94);
-__webpack_require__(106);
-__webpack_require__(109);
-__webpack_require__(113);
-__webpack_require__(116);
-__webpack_require__(119);
-__webpack_require__(122);
 // This file handles key-name discrepancies between browsers.
 // For the list of discrepancies, go to: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
 const mappings = new Map([[' ', 'space'],
@@ -46940,37 +47188,35 @@ exports.normalizeKeys = normalizeKeys;
 const getKeysList = normalizedKeys => {
   return normalizedKeys.split('+');
 };
-
-/**
- * The regex tests if the event.code matches to the pattern and it's used to extract letters and digits from
- * the string.
- */
 exports.getKeysList = getKeysList;
-const codeToKeyRegExp = new RegExp('^(?:Key|Digit)([A-Z0-9])$');
-const keyCodeNames = new Set(['Backquote', 'Minus', 'Equal', 'BracketLeft', 'BracketRight', 'Backslash', 'Semicolon', 'Quote', 'Comma', 'Period', 'Slash']);
+const specialCharactersSet = new Map([[186, 'semicolon'], [187, 'equal'], [188, 'comma'], [189, 'minus'], [190, 'period'], [191, 'slash'], [192, 'backquote'], [219, 'bracketleft'], [220, 'backslash'], [221, 'bracketright'], [222, 'quote']]);
 
 /**
- * Normalizes a keyboard event key value to a key before its modification. When the keyboard event
- * is triggered with Alt, Control or Shift keys the `key` property contains modified key e.g. for Alt+L
- * it will be `ł`. But that value is only valid for polish keyboard layout. To fix that limitations, for
- * letters and digits the value is taken from the `code` property which holds original value before
- * transformation.
+ * Normalizes a keyboard event key value to a key before its modification.
+ *
+ * Keep in mind that there is difference between `key` and `code` properties of the KeyboardEvent object.
+ * The `key` property represents the logical key on the keyboard (after applying modifiers and taking
+ * the keyboard layout into account), where the `code` property represents the physical key
+ * (regardless of what is printed on the key). Using the `keyCode` for alphanumeric keys,
+ * solves the problem and allows to get the correct key value. The value that takes the keyboard layout
+ * into account but is not modified by the modifiers (e.g. Alt + L would give polish "ł" we want "l").
  *
  * @param {Event} event The KeyboardEvent object.
  * @returns {string}
  */
 const normalizeEventKey = _ref => {
   let {
-    key,
-    code
+    which,
+    key
   } = _ref;
-  let normalizedKey = key;
-  if (codeToKeyRegExp.test(code)) {
-    normalizedKey = code.replace(codeToKeyRegExp, '$1');
-  } else if (keyCodeNames.has(code)) {
-    normalizedKey = code;
+  if (specialCharactersSet.has(which)) {
+    return specialCharactersSet.get(which);
   }
-  return normalizedKey.toLowerCase();
+  const normalizedKey = String.fromCharCode(which).toLowerCase();
+  if (/^[a-z0-9]$/.test(normalizedKey)) {
+    return normalizedKey;
+  }
+  return key.toLowerCase();
 };
 exports.normalizeEventKey = normalizeEventKey;
 
@@ -48262,8 +48508,8 @@ var _unicode = __webpack_require__(157);
 var _browser = __webpack_require__(147);
 var _textRenderer = __webpack_require__(388);
 var _a11y = __webpack_require__(145);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'autocomplete';
@@ -51671,61 +51917,61 @@ var _bindRowsWithHeaders = __webpack_require__(481);
 exports.BindRowsWithHeaders = _bindRowsWithHeaders.BindRowsWithHeaders;
 var _collapsibleColumns = __webpack_require__(485);
 exports.CollapsibleColumns = _collapsibleColumns.CollapsibleColumns;
-var _columnSorting = __webpack_require__(487);
+var _columnSorting = __webpack_require__(488);
 exports.ColumnSorting = _columnSorting.ColumnSorting;
-var _columnSummary = __webpack_require__(501);
+var _columnSummary = __webpack_require__(503);
 exports.ColumnSummary = _columnSummary.ColumnSummary;
-var _comments = __webpack_require__(505);
+var _comments = __webpack_require__(507);
 exports.Comments = _comments.Comments;
-var _contextMenu = __webpack_require__(528);
+var _contextMenu = __webpack_require__(531);
 exports.ContextMenu = _contextMenu.ContextMenu;
-var _copyPaste = __webpack_require__(545);
+var _copyPaste = __webpack_require__(548);
 exports.CopyPaste = _copyPaste.CopyPaste;
-var _customBorders = __webpack_require__(556);
+var _customBorders = __webpack_require__(559);
 exports.CustomBorders = _customBorders.CustomBorders;
-var _dragToScroll = __webpack_require__(565);
+var _dragToScroll = __webpack_require__(568);
 exports.DragToScroll = _dragToScroll.DragToScroll;
-var _dropdownMenu = __webpack_require__(567);
+var _dropdownMenu = __webpack_require__(570);
 exports.DropdownMenu = _dropdownMenu.DropdownMenu;
-var _exportFile = __webpack_require__(570);
+var _exportFile = __webpack_require__(573);
 exports.ExportFile = _exportFile.ExportFile;
-var _filters = __webpack_require__(576);
+var _filters = __webpack_require__(579);
 exports.Filters = _filters.Filters;
-var _formulas = __webpack_require__(625);
+var _formulas = __webpack_require__(628);
 exports.Formulas = _formulas.Formulas;
-var _hiddenColumns = __webpack_require__(633);
+var _hiddenColumns = __webpack_require__(636);
 exports.HiddenColumns = _hiddenColumns.HiddenColumns;
-var _hiddenRows = __webpack_require__(638);
+var _hiddenRows = __webpack_require__(641);
 exports.HiddenRows = _hiddenRows.HiddenRows;
-var _manualColumnFreeze = __webpack_require__(643);
+var _manualColumnFreeze = __webpack_require__(646);
 exports.ManualColumnFreeze = _manualColumnFreeze.ManualColumnFreeze;
-var _manualColumnMove = __webpack_require__(648);
+var _manualColumnMove = __webpack_require__(651);
 exports.ManualColumnMove = _manualColumnMove.ManualColumnMove;
-var _manualColumnResize = __webpack_require__(654);
+var _manualColumnResize = __webpack_require__(657);
 exports.ManualColumnResize = _manualColumnResize.ManualColumnResize;
-var _manualRowMove = __webpack_require__(656);
+var _manualRowMove = __webpack_require__(659);
 exports.ManualRowMove = _manualRowMove.ManualRowMove;
-var _manualRowResize = __webpack_require__(662);
+var _manualRowResize = __webpack_require__(665);
 exports.ManualRowResize = _manualRowResize.ManualRowResize;
-var _mergeCells = __webpack_require__(664);
+var _mergeCells = __webpack_require__(667);
 exports.MergeCells = _mergeCells.MergeCells;
-var _multiColumnSorting = __webpack_require__(675);
+var _multiColumnSorting = __webpack_require__(678);
 exports.MultiColumnSorting = _multiColumnSorting.MultiColumnSorting;
-var _multipleSelectionHandles = __webpack_require__(681);
+var _multipleSelectionHandles = __webpack_require__(684);
 exports.MultipleSelectionHandles = _multipleSelectionHandles.MultipleSelectionHandles;
-var _nestedHeaders = __webpack_require__(683);
+var _nestedHeaders = __webpack_require__(686);
 exports.NestedHeaders = _nestedHeaders.NestedHeaders;
-var _nestedRows = __webpack_require__(700);
+var _nestedRows = __webpack_require__(703);
 exports.NestedRows = _nestedRows.NestedRows;
-var _persistentState = __webpack_require__(709);
+var _persistentState = __webpack_require__(712);
 exports.PersistentState = _persistentState.PersistentState;
-var _search = __webpack_require__(712);
+var _search = __webpack_require__(715);
 exports.Search = _search.Search;
-var _touchScroll = __webpack_require__(714);
+var _touchScroll = __webpack_require__(717);
 exports.TouchScroll = _touchScroll.TouchScroll;
-var _trimRows = __webpack_require__(716);
+var _trimRows = __webpack_require__(719);
 exports.TrimRows = _trimRows.TrimRows;
-var _undoRedo = __webpack_require__(718);
+var _undoRedo = __webpack_require__(721);
 exports.UndoRedo = _undoRedo.UndoRedo;
 var _registry = __webpack_require__(176);
 exports.registerPlugin = _registry.registerPlugin;
@@ -51794,16 +52040,8 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(90);
-__webpack_require__(94);
-__webpack_require__(106);
-__webpack_require__(109);
-__webpack_require__(113);
-__webpack_require__(116);
-__webpack_require__(119);
-__webpack_require__(122);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _base = __webpack_require__(472);
-var _array = __webpack_require__(144);
 var _feature = __webpack_require__(151);
 var _ghostTable = _interopRequireDefault(__webpack_require__(474));
 var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
@@ -51813,12 +52051,11 @@ var _samplesGenerator = _interopRequireDefault(__webpack_require__(475));
 var _string = __webpack_require__(139);
 var _src = __webpack_require__(184);
 var _translations = __webpack_require__(256);
-var _mixed = __webpack_require__(141);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
-function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
+function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 _pluginHooks.default.getSingleton().register('modifyAutoColumnSizeSeed');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'autoColumnSize';
@@ -51923,6 +52160,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 var _cachedColumnHeaders = /*#__PURE__*/new WeakMap();
+var _visualColumnsToRefresh = /*#__PURE__*/new WeakMap();
 var _AutoColumnSize_brand = /*#__PURE__*/new WeakSet();
 class AutoColumnSize extends _base.BasePlugin {
   static get PLUGIN_KEY() {
@@ -51951,7 +52189,9 @@ class AutoColumnSize extends _base.BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * On before view render listener.
+     * Calculates specific columns width (overwrite cache values).
+     *
+     * @param {number[]} visualColumns List of visual columns to calculate.
      */
     _classPrivateMethodInitSpec(this, _AutoColumnSize_brand);
     (0, _defineProperty2.default)(this, "ghostTable", new _ghostTable.default(this.hot));
@@ -51983,13 +52223,6 @@ class AutoColumnSize extends _base.BasePlugin {
       };
     }));
     /**
-     * `true` only if the first calculation was performed.
-     *
-     * @private
-     * @type {boolean}
-     */
-    (0, _defineProperty2.default)(this, "firstCalculation", true);
-    /**
      * `true` if the size calculation is in progress.
      *
      * @type {boolean}
@@ -52015,6 +52248,12 @@ class AutoColumnSize extends _base.BasePlugin {
      * @type {Array}
      */
     _classPrivateFieldInitSpec(this, _cachedColumnHeaders, []);
+    /**
+     * An array of column indexes whose width will be recalculated.
+     *
+     * @type {number[]}
+     */
+    _classPrivateFieldInitSpec(this, _visualColumnsToRefresh, []);
     this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
 
     // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
@@ -52051,11 +52290,21 @@ class AutoColumnSize extends _base.BasePlugin {
       }
       return _assertClassBrand(_AutoColumnSize_brand, _this, _onAfterLoadData).call(_this, ...args);
     });
-    this.addHook('beforeChangeRender', changes => _assertClassBrand(_AutoColumnSize_brand, this, _onBeforeChange).call(this, changes));
-    this.addHook('afterFormulasValuesUpdate', changes => _assertClassBrand(_AutoColumnSize_brand, this, _onAfterFormulasValuesUpdate).call(this, changes));
-    this.addHook('beforeViewRender', force => _assertClassBrand(_AutoColumnSize_brand, this, _onBeforeViewRender).call(this, force));
+    this.addHook('beforeChangeRender', function () {
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _assertClassBrand(_AutoColumnSize_brand, _this, _onBeforeChange).call(_this, ...args);
+    });
+    this.addHook('afterFormulasValuesUpdate', function () {
+      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+      return _assertClassBrand(_AutoColumnSize_brand, _this, _onAfterFormulasValuesUpdate).call(_this, ...args);
+    });
+    this.addHook('beforeRender', () => _assertClassBrand(_AutoColumnSize_brand, this, _onBeforeRender).call(this));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
-    this.addHook('afterInit', () => _assertClassBrand(_AutoColumnSize_brand, this, _onAfterInit).call(this));
+    this.addHook('init', () => _assertClassBrand(_AutoColumnSize_brand, this, _onInit).call(this));
     super.enablePlugin();
   }
 
@@ -52063,11 +52312,7 @@ class AutoColumnSize extends _base.BasePlugin {
    * Updates the plugin's state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    const changedColumns = this.findColumnsWhereHeaderWasChanged();
-    if (changedColumns.length) {
-      this.clearCache(changedColumns);
-      this.calculateVisibleColumnsWidth();
-    }
+    _classPrivateFieldSet(_visualColumnsToRefresh, this, this.findColumnsWhereHeaderWasChanged());
     super.updatePlugin();
   }
 
@@ -52083,25 +52328,23 @@ class AutoColumnSize extends _base.BasePlugin {
   }
 
   /**
-   * Calculates visible columns width.
+   * Calculates widths for visible columns in the viewport only.
    */
   calculateVisibleColumnsWidth() {
-    const rowsCount = this.hot.countRows();
-
     // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
-    if (!rowsCount) {
+    if (!this.hot.countRows()) {
       return;
     }
-    const force = this.hot.renderCall;
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
     if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
       return;
     }
+    const overwriteCache = this.hot.renderCall;
     this.calculateColumnsWidth({
       from: firstVisibleColumn,
       to: lastVisibleColumn
-    }, undefined, force);
+    }, undefined, overwriteCache);
   }
 
   /**
@@ -52109,7 +52352,7 @@ class AutoColumnSize extends _base.BasePlugin {
    *
    * @param {number|object} colRange Visual column index or an object with `from` and `to` visual indexes as a range.
    * @param {number|object} rowRange Visual row index or an object with `from` and `to` visual indexes as a range.
-   * @param {boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
+   * @param {boolean} [overwriteCache=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
   calculateColumnsWidth() {
     let colRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
@@ -52120,8 +52363,7 @@ class AutoColumnSize extends _base.BasePlugin {
       from: 0,
       to: this.hot.countRows() - 1
     };
-    let force = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    // eslint-disable-line max-len
+    let overwriteCache = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
     const columnsRange = typeof colRange === 'number' ? {
       from: colRange,
       to: colRange
@@ -52135,12 +52377,9 @@ class AutoColumnSize extends _base.BasePlugin {
       if (physicalColumn === null) {
         physicalColumn = visualColumn;
       }
-      if (force || this.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !this.hot._getColWidthFromSettings(physicalColumn)) {
+      if (overwriteCache || this.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !this.hot._getColWidthFromSettings(physicalColumn)) {
         const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
-        (0, _array.arrayEach)(samples, _ref => {
-          let [column, sample] = _ref;
-          return this.ghostTable.addColumn(column, sample);
-        });
+        samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
       }
     });
     if (this.ghostTable.columns.length) {
@@ -52160,12 +52399,14 @@ class AutoColumnSize extends _base.BasePlugin {
    * To retrieve width for specified column use {@link AutoColumnSize#getColumnWidth} method.
    *
    * @param {object|number} rowRange Row index or an object with `from` and `to` properties which define row range.
+   * @param {boolean} [overwriteCache] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
   calculateAllColumnsWidth() {
     let rowRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
       from: 0,
       to: this.hot.countRows() - 1
     };
+    let overwriteCache = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     let current = 0;
     const length = this.hot.countCols() - 1;
     let timer = null;
@@ -52180,7 +52421,7 @@ class AutoColumnSize extends _base.BasePlugin {
       this.calculateColumnsWidth({
         from: current,
         to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length)
-      }, rowRange);
+      }, rowRange, overwriteCache);
       current = current + AutoColumnSize.CALCULATION_STEP + 1;
       if (current < length) {
         timer = (0, _feature.requestAnimationFrame)(loop);
@@ -52195,12 +52436,11 @@ class AutoColumnSize extends _base.BasePlugin {
     const syncLimit = this.getSyncCalculationLimit();
 
     // sync
-    if (this.firstCalculation && syncLimit >= 0) {
+    if (syncLimit >= 0) {
       this.calculateColumnsWidth({
         from: 0,
         to: syncLimit
-      }, rowRange);
-      this.firstCalculation = false;
+      }, rowRange, overwriteCache);
       current = syncLimit + 1;
     }
     // async
@@ -52210,7 +52450,6 @@ class AutoColumnSize extends _base.BasePlugin {
       this.inProgress = false;
     }
   }
-
   /**
    * Sets the sampling options.
    *
@@ -52232,9 +52471,11 @@ class AutoColumnSize extends _base.BasePlugin {
    * Recalculates all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
-    if (this.hot.view && this.hot.view._wt.wtTable.isVisible()) {
-      this.clearCache();
-      this.calculateAllColumnsWidth();
+    if (this.hot.view.isVisible()) {
+      this.calculateAllColumnsWidth({
+        from: 0,
+        to: this.hot.countRows() - 1
+      }, true);
     }
   }
 
@@ -52269,8 +52510,7 @@ class AutoColumnSize extends _base.BasePlugin {
    * @param {boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {number}
    */
-  getColumnWidth(column) {
-    let defaultWidth = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : undefined;
+  getColumnWidth(column, defaultWidth) {
     let keepMinimum = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
     let width = defaultWidth;
     if (width === undefined) {
@@ -52288,23 +52528,8 @@ class AutoColumnSize extends _base.BasePlugin {
    * @returns {number} Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
-    const wot = this.hot.view._wt;
-    if (wot.wtViewport.columnsVisibleCalculator) {
-      // Fist fully visible column is stored as renderable index.
-      const firstFullyVisibleColumn = wot.wtTable.getFirstVisibleColumn();
-      if (firstFullyVisibleColumn !== -1) {
-        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(firstFullyVisibleColumn);
-      }
-    }
-    if (wot.wtViewport.columnsRenderCalculator) {
-      const firstRenderedColumn = wot.wtTable.getFirstRenderedColumn();
-
-      // There are no rendered column.
-      if (firstRenderedColumn !== -1) {
-        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(firstRenderedColumn);
-      }
-    }
-    return -1;
+    var _this$hot$view$getFir;
+    return (_this$hot$view$getFir = this.hot.view.getFirstRenderedVisibleColumn()) !== null && _this$hot$view$getFir !== void 0 ? _this$hot$view$getFir : -1;
   }
 
   /**
@@ -52313,38 +52538,22 @@ class AutoColumnSize extends _base.BasePlugin {
    * @returns {number} Returns visual column index or -1 if table is not rendered.
    */
   getLastVisibleColumn() {
-    const wot = this.hot.view._wt;
-    if (wot.wtViewport.columnsVisibleCalculator) {
-      // Last fully visible column is stored as renderable index.
-      const lastFullyVisibleColumn = wot.wtTable.getLastVisibleColumn();
-      if (lastFullyVisibleColumn !== -1) {
-        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(lastFullyVisibleColumn);
-      }
-    }
-    if (wot.wtViewport.columnsRenderCalculator) {
-      // Last fully visible column is stored as renderable index.
-      const lastRenderedColumn = wot.wtTable.getLastRenderedColumn();
-
-      // There are no rendered columns.
-      if (lastRenderedColumn !== -1) {
-        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(lastRenderedColumn);
-      }
-    }
-    return -1;
+    var _this$hot$view$getLas;
+    return (_this$hot$view$getLas = this.hot.view.getLastRenderedVisibleColumn()) !== null && _this$hot$view$getLas !== void 0 ? _this$hot$view$getLas : -1;
   }
 
   /**
    * Collects all columns which titles has been changed in comparison to the previous state.
    *
    * @private
-   * @returns {Array} It returns an array of physical column indexes.
+   * @returns {Array} It returns an array of visual column indexes.
    */
   findColumnsWhereHeaderWasChanged() {
     const columnHeaders = this.hot.getColHeader();
-    const changedColumns = (0, _array.arrayReduce)(columnHeaders, (acc, columnTitle, physicalColumn) => {
+    const changedColumns = columnHeaders.reduce((acc, columnTitle, physicalColumn) => {
       const cachedColumnsLength = _classPrivateFieldGet(_cachedColumnHeaders, this).length;
       if (cachedColumnsLength - 1 < physicalColumn || _classPrivateFieldGet(_cachedColumnHeaders, this)[physicalColumn] !== columnTitle) {
-        acc.push(physicalColumn);
+        acc.push(this.hot.toVisualColumn(physicalColumn));
       }
       if (cachedColumnsLength - 1 < physicalColumn) {
         _classPrivateFieldGet(_cachedColumnHeaders, this).push(columnTitle);
@@ -52360,13 +52569,12 @@ class AutoColumnSize extends _base.BasePlugin {
    * Clears cache of calculated column widths. If you want to clear only selected columns pass an array with their indexes.
    * Otherwise whole cache will be cleared.
    *
-   * @param {number[]} [columns] List of physical column indexes to clear.
+   * @param {number[]} [physicalColumns] List of physical column indexes to clear.
    */
-  clearCache() {
-    let columns = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-    if (columns.length) {
+  clearCache(physicalColumns) {
+    if (Array.isArray(physicalColumns)) {
       this.hot.batchExecution(() => {
-        (0, _array.arrayEach)(columns, physicalIndex => {
+        physicalColumns.forEach(physicalIndex => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
         });
       }, true);
@@ -52381,8 +52589,13 @@ class AutoColumnSize extends _base.BasePlugin {
    * @returns {boolean}
    */
   isNeedRecalculate() {
-    return !!(0, _array.arrayFilter)(this.columnWidthsMap.getValues().slice(0, this.measuredColumns), item => item === null).length;
+    return !!this.columnWidthsMap.getValues().slice(0, this.measuredColumns).filter(item => item === null).length;
   }
+
+  /**
+   * On before view render listener.
+   */
+
   /**
    * Destroys the plugin instance.
    */
@@ -52392,25 +52605,47 @@ class AutoColumnSize extends _base.BasePlugin {
   }
 }
 exports.AutoColumnSize = AutoColumnSize;
-function _onBeforeViewRender() {
+function _calculateSpecificColumnsWidth(visualColumns) {
+  const rowsRange = {
+    from: 0,
+    to: this.hot.countRows() - 1
+  };
+  visualColumns.forEach(visualColumn => {
+    const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+    if (physicalColumn === null) {
+      return;
+    }
+    if (!this.hot._getColWidthFromSettings(physicalColumn)) {
+      const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
+      samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
+    }
+  });
+  if (this.ghostTable.columns.length) {
+    this.hot.batchExecution(() => {
+      this.ghostTable.getWidths((visualColumn, width) => {
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+        this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
+      });
+    }, true);
+    this.ghostTable.clean();
+  }
+}
+function _onBeforeRender() {
   this.calculateVisibleColumnsWidth();
-  if (this.isNeedRecalculate() && !this.inProgress) {
-    this.calculateAllColumnsWidth();
+  if (!this.inProgress) {
+    _assertClassBrand(_AutoColumnSize_brand, this, _calculateSpecificColumnsWidth).call(this, _classPrivateFieldGet(_visualColumnsToRefresh, this));
+    _classPrivateFieldSet(_visualColumnsToRefresh, this, []);
   }
 }
 /**
  * On after load data listener.
+ *
+ * @param {Array} sourceData Source data.
+ * @param {boolean} isFirstLoad `true` if this is the first load.
  */
-function _onAfterLoadData() {
-  if (this.hot.view) {
+function _onAfterLoadData(sourceData, isFirstLoad) {
+  if (!isFirstLoad) {
     this.recalculateAllColumnsWidth();
-  } else {
-    // first load - initialization
-    setTimeout(() => {
-      if (this.hot) {
-        this.recalculateAllColumnsWidth();
-      }
-    }, 0);
   }
 }
 /**
@@ -52419,11 +52654,15 @@ function _onAfterLoadData() {
  * @param {Array} changes An array of modified data.
  */
 function _onBeforeChange(changes) {
-  const changedColumns = (0, _array.arrayMap)(changes, _ref2 => {
-    let [, columnProperty] = _ref2;
-    return this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty));
-  });
-  this.clearCache(Array.from(new Set(changedColumns)));
+  const changedColumns = changes.reduce((acc, _ref) => {
+    let [, columnProperty] = _ref;
+    const visualColumn = this.hot.propToCol(columnProperty);
+    if (Number.isInteger(visualColumn) && acc.indexOf(visualColumn) === -1) {
+      acc.push(visualColumn);
+    }
+    return acc;
+  }, []);
+  _classPrivateFieldGet(_visualColumnsToRefresh, this).push(...changedColumns);
 }
 /**
  * On before column resize listener.
@@ -52444,8 +52683,9 @@ function _onBeforeColumnResize(size, column, isDblClick) {
 /**
  * On after Handsontable init fill plugin with all necessary values.
  */
-function _onAfterInit() {
+function _onInit() {
   _classPrivateFieldSet(_cachedColumnHeaders, this, this.hot.getColHeader());
+  this.recalculateAllColumnsWidth();
 }
 /**
  * After formulas values updated listener.
@@ -52453,12 +52693,18 @@ function _onAfterInit() {
  * @param {Array} changes An array of modified data.
  */
 function _onAfterFormulasValuesUpdate(changes) {
-  const filteredChanges = (0, _array.arrayFilter)(changes, change => {
+  const changedColumns = changes.reduce((acc, change) => {
     var _change$address;
-    return (0, _mixed.isDefined)((_change$address = change.address) === null || _change$address === void 0 ? void 0 : _change$address.col);
-  });
-  const changedColumns = (0, _array.arrayMap)(filteredChanges, change => change.address.col);
-  this.clearCache(Array.from(new Set(changedColumns)));
+    const physicalColumn = (_change$address = change.address) === null || _change$address === void 0 ? void 0 : _change$address.col;
+    if (Number.isInteger(physicalColumn)) {
+      const visualColumn = this.hot.toVisualColumn(physicalColumn);
+      if (acc.indexOf(visualColumn) === -1) {
+        acc.push(visualColumn);
+      }
+    }
+    return acc;
+  }, []);
+  _classPrivateFieldGet(_visualColumnsToRefresh, this).push(...changedColumns);
 }
 
 /***/ }),
@@ -52493,9 +52739,9 @@ var _registry3 = __webpack_require__(159);
 var _registry4 = __webpack_require__(181);
 var _registry5 = __webpack_require__(182);
 var _eventManager = _interopRequireDefault(__webpack_require__(168));
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const DEPS_TYPE_CHECKERS = new Map([['plugin', _registry.hasPlugin], ['cell-type', _registry2.hasCellType], ['editor', _registry3.hasEditor], ['renderer', _registry4.hasRenderer], ['validator', _registry5.hasValidator]]);
@@ -53494,8 +53740,8 @@ var _element = __webpack_require__(138);
 var _array = __webpack_require__(144);
 var _mixed = __webpack_require__(141);
 var _utils = __webpack_require__(478);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 _pluginHooks.default.getSingleton().register('modifyAutofillRange');
 _pluginHooks.default.getSingleton().register('beforeAutofill');
@@ -54155,19 +54401,21 @@ exports.AutoRowSize = _autoRowSize.AutoRowSize;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
+__webpack_require__(90);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _base = __webpack_require__(472);
-var _array = __webpack_require__(144);
 var _feature = __webpack_require__(151);
-var _element = __webpack_require__(138);
 var _ghostTable = _interopRequireDefault(__webpack_require__(474));
 var _object = __webpack_require__(148);
 var _number = __webpack_require__(178);
 var _samplesGenerator = _interopRequireDefault(__webpack_require__(475));
 var _string = __webpack_require__(139);
 var _translations = __webpack_require__(256);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
+function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
+function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'autoRowSize';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 40;
@@ -54257,6 +54505,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
+var _visualRowsToRefresh = /*#__PURE__*/new WeakMap();
 var _AutoRowSize_brand = /*#__PURE__*/new WeakSet();
 class AutoRowSize extends _base.BasePlugin {
   static get PLUGIN_KEY() {
@@ -54285,7 +54534,9 @@ class AutoRowSize extends _base.BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * On before view render listener.
+     * Calculates specific rows height (overwrite cache values).
+     *
+     * @param {number[]} visualRows List of visual rows to calculate.
      */
     _classPrivateMethodInitSpec(this, _AutoRowSize_brand);
     (0, _defineProperty2.default)(this, "headerHeight", null);
@@ -54326,13 +54577,6 @@ class AutoRowSize extends _base.BasePlugin {
       };
     }));
     /**
-     * `true` if only the first calculation was performed.
-     *
-     * @private
-     * @type {boolean}
-     */
-    (0, _defineProperty2.default)(this, "firstCalculation", true);
-    /**
      * `true` if the size calculation is in progress.
      *
      * @type {boolean}
@@ -54351,6 +54595,12 @@ class AutoRowSize extends _base.BasePlugin {
      * @type {PhysicalIndexToValueMap}
      */
     (0, _defineProperty2.default)(this, "rowHeightsMap", new _translations.PhysicalIndexToValueMap());
+    /**
+     * An array of row indexes whose height will be recalculated.
+     *
+     * @type {number[]}
+     */
+    _classPrivateFieldInitSpec(this, _visualRowsToRefresh, []);
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
@@ -54384,10 +54634,22 @@ class AutoRowSize extends _base.BasePlugin {
       }
       return _assertClassBrand(_AutoRowSize_brand, _this, _onAfterLoadData).call(_this, ...args);
     });
-    this.addHook('beforeChangeRender', changes => _assertClassBrand(_AutoRowSize_brand, this, _onBeforeChange).call(this, changes));
+    this.addHook('beforeChangeRender', function () {
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      return _assertClassBrand(_AutoRowSize_brand, _this, _onBeforeChange).call(_this, ...args);
+    });
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
-    this.addHook('beforeViewRender', force => _assertClassBrand(_AutoRowSize_brand, this, _onBeforeViewRender).call(this, force));
+    this.addHook('afterFormulasValuesUpdate', function () {
+      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+      return _assertClassBrand(_AutoRowSize_brand, _this, _onAfterFormulasValuesUpdate).call(_this, ...args);
+    });
+    this.addHook('beforeRender', () => _assertClassBrand(_AutoRowSize_brand, this, _onBeforeRender).call(this));
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
+    this.addHook('init', () => _assertClassBrand(_AutoRowSize_brand, this, _onInit).call(this));
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
     super.enablePlugin();
   }
@@ -54400,8 +54662,28 @@ class AutoRowSize extends _base.BasePlugin {
     super.disablePlugin();
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
-    // This is necesseary for height recalculation for resize handler doubleclick (ManualRowResize).
+    // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
     this.addHook('beforeRowResize', (size, row, isDblClick) => _assertClassBrand(_AutoRowSize_brand, this, _onBeforeRowResize).call(this, size, row, isDblClick));
+  }
+
+  /**
+   * Calculates heights for visible rows in the viewport only.
+   */
+  calculateVisibleRowsHeight() {
+    // Keep last row heights unchanged for situation when all columns was deleted or trimmed
+    if (!this.hot.countCols()) {
+      return;
+    }
+    const firstVisibleRow = this.getFirstVisibleRow();
+    const lastVisibleRow = this.getLastVisibleRow();
+    if (firstVisibleRow === -1 || lastVisibleRow === -1) {
+      return;
+    }
+    const overwriteCache = this.hot.renderCall;
+    this.calculateRowsHeight({
+      from: firstVisibleRow,
+      to: lastVisibleRow
+    }, undefined, overwriteCache);
   }
 
   /**
@@ -54409,7 +54691,7 @@ class AutoRowSize extends _base.BasePlugin {
    *
    * @param {number|object} rowRange Row index or an object with `from` and `to` indexes as a range.
    * @param {number|object} colRange Column index or an object with `from` and `to` indexes as a range.
-   * @param {boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
+   * @param {boolean} [overwriteCache=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
   calculateRowsHeight() {
     let rowRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
@@ -54420,8 +54702,7 @@ class AutoRowSize extends _base.BasePlugin {
       from: 0,
       to: this.hot.countCols() - 1
     };
-    let force = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    // eslint-disable-line max-len
+    let overwriteCache = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
     const rowsRange = typeof rowRange === 'number' ? {
       from: rowRange,
       to: rowRange
@@ -54434,15 +54715,17 @@ class AutoRowSize extends _base.BasePlugin {
       const samples = this.samplesGenerator.generateRowSamples(-1, columnsRange);
       this.ghostTable.addColumnHeadersRow(samples.get(-1));
     }
-    (0, _number.rangeEach)(rowsRange.from, rowsRange.to, row => {
+    (0, _number.rangeEach)(rowsRange.from, rowsRange.to, visualRow => {
+      let physicalRow = this.hot.toPhysicalRow(visualRow);
+      if (physicalRow === null) {
+        physicalRow = visualRow;
+      }
+
       // For rows we must calculate row height even when user had set height value manually.
       // We can shrink column but cannot shrink rows!
-      if (force || this.rowHeightsMap.getValueAtIndex(row) === null) {
-        const samples = this.samplesGenerator.generateRowSamples(row, columnsRange);
-        (0, _array.arrayEach)(samples, _ref => {
-          let [rowIndex, sample] = _ref;
-          return this.ghostTable.addRow(rowIndex, sample);
-        });
+      if (overwriteCache || this.rowHeightsMap.getValueAtIndex(physicalRow) === null) {
+        const samples = this.samplesGenerator.generateRowSamples(visualRow, columnsRange);
+        samples.forEach((sample, row) => this.ghostTable.addRow(row, sample));
       }
     });
     if (this.ghostTable.rows.length) {
@@ -54465,12 +54748,14 @@ class AutoRowSize extends _base.BasePlugin {
    * To retrieve height for specified row use {@link AutoRowSize#getRowHeight} method.
    *
    * @param {object|number} colRange Row index or an object with `from` and `to` properties which define row range.
+   * @param {boolean} [overwriteCache] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
   calculateAllRowsHeight() {
     let colRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
       from: 0,
       to: this.hot.countCols() - 1
     };
+    let overwriteCache = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     let current = 0;
     const length = this.hot.countRows() - 1;
     let timer = null;
@@ -54485,7 +54770,7 @@ class AutoRowSize extends _base.BasePlugin {
       this.calculateRowsHeight({
         from: current,
         to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)
-      }, colRange);
+      }, colRange, overwriteCache);
       current = current + AutoRowSize.CALCULATION_STEP + 1;
       if (current < length) {
         timer = (0, _feature.requestAnimationFrame)(loop);
@@ -54505,12 +54790,11 @@ class AutoRowSize extends _base.BasePlugin {
     const syncLimit = this.getSyncCalculationLimit();
 
     // sync
-    if (this.firstCalculation && syncLimit >= 0) {
+    if (syncLimit >= 0) {
       this.calculateRowsHeight({
         from: 0,
         to: syncLimit
-      }, colRange);
-      this.firstCalculation = false;
+      }, colRange, overwriteCache);
       current = syncLimit + 1;
     }
     // async
@@ -54521,7 +54805,6 @@ class AutoRowSize extends _base.BasePlugin {
       this.hot.view.adjustElementsSize();
     }
   }
-
   /**
    * Sets the sampling options.
    *
@@ -54543,9 +54826,11 @@ class AutoRowSize extends _base.BasePlugin {
    * Recalculates all rows height (overwrite cache values).
    */
   recalculateAllRowsHeight() {
-    if ((0, _element.isVisible)(this.hot.view._wt.wtTable.TABLE)) {
-      this.clearCache();
-      this.calculateAllRowsHeight();
+    if (this.hot.view.isVisible()) {
+      this.calculateAllRowsHeight({
+        from: 0,
+        to: this.hot.countCols() - 1
+      }, true);
     }
   }
 
@@ -54585,8 +54870,7 @@ class AutoRowSize extends _base.BasePlugin {
    * @param {number} [defaultHeight] If no height is found, `defaultHeight` is returned instead.
    * @returns {number} The height of the specified row, in pixels.
    */
-  getRowHeight(row) {
-    let defaultHeight = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : undefined;
+  getRowHeight(row, defaultHeight) {
     const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
     let height = defaultHeight;
     if (cachedHeight !== null && cachedHeight > (defaultHeight || 0)) {
@@ -54610,14 +54894,8 @@ class AutoRowSize extends _base.BasePlugin {
    * @returns {number} Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.
    */
   getFirstVisibleRow() {
-    const wot = this.hot.view._wt;
-    if (wot.wtViewport.rowsVisibleCalculator) {
-      return wot.wtTable.getFirstVisibleRow();
-    }
-    if (wot.wtViewport.rowsRenderCalculator) {
-      return wot.wtTable.getFirstRenderedRow();
-    }
-    return -1;
+    var _this$hot$view$getFir;
+    return (_this$hot$view$getFir = this.hot.view.getFirstRenderedVisibleRow()) !== null && _this$hot$view$getFir !== void 0 ? _this$hot$view$getFir : -1;
   }
 
   /**
@@ -54626,22 +54904,27 @@ class AutoRowSize extends _base.BasePlugin {
    * @returns {number} Returns row index or -1 if table is not rendered.
    */
   getLastVisibleRow() {
-    const wot = this.hot.view._wt;
-    if (wot.wtViewport.rowsVisibleCalculator) {
-      return wot.wtTable.getLastVisibleRow();
-    }
-    if (wot.wtViewport.rowsRenderCalculator) {
-      return wot.wtTable.getLastRenderedRow();
-    }
-    return -1;
+    var _this$hot$view$getLas;
+    return (_this$hot$view$getLas = this.hot.view.getLastRenderedVisibleRow()) !== null && _this$hot$view$getLas !== void 0 ? _this$hot$view$getLas : -1;
   }
 
   /**
-   * Clears cached heights.
+   * Clears cache of calculated row heights. If you want to clear only selected rows pass an array with their indexes.
+   * Otherwise whole cache will be cleared.
+   *
+   * @param {number[]} [physicalRows] List of physical row indexes to clear.
    */
-  clearCache() {
+  clearCache(physicalRows) {
     this.headerHeight = null;
-    this.rowHeightsMap.init();
+    if (Array.isArray(physicalRows)) {
+      this.hot.batchExecution(() => {
+        physicalRows.forEach(physicalIndex => {
+          this.rowHeightsMap.setValueAtIndex(physicalIndex, null);
+        });
+      }, true);
+    } else {
+      this.rowHeightsMap.clear();
+    }
   }
 
   /**
@@ -54670,8 +54953,13 @@ class AutoRowSize extends _base.BasePlugin {
    * @returns {boolean}
    */
   isNeedRecalculate() {
-    return !!(0, _array.arrayFilter)(this.rowHeightsMap.getValues().slice(0, this.measuredRows), item => item === null).length;
+    return !!this.rowHeightsMap.getValues().slice(0, this.measuredRows).filter(item => item === null).length;
   }
+
+  /**
+   * On before view render listener.
+   */
+
   /**
    * Destroys the plugin instance.
    */
@@ -54681,29 +54969,32 @@ class AutoRowSize extends _base.BasePlugin {
   }
 }
 exports.AutoRowSize = AutoRowSize;
-function _onBeforeViewRender() {
-  const force = this.hot.renderCall;
-  const fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
-  const firstVisibleRow = this.getFirstVisibleRow();
-  const lastVisibleRow = this.getLastVisibleRow();
-  if (firstVisibleRow === -1 || lastVisibleRow === -1) {
-    return;
+function _calculateSpecificRowsHeight(visualRows) {
+  const columnsRange = {
+    from: 0,
+    to: this.hot.countCols() - 1
+  };
+  visualRows.forEach(visualRow => {
+    // For rows we must calculate row height even when user had set height value manually.
+    // We can shrink column but cannot shrink rows!
+    const samples = this.samplesGenerator.generateRowSamples(visualRow, columnsRange);
+    samples.forEach((sample, row) => this.ghostTable.addRow(row, sample));
+  });
+  if (this.ghostTable.rows.length) {
+    this.hot.batchExecution(() => {
+      this.ghostTable.getHeights((visualRow, height) => {
+        const physicalRow = this.hot.toPhysicalRow(visualRow);
+        this.rowHeightsMap.setValueAtIndex(physicalRow, height);
+      });
+    }, true);
+    this.ghostTable.clean();
   }
-  this.calculateRowsHeight({
-    from: firstVisibleRow,
-    to: lastVisibleRow
-  }, undefined, force);
-
-  // Calculate rows height synchronously for bottom overlay
-  if (fixedRowsBottom) {
-    const totalRows = this.hot.countRows() - 1;
-    this.calculateRowsHeight({
-      from: totalRows - fixedRowsBottom,
-      to: totalRows
-    });
-  }
-  if (this.isNeedRecalculate() && !this.inProgress) {
-    this.calculateAllRowsHeight();
+}
+function _onBeforeRender() {
+  this.calculateVisibleRowsHeight();
+  if (!this.inProgress) {
+    _assertClassBrand(_AutoRowSize_brand, this, _calculateSpecificRowsHeight).call(this, _classPrivateFieldGet(_visualRowsToRefresh, this));
+    _classPrivateFieldSet(_visualRowsToRefresh, this, []);
   }
 }
 /**
@@ -54724,17 +55015,13 @@ function _onBeforeRowResize(size, row, isDblClick) {
 }
 /**
  * On after load data listener.
+ *
+ * @param {Array} sourceData Source data.
+ * @param {boolean} isFirstLoad `true` if this is the first load.
  */
-function _onAfterLoadData() {
-  if (this.hot.view) {
+function _onAfterLoadData(sourceData, isFirstLoad) {
+  if (!isFirstLoad) {
     this.recalculateAllRowsHeight();
-  } else {
-    // first load - initialization
-    this.hot._registerTimeout(() => {
-      if (this.hot) {
-        this.recalculateAllRowsHeight();
-      }
-    });
   }
 }
 /**
@@ -54743,18 +55030,39 @@ function _onAfterLoadData() {
  * @param {Array} changes 2D array containing information about each of the edited cells.
  */
 function _onBeforeChange(changes) {
-  let range = null;
-  if (changes.length === 1) {
-    range = changes[0][0];
-  } else if (changes.length > 1) {
-    range = {
-      from: changes[0][0],
-      to: changes[changes.length - 1][0]
-    };
-  }
-  if (range !== null) {
-    this.clearCacheByRange(range);
-  }
+  const changedRows = changes.reduce((acc, _ref) => {
+    let [row] = _ref;
+    if (acc.indexOf(row) === -1) {
+      acc.push(row);
+    }
+    return acc;
+  }, []);
+  _classPrivateFieldGet(_visualRowsToRefresh, this).push(...changedRows);
+}
+/**
+ * On after Handsontable init plugin with all necessary values.
+ */
+function _onInit() {
+  this.recalculateAllRowsHeight();
+}
+/**
+ * After formulas values updated listener.
+ *
+ * @param {Array} changes An array of modified data.
+ */
+function _onAfterFormulasValuesUpdate(changes) {
+  const changedRows = changes.reduce((acc, change) => {
+    var _change$address;
+    const physicalRow = (_change$address = change.address) === null || _change$address === void 0 ? void 0 : _change$address.row;
+    if (Number.isInteger(physicalRow)) {
+      const visualRow = this.hot.toVisualRow(physicalRow);
+      if (acc.indexOf(visualRow) === -1) {
+        acc.push(visualRow);
+      }
+    }
+    return acc;
+  }, []);
+  _classPrivateFieldGet(_visualRowsToRefresh, this).push(...changedRows);
 }
 
 /***/ }),
@@ -54784,8 +55092,8 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _base = __webpack_require__(472);
 var _looseBindsMap = _interopRequireDefault(__webpack_require__(483));
 var _strictBindsMap = _interopRequireDefault(__webpack_require__(484));
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'bindRowsWithHeaders';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 210;
@@ -55034,9 +55342,10 @@ var _element = __webpack_require__(138);
 var _event = __webpack_require__(158);
 var _shortcutContexts = __webpack_require__(315);
 var _a11y = __webpack_require__(145);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+__webpack_require__(487);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -55620,13 +55929,22 @@ function _onAfterLoadData(sourceData, initialLoad) {
 
 /***/ }),
 /* 487 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ }),
+/* 488 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _columnSorting = __webpack_require__(488);
+var _columnSorting = __webpack_require__(489);
 exports.PLUGIN_KEY = _columnSorting.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _columnSorting.PLUGIN_PRIORITY;
 exports.ColumnSorting = _columnSorting.ColumnSorting;
@@ -55634,7 +55952,7 @@ exports.APPEND_COLUMN_CONFIG_STRATEGY = _columnSorting.APPEND_COLUMN_CONFIG_STRA
 exports.REPLACE_COLUMN_CONFIG_STRATEGY = _columnSorting.REPLACE_COLUMN_CONFIG_STRATEGY;
 
 /***/ }),
-/* 488 */
+/* 489 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -55653,15 +55971,16 @@ var _array = __webpack_require__(144);
 var _base = __webpack_require__(472);
 var _translations = __webpack_require__(256);
 var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
-var _columnStatesManager = __webpack_require__(489);
+var _columnStatesManager = __webpack_require__(490);
 var _shortcutContexts = __webpack_require__(315);
-var _utils = __webpack_require__(490);
-var _domHelpers = __webpack_require__(499);
-var _rootComparator = __webpack_require__(500);
-var _sortService = __webpack_require__(491);
+var _utils = __webpack_require__(491);
+var _domHelpers = __webpack_require__(500);
+var _rootComparator = __webpack_require__(501);
+var _sortService = __webpack_require__(492);
 var _a11y = __webpack_require__(145);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+__webpack_require__(502);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'columnSorting';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 50;
@@ -55837,6 +56156,7 @@ class ColumnSorting extends _base.BasePlugin {
       if (this.indexesSequenceCache !== null) {
         this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
         this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
+        this.indexesSequenceCache = null;
       }
     }, true);
     this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
@@ -56224,8 +56544,8 @@ class ColumnSorting extends _base.BasePlugin {
    * @private
    */
   sortByPresetSortStates(sortConfigs) {
+    this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
     if (sortConfigs.length === 0) {
-      this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
       return;
     }
     const indexesWithData = [];
@@ -56416,7 +56736,7 @@ function _onBeforeOnCellMouseDown(event, coords, TD, controller) {
 }
 
 /***/ }),
-/* 489 */
+/* 490 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -56638,7 +56958,7 @@ class ColumnStatesManager {
 exports.ColumnStatesManager = ColumnStatesManager;
 
 /***/ }),
-/* 490 */
+/* 491 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -56663,7 +56983,7 @@ var _moment = _interopRequireDefault(__webpack_require__(142));
 var _object = __webpack_require__(148);
 var _event = __webpack_require__(158);
 var _mixed = __webpack_require__(141);
-var _sortService = __webpack_require__(491);
+var _sortService = __webpack_require__(492);
 const ASC_SORT_STATE = exports.ASC_SORT_STATE = 'asc';
 const DESC_SORT_STATE = exports.DESC_SORT_STATE = 'desc';
 const HEADER_SPAN_CLASS = exports.HEADER_SPAN_CLASS = 'colHeader';
@@ -56817,25 +57137,25 @@ function createDateTimeCompareFunction(sortOrder, format, columnPluginSettings) 
 }
 
 /***/ }),
-/* 491 */
+/* 492 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _registry = __webpack_require__(492);
+var _registry = __webpack_require__(493);
 exports.registerRootComparator = _registry.registerRootComparator;
 exports.getRootComparator = _registry.getRootComparator;
 exports.getCompareFunctionFactory = _registry.getCompareFunctionFactory;
-var _engine = __webpack_require__(498);
+var _engine = __webpack_require__(499);
 exports.FIRST_AFTER_SECOND = _engine.FIRST_AFTER_SECOND;
 exports.FIRST_BEFORE_SECOND = _engine.FIRST_BEFORE_SECOND;
 exports.DO_NOT_SWAP = _engine.DO_NOT_SWAP;
 exports.sort = _engine.sort;
 
 /***/ }),
-/* 492 */
+/* 493 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -56844,11 +57164,11 @@ exports.sort = _engine.sort;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports.getCompareFunctionFactory = getCompareFunctionFactory;
-var _default = __webpack_require__(493);
-var _numeric = __webpack_require__(494);
-var _checkbox = __webpack_require__(495);
-var _date = __webpack_require__(496);
-var _time = __webpack_require__(497);
+var _default = __webpack_require__(494);
+var _numeric = __webpack_require__(495);
+var _checkbox = __webpack_require__(496);
+var _date = __webpack_require__(497);
+var _time = __webpack_require__(498);
 var _staticRegister = _interopRequireDefault(__webpack_require__(167));
 const {
   register: registerCompareFunctionFactory,
@@ -56881,7 +57201,7 @@ registerCompareFunctionFactory(_numeric.COLUMN_DATA_TYPE, _numeric.compareFuncti
 registerCompareFunctionFactory(_time.COLUMN_DATA_TYPE, _time.compareFunctionFactory);
 
 /***/ }),
-/* 493 */
+/* 494 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -56890,7 +57210,7 @@ registerCompareFunctionFactory(_time.COLUMN_DATA_TYPE, _time.compareFunctionFact
 exports.__esModule = true;
 exports.compareFunctionFactory = compareFunctionFactory;
 var _mixed = __webpack_require__(141);
-var _sortService = __webpack_require__(491);
+var _sortService = __webpack_require__(492);
 /**
  * Default sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
@@ -56952,7 +57272,7 @@ function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
 const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'default';
 
 /***/ }),
-/* 494 */
+/* 495 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -56961,7 +57281,7 @@ const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'default';
 exports.__esModule = true;
 exports.compareFunctionFactory = compareFunctionFactory;
 var _mixed = __webpack_require__(141);
-var _sortService = __webpack_require__(491);
+var _sortService = __webpack_require__(492);
 /**
  * Numeric sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
@@ -57007,7 +57327,7 @@ function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
 const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'numeric';
 
 /***/ }),
-/* 495 */
+/* 496 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -57015,8 +57335,8 @@ const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'numeric';
 
 exports.__esModule = true;
 exports.compareFunctionFactory = compareFunctionFactory;
-var _sortService = __webpack_require__(491);
-var _default = __webpack_require__(493);
+var _sortService = __webpack_require__(492);
+var _default = __webpack_require__(494);
 var _mixed = __webpack_require__(141);
 /**
  * Checkbox sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
@@ -57077,7 +57397,7 @@ function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
 const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'checkbox';
 
 /***/ }),
-/* 496 */
+/* 497 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -57085,7 +57405,7 @@ const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'checkbox';
 
 exports.__esModule = true;
 exports.compareFunctionFactory = compareFunctionFactory;
-var _utils = __webpack_require__(490);
+var _utils = __webpack_require__(491);
 /**
  * Date sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
@@ -57100,7 +57420,7 @@ function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
 const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'date';
 
 /***/ }),
-/* 497 */
+/* 498 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -57108,7 +57428,7 @@ const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'date';
 
 exports.__esModule = true;
 exports.compareFunctionFactory = compareFunctionFactory;
-var _utils = __webpack_require__(490);
+var _utils = __webpack_require__(491);
 /**
  * Date sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
@@ -57123,7 +57443,7 @@ function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
 const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'time';
 
 /***/ }),
-/* 498 */
+/* 499 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -57131,7 +57451,7 @@ const COLUMN_DATA_TYPE = exports.COLUMN_DATA_TYPE = 'time';
 
 exports.__esModule = true;
 exports.sort = sort;
-var _registry = __webpack_require__(492);
+var _registry = __webpack_require__(493);
 const DO_NOT_SWAP = exports.DO_NOT_SWAP = 0;
 const FIRST_BEFORE_SECOND = exports.FIRST_BEFORE_SECOND = -1;
 const FIRST_AFTER_SECOND = exports.FIRST_AFTER_SECOND = 1;
@@ -57150,7 +57470,7 @@ function sort(indexesWithData, rootComparatorId) {
 }
 
 /***/ }),
-/* 499 */
+/* 500 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -57161,7 +57481,7 @@ exports.getClassesToAdd = getClassesToAdd;
 exports.getClassesToRemove = getClassesToRemove;
 __webpack_require__(90);
 var _mixed = __webpack_require__(141);
-var _utils = __webpack_require__(490);
+var _utils = __webpack_require__(491);
 const HEADER_CLASS_ASC_SORT = 'ascending';
 const HEADER_CLASS_DESC_SORT = 'descending';
 const HEADER_CLASS_INDICATOR_DISABLED = 'indicatorDisabled';
@@ -57204,7 +57524,7 @@ function getClassesToRemove() {
 }
 
 /***/ }),
-/* 500 */
+/* 501 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -57212,7 +57532,7 @@ function getClassesToRemove() {
 
 exports.__esModule = true;
 exports.rootComparator = rootComparator;
-var _sortService = __webpack_require__(491);
+var _sortService = __webpack_require__(492);
 /**
  * Sort comparator handled by conventional sort algorithm.
  *
@@ -57243,20 +57563,29 @@ function rootComparator(sortingOrders, columnMetas) {
 }
 
 /***/ }),
-/* 501 */
+/* 502 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ }),
+/* 503 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _columnSummary = __webpack_require__(502);
+var _columnSummary = __webpack_require__(504);
 exports.PLUGIN_KEY = _columnSummary.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _columnSummary.PLUGIN_PRIORITY;
 exports.ColumnSummary = _columnSummary.ColumnSummary;
 
 /***/ }),
-/* 502 */
+/* 504 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -57268,11 +57597,11 @@ __webpack_require__(8);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _base = __webpack_require__(472);
 var _object = __webpack_require__(148);
-var _endpoints = _interopRequireDefault(__webpack_require__(503));
+var _endpoints = _interopRequireDefault(__webpack_require__(505));
 var _templateLiteralTag = __webpack_require__(143);
-var _utils = __webpack_require__(504);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _utils = __webpack_require__(506);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'columnSummary';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 220;
@@ -57755,7 +58084,7 @@ function _onAfterRowMove(rows, finalIndex) {
 }
 
 /***/ }),
-/* 503 */
+/* 505 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -58293,7 +58622,7 @@ class Endpoints {
 var _default = exports["default"] = Endpoints;
 
 /***/ }),
-/* 504 */
+/* 506 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -58312,20 +58641,20 @@ function isNullishOrNaN(value) {
 }
 
 /***/ }),
-/* 505 */
+/* 507 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _comments = __webpack_require__(506);
+var _comments = __webpack_require__(508);
 exports.PLUGIN_KEY = _comments.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _comments.PLUGIN_PRIORITY;
 exports.Comments = _comments.Comments;
 
 /***/ }),
-/* 506 */
+/* 508 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -58340,16 +58669,16 @@ var _element = __webpack_require__(138);
 var _event = __webpack_require__(158);
 var _object = __webpack_require__(148);
 var _base = __webpack_require__(472);
-var _commentEditor = _interopRequireDefault(__webpack_require__(507));
-var _displaySwitch2 = _interopRequireDefault(__webpack_require__(508));
-var _predefinedItems = __webpack_require__(509);
-var _addEditComment = _interopRequireDefault(__webpack_require__(524));
-var _removeComment = _interopRequireDefault(__webpack_require__(525));
-var _readOnlyComment = _interopRequireDefault(__webpack_require__(526));
-__webpack_require__(527);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _commentEditor = _interopRequireDefault(__webpack_require__(509));
+var _displaySwitch2 = _interopRequireDefault(__webpack_require__(511));
+var _predefinedItems = __webpack_require__(512);
+var _addEditComment = _interopRequireDefault(__webpack_require__(527));
+var _removeComment = _interopRequireDefault(__webpack_require__(528));
+var _readOnlyComment = _interopRequireDefault(__webpack_require__(529));
+__webpack_require__(530);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -58456,7 +58785,6 @@ var _editor = /*#__PURE__*/new WeakMap();
 var _displaySwitch = /*#__PURE__*/new WeakMap();
 var _preventEditorAutoSwitch = /*#__PURE__*/new WeakMap();
 var _preventEditorHiding = /*#__PURE__*/new WeakMap();
-var _tempEditorDimensions = /*#__PURE__*/new WeakMap();
 var _cellBelowCursor = /*#__PURE__*/new WeakMap();
 var _commentValueBeforeSave = /*#__PURE__*/new WeakMap();
 var _Comments_brand = /*#__PURE__*/new WeakSet();
@@ -58505,13 +58833,6 @@ class Comments extends _base.BasePlugin {
      */
     _classPrivateFieldInitSpec(this, _preventEditorHiding, false);
     /**
-     * The property for holding editor dimensions for further processing.
-     *
-     * @private
-     * @type {object}
-     */
-    _classPrivateFieldInitSpec(this, _tempEditorDimensions, {});
-    /**
      * The flag that allows processing mousedown event correctly when comments editor is triggered.
      *
      * @private
@@ -58546,11 +58867,18 @@ class Comments extends _base.BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
+    var _this = this;
     if (this.enabled) {
       return;
     }
     if (!_classPrivateFieldGet(_editor, this)) {
       _classPrivateFieldSet(_editor, this, new _commentEditor.default(this.hot.rootDocument, this.hot.isRtl()));
+      _classPrivateFieldGet(_editor, this).addLocalHook('resize', function () {
+        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments[_key];
+        }
+        return _assertClassBrand(_Comments_brand, _this, _onEditorResize).call(_this, ...args);
+      });
     }
     if (!_classPrivateFieldGet(_displaySwitch, this)) {
       _classPrivateFieldSet(_displaySwitch, this, new _displaySwitch2.default(this.getDisplayDelaySetting()));
@@ -58662,8 +58990,6 @@ class Comments extends _base.BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => _assertClassBrand(_Comments_brand, this, _onMouseUp).call(this));
     this.eventManager.addEventListener(editorElement, 'focus', () => _assertClassBrand(_Comments_brand, this, _onEditorFocus).call(this));
     this.eventManager.addEventListener(editorElement, 'blur', () => _assertClassBrand(_Comments_brand, this, _onEditorBlur).call(this));
-    this.eventManager.addEventListener(editorElement, 'mousedown', event => _assertClassBrand(_Comments_brand, this, _onEditorMouseDown).call(this, event));
-    this.eventManager.addEventListener(editorElement, 'mouseup', event => _assertClassBrand(_Comments_brand, this, _onEditorMouseUp).call(this, event));
   }
 
   /**
@@ -58937,6 +59263,7 @@ class Comments extends _base.BasePlugin {
     }
     _classPrivateFieldGet(_editor, this).setPosition(x, y);
     _classPrivateFieldGet(_editor, this).setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY));
+    _classPrivateFieldGet(_editor, this).observeSize();
   }
 
   /**
@@ -59019,12 +59346,9 @@ class Comments extends _base.BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    if (_classPrivateFieldGet(_editor, this)) {
-      _classPrivateFieldGet(_editor, this).destroy();
-    }
-    if (_classPrivateFieldGet(_displaySwitch, this)) {
-      _classPrivateFieldGet(_displaySwitch, this).destroy();
-    }
+    var _classPrivateFieldGet2, _classPrivateFieldGet3;
+    (_classPrivateFieldGet2 = _classPrivateFieldGet(_editor, this)) === null || _classPrivateFieldGet2 === void 0 || _classPrivateFieldGet2.destroy();
+    (_classPrivateFieldGet3 = _classPrivateFieldGet(_displaySwitch, this)) === null || _classPrivateFieldGet3 === void 0 || _classPrivateFieldGet3.destroy();
     super.destroy();
   }
 }
@@ -59100,32 +59424,18 @@ function _onEditorFocus() {
   this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
 }
 /**
- * `mousedown` hook. Along with `onEditorMouseUp` used to simulate the textarea resizing event.
+ * Saves the comments editor size to the cell meta.
  *
- * @param {MouseEvent} event The `mousedown` event.
+ * @param {number} width The new width of the editor.
+ * @param {number} height The new height of the editor.
  */
-function _onEditorMouseDown(event) {
-  _classPrivateFieldSet(_tempEditorDimensions, this, {
-    width: (0, _element.outerWidth)(event.target),
-    height: (0, _element.outerHeight)(event.target)
+function _onEditorResize(width, height) {
+  this.updateCommentMeta(this.range.from.row, this.range.from.col, {
+    [META_STYLE]: {
+      width,
+      height
+    }
   });
-}
-/**
- * `mouseup` hook. Along with `onEditorMouseDown` used to simulate the textarea resizing event.
- *
- * @param {MouseEvent} event The `mouseup` event.
- */
-function _onEditorMouseUp(event) {
-  const currentWidth = (0, _element.outerWidth)(event.target);
-  const currentHeight = (0, _element.outerHeight)(event.target);
-  if (currentWidth !== _classPrivateFieldGet(_tempEditorDimensions, this).width + 1 || currentHeight !== _classPrivateFieldGet(_tempEditorDimensions, this).height + 2) {
-    this.updateCommentMeta(this.range.from.row, this.range.from.col, {
-      [META_STYLE]: {
-        width: currentWidth,
-        height: currentHeight
-      }
-    });
-  }
 }
 /**
  * Observes the pressed keys and if there is already opened the comment editor prevents open
@@ -59148,7 +59458,7 @@ function _onAfterScroll() {
 }
 
 /***/ }),
-/* 507 */
+/* 509 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59156,14 +59466,29 @@ function _onAfterScroll() {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
+__webpack_require__(8);
 var _element = __webpack_require__(138);
+var _object = __webpack_require__(148);
+var _localHooks = _interopRequireDefault(__webpack_require__(237));
+var _editorResizeObserver = __webpack_require__(510);
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
+function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
+function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
+function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 /**
  * Comment editor for the Comments plugin.
  *
  * @private
  * @class CommentEditor
  */
+var _rootDocument = /*#__PURE__*/new WeakMap();
+var _isRtl = /*#__PURE__*/new WeakMap();
+var _container = /*#__PURE__*/new WeakMap();
+var _editor = /*#__PURE__*/new WeakMap();
+var _editorStyle = /*#__PURE__*/new WeakMap();
+var _hidden = /*#__PURE__*/new WeakMap();
+var _resizeObserver = /*#__PURE__*/new WeakMap();
 class CommentEditor {
   static get CLASS_EDITOR_CONTAINER() {
     return 'htCommentsContainer';
@@ -59179,35 +59504,47 @@ class CommentEditor {
   }
 
   /**
-   * @type {HTMLDocument}
+   * @type {Document}
    */
 
   constructor(rootDocument, isRtl) {
-    (0, _defineProperty2.default)(this, "rootDocument", void 0);
+    var _this = this;
+    _classPrivateFieldInitSpec(this, _rootDocument, void 0);
     /**
      * @type {boolean}
      */
-    (0, _defineProperty2.default)(this, "isRtl", false);
+    _classPrivateFieldInitSpec(this, _isRtl, false);
     /**
      * @type {HTMLElement}
      */
-    (0, _defineProperty2.default)(this, "container", null);
+    _classPrivateFieldInitSpec(this, _container, null);
     /**
      * @type {HTMLElement}
      */
-    (0, _defineProperty2.default)(this, "editor", void 0);
+    _classPrivateFieldInitSpec(this, _editor, void 0);
     /**
      * @type {CSSStyleDeclaration}
      */
-    (0, _defineProperty2.default)(this, "editorStyle", void 0);
+    _classPrivateFieldInitSpec(this, _editorStyle, void 0);
     /**
      * @type {boolean}
      */
-    (0, _defineProperty2.default)(this, "hidden", true);
-    this.rootDocument = rootDocument;
-    this.isRtl = isRtl;
-    this.editor = this.createEditor();
-    this.editorStyle = this.editor.style;
+    _classPrivateFieldInitSpec(this, _hidden, true);
+    /**
+     * @type {EditorResizeObserver}
+     */
+    _classPrivateFieldInitSpec(this, _resizeObserver, new _editorResizeObserver.EditorResizeObserver());
+    _classPrivateFieldSet(_rootDocument, this, rootDocument);
+    _classPrivateFieldSet(_isRtl, this, isRtl);
+    _classPrivateFieldSet(_editor, this, this.createEditor());
+    _classPrivateFieldSet(_editorStyle, this, _classPrivateFieldGet(_editor, this).style);
+    _classPrivateFieldGet(_resizeObserver, this).setObservedElement(this.getInputElement());
+    _classPrivateFieldGet(_resizeObserver, this).addLocalHook('resize', function () {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _this.runLocalHooks('resize', ...args);
+    });
     this.hide();
   }
 
@@ -59218,8 +59555,8 @@ class CommentEditor {
    * @param {number} y Y position (in pixels).
    */
   setPosition(x, y) {
-    this.editorStyle.left = `${x}px`;
-    this.editorStyle.top = `${y}px`;
+    _classPrivateFieldGet(_editorStyle, this).left = `${x}px`;
+    _classPrivateFieldGet(_editorStyle, this).top = `${y}px`;
   }
 
   /**
@@ -59249,6 +59586,13 @@ class CommentEditor {
   }
 
   /**
+   * Starts observing the editor size.
+   */
+  observeSize() {
+    _classPrivateFieldGet(_resizeObserver, this).observe();
+  }
+
+  /**
    * Reset the editor size to its initial state.
    */
   resetSize() {
@@ -59271,18 +59615,19 @@ class CommentEditor {
    * Show the comments editor.
    */
   show() {
-    this.editorStyle.display = 'block';
-    this.hidden = false;
+    _classPrivateFieldGet(_editorStyle, this).display = 'block';
+    _classPrivateFieldSet(_hidden, this, false);
   }
 
   /**
    * Hide the comments editor.
    */
   hide() {
-    if (!this.hidden) {
-      this.editorStyle.display = 'none';
+    _classPrivateFieldGet(_resizeObserver, this).unobserve();
+    if (!_classPrivateFieldGet(_hidden, this)) {
+      _classPrivateFieldGet(_editorStyle, this).display = 'none';
     }
-    this.hidden = true;
+    _classPrivateFieldSet(_hidden, this, true);
   }
 
   /**
@@ -59291,7 +59636,7 @@ class CommentEditor {
    * @returns {boolean}
    */
   isVisible() {
-    return this.editorStyle.display === 'block';
+    return _classPrivateFieldGet(_editorStyle, this).display === 'block';
   }
 
   /**
@@ -59320,7 +59665,7 @@ class CommentEditor {
    * @returns {boolean}
    */
   isFocused() {
-    return this.rootDocument.activeElement === this.getInputElement();
+    return _classPrivateFieldGet(_rootDocument, this).activeElement === this.getInputElement();
   }
 
   /**
@@ -59336,18 +59681,18 @@ class CommentEditor {
    * @returns {HTMLElement}
    */
   createEditor() {
-    const editor = this.rootDocument.createElement('div');
-    const textArea = this.rootDocument.createElement('textarea');
+    const editor = _classPrivateFieldGet(_rootDocument, this).createElement('div');
+    const textarea = _classPrivateFieldGet(_rootDocument, this).createElement('textarea');
     editor.style.display = 'none';
-    this.container = this.rootDocument.createElement('div');
-    this.container.setAttribute('dir', this.isRtl ? 'rtl' : 'ltr');
-    (0, _element.addClass)(this.container, CommentEditor.CLASS_EDITOR_CONTAINER);
-    this.rootDocument.body.appendChild(this.container);
+    _classPrivateFieldSet(_container, this, _classPrivateFieldGet(_rootDocument, this).createElement('div'));
+    _classPrivateFieldGet(_container, this).setAttribute('dir', _classPrivateFieldGet(_isRtl, this) ? 'rtl' : 'ltr');
+    (0, _element.addClass)(_classPrivateFieldGet(_container, this), CommentEditor.CLASS_EDITOR_CONTAINER);
+    _classPrivateFieldGet(_rootDocument, this).body.appendChild(_classPrivateFieldGet(_container, this));
     (0, _element.addClass)(editor, CommentEditor.CLASS_EDITOR);
-    (0, _element.addClass)(textArea, CommentEditor.CLASS_INPUT);
-    textArea.setAttribute('data-hot-input', true);
-    editor.appendChild(textArea);
-    this.container.appendChild(editor);
+    (0, _element.addClass)(textarea, CommentEditor.CLASS_INPUT);
+    textarea.setAttribute('data-hot-input', true);
+    editor.appendChild(textarea);
+    _classPrivateFieldGet(_container, this).appendChild(editor);
     return editor;
   }
 
@@ -59357,26 +59702,134 @@ class CommentEditor {
    * @returns {HTMLElement}
    */
   getInputElement() {
-    return this.editor.querySelector(`.${CommentEditor.CLASS_INPUT}`);
+    return _classPrivateFieldGet(_editor, this).querySelector(`.${CommentEditor.CLASS_INPUT}`);
   }
 
   /**
    * Destroy the comments editor.
    */
   destroy() {
-    const containerParentElement = this.container ? this.container.parentNode : null;
-    this.editor.parentNode.removeChild(this.editor);
-    this.editor = null;
-    this.editorStyle = null;
+    const containerParentElement = _classPrivateFieldGet(_container, this) ? _classPrivateFieldGet(_container, this).parentNode : null;
+    _classPrivateFieldGet(_editor, this).parentNode.removeChild(_classPrivateFieldGet(_editor, this));
+    _classPrivateFieldSet(_editor, this, null);
+    _classPrivateFieldSet(_editorStyle, this, null);
+    _classPrivateFieldGet(_resizeObserver, this).destroy();
     if (containerParentElement) {
-      containerParentElement.removeChild(this.container);
+      containerParentElement.removeChild(_classPrivateFieldGet(_container, this));
     }
   }
 }
+(0, _object.mixin)(CommentEditor, _localHooks.default);
 var _default = exports["default"] = CommentEditor;
 
 /***/ }),
-/* 508 */
+/* 510 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(1);
+exports.__esModule = true;
+__webpack_require__(8);
+var _object = __webpack_require__(148);
+var _localHooks = _interopRequireDefault(__webpack_require__(237));
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
+function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
+function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
+function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
+/**
+ * Module that observes the editor size after it has been resized by the user.
+ *
+ * @private
+ * @class EditorResizeObserver
+ */
+var _ignoreInitialCall = /*#__PURE__*/new WeakMap();
+var _observedElement = /*#__PURE__*/new WeakMap();
+var _observer = /*#__PURE__*/new WeakMap();
+var _EditorResizeObserver_brand = /*#__PURE__*/new WeakSet();
+class EditorResizeObserver {
+  constructor() {
+    /**
+     * Listens for event from the ResizeObserver and forwards the through the local hooks.
+     *
+     * @param {*} entries The entries from the ResizeObserver.
+     */
+    _classPrivateMethodInitSpec(this, _EditorResizeObserver_brand);
+    /**
+     * The flag that indicates if the initial call should be ignored. It is used to prevent the initial call
+     * that happens after the observer is attached to the element.
+     *
+     * @type {boolean}
+     */
+    _classPrivateFieldInitSpec(this, _ignoreInitialCall, true);
+    /**
+     * The element that is observed by the observer.
+     *
+     * @type {HTMLElement}
+     */
+    _classPrivateFieldInitSpec(this, _observedElement, null);
+    /**
+     * The ResizeObserver instance.
+     *
+     * @type {ResizeObserver}
+     */
+    _classPrivateFieldInitSpec(this, _observer, new ResizeObserver(entries => _assertClassBrand(_EditorResizeObserver_brand, this, _onResize).call(this, entries)));
+  }
+  /**
+   * Sets the observed element.
+   *
+   * @param {HTMLElement} element The element to observe.
+   */
+  setObservedElement(element) {
+    _classPrivateFieldSet(_observedElement, this, element);
+  }
+
+  /**
+   * Stops observing the element.
+   */
+  unobserve() {
+    _classPrivateFieldGet(_observer, this).unobserve(_classPrivateFieldGet(_observedElement, this));
+  }
+
+  /**
+   * Starts observing the element.
+   */
+  observe() {
+    _classPrivateFieldSet(_ignoreInitialCall, this, true);
+    _classPrivateFieldGet(_observer, this).observe(_classPrivateFieldGet(_observedElement, this));
+  }
+
+  /**
+   * Destroys the observer.
+   */
+  destroy() {
+    _classPrivateFieldGet(_observer, this).disconnect();
+  }
+}
+exports.EditorResizeObserver = EditorResizeObserver;
+function _onResize(entries) {
+  if (_classPrivateFieldGet(_ignoreInitialCall, this) || !Array.isArray(entries) || !entries.length) {
+    _classPrivateFieldSet(_ignoreInitialCall, this, false);
+    return;
+  }
+  entries.forEach(_ref => {
+    let {
+      borderBoxSize
+    } = _ref;
+    const {
+      inlineSize,
+      blockSize
+    } = borderBoxSize[0];
+    this.runLocalHooks('resize', inlineSize, blockSize);
+  });
+}
+(0, _object.mixin)(EditorResizeObserver, _localHooks.default);
+
+/***/ }),
+/* 511 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59477,7 +59930,7 @@ class DisplaySwitch {
 var _default = exports["default"] = DisplaySwitch;
 
 /***/ }),
-/* 509 */
+/* 512 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59487,31 +59940,31 @@ exports.__esModule = true;
 exports.addItem = addItem;
 exports.predefinedItems = predefinedItems;
 var _object = __webpack_require__(148);
-var _alignment = _interopRequireWildcard(__webpack_require__(510));
+var _alignment = _interopRequireWildcard(__webpack_require__(513));
 exports.ALIGNMENT = _alignment.KEY;
-var _clearColumn = _interopRequireWildcard(__webpack_require__(513));
+var _clearColumn = _interopRequireWildcard(__webpack_require__(516));
 exports.CLEAR_COLUMN = _clearColumn.KEY;
-var _columnLeft = _interopRequireWildcard(__webpack_require__(514));
+var _columnLeft = _interopRequireWildcard(__webpack_require__(517));
 exports.COLUMN_LEFT = _columnLeft.KEY;
-var _columnRight = _interopRequireWildcard(__webpack_require__(515));
+var _columnRight = _interopRequireWildcard(__webpack_require__(518));
 exports.COLUMN_RIGHT = _columnRight.KEY;
-var _readOnly = _interopRequireWildcard(__webpack_require__(516));
+var _readOnly = _interopRequireWildcard(__webpack_require__(519));
 exports.READ_ONLY = _readOnly.KEY;
-var _redo = _interopRequireWildcard(__webpack_require__(517));
+var _redo = _interopRequireWildcard(__webpack_require__(520));
 exports.REDO = _redo.KEY;
-var _removeColumn = _interopRequireWildcard(__webpack_require__(518));
+var _removeColumn = _interopRequireWildcard(__webpack_require__(521));
 exports.REMOVE_COLUMN = _removeColumn.KEY;
-var _removeRow = _interopRequireWildcard(__webpack_require__(519));
+var _removeRow = _interopRequireWildcard(__webpack_require__(522));
 exports.REMOVE_ROW = _removeRow.KEY;
-var _rowAbove = _interopRequireWildcard(__webpack_require__(520));
+var _rowAbove = _interopRequireWildcard(__webpack_require__(523));
 exports.ROW_ABOVE = _rowAbove.KEY;
-var _rowBelow = _interopRequireWildcard(__webpack_require__(521));
+var _rowBelow = _interopRequireWildcard(__webpack_require__(524));
 exports.ROW_BELOW = _rowBelow.KEY;
-var _separator = _interopRequireWildcard(__webpack_require__(512));
+var _separator = _interopRequireWildcard(__webpack_require__(515));
 exports.SEPARATOR = _separator.KEY;
-var _noItems = _interopRequireWildcard(__webpack_require__(522));
+var _noItems = _interopRequireWildcard(__webpack_require__(525));
 exports.NO_ITEMS = _noItems.KEY;
-var _undo = _interopRequireWildcard(__webpack_require__(523));
+var _undo = _interopRequireWildcard(__webpack_require__(526));
 exports.UNDO = _undo.KEY;
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
@@ -59558,7 +60011,7 @@ function addItem(key, item) {
 }
 
 /***/ }),
-/* 510 */
+/* 513 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59566,8 +60019,8 @@ function addItem(key, item) {
 
 exports.__esModule = true;
 exports["default"] = alignmentItem;
-var _utils = __webpack_require__(511);
-var _separator = __webpack_require__(512);
+var _utils = __webpack_require__(514);
+var _separator = __webpack_require__(515);
 var C = _interopRequireWildcard(__webpack_require__(280));
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
@@ -59779,7 +60232,7 @@ function alignmentItem() {
 }
 
 /***/ }),
-/* 511 */
+/* 514 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -59939,7 +60392,7 @@ function getDocumentOffsetByElement(elementToCheck, baseDocument) {
 }
 
 /***/ }),
-/* 512 */
+/* 515 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -59959,7 +60412,7 @@ function separatorItem() {
 }
 
 /***/ }),
-/* 513 */
+/* 516 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60002,7 +60455,7 @@ function clearColumnItem() {
 }
 
 /***/ }),
-/* 514 */
+/* 517 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60055,7 +60508,7 @@ function columnLeftItem() {
 }
 
 /***/ }),
-/* 515 */
+/* 518 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60106,7 +60559,7 @@ function columnRightItem() {
 }
 
 /***/ }),
-/* 516 */
+/* 519 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60114,7 +60567,7 @@ function columnRightItem() {
 
 exports.__esModule = true;
 exports["default"] = readOnlyItem;
-var _utils = __webpack_require__(511);
+var _utils = __webpack_require__(514);
 var _array = __webpack_require__(144);
 var C = _interopRequireWildcard(__webpack_require__(280));
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
@@ -60170,7 +60623,7 @@ function readOnlyItem() {
 }
 
 /***/ }),
-/* 517 */
+/* 520 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60206,7 +60659,7 @@ function redoItem() {
 }
 
 /***/ }),
-/* 518 */
+/* 521 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60269,7 +60722,7 @@ function removeColumnItem() {
 }
 
 /***/ }),
-/* 519 */
+/* 522 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60331,7 +60784,7 @@ function removeRowItem() {
 }
 
 /***/ }),
-/* 520 */
+/* 523 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60380,7 +60833,7 @@ function rowAboveItem() {
 }
 
 /***/ }),
-/* 521 */
+/* 524 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60427,7 +60880,7 @@ function rowBelowItem() {
 }
 
 /***/ }),
-/* 522 */
+/* 525 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60453,7 +60906,7 @@ function noItemsItem() {
 }
 
 /***/ }),
-/* 523 */
+/* 526 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60489,7 +60942,7 @@ function undoItem() {
 }
 
 /***/ }),
-/* 524 */
+/* 527 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60532,7 +60985,7 @@ function addEditCommentItem(plugin) {
 }
 
 /***/ }),
-/* 525 */
+/* 528 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60573,7 +61026,7 @@ function removeCommentItem(plugin) {
 }
 
 /***/ }),
-/* 526 */
+/* 529 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60582,8 +61035,8 @@ function removeCommentItem(plugin) {
 exports.__esModule = true;
 exports["default"] = readOnlyCommentItem;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _utils = __webpack_require__(511);
-var _comments = __webpack_require__(506);
+var _utils = __webpack_require__(514);
+var _comments = __webpack_require__(508);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 /**
@@ -60622,7 +61075,7 @@ function readOnlyCommentItem(plugin) {
 }
 
 /***/ }),
-/* 527 */
+/* 530 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -60631,20 +61084,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 528 */
+/* 531 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _contextMenu = __webpack_require__(529);
+var _contextMenu = __webpack_require__(532);
 exports.PLUGIN_KEY = _contextMenu.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _contextMenu.PLUGIN_PRIORITY;
 exports.ContextMenu = _contextMenu.ContextMenu;
 
 /***/ }),
-/* 529 */
+/* 532 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -60658,15 +61111,15 @@ var _base = __webpack_require__(472);
 var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
 var _array = __webpack_require__(144);
 var _object = __webpack_require__(148);
-var _commandExecutor = __webpack_require__(530);
-var _itemsFactory = __webpack_require__(533);
-var _menu = __webpack_require__(534);
-var _utils = __webpack_require__(511);
+var _commandExecutor = __webpack_require__(533);
+var _itemsFactory = __webpack_require__(536);
+var _menu = __webpack_require__(537);
+var _utils = __webpack_require__(514);
 var _element = __webpack_require__(138);
-var _predefinedItems = __webpack_require__(509);
-__webpack_require__(544);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _predefinedItems = __webpack_require__(512);
+__webpack_require__(547);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'contextMenu';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 70;
@@ -61030,7 +61483,7 @@ ContextMenu.SEPARATOR = {
 };
 
 /***/ }),
-/* 530 */
+/* 533 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -61040,7 +61493,7 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(90);
-__webpack_require__(531);
+__webpack_require__(534);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _array = __webpack_require__(144);
 var _object = __webpack_require__(148);
@@ -61147,7 +61600,7 @@ function findSubCommand(subCommandName, subCommands) {
 }
 
 /***/ }),
-/* 531 */
+/* 534 */
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -61156,7 +61609,7 @@ var $ = __webpack_require__(9);
 var toObject = __webpack_require__(45);
 var lengthOfArrayLike = __webpack_require__(69);
 var setArrayLength = __webpack_require__(91);
-var deletePropertyOrThrow = __webpack_require__(532);
+var deletePropertyOrThrow = __webpack_require__(535);
 var doesNotExceedSafeInteger = __webpack_require__(93);
 
 // IE8-
@@ -61199,7 +61652,7 @@ $({ target: 'Array', proto: true, arity: 1, forced: FORCED }, {
 
 
 /***/ }),
-/* 532 */
+/* 535 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -61214,7 +61667,7 @@ module.exports = function (O, P) {
 
 
 /***/ }),
-/* 533 */
+/* 536 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -61226,7 +61679,7 @@ __webpack_require__(90);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _object = __webpack_require__(148);
 var _array = __webpack_require__(144);
-var _predefinedItems = __webpack_require__(509);
+var _predefinedItems = __webpack_require__(512);
 /**
  * Predefined items class factory for menu items.
  *
@@ -61356,14 +61809,14 @@ function getItems() {
 }
 
 /***/ }),
-/* 534 */
+/* 537 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _menu = __webpack_require__(535);
+var _menu = __webpack_require__(538);
 Object.keys(_menu).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _menu[key]) return;
@@ -61371,7 +61824,7 @@ Object.keys(_menu).forEach(function (key) {
 });
 
 /***/ }),
-/* 535 */
+/* 538 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -61382,11 +61835,11 @@ exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(90);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
-var _positioner = __webpack_require__(536);
-var _navigator2 = __webpack_require__(538);
-var _shortcuts = __webpack_require__(541);
-var _predefinedItems = __webpack_require__(509);
-var _utils = __webpack_require__(540);
+var _positioner = __webpack_require__(539);
+var _navigator2 = __webpack_require__(541);
+var _shortcuts = __webpack_require__(544);
+var _predefinedItems = __webpack_require__(512);
+var _utils = __webpack_require__(543);
 var _eventManager = _interopRequireDefault(__webpack_require__(168));
 var _array = __webpack_require__(144);
 var _browser = __webpack_require__(147);
@@ -61396,10 +61849,10 @@ var _function = __webpack_require__(146);
 var _mixed = __webpack_require__(141);
 var _object = __webpack_require__(148);
 var _localHooks = _interopRequireDefault(__webpack_require__(237));
-var _menuItemRenderer = __webpack_require__(543);
+var _menuItemRenderer = __webpack_require__(546);
 var _a11y = __webpack_require__(145);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -61528,6 +61981,7 @@ class Menu {
     let frame = this.hot.rootWindow;
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
+      this.eventManager.addEventListener(frame.document, 'touchstart', event => this.onDocumentMouseDown(event));
       this.eventManager.addEventListener(frame.document, 'contextmenu', event => this.onDocumentContextMenu(event));
       frame = (0, _element.getParentWindow)(frame);
     }
@@ -62017,7 +62471,7 @@ exports.Menu = Menu;
 (0, _object.mixin)(Menu, _localHooks.default);
 
 /***/ }),
-/* 536 */
+/* 539 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62025,9 +62479,9 @@ exports.Menu = Menu;
 
 exports.__esModule = true;
 __webpack_require__(8);
-var _cursor2 = __webpack_require__(537);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _cursor2 = __webpack_require__(540);
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -62219,7 +62673,7 @@ class Positioner {
 exports.Positioner = Positioner;
 
 /***/ }),
-/* 537 */
+/* 540 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62366,7 +62820,7 @@ class Cursor {
 exports.Cursor = Cursor;
 
 /***/ }),
-/* 538 */
+/* 541 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62374,8 +62828,8 @@ exports.Cursor = Cursor;
 
 exports.__esModule = true;
 exports.createMenuNavigator = createMenuNavigator;
-var _paginator = __webpack_require__(539);
-var _utils = __webpack_require__(540);
+var _paginator = __webpack_require__(542);
+var _utils = __webpack_require__(543);
 /**
  * Creates navigator for menus and submenus.
  *
@@ -62399,7 +62853,7 @@ function createMenuNavigator(hotMenu) {
 }
 
 /***/ }),
-/* 539 */
+/* 542 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62563,7 +63017,7 @@ function createPaginator(_ref) {
 }
 
 /***/ }),
-/* 540 */
+/* 543 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62585,7 +63039,7 @@ __webpack_require__(90);
 var _array = __webpack_require__(144);
 var _object = __webpack_require__(148);
 var _element = __webpack_require__(138);
-var _predefinedItems = __webpack_require__(509);
+var _predefinedItems = __webpack_require__(512);
 /**
  * @param {CellRange[]} selRanges An array of the cell ranges.
  * @returns {object[]}
@@ -62746,7 +63200,7 @@ function filterSeparators(items) {
 }
 
 /***/ }),
-/* 541 */
+/* 544 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62755,7 +63209,7 @@ function filterSeparators(items) {
 exports.__esModule = true;
 exports.createKeyboardShortcutsCtrl = createKeyboardShortcutsCtrl;
 __webpack_require__(90);
-var _defaultShortcutsList = __webpack_require__(542);
+var _defaultShortcutsList = __webpack_require__(545);
 const SHORTCUTS_CONTEXT = 'menu';
 const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
 
@@ -62866,7 +63320,7 @@ function createKeyboardShortcutsCtrl(menu) {
 }
 
 /***/ }),
-/* 542 */
+/* 545 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -62976,7 +63430,7 @@ function createDefaultShortcutsList(menu) {
 }
 
 /***/ }),
-/* 543 */
+/* 546 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62984,7 +63438,7 @@ function createDefaultShortcutsList(menu) {
 
 exports.__esModule = true;
 exports.createMenuItemRenderer = createMenuItemRenderer;
-var _utils = __webpack_require__(540);
+var _utils = __webpack_require__(543);
 var _element = __webpack_require__(138);
 var _a11y = __webpack_require__(145);
 /**
@@ -63040,7 +63494,7 @@ function createMenuItemRenderer(mainTableHot) {
 }
 
 /***/ }),
-/* 544 */
+/* 547 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -63049,20 +63503,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 545 */
+/* 548 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _copyPaste = __webpack_require__(546);
+var _copyPaste = __webpack_require__(549);
 exports.PLUGIN_KEY = _copyPaste.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _copyPaste.PLUGIN_PRIORITY;
 exports.CopyPaste = _copyPaste.CopyPaste;
 
 /***/ }),
-/* 546 */
+/* 549 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -63080,18 +63534,18 @@ var _array = __webpack_require__(144);
 var _string = __webpack_require__(139);
 var _element = __webpack_require__(138);
 var _browser = __webpack_require__(147);
-var _copy = _interopRequireDefault(__webpack_require__(547));
-var _copyColumnHeadersOnly = _interopRequireDefault(__webpack_require__(548));
-var _copyWithColumnGroupHeaders = _interopRequireDefault(__webpack_require__(549));
-var _copyWithColumnHeaders = _interopRequireDefault(__webpack_require__(550));
-var _cut = _interopRequireDefault(__webpack_require__(551));
-var _pasteEvent = _interopRequireDefault(__webpack_require__(552));
-var _copyableRanges = __webpack_require__(554);
+var _copy = _interopRequireDefault(__webpack_require__(550));
+var _copyColumnHeadersOnly = _interopRequireDefault(__webpack_require__(551));
+var _copyWithColumnGroupHeaders = _interopRequireDefault(__webpack_require__(552));
+var _copyWithColumnHeaders = _interopRequireDefault(__webpack_require__(553));
+var _cut = _interopRequireDefault(__webpack_require__(554));
+var _pasteEvent = _interopRequireDefault(__webpack_require__(555));
+var _copyableRanges = __webpack_require__(557);
 var _parseTable = __webpack_require__(170);
-__webpack_require__(555);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+__webpack_require__(558);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -63877,7 +64331,7 @@ function _onSafariAfterSelection() {
 }
 
 /***/ }),
-/* 547 */
+/* 550 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -63923,7 +64377,7 @@ function copyItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 548 */
+/* 551 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -63972,7 +64426,7 @@ function copyColumnHeadersOnlyItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 549 */
+/* 552 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -64021,7 +64475,7 @@ function copyWithColumnGroupHeadersItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 550 */
+/* 553 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -64070,7 +64524,7 @@ function copyWithColumnHeadersItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 551 */
+/* 554 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -64118,7 +64572,7 @@ function cutItem(copyPastePlugin) {
 }
 
 /***/ }),
-/* 552 */
+/* 555 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -64126,7 +64580,7 @@ function cutItem(copyPastePlugin) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _clipboardData = _interopRequireDefault(__webpack_require__(553));
+var _clipboardData = _interopRequireDefault(__webpack_require__(556));
 /**
  * @private
  */
@@ -64139,7 +64593,7 @@ class PasteEvent {
 exports["default"] = PasteEvent;
 
 /***/ }),
-/* 553 */
+/* 556 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -64163,7 +64617,7 @@ class ClipboardData {
 exports["default"] = ClipboardData;
 
 /***/ }),
-/* 554 */
+/* 557 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -64175,9 +64629,9 @@ __webpack_require__(8);
 __webpack_require__(90);
 var _array = __webpack_require__(144);
 var _number = __webpack_require__(178);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -64395,7 +64849,7 @@ function normalizeRanges(ranges) {
 }
 
 /***/ }),
-/* 555 */
+/* 558 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -64404,20 +64858,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 556 */
+/* 559 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _customBorders = __webpack_require__(557);
+var _customBorders = __webpack_require__(560);
 exports.PLUGIN_KEY = _customBorders.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _customBorders.PLUGIN_PRIORITY;
 exports.CustomBorders = _customBorders.CustomBorders;
 
 /***/ }),
-/* 557 */
+/* 560 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -64433,13 +64887,13 @@ var _object = __webpack_require__(148);
 var _number = __webpack_require__(178);
 var _array = __webpack_require__(144);
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _contextMenuItem = __webpack_require__(558);
-var _utils = __webpack_require__(560);
+var _contextMenuItem = __webpack_require__(561);
+var _utils = __webpack_require__(563);
 var _selection = __webpack_require__(281);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'customBorders';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 90;
@@ -65166,7 +65620,7 @@ function _onAfterInit() {
 }
 
 /***/ }),
-/* 558 */
+/* 561 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65174,19 +65628,19 @@ function _onAfterInit() {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _bottom = _interopRequireDefault(__webpack_require__(559));
+var _bottom = _interopRequireDefault(__webpack_require__(562));
 exports.bottom = _bottom.default;
-var _left = _interopRequireDefault(__webpack_require__(561));
+var _left = _interopRequireDefault(__webpack_require__(564));
 exports.left = _left.default;
-var _noBorders = _interopRequireDefault(__webpack_require__(562));
+var _noBorders = _interopRequireDefault(__webpack_require__(565));
 exports.noBorders = _noBorders.default;
-var _right = _interopRequireDefault(__webpack_require__(563));
+var _right = _interopRequireDefault(__webpack_require__(566));
 exports.right = _right.default;
-var _top = _interopRequireDefault(__webpack_require__(564));
+var _top = _interopRequireDefault(__webpack_require__(567));
 exports.top = _top.default;
 
 /***/ }),
-/* 559 */
+/* 562 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65195,7 +65649,7 @@ exports.top = _top.default;
 exports.__esModule = true;
 exports["default"] = bottom;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _utils = __webpack_require__(560);
+var _utils = __webpack_require__(563);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 /**
@@ -65221,7 +65675,7 @@ function bottom(customBordersPlugin) {
 }
 
 /***/ }),
-/* 560 */
+/* 563 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65481,7 +65935,7 @@ function toInlinePropName(propName) {
 }
 
 /***/ }),
-/* 561 */
+/* 564 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65490,7 +65944,7 @@ function toInlinePropName(propName) {
 exports.__esModule = true;
 exports["default"] = left;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _utils = __webpack_require__(560);
+var _utils = __webpack_require__(563);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 /**
@@ -65517,7 +65971,7 @@ function left(customBordersPlugin) {
 }
 
 /***/ }),
-/* 562 */
+/* 565 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65526,7 +65980,7 @@ function left(customBordersPlugin) {
 exports.__esModule = true;
 exports["default"] = noBorders;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _utils = __webpack_require__(560);
+var _utils = __webpack_require__(563);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 /**
@@ -65549,7 +66003,7 @@ function noBorders(customBordersPlugin) {
 }
 
 /***/ }),
-/* 563 */
+/* 566 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65558,7 +66012,7 @@ function noBorders(customBordersPlugin) {
 exports.__esModule = true;
 exports["default"] = right;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _utils = __webpack_require__(560);
+var _utils = __webpack_require__(563);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 /**
@@ -65585,7 +66039,7 @@ function right(customBordersPlugin) {
 }
 
 /***/ }),
-/* 564 */
+/* 567 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65594,7 +66048,7 @@ function right(customBordersPlugin) {
 exports.__esModule = true;
 exports["default"] = top;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _utils = __webpack_require__(560);
+var _utils = __webpack_require__(563);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 /**
@@ -65620,20 +66074,20 @@ function top(customBordersPlugin) {
 }
 
 /***/ }),
-/* 565 */
+/* 568 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dragToScroll = __webpack_require__(566);
+var _dragToScroll = __webpack_require__(569);
 exports.PLUGIN_KEY = _dragToScroll.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _dragToScroll.PLUGIN_PRIORITY;
 exports.DragToScroll = _dragToScroll.DragToScroll;
 
 /***/ }),
-/* 566 */
+/* 569 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65646,8 +66100,8 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _base = __webpack_require__(472);
 var _event = __webpack_require__(158);
 var _element = __webpack_require__(138);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'dragToScroll';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 100;
@@ -65744,7 +66198,7 @@ class DragToScroll extends _base.BasePlugin {
   }
 
   /**
-   * Sets the value of the visible element.
+   * Sets the boundaries/dimensions of the scrollable viewport.
    *
    * @param {DOMRect|{left: number, right: number, top: number, bottom: number}} [boundaries] An object with
    * coordinates. Contains the window boundaries by default. The object is compatible with DOMRect.
@@ -65886,20 +66340,20 @@ function _setupListening(event) {
 }
 
 /***/ }),
-/* 567 */
+/* 570 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _dropdownMenu = __webpack_require__(568);
+var _dropdownMenu = __webpack_require__(571);
 exports.PLUGIN_KEY = _dropdownMenu.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _dropdownMenu.PLUGIN_PRIORITY;
 exports.DropdownMenu = _dropdownMenu.DropdownMenu;
 
 /***/ }),
-/* 568 */
+/* 571 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -65912,18 +66366,18 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _base = __webpack_require__(472);
 var _array = __webpack_require__(144);
 var _object = __webpack_require__(148);
-var _commandExecutor = __webpack_require__(530);
-var _utils = __webpack_require__(511);
+var _commandExecutor = __webpack_require__(533);
+var _utils = __webpack_require__(514);
 var _element = __webpack_require__(138);
-var _itemsFactory = __webpack_require__(533);
-var _menu = __webpack_require__(534);
+var _itemsFactory = __webpack_require__(536);
+var _menu = __webpack_require__(537);
 var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
-var _predefinedItems = __webpack_require__(509);
-__webpack_require__(569);
+var _predefinedItems = __webpack_require__(512);
+__webpack_require__(572);
 var _a11y = __webpack_require__(145);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -66453,7 +66907,7 @@ DropdownMenu.SEPARATOR = {
 };
 
 /***/ }),
-/* 569 */
+/* 572 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -66462,20 +66916,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 570 */
+/* 573 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _exportFile = __webpack_require__(571);
+var _exportFile = __webpack_require__(574);
 exports.PLUGIN_KEY = _exportFile.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _exportFile.PLUGIN_PRIORITY;
 exports.ExportFile = _exportFile.ExportFile;
 
 /***/ }),
-/* 571 */
+/* 574 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -66485,8 +66939,8 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 var _base = __webpack_require__(472);
-var _dataProvider = _interopRequireDefault(__webpack_require__(572));
-var _typeFactory = _interopRequireWildcard(__webpack_require__(573));
+var _dataProvider = _interopRequireDefault(__webpack_require__(575));
+var _typeFactory = _interopRequireWildcard(__webpack_require__(576));
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'exportFile';
@@ -66693,7 +67147,7 @@ class ExportFile extends _base.BasePlugin {
 exports.ExportFile = ExportFile;
 
 /***/ }),
-/* 572 */
+/* 575 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -66856,7 +67310,7 @@ class DataProvider {
 var _default = exports["default"] = DataProvider;
 
 /***/ }),
-/* 573 */
+/* 576 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -66865,7 +67319,7 @@ var _default = exports["default"] = DataProvider;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports["default"] = typeFactory;
-var _csv = _interopRequireDefault(__webpack_require__(574));
+var _csv = _interopRequireDefault(__webpack_require__(577));
 const TYPE_CSV = exports.TYPE_CSV = 'csv';
 const TYPE_EXCEL = exports.TYPE_EXCEL = 'excel'; // TODO
 const TYPE_PDF = exports.TYPE_PDF = 'pdf'; // TODO
@@ -66889,7 +67343,7 @@ function typeFactory(type, dataProvider, options) {
 }
 
 /***/ }),
-/* 574 */
+/* 577 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -66899,7 +67353,7 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _array = __webpack_require__(144);
 var _mixed = __webpack_require__(141);
-var _base = _interopRequireDefault(__webpack_require__(575));
+var _base = _interopRequireDefault(__webpack_require__(578));
 const CHAR_CARRIAGE_RETURN = String.fromCharCode(13);
 const CHAR_DOUBLE_QUOTES = String.fromCharCode(34);
 const CHAR_LINE_FEED = String.fromCharCode(10);
@@ -66976,7 +67430,7 @@ class Csv extends _base.default {
 var _default = exports["default"] = Csv;
 
 /***/ }),
-/* 575 */
+/* 578 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -67052,20 +67506,20 @@ class BaseType {
 var _default = exports["default"] = BaseType;
 
 /***/ }),
-/* 576 */
+/* 579 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _filters = __webpack_require__(577);
+var _filters = __webpack_require__(580);
 exports.PLUGIN_KEY = _filters.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _filters.PLUGIN_PRIORITY;
 exports.Filters = _filters.Filters;
 
 /***/ }),
-/* 577 */
+/* 580 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -67084,25 +67538,25 @@ var _console = __webpack_require__(166);
 var _number = __webpack_require__(178);
 var _element = __webpack_require__(138);
 var _unicode = __webpack_require__(157);
-var _predefinedItems = __webpack_require__(509);
+var _predefinedItems = __webpack_require__(512);
 var constants = _interopRequireWildcard(__webpack_require__(280));
-var _condition = __webpack_require__(578);
-var _operators = __webpack_require__(613);
-var _value = __webpack_require__(615);
-var _actionBar = __webpack_require__(618);
-var _conditionCollection = _interopRequireDefault(__webpack_require__(619));
-var _dataFilter = _interopRequireDefault(__webpack_require__(620));
-var _conditionUpdateObserver = _interopRequireDefault(__webpack_require__(621));
-var _utils = __webpack_require__(603);
-var _focusController = __webpack_require__(622);
-var _constants2 = __webpack_require__(580);
+var _condition = __webpack_require__(581);
+var _operators = __webpack_require__(616);
+var _value = __webpack_require__(618);
+var _actionBar = __webpack_require__(621);
+var _conditionCollection = _interopRequireDefault(__webpack_require__(622));
+var _dataFilter = _interopRequireDefault(__webpack_require__(623));
+var _conditionUpdateObserver = _interopRequireDefault(__webpack_require__(624));
+var _utils = __webpack_require__(606);
+var _focusController = __webpack_require__(625);
+var _constants2 = __webpack_require__(583);
 var _translations = __webpack_require__(256);
-__webpack_require__(624);
+__webpack_require__(627);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -67985,7 +68439,7 @@ function _updateComponents(conditionsState) {
 }
 
 /***/ }),
-/* 578 */
+/* 581 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68002,15 +68456,15 @@ var _array = __webpack_require__(144);
 var _unicode = __webpack_require__(157);
 var _object = __webpack_require__(148);
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _base = __webpack_require__(579);
-var _constants2 = _interopRequireWildcard(__webpack_require__(580));
-var _input = __webpack_require__(610);
-var _select = __webpack_require__(612);
-var _conditionRegisterer = __webpack_require__(581);
+var _base = __webpack_require__(582);
+var _constants2 = _interopRequireWildcard(__webpack_require__(583));
+var _input = __webpack_require__(613);
+var _select = __webpack_require__(615);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 /**
  * @private
@@ -68229,7 +68683,7 @@ function _onInputKeyDown(event) {
 }
 
 /***/ }),
-/* 579 */
+/* 582 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68390,7 +68844,7 @@ exports.BaseComponent = BaseComponent;
 (0, _object.mixin)(BaseComponent, _localHooks.default);
 
 /***/ }),
-/* 580 */
+/* 583 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68401,59 +68855,59 @@ exports["default"] = getOptionsList;
 __webpack_require__(90);
 var _object = __webpack_require__(148);
 var _array = __webpack_require__(144);
-var _predefinedItems = __webpack_require__(509);
-var _conditionRegisterer = __webpack_require__(581);
-var _none = __webpack_require__(582);
+var _predefinedItems = __webpack_require__(512);
+var _conditionRegisterer = __webpack_require__(584);
+var _none = __webpack_require__(585);
 exports.CONDITION_NONE = _none.CONDITION_NAME;
-var _empty = __webpack_require__(583);
+var _empty = __webpack_require__(586);
 exports.CONDITION_EMPTY = _empty.CONDITION_NAME;
-var _notEmpty = __webpack_require__(584);
+var _notEmpty = __webpack_require__(587);
 exports.CONDITION_NOT_EMPTY = _notEmpty.CONDITION_NAME;
-var _equal = __webpack_require__(585);
+var _equal = __webpack_require__(588);
 exports.CONDITION_EQUAL = _equal.CONDITION_NAME;
-var _notEqual = __webpack_require__(586);
+var _notEqual = __webpack_require__(589);
 exports.CONDITION_NOT_EQUAL = _notEqual.CONDITION_NAME;
-var _greaterThan = __webpack_require__(587);
+var _greaterThan = __webpack_require__(590);
 exports.CONDITION_GREATER_THAN = _greaterThan.CONDITION_NAME;
-var _greaterThanOrEqual = __webpack_require__(588);
+var _greaterThanOrEqual = __webpack_require__(591);
 exports.CONDITION_GREATER_THAN_OR_EQUAL = _greaterThanOrEqual.CONDITION_NAME;
-var _lessThan = __webpack_require__(589);
+var _lessThan = __webpack_require__(592);
 exports.CONDITION_LESS_THAN = _lessThan.CONDITION_NAME;
-var _lessThanOrEqual = __webpack_require__(590);
+var _lessThanOrEqual = __webpack_require__(593);
 exports.CONDITION_LESS_THAN_OR_EQUAL = _lessThanOrEqual.CONDITION_NAME;
-var _between = __webpack_require__(591);
+var _between = __webpack_require__(594);
 exports.CONDITION_BETWEEN = _between.CONDITION_NAME;
-var _notBetween = __webpack_require__(594);
+var _notBetween = __webpack_require__(597);
 exports.CONDITION_NOT_BETWEEN = _notBetween.CONDITION_NAME;
-var _beginsWith = __webpack_require__(595);
+var _beginsWith = __webpack_require__(598);
 exports.CONDITION_BEGINS_WITH = _beginsWith.CONDITION_NAME;
-var _endsWith = __webpack_require__(596);
+var _endsWith = __webpack_require__(599);
 exports.CONDITION_ENDS_WITH = _endsWith.CONDITION_NAME;
-var _contains = __webpack_require__(597);
+var _contains = __webpack_require__(600);
 exports.CONDITION_CONTAINS = _contains.CONDITION_NAME;
-var _notContains = __webpack_require__(598);
+var _notContains = __webpack_require__(601);
 exports.CONDITION_NOT_CONTAINS = _notContains.CONDITION_NAME;
-var _before = __webpack_require__(593);
+var _before = __webpack_require__(596);
 exports.CONDITION_DATE_BEFORE = _before.CONDITION_NAME;
-var _after = __webpack_require__(592);
+var _after = __webpack_require__(595);
 exports.CONDITION_DATE_AFTER = _after.CONDITION_NAME;
-var _tomorrow = __webpack_require__(599);
+var _tomorrow = __webpack_require__(602);
 exports.CONDITION_TOMORROW = _tomorrow.CONDITION_NAME;
-var _today = __webpack_require__(600);
+var _today = __webpack_require__(603);
 exports.CONDITION_TODAY = _today.CONDITION_NAME;
-var _yesterday = __webpack_require__(601);
+var _yesterday = __webpack_require__(604);
 exports.CONDITION_YESTERDAY = _yesterday.CONDITION_NAME;
-var _byValue = __webpack_require__(602);
+var _byValue = __webpack_require__(605);
 exports.CONDITION_BY_VALUE = _byValue.CONDITION_NAME;
-var _true = __webpack_require__(604);
+var _true = __webpack_require__(607);
 exports.CONDITION_TRUE = _true.CONDITION_NAME;
-var _false = __webpack_require__(605);
+var _false = __webpack_require__(608);
 exports.CONDITION_FALSE = _false.CONDITION_NAME;
-var _conjunction = __webpack_require__(606);
+var _conjunction = __webpack_require__(609);
 exports.OPERATION_AND = _conjunction.OPERATION_ID;
-var _disjunction = __webpack_require__(608);
+var _disjunction = __webpack_require__(611);
 exports.OPERATION_OR = _disjunction.OPERATION_ID;
-var _disjunctionWithExtraCondition = __webpack_require__(609);
+var _disjunctionWithExtraCondition = __webpack_require__(612);
 exports.OPERATION_OR_THEN_VARIABLE = _disjunctionWithExtraCondition.OPERATION_ID;
 const TYPE_NUMERIC = exports.TYPE_NUMERIC = 'numeric';
 const TYPE_TEXT = exports.TYPE_TEXT = 'text';
@@ -68497,7 +68951,7 @@ function getOptionsList(type) {
 }
 
 /***/ }),
-/* 581 */
+/* 584 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68563,7 +69017,7 @@ function registerCondition(name, condition, descriptor) {
 }
 
 /***/ }),
-/* 582 */
+/* 585 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68572,7 +69026,7 @@ function registerCondition(name, condition, descriptor) {
 exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'none';
@@ -68590,7 +69044,7 @@ function condition() {
 });
 
 /***/ }),
-/* 583 */
+/* 586 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68599,7 +69053,7 @@ function condition() {
 exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 var _mixed = __webpack_require__(141);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
@@ -68619,7 +69073,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 584 */
+/* 587 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68628,8 +69082,8 @@ function condition(dataRow) {
 exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
-var _empty = __webpack_require__(583);
+var _conditionRegisterer = __webpack_require__(584);
+var _empty = __webpack_require__(586);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'not_empty';
@@ -68649,7 +69103,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 585 */
+/* 588 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68659,7 +69113,7 @@ exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
 var _mixed = __webpack_require__(141);
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'eq';
@@ -68681,7 +69135,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 586 */
+/* 589 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68690,8 +69144,8 @@ function condition(dataRow, _ref) {
 exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
-var _equal = __webpack_require__(585);
+var _conditionRegisterer = __webpack_require__(584);
+var _equal = __webpack_require__(588);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'neq';
@@ -68711,7 +69165,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 587 */
+/* 590 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68720,7 +69174,7 @@ function condition(dataRow, inputValues) {
 exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'gt';
@@ -68746,7 +69200,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 588 */
+/* 591 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68755,7 +69209,7 @@ function condition(dataRow, _ref) {
 exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'gte';
@@ -68781,7 +69235,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 589 */
+/* 592 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68790,7 +69244,7 @@ function condition(dataRow, _ref) {
 exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'lt';
@@ -68816,7 +69270,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 590 */
+/* 593 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68825,7 +69279,7 @@ function condition(dataRow, _ref) {
 exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'lte';
@@ -68851,7 +69305,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 591 */
+/* 594 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68860,9 +69314,9 @@ function condition(dataRow, _ref) {
 exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
-var _after = __webpack_require__(592);
-var _before = __webpack_require__(593);
+var _conditionRegisterer = __webpack_require__(584);
+var _after = __webpack_require__(595);
+var _before = __webpack_require__(596);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'between';
@@ -68897,7 +69351,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 592 */
+/* 595 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68908,7 +69362,7 @@ exports.__esModule = true;
 exports.condition = condition;
 var _moment = _interopRequireDefault(__webpack_require__(142));
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'date_after';
@@ -68935,7 +69389,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 593 */
+/* 596 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68946,7 +69400,7 @@ exports.__esModule = true;
 exports.condition = condition;
 var _moment = _interopRequireDefault(__webpack_require__(142));
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'date_before';
@@ -68973,7 +69427,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 594 */
+/* 597 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -68982,8 +69436,8 @@ function condition(dataRow, _ref) {
 exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
-var _between = __webpack_require__(591);
+var _conditionRegisterer = __webpack_require__(584);
+var _between = __webpack_require__(594);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'not_between';
@@ -69003,7 +69457,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 595 */
+/* 598 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69013,7 +69467,7 @@ exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
 var _mixed = __webpack_require__(141);
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'begins_with';
@@ -69035,7 +69489,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 596 */
+/* 599 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69045,7 +69499,7 @@ exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
 var _mixed = __webpack_require__(141);
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'ends_with';
@@ -69067,7 +69521,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 597 */
+/* 600 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69077,7 +69531,7 @@ exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
 var _mixed = __webpack_require__(141);
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'contains';
@@ -69099,7 +69553,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 598 */
+/* 601 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69108,8 +69562,8 @@ function condition(dataRow, _ref) {
 exports.__esModule = true;
 exports.condition = condition;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
-var _contains = __webpack_require__(597);
+var _conditionRegisterer = __webpack_require__(584);
+var _contains = __webpack_require__(600);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'not_contains';
@@ -69129,7 +69583,7 @@ function condition(dataRow, inputValues) {
 });
 
 /***/ }),
-/* 599 */
+/* 602 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69140,7 +69594,7 @@ exports.__esModule = true;
 exports.condition = condition;
 var _moment = _interopRequireDefault(__webpack_require__(142));
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'date_tomorrow';
@@ -69162,7 +69616,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 600 */
+/* 603 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69173,7 +69627,7 @@ exports.__esModule = true;
 exports.condition = condition;
 var _moment = _interopRequireDefault(__webpack_require__(142));
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'date_today';
@@ -69195,7 +69649,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 601 */
+/* 604 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69206,7 +69660,7 @@ exports.__esModule = true;
 exports.condition = condition;
 var _moment = _interopRequireDefault(__webpack_require__(142));
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const CONDITION_NAME = exports.CONDITION_NAME = 'date_yesterday';
@@ -69228,7 +69682,7 @@ function condition(dataRow) {
 });
 
 /***/ }),
-/* 602 */
+/* 605 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69236,8 +69690,8 @@ function condition(dataRow) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var _conditionRegisterer = __webpack_require__(581);
-var _utils = __webpack_require__(603);
+var _conditionRegisterer = __webpack_require__(584);
+var _utils = __webpack_require__(606);
 const CONDITION_NAME = exports.CONDITION_NAME = 'by_value';
 
 /**
@@ -69261,7 +69715,7 @@ function condition(dataRow, _ref) {
 });
 
 /***/ }),
-/* 603 */
+/* 606 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69410,7 +69864,7 @@ function intersectValues(base, selected, defaultEmptyValue, callback) {
 }
 
 /***/ }),
-/* 604 */
+/* 607 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69418,7 +69872,7 @@ function intersectValues(base, selected, defaultEmptyValue, callback) {
 
 exports.__esModule = true;
 exports.condition = condition;
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 const CONDITION_NAME = exports.CONDITION_NAME = 'true';
 
 /**
@@ -69432,7 +69886,7 @@ function condition() {
 });
 
 /***/ }),
-/* 605 */
+/* 608 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69440,7 +69894,7 @@ function condition() {
 
 exports.__esModule = true;
 exports.condition = condition;
-var _conditionRegisterer = __webpack_require__(581);
+var _conditionRegisterer = __webpack_require__(584);
 const CONDITION_NAME = exports.CONDITION_NAME = 'false';
 
 /**
@@ -69454,7 +69908,7 @@ function condition() {
 });
 
 /***/ }),
-/* 606 */
+/* 609 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69463,7 +69917,7 @@ function condition() {
 exports.__esModule = true;
 exports.operationResult = operationResult;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _logicalOperationRegisterer = __webpack_require__(607);
+var _logicalOperationRegisterer = __webpack_require__(610);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const OPERATION_ID = exports.OPERATION_ID = 'conjunction';
@@ -69481,7 +69935,7 @@ function operationResult(conditions, value) {
 (0, _logicalOperationRegisterer.registerOperation)(OPERATION_ID, SHORT_NAME_FOR_COMPONENT, operationResult);
 
 /***/ }),
-/* 607 */
+/* 610 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69535,7 +69989,7 @@ function registerOperation(id, name, func) {
 }
 
 /***/ }),
-/* 608 */
+/* 611 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69544,7 +69998,7 @@ function registerOperation(id, name, func) {
 exports.__esModule = true;
 exports.operationResult = operationResult;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _logicalOperationRegisterer = __webpack_require__(607);
+var _logicalOperationRegisterer = __webpack_require__(610);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const OPERATION_ID = exports.OPERATION_ID = 'disjunction';
@@ -69562,7 +70016,7 @@ function operationResult(conditions, value) {
 (0, _logicalOperationRegisterer.registerOperation)(OPERATION_ID, SHORT_NAME_FOR_COMPONENT, operationResult);
 
 /***/ }),
-/* 609 */
+/* 612 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69572,7 +70026,7 @@ exports.__esModule = true;
 exports.operationResult = operationResult;
 __webpack_require__(8);
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _logicalOperationRegisterer = __webpack_require__(607);
+var _logicalOperationRegisterer = __webpack_require__(610);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const OPERATION_ID = exports.OPERATION_ID = 'disjunctionWithExtraCondition';
@@ -69593,7 +70047,7 @@ function operationResult(conditions, value) {
 (0, _logicalOperationRegisterer.registerOperation)(OPERATION_ID, SHORT_NAME_FOR_COMPONENT, operationResult);
 
 /***/ }),
-/* 610 */
+/* 613 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69603,10 +70057,10 @@ exports.__esModule = true;
 __webpack_require__(8);
 var _element = __webpack_require__(138);
 var _object = __webpack_require__(148);
-var _base = __webpack_require__(611);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _base = __webpack_require__(614);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -69691,7 +70145,7 @@ function _onKeyup(event) {
 }
 
 /***/ }),
-/* 611 */
+/* 614 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69912,7 +70366,7 @@ exports.BaseUI = BaseUI;
 (0, _object.mixin)(BaseUI, _localHooks.default);
 
 /***/ }),
-/* 612 */
+/* 615 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -69920,19 +70374,19 @@ exports.BaseUI = BaseUI;
 
 exports.__esModule = true;
 __webpack_require__(8);
-var _menu2 = __webpack_require__(534);
+var _menu2 = __webpack_require__(537);
 var _object = __webpack_require__(148);
 var _array = __webpack_require__(144);
 var _element = __webpack_require__(138);
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _predefinedItems = __webpack_require__(509);
-var _base = __webpack_require__(611);
+var _predefinedItems = __webpack_require__(512);
+var _base = __webpack_require__(614);
 var _a11y = __webpack_require__(145);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -70171,7 +70625,7 @@ function _onClick() {
 }
 
 /***/ }),
-/* 613 */
+/* 616 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -70185,14 +70639,14 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _element = __webpack_require__(138);
 var _array = __webpack_require__(144);
 var _templateLiteralTag = __webpack_require__(143);
-var _base = __webpack_require__(579);
-var _logicalOperationRegisterer = __webpack_require__(607);
-var _conjunction = __webpack_require__(606);
-var _disjunction = __webpack_require__(608);
-var _disjunctionWithExtraCondition = __webpack_require__(609);
-var _radioInput = __webpack_require__(614);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _base = __webpack_require__(582);
+var _logicalOperationRegisterer = __webpack_require__(610);
+var _conjunction = __webpack_require__(609);
+var _disjunction = __webpack_require__(611);
+var _disjunctionWithExtraCondition = __webpack_require__(612);
+var _radioInput = __webpack_require__(617);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const SELECTED_AT_START_ELEMENT_INDEX = 0;
 
@@ -70345,7 +70799,7 @@ function _onRadioInputChange(event) {
 }
 
 /***/ }),
-/* 614 */
+/* 617 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -70354,9 +70808,9 @@ function _onRadioInputChange(event) {
 exports.__esModule = true;
 __webpack_require__(8);
 var _object = __webpack_require__(148);
-var _base = __webpack_require__(611);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _base = __webpack_require__(614);
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -70451,7 +70905,7 @@ class RadioInputUI extends _base.BaseUI {
 exports.RadioInputUI = RadioInputUI;
 
 /***/ }),
-/* 615 */
+/* 618 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -70467,16 +70921,16 @@ var _event = __webpack_require__(158);
 var _array = __webpack_require__(144);
 var _unicode = __webpack_require__(157);
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _utils = __webpack_require__(603);
-var _base = __webpack_require__(579);
-var _multipleSelect = __webpack_require__(616);
-var _constants2 = __webpack_require__(580);
-var _conditionRegisterer = __webpack_require__(581);
+var _utils = __webpack_require__(606);
+var _base = __webpack_require__(582);
+var _multipleSelect = __webpack_require__(619);
+var _constants2 = __webpack_require__(583);
+var _conditionRegisterer = __webpack_require__(584);
 var _numericRenderer = __webpack_require__(427);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 /**
  * @private
@@ -70713,7 +71167,7 @@ function _onModifyDisplayedValue(value, meta) {
 }
 
 /***/ }),
-/* 616 */
+/* 619 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -70729,15 +71183,15 @@ var _function = __webpack_require__(146);
 var _data = __webpack_require__(255);
 var C = _interopRequireWildcard(__webpack_require__(280));
 var _event = __webpack_require__(158);
-var _base = __webpack_require__(611);
-var _input = __webpack_require__(610);
-var _link = __webpack_require__(617);
-var _utils = __webpack_require__(603);
+var _base = __webpack_require__(614);
+var _input = __webpack_require__(613);
+var _link = __webpack_require__(620);
+var _utils = __webpack_require__(606);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -71143,7 +71597,7 @@ function itemsToValue(availableItems) {
 }
 
 /***/ }),
-/* 617 */
+/* 620 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71152,9 +71606,9 @@ function itemsToValue(availableItems) {
 exports.__esModule = true;
 __webpack_require__(8);
 var _object = __webpack_require__(148);
-var _base = __webpack_require__(611);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _base = __webpack_require__(614);
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -71221,7 +71675,7 @@ class LinkUI extends _base.BaseUI {
 exports.LinkUI = LinkUI;
 
 /***/ }),
-/* 618 */
+/* 621 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71235,13 +71689,13 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _element = __webpack_require__(138);
 var _array = __webpack_require__(144);
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _base = __webpack_require__(579);
-var _input = __webpack_require__(610);
+var _base = __webpack_require__(582);
+var _input = __webpack_require__(613);
 var _ActionBarComponent;
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 /**
  * @private
@@ -71345,7 +71799,7 @@ function _onButtonClick(event, button) {
 }
 
 /***/ }),
-/* 619 */
+/* 622 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71360,9 +71814,9 @@ var _array = __webpack_require__(144);
 var _object = __webpack_require__(148);
 var _templateLiteralTag = __webpack_require__(143);
 var _localHooks = _interopRequireDefault(__webpack_require__(237));
-var _conditionRegisterer = __webpack_require__(581);
-var _conjunction = __webpack_require__(606);
-var _logicalOperationRegisterer = __webpack_require__(607);
+var _conditionRegisterer = __webpack_require__(584);
+var _conjunction = __webpack_require__(609);
+var _logicalOperationRegisterer = __webpack_require__(610);
 var _mixed = __webpack_require__(141);
 var _translations = __webpack_require__(256);
 const MAP_NAME = 'ConditionCollection.filteringStates';
@@ -71638,7 +72092,7 @@ class ConditionCollection {
 var _default = exports["default"] = ConditionCollection;
 
 /***/ }),
-/* 620 */
+/* 623 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71729,7 +72183,7 @@ class DataFilter {
 var _default = exports["default"] = DataFilter;
 
 /***/ }),
-/* 621 */
+/* 624 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71744,11 +72198,11 @@ var _array = __webpack_require__(144);
 var _object = __webpack_require__(148);
 var _function = __webpack_require__(146);
 var _localHooks = _interopRequireDefault(__webpack_require__(237));
-var _conditionCollection = _interopRequireDefault(__webpack_require__(619));
-var _dataFilter = _interopRequireDefault(__webpack_require__(620));
-var _utils = __webpack_require__(603);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _conditionCollection = _interopRequireDefault(__webpack_require__(622));
+var _dataFilter = _interopRequireDefault(__webpack_require__(623));
+var _utils = __webpack_require__(606);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 /**
  * Class which is designed for observing changes in condition collection. When condition is changed by user at specified
@@ -71942,7 +72396,7 @@ function _onConditionAfterClean() {
 var _default = exports["default"] = ConditionUpdateObserver;
 
 /***/ }),
-/* 622 */
+/* 625 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -71950,10 +72404,10 @@ var _default = exports["default"] = ConditionUpdateObserver;
 
 exports.__esModule = true;
 exports.createMenuFocusController = createMenuFocusController;
-var _focusNavigator = __webpack_require__(623);
-var _select = __webpack_require__(612);
-var _base = __webpack_require__(611);
-var _link = __webpack_require__(617);
+var _focusNavigator = __webpack_require__(626);
+var _select = __webpack_require__(615);
+var _base = __webpack_require__(614);
+var _link = __webpack_require__(620);
 const SHORTCUTS_MENU_CONTEXT = 'filters';
 
 /**
@@ -72090,7 +72544,7 @@ function createMenuFocusController(mainMenu, menuItems) {
 }
 
 /***/ }),
-/* 623 */
+/* 626 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -72098,9 +72552,9 @@ function createMenuFocusController(mainMenu, menuItems) {
 
 exports.__esModule = true;
 exports.createFocusNavigator = createFocusNavigator;
-var _paginator = __webpack_require__(539);
+var _paginator = __webpack_require__(542);
 var _element = __webpack_require__(138);
-var _multipleSelect = __webpack_require__(616);
+var _multipleSelect = __webpack_require__(619);
 /**
  * Creates navigator for switching the focus of the filter's elements.
  *
@@ -72126,7 +72580,7 @@ function createFocusNavigator(elements) {
 }
 
 /***/ }),
-/* 624 */
+/* 627 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -72135,20 +72589,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 625 */
+/* 628 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _formulas = __webpack_require__(626);
+var _formulas = __webpack_require__(629);
 exports.PLUGIN_KEY = _formulas.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _formulas.PLUGIN_PRIORITY;
 exports.Formulas = _formulas.Formulas;
 
 /***/ }),
-/* 626 */
+/* 629 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -72172,16 +72626,16 @@ var _staticRegister = _interopRequireDefault(__webpack_require__(167));
 var _console = __webpack_require__(166);
 var _number = __webpack_require__(178);
 var _mixed = __webpack_require__(141);
-var _register = __webpack_require__(627);
-var _utils = __webpack_require__(629);
-var _settings = __webpack_require__(628);
+var _register = __webpack_require__(630);
+var _utils = __webpack_require__(632);
+var _settings = __webpack_require__(631);
 var _data = __webpack_require__(255);
 var _string = __webpack_require__(139);
 var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
-var _indexSyncer = _interopRequireDefault(__webpack_require__(630));
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _indexSyncer = _interopRequireDefault(__webpack_require__(633));
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -72913,8 +73367,8 @@ function _onBeforeAutofill(fillData, sourceRange, targetRange) {
   for (let populatedRowIndex = 0; populatedRowIndex < fillRangeData.length; populatedRowIndex += 1) {
     for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length; populatedColumnIndex += 1) {
       const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
-      const sourceRow = populatedRowIndex % populationRowLength;
-      const sourceColumn = populatedColumnIndex % populationColumnLength;
+      const sourceRow = sourceStartRow + populatedRowIndex % populationRowLength;
+      const sourceColumn = sourceStartColumn + populatedColumnIndex % populationColumnLength;
       const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
       if ((0, _utils.isDate)(populatedValue, sourceCellMeta.type)) {
         if (populatedValue.startsWith('\'')) {
@@ -73401,7 +73855,7 @@ function _onEngineSheetRemoved(removedSheetDisplayName, changes) {
 }
 
 /***/ }),
-/* 627 */
+/* 630 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -73423,8 +73877,8 @@ var _mixed = __webpack_require__(141);
 var _templateLiteralTag = __webpack_require__(143);
 var _console = __webpack_require__(166);
 var _object = __webpack_require__(148);
-var _formulas = __webpack_require__(626);
-var _settings = __webpack_require__(628);
+var _formulas = __webpack_require__(629);
+var _settings = __webpack_require__(631);
 /**
  * Prepares and returns the collection for the engine relationship with the HoT instances.
  *
@@ -73660,7 +74114,7 @@ function setupSheet(engineInstance, sheetName) {
 }
 
 /***/ }),
-/* 628 */
+/* 631 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -73671,7 +74125,7 @@ exports.getEngineSettingsOverrides = getEngineSettingsOverrides;
 exports.getEngineSettingsWithDefaultsAndOverrides = getEngineSettingsWithDefaultsAndOverrides;
 exports.getEngineSettingsWithOverrides = getEngineSettingsWithOverrides;
 exports.haveEngineSettingsChanged = haveEngineSettingsChanged;
-var _formulas = __webpack_require__(626);
+var _formulas = __webpack_require__(629);
 const DEFAULT_LICENSE_KEY = exports.DEFAULT_LICENSE_KEY = 'internal-use-in-handsontable';
 const DEFAULT_SETTINGS = exports.DEFAULT_SETTINGS = {
   licenseKey: DEFAULT_LICENSE_KEY,
@@ -73789,7 +74243,7 @@ function haveEngineSettingsChanged(currentEngineSettings, newEngineSettings) {
 }
 
 /***/ }),
-/* 629 */
+/* 632 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -73899,7 +74353,7 @@ function getDateFromExcelDate(numericDate, dateFormat) {
 }
 
 /***/ }),
-/* 630 */
+/* 633 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -73908,9 +74362,9 @@ function getDateFromExcelDate(numericDate, dateFormat) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
-var _axisSyncer = _interopRequireDefault(__webpack_require__(631));
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _axisSyncer = _interopRequireDefault(__webpack_require__(634));
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -74070,7 +74524,7 @@ class IndexSyncer {
 var _default = exports["default"] = IndexSyncer;
 
 /***/ }),
-/* 631 */
+/* 634 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -74080,9 +74534,9 @@ exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(90);
 var _string = __webpack_require__(139);
-var _moves = __webpack_require__(632);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _moves = __webpack_require__(635);
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -74296,7 +74750,7 @@ class AxisSyncer {
 var _default = exports["default"] = AxisSyncer;
 
 /***/ }),
-/* 632 */
+/* 635 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -74388,20 +74842,20 @@ function getMoves(movedIndexes, finalIndex, numberOfIndexes) {
 }
 
 /***/ }),
-/* 633 */
+/* 636 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _hiddenColumns = __webpack_require__(634);
+var _hiddenColumns = __webpack_require__(637);
 exports.PLUGIN_KEY = _hiddenColumns.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _hiddenColumns.PLUGIN_PRIORITY;
 exports.HiddenColumns = _hiddenColumns.HiddenColumns;
 
 /***/ }),
-/* 634 */
+/* 637 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -74424,15 +74878,15 @@ var _number = __webpack_require__(178);
 var _array = __webpack_require__(144);
 var _object = __webpack_require__(148);
 var _mixed = __webpack_require__(141);
-var _predefinedItems = __webpack_require__(509);
+var _predefinedItems = __webpack_require__(512);
 var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
-var _hideColumn = _interopRequireDefault(__webpack_require__(635));
-var _showColumn = _interopRequireDefault(__webpack_require__(636));
+var _hideColumn = _interopRequireDefault(__webpack_require__(638));
+var _showColumn = _interopRequireDefault(__webpack_require__(639));
 var _translations = __webpack_require__(256);
-__webpack_require__(637);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+__webpack_require__(640);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -74921,7 +75375,7 @@ function _onMapInit() {
 }
 
 /***/ }),
-/* 635 */
+/* 638 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -74981,7 +75435,7 @@ function hideColumnItem(hiddenColumnsPlugin) {
 }
 
 /***/ }),
-/* 636 */
+/* 639 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -75086,7 +75540,7 @@ function showColumnItem(hiddenColumnsPlugin) {
 }
 
 /***/ }),
-/* 637 */
+/* 640 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -75095,20 +75549,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 638 */
+/* 641 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _hiddenRows = __webpack_require__(639);
+var _hiddenRows = __webpack_require__(642);
 exports.PLUGIN_KEY = _hiddenRows.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _hiddenRows.PLUGIN_PRIORITY;
 exports.HiddenRows = _hiddenRows.HiddenRows;
 
 /***/ }),
-/* 639 */
+/* 642 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -75131,15 +75585,15 @@ var _number = __webpack_require__(178);
 var _array = __webpack_require__(144);
 var _object = __webpack_require__(148);
 var _mixed = __webpack_require__(141);
-var _predefinedItems = __webpack_require__(509);
+var _predefinedItems = __webpack_require__(512);
 var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
-var _hideRow = _interopRequireDefault(__webpack_require__(640));
-var _showRow = _interopRequireDefault(__webpack_require__(641));
+var _hideRow = _interopRequireDefault(__webpack_require__(643));
+var _showRow = _interopRequireDefault(__webpack_require__(644));
 var _translations = __webpack_require__(256);
-__webpack_require__(642);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+__webpack_require__(645);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -75620,7 +76074,7 @@ function _onMapInit() {
 }
 
 /***/ }),
-/* 640 */
+/* 643 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -75680,7 +76134,7 @@ function hideRowItem(hiddenRowsPlugin) {
 }
 
 /***/ }),
-/* 641 */
+/* 644 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -75785,7 +76239,7 @@ function showRowItem(hiddenRowsPlugin) {
 }
 
 /***/ }),
-/* 642 */
+/* 645 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -75794,20 +76248,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 643 */
+/* 646 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _manualColumnFreeze = __webpack_require__(644);
+var _manualColumnFreeze = __webpack_require__(647);
 exports.PLUGIN_KEY = _manualColumnFreeze.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _manualColumnFreeze.PLUGIN_PRIORITY;
 exports.ManualColumnFreeze = _manualColumnFreeze.ManualColumnFreeze;
 
 /***/ }),
-/* 644 */
+/* 647 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -75819,12 +76273,12 @@ __webpack_require__(8);
 __webpack_require__(90);
 var _base = __webpack_require__(472);
 var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
-var _freezeColumn = _interopRequireDefault(__webpack_require__(645));
-var _unfreezeColumn = _interopRequireDefault(__webpack_require__(646));
-__webpack_require__(647);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _freezeColumn = _interopRequireDefault(__webpack_require__(648));
+var _unfreezeColumn = _interopRequireDefault(__webpack_require__(649));
+__webpack_require__(650);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -76007,7 +76461,7 @@ function _onBeforeColumnMove(columns, finalIndex) {
 }
 
 /***/ }),
-/* 645 */
+/* 648 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -76054,7 +76508,7 @@ function freezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 646 */
+/* 649 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -76101,7 +76555,7 @@ function unfreezeColumnItem(manualColumnFreezePlugin) {
 }
 
 /***/ }),
-/* 647 */
+/* 650 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -76110,20 +76564,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 648 */
+/* 651 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _manualColumnMove = __webpack_require__(649);
+var _manualColumnMove = __webpack_require__(652);
 exports.PLUGIN_KEY = _manualColumnMove.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _manualColumnMove.PLUGIN_PRIORITY;
 exports.ManualColumnMove = _manualColumnMove.ManualColumnMove;
 
 /***/ }),
-/* 649 */
+/* 652 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -76139,12 +76593,12 @@ var _array = __webpack_require__(144);
 var _element = __webpack_require__(138);
 var _event = __webpack_require__(158);
 var _number = __webpack_require__(178);
-var _backlight2 = _interopRequireDefault(__webpack_require__(650));
-var _guideline2 = _interopRequireDefault(__webpack_require__(652));
-__webpack_require__(653);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _backlight2 = _interopRequireDefault(__webpack_require__(653));
+var _guideline2 = _interopRequireDefault(__webpack_require__(655));
+__webpack_require__(656);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -76807,7 +77261,7 @@ function _onAfterLoadData() {
 }
 
 /***/ }),
-/* 650 */
+/* 653 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -76815,7 +77269,7 @@ function _onAfterLoadData() {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = _interopRequireDefault(__webpack_require__(651));
+var _base = _interopRequireDefault(__webpack_require__(654));
 var _element = __webpack_require__(138);
 const CSS_CLASSNAME = 'ht__manualColumnMove--backlight';
 
@@ -76835,7 +77289,7 @@ class BacklightUI extends _base.default {
 var _default = exports["default"] = BacklightUI;
 
 /***/ }),
-/* 651 */
+/* 654 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -77024,7 +77478,7 @@ class BaseUI {
 var _default = exports["default"] = BaseUI;
 
 /***/ }),
-/* 652 */
+/* 655 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -77032,7 +77486,7 @@ var _default = exports["default"] = BaseUI;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = _interopRequireDefault(__webpack_require__(651));
+var _base = _interopRequireDefault(__webpack_require__(654));
 var _element = __webpack_require__(138);
 const CSS_CLASSNAME = 'ht__manualColumnMove--guideline';
 
@@ -77052,7 +77506,7 @@ class GuidelineUI extends _base.default {
 var _default = exports["default"] = GuidelineUI;
 
 /***/ }),
-/* 653 */
+/* 656 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -77061,20 +77515,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 654 */
+/* 657 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _manualColumnResize = __webpack_require__(655);
+var _manualColumnResize = __webpack_require__(658);
 exports.PLUGIN_KEY = _manualColumnResize.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _manualColumnResize.PLUGIN_PRIORITY;
 exports.ManualColumnResize = _manualColumnResize.ManualColumnResize;
 
 /***/ }),
-/* 655 */
+/* 658 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -77088,9 +77542,9 @@ var _element = __webpack_require__(138);
 var _array = __webpack_require__(144);
 var _number = __webpack_require__(178);
 var _translations = __webpack_require__(256);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -77725,20 +78179,20 @@ function _onBeforeColumnResize() {
 }
 
 /***/ }),
-/* 656 */
+/* 659 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _manualRowMove = __webpack_require__(657);
+var _manualRowMove = __webpack_require__(660);
 exports.PLUGIN_KEY = _manualRowMove.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _manualRowMove.PLUGIN_PRIORITY;
 exports.ManualRowMove = _manualRowMove.ManualRowMove;
 
 /***/ }),
-/* 657 */
+/* 660 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -77753,12 +78207,12 @@ var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
 var _array = __webpack_require__(144);
 var _element = __webpack_require__(138);
 var _number = __webpack_require__(178);
-var _backlight2 = _interopRequireDefault(__webpack_require__(658));
-var _guideline2 = _interopRequireDefault(__webpack_require__(660));
-__webpack_require__(661);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _backlight2 = _interopRequireDefault(__webpack_require__(661));
+var _guideline2 = _interopRequireDefault(__webpack_require__(663));
+__webpack_require__(664);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -78390,7 +78844,7 @@ function _onAfterLoadData() {
 }
 
 /***/ }),
-/* 658 */
+/* 661 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -78398,7 +78852,7 @@ function _onAfterLoadData() {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = _interopRequireDefault(__webpack_require__(659));
+var _base = _interopRequireDefault(__webpack_require__(662));
 var _element = __webpack_require__(138);
 const CSS_CLASSNAME = 'ht__manualRowMove--backlight';
 
@@ -78418,7 +78872,7 @@ class BacklightUI extends _base.default {
 var _default = exports["default"] = BacklightUI;
 
 /***/ }),
-/* 659 */
+/* 662 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -78593,7 +79047,7 @@ class BaseUI {
 var _default = exports["default"] = BaseUI;
 
 /***/ }),
-/* 660 */
+/* 663 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -78601,7 +79055,7 @@ var _default = exports["default"] = BaseUI;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-var _base = _interopRequireDefault(__webpack_require__(659));
+var _base = _interopRequireDefault(__webpack_require__(662));
 var _element = __webpack_require__(138);
 const CSS_CLASSNAME = 'ht__manualRowMove--guideline';
 
@@ -78621,7 +79075,7 @@ class GuidelineUI extends _base.default {
 var _default = exports["default"] = GuidelineUI;
 
 /***/ }),
-/* 661 */
+/* 664 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -78630,20 +79084,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 662 */
+/* 665 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _manualRowResize = __webpack_require__(663);
+var _manualRowResize = __webpack_require__(666);
 exports.PLUGIN_KEY = _manualRowResize.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _manualRowResize.PLUGIN_PRIORITY;
 exports.ManualRowResize = _manualRowResize.ManualRowResize;
 
 /***/ }),
-/* 663 */
+/* 666 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -78658,9 +79112,9 @@ var _array = __webpack_require__(144);
 var _number = __webpack_require__(178);
 var _translations = __webpack_require__(256);
 var _src = __webpack_require__(184);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -79274,20 +79728,20 @@ function _onMapInit() {
 }
 
 /***/ }),
-/* 664 */
+/* 667 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _mergeCells = __webpack_require__(665);
+var _mergeCells = __webpack_require__(668);
 exports.PLUGIN_KEY = _mergeCells.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _mergeCells.PLUGIN_PRIORITY;
 exports.MergeCells = _mergeCells.MergeCells;
 
 /***/ }),
-/* 665 */
+/* 668 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -79307,23 +79761,23 @@ __webpack_require__(122);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _base = __webpack_require__(472);
 var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
-var _cellsCollection = _interopRequireDefault(__webpack_require__(666));
-var _cellCoords = _interopRequireDefault(__webpack_require__(667));
-var _autofill = _interopRequireDefault(__webpack_require__(669));
-var _selection = _interopRequireDefault(__webpack_require__(670));
-var _toggleMerge = _interopRequireDefault(__webpack_require__(671));
+var _cellsCollection = _interopRequireDefault(__webpack_require__(669));
+var _cellCoords = _interopRequireDefault(__webpack_require__(670));
+var _autofill = _interopRequireDefault(__webpack_require__(671));
+var _selection = _interopRequireDefault(__webpack_require__(672));
+var _toggleMerge = _interopRequireDefault(__webpack_require__(673));
 var _array = __webpack_require__(144);
 var _object = __webpack_require__(148);
 var _console = __webpack_require__(166);
 var _number = __webpack_require__(178);
-var _utils = __webpack_require__(668);
-__webpack_require__(672);
+__webpack_require__(674);
 var _element = __webpack_require__(138);
 var _browser = __webpack_require__(147);
-var _focusOrder2 = __webpack_require__(673);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _focusOrder2 = __webpack_require__(675);
+var _renderer = __webpack_require__(677);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -79375,6 +79829,7 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
 var _lastSelectedFocus = /*#__PURE__*/new WeakMap();
 var _lastFocusDelta = /*#__PURE__*/new WeakMap();
 var _focusOrder = /*#__PURE__*/new WeakMap();
+var _cellRenderer = /*#__PURE__*/new WeakMap();
 var _MergeCells_brand = /*#__PURE__*/new WeakSet();
 class MergeCells extends _base.BasePlugin {
   constructor() {
@@ -79431,6 +79886,12 @@ class MergeCells extends _base.BasePlugin {
       rowIndexMapper: this.hot.rowIndexMapper,
       columnIndexMapper: this.hot.columnIndexMapper
     }));
+    /**
+     * The cell renderer responsible for rendering the merged cells.
+     *
+     * @type {{before: Function, after: Function}}
+     */
+    _classPrivateFieldInitSpec(this, _cellRenderer, (0, _renderer.createMergeCellRenderer)(this));
   }
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -79532,94 +79993,97 @@ class MergeCells extends _base.BasePlugin {
       return _assertClassBrand(_MergeCells_brand, _this, _onAfterIsMultipleSelection).call(_this, ...args);
     });
     this.addHook('afterRenderer', function () {
-      for (var _len13 = arguments.length, args = new Array(_len13), _key13 = 0; _key13 < _len13; _key13++) {
-        args[_key13] = arguments[_key13];
-      }
-      return _assertClassBrand(_MergeCells_brand, _this, _onAfterRenderer).call(_this, ...args);
+      return _classPrivateFieldGet(_cellRenderer, _this).after(...arguments);
     });
     this.addHook('afterContextMenuDefaultOptions', function () {
-      for (var _len14 = arguments.length, args = new Array(_len14), _key14 = 0; _key14 < _len14; _key14++) {
-        args[_key14] = arguments[_key14];
+      for (var _len13 = arguments.length, args = new Array(_len13), _key13 = 0; _key13 < _len13; _key13++) {
+        args[_key13] = arguments[_key13];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _addMergeActionsToContextMenu).call(_this, ...args);
     });
     this.addHook('afterGetCellMeta', function () {
-      for (var _len15 = arguments.length, args = new Array(_len15), _key15 = 0; _key15 < _len15; _key15++) {
-        args[_key15] = arguments[_key15];
+      for (var _len14 = arguments.length, args = new Array(_len14), _key14 = 0; _key14 < _len14; _key14++) {
+        args[_key14] = arguments[_key14];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onAfterGetCellMeta).call(_this, ...args);
     });
     this.addHook('afterViewportRowCalculatorOverride', function () {
-      for (var _len16 = arguments.length, args = new Array(_len16), _key16 = 0; _key16 < _len16; _key16++) {
-        args[_key16] = arguments[_key16];
+      for (var _len15 = arguments.length, args = new Array(_len15), _key15 = 0; _key15 < _len15; _key15++) {
+        args[_key15] = arguments[_key15];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onAfterViewportRowCalculatorOverride).call(_this, ...args);
     });
     this.addHook('afterViewportColumnCalculatorOverride', function () {
-      for (var _len17 = arguments.length, args = new Array(_len17), _key17 = 0; _key17 < _len17; _key17++) {
-        args[_key17] = arguments[_key17];
+      for (var _len16 = arguments.length, args = new Array(_len16), _key16 = 0; _key16 < _len16; _key16++) {
+        args[_key16] = arguments[_key16];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onAfterViewportColumnCalculatorOverride).call(_this, ...args);
     });
     this.addHook('modifyAutofillRange', function () {
-      for (var _len18 = arguments.length, args = new Array(_len18), _key18 = 0; _key18 < _len18; _key18++) {
-        args[_key18] = arguments[_key18];
+      for (var _len17 = arguments.length, args = new Array(_len17), _key17 = 0; _key17 < _len17; _key17++) {
+        args[_key17] = arguments[_key17];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onModifyAutofillRange).call(_this, ...args);
     });
     this.addHook('afterCreateCol', function () {
-      for (var _len19 = arguments.length, args = new Array(_len19), _key19 = 0; _key19 < _len19; _key19++) {
-        args[_key19] = arguments[_key19];
+      for (var _len18 = arguments.length, args = new Array(_len18), _key18 = 0; _key18 < _len18; _key18++) {
+        args[_key18] = arguments[_key18];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onAfterCreateCol).call(_this, ...args);
     });
     this.addHook('afterRemoveCol', function () {
-      for (var _len20 = arguments.length, args = new Array(_len20), _key20 = 0; _key20 < _len20; _key20++) {
-        args[_key20] = arguments[_key20];
+      for (var _len19 = arguments.length, args = new Array(_len19), _key19 = 0; _key19 < _len19; _key19++) {
+        args[_key19] = arguments[_key19];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onAfterRemoveCol).call(_this, ...args);
     });
     this.addHook('afterCreateRow', function () {
-      for (var _len21 = arguments.length, args = new Array(_len21), _key21 = 0; _key21 < _len21; _key21++) {
-        args[_key21] = arguments[_key21];
+      for (var _len20 = arguments.length, args = new Array(_len20), _key20 = 0; _key20 < _len20; _key20++) {
+        args[_key20] = arguments[_key20];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onAfterCreateRow).call(_this, ...args);
     });
     this.addHook('afterRemoveRow', function () {
-      for (var _len22 = arguments.length, args = new Array(_len22), _key22 = 0; _key22 < _len22; _key22++) {
-        args[_key22] = arguments[_key22];
+      for (var _len21 = arguments.length, args = new Array(_len21), _key21 = 0; _key21 < _len21; _key21++) {
+        args[_key21] = arguments[_key21];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onAfterRemoveRow).call(_this, ...args);
     });
     this.addHook('afterChange', function () {
-      for (var _len23 = arguments.length, args = new Array(_len23), _key23 = 0; _key23 < _len23; _key23++) {
-        args[_key23] = arguments[_key23];
+      for (var _len22 = arguments.length, args = new Array(_len22), _key22 = 0; _key22 < _len22; _key22++) {
+        args[_key22] = arguments[_key22];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onAfterChange).call(_this, ...args);
     });
     this.addHook('beforeDrawBorders', function () {
-      for (var _len24 = arguments.length, args = new Array(_len24), _key24 = 0; _key24 < _len24; _key24++) {
-        args[_key24] = arguments[_key24];
+      for (var _len23 = arguments.length, args = new Array(_len23), _key23 = 0; _key23 < _len23; _key23++) {
+        args[_key23] = arguments[_key23];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onBeforeDrawAreaBorders).call(_this, ...args);
     });
     this.addHook('afterDrawSelection', function () {
-      for (var _len25 = arguments.length, args = new Array(_len25), _key25 = 0; _key25 < _len25; _key25++) {
-        args[_key25] = arguments[_key25];
+      for (var _len24 = arguments.length, args = new Array(_len24), _key24 = 0; _key24 < _len24; _key24++) {
+        args[_key24] = arguments[_key24];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onAfterDrawSelection).call(_this, ...args);
     });
     this.addHook('beforeRemoveCellClassNames', function () {
-      for (var _len26 = arguments.length, args = new Array(_len26), _key26 = 0; _key26 < _len26; _key26++) {
-        args[_key26] = arguments[_key26];
+      for (var _len25 = arguments.length, args = new Array(_len25), _key25 = 0; _key25 < _len25; _key25++) {
+        args[_key25] = arguments[_key25];
       }
       return _assertClassBrand(_MergeCells_brand, _this, _onBeforeRemoveCellClassNames).call(_this, ...args);
     });
     this.addHook('beforeBeginEditing', function () {
+      for (var _len26 = arguments.length, args = new Array(_len26), _key26 = 0; _key26 < _len26; _key26++) {
+        args[_key26] = arguments[_key26];
+      }
+      return _assertClassBrand(_MergeCells_brand, _this, _onBeforeBeginEditing).call(_this, ...args);
+    });
+    this.addHook('modifyRowHeightByOverlayName', function () {
       for (var _len27 = arguments.length, args = new Array(_len27), _key27 = 0; _key27 < _len27; _key27++) {
         args[_key27] = arguments[_key27];
       }
-      return _assertClassBrand(_MergeCells_brand, _this, _onBeforeBeginEditing).call(_this, ...args);
+      return _assertClassBrand(_MergeCells_brand, _this, _onModifyRowHeightByOverlayName).call(_this, ...args);
     });
     this.addHook('beforeUndoStackChange', (action, source) => {
       if (source === 'MergeCells') {
@@ -79710,24 +80174,26 @@ class MergeCells extends _base.BasePlugin {
    * @returns {boolean}
    */
   validateSetting(setting) {
-    let valid = true;
     if (!setting) {
       return false;
     }
     if (_cellCoords.default.containsNegativeValues(setting)) {
       (0, _console.warn)(_cellCoords.default.NEGATIVE_VALUES_WARNING(setting));
-      valid = false;
-    } else if (_cellCoords.default.isOutOfBounds(setting, this.hot.countRows(), this.hot.countCols())) {
-      (0, _console.warn)(_cellCoords.default.IS_OUT_OF_BOUNDS_WARNING(setting));
-      valid = false;
-    } else if (_cellCoords.default.isSingleCell(setting)) {
-      (0, _console.warn)(_cellCoords.default.IS_SINGLE_CELL(setting));
-      valid = false;
-    } else if (_cellCoords.default.containsZeroSpan(setting)) {
-      (0, _console.warn)(_cellCoords.default.ZERO_SPAN_WARNING(setting));
-      valid = false;
+      return false;
     }
-    return valid;
+    if (_cellCoords.default.isOutOfBounds(setting, this.hot.countRows(), this.hot.countCols())) {
+      (0, _console.warn)(_cellCoords.default.IS_OUT_OF_BOUNDS_WARNING(setting));
+      return false;
+    }
+    if (_cellCoords.default.isSingleCell(setting)) {
+      (0, _console.warn)(_cellCoords.default.IS_SINGLE_CELL(setting));
+      return false;
+    }
+    if (_cellCoords.default.containsZeroSpan(setting)) {
+      (0, _console.warn)(_cellCoords.default.ZERO_SPAN_WARNING(setting));
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -79737,36 +80203,42 @@ class MergeCells extends _base.BasePlugin {
    * @param {Array|boolean} settings The settings provided to the plugin.
    */
   generateFromSettings(settings) {
-    if (Array.isArray(settings)) {
-      const populatedNulls = [];
-      (0, _array.arrayEach)(settings, setting => {
-        if (!this.validateSetting(setting)) {
-          return;
-        }
-        const highlight = this.hot._createCellCoords(setting.row, setting.col);
-        const rangeEnd = this.hot._createCellCoords(setting.row + setting.rowspan - 1, setting.col + setting.colspan - 1);
-        const mergeRange = this.hot._createCellRange(highlight, highlight, rangeEnd);
-
-        // Merging without data population.
-        this.mergeRange(mergeRange, true, true);
-        (0, _number.rangeEach)(setting.row, setting.row + setting.rowspan - 1, rowIndex => {
-          (0, _number.rangeEach)(setting.col, setting.col + setting.colspan - 1, columnIndex => {
-            // Not resetting a cell representing a merge area's value.
-            if ((rowIndex === setting.row && columnIndex === setting.col) === false) {
-              populatedNulls.push([rowIndex, columnIndex, null]);
-            }
-          });
-        });
-      });
-
-      // There are no merged cells. Thus, no data population is needed.
-      if (populatedNulls.length === 0) {
-        return;
-      }
-
-      // TODO: Change the `source` argument to a more meaningful value, e.g. `${this.pluginName}.clearCells`.
-      this.hot.setDataAtCell(populatedNulls, undefined, undefined, this.pluginName);
+    if (!Array.isArray(settings)) {
+      return;
     }
+    const validSettings = settings.filter(mergeCellInfo => this.validateSetting(mergeCellInfo));
+    const nonOverlappingSettings = this.mergedCellsCollection.filterOverlappingMergeCells(validSettings);
+    const populatedNulls = [];
+    nonOverlappingSettings.forEach(mergeCellInfo => {
+      const {
+        row,
+        col,
+        rowspan,
+        colspan
+      } = mergeCellInfo;
+      const from = this.hot._createCellCoords(row, col);
+      const to = this.hot._createCellCoords(row + rowspan - 1, col + colspan - 1);
+      const mergeRange = this.hot._createCellRange(from, from, to);
+
+      // Merging without data population.
+      this.mergeRange(mergeRange, true, true);
+      for (let r = row; r < row + rowspan; r++) {
+        for (let c = col; c < col + colspan; c++) {
+          // Not resetting a cell representing a merge area's value.
+          if (r !== row || c !== col) {
+            populatedNulls.push([r, c, null]);
+          }
+        }
+      }
+    });
+
+    // There are no merged cells. Thus, no data population is needed.
+    if (populatedNulls.length === 0) {
+      return;
+    }
+
+    // TODO: Change the `source` argument to a more meaningful value, e.g. `${this.pluginName}.clearCells`.
+    this.hot.setDataAtCell(populatedNulls, undefined, undefined, this.pluginName);
   }
 
   /**
@@ -79872,7 +80344,7 @@ class MergeCells extends _base.BasePlugin {
       });
     });
     this.hot.setCellMeta(mergeParent.row, mergeParent.col, 'spanned', true);
-    const mergedCellAdded = this.mergedCellsCollection.add(mergeParent);
+    const mergedCellAdded = this.mergedCellsCollection.add(mergeParent, auto);
     if (mergedCellAdded) {
       if (preventPopulation) {
         populationInfo = [mergeParent.row, mergeParent.col, clearedData];
@@ -79902,7 +80374,7 @@ class MergeCells extends _base.BasePlugin {
   unmergeRange(cellRange) {
     let auto = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
-    if (!mergedCells) {
+    if (mergedCells.length === 0) {
       return;
     }
     this.hot.runHooks('beforeUnmergeCells', cellRange, auto);
@@ -80408,45 +80880,6 @@ function _addMergeActionsToContextMenu(defaultOptions) {
   }, (0, _toggleMerge.default)(this));
 }
 /**
- * `afterRenderer` hook callback.
- *
- * @param {HTMLElement} TD The cell to be modified.
- * @param {number} row Row index.
- * @param {number} col Visual column index.
- */
-function _onAfterRenderer(TD, row, col) {
-  const mergedCell = this.mergedCellsCollection.get(row, col);
-  // We shouldn't override data in the collection.
-  const mergedCellCopy = (0, _object.isObject)(mergedCell) ? (0, _object.clone)(mergedCell) : undefined;
-  if ((0, _object.isObject)(mergedCellCopy)) {
-    const {
-      rowIndexMapper: rowMapper,
-      columnIndexMapper: columnMapper
-    } = this.hot;
-    const {
-      row: mergeRow,
-      col: mergeColumn,
-      colspan,
-      rowspan
-    } = mergedCellCopy;
-    const [lastMergedRowIndex, lastMergedColumnIndex] = this.translateMergedCellToRenderable(mergeRow, rowspan, mergeColumn, colspan);
-    const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
-    const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
-    const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
-    const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
-
-    // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
-    mergedCellCopy.row = rowMapper.getNearestNotHiddenIndex(mergedCellCopy.row, 1);
-    // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
-    mergedCellCopy.col = columnMapper.getNearestNotHiddenIndex(mergedCellCopy.col, 1);
-    // The `rowSpan` property for a `TD` element should be at most equal to number of rendered rows in the merge area.
-    mergedCellCopy.rowspan = Math.min(mergedCellCopy.rowspan, maxRowSpan);
-    // The `colSpan` property for a `TD` element should be at most equal to number of rendered columns in the merge area.
-    mergedCellCopy.colspan = Math.min(mergedCellCopy.colspan, maxColSpan);
-  }
-  (0, _utils.applySpanProperties)(TD, mergedCellCopy, row, col);
-}
-/**
  * Clears the last selected coordinates before setting a new selection range.
  */
 function _onBeforeSetRangeStart() {
@@ -80587,17 +81020,11 @@ function _onModifyAutofillRange(drag, select) {
     dragArea = select;
     return dragArea;
   }
-  const mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange({
-    from: {
-      row: select[0],
-      col: select[1]
-    },
-    to: {
-      row: select[2],
-      col: select[3]
-    }
-  });
-  if (!mergedCellsWithinSelectionArea) {
+  const from = this.hot._createCellCoords(select[0], select[1]);
+  const to = this.hot._createCellCoords(select[2], select[3]);
+  const range = this.hot._createCellRange(from, from, to);
+  const mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange(range);
+  if (mergedCellsWithinSelectionArea.length === 0) {
     return dragArea;
   }
   dragArea = this.autofillCalculations.snapDragArea(select, dragArea, dragDirection, mergedCellsWithinSelectionArea);
@@ -80722,9 +81149,85 @@ function _onBeforeBeginEditing(row, column, initialValue, event) {
   const to = this.hot._createCellCoords(mergeCell.row + mergeCell.rowspan - 1, mergeCell.col + mergeCell.colspan - 1);
   return this.hot.selection.getLayerLevel() === 0 && selection.isEqual(this.hot._createCellRange(from, from, to));
 }
+/**
+ * Hook used to modify the row height depends on the merged cells in the row.
+ *
+ * @param {number} height The row height value provided by the Core.
+ * @param {number} row The visual row index.
+ * @param {string} overlayType The overlay type that is currently rendered.
+ * @returns {number}
+ */
+function _onModifyRowHeightByOverlayName(height, row, overlayType) {
+  if (this.hot.getSettings().rowHeaders ||
+  // merged cells do not work with the bottom overlays
+  overlayType === 'bottom' || overlayType === 'bottom_inline_start_corner') {
+    return height;
+  }
+  let firstColumn;
+  let lastColumn;
+  if (overlayType === 'master') {
+    firstColumn = this.hot.view.getFirstRenderedVisibleColumn();
+    lastColumn = this.hot.view.getLastRenderedVisibleColumn();
+  } else {
+    const activeOverlay = this.hot.view.getOverlayByName(overlayType);
+    firstColumn = this.hot.columnIndexMapper.getVisualFromRenderableIndex(activeOverlay.clone.wtTable.getFirstRenderedColumn());
+    lastColumn = this.hot.columnIndexMapper.getVisualFromRenderableIndex(activeOverlay.clone.wtTable.getLastRenderedColumn());
+  }
+  const firstMergedCellInRow = this.mergedCellsCollection.get(row, firstColumn);
+  if (!firstMergedCellInRow) {
+    return height;
+  }
+  const from = this.hot._createCellCoords(row, firstColumn);
+  const to = this.hot._createCellCoords(row, lastColumn);
+  const viewportRange = this.hot._createCellRange(from, from, to);
+  const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(viewportRange);
+  const maxRowspan = mergedCellsWithinRange.reduce((acc, _ref) => {
+    let {
+      rowspan
+    } = _ref;
+    return Math.max(acc, rowspan);
+  }, 1);
+  let rowspanCorrection = 0;
+  if (mergedCellsWithinRange.length > 1 && mergedCellsWithinRange[0].rowspan < maxRowspan) {
+    rowspanCorrection = maxRowspan - mergedCellsWithinRange[0].rowspan;
+  }
+  mergedCellsWithinRange.forEach(_ref2 => {
+    var _height;
+    let {
+      rowspan
+    } = _ref2;
+    let rowspanAfterCorrection = 0;
+    if (overlayType === 'top' || overlayType === 'top_inline_start_corner') {
+      rowspanAfterCorrection = Math.min(maxRowspan, this.hot.view.countNotHiddenFixedRowsTop() - row);
+    } else {
+      rowspanAfterCorrection = rowspan - rowspanCorrection;
+    }
+    height = Math.max((_height = height) !== null && _height !== void 0 ? _height : 0, _assertClassBrand(_MergeCells_brand, this, _sumCellsHeights).call(this, row, rowspanAfterCorrection));
+  });
+  return height;
+}
+/**
+ * Sums the heights of the all cells that the merge cell consists of.
+ *
+ * @param {number} row The visual row index of the merged cell.
+ * @param {number} rowspan The rowspan value of the merged cell.
+ * @returns {number}
+ */
+function _sumCellsHeights(row, rowspan) {
+  const defaultHeight = this.hot.view._wt.wtSettings.getSettingPure('defaultRowHeight');
+  const autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
+  let height = 0;
+  for (let i = row; i < row + rowspan; i++) {
+    if (!this.hot.rowIndexMapper.isHidden(i)) {
+      var _autoRowSizePlugin$ge;
+      height += (_autoRowSizePlugin$ge = autoRowSizePlugin === null || autoRowSizePlugin === void 0 ? void 0 : autoRowSizePlugin.getRowHeight(i)) !== null && _autoRowSizePlugin$ge !== void 0 ? _autoRowSizePlugin$ge : defaultHeight;
+    }
+  }
+  return height;
+}
 
 /***/ }),
-/* 666 */
+/* 669 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -80743,14 +81246,13 @@ __webpack_require__(116);
 __webpack_require__(119);
 __webpack_require__(122);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
-var _cellCoords = _interopRequireDefault(__webpack_require__(667));
+var _cellCoords = _interopRequireDefault(__webpack_require__(670));
 var _number = __webpack_require__(178);
 var _console = __webpack_require__(166);
 var _array = __webpack_require__(144);
-var _utils = __webpack_require__(668);
 var _templateLiteralTag = __webpack_require__(143);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 /**
  * Defines a container object for the merged cells.
@@ -80779,9 +81281,15 @@ class MergedCellsCollection {
     /**
      * Array of merged cells.
      *
-     * @type {Array}
+     * @type {MergedCellCoords[]}
      */
     (0, _defineProperty2.default)(this, "mergedCells", []);
+    /**
+     * Matrix of cells (row, col) that points to the instances of the MergedCellCoords objects.
+     *
+     * @type {Array}
+     */
+    (0, _defineProperty2.default)(this, "mergedCellsMatrix", new Map());
     /**
      * The Handsontable instance.
      *
@@ -80795,11 +81303,16 @@ class MergedCellsCollection {
   /**
    * Get a warning message for when the declared merged cell data overlaps already existing merged cells.
    *
-   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCell Object containing information
+   * about the merged cells that was about to be added.
    * @returns {string}
    */
-  static IS_OVERLAPPING_WARNING(newMergedCell) {
-    return (0, _templateLiteralTag.toSingleLine)`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}], overlaps\x20
+  static IS_OVERLAPPING_WARNING(_ref) {
+    let {
+      row,
+      col
+    } = _ref;
+    return (0, _templateLiteralTag.toSingleLine)`The merged cell declared at [${row}, ${col}], overlaps\x20
       with the other declared merged cell. The overlapping merged cell was not added to the table, please\x20
       fix your setup.`;
   }
@@ -80813,16 +81326,11 @@ class MergedCellsCollection {
    * @returns {MergedCellCoords|boolean} Returns a wanted merged cell on success and `false` on failure.
    */
   get(row, column) {
-    const mergedCells = this.mergedCells;
-    let result = false;
-    (0, _array.arrayEach)(mergedCells, mergedCell => {
-      if (mergedCell.row <= row && mergedCell.row + mergedCell.rowspan - 1 >= row && mergedCell.col <= column && mergedCell.col + mergedCell.colspan - 1 >= column) {
-        result = mergedCell;
-        return false;
-      }
-      return true;
-    });
-    return result;
+    var _this$mergedCellsMatr;
+    if (!this.mergedCellsMatrix.has(row)) {
+      return false;
+    }
+    return (_this$mergedCellsMatr = this.mergedCellsMatrix.get(row).get(column)) !== null && _this$mergedCellsMatr !== void 0 ? _this$mergedCellsMatr : false;
   }
 
   /**
@@ -80832,9 +81340,8 @@ class MergedCellsCollection {
    * @returns {MergedCellCoords|boolean}
    */
   getByRange(range) {
-    const mergedCells = this.mergedCells;
     let result = false;
-    (0, _array.arrayEach)(mergedCells, mergedCell => {
+    (0, _array.arrayEach)(this.mergedCells, mergedCell => {
       if (mergedCell.row <= range.from.row && mergedCell.row + mergedCell.rowspan - 1 >= range.to.row && mergedCell.col <= range.from.col && mergedCell.col + mergedCell.colspan - 1 >= range.to.col) {
         result = mergedCell;
         return result;
@@ -80845,57 +81352,109 @@ class MergedCellsCollection {
   }
 
   /**
+   * Filters merge cells objects provided by users from overlapping cells.
+   *
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCellsInfo The merged cell information object.
+   * Has to contain `row`, `col`, `colspan` and `rowspan` properties.
+   * @returns {Array<{ row: number, col: number, rowspan: number, colspan: number }>}
+   */
+  filterOverlappingMergeCells(mergedCellsInfo) {
+    const occupiedCells = new Set();
+    this.mergedCells.forEach(mergedCell => {
+      const {
+        row,
+        col,
+        colspan,
+        rowspan
+      } = mergedCell;
+      for (let r = row; r < row + rowspan; r++) {
+        for (let c = col; c < col + colspan; c++) {
+          occupiedCells.add(`r${r},c${c}`);
+        }
+      }
+    });
+    const filteredMergeCells = mergedCellsInfo.filter(mergedCell => {
+      const {
+        row,
+        col,
+        colspan,
+        rowspan
+      } = mergedCell;
+      const localOccupiedCells = new Set();
+      let isOverlapping = false;
+      for (let r = row; r < row + rowspan; r++) {
+        for (let c = col; c < col + colspan; c++) {
+          const cellId = `r${r},c${c}`;
+          if (occupiedCells.has(cellId)) {
+            (0, _console.warn)(MergedCellsCollection.IS_OVERLAPPING_WARNING(mergedCell));
+            isOverlapping = true;
+            break;
+          }
+          localOccupiedCells.add(cellId);
+        }
+        if (isOverlapping) {
+          break;
+        }
+      }
+      if (!isOverlapping) {
+        occupiedCells.add(...localOccupiedCells);
+      }
+      return !isOverlapping;
+    });
+    return filteredMergeCells;
+  }
+
+  /**
    * Get a merged cell contained in the provided range.
    *
-   * @param {CellRange|object} range The range to search merged cells in.
+   * @param {CellRange} range The range to search merged cells in.
    * @param {boolean} [countPartials=false] If set to `true`, all the merged cells overlapping the range will be taken into calculation.
-   * @returns {Array|boolean} Array of found merged cells of `false` if none were found.
+   * @returns {MergedCellCoords[]} Array of found merged cells.
    */
   getWithinRange(range) {
     let countPartials = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    const mergedCells = this.mergedCells;
-    const foundMergedCells = [];
-    let testedRange = range;
-    if (!testedRange.includesRange) {
-      const from = this.hot._createCellCoords(testedRange.from.row, testedRange.from.col);
-      const to = this.hot._createCellCoords(testedRange.to.row, testedRange.to.col);
-      testedRange = this.hot._createCellRange(from, from, to);
-    }
-    (0, _array.arrayEach)(mergedCells, mergedCell => {
-      const mergedCellTopLeft = this.hot._createCellCoords(mergedCell.row, mergedCell.col);
-      const mergedCellBottomRight = this.hot._createCellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1);
-      const mergedCellRange = this.hot._createCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
-      if (countPartials) {
-        if (testedRange.overlaps(mergedCellRange)) {
-          foundMergedCells.push(mergedCell);
+    const {
+      row: rowStart,
+      col: columnStart
+    } = range.getTopStartCorner();
+    const {
+      row: rowEnd,
+      col: columnEnd
+    } = range.getBottomEndCorner();
+    const result = [];
+    for (let row = rowStart; row <= rowEnd; row++) {
+      for (let column = columnStart; column <= columnEnd; column++) {
+        const mergedCell = this.get(row, column);
+        if (mergedCell && (countPartials || !countPartials && mergedCell.row === row && mergedCell.col === column)) {
+          result.push(mergedCell);
         }
-      } else if (testedRange.includesRange(mergedCellRange)) {
-        foundMergedCells.push(mergedCell);
       }
-    });
-    return foundMergedCells.length ? foundMergedCells : false;
+    }
+    return result;
   }
 
   /**
    * Add a merged cell to the container.
    *
    * @param {object} mergedCellInfo The merged cell information object. Has to contain `row`, `col`, `colspan` and `rowspan` properties.
+   * @param {boolean} [auto=false] `true` if called internally by the plugin (usually in batch).
    * @returns {MergedCellCoords|boolean} Returns the new merged cell on success and `false` on failure.
    */
   add(mergedCellInfo) {
-    const mergedCells = this.mergedCells;
+    let auto = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     const row = mergedCellInfo.row;
     const column = mergedCellInfo.col;
     const rowspan = mergedCellInfo.rowspan;
     const colspan = mergedCellInfo.colspan;
     const newMergedCell = new _cellCoords.default(row, column, rowspan, colspan, this.hot._createCellCoords, this.hot._createCellRange);
     const alreadyExists = this.get(row, column);
-    const isOverlapping = this.isOverlapping(newMergedCell);
+    const isOverlapping = auto ? false : this.isOverlapping(newMergedCell);
     if (!alreadyExists && !isOverlapping) {
       if (this.hot) {
         newMergedCell.normalize(this.hot);
       }
-      mergedCells.push(newMergedCell);
+      this.mergedCells.push(newMergedCell);
+      _assertClassBrand(_MergedCellsCollection_brand, this, _addMergedCellToMatrix).call(this, newMergedCell);
       return newMergedCell;
     }
     (0, _console.warn)(MergedCellsCollection.IS_OVERLAPPING_WARNING(newMergedCell));
@@ -80911,12 +81470,12 @@ class MergedCellsCollection {
    * @returns {MergedCellCoords|boolean} Returns the removed merged cell on success and `false` on failure.
    */
   remove(row, column) {
-    const mergedCells = this.mergedCells;
-    const wantedCollection = this.get(row, column);
-    const wantedCollectionIndex = wantedCollection ? this.mergedCells.indexOf(wantedCollection) : -1;
-    if (wantedCollection && wantedCollectionIndex !== -1) {
-      mergedCells.splice(wantedCollectionIndex, 1);
-      return wantedCollection;
+    const mergedCell = this.get(row, column);
+    const mergedCellIndex = mergedCell ? this.mergedCells.indexOf(mergedCell) : -1;
+    if (mergedCell && mergedCellIndex !== -1) {
+      this.mergedCells.splice(mergedCellIndex, 1);
+      _assertClassBrand(_MergedCellsCollection_brand, this, _removeMergedCellFromMatrix).call(this, mergedCell);
+      return mergedCell;
     }
     return false;
   }
@@ -80925,55 +81484,44 @@ class MergedCellsCollection {
    * Clear all the merged cells.
    */
   clear() {
-    const mergedCells = this.mergedCells;
-    const mergedCellParentsToClear = [];
-    const hiddenCollectionElements = [];
-    (0, _array.arrayEach)(mergedCells, mergedCell => {
-      const TD = this.hot.getCell(mergedCell.row, mergedCell.col);
-      if (TD) {
-        mergedCellParentsToClear.push([TD, this.get(mergedCell.row, mergedCell.col), mergedCell.row, mergedCell.col]);
-      }
-    });
-    this.mergedCells.length = 0;
-    (0, _array.arrayEach)(mergedCellParentsToClear, (mergedCell, i) => {
-      (0, _number.rangeEach)(0, mergedCell.rowspan - 1, j => {
-        (0, _number.rangeEach)(0, mergedCell.colspan - 1, k => {
-          if (k !== 0 || j !== 0) {
-            const TD = this.hot.getCell(mergedCell.row + j, mergedCell.col + k);
-            if (TD) {
-              hiddenCollectionElements.push([TD, null, null, null]);
-            }
+    (0, _array.arrayEach)(this.mergedCells, _ref2 => {
+      let {
+        row,
+        col,
+        rowspan,
+        colspan
+      } = _ref2;
+      (0, _number.rangeEach)(row, row + rowspan, r => {
+        (0, _number.rangeEach)(col, col + colspan, c => {
+          const TD = this.hot.getCell(r, c);
+          if (TD) {
+            TD.removeAttribute('rowspan');
+            TD.removeAttribute('colspan');
+            TD.style.display = '';
           }
         });
       });
-      mergedCellParentsToClear[i][1] = null;
     });
-    (0, _array.arrayEach)(mergedCellParentsToClear, mergedCellParents => {
-      (0, _utils.applySpanProperties)(...mergedCellParents);
-    });
-    (0, _array.arrayEach)(hiddenCollectionElements, hiddenCollectionElement => {
-      (0, _utils.applySpanProperties)(...hiddenCollectionElement);
-    });
+    this.mergedCells.length = 0;
+    this.mergedCellsMatrix = new Map();
   }
 
   /**
-   * Check if the provided merged cell overlaps with the others in the container.
+   * Check if the provided merged cell overlaps with the others already added.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to check against all others in the container.
    * @returns {boolean} `true` if the provided merged cell overlaps with the others, `false` otherwise.
    */
   isOverlapping(mergedCell) {
-    const mergedCellRange = this.hot._createCellRange(this.hot._createCellCoords(0, 0), this.hot._createCellCoords(mergedCell.row, mergedCell.col), this.hot._createCellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1));
-    let result = false;
-    (0, _array.arrayEach)(this.mergedCells, col => {
-      const currentRange = this.hot._createCellRange(this.hot._createCellCoords(0, 0), this.hot._createCellCoords(col.row, col.col), this.hot._createCellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1));
-      if (currentRange.overlaps(mergedCellRange)) {
-        result = true;
-        return false;
+    const mergedCellRange = mergedCell.getRange();
+    for (let i = 0; i < this.mergedCells.length; i++) {
+      const otherMergedCell = this.mergedCells[i];
+      const otherMergedCellRange = otherMergedCell.getRange();
+      if (otherMergedCellRange.overlaps(mergedCellRange)) {
+        return true;
       }
-      return true;
-    });
-    return result;
+    }
+    return false;
   }
 
   /**
@@ -81108,15 +81656,24 @@ class MergedCellsCollection {
       default:
     }
     (0, _array.arrayEach)(this.mergedCells, currentMerge => {
+      _assertClassBrand(_MergedCellsCollection_brand, this, _removeMergedCellFromMatrix).call(this, currentMerge);
       currentMerge.shift(shiftVector, index);
+      _assertClassBrand(_MergedCellsCollection_brand, this, _addMergedCellToMatrix).call(this, currentMerge);
     });
     (0, _number.rangeEachReverse)(this.mergedCells.length - 1, 0, i => {
       const currentMerge = this.mergedCells[i];
       if (currentMerge && currentMerge.removed) {
         this.mergedCells.splice(this.mergedCells.indexOf(currentMerge), 1);
+        _assertClassBrand(_MergedCellsCollection_brand, this, _removeMergedCellFromMatrix).call(this, currentMerge);
       }
     });
   }
+
+  /**
+   * Adds a merged cell to the matrix.
+   *
+   * @param {MergedCellCoords} mergedCell The merged cell to add.
+   */
 }
 function _getNonIntersectingIndexes(range, axis) {
   let scanDirection = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
@@ -81137,18 +81694,40 @@ function _getNonIntersectingIndexes(range, axis) {
       indexes.get(index).add(lastIndex);
     }
   }
-  return Array.from(new Set(Array.from(indexes.entries()).filter(_ref => {
-    let [, set] = _ref;
+  return Array.from(new Set(Array.from(indexes.entries()).filter(_ref3 => {
+    let [, set] = _ref3;
     return set.size === 1;
-  }).flatMap(_ref2 => {
-    let [, set] = _ref2;
+  }).flatMap(_ref4 => {
+    let [, set] = _ref4;
     return Array.from(set);
   })));
+}
+function _addMergedCellToMatrix(mergedCell) {
+  for (let row = mergedCell.row; row < mergedCell.row + mergedCell.rowspan; row++) {
+    for (let col = mergedCell.col; col < mergedCell.col + mergedCell.colspan; col++) {
+      if (!this.mergedCellsMatrix.has(row)) {
+        this.mergedCellsMatrix.set(row, new Map());
+      }
+      this.mergedCellsMatrix.get(row).set(col, mergedCell);
+    }
+  }
+}
+/**
+ * Removes a merged cell from the matrix.
+ *
+ * @param {MergedCellCoords} mergedCell The merged cell to remove.
+ */
+function _removeMergedCellFromMatrix(mergedCell) {
+  for (let row = mergedCell.row; row < mergedCell.row + mergedCell.rowspan; row++) {
+    for (let col = mergedCell.col; col < mergedCell.col + mergedCell.colspan; col++) {
+      this.mergedCellsMatrix.get(row).delete(col);
+    }
+  }
 }
 var _default = exports["default"] = MergedCellsCollection;
 
 /***/ }),
-/* 667 */
+/* 670 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -81156,14 +81735,21 @@ var _default = exports["default"] = MergedCellsCollection;
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
+__webpack_require__(8);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _templateLiteralTag = __webpack_require__(143);
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
+function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
+function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
+function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 /**
  * The `MergedCellCoords` class represents a single merged cell.
  *
  * @private
  * @class MergedCellCoords
  */
+var _cellRange = /*#__PURE__*/new WeakMap();
 class MergedCellCoords {
   constructor(row, column, rowspan, colspan, cellCoordsFactory, cellRangeFactory) {
     /**
@@ -81208,6 +81794,12 @@ class MergedCellCoords {
      * @type {Function}
      */
     (0, _defineProperty2.default)(this, "cellRangeFactory", void 0);
+    /**
+     * The cached range coordinates of the merged cell.
+     *
+     * @type {CellRange}
+     */
+    _classPrivateFieldInitSpec(this, _cellRange, null);
     this.row = row;
     this.col = column;
     this.rowspan = rowspan;
@@ -81219,78 +81811,117 @@ class MergedCellCoords {
   /**
    * Get a warning message for when the declared merged cell data contains negative values.
    *
-   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCell Object containing information
+   * about the merged cells that was about to be added.
    * @returns {string}
    */
-  static NEGATIVE_VALUES_WARNING(newMergedCell) {
-    return (0, _templateLiteralTag.toSingleLine)`The merged cell declared with {row: ${newMergedCell.row}, col: ${newMergedCell.col},\x20
-      rowspan: ${newMergedCell.rowspan}, colspan: ${newMergedCell.colspan}} contains negative values, which is\x20
+  static NEGATIVE_VALUES_WARNING(_ref) {
+    let {
+      row,
+      col,
+      rowspan,
+      colspan
+    } = _ref;
+    return (0, _templateLiteralTag.toSingleLine)`The merged cell declared with {row: ${row}, col: ${col},\x20
+      rowspan: ${rowspan}, colspan: ${colspan}} contains negative values, which is\x20
       not supported. It will not be added to the collection.`;
   }
 
   /**
    * Get a warning message for when the declared merged cell data contains values exceeding the table limits.
    *
-   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCell Object containing information
+   * about the merged cells that was about to be added.
    * @returns {string}
    */
-  static IS_OUT_OF_BOUNDS_WARNING(newMergedCell) {
-    return (0, _templateLiteralTag.toSingleLine)`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] is positioned\x20
+  static IS_OUT_OF_BOUNDS_WARNING(_ref2) {
+    let {
+      row,
+      col
+    } = _ref2;
+    return (0, _templateLiteralTag.toSingleLine)`The merged cell declared at [${row}, ${col}] is positioned\x20
       (or positioned partially) outside of the table range. It was not added to the table, please fix your setup.`;
   }
 
   /**
    * Get a warning message for when the declared merged cell data represents a single cell.
    *
-   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCell Object containing information
+   * about the merged cells that was about to be added.
    * @returns {string}
    */
-  static IS_SINGLE_CELL(newMergedCell) {
-    return (0, _templateLiteralTag.toSingleLine)`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has both "rowspan"\x20
+  static IS_SINGLE_CELL(_ref3) {
+    let {
+      row,
+      col
+    } = _ref3;
+    return (0, _templateLiteralTag.toSingleLine)`The merged cell declared at [${row}, ${col}] has both "rowspan"\x20
       and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.`;
   }
 
   /**
    * Get a warning message for when the declared merged cell data contains "colspan" or "rowspan", that equals 0.
    *
-   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCell Object containing information
+   * about the merged cells that was about to be added.
    * @returns {string}
    */
-  static ZERO_SPAN_WARNING(newMergedCell) {
-    return (0, _templateLiteralTag.toSingleLine)`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has "rowspan"\x20
+  static ZERO_SPAN_WARNING(_ref4) {
+    let {
+      row,
+      col
+    } = _ref4;
+    return (0, _templateLiteralTag.toSingleLine)`The merged cell declared at [${row}, ${col}] has "rowspan"\x20
       or "colspan" declared as "0", which is not supported. It cannot be added to the collection.`;
   }
 
   /**
    * Check whether the values provided for a merged cell contain any negative values.
    *
-   * @param {object} mergedCellInfo Object containing the `row`, `col`, `rowspan` and `colspan` properties.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCell Object containing information
+   * about the merged cells that was about to be added.
    * @returns {boolean}
    */
-  static containsNegativeValues(mergedCellInfo) {
-    return mergedCellInfo.row < 0 || mergedCellInfo.col < 0 || mergedCellInfo.rowspan < 0 || mergedCellInfo.colspan < 0;
+  static containsNegativeValues(_ref5) {
+    let {
+      row,
+      col,
+      rowspan,
+      colspan
+    } = _ref5;
+    return row < 0 || col < 0 || rowspan < 0 || colspan < 0;
   }
 
   /**
    * Check whether the provided merged cell information object represents a single cell.
    *
    * @private
-   * @param {object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCell Object containing information
+   * about the merged cells that was about to be added.
    * @returns {boolean}
    */
-  static isSingleCell(mergedCellInfo) {
-    return mergedCellInfo.colspan === 1 && mergedCellInfo.rowspan === 1;
+  static isSingleCell(_ref6) {
+    let {
+      rowspan,
+      colspan
+    } = _ref6;
+    return colspan === 1 && rowspan === 1;
   }
 
   /**
    * Check whether the provided merged cell information object contains a rowspan or colspan of 0.
    *
    * @private
-   * @param {object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCell Object containing information
+   * about the merged cells that was about to be added.
    * @returns {boolean}
    */
-  static containsZeroSpan(mergedCellInfo) {
-    return mergedCellInfo.colspan === 0 || mergedCellInfo.rowspan === 0;
+  static containsZeroSpan(_ref7) {
+    let {
+      rowspan,
+      colspan
+    } = _ref7;
+    return colspan === 0 || rowspan === 0;
   }
 
   /**
@@ -81329,6 +81960,7 @@ class MergedCellCoords {
     if (this.col + this.colspan > totalColumns - 1) {
       this.colspan = totalColumns - this.col;
     }
+    _classPrivateFieldSet(_cellRange, this, null);
   }
 
   /**
@@ -81393,6 +82025,7 @@ class MergedCellCoords {
       // removing the whole merge
       if (changeStart <= mergeStart && changeEnd >= mergeEnd) {
         this.removed = true;
+        _classPrivateFieldSet(_cellRange, this, null);
         return false;
 
         // removing the merge partially, including the beginning
@@ -81412,6 +82045,7 @@ class MergedCellCoords {
         this[span] -= removedPart;
       }
     }
+    _classPrivateFieldSet(_cellRange, this, null);
     return true;
   }
 
@@ -81462,47 +82096,16 @@ class MergedCellCoords {
    * @returns {CellRange}
    */
   getRange() {
-    return this.cellRangeFactory(this.cellCoordsFactory(this.row, this.col), this.cellCoordsFactory(this.row, this.col), this.cellCoordsFactory(this.getLastRow(), this.getLastColumn()));
+    if (!_classPrivateFieldGet(_cellRange, this)) {
+      _classPrivateFieldSet(_cellRange, this, this.cellRangeFactory(this.cellCoordsFactory(this.row, this.col), this.cellCoordsFactory(this.row, this.col), this.cellCoordsFactory(this.getLastRow(), this.getLastColumn())));
+    }
+    return _classPrivateFieldGet(_cellRange, this);
   }
 }
 var _default = exports["default"] = MergedCellCoords;
 
 /***/ }),
-/* 668 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-exports.__esModule = true;
-exports.applySpanProperties = applySpanProperties;
-/**
- * Apply the `colspan`/`rowspan` properties.
- *
- * @param {HTMLElement} TD The soon-to-be-modified cell.
- * @param {MergedCellCoords} mergedCellInfo The merged cell in question.
- * @param {number} row Row index.
- * @param {number} col Column index.
- */
-function applySpanProperties(TD, mergedCellInfo, row, col) {
-  if (mergedCellInfo) {
-    if (mergedCellInfo.row === row && mergedCellInfo.col === col) {
-      TD.setAttribute('rowspan', mergedCellInfo.rowspan.toString());
-      TD.setAttribute('colspan', mergedCellInfo.colspan.toString());
-    } else {
-      TD.removeAttribute('rowspan');
-      TD.removeAttribute('colspan');
-      TD.style.display = 'none';
-    }
-  } else {
-    TD.removeAttribute('rowspan');
-    TD.removeAttribute('colspan');
-    TD.style.display = '';
-  }
-}
-
-/***/ }),
-/* 669 */
+/* 671 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -81898,13 +82501,13 @@ class AutofillCalculations {
     const topLeft = this.plugin.hot._createCellCoords(dragAreaStartRow, dragAreaStartColumn);
     const bottomRight = this.plugin.hot._createCellCoords(dragAreaEndRow, dragAreaEndColumn);
     const dragRange = this.plugin.hot._createCellRange(topLeft, topLeft, bottomRight);
-    return !!this.mergedCellsCollection.getWithinRange(dragRange, true);
+    return this.mergedCellsCollection.getWithinRange(dragRange, true).length > 0;
   }
 }
 var _default = exports["default"] = AutofillCalculations;
 
 /***/ }),
-/* 670 */
+/* 672 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -82027,7 +82630,7 @@ class SelectionCalculations {
 var _default = exports["default"] = SelectionCalculations;
 
 /***/ }),
-/* 671 */
+/* 673 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -82037,7 +82640,7 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 exports["default"] = toggleMergeItem;
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _cellCoords = _interopRequireDefault(__webpack_require__(667));
+var _cellCoords = _interopRequireDefault(__webpack_require__(670));
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 /**
@@ -82088,7 +82691,7 @@ function toggleMergeItem(plugin) {
 }
 
 /***/ }),
-/* 672 */
+/* 674 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -82097,7 +82700,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 673 */
+/* 675 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -82107,10 +82710,10 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(90);
-var _linkedList = _interopRequireDefault(__webpack_require__(674));
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _linkedList = _interopRequireDefault(__webpack_require__(676));
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -82408,7 +83011,7 @@ function _pushOrderNode(selectedRange, listOrder, mergeCellsVisitor, row, column
 }
 
 /***/ }),
-/* 674 */
+/* 676 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -82661,20 +83264,100 @@ class LinkedList {
 var _default = exports["default"] = LinkedList;
 
 /***/ }),
-/* 675 */
+/* 677 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _multiColumnSorting = __webpack_require__(676);
+exports.createMergeCellRenderer = createMergeCellRenderer;
+var _object = __webpack_require__(148);
+/**
+ * Creates a renderer object for the `MergeCells` plugin.
+ *
+ * @private
+ * @param {MergeCells} plugin The `MergeCells` plugin instance.
+ * @returns {{before: Function, after: Function}}
+ */
+function createMergeCellRenderer(plugin) {
+  const {
+    hot
+  } = plugin;
+  const {
+    rowIndexMapper: rowMapper,
+    columnIndexMapper: columnMapper
+  } = hot;
+
+  /**
+   * Runs before the cell is rendered.
+   *
+   * @private
+   */
+  function before() {}
+
+  /**
+   * Runs after the cell is rendered.
+   *
+   * @private
+   * @param {HTMLElement} TD The cell to be modified.
+   * @param {number} row Row index.
+   * @param {number} col Visual column index.
+   */
+  function after(TD, row, col) {
+    const mergedCell = plugin.mergedCellsCollection.get(row, col);
+    if (!(0, _object.isObject)(mergedCell)) {
+      TD.removeAttribute('rowspan');
+      TD.removeAttribute('colspan');
+      TD.style.display = '';
+      return;
+    }
+    const {
+      row: origRow,
+      col: origColumn,
+      colspan: origColspan,
+      rowspan: origRowspan
+    } = mergedCell;
+    const [lastMergedRowIndex, lastMergedColumnIndex] = plugin.translateMergedCellToRenderable(origRow, origRowspan, origColumn, origColspan);
+    const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
+    const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
+    const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
+    const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
+
+    const notHiddenRow = rowMapper.getNearestNotHiddenIndex(origRow, 1);
+    const notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
+    const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);
+    const notHiddenColspan = Math.min(origColspan, maxColSpan);
+    if (notHiddenRow === row && notHiddenColumn === col) {
+      TD.setAttribute('rowspan', notHiddenRowspan);
+      TD.setAttribute('colspan', notHiddenColspan);
+    } else {
+      TD.removeAttribute('rowspan');
+      TD.removeAttribute('colspan');
+      TD.style.display = 'none';
+    }
+  }
+  return {
+    before,
+    after
+  };
+}
+
+/***/ }),
+/* 678 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
+var _multiColumnSorting = __webpack_require__(679);
 exports.PLUGIN_KEY = _multiColumnSorting.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _multiColumnSorting.PLUGIN_PRIORITY;
 exports.MultiColumnSorting = _multiColumnSorting.MultiColumnSorting;
 
 /***/ }),
-/* 676 */
+/* 679 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -82683,15 +83366,15 @@ exports.MultiColumnSorting = _multiColumnSorting.MultiColumnSorting;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
-var _columnSorting = __webpack_require__(487);
-var _sortService = __webpack_require__(491);
-var _utils = __webpack_require__(490);
+var _columnSorting = __webpack_require__(488);
+var _sortService = __webpack_require__(492);
+var _utils = __webpack_require__(491);
 var _element = __webpack_require__(138);
-var _rootComparator = __webpack_require__(677);
-var _utils2 = __webpack_require__(678);
-var _domHelpers = __webpack_require__(679);
+var _rootComparator = __webpack_require__(680);
+var _utils2 = __webpack_require__(681);
+var _domHelpers = __webpack_require__(682);
 var _shortcutContexts = __webpack_require__(315);
-__webpack_require__(680);
+__webpack_require__(683);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'multiColumnSorting';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 170;
 const CONFLICTED_PLUGIN_KEY = 'columnSorting';
@@ -82783,6 +83466,7 @@ class MultiColumnSorting extends _columnSorting.ColumnSorting {
   enablePlugin() {
     if (!this.enabled && this.hot.getSettings()[this.pluginKey] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY]) {
       (0, _utils2.warnAboutPluginsConflict)();
+      this.hot.getPlugin(CONFLICTED_PLUGIN_KEY).disablePlugin();
     }
     super.enablePlugin();
   }
@@ -82994,7 +83678,7 @@ class MultiColumnSorting extends _columnSorting.ColumnSorting {
 exports.MultiColumnSorting = MultiColumnSorting;
 
 /***/ }),
-/* 677 */
+/* 680 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -83002,7 +83686,7 @@ exports.MultiColumnSorting = MultiColumnSorting;
 
 exports.__esModule = true;
 exports.rootComparator = rootComparator;
-var _sortService = __webpack_require__(491);
+var _sortService = __webpack_require__(492);
 /**
  * Sort comparator handled by conventional sort algorithm.
  *
@@ -83036,7 +83720,7 @@ function rootComparator(sortingOrders, columnMetas) {
 }
 
 /***/ }),
-/* 678 */
+/* 681 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -83051,11 +83735,11 @@ var _templateLiteralTag = __webpack_require__(143);
  */
 function warnAboutPluginsConflict() {
   (0, _console.warn)((0, _templateLiteralTag.toSingleLine)`Plugins \`columnSorting\` and \`multiColumnSorting\` should not be enabled simultaneously. 
-    Only \`multiColumnSorting\` will work.`);
+    Only \`multiColumnSorting\` will work. The \`columnSorting\` plugin will be disabled.`);
 }
 
 /***/ }),
-/* 679 */
+/* 682 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -83099,7 +83783,7 @@ function getClassesToRemove(htmlElement) {
 }
 
 /***/ }),
-/* 680 */
+/* 683 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -83108,20 +83792,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 681 */
+/* 684 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _multipleSelectionHandles = __webpack_require__(682);
+var _multipleSelectionHandles = __webpack_require__(685);
 exports.PLUGIN_KEY = _multipleSelectionHandles.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _multipleSelectionHandles.PLUGIN_PRIORITY;
 exports.MultipleSelectionHandles = _multipleSelectionHandles.MultipleSelectionHandles;
 
 /***/ }),
-/* 682 */
+/* 685 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -83460,20 +84144,20 @@ class MultipleSelectionHandles extends _base.BasePlugin {
 exports.MultipleSelectionHandles = MultipleSelectionHandles;
 
 /***/ }),
-/* 683 */
+/* 686 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _nestedHeaders = __webpack_require__(684);
+var _nestedHeaders = __webpack_require__(687);
 exports.PLUGIN_KEY = _nestedHeaders.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _nestedHeaders.PLUGIN_PRIORITY;
 exports.NestedHeaders = _nestedHeaders.NestedHeaders;
 
 /***/ }),
-/* 684 */
+/* 687 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -83491,12 +84175,12 @@ var _event = __webpack_require__(158);
 var _console = __webpack_require__(166);
 var _selection = __webpack_require__(281);
 var _base = __webpack_require__(472);
-var _stateManager2 = _interopRequireDefault(__webpack_require__(685));
-var _ghostTable = _interopRequireDefault(__webpack_require__(698));
-__webpack_require__(699);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _stateManager2 = _interopRequireDefault(__webpack_require__(688));
+var _ghostTable = _interopRequireDefault(__webpack_require__(701));
+__webpack_require__(702);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -83515,6 +84199,7 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 280;
  * To make any header wider (covering multiple table columns), it's corresponding configuration array element should be
  * provided as an object with `label` and `colspan` properties. The `label` property defines the header's label,
  * while the `colspan` property defines a number of columns that the header should cover.
+ * You can also set custom class names to any of the headers by providing the `headerClassName` property.
  *
  * __Note__ that the plugin supports a *nested* structure, which means, any header cannot be wider than it's "parent". In
  * other words, headers cannot overlap each other.
@@ -83526,7 +84211,7 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 280;
  * const hot = new Handsontable(container, {
  *   data: getData(),
  *   nestedHeaders: [
- *     ['A', {label: 'B', colspan: 8}, 'C'],
+ *     ['A', {label: 'B', colspan: 8, headerClassName: 'htRight'}, 'C'],
  *     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
  *     ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
  *     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
@@ -83539,7 +84224,7 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 280;
  * <HotTable
  *   data={getData()}
  *   nestedHeaders={[
- *     ['A', {label: 'B', colspan: 8}, 'C'],
+ *     ['A', {label: 'B', colspan: 8, headerClassName: 'htRight'}, 'C'],
  *     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
  *     ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
  *     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
@@ -83894,7 +84579,8 @@ class NestedHeaders extends _base.BasePlugin {
       const {
         colspan,
         isHidden,
-        isPlaceholder
+        isPlaceholder,
+        headerClassNames
       } = (_classPrivateFieldGet2 = _classPrivateFieldGet(_stateManager, this).getHeaderSettings(headerLevel, visualColumnIndex)) !== null && _classPrivateFieldGet2 !== void 0 ? _classPrivateFieldGet2 : {
         label: ''
       };
@@ -83917,6 +84603,15 @@ class NestedHeaders extends _base.BasePlugin {
       this.hot.view.appendColHeader(visualColumnIndex, TH, function () {
         return _this2.getColumnHeaderValue(...arguments);
       }, headerLevel);
+
+      // Replace the higher-order `headerClassName`s with the one provided in the plugin config, if it was provided.
+      if (!isPlaceholder && !isHidden) {
+        const innerHeaderDiv = TH.querySelector('div.relative');
+        if (innerHeaderDiv && headerClassNames && headerClassNames.length > 0) {
+          (0, _element.removeClass)(innerHeaderDiv, this.hot.getColumnMeta(visualColumnIndex).headerClassName);
+          (0, _element.addClass)(innerHeaderDiv, headerClassNames);
+        }
+      }
     };
   }
 
@@ -84157,7 +84852,7 @@ function _onAfterOnCellMouseDown(event, coords) {
     } else {
       columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
-  } else if ((0, _event.isLeftClick)(event) || (0, _event.isRightClick)(event) && allowRightClickSelection) {
+  } else if ((0, _event.isLeftClick)(event) || (0, _event.isRightClick)(event) && allowRightClickSelection || (0, _event.isTouchEvent)(event)) {
     columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
   }
 
@@ -84418,7 +85113,7 @@ function _onAfterLoadData(sourceData, initialLoad) {
 }
 
 /***/ }),
-/* 685 */
+/* 688 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -84429,13 +85124,13 @@ exports.__esModule = true;
 __webpack_require__(8);
 __webpack_require__(90);
 var _array = __webpack_require__(144);
-var _sourceSettings2 = _interopRequireDefault(__webpack_require__(686));
-var _headersTree2 = _interopRequireDefault(__webpack_require__(689));
-var _nodeModifiers = __webpack_require__(691);
-var _matrixGenerator = __webpack_require__(697);
-var _tree = __webpack_require__(690);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _sourceSettings2 = _interopRequireDefault(__webpack_require__(689));
+var _headersTree2 = _interopRequireDefault(__webpack_require__(692));
+var _nodeModifiers = __webpack_require__(694);
+var _matrixGenerator = __webpack_require__(700);
+var _tree = __webpack_require__(693);
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -84909,7 +85604,7 @@ class StateManager {
 exports["default"] = StateManager;
 
 /***/ }),
-/* 686 */
+/* 689 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -84920,9 +85615,9 @@ __webpack_require__(8);
 __webpack_require__(90);
 var _object = __webpack_require__(148);
 var _array = __webpack_require__(144);
-var _settingsNormalizer = __webpack_require__(687);
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _settingsNormalizer = __webpack_require__(690);
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -85131,7 +85826,7 @@ class SourceSettings {
 exports["default"] = SourceSettings;
 
 /***/ }),
-/* 687 */
+/* 690 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -85143,7 +85838,7 @@ __webpack_require__(90);
 var _array = __webpack_require__(144);
 var _object = __webpack_require__(148);
 var _mixed = __webpack_require__(141);
-var _utils = __webpack_require__(688);
+var _utils = __webpack_require__(691);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -85201,12 +85896,16 @@ function normalizeSettings(sourceSettings) {
       if ((0, _object.isObject)(sourceHeaderSettings)) {
         const {
           label,
-          colspan
+          colspan,
+          headerClassName
         } = sourceHeaderSettings;
         headerSettings.label = (0, _mixed.stringify)(label);
         if (typeof colspan === 'number' && colspan > 1) {
           headerSettings.colspan = colspan;
           headerSettings.origColspan = colspan;
+        }
+        if (typeof headerClassName === 'string') {
+          headerSettings.headerClassNames = [...headerClassName.split(' ')];
         }
       } else {
         headerSettings.label = (0, _mixed.stringify)(sourceHeaderSettings);
@@ -85241,7 +85940,7 @@ function normalizeSettings(sourceSettings) {
 }
 
 /***/ }),
-/* 688 */
+/* 691 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -85266,6 +85965,8 @@ exports.createPlaceholderHeaderSettings = createPlaceholderHeaderSettings;
  *                            For example for header with colspan = 8 the 7 blank objects are generated to fill the array settings
  *                            to length = 8.
  * @property {boolean} isPlaceholder The flag determines whether the column header at the specified index is non-renderable.
+ * @property {string[]} headerClassNames The list of CSS classes that will be added to the `div` element inside the
+ * header Acts as a replacement for the analogous property from the Handsontable settings.
  */
 
 /**
@@ -85284,7 +85985,8 @@ function createDefaultHeaderSettings() {
     isCollapsed = false,
     isHidden = false,
     isRoot = false,
-    isPlaceholder = false
+    isPlaceholder = false,
+    headerClassNames = []
   } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   return {
     label,
@@ -85295,7 +85997,8 @@ function createDefaultHeaderSettings() {
     crossHiddenColumns,
     isHidden,
     isRoot,
-    isPlaceholder
+    isPlaceholder,
+    headerClassNames
   };
 }
 
@@ -85314,7 +86017,7 @@ function createPlaceholderHeaderSettings() {
 }
 
 /***/ }),
-/* 689 */
+/* 692 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -85324,9 +86027,9 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(8);
 var _array = __webpack_require__(144);
-var _tree = _interopRequireDefault(__webpack_require__(690));
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _tree = _interopRequireDefault(__webpack_require__(693));
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -85552,7 +86255,7 @@ class HeadersTree {
 exports["default"] = HeadersTree;
 
 /***/ }),
-/* 690 */
+/* 693 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -85771,7 +86474,7 @@ class TreeNode {
 exports["default"] = TreeNode;
 
 /***/ }),
-/* 691 */
+/* 694 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -85780,10 +86483,10 @@ exports["default"] = TreeNode;
 exports.__esModule = true;
 exports.triggerNodeModification = triggerNodeModification;
 __webpack_require__(8);
-var _collapse = __webpack_require__(692);
-var _expand = __webpack_require__(693);
-var _hideColumn = __webpack_require__(695);
-var _showColumn = __webpack_require__(696);
+var _collapse = __webpack_require__(695);
+var _expand = __webpack_require__(696);
+var _hideColumn = __webpack_require__(698);
+var _showColumn = __webpack_require__(699);
 /**
  * The NodeModifiers module is responsible for the modification of a tree structure
  * in a way to achieve new column headers state.
@@ -85813,7 +86516,7 @@ function triggerNodeModification(actionName, nodeToProcess, gridColumnIndex) {
 }
 
 /***/ }),
-/* 692 */
+/* 695 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -85829,8 +86532,8 @@ __webpack_require__(116);
 __webpack_require__(119);
 __webpack_require__(122);
 var _array = __webpack_require__(144);
-var _expand = __webpack_require__(693);
-var _tree = __webpack_require__(694);
+var _expand = __webpack_require__(696);
+var _tree = __webpack_require__(697);
 /**
  * Collapsing a node is a process where the processing node is collapsed
  * to the colspan width of the first child. All node children, except the
@@ -85923,7 +86626,7 @@ function collapseNode(nodeToProcess) {
 }
 
 /***/ }),
-/* 693 */
+/* 696 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -85939,8 +86642,8 @@ __webpack_require__(116);
 __webpack_require__(119);
 __webpack_require__(122);
 var _array = __webpack_require__(144);
-var _collapse = __webpack_require__(692);
-var _tree = __webpack_require__(694);
+var _collapse = __webpack_require__(695);
+var _tree = __webpack_require__(697);
 /**
  * Expanding a node is a process where the processing node is expanded to
  * its original colspan width. To restore an original state of all node
@@ -86028,7 +86731,7 @@ function expandNode(nodeToProcess) {
 }
 
 /***/ }),
-/* 694 */
+/* 697 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -86099,7 +86802,7 @@ function isNodeReflectsFirstChildColspan(node) {
 }
 
 /***/ }),
-/* 695 */
+/* 698 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -86162,7 +86865,7 @@ the last node, the hide column modification can be applied.`);
 }
 
 /***/ }),
-/* 696 */
+/* 699 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -86223,7 +86926,7 @@ the last node, the show column modification can be applied.`);
 }
 
 /***/ }),
-/* 697 */
+/* 700 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -86233,7 +86936,7 @@ exports.__esModule = true;
 exports.generateMatrix = generateMatrix;
 __webpack_require__(90);
 var _array = __webpack_require__(144);
-var _utils = __webpack_require__(688);
+var _utils = __webpack_require__(691);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -86329,7 +87032,7 @@ function createNestedArrayIfNecessary(array, index) {
 }
 
 /***/ }),
-/* 698 */
+/* 701 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -86481,7 +87184,7 @@ class GhostTable {
 var _default = exports["default"] = GhostTable;
 
 /***/ }),
-/* 699 */
+/* 702 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -86490,20 +87193,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 700 */
+/* 703 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _nestedRows = __webpack_require__(701);
+var _nestedRows = __webpack_require__(704);
 exports.PLUGIN_KEY = _nestedRows.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _nestedRows.PLUGIN_PRIORITY;
 exports.NestedRows = _nestedRows.NestedRows;
 
 /***/ }),
-/* 701 */
+/* 704 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -86522,19 +87225,19 @@ __webpack_require__(119);
 __webpack_require__(122);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _base = __webpack_require__(472);
-var _dataManager = _interopRequireDefault(__webpack_require__(702));
-var _collapsing = _interopRequireDefault(__webpack_require__(703));
-var _headers = _interopRequireDefault(__webpack_require__(705));
-var _contextMenu = _interopRequireDefault(__webpack_require__(706));
+var _dataManager = _interopRequireDefault(__webpack_require__(705));
+var _collapsing = _interopRequireDefault(__webpack_require__(706));
+var _headers = _interopRequireDefault(__webpack_require__(708));
+var _contextMenu = _interopRequireDefault(__webpack_require__(709));
 var _console = __webpack_require__(166);
 var _data = __webpack_require__(255);
 var _translations = __webpack_require__(256);
 var _shortcutContexts = __webpack_require__(315);
-var _rowMoveController = _interopRequireDefault(__webpack_require__(707));
-__webpack_require__(708);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+var _rowMoveController = _interopRequireDefault(__webpack_require__(710));
+__webpack_require__(711);
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -87063,7 +87766,7 @@ function _onBeforeLoadData(data) {
 }
 
 /***/ }),
-/* 702 */
+/* 705 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -87779,7 +88482,7 @@ class DataManager {
 var _default = exports["default"] = DataManager;
 
 /***/ }),
-/* 703 */
+/* 706 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -87792,8 +88495,8 @@ var _event = __webpack_require__(158);
 var _array = __webpack_require__(144);
 var _number = __webpack_require__(178);
 var _element = __webpack_require__(138);
-var _base = _interopRequireDefault(__webpack_require__(704));
-var _headers = _interopRequireDefault(__webpack_require__(705));
+var _base = _interopRequireDefault(__webpack_require__(707));
+var _headers = _interopRequireDefault(__webpack_require__(708));
 /**
  * Class responsible for the UI for collapsing and expanding groups.
  *
@@ -88254,7 +88957,7 @@ class CollapsingUI extends _base.default {
 var _default = exports["default"] = CollapsingUI;
 
 /***/ }),
-/* 704 */
+/* 707 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -88288,7 +88991,7 @@ class BaseUI {
 var _default = exports["default"] = BaseUI;
 
 /***/ }),
-/* 705 */
+/* 708 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -88299,7 +89002,7 @@ exports.__esModule = true;
 var _array = __webpack_require__(144);
 var _number = __webpack_require__(178);
 var _element = __webpack_require__(138);
-var _base = _interopRequireDefault(__webpack_require__(704));
+var _base = _interopRequireDefault(__webpack_require__(707));
 var _a11y = __webpack_require__(145);
 /**
  * Class responsible for the UI in the Nested Rows' row headers.
@@ -88426,7 +89129,7 @@ class HeadersUI extends _base.default {
 var _default = exports["default"] = HeadersUI;
 
 /***/ }),
-/* 706 */
+/* 709 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -88439,11 +89142,11 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _number = __webpack_require__(178);
 var _array = __webpack_require__(144);
 var C = _interopRequireWildcard(__webpack_require__(280));
-var _base = _interopRequireDefault(__webpack_require__(704));
+var _base = _interopRequireDefault(__webpack_require__(707));
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
-function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 /**
@@ -88545,7 +89248,7 @@ class ContextMenuUI extends _base.default {
 var _default = exports["default"] = ContextMenuUI;
 
 /***/ }),
-/* 707 */
+/* 710 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -88835,7 +89538,7 @@ class RowMoveController {
 exports["default"] = RowMoveController;
 
 /***/ }),
-/* 708 */
+/* 711 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -88844,20 +89547,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 709 */
+/* 712 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _persistentState = __webpack_require__(710);
+var _persistentState = __webpack_require__(713);
 exports.PLUGIN_KEY = _persistentState.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _persistentState.PLUGIN_PRIORITY;
 exports.PersistentState = _persistentState.PersistentState;
 
 /***/ }),
-/* 710 */
+/* 713 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -88867,7 +89570,7 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _base = __webpack_require__(472);
-var _storage = _interopRequireDefault(__webpack_require__(711));
+var _storage = _interopRequireDefault(__webpack_require__(714));
 var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
 _pluginHooks.default.getSingleton().register('persistentStateSave');
 _pluginHooks.default.getSingleton().register('persistentStateLoad');
@@ -89008,7 +89711,7 @@ class PersistentState extends _base.BasePlugin {
 exports.PersistentState = PersistentState;
 
 /***/ }),
-/* 711 */
+/* 714 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89132,20 +89835,20 @@ class Storage {
 var _default = exports["default"] = Storage;
 
 /***/ }),
-/* 712 */
+/* 715 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _search = __webpack_require__(713);
+var _search = __webpack_require__(716);
 exports.PLUGIN_KEY = _search.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _search.PLUGIN_PRIORITY;
 exports.Search = _search.Search;
 
 /***/ }),
-/* 713 */
+/* 716 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89160,8 +89863,8 @@ var _base = __webpack_require__(472);
 var _object = __webpack_require__(148);
 var _number = __webpack_require__(178);
 var _mixed = __webpack_require__(141);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'search';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 190;
@@ -89453,20 +90156,20 @@ function _onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
 }
 
 /***/ }),
-/* 714 */
+/* 717 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _touchScroll = __webpack_require__(715);
+var _touchScroll = __webpack_require__(718);
 exports.PLUGIN_KEY = _touchScroll.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _touchScroll.PLUGIN_PRIORITY;
 exports.TouchScroll = _touchScroll.TouchScroll;
 
 /***/ }),
-/* 715 */
+/* 718 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89481,8 +90184,8 @@ var _element = __webpack_require__(138);
 var _array = __webpack_require__(144);
 var _base = __webpack_require__(472);
 var _feature = __webpack_require__(151);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'touchScroll';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 200;
@@ -89655,20 +90358,20 @@ function _onAfterMomentumScroll() {
 }
 
 /***/ }),
-/* 716 */
+/* 719 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _trimRows = __webpack_require__(717);
+var _trimRows = __webpack_require__(720);
 exports.PLUGIN_KEY = _trimRows.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _trimRows.PLUGIN_PRIORITY;
 exports.TrimRows = _trimRows.TrimRows;
 
 /***/ }),
-/* 717 */
+/* 720 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89689,8 +90392,8 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(153));
 var _base = __webpack_require__(472);
 var _translations = __webpack_require__(256);
 var _array = __webpack_require__(144);
-function _classPrivateMethodInitSpec(obj, privateSet) { _checkPrivateRedeclaration(obj, privateSet); privateSet.add(obj); }
-function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
+function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'trimRows';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 330;
@@ -89998,21 +90701,21 @@ function _onMapInit() {
 }
 
 /***/ }),
-/* 718 */
+/* 721 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _undoRedo = _interopRequireWildcard(__webpack_require__(719));
+var _undoRedo = _interopRequireWildcard(__webpack_require__(722));
 exports.UndoRedo = _undoRedo.default;
 exports.PLUGIN_KEY = _undoRedo.PLUGIN_KEY;
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 
 /***/ }),
-/* 719 */
+/* 722 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -90021,13 +90724,13 @@ function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(90);
-__webpack_require__(720);
+__webpack_require__(723);
 var _pluginHooks = _interopRequireDefault(__webpack_require__(160));
 var _array = __webpack_require__(144);
 var _number = __webpack_require__(178);
 var _object = __webpack_require__(148);
-var _utils = __webpack_require__(511);
-var _moves = __webpack_require__(632);
+var _utils = __webpack_require__(514);
+var _moves = __webpack_require__(635);
 const SHORTCUTS_GROUP = 'undoRedo';
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'undoRedo';
 
@@ -90168,6 +90871,12 @@ function UndoRedo(instance) {
       return;
     }
     plugin.done(() => new UndoRedo.UnmergeCellsAction(instance, cellRange));
+  });
+  instance.addHook('beforeColumnSort', (currentSortConfig, destinationSortConfigs, sortPossible) => {
+    if (!sortPossible) {
+      return;
+    }
+    plugin.done(() => new UndoRedo.ColumnSortAction(currentSortConfig, destinationSortConfigs));
   });
 
   // TODO: Why this callback is needed? One test doesn't pass after calling method right after plugin creation (outside the callback).
@@ -90811,6 +91520,37 @@ UndoRedo.ColumnMoveAction.prototype.redo = function (instance, redoneCallback) {
 };
 
 /**
+ * ColumnSort action.
+ *
+ * @private
+ * @param {Array} currentSortState The current sort state.
+ * @param {Array} newSortState The new sort state.
+ */
+UndoRedo.ColumnSortAction = function (currentSortState, newSortState) {
+  this.previousSortState = currentSortState;
+  this.nextSortState = newSortState;
+};
+(0, _object.inherit)(UndoRedo.ColumnSortAction, UndoRedo.Action);
+UndoRedo.ColumnSortAction.prototype.undo = function (instance, undoneCallback) {
+  const sortPlugin = instance.getPlugin('columnSorting');
+  const multiSortPlugin = instance.getPlugin('multiColumnSorting');
+  const enabledSortPlugin = multiSortPlugin.isEnabled() ? multiSortPlugin : sortPlugin;
+  if (this.previousSortState.length) {
+    enabledSortPlugin.sort(this.previousSortState);
+  } else {
+    enabledSortPlugin.clearSort();
+  }
+  undoneCallback();
+};
+UndoRedo.ColumnSortAction.prototype.redo = function (instance, redoneCallback) {
+  const sortPlugin = instance.getPlugin('columnSorting');
+  const multiSortPlugin = instance.getPlugin('multiColumnSorting');
+  const enabledSortPlugin = multiSortPlugin.isEnabled() ? multiSortPlugin : sortPlugin;
+  enabledSortPlugin.sort(this.nextSortState);
+  redoneCallback();
+};
+
+/**
  * Enabling and disabling plugin and attaching its to an instance.
  *
  * @private
@@ -90963,14 +91703,14 @@ UndoRedo.SETTING_KEYS = true;
 var _default = exports["default"] = UndoRedo;
 
 /***/ }),
-/* 720 */
+/* 723 */
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 var $ = __webpack_require__(9);
-var iterate = __webpack_require__(721);
-var createProperty = __webpack_require__(726);
+var iterate = __webpack_require__(724);
+var createProperty = __webpack_require__(729);
 
 // `Object.fromEntries` method
 // https://github.com/tc39/proposal-object-from-entries
@@ -90986,7 +91726,7 @@ $({ target: 'Object', stat: true }, {
 
 
 /***/ }),
-/* 721 */
+/* 724 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -90995,11 +91735,11 @@ var bind = __webpack_require__(128);
 var call = __webpack_require__(14);
 var anObject = __webpack_require__(52);
 var tryToString = __webpack_require__(37);
-var isArrayIteratorMethod = __webpack_require__(722);
+var isArrayIteratorMethod = __webpack_require__(725);
 var lengthOfArrayLike = __webpack_require__(69);
 var isPrototypeOf = __webpack_require__(30);
-var getIterator = __webpack_require__(724);
-var getIteratorMethod = __webpack_require__(725);
+var getIterator = __webpack_require__(727);
+var getIteratorMethod = __webpack_require__(728);
 var iteratorClose = __webpack_require__(112);
 
 var $TypeError = TypeError;
@@ -91062,13 +91802,13 @@ module.exports = function (iterable, unboundFunction, options) {
 
 
 /***/ }),
-/* 722 */
+/* 725 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 var wellKnownSymbol = __webpack_require__(39);
-var Iterators = __webpack_require__(723);
+var Iterators = __webpack_require__(726);
 
 var ITERATOR = wellKnownSymbol('iterator');
 var ArrayPrototype = Array.prototype;
@@ -91080,7 +91820,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 723 */
+/* 726 */
 /***/ ((module) => {
 
 "use strict";
@@ -91089,7 +91829,7 @@ module.exports = {};
 
 
 /***/ }),
-/* 724 */
+/* 727 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -91098,7 +91838,7 @@ var call = __webpack_require__(14);
 var aCallable = __webpack_require__(36);
 var anObject = __webpack_require__(52);
 var tryToString = __webpack_require__(37);
-var getIteratorMethod = __webpack_require__(725);
+var getIteratorMethod = __webpack_require__(728);
 
 var $TypeError = TypeError;
 
@@ -91110,7 +91850,7 @@ module.exports = function (argument, usingIterator) {
 
 
 /***/ }),
-/* 725 */
+/* 728 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -91118,7 +91858,7 @@ module.exports = function (argument, usingIterator) {
 var classof = __webpack_require__(84);
 var getMethod = __webpack_require__(35);
 var isNullOrUndefined = __webpack_require__(23);
-var Iterators = __webpack_require__(723);
+var Iterators = __webpack_require__(726);
 var wellKnownSymbol = __webpack_require__(39);
 
 var ITERATOR = wellKnownSymbol('iterator');
@@ -91131,7 +91871,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 726 */
+/* 729 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -91147,7 +91887,7 @@ module.exports = function (object, key, value) {
 
 
 /***/ }),
-/* 727 */
+/* 730 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -91256,7 +91996,7 @@ exports.CellRange = _base.CellRange;
 var _registry = __webpack_require__(392);
 var _eventManager = _interopRequireWildcard(__webpack_require__(168));
 var _translations = __webpack_require__(256);
-var _jquery = _interopRequireDefault(__webpack_require__(727));
+var _jquery = _interopRequireDefault(__webpack_require__(730));
 var _ghostTable = _interopRequireDefault(__webpack_require__(474));
 var parseTableHelpers = _interopRequireWildcard(__webpack_require__(170));
 var arrayHelpers = _interopRequireWildcard(__webpack_require__(144));
