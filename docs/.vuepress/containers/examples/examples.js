@@ -127,8 +127,8 @@ module.exports = function(docsVersion, base) {
         const tsToken = tsPos ? tokens[tsIndex] : undefined;
 
         // Parse code
-        const jsTokenWithBasePath = jsToken.content.replaceAll('{{$basePath}}', base);
-        const tsTokenWithBasePath = tsToken.content.replaceAll('{{$basePath}}', base);
+        const jsTokenWithBasePath = jsToken?.content?.replaceAll('{{$basePath}}', base);
+        const tsTokenWithBasePath = tsToken?.content?.replaceAll('{{$basePath}}', base);
         const codeToCompile = parseCode(jsTokenWithBasePath);
         const tsCodeToCompile = parseCode(tsTokenWithBasePath);
         const codeToCompileSandbox = parseCodeSandbox(jsTokenWithBasePath);
