@@ -1,5 +1,13 @@
 <template>
   <footer class="footer">
+    <a
+        v-if="editLink"
+        class="edit-link"
+        :href="editLink"
+        target="_blank"
+        rel="noopener noreferrer"
+      >{{ editLinkText }} <i class="ico i-external"></i>
+    </a>
 
     <div class="footer-links">
       <div class="socail-links">
@@ -23,15 +31,6 @@
         <a href="https://handsontable.com/blog/">Blog</a>
         <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a>
       </div>
-
-      <a
-          v-if="editLink"
-          class="edit-link"
-          :href="editLink"
-          target="_blank"
-          rel="noopener noreferrer"
-        >{{ editLinkText }} <i class="ico i-external"></i>
-      </a>
     </div>
 
     <div class="copyright">
