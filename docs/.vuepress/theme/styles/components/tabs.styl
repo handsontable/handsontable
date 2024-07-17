@@ -75,6 +75,18 @@
         display: flex
         gap: 8px
 
+        &:has(li:first-child:last-child ) {
+            display: none;
+
+            + .tabs-component-panels {
+                border-radius: $radius !important
+
+                .codeControls { 
+                    top: 10px
+                }
+            }
+        }
+
         li.tabs-component-tab  {
             &:first-child:last-child {
             //    visibility: hidden
@@ -122,14 +134,21 @@
         margin: 0 -0
 
         ul.tabs-component-tabs  {
+            &:has(li:first-child:last-child ) {
+                + .tabs-component-panels {
+                    .codeControls { 
+                        top: -40px
+                    }
+                }
+            }
         }
 
         .tabs-component-panels {
-
             .tabs-component-panel {
                 padding: 16px 16px
             }
         }
+        
     }
 }
 
