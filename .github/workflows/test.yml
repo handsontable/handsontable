@@ -292,9 +292,6 @@ jobs:
     name: "[TEST] Handsontable: ESM"
     runs-on: ubuntu-latest
     needs: [ build-handsontable-es-cjs ]
-    if: |
-      needs.check-scope.outputs.run-all == 'true' ||
-      needs.check-scope.outputs.test-handsontable-e2e-min == 'true'
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
