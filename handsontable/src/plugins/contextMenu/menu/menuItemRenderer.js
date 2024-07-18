@@ -4,7 +4,6 @@ import {
   isItemSelectionDisabled,
   isItemSeparator,
   isItemCheckable,
-  callOrReturn,
 } from './utils';
 import {
   addClass,
