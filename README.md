@@ -11,10 +11,10 @@
 </div>
 
 <h3>
-  <a href="https://handsontable.com/docs/react-data-grid/installation/"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="14" height="14"> <strong>React</strong>&nbsp;&nbsp;</a> |
+  <a href="https://handsontable.com/docs/react-data-grid/installation/">&nbsp;&nbsp;<img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="14" height="14"> <strong>React</strong>&nbsp;&nbsp;</a> |
   <a href="https://handsontable.com/docs/javascript-data-grid/angular-installation/">&nbsp;&nbsp;<img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="14" height="14"> <strong>Angular</strong>&nbsp;&nbsp;</a> |
   <a href="https://handsontable.com/docs/javascript-data-grid/vue3-installation/">&nbsp;&nbsp;<img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14"> <strong>Vue</strong>&nbsp;&nbsp;</a> |
-  <a href="https://handsontable.com/docs/javascript-data-grid/installation/">&nbsp;&nbsp;<img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="14" height="14"> <strong>JavaScript</strong></a>
+  <a href="https://handsontable.com/docs/javascript-data-grid/installation/">&nbsp;&nbsp;<img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="14" height="14"> <strong>JavaScript</strong>&nbsp;&nbsp;</a>
 </h3>
 
 [![](https://data.jsdelivr.com/v1/package/npm/handsontable/badge)](https://www.jsdelivr.com/package/npm/handsontable)
@@ -58,7 +58,7 @@ The most popular features of Handsontable:
 
 ## Installation
 
-You can install Handsontable with [NPM](https://www.npmjs.com/), [Yarn](https://yarnpkg.com/), or a `<script>`.
+You can install Handsontable with [NPM](https://www.npmjs.com/), [Yarn](https://yarnpkg.com/), [PNpm](https://pnpm.io/), or a `<script>`.
   
 #### NPM
 ```bash
