@@ -5,9 +5,7 @@ import * as C from '../../../i18n/constants';
 export const KEY = 'alignment';
 
 /**
- * @param row The currrent row index.
- * @param col The current column index.
- * @param htClassName The class name to check.
+ * @param  {string} htClassName The class name to check.
  * @returns {boolean} Returns `true` if the cell has the provided class name.
  */
 function getAlignmentComparator(htClassName) {
@@ -23,8 +21,8 @@ function getAlignmentComparator(htClassName) {
 }
 
 /**
- * @param context The current context instance.
- * @param htClassName The class name to check.
+ * @param {object} context The current context instance.
+ * @param {string} htClassName The class name to check.
  * @returns {string} The value of aria-checked parameter.
  */
 function ariaChecked(context, htClassName) {
@@ -36,9 +34,10 @@ function ariaChecked(context, htClassName) {
 }
 
 /**
- * @param context The current context instance.
- * @param rawName The raw name of the menu item.
- * @param htClassName The class name to check.
+ * @param {object} context The current context instance.
+ * @param {string} rawName The raw name of the menu item.
+ * @param {string} htClassName The class name to check.
+ * @returns {string} The value of aria-label parameter.
  */
 function ariaLabel(context, rawName, htClassName) {
   const hasClass = checkSelectionConsistency(
@@ -53,7 +52,7 @@ function ariaLabel(context, rawName, htClassName) {
 }
 
 /**
- *
+ * @returns {object}
  */
 export default function alignmentItem() {
   return {
