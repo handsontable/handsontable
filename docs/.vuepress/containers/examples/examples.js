@@ -27,11 +27,10 @@ const tab = (tabName, token, id) => {
   ];
 };
 
-const parsePreview = (content, base) => {
+const parsePreview = (content) => {
   if (!content) return '';
 
   return content
-    .replaceAll('{{$basePath}}', base)
     // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
     .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '')
     // Remove the code between "/* start:skip-in-preview */" and "/* end:skip-in-preview */" expressions
@@ -128,12 +127,14 @@ module.exports = function(docsVersion, base) {
         const tsToken = tsPos ? tokens[tsIndex] : undefined;
 
         // Parse code
-        const codeToCompile = parseCode(jsToken.content);
-        const tsCodeToCompile = parseCode(tsToken?.content);
-        const codeToCompileSandbox = parseCodeSandbox(jsToken.content);
-        const tsCodeToCompileSandbox = parseCodeSandbox(tsToken?.content);
-        const codeToPreview = parsePreview(jsToken.content, base);
-        const tsCodeToPreview = parsePreview(tsToken?.content, base);
+        const jsTokenWithBasePath = jsToken?.content?.replaceAll('{{$basePath}}', base);
+        const tsTokenWithBasePath = tsToken?.content?.replaceAll('{{$basePath}}', base);
+        const codeToCompile = parseCode(jsTokenWithBasePath);
+        const tsCodeToCompile = parseCode(tsTokenWithBasePath);
+        const codeToCompileSandbox = parseCodeSandbox(jsTokenWithBasePath);
+        const tsCodeToCompileSandbox = parseCodeSandbox(tsTokenWithBasePath);
+        const codeToPreview = parsePreview(jsTokenWithBasePath);
+        const tsCodeToPreview = parsePreview(tsTokenWithBasePath);
 
         // Replace token content
         if (jsToken) jsToken.content = codeToPreview;

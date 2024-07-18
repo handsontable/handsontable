@@ -328,7 +328,7 @@ pre + .codeControls {
         position absolute
         top: 0
         right: 0
-        width: 128px;
+        width: 125%;
         height: 46px
         border-radius: 0 $radius $radius 0
         background: $editorColor 
@@ -358,9 +358,7 @@ div[class*="language-"]:has(.codeControls),
     .codeControls { 
         padding: 0
         
-        &:after {
-            display: none
-        }
+       
     }
 
     @media (max-width: $small) {
@@ -464,7 +462,6 @@ div[class*="language-"]:has(.codeControls),
 .tabs-component-panel { 
     .codeControls {
         top: -44px
-        right: -8px
     }
 }
 

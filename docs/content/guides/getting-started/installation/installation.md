@@ -61,10 +61,10 @@ To install Handsontable locally using a package manager, run one of these comman
   ```
 
   </code-block>
-  <code-block title="NuGet">
+  <code-block title="pnpm">
 
   ```bash
-  PM> Install-Package Handsontable
+  pnpm add handsontable
   ```
 
   </code-block>
