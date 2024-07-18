@@ -48,7 +48,9 @@ export function createMenuItemRenderer(mainTableHot) {
 
     const item = menuHot.getSourceDataAtRow(row);
     const wrapper = mainTableHot.rootDocument.createElement('div');
-    const itemValue = callOrReturn(value, mainTableHot);
+    const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
+    const ariaLabel = typeof item.ariaLabel === 'function' ? item.ariaLabel.call(mainTableHot) : item.ariaLabel;
+    const ariaChecked = typeof item.ariaChecked === 'function' ? item.ariaChecked.call(mainTableHot) : item.ariaChecked;
 
     empty(TD);
     addClass(wrapper, 'htItemWrapper');
@@ -61,8 +63,8 @@ export function createMenuItemRenderer(mainTableHot) {
       setAttribute(TD, [
         ...(isItemCheckable(item) ? [
           A11Y_MENU_ITEM_CHECKBOX(),
-          A11Y_LABEL(callOrReturn(item.ariaLabel, item)),
-          A11Y_CHECKED(callOrReturn(item.ariaChecked, item))
+          A11Y_LABEL(ariaLabel),
+          A11Y_CHECKED(ariaChecked)
         ] : [
           A11Y_MENU_ITEM(),
           A11Y_LABEL(itemValue)
