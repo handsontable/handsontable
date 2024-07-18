@@ -18,7 +18,17 @@
  * @class ViewportBaseCalculator
  */
 export class ViewportBaseCalculator {
+  /**
+   * The calculation types to be performed.
+   *
+   * @type {Array<[string, ColumnsCalculationType | RowsCalculationType]>}
+   */
   calculationTypes = [];
+  /**
+   * The calculation results.
+   *
+   * @type {Map<string, ColumnsCalculationType | RowsCalculationType>}
+   */
   calculationResults = new Map();
 
   constructor(calculationTypes) {

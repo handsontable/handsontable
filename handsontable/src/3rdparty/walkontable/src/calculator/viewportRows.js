@@ -79,6 +79,12 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     this._finalize(this);
   }
 
+  /**
+   * Gets the row height at the specified row index.
+   *
+   * @param {number} row Row index.
+   * @returns {number}
+   */
   getRowHeight(row) {
     const rowHeight = this.rowHeightFn(row);
 

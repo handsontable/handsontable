@@ -77,6 +77,12 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
     this._finalize(this);
   }
 
+  /**
+   * Gets the column width at the specified column index.
+   *
+   * @param {number} column Column index.
+   * @returns {number}
+   */
   getColumnWidth(column) {
     const width = this.columnWidthFn(column);
 
