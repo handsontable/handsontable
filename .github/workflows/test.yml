@@ -107,9 +107,9 @@ jobs:
     name: "[BUILD] Handsontable: UMD"
     runs-on: ubuntu-latest
     needs: [ check-scope ]
-    # if: |
-    #   needs.check-scope.outputs.run-all == 'true' ||
-    #   needs.check-scope.outputs.build-handsontable-umd == 'true'
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.build-handsontable-umd == 'true'
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
@@ -137,9 +137,9 @@ jobs:
     name: "[BUILD] Handsontable: ES + CJS"
     runs-on: ubuntu-latest
     needs: [ check-scope ]
-    # if: |
-    #   needs.check-scope.outputs.run-all == 'true' ||
-    #   needs.check-scope.outputs.build-handsontable-es-cjs == 'true'
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.build-handsontable-es-cjs == 'true'
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
@@ -292,6 +292,7 @@ jobs:
     name: "[TEST] Handsontable: ESM"
     runs-on: ubuntu-latest
     needs: [ build-handsontable-es-cjs, build-handsontable-umd ]
+    if: needs.check-scope.outputs.run-all == 'true' 
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
@@ -314,7 +315,7 @@ jobs:
         with:
           name: handsontable-build-umd
           path: ./
-      - run: tar -zxf dist.tar.gz --overwrite --wildcards './handsontable/dist/*.css' && rm dist.tar.gz
+      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' && rm dist.tar.gz
       
       - name: Build UMD from ESM
         run: |
@@ -328,7 +329,7 @@ jobs:
   test-handsontable-cjs-e2e:
     name: "[TEST] Handsontable: CJS"
     runs-on: ubuntu-latest
-    needs: [ build-handsontable-es-cjs ]
+    needs: [ build-handsontable-es-cjs, build-handsontable-umd ]
     if: needs.check-scope.outputs.run-all == 'true' 
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
@@ -346,6 +347,13 @@ jobs:
           name: handsontable-build-es-cjs
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+
+      - name: Download the Handsontable UMD build artifact and only extract CSS files
+        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
+        with:
+          name: handsontable-build-umd
+          path: ./
+      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' && rm dist.tar.gz
       
       - name: Build UMD from CJS
         run: |
