@@ -3019,68 +3019,6 @@ describe('ColumnSorting', () => {
     ]);
   });
 
-  describe('undo/redo', () => {
-    it('should be able to undo the sorting action', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
-        columnSorting: true
-      });
-
-      hot.getPlugin('columnSorting').sort({
-        column: 0,
-        sortOrder: 'desc'
-      });
-
-      expect(getData()).toEqual([
-        ['A3', 'B3', 'C3'],
-        ['A2', 'B2', 'C2'],
-        ['A1', 'B1', 'C1']
-      ]);
-
-      hot.undo();
-
-      expect(getData()).toEqual([
-        ['A1', 'B1', 'C1'],
-        ['A2', 'B2', 'C2'],
-        ['A3', 'B3', 'C3']
-      ]);
-    });
-
-    it('should be able to redo the sorting action', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
-        columnSorting: true
-      });
-
-      hot.getPlugin('columnSorting').sort({
-        column: 0,
-        sortOrder: 'desc'
-      });
-
-      expect(getData()).toEqual([
-        ['A3', 'B3', 'C3'],
-        ['A2', 'B2', 'C2'],
-        ['A1', 'B1', 'C1']
-      ]);
-
-      hot.undo();
-
-      expect(getData()).toEqual([
-        ['A1', 'B1', 'C1'],
-        ['A2', 'B2', 'C2'],
-        ['A3', 'B3', 'C3']
-      ]);
-
-      hot.redo();
-
-      expect(getData()).toEqual([
-        ['A3', 'B3', 'C3'],
-        ['A2', 'B2', 'C2'],
-        ['A1', 'B1', 'C1']
-      ]);
-    });
-  });
-
   describe('cooperation with alter actions', () => {
     it('should sort proper column after removing column right before the already sorted one', () => {
       handsontable({

@@ -198,8 +198,6 @@ export class ColumnSorting extends BasePlugin {
       if (this.indexesSequenceCache !== null) {
         this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
         this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
-
-        this.indexesSequenceCache = null;
       }
     }, true);
 
@@ -619,9 +617,9 @@ export class ColumnSorting extends BasePlugin {
    * @private
    */
   sortByPresetSortStates(sortConfigs) {
-    this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
-
     if (sortConfigs.length === 0) {
+      this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
+
       return;
     }
 

@@ -207,14 +207,6 @@ function UndoRedo(instance) {
     plugin.done(() => new UndoRedo.UnmergeCellsAction(instance, cellRange));
   });
 
-  instance.addHook('beforeColumnSort', (currentSortConfig, destinationSortConfigs, sortPossible) => {
-    if (!sortPossible) {
-      return;
-    }
-
-    plugin.done(() => new UndoRedo.ColumnSortAction(currentSortConfig, destinationSortConfigs));
-  });
-
   // TODO: Why this callback is needed? One test doesn't pass after calling method right after plugin creation (outside the callback).
   instance.addHook('afterInit', () => {
     plugin.init();
@@ -981,44 +973,6 @@ UndoRedo.ColumnMoveAction.prototype.redo = function(instance, redoneCallback) {
 
   instance.deselectCell();
   instance.selectColumns(this.finalColumnIndex, this.finalColumnIndex + this.columns.length - 1);
-};
-
-/**
- * ColumnSort action.
- *
- * @private
- * @param {Array} currentSortState The current sort state.
- * @param {Array} newSortState The new sort state.
- */
-UndoRedo.ColumnSortAction = function(currentSortState, newSortState) {
-  this.previousSortState = currentSortState;
-  this.nextSortState = newSortState;
-};
-inherit(UndoRedo.ColumnSortAction, UndoRedo.Action);
-
-UndoRedo.ColumnSortAction.prototype.undo = function(instance, undoneCallback) {
-  const sortPlugin = instance.getPlugin('columnSorting');
-  const multiSortPlugin = instance.getPlugin('multiColumnSorting');
-  const enabledSortPlugin = multiSortPlugin.isEnabled() ? multiSortPlugin : sortPlugin;
-
-  if (this.previousSortState.length) {
-    enabledSortPlugin.sort(this.previousSortState);
-
-  } else {
-    enabledSortPlugin.clearSort();
-  }
-
-  undoneCallback();
-};
-
-UndoRedo.ColumnSortAction.prototype.redo = function(instance, redoneCallback) {
-  const sortPlugin = instance.getPlugin('columnSorting');
-  const multiSortPlugin = instance.getPlugin('multiColumnSorting');
-  const enabledSortPlugin = multiSortPlugin.isEnabled() ? multiSortPlugin : sortPlugin;
-
-  enabledSortPlugin.sort(this.nextSortState);
-
-  redoneCallback();
 };
 
 /**
