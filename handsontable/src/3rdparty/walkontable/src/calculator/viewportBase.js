@@ -21,7 +21,7 @@ export class ViewportBaseCalculator {
   /**
    * The calculation types to be performed.
    *
-   * @type {Array<[string, ColumnsCalculationType | RowsCalculationType]>}
+   * @type {Array}
    */
   calculationTypes = [];
   /**
