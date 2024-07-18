@@ -190,14 +190,3 @@ export function isItemCheckable(itemToTest) {
 
   return checkboxKeys.includes(itemToTest.key);
 }
-
-/**
- * Call if the value is a function or return the value.
- *
- * @param {any} property Value or function.
- * @param {object | undefined} context Value or function.
- * @returns {boolean}
- */
-export function callOrReturn(property, context) {
-  return typeof property === 'function' ? property.call(context) : property;
-}
