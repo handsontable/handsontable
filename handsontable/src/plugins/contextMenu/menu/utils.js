@@ -177,16 +177,5 @@ export function filterSeparators(items, separator = SEPARATOR) {
  * @returns {boolean}
  */
 export function isItemCheckable(itemToTest) {
-  const checkboxKeys = [
-    'alignment:left',
-    'alignment:center',
-    'alignment:right',
-    'alignment:justify',
-    'alignment:top',
-    'alignment:middle',
-    'alignment:bottom',
-    'make_read_only'
-  ];
-
-  return checkboxKeys.includes(itemToTest.key);
+  return itemToTest.checkable === true;
 }

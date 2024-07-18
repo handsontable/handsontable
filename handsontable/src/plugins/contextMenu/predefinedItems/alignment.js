@@ -81,6 +81,7 @@ export default function alignmentItem() {
       items: [
         {
           key: `${KEY}:left`,
+          checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT), 'htLeft');
           },
@@ -118,6 +119,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:center`,
+          checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER), 'htCenter');
           },
@@ -155,6 +157,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:right`,
+          checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT), 'htRight');
           },
@@ -192,6 +195,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:justify`,
+          checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY), 'htJustify');
           },
@@ -232,6 +236,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:top`,
+          checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP), 'htTop');
           },
@@ -269,6 +274,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:middle`,
+          checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE), 'htMiddle');
           },
@@ -306,6 +312,7 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:bottom`,
+          checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM), 'htBottom');
           },
