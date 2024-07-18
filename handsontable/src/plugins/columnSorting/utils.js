@@ -1,8 +1,12 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
+// eslint-disable-next-line import/extensions
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import { isObject } from '../../helpers/object';
 import { isRightClick } from '../../helpers/dom/event';
 import { isEmpty } from '../../helpers/mixed';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from './sortService';
+
+dayjs.extend(customParseFormat);
 
 export const ASC_SORT_STATE = 'asc';
 export const DESC_SORT_STATE = 'desc';
@@ -126,7 +130,7 @@ export function createDateTimeCompareFunction(sortOrder, format, columnPluginSet
         return DO_NOT_SWAP;
       }
 
-      // Just fist value is empty and `sortEmptyCells` option was set
+      // Just first value is empty and `sortEmptyCells` option was set
       if (sortEmptyCells) {
         return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
       }
@@ -143,8 +147,8 @@ export function createDateTimeCompareFunction(sortOrder, format, columnPluginSet
       return FIRST_BEFORE_SECOND;
     }
 
-    const firstDate = moment(value, format);
-    const nextDate = moment(nextValue, format);
+    const firstDate = dayjs(value, format);
+    const nextDate = dayjs(nextValue, format);
 
     if (!firstDate.isValid()) {
       return FIRST_AFTER_SECOND;

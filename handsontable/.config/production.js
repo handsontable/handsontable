@@ -49,6 +49,30 @@ module.exports.create = function create(envArgs) {
       c.plugins.push(
         new CopyWebpackPlugin({
           patterns: [
+            { // dayjs
+              from: `${getClosest('node_modules/dayjs/')}@(day.min.js|LICENSE)`,
+              to: 'dayjs',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: `${getClosest('node_modules/dayjs/')}locale/*.js`,
+              to: 'dayjs/locale',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: `${getClosest('node_modules/dayjs/plugin')}@(customParseFormat.js)`,
+              to: 'dayjs/plugin/',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: `${getClosest('node_modules/dayjs/plugin')}@(utc.js)`,
+              to: 'dayjs/plugin/',
+              flatten: true,
+              force: true,
+            },
             { // moment
               from: `${getClosest('node_modules/moment/')}@(moment.js|LICENSE)`,
               to: 'moment',

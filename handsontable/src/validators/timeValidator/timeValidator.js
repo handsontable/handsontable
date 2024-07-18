@@ -1,6 +1,12 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
+// eslint-disable-next-line import/extensions
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+import utc from 'dayjs/plugin/utc';
 
-// Formats which are correctly parsed to time (supported by momentjs)
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
+
+// Formats which are correctly parsed to time (supported by dayjs)
 const STRICT_FORMATS = [
   'YYYY-MM-DDTHH:mm:ss.SSSZ',
   'X', // Unix timestamp
@@ -33,12 +39,12 @@ export function timeValidator(value, callback) {
     valueToValidate += ':00';
   }
 
-  const date = moment(valueToValidate, STRICT_FORMATS, true).isValid() ?
-    moment(valueToValidate) : moment(valueToValidate, timeFormat);
+  const date = dayjs(valueToValidate, STRICT_FORMATS, true).isValid() ?
+    dayjs(valueToValidate) : dayjs(valueToValidate, timeFormat);
   let isValidTime = date.isValid();
 
   // is it in the specified format
-  let isValidFormat = moment(valueToValidate, timeFormat, true).isValid() && !twoDigitValue;
+  let isValidFormat = dayjs(valueToValidate, timeFormat, true).isValid() && !twoDigitValue;
 
   if (this.allowEmpty && valueToValidate === '') {
     isValidTime = true;

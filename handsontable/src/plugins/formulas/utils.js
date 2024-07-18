@@ -1,4 +1,10 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
+// eslint-disable-next-line import/extensions
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
 
 const DEFAULT_DATE_FORMAT_HYPERFORMULA = 'DD/MM/YYYY';
 
@@ -51,7 +57,7 @@ export function isDate(value, cellType) {
  * @returns {boolean}
  */
 export function isDateValid(date, dateFormat) {
-  return moment(date, dateFormat, true).isValid();
+  return dayjs(date, dateFormat, true).isValid();
 }
 
 /**
@@ -62,7 +68,7 @@ export function isDateValid(date, dateFormat) {
  * @returns {string}
  */
 export function getDateInHfFormat(date, dateFormat) {
-  return moment(date, dateFormat, true).format(DEFAULT_DATE_FORMAT_HYPERFORMULA);
+  return dayjs(date, dateFormat, true).format(DEFAULT_DATE_FORMAT_HYPERFORMULA);
 }
 
 /**
@@ -73,7 +79,7 @@ export function getDateInHfFormat(date, dateFormat) {
  * @returns {string}
  */
 export function getDateInHotFormat(date, dateFormat) {
-  return moment(date, DEFAULT_DATE_FORMAT_HYPERFORMULA, true).format(dateFormat);
+  return dayjs(date, DEFAULT_DATE_FORMAT_HYPERFORMULA, true).format(dateFormat);
 }
 
 /**
@@ -90,5 +96,5 @@ export function getDateFromExcelDate(numericDate, dateFormat) {
   // Based on solution from: https://stackoverflow.com/a/67130235.
   const dateForFormatting = new Date(Date.UTC(0, 0, numericDate + dateOffset));
 
-  return moment(dateForFormatting).format(dateFormat);
+  return dayjs(dateForFormatting).format(dateFormat);
 }

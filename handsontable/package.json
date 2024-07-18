@@ -82,6 +82,7 @@
     "@handsontable/pikaday": "^1.0.0",
     "@types/pikaday": "1.7.4",
     "core-js": "^3.37.0",
+    "dayjs": "^1.11.12",
     "dompurify": "^2.1.1",
     "moment": "2.30.1",
     "numbro": "2.1.2",

@@ -1,5 +1,11 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
+// eslint-disable-next-line import/extensions
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+import utc from 'dayjs/plugin/utc';
 import { toSingleLine } from './templateLiteralTag';
+
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
 
 /**
  * Converts any value to string.
@@ -129,11 +135,11 @@ export function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = moment(process.env.HOT_RELEASE_DATE, 'DD/MM/YYYY');
+      const releaseDate = dayjs(process.env.HOT_RELEASE_DATE, 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
 
-      keyValidityDate = moment((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
+      keyValidityDate = dayjs.utc((keyValidityDays + 1) * 8.64e7).format('MMMM DD, YYYY');
 
       if (releaseDays > keyValidityDays) {
         consoleMessageState = 'expired';

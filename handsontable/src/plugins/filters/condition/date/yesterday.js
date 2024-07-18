@@ -1,6 +1,10 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
+// eslint-disable-next-line import/extensions
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import * as C from '../../../../i18n/constants';
 import { registerCondition } from '../../conditionRegisterer';
+
+dayjs.extend(customParseFormat);
 
 export const CONDITION_NAME = 'date_yesterday';
 
@@ -9,13 +13,13 @@ export const CONDITION_NAME = 'date_yesterday';
  * @returns {boolean}
  */
 export function condition(dataRow) {
-  const date = moment(dataRow.value, dataRow.meta.dateFormat);
+  const date = dayjs(dataRow.value, dataRow.meta.dateFormat);
 
   if (!date.isValid()) {
     return false;
   }
 
-  return date.isSame(moment().subtract(1, 'days').startOf('day'), 'd');
+  return date.isSame(dayjs().subtract(1, 'day').startOf('day'), 'day');
 }
 
 registerCondition(CONDITION_NAME, condition, {

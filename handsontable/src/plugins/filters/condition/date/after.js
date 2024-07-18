@@ -1,6 +1,10 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
+// eslint-disable-next-line import/extensions
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import * as C from '../../../../i18n/constants';
 import { registerCondition } from '../../conditionRegisterer';
+
+dayjs.extend(customParseFormat);
 
 export const CONDITION_NAME = 'date_after';
 
@@ -11,8 +15,8 @@ export const CONDITION_NAME = 'date_after';
  * @returns {boolean}
  */
 export function condition(dataRow, [value]) {
-  const date = moment(dataRow.value, dataRow.meta.dateFormat);
-  const inputDate = moment(value, dataRow.meta.dateFormat);
+  const date = dayjs(dataRow.value, dataRow.meta.dateFormat);
+  const inputDate = dayjs(value, dataRow.meta.dateFormat);
 
   if (!date.isValid() || !inputDate.isValid()) {
     return false;

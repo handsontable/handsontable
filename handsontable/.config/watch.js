@@ -24,6 +24,12 @@ module.exports.create = function create(envArgs) {
         commonjs: 'numbro',
         amd: 'numbro',
       },
+      dayjs: {
+        root: 'dayjs',
+        commonjs2: 'dayjs',
+        commonjs: 'dayjs',
+        amd: 'dayjs',
+      },
       moment: {
         root: 'moment',
         commonjs2: 'moment',

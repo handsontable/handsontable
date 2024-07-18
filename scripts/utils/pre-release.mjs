@@ -1,6 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import replace from 'replace-in-file';
 import inquirer from 'inquirer';
 import semver from 'semver';
@@ -11,6 +12,8 @@ import {
 
 import mainPackageJson from '../../package.json' assert { type: 'json' };
 import hotConfig from '../../hot.config.js';
+
+dayjs.extend(customParseFormat);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -41,8 +44,8 @@ export function isVersionValid(version) {
  * string}`.
  */
 export function validateReleaseDate(date) {
-  const dateObj = moment(date, 'DD/MM/YYYY', true);
-  const now = moment();
+  const dateObj = dayjs(date, 'DD/MM/YYYY', true);
+  const now = dayjs();
   const returnObj = {
     valid: true,
     error: null
@@ -239,7 +242,7 @@ Are the version number and release date above correct?`,
 
   } else {
     const answers = await inquirer.prompt(questions);
-    const releaseDateObj = moment(answers.releaseDate, 'DD/MM/YYYY', true);
+    const releaseDateObj = dayjs(answers.releaseDate, 'DD/MM/YYYY', true);
     const newVersion =
       answers.changeType !== 'custom' ?
         getVersionFromReleaseType(answers.changeType, currentVersion) :

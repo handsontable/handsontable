@@ -10,13 +10,16 @@ const chalk = require('chalk');
 const inquirer = require('inquirer');
 const lodash = require('lodash');
 const glob = util.promisify(require('glob'));
-const moment = require('moment');
+const dayjs = require('dayjs');
+const customParseFormat = require('dayjs/plugin/customParseFormat');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
 const hotConfig = require('../hot.config');
 
 const isTTY = process.stdin.isTTY;
+
+dayjs.extend(customParseFormat);
 
 const changelogMarkDownMark = '<!-- UNVERSIONED -->';
 const changelogPath = path.join(__dirname, '../CHANGELOG.md');
@@ -208,7 +211,7 @@ const consumeCommand = async(args) => {
   const { dryRun } = args;
 
   const formattedDefault = args.date === undefined
-    ? moment(hotConfig.HOT_RELEASE_DATE, 'DD/MM/YYYY').format('YYYY-MM-DD')
+    ? dayjs(hotConfig.HOT_RELEASE_DATE, 'DD/MM/YYYY').format('YYYY-MM-DD')
     : args.date;
 
   const { date } = isTTY ? await inquirer.prompt([

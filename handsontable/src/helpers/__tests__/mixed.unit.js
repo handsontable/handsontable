@@ -7,10 +7,10 @@ import {
   isRegExp,
 } from '../mixed';
 
-let mockMoment = jest.requireActual('moment')();
+let mockDayjs = jest.requireActual('dayjs')();
 
-jest.mock('moment', () => {
-  return () => mockMoment;
+jest.mock('dayjs', () => {
+  return () => mockDayjs;
 });
 
 describe('Mixed helper', () => {
@@ -141,7 +141,7 @@ describe('Mixed helper', () => {
     });
 
     it('should not print any information if the license key is not expired (1 day to expire)', () => {
-      mockMoment = jest.requireActual('moment')('23/05/2011', 'DD/MM/YYYY');
+      mockDayjs = jest.requireActual('dayjs')('23/05/2011', 'DD/MM/YYYY');
 
       spyOn(console, 'warn');
       spyOn(console, 'info');
@@ -160,7 +160,7 @@ describe('Mixed helper', () => {
     });
 
     it('should not print any information if the license key is not expired (2 day to expire)', () => {
-      mockMoment = jest.requireActual('moment')('22/05/2011', 'DD/MM/YYYY');
+      mockDayjs = jest.requireActual('dayjs')('22/05/2011', 'DD/MM/YYYY');
 
       spyOn(console, 'warn');
       spyOn(console, 'info');
@@ -179,7 +179,7 @@ describe('Mixed helper', () => {
     });
 
     it('should not print any information if the license key is not expired (1 year to expire)', () => {
-      mockMoment = jest.requireActual('moment')('24/05/2010', 'DD/MM/YYYY');
+      mockDayjs = jest.requireActual('dayjs')('24/05/2010', 'DD/MM/YYYY');
 
       spyOn(console, 'warn');
       spyOn(console, 'info');
@@ -198,7 +198,7 @@ describe('Mixed helper', () => {
     });
 
     it('should not print any information if the expiration date is the same as the release date', () => {
-      mockMoment = jest.requireActual('moment')('24/05/2010', 'DD/MM/YYYY');
+      mockDayjs = jest.requireActual('dayjs')('24/05/2010', 'DD/MM/YYYY');
 
       spyOn(console, 'warn');
       spyOn(console, 'info');
@@ -217,7 +217,7 @@ describe('Mixed helper', () => {
     });
 
     it('should print information about expiration of the the license key (key expired 1 day ago)', () => {
-      mockMoment = jest.requireActual('moment')('25/05/2011', 'DD/MM/YYYY');
+      mockDayjs = jest.requireActual('dayjs')('25/05/2011', 'DD/MM/YYYY');
 
       spyOn(console, 'warn');
       spyOn(console, 'info');
@@ -245,7 +245,7 @@ describe('Mixed helper', () => {
     });
 
     it('should print information about expiration of the the license key (key expired 2 days ago)', () => {
-      mockMoment = jest.requireActual('moment')('26/05/2011', 'DD/MM/YYYY');
+      mockDayjs = jest.requireActual('dayjs')('26/05/2011', 'DD/MM/YYYY');
 
       spyOn(console, 'warn');
       spyOn(console, 'info');
@@ -273,7 +273,7 @@ describe('Mixed helper', () => {
     });
 
     it('should print information about expiration of the the license key (key expired 1 year ago)', () => {
-      mockMoment = jest.requireActual('moment')('24/05/2012', 'DD/MM/YYYY');
+      mockDayjs = jest.requireActual('dayjs')('24/05/2012', 'DD/MM/YYYY');
 
       spyOn(console, 'warn');
       spyOn(console, 'info');
