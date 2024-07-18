@@ -5,7 +5,55 @@ import * as C from '../../../i18n/constants';
 export const KEY = 'alignment';
 
 /**
- * @returns {object}
+ * @param row The currrent row index.
+ * @param col The current column index.
+ * @param htClassName The class name to check.
+ * @returns {boolean} Returns `true` if the cell has the provided class name.
+ */
+function getAlignmentComparator(htClassName) {
+  return function(row, col) {
+    const className = this.getCellMeta(row, col).className;
+
+    if (className && className.indexOf(htClassName) !== -1) {
+      return true;
+    }
+
+    return false;
+  };
+}
+
+/**
+ * @param context The current context instance.
+ * @param htClassName The class name to check.
+ * @returns {string} The value of aria-checked parameter.
+ */
+function ariaChecked(context, htClassName) {
+  const hasClass = checkSelectionConsistency(
+    context.getSelectedRange(),
+    getAlignmentComparator(htClassName).bind(context));
+
+  return hasClass.toString();
+}
+
+/**
+ * @param context The current context instance.
+ * @param rawName The raw name of the menu item.
+ * @param htClassName The class name to check.
+ */
+function ariaLabel(context, rawName, htClassName) {
+  const hasClass = checkSelectionConsistency(
+    context.getSelectedRange(),
+    getAlignmentComparator(htClassName).bind(context));
+
+  const checkboxState = hasClass
+    ? context.getTranslatedPhrase(C.CHECKBOX_CHECKED)
+    : context.getTranslatedPhrase(C.CHECKBOX_UNCHECKED);
+
+  return `${rawName} ${checkboxState.toLowerCase()}`;
+}
+
+/**
+ *
  */
 export default function alignmentItem() {
   return {
@@ -34,6 +82,12 @@ export default function alignmentItem() {
       items: [
         {
           key: `${KEY}:left`,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT), 'htLeft');
+          },
+          ariaChecked() {
+            return ariaChecked(this, 'htLeft');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT);
             const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
@@ -65,6 +119,12 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:center`,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER), 'htCenter');
+          },
+          ariaChecked() {
+            return ariaChecked(this, 'htCenter');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER);
             const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
@@ -96,6 +156,12 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:right`,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT), 'htRight');
+          },
+          ariaChecked() {
+            return ariaChecked(this, 'htRight');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT);
             const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
@@ -127,6 +193,12 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:justify`,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY), 'htJustify');
+          },
+          ariaChecked() {
+            return ariaChecked(this, 'htJustify');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY);
             const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
@@ -161,6 +233,12 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:top`,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP), 'htTop');
+          },
+          ariaChecked() {
+            return ariaChecked(this, 'htTop');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
             const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
@@ -192,6 +270,12 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:middle`,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE), 'htMiddle');
+          },
+          ariaChecked() {
+            return ariaChecked(this, 'htMiddle');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE);
             const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
@@ -223,6 +307,12 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:bottom`,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM), 'htBottom');
+          },
+          ariaChecked() {
+            return ariaChecked(this, 'htBottom');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM);
             const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
