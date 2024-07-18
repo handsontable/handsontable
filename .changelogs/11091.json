@@ -2,7 +2,7 @@
   "issuesOrigin": "private",
   "title": "fix aria-label, aria-checked and menuitemcheckbox role for the readOnly and alignment contextMenu items",
   "type": "added",
-  "issueOrPR": 11076,
+  "issueOrPR": 11091,
   "breaking": false,
   "framework": "none"
 }
