@@ -1,9 +1,6 @@
-
-
 <div align="center">
 
 <a href="https://handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-blue.svg" alt="Handsontable" width="300"></a>
-  
   
 <div align="center">
   <h2>
@@ -67,7 +64,6 @@ You can install Handsontable with [NPM](https://www.npmjs.com/), [Yarn](https://
 ```bash
 npm i handsontable @handsontable/react
 ```
-
 
 #### CDN
 
