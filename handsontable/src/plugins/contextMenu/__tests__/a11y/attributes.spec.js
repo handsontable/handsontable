@@ -40,8 +40,6 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(hot.getPlugin('contextMenu').menu.container.getAttribute('role')).toEqual('menu');
   });
 
-  
-
   it('should assign the `role=menuitem` attribute to all the options of the context menu except of the readOnly option', () => {
     const hot = handsontable({
       contextMenu: true
@@ -59,6 +57,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     menuItems.forEach((menuItem) => {
       const readOnlyOption = menuItem.querySelector('.htContextMenu__readOnly');
+
       if (!readOnlyOption) {
         expect(menuItem.getAttribute('role')).toEqual('menuitem');
       } else {
@@ -74,6 +73,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     contextMenu();
 
     const cMenu = hot.getPlugin('contextMenu').menu;
+
     expect(filterElementsByAttribute(
       cMenu.container,
       'td',
@@ -97,8 +97,9 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       cMenu.container,
       'td',
       'aria-label',
-      el => (el.innerText === '' ? '---------' :  el.innerText)
+      el => (el.innerText === '' ? '---------' : el.innerText)
     ).length).toBe(cMenu.hotMenu.countRows());
+
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert row above');
   });
 
