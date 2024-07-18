@@ -1303,29 +1303,12 @@ class TableView {
    * @param {number} [headerLevel=0] The index of header level counting from the top (positive
    *                                 values counting from 0 to N).
    */
-  appendColHeader(
-    visualColumnIndex,
-    TH,
-    label = this.hot.getColHeader,
-    headerLevel = 0
-  ) {
-    const getColumnHeaderClassNames = () => {
-      const metaHeaderClassNames =
-        visualColumnIndex >= 0 ?
-          this.hot.getColumnMeta(visualColumnIndex).headerClassName :
-          null;
-
-      return metaHeaderClassNames ? metaHeaderClassNames.split(' ') : [];
-    };
-
+  appendColHeader(visualColumnIndex, TH, label = this.hot.getColHeader, headerLevel = 0) {
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
         this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label, headerLevel);
-
-        container.className = '';
-        addClass(container, ['relative', ...getColumnHeaderClassNames()]);
 
       } else {
         empty(TH);
@@ -1336,9 +1319,8 @@ class TableView {
       const { rootDocument } = this.hot;
       const div = rootDocument.createElement('div');
       const span = rootDocument.createElement('span');
-      const classNames = getColumnHeaderClassNames();
 
-      div.classList.add('relative', ...classNames);
+      div.className = 'relative';
       span.className = 'colHeader';
 
       if (this.settings.ariaTags) {

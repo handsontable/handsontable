@@ -100,58 +100,6 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 :::
 
-## Header labels alignment and styling
-
-You can align the text in the header label with the [`headerClassName`](@/api/options.md#headerclassname) option. Setting it to `htLeft`, `htCenter`, or `htRight` will align the header labels to the left, center, or right, respectively.
-
-You can also set the alignment for a specific column by using the [`columns`](@/api/options.md#columns) option.
-
-::: only-for javascript
-
-::: example #example4
-
-@[code](@/content/guides/columns/column-header/javascript/example4.js)
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #example4 :react
-
-@[code](@/content/guides/columns/column-header/react/example4.jsx)
-
-:::
-
-:::
-
-If you want to style the header labels, you can pass any number of class names, separated by a space, to the [`headerClassName`](@/api/options.md#headerclassname) option.
-
-::: only-for javascript
-
-::: example #example5 --css 1 --js 2
-
-@[code](@/content/guides/columns/column-header/javascript/example5.css)
-
-@[code](@/content/guides/columns/column-header/javascript/example5.js)
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #example5 :react --css 1 --js 2
-
-@[code](@/content/guides/columns/column-header/react/example5.css)
-
-@[code](@/content/guides/columns/column-header/react/example5.jsx)
-
-:::
-
-:::
-
 ## Nested headers
 
 More complex data structures can be displayed with multiple headers, each representing a different category of data. To learn more about nested headers, see the [column groups](@/guides/columns/column-groups/column-groups.md) page.

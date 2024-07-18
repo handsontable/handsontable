@@ -155,7 +155,6 @@ export interface GridSettings extends Events {
   fixedRowsTop?: number;
   formulas?: FormulasSettings;
   fragmentSelection?: boolean | 'cell';
-  headerClassName?: string;
   height?: number | string | (() => number | string);
   hiddenColumns?: HiddenColumnsSettings;
   hiddenRows?: HiddenRowsSettings;

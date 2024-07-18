@@ -90,7 +90,6 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() fixedRowsTop: Handsontable.GridSettings['fixedRowsTop'];
   @Input() formulas: Handsontable.GridSettings['formulas'];
   @Input() fragmentSelection: Handsontable.GridSettings['fragmentSelection'];
-  @Input() headerClassName: Handsontable.GridSettings['headerClassName'];
   @Input() height: Handsontable.GridSettings['height'];
   @Input() hiddenColumns: Handsontable.GridSettings['hiddenColumns'];
   @Input() hiddenRows: Handsontable.GridSettings['hiddenRows'];

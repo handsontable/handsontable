@@ -1,11 +1,3 @@
-.handsontable[dir="ltr"] div.htRight span[class*="sort-"] {
-  margin-right: 20px;
-}
-
-.handsontable[dir="rtl"] div.htLeft span[class*="sort-"] {
-  margin-left: 20px;
-}
-
 /* Column's number position */
 .handsontable span.colHeader.columnSorting::after {
   /* Centering start */

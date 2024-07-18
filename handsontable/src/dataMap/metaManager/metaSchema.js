@@ -2401,32 +2401,6 @@ export default () => {
     fragmentSelection: false,
 
     /**
-     * The `headerClassName` option allows adding one or more class names to the column headers' inner `div` element.
-     * It can be used to align the labels in the column headers to left, center or right by setting this option to
-     * `htLeft`, `htCenter`, or `htRight` respectively.
-     *
-     * @since 14.5.0
-     * @memberof Options#
-     * @type {string}
-     * @default undefined
-     * @category Core
-     *
-     * @example
-     * ```js
-     * // Adding class names to all column headers
-     * headerClassName: 'htRight my-class',
-     *
-     * columns: [
-     *  {
-     *    // Adding class names to the column header of a single column
-     *    headerClassName: 'htRight my-class',
-     *  }
-     * ]
-     * ```
-     */
-    headerClassName: undefined,
-
-    /**
      * The `height` option configures the height of your grid.
      *
      * You can set `height` option to one of the following:

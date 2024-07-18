@@ -64,8 +64,6 @@ hot.getColHeader().forEach((header: number | string) => {});
 hot.getColHeader(123).toString();
 hot.getColHeader(123, 1).toString();
 hot.getColHeader(123, -1).toString();
-hot.getColumnMeta(0);
-hot.getColumnMeta(0).type === 'test';
 hot.getColWidth(123) === 123;
 hot.getCoords(elem.querySelector('td')).row === 0;
 hot.getCopyableData(123, 123).toUpperCase();
