@@ -48,23 +48,32 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     contextMenu();
 
     const cMenu = hot.getPlugin('contextMenu').menu;
-    const menuItems = filterElementsByAttribute(
+
+    expect(filterElementsByAttribute(
       cMenu.container,
       'td',
       'role',
       'menuitem'
-    );
-
-    menuItems.forEach((menuItem) => {
-      const readOnlyOption = menuItem.querySelector('.htContextMenu__readOnly');
-
-      if (!readOnlyOption) {
-        expect(menuItem.getAttribute('role')).toEqual('menuitem');
-      } else {
-        expect(menuItem.getAttribute('role')).toEqual('menuitemcheckbox');
-      }
-    });
+    ).length).toEqual(cMenu.hotMenu.countRows() - 1);
   });
+
+  it('should assign the `role=menucheckboxitem` to only one option of the context menu', () => {
+    const hot = handsontable({
+      contextMenu: true
+    });
+
+    contextMenu();
+
+    const cMenu = hot.getPlugin('contextMenu').menu;
+
+    expect(filterElementsByAttribute(
+      cMenu.container,
+      'td',
+      'role',
+      'menuitemcheckbox'
+    ).length).toEqual(1);
+  });
+
   it('should assign the `role=menuitem` attribute to all the options of the context menu', () => {
     const hot = handsontable({
       contextMenu: true
@@ -79,7 +88,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       'td',
       'role',
       'menuitem'
-    ).length).toEqual(cMenu.hotMenu.countRows());
+    ).length).toEqual(cMenu.hotMenu.countRows() - 1);
 
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('role')).toEqual('menuitem');
   });
