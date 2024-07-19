@@ -91,5 +91,22 @@ describe('CopyPaste', () => {
 
       testElement.remove();
     });
+
+    it('should skip processing the event when the target element has the "data-hot-input" attribute', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      spyOn(copyEvent, 'preventDefault');
+
+      selectCell(1, 1);
+      copyEvent.target = $('<div id="testElement" data-hot-input="true">Test</div>')[0];
+      plugin.onCut(copyEvent); // trigger the plugin's method that is normally triggered by the native "cut" event
+
+      expect(copyEvent.preventDefault).not.toHaveBeenCalled();
+    });
   });
 });
