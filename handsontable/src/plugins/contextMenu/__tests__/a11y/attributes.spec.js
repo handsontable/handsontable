@@ -57,7 +57,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     ).length).toEqual(cMenu.hotMenu.countRows() - 1);
   });
 
-  it('should assign the `role=menucheckboxitem` to only one option of the context menu', () => {
+  it('should assign the `role=menucheckboxitem` to the only one option of the context menu', () => {
     const hot = handsontable({
       contextMenu: true
     });
@@ -66,12 +66,15 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     const cMenu = hot.getPlugin('contextMenu').menu;
 
-    expect(filterElementsByAttribute(
+    const menuItemCheckboxes = filterElementsByAttribute(
       cMenu.container,
       'td',
       'role',
       'menuitemcheckbox'
-    ).length).toEqual(1);
+    );
+
+    expect(menuItemCheckboxes.length).toEqual(1);
+    expect(menuItemCheckboxes[0].ariaLabel).toBe('Read only unchecked');
   });
 
   it('should assign the `role=menuitem` attribute to all the options of the context menu', () => {
@@ -93,7 +96,8 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('role')).toEqual('menuitem');
   });
 
-  it('should assign the `aria-label` attribute to all the options of the context menu', () => {
+  it('should assign the `aria-label` attribute to all the options of the context menu', async() => {
+
     handsontable({
       contextMenu: true
     });
@@ -102,12 +106,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     const cMenu = getPlugin('contextMenu').menu;
 
-    expect(filterElementsByAttribute(
-      cMenu.container,
-      'td',
-      'aria-label',
-      el => (el.innerText === '' ? '---------' : el.innerText)
-    ).length).toBe(cMenu.hotMenu.countRows());
+    await sleep(300);
+
+    const ariaLabelledCells = [...cMenu.container.querySelectorAll('td')]
+      .filter(el => el.ariaLabel !== undefined );
+
+    expect(ariaLabelledCells.length).toBe(cMenu.hotMenu.countRows());
 
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert row above');
   });
