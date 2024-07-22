@@ -93,7 +93,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     const cMenu = getPlugin('dropdownMenu').menu;
 
     const ariaLabelledCells = [...cMenu.container.querySelectorAll('td')]
-      .filter(el => el.ariaLabel !== undefined );
+      .filter(el => el.ariaLabel !== undefined);
 
     expect(ariaLabelledCells.length).toBe(cMenu.hotMenu.countRows());
 
