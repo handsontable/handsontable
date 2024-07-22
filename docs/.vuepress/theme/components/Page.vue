@@ -178,8 +178,8 @@ export default {
     detectClickOutsideButton(e) {
       const buttons = document.querySelectorAll('.select-type-button');
 
-      buttons.forEach(button => {
-        if (!button.contains(e.target)){
+      buttons.forEach((button) => {
+        if (!button.contains(e.target)) {
           button.classList.remove('active');
         }
       });
