@@ -476,7 +476,7 @@ pass an array with `name` and `expression` to your `formulas` configuration obje
 :::
 
 For more information about named expressions, refer to the
-[HyperFormula docs](https://handsontable.github.io/hyperformula/guide/named-ranges.html).
+[HyperFormula docs](https://hyperformula.handsontable.com/guide/cell-references.html#relative-references).
 
 ## View the explainer video
 

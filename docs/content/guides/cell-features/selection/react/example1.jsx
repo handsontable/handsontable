@@ -19,15 +19,17 @@ const ExampleComponent = () => {
   return (
     <>
       <div className="controls">
-        <select
-          id="selectOption"
-          onChange={(...args) => selectOptionChangeCallback(...args)}
-          defaultValue="multiple"
-        >
-          <option value="single">Single selection</option>
-          <option value="range">Range selection</option>
-          <option value="multiple">Multiple ranges selection</option>
-        </select>
+        <label>
+          <select
+            id="selectOption"
+            onChange={(...args) => selectOptionChangeCallback(...args)}
+            defaultValue="multiple"
+          >
+            <option value="single">Single selection</option>
+            <option value="range">Range selection</option>
+            <option value="multiple">Multiple ranges selection</option>
+          </select>
+        </label>
       </div>
       <HotTable
         ref={hotRef}

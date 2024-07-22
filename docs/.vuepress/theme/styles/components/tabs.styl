@@ -6,6 +6,7 @@
     border: 1px solid $lightBorderColor
 
     .select-type-button {
+        z-index: 1;
         font-size: $font-size-xs
 
         @media (max-width: $small) {
@@ -75,6 +76,18 @@
         display: flex
         gap: 8px
 
+        &:has(li:first-child:last-child ) {
+            display: none;
+
+            + .tabs-component-panels {
+                border-radius: $radius !important
+
+                .codeControls { 
+                    top: 10px
+                }
+            }
+        }
+
         li.tabs-component-tab  {
             &:first-child:last-child {
             //    visibility: hidden
@@ -118,18 +131,25 @@
         }
     }
 
-    @media (max-width: $medium) {
+    @media (max-width: $small) {
         margin: 0 -0
 
         ul.tabs-component-tabs  {
+            &:has(li:first-child:last-child ) {
+                + .tabs-component-panels {
+                    .codeControls { 
+                        top: -40px
+                    }
+                }
+            }
         }
 
         .tabs-component-panels {
-
             .tabs-component-panel {
                 padding: 16px 16px
             }
         }
+        
     }
 }
 
@@ -176,7 +196,7 @@
 }
 
 .page .theme-default-content  .tabs-button-wrapper {
-    padding-top: 8px
+    padding-top: 16px
     padding-bottom: 8px
     display: flex
     flex-direction: column
@@ -345,13 +365,45 @@
         line-height: $line-height-xs
         color:$textColor
         border-radius: $radius
-        border:1px solid $borderColor
-        background: $editorColor
+        border: 1px solid $borderColor
+        background: $borderColor
+        outline: none !important
+
+        &::placeholder {
+            color:$text2Color
+        }
 
         @media (hover: hover) {
-            &:hover {
-                background: $bgColor
+            &:hover { 
+                border: 1px solid $accentColor
             }
+        }
+        &:focus-visible  { 
+            border: 1px solid $accentColor
+        }
+
+    }
+
+    select:not(.htSelectEditor) {
+        padding: 8px 32px 8px 16px; 
+        appearance none
+        position: relative
+    }
+
+    label:has(select) {
+        position relative
+        
+        &:after {
+            content:'';
+            display: inline-block;
+            border-bottom: 1px solid $borderColor;
+            border-right: 1px solid $borderColor;
+            width: 4px
+            height: 4px
+            transform: rotate(45deg)
+            position: relative
+            right: 24px
+            top:-2px
         }
     }
 

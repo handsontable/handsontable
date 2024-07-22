@@ -22,19 +22,19 @@ Since the front-end world changes quickly, we might shuffle the order of project
 
 The roadmap below was last updated on `May 14th, 2024`.
 
-Curious about our progress? Check out the [Release Notes](@/guides/upgrade-and-migration/release-notes/release-notes.md).
+Curious about our progress? Check out the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md).
 <br><br>
 
-| Accepted 🎯 | In progress ✨ | Done 🏁 |
-|:---|:---|:---|
-| New options for column headers allowing the alignment of column names easily, and add custom `CSS` classes. | Modern dark and light themes built with CSS variable | Added the navigation within selection for power users [#10732](https://github.com/handsontable/handsontable/pull/10732) |
-| Column groups configured through arrays of columns (parent-children relation). | [Refactored wrapper for React improving DX](https://github.com/handsontable/handsontable/pull/10831) | Improved the `undo-redo` support for column moving [#10746](https://github.com/handsontable/handsontable/pull/10746) |
-| Column groups work with frozen columns |  | Added the new option: `renderAllColumns` [#10599](https://github.com/handsontable/handsontable/pull/10599) |
-| Data loading indicator |  | Improved TypeScript definitions [#10670](https://github.com/handsontable/handsontable/pull/10670) / [#10671](https://github.com/handsontable/handsontable/pull/10671) |
-| Export to Excel |  |  |
-| Key-value mapping for cell editors |  | Improved support for SSR frameworks [#10575](https://github.com/handsontable/handsontable/pull/10575) |
-| Crop cell's content and turn off size calculators |  | Improved accessibility - WCAG compliance |
-| New feature: Table summary row |  | Added new options: `navigableHeaders` [#10301](https://github.com/handsontable/handsontable/pull/10301) and `tabNavigation` [#10430](https://github.com/handsontable/handsontable/pull/10430) |
-| New feature: Row pagination |  | Added new keyboard shortcuts |
-| Second click should deselect the cell |  | Added ability to copy data with headers [10093](https://github.com/handsontable/handsontable/pull/10093) |
-| | |Revamped documentation portal|
+| Accepted 🎯                                                                   | In progress ✨ | Done 🏁                                                                                                                                                                                       |
+|:------------------------------------------------------------------------------|:---|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Column groups configured through arrays of columns (parent-children relation) | Modern dark and light themes built with CSS variable | New options for column headers allowing the alignment of column names easily, and add custom `CSS` classes [#11076](https://github.com/handsontable/handsontable/pull/11076)                  |
+| Column groups work with frozen columns                                        | Modern dark and light themes built with CSS variable | Added the navigation within selection for power users [#10732](https://github.com/handsontable/handsontable/pull/10732)                                                                       |
+| Data loading indicator                                                        | [Refactored wrapper for React improving DX](https://github.com/handsontable/handsontable/pull/10831) | Improved the `undo-redo` support for column moving [#10746](https://github.com/handsontable/handsontable/pull/10746)                                                                          |
+| Export to Excel                                                               |  | Added the new option: `renderAllColumns` [#10599](https://github.com/handsontable/handsontable/pull/10599)                                                                                    |
+| Key-value mapping for cell editors                                            |  | Improved TypeScript definitions [#10670](https://github.com/handsontable/handsontable/pull/10670) / [#10671](https://github.com/handsontable/handsontable/pull/10671)                         |
+| Crop cell's content and turn off size calculators                             |  | Improved support for SSR frameworks [#10575](https://github.com/handsontable/handsontable/pull/10575)                                                                                         |
+| New feature: Table summary row                                                |  | Improved accessibility - WCAG compliance                                                                                                                                                      |
+| New feature: Row pagination                                                   |  | Added new options: `navigableHeaders` [#10301](https://github.com/handsontable/handsontable/pull/10301) and `tabNavigation` [#10430](https://github.com/handsontable/handsontable/pull/10430) |
+| Second click should deselect the cell                                         |  | Added new keyboard shortcuts                                                                                                                                                                  |
+|                                                                               |  | Added ability to copy data with headers [10093](https://github.com/handsontable/handsontable/pull/10093)                                                                                      |
+|                                                                               |  | Revamped documentation portal                                                                                                                                                                 |

@@ -1,19 +1,13 @@
 <template>
   <footer class="footer">
-    <div class="footer-support">
-      <div
+    <a
         v-if="editLink"
         class="edit-link"
-      >
-        <a
-          :href="editLink"
-          target="_blank"
-          rel="noopener noreferrer"
-        >{{ editLinkText }} <i class="ico i-external"></i> </a>
-      </div>
-    </div>
-
-    <div class="hot-feedback"></div>
+        :href="editLink"
+        target="_blank"
+        rel="noopener noreferrer"
+      >{{ editLinkText }} <i class="ico i-external"></i>
+    </a>
 
     <div class="footer-links">
       <div class="socail-links">
