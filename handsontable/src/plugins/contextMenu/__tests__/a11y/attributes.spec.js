@@ -40,7 +40,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(hot.getPlugin('contextMenu').menu.container.getAttribute('role')).toEqual('menu');
   });
 
-  it('should assign the `role=menuitem` attribute to all the options of the context menu except of the readOnly option', () => {
+  it('should assign the `role=menuitem` attribute to all the options of the context menu except of the `Read only` option', () => {
     const hot = handsontable({
       contextMenu: true
     });
@@ -57,7 +57,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     ).length).toEqual(cMenu.hotMenu.countRows() - 1);
   });
 
-  it('should assign the `role=menucheckboxitem` to the only one option of the context menu', () => {
+  it('should assign the `role=menucheckboxitem` to the `Read only` option of the context menu', () => {
     const hot = handsontable({
       contextMenu: true
     });
@@ -75,25 +75,6 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     expect(menuItemCheckboxes.length).toEqual(1);
     expect(menuItemCheckboxes[0].ariaLabel).toBe('Read only unchecked');
-  });
-
-  it('should assign the `role=menuitem` attribute to all the options of the context menu', () => {
-    const hot = handsontable({
-      contextMenu: true
-    });
-
-    contextMenu();
-
-    const cMenu = hot.getPlugin('contextMenu').menu;
-
-    expect(filterElementsByAttribute(
-      cMenu.container,
-      'td',
-      'role',
-      'menuitem'
-    ).length).toEqual(cMenu.hotMenu.countRows() - 1);
-
-    expect(cMenu.hotMenu.getCell(0, 0).getAttribute('role')).toEqual('menuitem');
   });
 
   it('should assign the `aria-label` attribute to all the options of the context menu', async() => {

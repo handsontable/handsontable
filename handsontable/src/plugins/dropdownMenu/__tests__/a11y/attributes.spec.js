@@ -61,7 +61,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('role')).toEqual('menuitem');
   });
 
-  it('should assign the `role=menuitemcheckbox` attribute to the readOnly item', () => {
+  it('should assign the `role=menuitemcheckbox` attribute to the `Read only` item', () => {
     const hot = handsontable({
       dropdownMenu: true,
       colHeaders: true,
