@@ -56,7 +56,7 @@ const environmentHead = isProduction
 createSymlinks();
 
 module.exports = {
-  shouldPrefetch: false,
+  shouldPrefetch: () => false,
   define: {
     GA_ID: 'UA-33932793-7',
   },
