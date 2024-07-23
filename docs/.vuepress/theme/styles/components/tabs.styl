@@ -77,14 +77,15 @@
         gap: 8px
 
         &:has(li:first-child:last-child ) {
-            display: none;
-
+            @media (max-width: $small) {
+                display: none;
+            }
+            li {
+                opacity: 0;
+                pointer-events: none;
+            }
             + .tabs-component-panels {
                 border-radius: $radius !important
-
-                .codeControls { 
-                    top: 10px
-                }
             }
         }
 
