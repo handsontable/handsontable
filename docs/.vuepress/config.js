@@ -56,7 +56,13 @@ const environmentHead = isProduction
 createSymlinks();
 
 module.exports = {
-  shouldPrefetch: () => false,
+  // by default this always returns true, this is a issue as it preloads every documentation pages content
+  shouldPrefetch: (_, type) => {
+    if (type === 'script') {
+      return false;
+    }
+    return true;
+  },
   define: {
     GA_ID: 'UA-33932793-7',
   },
