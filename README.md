@@ -54,13 +54,12 @@ The most popular features of Handsontable:
 
 ---
 
-<div id="installation"></div>
 
-## Installation
+## Getting started
 
-You can install Handsontable with [NPM](https://www.npmjs.com/), [Yarn](https://yarnpkg.com/), [PNpm](https://pnpm.io/), or a `<script>`.
+You can install Handsontable with [npm](https://www.npmjs.com/), [Yarn](https://yarnpkg.com/), [pnpm](https://pnpm.io/), or a `<script>`.
   
-#### NPM
+#### Install dependencies
 ```bash
 npm i handsontable @handsontable/react
 ```
@@ -74,7 +73,7 @@ npm i handsontable @handsontable/react
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
 ```
   
-### Quick Start
+### Usage
 Below is a very simple example of Handsontable.
 
 ```jsx
