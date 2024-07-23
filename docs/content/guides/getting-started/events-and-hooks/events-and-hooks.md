@@ -125,10 +125,11 @@ The first argument may be modified and passed on through the Handsontable hooks 
 
 ## External control
 
-::: example #example3 :react --js 1 --ts 2
+::: example #example3 :react --js 1 --ts 2 --css 3
 
 @[code](@/content/guides/getting-started/events-and-hooks/react/example3.jsx)
 @[code](@/content/guides/getting-started/events-and-hooks/react/example3.tsx)
+@[code](@/content/guides/getting-started/events-and-hooks/react/example3.css)
 
 :::
 
