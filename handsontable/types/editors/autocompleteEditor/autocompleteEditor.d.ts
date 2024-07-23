@@ -17,7 +17,7 @@ export class AutocompleteEditor extends HandsontableEditor {
   limitDropdownIfNeeded(spaceAvailable: number, dropdownHeight: number): void;
   flipDropdown(dropdownHeight: number): void;
   unflipDropdown(): void;
-  updateDropdownHeight(): void;
+  updateDropdownDimensions(): void;
   setDropdownHeight(height: number): void;
   highlightBestMatchingChoice(index?: number): void;
   getDropdownHeight(): number;
