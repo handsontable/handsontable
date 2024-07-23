@@ -1,12 +1,20 @@
-import React, { useRef } from 'react';
-import { createRoot } from 'react-dom/client';
+import React from 'react';
+import { createRoot, Root } from 'react-dom/client';
+import Handsontable from 'handsontable';
+import { BaseRenderer } from 'handsontable/renderers';
 import { act } from '@testing-library/react';
 import { HotTable } from '../src/hotTable';
-import { BaseEditorComponent } from '../src/baseEditorComponent';
+import { HotRendererProps, HotTableRef, HotTableProps } from '../src/types'
+import { useHotEditor } from "../src/hotEditor";
 
-const SPEC = {
-  container: null,
-  root: null,
+interface Spec {
+  container: HTMLElement
+  root: Root
+}
+
+const SPEC: Spec = {
+  container: null!,
+  root: null!,
 };
 
 beforeEach(() => {
@@ -19,21 +27,21 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  const container = document.querySelector('#hotContainer');
+  const container = document.querySelector('#hotContainer')!;
 
-  container.parentNode.removeChild(container);
-  SPEC.container = null;
+  container.parentNode!.removeChild(container);
+  SPEC.container = null!;
 
   act(() => {
     SPEC.root.unmount();
   });
 });
 
-export function mountComponentWithRef(Component, strictMode = true) {
-  let hotTableComponent = null;
+export function mountComponentWithRef<T>(Component: React.ReactElement, strictMode = true): T {
+  let hotTableComponent: React.RefObject<T> | null = null;
 
   const App = () => {
-    hotTableComponent = useRef(null);
+    hotTableComponent = React.useRef(null);
 
     return (
       <Component.type {...Component.props} ref={hotTableComponent}></Component.type>
@@ -46,10 +54,22 @@ export function mountComponentWithRef(Component, strictMode = true) {
     );
   });
 
-  return hotTableComponent.current;
+  return hotTableComponent!.current!;
 }
 
-export function mountComponent(Component) {
+export function renderHotTableWithProps(props: HotTableProps, strictMode = true, hotTableRef: React.RefObject<HotTableRef> = React.createRef()): React.RefObject<HotTableRef> {
+  act(() => {
+    SPEC.root.render(
+      strictMode
+          ? <React.StrictMode><HotTable {...props} ref={hotTableRef} /></React.StrictMode>
+          : <HotTable {...props} ref={hotTableRef} />
+    );
+  });
+
+  return hotTableRef;
+}
+
+export function mountComponent(Component: React.ReactElement): void {
   const App = () => {
     return (
       <Component.type {...Component.props}></Component.type>
@@ -61,14 +81,12 @@ export function mountComponent(Component) {
   });
 }
 
-export function sleep(delay = 100) {
-  return Promise.resolve({
-    then(resolve) {
-      if (delay === 0) {
-        setImmediate(resolve);
-      } else {
-        setTimeout(resolve, delay);
-      }
+export function sleep(delay = 100): Promise<void> {
+  return new Promise((resolve) => {
+    if (delay === 0) {
+      setImmediate(resolve);
+    } else {
+      setTimeout(resolve, delay);
     }
   });
 }
@@ -79,15 +97,15 @@ export function sleep(delay = 100) {
  * @param {number} index Column index.
  * @returns {string}
  */
-export function spreadsheetColumnLabel(index) {
+export function spreadsheetColumnLabel(index: number): string {
   let dividend = index + 1;
   let columnLabel = '';
-  let modulo;
+  let modulo: number;
 
   while (dividend > 0) {
     modulo = (dividend - 1) % 26;
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-    dividend = parseInt((dividend - modulo) / 26, 10);
+    dividend = Math.floor((dividend - modulo) / 26)
   }
 
   return columnLabel;
@@ -100,7 +118,7 @@ export function spreadsheetColumnLabel(index) {
  * @param {number} columns Number of columns to generate.
  * @returns {Array}
  */
-export function createSpreadsheetData(rows = 100, columns = 4) {
+export function createSpreadsheetData(rows = 100, columns = 4): string[][] {
   const _rows = [];
   let i;
   let j;
@@ -117,7 +135,7 @@ export function createSpreadsheetData(rows = 100, columns = 4) {
   return _rows;
 }
 
-export function mockElementDimensions(element, width, height) {
+export function mockElementDimensions(element: HTMLElement, width: number, height: number): void {
   Object.defineProperty(element, 'clientWidth', {
     value: width
   });
@@ -133,9 +151,9 @@ export function mockElementDimensions(element, width, height) {
   });
 }
 
-export function simulateKeyboardEvent(type, keyCode) {
-  const newEvent = document.createEvent('KeyboardEvent');
-  const KEY_CODES = {
+export function simulateKeyboardEvent(type: string, keyCode: number): void {
+  const newEvent: any = document.createEvent('KeyboardEvent');
+  const KEY_CODES: Record<number, string> = {
     8: 'backspace',
     9: 'tab',
     13: 'enter',
@@ -147,22 +165,22 @@ export function simulateKeyboardEvent(type, keyCode) {
 
   // Chromium Hack
   Object.defineProperty(newEvent, 'keyCode', {
-    get : function() {
-        return this.keyCodeVal;
+    get: function () {
+      return this.keyCodeVal;
     }
   });
   Object.defineProperty(newEvent, 'which', {
-      get : function() {
-          return this.keyCodeVal;
-      }
+    get: function () {
+      return this.keyCodeVal;
+    }
   });
   Object.defineProperty(newEvent, 'key', {
-    get : function() {
+    get: function () {
       return KEY_CODES[this.keyCodeVal] ?? String.fromCharCode(this.keyCodeVal).toLowerCase();
     }
   });
 
-  if ((newEvent as any).initKeyboardEvent !== void 0) {
+  if (newEvent.initKeyboardEvent !== void 0) {
     newEvent.initKeyboardEvent(type, true, true, window, keyCode, keyCode, '', '', false, '');
   } else {
     newEvent.initKeyEvent(type, true, true, window, false, false, false, false, keyCode, 0);
@@ -170,124 +188,91 @@ export function simulateKeyboardEvent(type, keyCode) {
 
   newEvent.keyCodeVal = keyCode;
 
-  document.activeElement.dispatchEvent(newEvent);
+  document.activeElement!.dispatchEvent(newEvent);
 }
 
-export function simulateMouseEvent(element, type) {
+export function simulateMouseEvent(element: Element | null, type: string): void {
   const event = document.createEvent('Events');
   event.initEvent(type, true, false);
 
-  element.dispatchEvent(event);
+  element!.dispatchEvent(event);
 }
 
-class IndividualPropsWrapper extends React.Component<{ref?: string, id?: string}, {hotSettings?: object}> {
-  hotTable: typeof HotTable;
-  state = {};
+export const RendererComponent: React.FC<HotRendererProps & { tap?: (props: HotRendererProps) => void }> = ({ tap, ...props }) => {
+  tap?.(props);
 
-  private setHotElementRef(component: typeof HotTable): void {
-    this.hotTable = component;
-  }
-
-  render(): React.ReactElement {
-    return (
-      <div>
-        <HotTable
-          licenseKey="non-commercial-and-evaluation"
-          ref={this.setHotElementRef.bind(this)}
-          id="hot" {...this.state.hotSettings}
-          autoRowSize={false}
-          autoColumnSize={false}
-        />
-      </div>
-    );
-  }
+  return (
+    <>
+      value: {props.value}
+    </>
+  );
 }
 
-export { IndividualPropsWrapper };
-
-class SingleObjectWrapper extends React.Component<{ref?: string, id?: string}, {hotSettings?: object}> {
-  hotTable: typeof HotTable;
-  state = {};
-
-  private setHotElementRef(component: typeof HotTable): void {
-    this.hotTable = component;
-  }
-
-  render(): React.ReactElement {
-    return (
-      <div>
-        <HotTable
-          licenseKey="non-commercial-and-evaluation"
-          ref={this.setHotElementRef.bind(this)}
-          id="hot"
-          settings={this.state.hotSettings}
-          autoRowSize={false}
-          autoColumnSize={false}
-        />
-      </div>
-    );
-  }
+export const customNativeRenderer: BaseRenderer = function (this: BaseRenderer, instance, td, row, col, prop, value, cellProperties) {
+  Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, col, prop, `value: ${value}`, cellProperties]);
+  return td;
 }
 
-export { SingleObjectWrapper };
-
-export class RendererComponent extends React.Component<any, any> {
-  render(): React.ReactElement<string> {
-    return (
-      <>
-        value: {this.props.value}
-      </>
-    );
-  }
+interface EditorComponentProps {
+  className?: string
+  background?: string
+  tap?: (props: EditorComponentProps) => void
 }
 
-export class EditorComponent extends BaseEditorComponent<{}, {value?: any}> {
-  mainElementRef: any;
-  containerStyle: any;
+export const EditorComponent: React.FC<EditorComponentProps> = ({ tap, ...props }) => {
+  const mainElementRef = React.useRef<HTMLDivElement>(null)
+  const containerStyle = {
+    display: 'none'
+  };
 
-  constructor(props) {
-    super(props);
+  const { setValue, finishEditing } = useHotEditor({
+    onPrepare() {
+      mainElementRef.current!.style.backgroundColor = props.background!;
+    },
 
-    this.mainElementRef = React.createRef();
+    onOpen() {
+      mainElementRef.current!.style.display = 'block';
+    },
 
-    this.state = {
-      value: ''
-    };
+    onClose() {
+      mainElementRef.current!.style.display = 'none';
+    }
+  });
 
-    this.containerStyle = {
-      display: 'none'
-    };
+  const setNewValue = React.useCallback(() => {
+    setValue('new-value');
+    finishEditing();
+  }, [setValue, finishEditing]);
+
+  tap?.(props);
+
+  return (
+    <div style={containerStyle} ref={mainElementRef} id="editorComponentContainer" className={props.className}>
+      <button onClick={setNewValue}></button>
+    </div>
+  );
+};
+
+export class CustomNativeEditor extends Handsontable.editors.BaseEditor {
+  declare TEXTAREA: HTMLTextAreaElement
+  declare TEXTAREA_PARENT: HTMLElement
+
+  init() {
+    this.TEXTAREA = document.createElement('textarea');
+    this.TEXTAREA_PARENT = document.createElement('div');
+
+    this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
+    this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
   }
-
   getValue() {
-    return this.state.value;
+    return `--${this.TEXTAREA.value}--`;
   }
-
-  setValue(value, callback) {
-    this.setState((state, props) => {
-      return {value: value};
-    }, callback);
+  setValue(value: string) {
+    this.TEXTAREA.value = value;
   }
-
-  setNewValue() {
-    this.setValue('new-value', () => {
-      this.finishEditing();
-    })
-  }
-
-  open() {
-    this.mainElementRef.current.style.display = 'block';
-  }
-
-  close() {
-    this.mainElementRef.current.style.display = 'none';
-  }
-
-  render(): React.ReactElement<string> {
-    return (
-      <div style={this.containerStyle} ref={this.mainElementRef} id="editorComponentContainer">
-        <button onClick={this.setNewValue.bind(this)}></button>
-      </div>
-    );
+  open() {}
+  close() {}
+  focus() {
+    this.TEXTAREA.focus();
   }
 }

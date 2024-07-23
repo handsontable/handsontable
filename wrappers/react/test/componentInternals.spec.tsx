@@ -6,179 +6,37 @@ import {
   createSpreadsheetData,
   mockElementDimensions,
   mountComponentWithRef,
+  renderHotTableWithProps,
   sleep,
 } from './_helpers';
 import { HOT_DESTROYED_WARNING } from "../src/helpers";
-import { BaseEditorComponent } from '../src/baseEditorComponent';
-
-describe('Subcomponent state', () => {
-  it('should be possible to set the state of the renderer components passed to HotTable and HotColumn', async () => {
-    class RendererComponent2 extends React.Component<any, any, any> {
-      constructor(props) {
-        super(props);
-
-        this.state = {
-          value: 'initial'
-        }
-      }
-
-      render(): React.ReactElement<string> {
-        return (
-          <>
-            {this.state.value}
-          </>
-        );
-      }
-    }
-
-    let zeroRendererInstance = null;
-    let oneRendererInstance = null;
-
-    const hotInstance = mountComponentWithRef((
-      <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <RendererComponent2 ref={function (instance) {
-          if (instance && instance.props.row === 0 && instance.props.col === 0) {
-            zeroRendererInstance = instance;
-          }
-        }} hot-renderer></RendererComponent2>
-        <HotColumn/>
-        <HotColumn>
-          <RendererComponent2 ref={function (instance) {
-            if (instance && instance.props.row === 0 && instance.props.col === 1) {
-              oneRendererInstance = instance;
-            }
-          }} hot-renderer></RendererComponent2>
-        </HotColumn>
-      </HotTable>
-    )).hotInstance;
-
-    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>initial</div>');
-    expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>initial</div>');
-
-    await act(async () => {
-      zeroRendererInstance.setState({
-        value: 'altered'
-      });
-
-      oneRendererInstance.setState({
-        value: 'altered as well'
-      });
-    });
-
-    expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>altered</div>');
-    expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>altered as well</div>');
-  });
-
-  it('should be possible to set the state of the editor components passed to HotTable and HotColumn', async () => {
-    class RendererEditor2 extends BaseEditorComponent {
-      constructor(props) {
-        super(props);
-
-        this.state = {
-          value: 'initial'
-        }
-      }
-
-      render(): React.ReactElement<string> {
-        return (
-          <div id={this.props.editorId}>
-            {this.state.value}
-          </div>
-        );
-      }
-    }
-
-    let globalEditorInstance = null;
-    let columnEditorInstance = null;
-
-    mountComponentWithRef((
-      <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <RendererEditor2 editorId={'first-editor'} ref={function (instance) {
-          globalEditorInstance = instance;
-        }} hot-editor></RendererEditor2>
-        <HotColumn/>
-        <HotColumn>
-          <RendererEditor2 editorId={'second-editor'} ref={function (instance) {
-            columnEditorInstance = instance;
-          }} hot-editor></RendererEditor2>
-        </HotColumn>
-      </HotTable>
-    ));
-
-    expect(document.querySelector('#first-editor').innerHTML).toEqual('initial');
-    expect(document.querySelector('#second-editor').innerHTML).toEqual('initial');
-
-    await act(async () => {
-      globalEditorInstance.setState({
-        value: 'altered'
-      });
-
-      columnEditorInstance.setState({
-        value: 'altered as well'
-      });
-    });
-
-    expect(document.querySelector('#first-editor').innerHTML).toEqual('altered');
-    expect(document.querySelector('#second-editor').innerHTML).toEqual('altered as well');
-  });
-});
+import { HotTableProps, HotRendererProps, HotTableRef } from '../src/types'
 
 describe('Component lifecyle', () => {
   it('renderer components should trigger their lifecycle methods', async () => {
-    class RendererComponent2 extends React.Component<any, any, any> {
-      constructor(props) {
-        super(props);
-
-        rendererCounters.set(`${this.props.row}-${this.props.col}`, {
-          didMount: 0,
+    function RendererComponent2(props: HotRendererProps) {
+      React.useEffect(() => {
+        rendererCounters.set(`${props.row}-${props.col}`, {
+          didMount: 1,
           willUnmount: 0
         });
-      }
 
-      componentDidMount(): void {
-        const counters = rendererCounters.get(`${this.props.row}-${this.props.col}`);
-        counters.didMount++;
-      }
+        return () => {
+          const counters = rendererCounters.get(`${props.row}-${props.col}`);
+          counters.willUnmount++;
+        };
+      }, []);
 
-      componentWillUnmount(): void {
-        const counters = rendererCounters.get(`${this.props.row}-${this.props.col}`);
-        counters.willUnmount++;
-      }
-
-      render(): React.ReactElement<string> {
-        return (
-          <>
-            test
-          </>
-        );
-      }
+      return (
+        <>
+          test
+        </>
+      );
     }
 
-    let secondGo = false;
-    const rendererRefs = new Map();
     const rendererCounters = new Map();
 
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 2)}
@@ -190,29 +48,19 @@ describe('Component lifecyle', () => {
                 autoColumnSize={false}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <RendererComponent2 ref={function (instance) {
-          if (!secondGo && instance) {
-            rendererRefs.set(`${instance.props.row}-${instance.props.col}`, instance);
-          }
-        }} hot-renderer></RendererComponent2>
+                }}
+                renderer={(props) => <RendererComponent2 {...props} />}>
         <HotColumn/>
-        <HotColumn>
-          <RendererComponent2 ref={function (instance) {
-            if (!secondGo && instance) {
-              rendererRefs.set(`${instance.props.row}-${instance.props.col}`, instance);
-            }
-          }} hot-renderer></RendererComponent2>
-        </HotColumn>
+        <HotColumn renderer={(props) => <RendererComponent2 {...props} />}/>
       </HotTable>
-    ), false).hotInstance;
+    ), false).hotInstance!;
+
+    expect(rendererCounters.size).toEqual(3 * 2);
 
     rendererCounters.forEach((counters) => {
       expect(counters.didMount).toEqual(1);
       expect(counters.willUnmount).toEqual(0);
     });
-
-    secondGo = true;
 
     await act(async () => {
       hotInstance.render();
@@ -227,88 +75,57 @@ describe('Component lifecyle', () => {
   });
 
   it('editor components should trigger their lifecycle methods', async () => {
-    class EditorComponent2 extends BaseEditorComponent {
-      constructor(props) {
-        super(props);
+    const editorCounters = {
+      didMount: 0,
+      willUnmount: 0
+    };
 
-        editorCounters.set(`${this.props.row}-${this.props.col}`, {
-          didMount: 0,
-          willUnmount: 0
-        });
-      }
+    const EditorComponent2 = () => {
+      React.useEffect(() => {
+        editorCounters.didMount++;
 
-      componentDidMount(): void {
-        const counters = editorCounters.get(`${this.props.row}-${this.props.col}`);
-        counters.didMount++;
-      }
+        return () => {
+          editorCounters.willUnmount++;
+        };
+      }, []);
 
-      componentWillUnmount(): void {
-        const counters = editorCounters.get(`${this.props.row}-${this.props.col}`);
-        counters.willUnmount++;
-      }
+      return (
+        <>test</>
+      );
+    };
 
-      render(): React.ReactElement<string> {
-        return (
-          <>
-            test
-          </>
-        );
-      }
-    }
+    const props: HotTableProps = {
+      licenseKey: "non-commercial-and-evaluation",
+      id: "test-hot",
+      data: createSpreadsheetData(3, 2),
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      init: function () {
+        mockElementDimensions(this.rootElement, 300, 300);
+      },
+      editor: (props) => <EditorComponent2 {...props} key={Math.random()} />
+    };
 
-    let secondGo = false;
-    const editorRefs = new Map();
-    const editorCounters = new Map();
-    const childrenArray = [
-      <EditorComponent2 ref={function (instance) {
-        if (!secondGo && instance) {
-          editorRefs.set(`EditorComponent2`, instance);
-        }
-      }} hot-editor key={Math.random()}></EditorComponent2>
-    ];
+    renderHotTableWithProps(props, false);
 
-    const hotTableInstance = mountComponentWithRef((
-      <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        {childrenArray}
-      </HotTable>
-    ), false);
+    expect(editorCounters.didMount).toEqual(1);
+    expect(editorCounters.willUnmount).toEqual(0);
 
-    editorCounters.forEach((counters) => {
-      expect(counters.didMount).toEqual(1);
-      expect(counters.willUnmount).toEqual(0);
-    });
+    // rerender
+    renderHotTableWithProps({ ...props, editor: undefined }, false);
 
-    secondGo = true;
-
-    childrenArray.length = 0;
-
-    await act(async () => {
-      hotTableInstance.forceUpdate();
-    });
-
-    await sleep(100);
-
-    editorCounters.forEach((counters) => {
-      expect(counters.didMount).toEqual(1);
-      expect(counters.willUnmount).toEqual(1);
-    });
+    expect(editorCounters.didMount).toEqual(1);
+    expect(editorCounters.willUnmount).toEqual(1);
   });
 
   it('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
     'has been destroyed', async () => {
     const warnFunc = console.warn;
-    const warnCalls = [];
+    const warnCalls: string[] = [];
 
-    const componentInstance = mountComponentWithRef((
+    const componentInstance = mountComponentWithRef<HotTableRef>((
       <HotTable
         id="test-hot"
         data={[[2]]}
@@ -316,13 +133,13 @@ describe('Component lifecyle', () => {
       />
     ));
 
-    console.warn = (warningMessage) => {
+    console.warn = (warningMessage: string) => {
       warnCalls.push(warningMessage);
     };
 
-    expect(componentInstance.hotInstance.isDestroyed).toEqual(false);
+    expect(componentInstance.hotInstance!.isDestroyed).toEqual(false);
 
-    componentInstance.hotInstance.destroy();
+    componentInstance.hotInstance!.destroy();
 
     expect(componentInstance.hotInstance).toEqual(null);
 
