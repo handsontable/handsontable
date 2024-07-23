@@ -61,6 +61,7 @@ module.exports = {
     if (type === 'script') {
       return false;
     }
+
     return true;
   },
   define: {
