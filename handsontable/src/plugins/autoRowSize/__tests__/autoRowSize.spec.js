@@ -141,7 +141,7 @@ describe('AutoRowSize', () => {
       const nrOfRows = SYNC_CALCULATION_LIMIT - 1;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        data: createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
@@ -155,7 +155,7 @@ describe('AutoRowSize', () => {
       const nrOfRows = SYNC_CALCULATION_LIMIT + 1;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        data: createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
@@ -169,7 +169,7 @@ describe('AutoRowSize', () => {
       const nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP - 1;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        data: createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
@@ -184,7 +184,7 @@ describe('AutoRowSize', () => {
       const nrOfRows = SYNC_CALCULATION_LIMIT + CALCULATION_STEP + 1;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(nrOfRows, nrOfColumns),
+        data: createSpreadsheetData(nrOfRows, nrOfColumns),
         autoRowSize: true
       });
 
@@ -516,7 +516,7 @@ describe('AutoRowSize', () => {
 
   it('should resize the column headers properly, according the their content sizes', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(30, 30),
+      data: createSpreadsheetData(30, 30),
       colHeaders(index) {
         if (index === 22) {
           return 'a<br>much<br>longer<br>label';
@@ -610,7 +610,7 @@ describe('AutoRowSize', () => {
     const onErrorSpy = spyOn(window, 'onerror');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       colHeaders: true,
       autoRowSize: true,
       afterGetColHeader(column, TH) {
@@ -642,5 +642,50 @@ describe('AutoRowSize', () => {
     keyDownUp('delete');
 
     expect(topOverlay().getScrollPosition()).toBe(833);
+  });
+
+  it('should correctly calculate row heights for cell\'s content that produce' +
+     'heights with fractions (#dev-1926)', () => {
+    const css = '.handsontable .htCheckboxRendererLabel { height: 24px !important }'; // creates cell height with fraction
+    const head = document.head;
+    const style = document.createElement('style');
+
+    style.type = 'text/css';
+
+    if (style.styleSheet) {
+      style.styleSheet.cssText = css;
+    } else {
+      style.appendChild(document.createTextNode(css));
+    }
+
+    $(head).append(style);
+
+    handsontable({
+      data: createSpreadsheetObjectData(20, 1).map((row) => {
+        row.prop0 = false;
+
+        return row;
+      }),
+      autoRowSize: true,
+      rowHeaders: true,
+      colHeaders: true,
+      columns: [
+        {
+          type: 'checkbox',
+          label: {
+            position: 'after',
+            property: 'prop0',
+          }
+        }
+      ],
+    });
+
+    expect(getRowHeight(0)).toBe(26);
+    expect(getRowHeight(4)).toBe(26);
+    expect(getRowHeight(9)).toBe(26);
+    expect(getRowHeight(14)).toBe(26);
+    expect(getRowHeight(19)).toBe(26);
+
+    $(style).remove();
   });
 });
