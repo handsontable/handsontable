@@ -24,6 +24,7 @@ jobs:
       run-all: ${{
           endsWith(github.ref, '/master') ||
           endsWith(github.ref, '/develop') ||
+          endsWith(github.ref, '/node-22') ||
           contains(github.ref, '/release/')
         }}
       build-handsontable-es-cjs: ${{ steps.path-filter.outputs.build-handsontable-es-cjs }}
