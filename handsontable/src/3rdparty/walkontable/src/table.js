@@ -287,8 +287,9 @@ class Table {
     let runFastDraw = fastDraw;
 
     if (this.isMaster) {
+      wtOverlays.beforeDraw();
       this.holderOffset = offset(this.holder);
-      runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
+      runFastDraw = wtViewport.createCalculators(runFastDraw);
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
         const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
@@ -302,17 +303,8 @@ class Table {
       }
     }
 
-    if (this.isMaster) {
-      wtOverlays.beforeDraw();
-    }
-
     if (runFastDraw) {
       if (this.isMaster) {
-        // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
-        wtViewport.createVisibleCalculators();
-        wtViewport.createPartiallyVisibleCalculators();
-      }
-      if (wtOverlays) {
         wtOverlays.refresh(true);
       }
     } else {
@@ -370,8 +362,10 @@ class Table {
         }
 
         if (this.isMaster) {
-          wtViewport.createVisibleCalculators();
-          wtViewport.createPartiallyVisibleCalculators();
+          if (!this.wtSettings.getSetting('externalRowCalculator')) {
+            wtViewport.createVisibleCalculators();
+          }
+
           wtOverlays.refresh(false);
           wtOverlays.applyToDOM();
 

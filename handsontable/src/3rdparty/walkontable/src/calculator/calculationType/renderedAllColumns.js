@@ -1,13 +1,13 @@
 /**
- * @typedef {object} RenderAllColumnsCalculatorOptions
+ * @typedef {object} RenderedAllColumnsCalculatorOptions
  * @property {number} totalColumns Total number of columns.
  */
 /**
  * Holds all calculations needed to perform the rendering of all columns.
  *
- * @class RenderAllColumnsCalculator
+ * @class RenderedAllColumnsCalculationType
  */
-export class RenderAllColumnsCalculator {
+export class RenderedAllColumnsCalculationType {
   /**
    * Number of rendered/visible columns.
    *
@@ -32,12 +32,30 @@ export class RenderAllColumnsCalculator {
    * @type {number}
    */
   startPosition = 0;
+  /**
+   * Determines if the viewport is visible in the trimming container.
+   *
+   * @type {boolean}
+   */
+  isVisibleInTrimmingContainer = true;
 
   /**
-   * @param {RenderAllColumnsCalculatorOptions} options Object with all options specified for column viewport calculation.
+   * Initializes the calculation.
+   *
+   * @param {ViewportColumnsCalculator} viewportCalculator The viewport calculator object.
    */
-  constructor(options) {
-    this.count = options.totalColumns;
+  initialize({ totalColumns }) {
+    this.count = totalColumns;
     this.endColumn = this.count - 1;
   }
+
+  /**
+   * Processes the column.
+   */
+  process() {}
+
+  /**
+   * Finalizes the calculation.
+   */
+  finalize() {}
 }
