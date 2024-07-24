@@ -54,16 +54,12 @@ describe('DropdownMenu keyboard shortcut', () => {
       getPlugin('dropdownMenu').menu.getNavigator().toFirstItem();
       keyDownUp('pagedown');
 
+      const menuView = getPlugin('dropdownMenu').menu.hotMenu.view;
       let firstVisibleRow = 0;
 
       {
-        // create rows calculator that allows gather information about what rows are already
-        // visible in the browser viewport. The -2 argument means that the calculator takes into
-        // account rows that are partially visible.
-        const {
-          startRow,
-          endRow,
-        } = getPlugin('dropdownMenu').menu.hotMenu.view._wt.wtViewport.createRowsCalculator(-2);
+        const startRow = menuView.getFirstPartiallyVisibleRow();
+        const endRow = menuView.getLastPartiallyVisibleRow();
 
         expect(startRow).toBe(firstVisibleRow);
         expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe(`Test item ${endRow}`);
@@ -74,10 +70,8 @@ describe('DropdownMenu keyboard shortcut', () => {
       keyDownUp('pagedown');
 
       {
-        const {
-          startRow,
-          endRow,
-        } = getPlugin('dropdownMenu').menu.hotMenu.view._wt.wtViewport.createRowsCalculator(-2);
+        const startRow = menuView.getFirstPartiallyVisibleRow();
+        const endRow = menuView.getLastPartiallyVisibleRow();
 
         expect(startRow).toBe(firstVisibleRow);
         expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe(`Test item ${endRow}`);
@@ -88,10 +82,8 @@ describe('DropdownMenu keyboard shortcut', () => {
       keyDownUp('pagedown');
 
       {
-        const {
-          startRow,
-          endRow,
-        } = getPlugin('dropdownMenu').menu.hotMenu.view._wt.wtViewport.createRowsCalculator(-2);
+        const startRow = menuView.getFirstPartiallyVisibleRow();
+        const endRow = menuView.getLastPartiallyVisibleRow();
 
         expect(startRow).toBe(firstVisibleRow);
         expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe(`Test item ${endRow}`);
@@ -102,10 +94,8 @@ describe('DropdownMenu keyboard shortcut', () => {
       keyDownUp('pagedown');
 
       {
-        const {
-          startRow,
-          endRow,
-        } = getPlugin('dropdownMenu').menu.hotMenu.view._wt.wtViewport.createRowsCalculator(-2);
+        const startRow = menuView.getFirstPartiallyVisibleRow();
+        const endRow = menuView.getLastPartiallyVisibleRow();
 
         expect(startRow).toBe(firstVisibleRow);
         expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe(`Test item ${endRow}`);
