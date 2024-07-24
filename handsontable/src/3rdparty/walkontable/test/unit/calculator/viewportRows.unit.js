@@ -1,15 +1,26 @@
 import {
-  RENDER_TYPE,
-  FULLY_VISIBLE_TYPE,
-  PARTIALLY_VISIBLE_TYPE,
   ViewportRowsCalculator,
+  RenderedRowsCalculationType,
+  FullyVisibleRowsCalculationType,
+  PartiallyVisibleRowsCalculationType,
 } from '../../../src/calculator';
 
-describe('ViewportRowsCalculator', () => {
-  function allRows20() {
-    return 20;
-  }
+function allRows20() {
+  return 20;
+}
 
+function createViewportRowsCalculator(options) {
+  return new ViewportRowsCalculator({
+    ...options,
+    calculationTypes: [
+      ['rendered', new RenderedRowsCalculationType()],
+      ['fullyVisible', new FullyVisibleRowsCalculationType()],
+      ['partiallyVisible', new PartiallyVisibleRowsCalculationType()],
+    ],
+  });
+}
+
+describe('ViewportRowsCalculator', () => {
   it('should render first 5 rows in unscrolled container', () => {
     const options = {
       viewportHeight: 100,
@@ -17,12 +28,12 @@ describe('ViewportRowsCalculator', () => {
       totalRows: 1000,
       rowHeightFn: index => allRows20(index),
       overrideFn: undefined,
-      calculationType: RENDER_TYPE,
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startRow).toBe(0);
     expect(renderedCalc.startPosition).toBe(0);
@@ -45,12 +56,12 @@ describe('ViewportRowsCalculator', () => {
       totalRows: 1000,
       rowHeightFn: index => allRows20(index),
       overrideFn: undefined,
-      calculationType: RENDER_TYPE,
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startRow).toBe(3);
     expect(renderedCalc.startPosition).toBe(60);
@@ -77,12 +88,12 @@ describe('ViewportRowsCalculator', () => {
       totalRows: 1000,
       rowHeightFn: index => allRows20(index),
       overrideFn: calc => overrideFn(calc),
-      calculationType: RENDER_TYPE,
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startRow).toBe(1);
     expect(renderedCalc.startPosition).toBe(20);
@@ -100,7 +111,7 @@ describe('ViewportRowsCalculator', () => {
 
   it('should not exceed endRow index beyond total rows (using render overrides)', () => {
     const overrideFn = function(calc) {
-      calc.startRow -= 3;
+      calc.startRow -= 30;
       calc.endRow += 30;
     };
     const options = {
@@ -111,9 +122,10 @@ describe('ViewportRowsCalculator', () => {
       overrideFn: calc => overrideFn(calc),
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startRow).toBe(0);
     expect(renderedCalc.startPosition).toBe(0);
@@ -138,9 +150,10 @@ describe('ViewportRowsCalculator', () => {
       overrideFn: undefined,
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.count).toBe(6);
     expect(fullyVisibleCalc.count).toBe(4);
@@ -156,9 +169,10 @@ describe('ViewportRowsCalculator', () => {
       overrideFn: undefined,
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startRow).toBe(0);
     expect(renderedCalc.endRow).toBe(7);
@@ -182,9 +196,10 @@ describe('ViewportRowsCalculator', () => {
       overrideFn: undefined,
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startRow).toBe(0);
     expect(renderedCalc.endRow).toBe(9);
@@ -208,9 +223,10 @@ describe('ViewportRowsCalculator', () => {
       overrideFn: undefined,
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startRow).toBe(0);
     expect(renderedCalc.endRow).toBe(9);
@@ -234,9 +250,10 @@ describe('ViewportRowsCalculator', () => {
       overrideFn: undefined,
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startRow).toBe(null);
     expect(renderedCalc.startPosition).toBe(null);
@@ -265,9 +282,10 @@ describe('ViewportRowsCalculator', () => {
       overrideFn: calc => overrideFn(calc),
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startRow).toBe(null);
     expect(renderedCalc.startPosition).toBe(null);
@@ -292,9 +310,10 @@ describe('ViewportRowsCalculator', () => {
       overrideFn: undefined,
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startRow).toBe(10);
     expect(renderedCalc.startPosition).toBe(200);
@@ -320,9 +339,10 @@ describe('ViewportRowsCalculator', () => {
       overrideFn: undefined,
       horizontalScrollbarHeight: undefined,
     };
-    const renderedCalc = new ViewportRowsCalculator({ ...options, calculationType: RENDER_TYPE });
-    const fullyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: FULLY_VISIBLE_TYPE });
-    const partiallyVisibleCalc = new ViewportRowsCalculator({ ...options, calculationType: PARTIALLY_VISIBLE_TYPE });
+    const calc = createViewportRowsCalculator(options);
+    const renderedCalc = calc.getResultsFor('rendered');
+    const fullyVisibleCalc = calc.getResultsFor('fullyVisible');
+    const partiallyVisibleCalc = calc.getResultsFor('partiallyVisible');
 
     expect(renderedCalc.startRow).toBe(0);
     expect(renderedCalc.startPosition).toBe(0);

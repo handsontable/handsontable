@@ -38,41 +38,61 @@ describe('Walkontable viewport rows calculator', () => {
       const tableHeight = $(wt.wtTable.hider).height();
       const tableOffset = spec().$container.offset().top;
 
-      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
 
       window.scrollBy(0, Math.floor(tableOffset + (tableHeight / 2)));
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
 
       window.scrollBy(0, Math.ceil((tableHeight / 2) - 1));
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
 
       window.scrollBy(0, 1);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
+      {
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(false);
+      }
 
       window.scrollBy(0, 1000);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
+      {
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(false);
+      }
     });
 
     it('Should be `true` if the entire table is in the viewport,' +
@@ -94,41 +114,61 @@ describe('Walkontable viewport rows calculator', () => {
       const tableHeight = $(wt.wtTable.hider).height();
       const tableOffset = spec().$container.offset().top;
 
-      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
+      {
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(false);
+      }
 
       window.scrollBy(0, tableOffset - window.innerHeight + getScrollbarWidth() - 1);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
+      {
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(false);
+      }
 
       window.scrollBy(0, 1);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
 
       window.scrollBy(0, tableHeight / 2);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
 
       window.scrollBy(0, tableHeight / 2);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createRowsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
     });
   });
 });
