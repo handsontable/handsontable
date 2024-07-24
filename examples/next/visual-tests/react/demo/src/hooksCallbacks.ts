@@ -5,12 +5,6 @@ import {
 } from "./constants";
 import { Events } from "handsontable/pluginHooks";
 
-const headerAlignments = new Map([
-  ["9", "htCenter"],
-  ["10", "htRight"],
-  ["12", "htCenter"]
-]);
-
 export const addClassesToRows: Events["beforeRenderer"] = (
   TD,
   row,
@@ -63,27 +57,6 @@ export const drawCheckboxInRowHeaders: Events["afterGetRowHeader"] = function dr
 
   TH.appendChild(input);
 };
-
-export const alignHeaders: Events["afterGetColHeader"] = function alignHeaders(
-  this: Handsontable,
-  column,
-  TH
-) {
-  if (column < 0) {
-    return;
-  }
-
-  const alignmentClass = this.isRtl() ? "htRight" : "htLeft";
-
-  if (TH.firstChild) {
-    if (headerAlignments.has(column.toString())) {
-      Handsontable.dom.removeClass(TH.firstChild as HTMLElement, alignmentClass);
-      Handsontable.dom.addClass(TH.firstChild as HTMLElement, headerAlignments.get(column.toString()) as string);
-    } else {
-      Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
-    }
-  }
-}
 
 export const changeCheckboxCell: Events["afterOnCellMouseDown"] = function changeCheckboxCell(
   this: Handsontable,
