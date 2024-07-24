@@ -58,9 +58,9 @@ To see the context menu, right-click on a cell:
 
 ## Context menu with specific options
 
-You can define items in the menu by passing the [`contextMenu`](@/api/options.md#contextmenu) option as an array of keys which are strings:
+You can define items in the menu by passing the [`contextMenu`](@/api/options.md#contextmenu) option as an array of keys which are strings. Remember about enabling required plugins. Some of the plugins require additional setup.
 
-| Key                                                      | Action, required plugins                                                                                                                                 |
+| Key                                                      | Action, required plugins, additional setup                                                                                                                                 |
 | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`row_above`](@/api/contextMenu.md)                      | Insert a row above                                                                                                                                          |
 | [`row_below`](@/api/contextMenu.md)                      | Insert a row below                                                                                                                                          |
@@ -76,9 +76,9 @@ You can define items in the menu by passing the [`contextMenu`](@/api/options.md
 | [`alignment`](@/api/contextMenu.md)                      | Align text                                                                                                                                                  |
 | [`cut`](@/api/contextMenu.md)                            | Cut the contents of the selected cells to the system clipboard ([`CopyPaste`](@/api/copyPaste.md))                                                          |
 | [`copy`](@/api/contextMenu.md)                           | Copy the contents of the selected cells to the system clipboard ([`CopyPaste`](@/api/copyPaste.md))                                                         |
-| [`copy_with_column_headers`](@/api/contextMenu.md)       | Copy the contents of the selected cells and their nearest column headers ([`CopyPaste`](@/api/copyPaste.md))                                                |
-| [`copy_with_column_group_headers`](@/api/contextMenu.md) | Copy the contents of the selected cells and all their related column headers ([`CopyPaste`](@/api/copyPaste.md), [`NestedHeaders`](@/api/nestedHeaders.md)) |
-| [`copy_column_headers_only`](@/api/contextMenu.md)       | Copy the contents of column headers that are nearest to the selected cells ([`CopyPaste`](@/api/copyPaste.md))                                              |
+| [`copy_with_column_headers`](@/api/contextMenu.md)       | Copy the contents of the selected cells and their nearest column headers ([`CopyPaste`](@/api/copyPaste.md). Requires plugin setup - `copyColumnHeaders: true`)                                                |
+| [`copy_with_column_group_headers`](@/api/contextMenu.md) | Copy the contents of the selected cells and all their related column headers ([`CopyPaste`](@/api/copyPaste.md), [`NestedHeaders`](@/api/nestedHeaders.md). Requires plugin setup - `copyColumnGroupHeaders: true`) |
+| [`copy_column_headers_only`](@/api/contextMenu.md)       | Copy the contents of column headers that are nearest to the selected cells ([`CopyPaste`](@/api/copyPaste.md). Requires plugin setup - `copyColumnHeadersOnly: true`)                                              |
 | [`freeze_column`](@/api/contextMenu.md)                  | Freeze the selected column ([`ManualColumnFreeze`](@/api/manualColumnFreeze.md))                                                                            |
 | [`unfreeze_column`](@/api/contextMenu.md)                | Unfreeze the selected column ([`ManualColumnFreeze`](@/api/manualColumnFreeze.md))                                                                          |
 | [`borders`](@/api/contextMenu.md)                        | Add borders around the selected cells ([`CustomBorders`](@/api/customBorders.md))                                                                           |
