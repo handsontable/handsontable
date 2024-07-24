@@ -28,7 +28,7 @@ import DataSource from './dataMap/dataSource';
 import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
-import { ViewportColumnsCalculator } from './3rdparty/walkontable/src';
+import { DEFAULT_COLUMN_WIDTH } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
@@ -3806,7 +3806,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     width = instance.runHooks('modifyColWidth', width, column);
 
     if (width === undefined) {
-      width = ViewportColumnsCalculator.DEFAULT_WIDTH;
+      width = DEFAULT_COLUMN_WIDTH;
     }
 
     return width;
