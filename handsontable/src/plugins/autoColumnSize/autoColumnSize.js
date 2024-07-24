@@ -6,7 +6,7 @@ import { isObject, hasOwnProperty } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
-import { ViewportColumnsCalculator } from '../../3rdparty/walkontable/src';
+import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
@@ -501,7 +501,7 @@ export class AutoColumnSize extends BasePlugin {
       width = this.columnWidthsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
       if (keepMinimum && typeof width === 'number') {
-        width = Math.max(width, ViewportColumnsCalculator.DEFAULT_WIDTH);
+        width = Math.max(width, DEFAULT_COLUMN_WIDTH);
       }
     }
 
