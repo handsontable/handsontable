@@ -1,12 +1,6 @@
 import Handsontable from "handsontable";
 import { ODD_ROW_CLASS } from "./constants";
 
-const headerAlignments = new Map([
-  ["9", "htCenter"],
-  ["10", "htRight"],
-  ["12", "htCenter"],
-]);
-
 type AddClassesToRows = (
   TD: HTMLTableCellElement,
   row: number,
@@ -42,30 +36,3 @@ export const addClassesToRows: AddClassesToRows = (
     Handsontable.dom.removeClass(parentElement, ODD_ROW_CLASS);
   }
 };
-
-export function alignHeaders(
-  this: Handsontable,
-  column: number,
-  TH: HTMLTableCellElement
-) {
-  if (column < 0) {
-    return;
-  }
-
-  const alignmentClass = this.isRtl() ? "htRight" : "htLeft";
-
-  if (TH.firstChild) {
-    if (headerAlignments.has(column.toString())) {
-      Handsontable.dom.removeClass(
-        TH.firstChild as HTMLElement,
-        alignmentClass
-      );
-      Handsontable.dom.addClass(
-        TH.firstChild as HTMLElement,
-        headerAlignments.get(column.toString()) as string
-      );
-    } else {
-      Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
-    }
-  }
-}

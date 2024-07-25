@@ -4,12 +4,6 @@ import {
   ODD_ROW_CLASS
 } from "./constants";
 
-const headerAlignments = new Map([
-  ["9", "htCenter"],
-  ["10", "htRight"],
-  ["12", "htCenter"]
-]);
-
 type AddClassesToRows = (
   TD: HTMLTableCellElement,
   row: number,
@@ -75,23 +69,6 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
   Handsontable.dom.empty(TH);
 
   TH.appendChild(input);
-};
-
-export function alignHeaders(this: Handsontable, column: number, TH: HTMLTableCellElement) {
-  if (column < 0) {
-    return;
-  }
-
-  const alignmentClass = this.isRtl() ? "htRight" : "htLeft";
-
-  if (TH.firstChild) {
-    if (headerAlignments.has(column.toString())) {
-      Handsontable.dom.removeClass(TH.firstChild as HTMLElement, alignmentClass);
-      Handsontable.dom.addClass(TH.firstChild as HTMLElement, headerAlignments.get(column.toString()) as string);
-    } else {
-      Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
-    }
-  }
 };
 
 type ChangeCheckboxCell = (

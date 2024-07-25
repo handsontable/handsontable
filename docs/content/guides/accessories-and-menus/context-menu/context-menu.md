@@ -67,7 +67,8 @@ You can define items in the menu by passing the [`contextMenu`](@/api/options.md
 | [`col_left`](@/api/contextMenu.md)                       | Insert a column to the left                                                                                                                                 |
 | [`col_right`](@/api/contextMenu.md)                      | Insert a column to the right                                                                                                                                |
 | [`---------`](@/api/contextMenu.md)                      | The menu items separator                                                                                                                                    |
-| [`remove_row`](@/api/contextMenu.md)                     | Remove the selected row                                                                                                                                     |
+| [`remove_row`](@/api/contextMenu.md)                     | Remove the selected row   
+| [`remove_col`](@/api/contextMenu.md)                     | Remove the selected col                                                                                                                                  |
 | [`clear_column`](@/api/contextMenu.md)                   | Delete the data of the selected columns                                                                                                                     |
 | [`undo`](@/api/contextMenu.md)                           | Undo the last action ([`UndoRedo`](@/api/undoRedo.md))                                                                                                      |
 | [`redo`](@/api/contextMenu.md)                           | Redo the last action ([`UndoRedo`](@/api/undoRedo.md))                                                                                                      |
