@@ -516,12 +516,12 @@ const hotOptions: Handsontable.GridSettings = {
       data: 'inStock',
       type: 'checkbox',
       className: 'htCenter',
-      headerClassName: 'htCenter'
+      headerClassName: 'htCenter',
     },
     {
       data: 'qty',
       type: 'numeric',
-      headerClassName: 'htRight'
+      headerClassName: 'htRight',
     },
     {
       data: 'orderId',
