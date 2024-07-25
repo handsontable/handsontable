@@ -4,7 +4,6 @@ import "@handsontable/pikaday/css/pikaday.css";
 
 // Import sample data and helper functions
 import { data, countries } from "./data";
-import { alignHeaders } from "./hooksCallbacks";
 
 // Get the DOM element with the ID 'handsontable' where the Handsontable will be rendered
 const app = document.getElementById("handsontable");
@@ -36,8 +35,13 @@ const hotOptions = {
       data: "inStock",
       type: "checkbox",
       className: "htCenter",
+      headerClassName: 'htCenter',
     },
-    { data: "qty", type: "numeric" },
+    { 
+      data: "qty", 
+      type: "numeric",
+      headerClassName: 'htRight',
+    },
     {
       data: "orderId",
       type: "text",
@@ -61,7 +65,7 @@ const hotOptions = {
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
-  afterGetColHeader: alignHeaders,
+  headerClassName: "htLeft",
   licenseKey: "non-commercial-and-evaluation",
 };
 

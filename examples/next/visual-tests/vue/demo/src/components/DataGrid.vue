@@ -12,7 +12,6 @@ import { progressBarRenderer } from "../renderers/progressBar";
 import { starsRenderer } from "../renderers/stars";
 
 import {
-  alignHeaders,
   drawCheckboxInRowHeaders,
   addClassesToRows,
   changeCheckboxCell
@@ -39,7 +38,7 @@ export default {
         comments: true,
         customBorders: true,
         afterOnCellMouseDown: changeCheckboxCell,
-        afterGetColHeader: alignHeaders,
+        headerClassName: "htLeft",
         afterGetRowHeader: drawCheckboxInRowHeaders,
         beforeRenderer: addClassesToRows,
         colWidths: [140, 192, 100, 90, 90, 110, 97, 100, 126],
@@ -65,11 +64,13 @@ export default {
           {
             data: 6,
             type: "checkbox",
-            className: "htCenter"
+            className: "htCenter",
+            headerClassName: "htCenter"
           },
           {
             data: 7,
-            type: "numeric"
+            type: "numeric",
+            headerClassName: "htRight"
           },
           {
             data: 8,
