@@ -127,6 +127,7 @@ describe('DropdownMenu', () => {
       });
 
       scrollViewportTo(0, countCols() - 1);
+      render();
 
       await sleep(150);
 
