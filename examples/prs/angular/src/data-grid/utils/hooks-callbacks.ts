@@ -1,11 +1,5 @@
 import Handsontable from "handsontable";
-import { SELECTED_CLASS, ODD_ROW_CLASS } from "./constants";
-
-const headerAlignments = new Map([
-  ["9", "htCenter"],
-  ["10", "htRight"],
-  ["12", "htCenter"],
-]);
+import { ODD_ROW_CLASS } from "./constants";
 
 type AddClassesToRows = (
   TD: HTMLTableCellElement,
@@ -63,33 +57,6 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders =
 
     TH.appendChild(input);
   };
-
-export function alignHeaders(
-  this: Handsontable,
-  column: number,
-  TH: HTMLTableCellElement,
-) {
-  if (column < 0) {
-    return;
-  }
-
-  if (TH.firstChild) {
-    const alignmentClass = this.isRtl() ? "htRight" : "htLeft";
-
-    if (headerAlignments.has(column.toString())) {
-      Handsontable.dom.removeClass(
-        TH.firstChild as HTMLElement,
-        alignmentClass,
-      );
-      Handsontable.dom.addClass(
-        TH.firstChild as HTMLElement,
-        headerAlignments.get(column.toString()) as string,
-      );
-    } else {
-      Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
-    }
-  }
-}
 
 type ChangeCheckboxCell = (
   this: Handsontable,

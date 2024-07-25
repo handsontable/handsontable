@@ -6,7 +6,7 @@ import "./styles.css";
 import { HotTable, HotColumn } from "@handsontable/react";
 import { data } from "./constants";
 
-import { addClassesToRows, alignHeaders } from "./hooksCallbacks";
+import { addClassesToRows } from "./hooksCallbacks";
 
 import "handsontable/dist/handsontable.min.css";
 import { registerAllModules } from 'handsontable/registry'
@@ -37,7 +37,7 @@ const App = () => {
       rowHeaders={true}
       autoWrapCol={true}
       autoWrapRow={true}
-      afterGetColHeader={alignHeaders}
+      headerClassName="htLeft"
       beforeRenderer={addClassesToRows}
       manualRowMove={true}
       licenseKey="non-commercial-and-evaluation"
@@ -47,8 +47,8 @@ const App = () => {
       <HotColumn data={3} />
       <HotColumn data={4} type="date" allowInvalid={false} />
       <HotColumn data={5} />
-      <HotColumn data={6} type="checkbox" className="htCenter" />
-      <HotColumn data={7} type="numeric" />
+      <HotColumn data={6} type="checkbox" className="htCenter" headerClassName="htCenter" />
+      <HotColumn data={7} type="numeric" headerClassName="htRight" />
     </HotTable>
   );
 };
