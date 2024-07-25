@@ -2,7 +2,7 @@ name: Docs Production Deployment
 
 env:
   GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation
-  NODE_VERSION: 22
+  NODE_VERSION: 20
   DOCSEARCH_API_KEY: ${{ secrets.DOCSEARCH_API_KEY }}
   DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
 

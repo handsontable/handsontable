@@ -10,7 +10,7 @@ on:
     types: [ opened, synchronize, reopened ]
 
 env:
-  NODE_VERSION: 22
+  NODE_VERSION: 20
 
 jobs:
   lint:
