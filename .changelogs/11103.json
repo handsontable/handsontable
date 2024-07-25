@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug that prevents copy valus from cell comments.",
+  "type": "fixed",
+  "issueOrPR": 11103,
+  "breaking": false,
+  "framework": "none"
+}
