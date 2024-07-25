@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "fix aria-label, aria-checked and menuitemcheckbox role for the readOnly and alignment contextMenu items",
+  "title": "Fix aria-label, aria-checked and menuitemcheckbox roles for the readOnly and alignment contextMenu items",
   "type": "added",
   "issueOrPR": 11091,
   "breaking": false,
