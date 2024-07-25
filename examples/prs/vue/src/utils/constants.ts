@@ -1203,6 +1203,8 @@ const data = [
 
 export const ODD_ROW_CLASS = "odd";
 
+export const SELECTED_CLASS = 'selected';
+
 export function getData() {
   return data;
 }

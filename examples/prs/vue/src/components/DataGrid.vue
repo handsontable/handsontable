@@ -15,7 +15,7 @@ import { registerAllModules } from "handsontable/registry";
 
 import { getData } from "../utils/constants";
 
-import { alignHeaders, addClassesToRows } from "../utils/hooks-callbacks";
+import { addClassesToRows } from "../utils/hooks-callbacks";
 registerAllModules();
 
 export default {
@@ -32,7 +32,7 @@ export default {
         multiColumnSorting: true,
         filters: true,
         rowHeaders: true,
-        afterGetColHeader: alignHeaders,
+        headerClassName: "htLeft",
         beforeRenderer: addClassesToRows,
         colWidths: [170, 156, 222, 130, 130, 120, 120],
         colHeaders: [
@@ -58,10 +58,12 @@ export default {
             data: 6,
             type: "checkbox",
             className: "htCenter",
+            headerClassName: "htCenter"
           },
           {
             data: 7,
             type: "numeric",
+            headerClassName: "htRight"
           },
         ],
         autoWrapCol: true,
