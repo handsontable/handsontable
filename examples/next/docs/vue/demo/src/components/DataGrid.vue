@@ -14,7 +14,7 @@ import "handsontable/dist/handsontable.full.css";
 
 import { getData } from "../utils/constants";
 
-import { alignHeaders, addClassesToRows } from "../utils/hooks-callbacks";
+import { addClassesToRows } from "../utils/hooks-callbacks";
 
 export default {
   name: "DataGrid",
@@ -31,7 +31,7 @@ export default {
         multiColumnSorting: true,
         filters: true,
         rowHeaders: true,
-        afterGetColHeader: alignHeaders,
+        headerClassName: "htLeft",
         beforeRenderer: addClassesToRows,
         colWidths: [170, 222, 130, 120, 120, 130, 156],
         colHeaders: [
@@ -55,10 +55,12 @@ export default {
             data: 6,
             type: "checkbox",
             className: "htCenter",
+            headerClassName: "htCenter"
           },
           {
             data: 7,
             type: "numeric",
+            headerClassName: "htRight"
           },
           { data: 5, type: "text" },
           { data: 2, type: "text" },

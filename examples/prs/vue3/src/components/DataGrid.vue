@@ -6,7 +6,7 @@ import "handsontable/dist/handsontable.full.css";
 
 import { data } from "../constants";
 
-import { alignHeaders, addClassesToRows } from "../hooks-callbacks";
+import { addClassesToRows, changeCheckboxCell, drawCheckboxInRowHeaders } from "../hooks-callbacks";
 
 // register Handsontable's modules
 registerAllModules();
@@ -18,9 +18,6 @@ export default defineComponent({
     HotColumn,
   },
   computed: {
-    alignHeadersProp() {
-      return alignHeaders;
-    },
 
     addClassesToRowsProp() {
       return addClassesToRows;
@@ -64,7 +61,7 @@ export default defineComponent({
       :multiColumnSorting="true"
       :filters="true"
       :rowHeaders="true"
-      :afterGetColHeader="alignHeadersProp"
+      headerClassName="htLeft"
       :beforeRenderer="addClassesToRowsProp"
       :manualRowMove="true"
       :autoWrapRow="true"
@@ -74,8 +71,8 @@ export default defineComponent({
       <HotColumn data="companyName" />
       <HotColumn data="name" />
       <HotColumn data="sellDate" type="date" :allowInvalid="false" />
-      <HotColumn data="inStock" type="checkbox" className="htCenter" />
-      <HotColumn data="quantity" type="numeric" />
+      <HotColumn data="inStock" type="checkbox" className="htCenter" headerClassName="htCenter" />
+      <HotColumn data="quantity" type="numeric" headerClassName="htRight" />
       <HotColumn data="orderId" />
       <HotColumn data="country" />
     </HotTable>

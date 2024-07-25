@@ -2,7 +2,6 @@ import { Component, ViewEncapsulation } from "@angular/core";
 import { getData } from "./utils/constants";
 
 import {
-  alignHeaders,
   drawCheckboxInRowHeaders,
   addClassesToRows,
   changeCheckboxCell,
@@ -16,7 +15,6 @@ import {
 })
 export class DataGridComponent {
   dataset = getData();
-  alignHeaders = alignHeaders;
   drawCheckboxInRowHeaders = drawCheckboxInRowHeaders;
   addClassesToRows = addClassesToRows;
   changeCheckboxCell = changeCheckboxCell;
