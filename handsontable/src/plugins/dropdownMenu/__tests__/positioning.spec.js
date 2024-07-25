@@ -128,7 +128,7 @@ describe('DropdownMenu', () => {
 
       scrollViewportTo(0, countCols() - 1);
 
-      await sleep(50);
+      await sleep(100);
 
       openDropdownSubmenuOption('Alignment', countCols() - 1);
 
