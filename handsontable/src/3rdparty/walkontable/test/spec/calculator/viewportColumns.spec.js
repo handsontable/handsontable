@@ -38,41 +38,61 @@ describe('Walkontable viewport columns calculator', () => {
       const tableWidth = $(wt.wtTable.hider).width();
       const tableOffset = spec().$container.offset().left;
 
-      expect(wt.wtViewport.createColumnsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createColumnsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createColumnsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
 
       window.scrollBy(Math.floor(tableOffset + (tableWidth / 2)), 0);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createColumnsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createColumnsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createColumnsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
 
       window.scrollBy(Math.ceil(tableWidth / 2), 0);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createColumnsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createColumnsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createColumnsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
 
       window.scrollBy(1, 0);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createColumnsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createColumnsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
+      {
+        const calc = wt.wtViewport.createColumnsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(false);
+      }
 
       window.scrollBy(1000, 0);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createColumnsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createColumnsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
+      {
+        const calc = wt.wtViewport.createColumnsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(false);
+      }
     });
 
     it('Should be `true` if the entire table is in the viewport,' +
@@ -94,42 +114,61 @@ describe('Walkontable viewport columns calculator', () => {
       const tableWidth = $(wt.wtTable.hider).width();
       const tableOffset = spec().$container.offset().left;
 
-      expect(wt.wtViewport.createColumnsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createColumnsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
+      {
+        const calc = wt.wtViewport.createColumnsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(false);
+      }
 
       window.scrollBy(tableOffset - window.innerWidth + getScrollbarWidth() - 1, 0);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createColumnsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createColumnsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
+      {
+        const calc = wt.wtViewport.createColumnsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(false);
+      }
 
       window.scrollBy(1, 0);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createColumnsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
-      expect(wt.wtViewport.createColumnsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createColumnsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(false);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
 
       window.scrollBy(tableWidth / 2, 0);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createColumnsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createColumnsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createColumnsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
 
       window.scrollBy(tableWidth / 2, 0);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createColumnsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createColumnsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
+      {
+        const calc = wt.wtViewport.createColumnsCalculator(['rendered', 'partiallyVisible', 'fullyVisible']);
+
+        expect(calc.getResultsFor('partiallyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('fullyVisible').isVisibleInTrimmingContainer).toBe(true);
+        expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
+      }
     });
-
   });
 });

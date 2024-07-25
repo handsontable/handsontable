@@ -2,6 +2,7 @@ import Handsontable from "handsontable";
 import type { RowObject } from "handsontable/common";
 
 import { ODD_ROW_CLASS } from "./constants";
+import { Events } from "handsontable/pluginHooks";
 
 type AddClassesToRows = (
   TD: HTMLTableCellElement,
@@ -41,20 +42,35 @@ export const addClassesToRows: AddClassesToRows = (
   }
 };
 
-export function alignHeaders(
+export const drawCheckboxInRowHeaders: Events["afterGetRowHeader"] = function drawCheckboxInRowHeaders(
   this: Handsontable,
-  column: number,
-  TH: HTMLTableCellElement
+  row,
+  TH
 ) {
-  if (column < 0) {
-    return;
+  const input = document.createElement("input");
+
+  input.type = "checkbox";
+  input.tabIndex = -1;
+
+  if (row >= 0 && this.getDataAtRowProp(row, "0")) {
+    input.checked = true;
   }
 
-  if (!TH.firstChild) {
-    return;
+  Handsontable.dom.empty(TH);
+
+  TH.appendChild(input);
+};
+
+export const changeCheckboxCell: Events["afterOnCellMouseDown"] = function changeCheckboxCell(
+  this: Handsontable,
+  event,
+  coords
+) {
+  const target = event.target as HTMLInputElement;
+
+  if (coords.col === -1 && event.target && target.nodeName === "INPUT") {
+    event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
+
+    this.setDataAtRowProp(coords.row, "0", !target.checked);
   }
-
-  const alignmentClass = this.isRtl() ? "htRight" : "htLeft";
-  Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
-}
-
+};
