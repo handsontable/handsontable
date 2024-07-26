@@ -14,6 +14,8 @@ import {
 import "handsontable/dist/handsontable.css";
 
 const DataGrid = () => {
+  const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
+
   return (
     <HotTable
       data={data}
@@ -38,7 +40,7 @@ const DataGrid = () => {
       multiColumnSorting={true}
       filters={true}
       rowHeaders={true}
-      headerClassName="htLeft"
+      headerClassName={isRtl ? "htRight" : "htLeft"}
       beforeRenderer={addClassesToRows}
       afterGetRowHeader={drawCheckboxInRowHeaders}
       afterOnCellMouseDown={changeCheckboxCell}
