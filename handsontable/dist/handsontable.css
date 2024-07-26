@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 24/07/2024 (built at 17/07/2024 11:58:19)
+ * Release date: 30/07/2024 (built at 26/07/2024 10:31:38)
  */
 /**
  * Fix for bootstrap styles
@@ -897,12 +897,26 @@ CheckboxRenderer
 
 .handsontable[dir=ltr] div.htRight span[class*=ascending],
 .handsontable[dir=ltr] div.htRight span[class*=descending] {
-  margin-right: 20px;
+  margin-right: 10px;
+  margin-left: -10px;
 }
 
 .handsontable[dir=rtl] div.htLeft span[class*=ascending],
 .handsontable[dir=rtl] div.htLeft span[class*=descending] {
-  margin-left: 20px;
+  margin-left: 10px;
+  margin-right: -10px;
+}
+
+.handsontable[dir=ltr] div.htRight span[class*=ascending]:only-child,
+.handsontable[dir=ltr] div.htRight span[class*=descending]:only-child {
+  margin-right: 15px;
+  margin-left: -15px;
+}
+
+.handsontable[dir=rtl] div.htLeft span[class*=ascending]:only-child,
+.handsontable[dir=rtl] div.htLeft span[class*=descending]:only-child {
+  margin-left: 15px;
+  margin-right: -15px;
 }
 
 .handsontable .columnSorting.sortAction:hover {
@@ -1875,11 +1889,23 @@ textarea.HandsontableCopyPaste {
   opacity: 0.58;
 }
 .handsontable[dir=ltr] div.htRight span[class*=sort-] {
-  margin-right: 20px;
+  margin-right: 15px;
+  margin-left: -15px;
 }
 
 .handsontable[dir=rtl] div.htLeft span[class*=sort-] {
+  margin-left: 15px;
+  margin-right: -15px;
+}
+
+.handsontable[dir=ltr] div.htRight span[class*=sort-]:only-child {
+  margin-right: 20px;
+  margin-left: -20px;
+}
+
+.handsontable[dir=rtl] div.htLeft span[class*=sort-]:only-child {
   margin-left: 20px;
+  margin-right: -20px;
 }
 
 /* Column's number position */
