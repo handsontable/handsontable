@@ -12,7 +12,6 @@ import { progressBarRenderer } from "../renderers/progressBar";
 import { starsRenderer } from "../renderers/stars";
 
 import {
-  alignHeaders,
   drawCheckboxInRowHeaders,
   addClassesToRows,
   changeCheckboxCell
@@ -21,6 +20,8 @@ import {
 export default {
   name: 'DataGrid',
   data: function() {
+    const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
+
     return {
       hotSettings: {
         height: 450,
@@ -39,7 +40,7 @@ export default {
         comments: true,
         customBorders: true,
         afterOnCellMouseDown: changeCheckboxCell,
-        afterGetColHeader: alignHeaders,
+        headerClassName: isRtl ? "htRight" : "htLeft",
         afterGetRowHeader: drawCheckboxInRowHeaders,
         beforeRenderer: addClassesToRows,
         colWidths: [140, 192, 100, 90, 90, 110, 97, 100, 126],
@@ -65,11 +66,13 @@ export default {
           {
             data: 6,
             type: "checkbox",
-            className: "htCenter"
+            className: "htCenter",
+            headerClassName: "htCenter"
           },
           {
             data: 7,
-            type: "numeric"
+            type: "numeric",
+            headerClassName: "htRight"
           },
           {
             data: 8,
@@ -82,6 +85,7 @@ export default {
             renderer: starsRenderer,
             readOnly: true,
             className: "star htCenter",
+            headerClassName: "htCenter",
           },
           { data: 5, type: "text" },
           { data: 2, type: "text" }

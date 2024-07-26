@@ -4,7 +4,7 @@ import "pikaday/css/pikaday.css";
 
 import { data } from "./constants";
 
-import { alignHeaders, addClassesToRows } from "./hooksCallbacks";
+import { addClassesToRows } from "./hooksCallbacks";
 
 const example = document.getElementById("handsontable");
 
@@ -35,10 +35,12 @@ new Handsontable(example, {
       data: 6,
       type: "checkbox",
       className: "htCenter",
+      headerClassName: "htCenter"
     },
     {
       data: 7,
       type: "numeric",
+      headerClassName: "htRight"
     },
   ],
   dropdownMenu: true,
@@ -52,7 +54,7 @@ new Handsontable(example, {
   manualRowMove: true,
   autoWrapCol: true,
   autoWrapRow: true,
-  afterGetColHeader: alignHeaders,
+  headerClassName: "htLeft",
   beforeRenderer: addClassesToRows,
   licenseKey: "non-commercial-and-evaluation",
 });
