@@ -2986,10 +2986,10 @@ export default () => {
      * manualRowMove: true,
      *
      * // enable the `ManualRowMove` plugin
-     * // at initialization, move row 0 to 1
-     * // at initialization, move row 1 to 4
-     * // at initialization, move row 2 to 6
-     * manualColumnMove: [1, 4, 6],
+     * // at initialization, move row 1 to 0
+     * // at initialization, move row 4 to 1
+     * // at initialization, move row 6 to 2
+     * manualRowMove: [1, 4, 6],
      * ```
      */
     manualRowMove: undefined,
