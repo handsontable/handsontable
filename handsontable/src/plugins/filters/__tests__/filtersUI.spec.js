@@ -107,7 +107,7 @@ describe('Filters UI', () => {
 
       const rect = document.querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
 
-      expect(window.scrollY + rect.top).toBe(917);
+      expect(window.scrollY + rect.top).toBe(914);
       hot.rootElement.style.marginTop = '';
     });
 

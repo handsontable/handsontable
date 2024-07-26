@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed dropdown menu misalignment after opening with a keyboard shortcut.",
+  "type": "fixed",
+  "issueOrPR": 11115,
+  "breaking": false,
+  "framework": "none"
+}
