@@ -1,0 +1,99 @@
+/*
+ * Handsontable ContextMenu
+ */
+
+ .htContextMenu {
+    &:not(.htGhostTable) {
+        display: none;
+        position: absolute;
+        /* needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569) */
+        z-index: 1060;
+    }
+
+    .ht_clone_top,
+    .ht_clone_bottom,
+    .ht_clone_inline_start,
+    .ht_clone_top_inline_start_corner,
+    .ht_clone_bottom_inline_start_corner {
+        display: none;
+    }
+
+    .ht_master table.htCore {
+        border-color: var(--hot-dropdown-border-color);
+        border-style: solid;
+        border-width: var(--hot-dropdown-border-width);
+    }
+
+    &.handsontable:focus {
+        outline: none;
+    }
+
+    .wtBorder {
+        visibility: hidden;
+    }
+
+    table tbody tr {
+        &.htHidden {
+            display: none;
+        }
+
+        td {
+            background: var(--hot-dropdown-background);
+            border-width: 0;
+            padding: var(--hot-dropdown-item-padding);
+            cursor: pointer;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+
+            &:first-child {
+                border-top-width: 0;
+                border-bottom-width: 0;
+                border-inline-start-width: 0;
+                border-inline-end-width: 0;
+            }
+
+            &.htDimmed {
+                font-style: normal;
+                color: var(--hot-foreground-color);
+            }
+
+            &.current {
+                background: var(--hot-dropdown-item-active);
+            }
+
+            &.htSeparator {
+                border-top: var(--hot-dropdown-separator-size) solid var(--hot-separator-color);
+                height: 0;
+                padding: 0;
+                cursor: default;
+            }
+
+            &.htDisabled {
+                color: var(--hot-read-only-text);
+                cursor: default;
+
+                &:hover {
+                    background: var(--hot-contextmenu-background-color);
+                    color: var(--hot-read-only-text);
+                    cursor: default;
+                }
+            }
+
+            .htItemWrapper {
+                margin-inline: var(--hot-contextmenu-item-margin);
+            }
+
+            div span.selected {
+                margin-top: -2px;
+                position: absolute;
+                inset-inline-start: var(--hot-base-padding);
+                inset-inline-end: 0;
+            }
+        }
+    }
+
+    .ht_master .wtHolder {
+        overflow: hidden;
+    }  
+}

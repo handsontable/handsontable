@@ -1,0 +1,52 @@
+/* 
+    Manual Column Sorting 
+*/
+
+@import '../../utils/mixins';
+
+@mixin output {
+    .handsontable {
+        .columnSorting {
+            position: relative;
+
+            &.sortAction {
+                display: inline-flex;
+                align-items: center;
+                gap: 0;
+                inset: 0;
+
+                &:hover {
+                    text-decoration: none;
+                    cursor: pointer;
+                }
+
+                &:before { 
+                    position: static;
+                    order: 1;
+                    width: 16px;
+                    height: 16px;
+                    margin: 0; 
+                    padding: 0;
+                }
+
+                &.descending:before {
+                    display: inline-block; 
+                    @include icon('icon-arrow-narrow-down', 16px, var(--hot-foreground-color));
+                }
+                &.ascending:before { 
+                    display: inline-block;
+                    @include icon('icon-arrow-narrow-up', 16px, var(--hot-foreground-color));
+                }
+            }
+        }
+    }
+
+    .htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
+        content: '*';
+        display: inline-block;
+        position: relative;
+        /* The multi-line header and header with longer text need more padding to not hide arrow,
+        we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
+        padding-right: 20px;
+    }
+}

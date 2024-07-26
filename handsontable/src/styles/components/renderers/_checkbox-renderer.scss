@@ -1,0 +1,66 @@
+/*
+	Autocomplete
+*/
+
+@mixin output {
+    .handsontable {
+        .htCheckboxRendererInput {
+            display: inline-block;
+            position: relative;
+            height: var(--hot-checkbox-height);
+            width: var(--hot-checkbox-height);
+            cursor: pointer;
+            appearance: none;
+            
+            &:checked::before {
+                background-color: var(--hot-accent-color);
+                border-color: var(--hot-accent-color);
+            }
+        
+            &::before {
+                pointer-events: none;
+                content: '';
+                border: 1px solid var(--hot-border-color);
+                border-radius: var(--hot-border-radius);
+                width: var(--hot-checkbox-height);
+                height: var(--hot-checkbox-height);
+                display: inline-block;
+                box-sizing: border-box;
+                background-color: var(--hot-background-color);
+                transition: all .5s ease-in-out ;
+            }
+            &::after { 
+                pointer-events: none;
+                content: '';
+                width: 6px;
+                height: 10px;
+                position: absolute;
+                left: calc(var(--hot-checkbox-height) * .5);
+                top: 6.5px;
+                border-left: 2px solid var(--hot-background-color);
+                border-top: 2px solid var(--hot-background-color);
+                transform: translate(-50%, -50%) rotate(-135deg);
+                box-sizing: border-box;
+                transition: all .2s ease-in-out ;
+            }
+
+            &.noValue {
+                opacity: 0.5;
+            }
+        }
+    
+        .htCheckboxRendererLabel {
+            font-size: inherit;
+            vertical-align: middle;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            position: relative;
+            cursor: pointer;
+        
+            &.fullWidth {
+                width: 100%;
+            }
+        }
+    }
+}

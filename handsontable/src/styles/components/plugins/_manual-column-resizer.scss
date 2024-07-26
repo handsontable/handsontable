@@ -1,0 +1,76 @@
+/*
+    Handsontable Column Resizer
+*/
+
+@mixin output {
+    .handsontable {
+        .manualColumnResizer {
+            /* Positioning */
+            position: absolute;
+            top: 0;
+            z-index: 210;
+
+            /* Box Model */
+            height: calc(var(--hot-cell-height) + var(--hot-cell-horizontal-padding));
+            width: 10px;
+            margin: 0;
+
+            /* Visual Styles */
+            cursor: col-resize;
+            background: none;
+            opacity: 0;
+            transition: opacity var(--hot-transition-time) ease-in-out;
+
+            &::before, &::after {
+                /* Positioning */
+                position: absolute;
+                top: 0;
+                left: 1px;
+
+                /* Box Model */
+                height: calc(100% - 8px);
+                width: 2px;
+                margin: 4px 0;
+
+                /* Visual Styles */
+                content: '';
+                display: block;
+                background: var(--hot-read-only-text);
+                border-radius: 2px;
+            }
+
+            &::after {
+                left: auto;
+                right: 0;
+            }
+
+            &:hover, 
+            &.active {
+                opacity: 1;
+            }
+        }
+
+        .manualColumnResizerGuide {
+            /* Positioning */
+            position: absolute;
+            inset-inline-end: unset;
+            top: 0;
+
+            /* Box Model */
+            width: 0;
+            margin-inline-start: 5px;
+            margin-inline-end: unset;
+
+            /* Visual Styles */
+            display: none;
+            background-color: var(--hot-column-resizer-color);
+            border-inline-end: var(--hot-border-vertical-size) solid var(--hot-column-resizer-guide-color);
+            border-inline-start: none;
+        }
+
+        .manualColumnResizerGuide.active {
+            display: block;
+            z-index: 209;
+        }
+    }
+}

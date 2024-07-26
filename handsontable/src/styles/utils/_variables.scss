@@ -1,0 +1,214 @@
+@use 'sass:color';
+
+@mixin output {
+
+
+    .handsontable {
+        --hot-col-width: 50px;
+
+        /* Typography */
+        --hot-font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+        --hot-base-font-size: 12px;
+        --hot-base-line-height: 20px;
+
+        /* Sizing */
+        --hot-border-horizontal-size: 1px;
+        --hot-border-vertical-size: 1px;
+        --hot-base-grid: 4px;
+        --hot-border-radius: 4px;
+        --hot-base-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.12);
+
+        /* Core Colors */
+        --hot-background-color: white;
+        --hot-border-color: #D1D1D5;
+        --hot-separator-color: #EFEFF3;
+
+        /* Text Colors */
+        --hot-read-only-text: color-mix(in srgb, var(--hot-background-color), var(--hot-foreground-color) 37% );
+        --hot-placeholder-text: var(--hot-read-only-tex);
+        --hot-foreground-color: #222222;
+        --hot-foreground-color-active: #000;
+
+        /* Accents Colors */
+        --hot-accent-color: #1A42E8;
+        --hot-area-color: var(--hot-accent-color);
+        --hot-input-border-color: var(--hot-accent-color); // htInput
+        --hot-mobile-focus-color: var(--hot-input-border-color);
+
+        /* Global */
+        --hot-transition-time: .2s;
+
+
+
+        ////////////
+        /// 
+        
+        /* Cell States */
+        --hot-search-highlight-color: #583707;
+        --hot-search-highlight-background-color: #fcedd9;
+        --hot-invalid-background-color: rgba(250,77,50,.3);
+
+        /* Column Resizer Colors */
+        --hot-column-resizer-color: var(--hot-accent-color);
+        --hot-column-resizer-guide-color: var(--hot-accent-color);
+
+        /* Header Colors */ 
+        --hot-header-background-color: #F7F7F9;
+        --hot-header-foreground-color: #5D5D5D;
+        --hot-header-active-background-color: #EFEFF3;
+        --hot-header-active-text-color: #D1D1D5;
+        --hot-header-highlight-background-color: #EFEFF3; 
+        --hot-header-highlight-active-background-color: var(--hot-accent-color); 
+        --hot-header-highlight-active-border-color: color-mix(in srgb, var(--hot-border-color), var(--hot-header-highlight-active-background-color) 82% ); ; 
+        --hot-header-current-color: var(--hot-accent-color);
+        
+        /* Dropdown */
+        --hot-dropdown-background: var(--hot-background-color);
+        --hot-dropdown-item-active: #F7F7F9;
+        --hot-dropdown-item-margin: 8px; // Start & End
+        --hot-dropdown-border-color: var(--hot-border-color);
+        --hot-dropdown-border-width: 0;
+        --hot-dropdown-item-padding: 8px;
+        --hot-dropdown-separator-size: 1px;
+
+        /* Context Menu */
+        --hot-contextmenu-item-margin: var(--hot-dropdown-item-margin); // Start & End
+
+        /* Listbox */
+        --hot-listbox-border-color: var(--hot-border-color);
+        --hot-listbox-background-color: var(--hot-background-color);
+        --hot-listbox-background-current-font-weight: regular;
+
+        /* Comments */
+        --hot-comment-indicator-size: 6px;
+        --hot-comment-indicator-color: var(--hot-accent-color);
+        
+        --hot-comment-textarea-background-color: var(--hot-background-color);
+        --hot-comment-textarea-border-color: var(--hot-border-color);
+        --hot-comment-textarea-height: 90px;
+        --hot-comment-textarea-width: 215px;
+        --hot-comment-textarea-focus-color: var(--hot-input-border-color);
+
+        /* Manual Move */
+        --hot-manualMove-guideline-color: rgb(var(--hot-manualMove-color));
+        --hot-manualMove-guideline-size: 1px;
+        --hot-manualMove-backlight-color: rgba(var(--hot-manualMove-color), .1);       
+
+        /* Nested Rows */
+        --hot-nestedrows-start: 7px;
+        --hot-nestedrows-levels-padding: 11px;
+
+        /* Renderer Autocomplete Arrow */
+        --hot-autocomplete-arrow-color: #bbbbbb;
+        --hot-autocomplete-arrow-hover-color: #777777;
+        --hot-autocomplete-arrow-invalid-color: #555555;
+        --hot-autocomplete-arrow-invalid-hover-color: #1a1a1a;
+        --hot-autocomplete-arrow-area-color: #d3d3d3;
+
+        /* Input */
+        --hot-form-input-wrapper-padding: 4px 0;
+        --hot-form-input-radius: 4px;
+        --hot-form-input-border-color: #d2d1d1;
+        --hot-form-input-border-size: 1px;
+
+        /* Button */
+        --hot-button-background-color: var(--hot-background-color);
+        --hot-button-text-color: var(--hot-foreground-color);
+        --hot-button-font-size: var(--hot-base-font-size);
+        --hot-button-font-weight: 400;
+        --hot-button-height: 32px;
+        --hot-button-width: auto;
+        --hot-button-border-color: var(--hot-border-color);
+        --hot-button-border-size: var(--hot-input-border-size);
+        --hot-button-hover-border-color: color-mix(in srgb, var(--hot-border-color), var(--hot-foreground-color) 16% ); 
+        --hot-button-hover-background-color: var(--hot-button-background-color);
+        --hot-button-hover-text-color: var(--hot-button-text-color);
+        --hot-button-margin: 8px;
+
+        /* Primary Button */
+        --hot-button-primary-border-color: var(--hot-accent-color);
+        --hot-button-primary-background-color: var(--hot-accent-color);
+        --hot-button-primary-text-color: var(--hot-background-color);
+        --hot-button-primary-hover-border-color: color-mix(in srgb, var(--hot-accent-color), var(--hot-foreground-color) 16% );
+        --hot-button-primary-hover-background-color: color-mix(in srgb, var(--hot-accent-color), var(--hot-foreground-color) 16% );
+        --hot-button-primary-hover-text-color: var(--hot-button-primary-text-color);
+        --hot-button-primary-focus-border-color: color-mix(in srgb, var(--hot-accent-color), var(--hot-foreground-color) 24% );
+        --hot-button-primary-focus-background-color: color-mix(in srgb, var(--hot-accent-color), var(--hot-background-color) 12% );
+        --hot-button-primary-focus-text-color: var(--hot-button-primary-text-color);
+        
+        /* Cell */
+        --hot-cell-line-height: 20px;
+        --hot-cell-horizontal-padding: 8px;
+        --hot-cell-vertical-padding: 4px;
+
+        /* Header */
+        --hot-header-horizontal-padding: var(--hot-cell-horizontal-padding);
+        --hot-header-vertical-padding: var(--hot-cell-vertical-padding);
+
+        /* Filters */
+        --hot-filters-menu-filtering-border-width: 1px;
+        --hot-filters-menu-filtering-border-style: solid;
+        --hot-filters-menu-filtering-height: 160px;
+        --hot-filters-menu-label-font-size: 12px;
+        --hot-filters-menu-label-line-height: 20px;
+        --hot-filters-menu-label-padding: 8px 0 2px;
+        --hot-filters-menu-action-bar-padding: 8px 4px 0;
+        --hot-filters-menu-action-bar-align: left;
+        --hot-filters-menu-input-padding: 0 0 5px 0;
+        --hot-filters-menu-border-width: 1px;
+        --hot-filters-menu-conditional-border-color: var(--hot-border-color);
+        --hot-filters-menu-conditional-border-style: solid;
+        --hot-filters-menu-value-search-padding: 0;
+        --hot-filters-menu-input-font-size: var(--hot-button-font-size);
+        --hot-filters-menu-input-padding: 6px 12px;
+        --hot-filters-menu-operators-padding: 4px;
+
+        /* Header Menu Button */
+        --hot-header-menu-button-background: none;
+        --hot-header-menu-button-color:#bbbbbb;
+        --hot-header-menu-button-hover-color: #777777;
+        --hot-header-menu-button-background-active: #d2e0d9;
+        --hot-header-menu-button-background-active-color: #18804e;
+        --hot-header-menu-button-border-active-color: #509272;
+        --hot-header-menu-button-border-color: #bbbbbb;
+        --hot-header-menu-button-border-size: 0;
+        --hot-header-menu-button-margin: 8px;
+        --hot-header-menu-button-padding: 8px;
+
+        /* Radio */
+        --hot-radio-wrapper-margin: 8px;
+
+        /* Checkbox */
+        --hot-checkbox-margin-bottom-end: 8px;
+        --hot-checkbox-height: 16px;
+
+        /* Select */
+        --hot-select-wrapper-margin: 2px 0 0;
+        --hot-select-background-color: #fff;
+        --hot-select-radius: var(--hot-border-radius);
+        --hot-select-font-size: var(--hot-button-font-size);
+        --hot-select-padding: 6px 20px 6px 12px;
+        --hot-select-font-weight: normal;
+        --hot-select-hover-border-color: var(--hot-button-hover-border-color);
+        --hot-select-hover-background-color: var(--hot-select-background-color);
+        --hot-select-hover-text-color: var(--hot-button-text-color);
+        --hot-select-text-color: var(--hot-foreground-color);
+
+        
+        /*
+            Custom Syles 
+        */
+        scrollbar-width: thin;
+        scrollbar-color: var(--hot-border-color) var(--hot-header-background-color);
+
+        /* 
+            Theme Vars 
+        */
+        --hot-frozen-size: 2px;
+        --hot-frozen-shadow: rgba(0, 0, 0, 0.2);
+
+        --hot-manualMove-color: 53, 53, 53;
+        --hot-button-padding: 4px 16px;
+    }
+}
+

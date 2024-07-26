@@ -1,0 +1,49 @@
+/* 
+    Icons 
+*/
+@import '../utils/mixins';
+
+@mixin output {
+    [role="menuitem"] {
+        &.htDisabled {
+            .htItemWrapper:before { opacity: .4; }
+        }
+
+        &[aria-label="Alignment"]               .htItemWrapper:before { @include icon('icon-align-left', 16px, var(--hot-foreground-color)); }
+        &[aria-label*="Read only"]              .htItemWrapper:before { @include icon('icon-eye', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Clear column"]            .htItemWrapper:before { @include icon('icon-x', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Remove column"]           .htItemWrapper:before,
+        &[aria-label="Remove columns"]          .htItemWrapper:before { @include icon('icon-column-remove', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Remove row"]              .htItemWrapper:before,
+        &[aria-label="Remove rows"]             .htItemWrapper:before { @include icon('icon-row-remove', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Insert column right"]     .htItemWrapper:before { @include icon('icon-column-insert-right', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Insert column left"]      .htItemWrapper:before { @include icon('icon-column-insert-left', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Insert row above"]        .htItemWrapper:before { @include icon('icon-row-insert-top', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Insert row below"]        .htItemWrapper:before { @include icon('icon-row-insert-bottom', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Undo"]                    .htItemWrapper:before { @include icon('icon-arrow-back-up', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Redo"]                    .htItemWrapper:before { @include icon('icon-arrow-forward-up', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Copy"]                    .htItemWrapper:before { @include icon('icon-copy', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Cut"]                     .htItemWrapper:before { @include icon('icon-scissors', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Insert child row"]        .htItemWrapper:before { @include icon('icon-inset-child', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Detach from parent"]      .htItemWrapper:before { @include icon('icon-detach-child', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Hide column"]             .htItemWrapper:before, 
+        &[aria-label="Hide columns"]            .htItemWrapper:before { @include icon('icon-eye-off', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Merge cells"]             .htItemWrapper:before { @include icon('icon-marge-cell', 16px, var(--hot-foreground-color)); }
+
+        // Align Horizontal
+        &[aria-label*="Center"]                  .htItemWrapper:before { @include icon('icon-align-center', 16px, var(--hot-foreground-color)); }
+        &[aria-label*="Left"]                    .htItemWrapper:before { @include icon('icon-align-left', 16px, var(--hot-foreground-color)); }
+        &[aria-label*="Right"]                   .htItemWrapper:before { @include icon('icon-align-right', 16px, var(--hot-foreground-color)); }
+        &[aria-label*="Justify"]                 .htItemWrapper:before { @include icon('icon-align-justified', 16px, var(--hot-foreground-color)); }
+
+        // Align Vertical
+        &[aria-label*="Top"]                     .htItemWrapper:before { @include icon('icon-arrow-bar-to-up', 16px, var(--hot-foreground-color)); }
+        &[aria-label*="Middle"]                  .htItemWrapper:before { @include icon('icon-arrow-bar-both', 16px, var(--hot-foreground-color)); }
+        &[aria-label*="Bottom"]                  .htItemWrapper:before { @include icon('icon-arrow-bar-to-down', 16px, var(--hot-foreground-color)); }
+
+        // Comments
+        &[aria-label="Add comment"]             .htItemWrapper:before { @include icon('icon-message-plus', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Delete comment"]          .htItemWrapper:before { @include icon('icon-message-x', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Read-only comment"]       .htItemWrapper:before { @include icon('icon-message-cancel', 16px, var(--hot-foreground-color)); }
+    }
+}

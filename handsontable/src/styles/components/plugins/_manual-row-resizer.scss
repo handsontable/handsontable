@@ -1,0 +1,77 @@
+/*
+    Handsontable Row Resizer
+*/
+
+@mixin output {
+    .handsontable {
+        .manualRowResizer {
+            /* Positioning */
+            position: absolute;
+            left: 0;
+            z-index: 210;
+
+            /* Box Model */
+            width: var(--hot-col-width);
+            height: 10px;
+            margin: 0;
+
+            /* Visual Styles */
+            cursor: row-resize;
+            background: none;
+            opacity: 0;
+            transition: opacity .2s ease-in-out;
+
+            &::before, &::after {
+                /* Positioning */
+                position: absolute;
+                top: 1px;
+                left: 0;
+
+                /* Box Model */
+                width: calc(100% - 8px);
+                height: 2px;
+                margin: 0 4px;
+
+                /* Visual Styles */
+                content: '';
+                display: block;
+                background: var(--hot-read-only-text);
+                border-radius: 2px;
+            }
+
+            &::after {
+                top: auto;
+                bottom: 0;
+            }
+
+            &:hover, 
+            &.active {
+                /* Visual Styles */
+                opacity: 1;
+            }
+        }
+
+        .manualRowResizerGuide {
+            /* Positioning */
+            position: absolute;
+            left: 0;
+            bottom: 0;
+
+            /* Box Model */
+            height: 0;
+            margin-top: 5px;
+
+            /* Visual Styles */
+            display: none;
+            background-color: var(--hot-column-resizer-color);
+            border-bottom: var(--hot-border-vertical-size) solid var(--hot-column-resizer-guide-color);
+            border-top: none;
+        }
+
+        .manualRowResizerGuide.active {
+            /* Visual Styles */
+            display: block;
+            z-index: 209;
+        }
+    }
+}

@@ -1,0 +1,101 @@
+/*
+    Handsontable Filters
+*/
+
+@import "../../../ht/mixins";
+
+
+/* Conditions menu */
+.htFiltersConditionsMenu {
+	
+
+    &:not(.htGhostTable) {
+        display: none;
+        position: absolute;
+        z-index: 1070;
+    }
+
+
+	table tbody tr td {
+		background: white;
+		border-width: 0;
+		padding: 4px 6px 0 6px;
+		cursor: pointer;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+}
+
+.handsontable {
+
+    /* Menu filtering*/
+    .htMenuFiltering {
+        border-bottom: var(--hot-filters-menu-filtering-border-width) var(--hot-filters-menu-filtering-border-style) var(--hot-border-color); //#ccc;
+        height: var(--hot-filters-menu-filtering-height);
+        overflow: hidden;
+    }
+    .ht_master table td.htCustomMenuRenderer {
+        background-color: var(--hot-filters-menu-background);
+        cursor: auto;
+    }
+
+    /* Menu label */
+    .htFiltersMenuLabel {
+        font-size: var(--hot-filters-menu-label-font-size);
+        line-height: var(--hot-filters-menu-label-line-height);
+        padding: var(--hot-filters-menu-label-padding);
+    }
+
+    /* Component action bar */
+    .htFiltersMenuActionBar {
+        text-align: var(--hot-filters-menu-action-bar-align);
+        padding: var(--hot-filters-menu-action-bar-padding);
+    }
+
+    /* Component filter by conditional */
+    .htFiltersMenuCondition.border {
+        border-bottom: var(--hot-filters-menu-border-width) var(--hot-filters-menu-border-style) var(--hot-border-color) !important;
+    }
+    .htFiltersMenuCondition .htUIInput {
+        padding: var(--hot-filters-menu-input-padding);
+    }
+    .htFiltersMenuValue {
+        border-bottom: var(--hot-filters-menu-border-width) var(--hot-filters-menu-border-style) var(--hot-border-color) !important;
+
+        .htUIMultipleSelectSearch {
+            padding: var(--hot-filters-menu-value-search-padding);
+        }
+    }
+
+    .htFiltersMenuCondition .htUIInput input,
+    .htFiltersMenuValue .htUIMultipleSelectSearch input {
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: var(--hot-filters-menu-input-font-size);
+        padding: var(--hot-filters-menu-input-padding);
+        width: 100%;
+    }
+
+    .htUISelectionControls {
+        text-align: inline-end;
+    }
+
+    .htFiltersMenuOperators {
+        padding: var(--hot-filters-menu-operators-padding);
+    }
+
+    /* Filter Links */
+    .htUIClearAll, .htUISelectAll {
+        display: inline-block;
+
+        a {
+            font-size: var(--hot-button-font-size);
+        }
+    }
+    .htUISelectAll {
+        margin-inline-start: 0;
+        margin-inline-end: var(--hot-button-margin);
+    }
+
+}

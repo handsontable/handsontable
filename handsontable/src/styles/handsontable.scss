@@ -1,0 +1,12 @@
+@charset "UTF-8";
+
+@use "base";
+@use "components";
+@use "icons/tabler";
+
+@include base.base-styles();
+@include components.core-components-styles();
+@include components.plugins-components-styles();
+
+// Icons
+@include tabler.output();

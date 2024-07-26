@@ -1,0 +1,177 @@
+/* theme vars */
+$frozen-size: 2px;
+
+th {
+    box-sizing: border-box;
+}
+
+thead th { 
+    height: var(--hot-cell-height) !important;
+
+    .relative {
+        height: inherit;
+    }
+
+    &.ht__active_highlight { 
+        .columnSorting.sortAction {
+            &:before {
+                filter: invert(1);
+                opacity: .6;
+            }
+        }
+    }
+}
+tbody th,
+thead th {
+    position: relative;
+    overflow: visible;
+
+    &.current {
+        box-shadow:     inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1) var(--hot-header-current-color);
+    }
+
+    &.ht__active_highlight {
+        border-color: var(--hot-foreground-color);
+        box-shadow: calc(var(--hot-border-vertical-size) * -1) calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-foreground-color), 
+                    0 calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-foreground-color), 
+                    calc(var(--hot-border-vertical-size) * -1) 0 0 var(--hot-foreground-color);
+
+        &:before {
+            background: var(--hot-accent-color)
+        }
+    }
+
+    &.ht__highlight {                 
+        &:before { 
+            content:'';
+            display: block;;
+            position: absolute;
+            left: -1px;
+            bottom: -1px;
+            right: -1px;
+            height: 1px;
+            background-color: var(--hot-accent-color);
+        }
+    }
+}
+
+tbody th {
+    &.ht__highlight {
+        &:before {
+            width: 1px;
+            height: auto;
+            right: -1px;
+            top: -1px;
+            bottom: -1px;
+            left: auto;
+        }
+    }
+}
+
+/* Frozen border */
+// Start 
+.ht_clone_inline_start.ht_clone_left,
+.ht_clone_bottom_left_corner,
+.ht_clone_top_left_corner {
+    tbody tr td:last-child,
+    thead tr th:not(:first-child):last-child  {    
+        box-shadow: ($frozen-size * -1) 0 0 0 inset var(--hot-frozen-shadow);
+        
+        &.current {
+            box-shadow: ($frozen-size * -1) 0 0 0 inset var(--hot-frozen-shadow), 0 0 0 1px inset var(--hot-accent-color);
+        }
+    }
+
+    tbody tr td.ht__highlight:last-child,
+    thead tr th.ht__active_highlight:not(:first-child):last-child  {    
+        box-shadow: ($frozen-size * -1) 0 0 0 inset var(--hot-header-highlight-active-background-color) ; 
+    }
+    
+}
+// Start + Top
+.ht_clone_top_left_corner {
+    tbody tr:last-child td:last-child {
+        box-shadow: ($frozen-size * -1) ($frozen-size * -1) 0 0 inset var(--hot-frozen-shadow); 
+    }
+}
+
+// Bottom 
+.ht_clone_bottom,
+.ht_clone_bottom_left_corner {
+    tbody tr:first-child { 
+        td, th {
+            box-shadow: 0 $frozen-size 0 0 inset var(--hot-frozen-shadow) ; 
+
+            &.current {
+                box-shadow: 0 $frozen-size 0 0 inset var(--hot-frozen-shadow), 0 0 0 1px inset var(--hot-accent-color) ; 
+            }
+        }
+    }
+} 
+.ht_clone_bottom_left_corner {
+    tbody tr:first-child td:last-child {
+        box-shadow: ($frozen-size * -1) $frozen-size 0 0 inset var(--hot-frozen-shadow); 
+    }
+}
+
+// Top
+.ht_clone_top,
+.ht_clone_top_left_corner {
+    tbody tr:last-child { 
+        td, th  {
+            box-shadow: 0 ($frozen-size * -1) 0 0 inset var(--hot-frozen-shadow);
+
+            &.current {
+                box-shadow: 0 ($frozen-size * -1) 0 0 inset var(--hot-frozen-shadow), 0 0 0 1px inset var(--hot-accent-color);
+            }
+        }
+    }
+}
+
+// One Cell
+.ht_clone_top_inline_start_corner {
+    thead {
+        tr th:first-child {
+            border-bottom: transparent;
+        }
+    }
+}
+
+// Active Highlight
+.ht__active_highlight {
+    .ht_nestingLevel_empty {
+        border-color:#666666;
+
+        &:before { 
+            border-color:#666;
+        }
+    }
+
+    .collapsibleIndicator,
+    .ht_nestingButton {
+        border: 1px solid #000000;
+        background-color: #171717;
+
+        &:hover { 
+            background-color: #373737;
+            &:before,
+            &:after {
+                background-color: #ffffff;
+            }
+        }
+    }
+
+    .changeType {
+        &:hover {
+            background-color: #000000;
+        }
+        &:hover { 
+            background-color: #000000;
+            box-shadow: 0 0 0 1px #333333;
+
+            &:before {
+                border-color: var(--hot-background-color);
+            }
+        }
+    }
+} 

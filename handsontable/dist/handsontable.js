@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.2.0
- * Release date: 06/03/2024 (built at 12/07/2024 10:46:05)
+ * Release date: 06/03/2024 (built at 26/07/2024 11:57:07)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -74,7 +74,7 @@ exports.CellCoords = _src.CellCoords;
 exports.CellRange = _src.CellRange;
 //import './css/bootstrap.css';
 //import './3rdparty/walkontable/css/walkontable.scss';
-
+//import './css/handsontable.scss';
 //import './css/mobile.handsontable.scss';
 
 // FIXME: Bug in eslint-plugin-import: https://github.com/benmosher/eslint-plugin-import/issues/1883
@@ -109,7 +109,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "12/07/2024 10:46:05";
+Handsontable.buildDate = "26/07/2024 11:57:07";
 Handsontable.version = "14.2.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,

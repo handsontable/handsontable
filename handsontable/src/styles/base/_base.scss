@@ -1,0 +1,259 @@
+@import '../utils/mixins';
+
+@mixin output {
+    .handsontable {
+        /* Positioning */
+        position: relative;
+
+        /* Typography */
+        font-family: var(--hot-font-family);
+        font-size: var(--hot-base-font-size);
+        font-weight: normal;
+        color: var(--hot-foreground-color);
+
+        /* Miscellaneous */
+        touch-action: manipulation;
+    
+        .hide {
+            display: none;
+        }
+    
+        .relative {
+            position: relative;
+        }
+    
+        .wtHider {
+            width: 0;
+        }
+    
+        .wtSpreader {
+            position: relative;
+            /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
+            width: 0;
+            height: auto;
+        }
+
+        .htAutoSize {
+            position: absolute;
+            left: -99000px;
+            top: -99000px;
+            visibility: hidden;
+        }
+
+        .htFocusCatcher {
+            position: absolute;
+            z-index: -1;
+            opacity: 0;
+            border: 0;
+            margin: 0;
+            padding: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        table,
+        tbody,
+        thead,
+        td,
+        th,
+        input,
+        textarea,
+        div {
+            box-sizing: content-box;
+        }
+        input,
+        textarea {
+            min-height: initial;
+        }
+    
+        .htCore {
+            background: var(--hot-background-color);
+            border-collapse: separate;
+            /* it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit */
+            /* this actually only changes appearance of user selection - does not make text unselectable */
+            /* -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -o-user-select: none;
+                -ms-user-select: none;
+                user-select: none; // no browser supports unprefixed version
+            */
+            border-spacing: 0;
+            margin: 0;
+            border-width: 0;
+            table-layout: fixed;
+            width: 0;
+            outline-width: 0;
+            cursor: default;
+            /* reset bootstrap table style. for more info see: https://github.com/handsontable/handsontable/issues/224 */
+            max-width: none;
+            max-height: none;
+        }
+    
+        col {
+            width: var(--hot-col-width);
+    
+            &.rowHeader {
+                width: var(--hot-col-width);
+            }
+    
+            &.hidden {
+                width: 0 !important;
+            }
+        }
+    
+        // Cell and Header
+        th,td {
+            border-color:  var(--hot-border-color);
+            color: var(--hot-foreground-color);
+            border-top-width: 0;
+            border-inline-start-width: 0;
+            border-inline-end-width: var(--hot-border-vertical-size);
+            border-bottom-width: var(--hot-border-horizontal-size);
+            border-style: solid;
+            height: var(--hot-cell-height);
+            empty-cells: show;
+            line-height: var(--hot-cell-line-height);
+            font-size: var( --hot-base-font-size);
+            padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
+            /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
+            vertical-align: top;
+            overflow: hidden;
+            outline: none;
+            outline-width: 0;
+            white-space: pre-wrap;
+
+            &.invisibleSelection {
+                outline: none;
+
+                &::selection {
+                    background: transparent;
+                }
+            }
+        }
+    
+        // Header 
+        th { 
+            border-style: solid;
+            text-align: center;
+            font-weight: normal;
+            white-space: nowrap;
+            background-color: var(--hot-header-background-color);
+            color: var(--hot-header-foreground-color);
+            border-color:  var(--hot-border-color);
+            box-sizing: border-box;
+            height: calc(var(--hot-cell-line-height) + (2 * var(--hot-cell-vertical-padding))) ;
+            
+            &:last-child {
+                /*Foundation framework fix*/
+                border-inline-start-width: 0;
+                border-inline-end-width: var(--hot-border-vertical-size);
+                border-bottom-width: var(--hot-border-horizontal-size);
+            }
+    
+            &:first-child,
+            &:nth-child(2) {
+                border-inline-start-width: var(--hot-border-vertical-size);
+            }
+
+            &.active {
+                background-color: var(--hot-header-highlight-background-color);
+            }
+            &.current {
+                box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 2) var(--hot-header-current-color);
+            }
+            &.ht__highlight {
+                background-color: var(--hot-header-highlight-background-color);
+            }
+            &.ht__active_highlight {
+                background-color: var(--hot-header-highlight-active-background-color);
+                color: var(--hot-header-active-text-color);
+            }
+        }
+
+        // Cell
+        td {
+            &:first-of-type {
+                border-inline-start-width: var(--hot-border-vertical-size);
+            }
+
+            &.htInvalid {
+                /*gives priority over td.area selection background*/
+                background-color: var(--hot-invalid-background-color) !important;
+            }
+
+            &.htNoWrap {
+                white-space: nowrap;
+            }
+
+            &.htSearchResult {
+                background: var(--hot-search-highlight-background-color);
+                color: var(--hot-search-highlight-color);
+            }
+        }
+    
+        /* It removes double right border from first column header when row headers are disabled */
+        .ht_clone_top th:nth-child(2) {
+            border-inline-start-width: 0;
+            border-inline-end-width: var(--hot-border-vertical-size);
+        }
+    
+        &.htRowHeaders thead tr th:nth-child(2) {
+            border-inline-start-width: var(--hot-border-vertical-size);
+        }
+    
+        tr:first-child {
+            th, td {
+                border-top-width: var(--hot-border-horizontal-size);
+            }
+        }
+    
+        .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable {
+            tbody tr th,
+            &:not(.ht_clone_top) thead tr th:first-child {
+                border-inline-end-width: 0;
+                border-inline-start-width: var(--hot-border-vertical-size);
+            }
+        }
+    
+        /*
+        innerBorderTop - Property controlled by top overlay
+        innerBorderBottom - Property controlled by bottom overlay
+        */
+        .ht_master:not(.innerBorderTop):not(.innerBorderBottom) {
+            thead tr:last-child th,
+            & ~ .handsontable thead tr:last-child th,
+            thead tr.lastChild th,
+            & ~ .handsontable thead tr.lastChild th {
+                border-bottom-width: 0;
+            }
+        }
+    
+        thead th {
+            padding: 0;
+    
+            .relative {
+                padding: var(--hot-header-vertical-padding) var(--hot-header-horizontal-padding);
+            }
+        }
+    
+        span.colHeader {
+            display: inline-block;
+            line-height: var(--hot-cell-line-height);
+        }
+    
+        tr.hidden {
+            display: none;
+    
+            td, 
+            th {
+                display: none;
+            }
+        }
+
+        a {
+            color: var(--hot-accent-color);
+        }
+        
+    }
+}

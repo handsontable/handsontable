@@ -1,0 +1,88 @@
+/*
+	Dropdown Editor [Listbox]
+*/
+
+@mixin output {
+	.handsontable.listbox {
+		margin: 0;
+
+		.ht_master {
+			overflow: visible;
+	
+			.wtHolder {
+				overflow: visible;
+			}
+
+			table {
+				border:0;
+				box-shadow: var(--hot-base-shadow);
+				border-radius: calc(2 * var(--hot-border-radius));
+				overflow: hidden;
+
+				th,
+				tr:first-child th,
+				tr:last-child th,
+				tr:first-child td,
+				td {
+					border-color: transparent !important;
+				}
+			
+				th, 
+				td {
+					white-space: nowrap;
+					text-overflow: ellipsis;
+				}
+			
+				td.htDimmed {
+					cursor: default;
+					color: inherit;
+					font-style: inherit;
+				}
+			
+				.wtBorder {
+					visibility: hidden;
+				}
+			
+				tr td.current,
+				tr:hover td {
+					background: var(--hot-dropdown-item-active);
+			
+					strong {
+						font-weight: var(--hot-listbox-background-current-font-weight);
+					}
+				}
+
+				thead th { height: auto !important;
+					text-align: left;
+					
+					> div { 
+						padding-top: 8px; 
+						padding-bottom: 8px; 
+					}
+		
+					&:first-child {
+						padding-left: 8px;
+					}
+				}
+				tbody td {
+					&:first-child {
+						padding-left: 16px;
+					}
+					&:last-child {
+						padding-right: 16px;
+					}
+				}
+			}
+		}
+
+		.ht_clone_top { 
+			.wtHider {
+				overflow: hidden;
+			}
+	
+			table { 
+				border-radius: 0;
+			}
+		}
+	}
+}

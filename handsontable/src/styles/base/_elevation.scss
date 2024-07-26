@@ -1,0 +1,37 @@
+/*
+	Elevation
+*/
+
+@mixin output {
+    .ht_clone_master {
+        z-index: 100;
+    }
+
+    .ht_clone_inline_start {
+        z-index: 120;
+    }
+
+    .ht_clone_bottom {
+        z-index: 130;
+    }
+
+    .ht_clone_bottom_inline_start_corner {
+        z-index: 150;
+    }
+
+    .ht_clone_top {
+        z-index: 160;
+    }
+
+    .ht_clone_top_inline_start_corner {
+        z-index: 180;
+    }
+
+    .ht_editor_hidden {
+        z-index: -1;
+    }
+
+    .ht_editor_visible {
+        z-index: 200;
+    }
+}
