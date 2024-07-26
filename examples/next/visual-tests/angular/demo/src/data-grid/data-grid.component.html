@@ -14,7 +14,7 @@
     [multiColumnSorting]="true"
     [filters]="true"
     [afterOnCellMouseDown]="changeCheckboxCell"
-    headerClassName="htLeft"
+    [headerClassName]="headerClassNameValue"
     [afterGetRowHeader]="drawCheckboxInRowHeaders"
     [beforeRenderer]="addClassesToRows"
     [manualRowMove]="true"
@@ -40,6 +40,7 @@
       [renderer]="starsRenderer"
       [readOnly]="true"
       className="star htCenter"
+      headerClassName="htCenter"
     ></hot-column>
     <hot-column data="5"></hot-column>
     <hot-column data="2"></hot-column>
