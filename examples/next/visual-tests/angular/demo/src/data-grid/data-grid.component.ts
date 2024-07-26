@@ -36,5 +36,6 @@ export class DataGridComponent {
   hiddenColumns = {
     indicators: true
   };
+  headerClassNameValue = document.documentElement.getAttribute('dir') === 'rtl' ? 'htRight' : 'htLeft';
   licenseKey = "non-commercial-and-evaluation";
 }
