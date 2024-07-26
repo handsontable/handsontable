@@ -1209,12 +1209,6 @@ export const data = [
 ];
 export const SELECTED_CLASS = 'selected';
 export const ODD_ROW_CLASS = 'odd';
-// hooksCallbacks.ts
-const headerAlignments = new Map([
-  ['9', 'htCenter'],
-  ['10', 'htRight'],
-  ['12', 'htCenter'],
-]);
 
 export function addClassesToRows(
   TD,
@@ -1250,26 +1244,6 @@ export function addClassesToRows(
   }
 }
 
-export function alignHeaders(column, TH) {
-  if (column < 0) {
-    return;
-  }
-
-  const alignmentClass = this.isRtl() ? 'htRight' : 'htLeft';
-
-  if (TH.firstChild) {
-    if (headerAlignments.has(column.toString())) {
-      Handsontable.dom.removeClass(TH.firstChild, alignmentClass);
-      Handsontable.dom.addClass(
-        TH.firstChild,
-        headerAlignments.get(column.toString())
-      );
-    } else {
-      Handsontable.dom.addClass(TH.firstChild, alignmentClass);
-    }
-  }
-}
-
 const App = () => {
   return (
     <HotTable
@@ -1293,7 +1267,7 @@ const App = () => {
       multiColumnSorting={true}
       filters={true}
       rowHeaders={true}
-      afterGetColHeader={alignHeaders}
+      headerClassName="htLeft"
       beforeRenderer={addClassesToRows}
       manualRowMove={true}
       autoWrapRow={true}
@@ -1303,8 +1277,13 @@ const App = () => {
       <HotColumn data={1} />
       <HotColumn data={3} />
       <HotColumn data={4} type="date" allowInvalid={false} />
-      <HotColumn data={6} type="checkbox" className="htCenter" />
-      <HotColumn data={7} type="numeric" />
+      <HotColumn
+        data={6}
+        type="checkbox"
+        className="htCenter"
+        headerClassName="htLeft"
+      />
+      <HotColumn data={7} type="numeric" headerClassName="htRight" />
       <HotColumn data={5} />
       <HotColumn data={2} />
     </HotTable>
