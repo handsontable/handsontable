@@ -76,63 +76,7 @@
 ////////////////////////////////////////////////////// TO DO
 /* theme vars */
 .handsontable {
-
-    thead th { 
-        &.ht__active_highlight { 
-            .columnSorting.sortAction {
-                &:before {
-                    filter: invert(1);
-                    opacity: .6;
-                }
-            }
-        }
-    }
-    tbody th,
-    thead th {
-        position: relative;
-        overflow: visible;
-
-        &.current {
-            box-shadow:     inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1) var(--hot-header-current-color);
-        }
-
-        &.ht__active_highlight {
-            border-color: var(--hot-header-highlight-active-border-color);
-            box-shadow: calc(var(--hot-border-vertical-size) * -1) calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-header-highlight-active-border-color), 
-                        0 calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-header-highlight-active-border-color), 
-                        calc(var(--hot-border-vertical-size) * -1) 0 0 var(--hot-header-highlight-active-border-color);
-
-            &:before {
-                background: var(--hot-header-highlight-active-background-color)
-            }
-        }
-
-        &.ht__highlight {                 
-            &:before { 
-                content:'';
-                display: block;;
-                position: absolute;
-                left: -1px;
-                bottom: -1px;
-                right: -1px;
-                height: 1px;
-                background-color: var(--hot-accent-color);
-            }
-        }
-    }
-
-    tbody th {
-        &.ht__highlight {
-            &:before {
-                width: 1px;
-                height: auto;
-                right: -1px;
-                top: -1px;
-                bottom: -1px;
-                left: auto;
-            }
-        }
-    }
+    
 
     
 

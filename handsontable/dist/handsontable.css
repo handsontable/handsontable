@@ -156,47 +156,6 @@
 /* Core */
 /* Plugins */
 /* theme vars */
-.handsontable thead th.ht__active_highlight .columnSorting.sortAction:before {
-  filter: invert(1);
-  opacity: 0.6;
-}
-.handsontable tbody th,
-.handsontable thead th {
-  position: relative;
-  overflow: visible;
-}
-.handsontable tbody th.current,
-.handsontable thead th.current {
-  box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1) var(--hot-header-current-color);
-}
-.handsontable tbody th.ht__active_highlight,
-.handsontable thead th.ht__active_highlight {
-  border-color: var(--hot-header-highlight-active-border-color);
-  box-shadow: calc(var(--hot-border-vertical-size) * -1) calc(var(--hot-border-horizontal-size) * -1) 0 var(--hot-header-highlight-active-border-color), 0 calc(var(--hot-border-horizontal-size) * -1) 0 var(--hot-header-highlight-active-border-color), calc(var(--hot-border-vertical-size) * -1) 0 0 var(--hot-header-highlight-active-border-color);
-}
-.handsontable tbody th.ht__active_highlight:before,
-.handsontable thead th.ht__active_highlight:before {
-  background: var(--hot-header-highlight-active-background-color);
-}
-.handsontable tbody th.ht__highlight:before,
-.handsontable thead th.ht__highlight:before {
-  content: "";
-  display: block;
-  position: absolute;
-  left: -1px;
-  bottom: -1px;
-  right: -1px;
-  height: 1px;
-  background-color: var(--hot-accent-color);
-}
-.handsontable tbody th.ht__highlight:before {
-  width: 1px;
-  height: auto;
-  right: -1px;
-  top: -1px;
-  bottom: -1px;
-  left: auto;
-}
 .handsontable .ht__active_highlight .ht_nestingLevel_empty {
   border-color: #666666;
 }
@@ -490,7 +449,7 @@
   --hot-button-primary-focus-background-color: color-mix(in srgb, var(--hot-accent-color), var(--hot-background-color) 12% );
   --hot-button-primary-focus-text-color: var(--hot-button-primary-text-color);
   /* Cell */
-  --hot-cell-line-height: 20px;
+  --hot-cell-line-height: var(--hot-base-line-height);
   --hot-cell-horizontal-padding: 8px;
   --hot-cell-vertical-padding: 4px;
   /* Header */
@@ -575,6 +534,7 @@
 }
 .handsontable .relative {
   position: relative;
+  box-sizing: border-box;
 }
 .handsontable .wtHider {
   width: 0;
@@ -604,8 +564,6 @@
 .handsontable table,
 .handsontable tbody,
 .handsontable thead,
-.handsontable td,
-.handsontable th,
 .handsontable input,
 .handsontable textarea,
 .handsontable div {
@@ -618,15 +576,6 @@
 .handsontable .htCore {
   background: var(--hot-background-color);
   border-collapse: separate;
-  /* it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit */
-  /* this actually only changes appearance of user selection - does not make text unselectable */
-  /* -webkit-user-select: none;
-      -khtml-user-select: none;
-      -moz-user-select: none;
-      -o-user-select: none;
-      -ms-user-select: none;
-      user-select: none; // no browser supports unprefixed version
-  */
   border-spacing: 0;
   margin: 0;
   border-width: 0;
@@ -655,9 +604,10 @@
   border-inline-end-width: var(--hot-border-vertical-size);
   border-bottom-width: var(--hot-border-horizontal-size);
   border-style: solid;
-  height: var(--hot-cell-height);
+  height: calc(var(--hot-base-line-height) + 2 * var(--hot-cell-vertical-padding));
   empty-cells: show;
-  line-height: var(--hot-cell-line-height);
+  line-height: var(--hot-base-line-height);
+  box-sizing: border-box;
   font-size: var(--hot-base-font-size);
   padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
   /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
@@ -681,8 +631,6 @@
   background-color: var(--hot-header-background-color);
   color: var(--hot-header-foreground-color);
   border-color: var(--hot-border-color);
-  box-sizing: border-box;
-  height: calc(var(--hot-cell-line-height) + 2 * var(--hot-cell-vertical-padding));
 }
 .handsontable th:last-child {
   /*Foundation framework fix*/
@@ -743,6 +691,7 @@
 }
 .handsontable thead th .relative {
   padding: var(--hot-header-vertical-padding) var(--hot-header-horizontal-padding);
+  height: calc(var(--hot-cell-line-height) + 2 * var(--hot-cell-vertical-padding));
 }
 .handsontable span.colHeader {
   display: inline-block;
@@ -757,6 +706,47 @@
 }
 .handsontable a {
   color: var(--hot-accent-color);
+}
+.handsontable thead th.ht__active_highlight .columnSorting.sortAction:before {
+  filter: invert(1);
+  opacity: 0.6;
+}
+.handsontable tbody th,
+.handsontable thead th {
+  position: relative;
+  overflow: visible;
+}
+.handsontable tbody th.current,
+.handsontable thead th.current {
+  box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1) var(--hot-header-current-color);
+}
+.handsontable tbody th.ht__active_highlight,
+.handsontable thead th.ht__active_highlight {
+  border-color: var(--hot-header-highlight-active-border-color);
+  box-shadow: calc(var(--hot-border-vertical-size) * -1) calc(var(--hot-border-horizontal-size) * -1) 0 var(--hot-header-highlight-active-border-color), 0 calc(var(--hot-border-horizontal-size) * -1) 0 var(--hot-header-highlight-active-border-color), calc(var(--hot-border-vertical-size) * -1) 0 0 var(--hot-header-highlight-active-border-color);
+}
+.handsontable tbody th.ht__active_highlight:before,
+.handsontable thead th.ht__active_highlight:before {
+  background: var(--hot-header-highlight-active-background-color);
+}
+.handsontable tbody th.ht__highlight:before,
+.handsontable thead th.ht__highlight:before {
+  content: "";
+  display: block;
+  position: absolute;
+  left: -1px;
+  bottom: -1px;
+  right: -1px;
+  height: 1px;
+  background-color: var(--hot-accent-color);
+}
+.handsontable tbody th.ht__highlight:before {
+  width: 1px;
+  height: auto;
+  right: -1px;
+  top: -1px;
+  bottom: -1px;
+  left: auto;
 }
 
 .ht_clone_master {
@@ -993,6 +983,8 @@
   height: 16px;
   font-size: 0;
   position: relative;
+  top: calc((var(--hot-base-line-height) - 16px) * 0.5);
+  margin-inline-end: calc(var(--hot-base-grid) - var(--hot-cell-horizontal-padding));
 }
 .handsontable .htAutocompleteArrow:after {
   width: 4px;
@@ -1110,7 +1102,7 @@
   padding-left: calc(var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size)) !important;
   padding-right: calc(var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size)) !important;
   font-family: inherit;
-  line-height: calc(var(--hot-cell-line-height) + var(--hot-cell-vertical-padding) * 2);
+  line-height: calc(var(--hot-base-line-height) + var(--hot-cell-vertical-padding) * 2);
   font-size: inherit;
   box-shadow: 0 0 0 calc(var(--hot-border-horizontal-size) * 2) var(--hot-input-border-color) inset;
   resize: none;
@@ -1130,9 +1122,11 @@
   width: auto;
   font-family: var(--hot-font-family);
   font-size: inherit;
+  line-height: var(--hot-base-line-height);
   padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
   padding-right: 26px;
   -webkit-appearance: none !important;
+  box-shadow: 0 0 0px 1px inset var(--hot-accent-color);
   border-color: var(--hot-accent-color);
   background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI4IiB2aWV3Qm94PSIwIDAgOCA4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTAuNDY0NTc3IDIuNTM1MTZMNC4wMDAxMSA2LjA3MDY5TDcuNTM1NjQgMi41MzUxNkw2LjgyODU0IDEuODI4MDVMNC4wMDAxMSA0LjY1NjQ4TDEuMTcxNjggMS44MjgwNUwwLjQ2NDU3NyAyLjUzNTE2WiIgZmlsbD0iIzc3Nzc3NyIvPgo8L3N2Zz4K);
   background-repeat: no-repeat;
@@ -1381,6 +1375,8 @@
   position: relative;
   float: inline-end;
   z-index: 1;
+  transform: translate(0%, -50%);
+  top: 50%;
   /* Box Model */
   box-sizing: border-box;
   width: calc(4 * var(--hot-base-grid));

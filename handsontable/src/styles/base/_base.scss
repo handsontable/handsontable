@@ -20,6 +20,7 @@
     
         .relative {
             position: relative;
+            box-sizing: border-box;
         }
     
         .wtHider {
@@ -54,8 +55,6 @@
         table,
         tbody,
         thead,
-        td,
-        th,
         input,
         textarea,
         div {
@@ -69,15 +68,6 @@
         .htCore {
             background: var(--hot-background-color);
             border-collapse: separate;
-            /* it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit */
-            /* this actually only changes appearance of user selection - does not make text unselectable */
-            /* -webkit-user-select: none;
-                -khtml-user-select: none;
-                -moz-user-select: none;
-                -o-user-select: none;
-                -ms-user-select: none;
-                user-select: none; // no browser supports unprefixed version
-            */
             border-spacing: 0;
             margin: 0;
             border-width: 0;
@@ -111,9 +101,9 @@
             border-inline-end-width: var(--hot-border-vertical-size);
             border-bottom-width: var(--hot-border-horizontal-size);
             border-style: solid;
-            height: var(--hot-cell-height);
-            empty-cells: show;
-            line-height: var(--hot-cell-line-height);
+            height: calc(var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding))) ;            empty-cells: show;
+            line-height: var(--hot-base-line-height);
+            box-sizing: border-box;
             font-size: var( --hot-base-font-size);
             padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
             /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
@@ -141,8 +131,6 @@
             background-color: var(--hot-header-background-color);
             color: var(--hot-header-foreground-color);
             border-color:  var(--hot-border-color);
-            box-sizing: border-box;
-            height: calc(var(--hot-cell-line-height) + (2 * var(--hot-cell-vertical-padding))) ;
             
             &:last-child {
                 /*Foundation framework fix*/
@@ -234,7 +222,9 @@
     
             .relative {
                 padding: var(--hot-header-vertical-padding) var(--hot-header-horizontal-padding);
+                height: calc(var(--hot-cell-line-height) + (2 * var(--hot-cell-vertical-padding))) ;
             }
+            
         }
     
         span.colHeader {
@@ -254,6 +244,70 @@
         a {
             color: var(--hot-accent-color);
         }
+
+
+
+
+
+
+        thead th { 
+            &.ht__active_highlight { 
+                .columnSorting.sortAction {
+                    &:before {
+                        filter: invert(1);
+                        opacity: .6;
+                    }
+                }
+            }
+        }
+        tbody th,
+        thead th {
+            position: relative;
+            overflow: visible;
+    
+            &.current {
+                box-shadow:     inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1) var(--hot-header-current-color);
+            }
+    
+            &.ht__active_highlight {
+                border-color: var(--hot-header-highlight-active-border-color);
+                box-shadow: calc(var(--hot-border-vertical-size) * -1) calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-header-highlight-active-border-color), 
+                            0 calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-header-highlight-active-border-color), 
+                            calc(var(--hot-border-vertical-size) * -1) 0 0 var(--hot-header-highlight-active-border-color);
+    
+                &:before {
+                    background: var(--hot-header-highlight-active-background-color)
+                }
+            }
+    
+            &.ht__highlight {                 
+                &:before { 
+                    content:'';
+                    display: block;;
+                    position: absolute;
+                    left: -1px;
+                    bottom: -1px;
+                    right: -1px;
+                    height: 1px;
+                    background-color: var(--hot-accent-color);
+                }
+            }
+        }
+    
+        tbody th {
+            &.ht__highlight {
+                &:before {
+                    width: 1px;
+                    height: auto;
+                    right: -1px;
+                    top: -1px;
+                    bottom: -1px;
+                    left: auto;
+                }
+            }
+        }
         
     }
+
+    
 }

@@ -137,7 +137,7 @@
         --hot-button-primary-focus-text-color: var(--hot-button-primary-text-color);
         
         /* Cell */
-        --hot-cell-line-height: 20px;
+        --hot-cell-line-height: var(--hot-base-line-height);
         --hot-cell-horizontal-padding: 8px;
         --hot-cell-vertical-padding: 4px;
 

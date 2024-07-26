@@ -17,7 +17,7 @@
             padding-left:   calc( var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size) )  !important;
             padding-right:  calc( var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size) )  !important;
             font-family: inherit;
-            line-height: calc( var(--hot-cell-line-height) + ( var(--hot-cell-vertical-padding) * 2 ) );
+            line-height: calc( var(--hot-base-line-height) + ( var(--hot-cell-vertical-padding) * 2 ) );
             font-size: inherit;
             box-shadow: 0 0 0 calc(var(--hot-border-horizontal-size) * 2) var(--hot-input-border-color) inset;
             resize: none;

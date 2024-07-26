@@ -1,7 +1,7 @@
 @use 'sass:color';
 
 @use '../utils/variables';
-@use './base';
+@use './base';                  // TODO clean up after marge
 @use './elevation';
 @use './display';
 
