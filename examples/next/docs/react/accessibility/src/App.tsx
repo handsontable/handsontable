@@ -3,7 +3,6 @@ import { useState } from "react";
 
 import { countries, data } from "./data";
 import DemoOptions from "./DemoOptions";
-import { alignHeaders } from "./hooksCallbacks";
 
 import "handsontable/dist/handsontable.min.css";
 import "@handsontable/pikaday/css/pikaday.css";
@@ -30,7 +29,7 @@ const hotOptions = {
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
-  afterGetColHeader: alignHeaders,
+  headerClassName: "htLeft",
   licenseKey: "non-commercial-and-evaluation",
 };
 
@@ -90,8 +89,8 @@ function App() {
           type="date"
           allowInvalid={false}
         />
-        <HotColumn data="inStock" type="checkbox" className="htCenter" />
-        <HotColumn data="qty" type="numeric" />
+        <HotColumn data="inStock" type="checkbox" className="htCenter" headerClassName="htCenter" />
+        <HotColumn data="qty" type="numeric" headerClassName="htRight" />
         <HotColumn data="orderId" type="text" />
         <HotColumn data="country" type="dropdown" source={countries} />
       </HotTable>

@@ -1,22 +1,25 @@
 describe('DropdownMenu', () => {
+  beforeEach(function() {
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+  });
+
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
+
   using('configuration object', [
     { htmlDir: 'ltr', layoutDirection: 'inherit' },
     { htmlDir: 'rtl', layoutDirection: 'ltr' },
   ], ({ htmlDir, layoutDirection }) => {
-    const id = 'testContainer';
-
-    beforeEach(function() {
+    beforeEach(() => {
       $('html').attr('dir', htmlDir);
-      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function() {
+    afterEach(() => {
       $('html').attr('dir', 'ltr');
-
-      if (this.$container) {
-        destroy();
-        this.$container.remove();
-      }
     });
 
     describe('subMenu opening', () => {
@@ -34,7 +37,6 @@ describe('DropdownMenu', () => {
 
         const $dropdownMenu = $('.htDropdownMenu');
         const dropdownOffset = $dropdownMenu.offset();
-
         const subMenuItem = $('.htDropdownMenu .ht_master .htCore  td:contains(Alignment)');
         const subMenuItemOffset = subMenuItem.offset();
         const subMenuRoot = $('.htDropdownMenuSub_Alignment');
@@ -58,14 +60,13 @@ describe('DropdownMenu', () => {
 
         const $dropdownMenu = $('.htDropdownMenu');
         const dropdownOffset = $dropdownMenu.offset();
-
         const subMenuItem = $('.htDropdownMenu .ht_master .htCore  td:contains(Alignment)');
         const subMenuItemOffset = subMenuItem.offset();
         const subMenuRoot = $('.htDropdownMenuSub_Alignment');
         const subMenuOffset = subMenuRoot.offset();
 
         expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
-        expect(subMenuOffset.left).toBeCloseTo(dropdownOffset.left - $dropdownMenu.outerWidth(), 0);
+        expect(subMenuOffset.left).toBeCloseTo(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth()));
       });
     });
 
@@ -88,6 +89,60 @@ describe('DropdownMenu', () => {
 
       expect(tickItemOffset.top).toBe(135);
       expect(tickItemOffset.left).toBe(dropdownMenuOffset.left + 4);
+    });
+  });
+
+  describe('subMenu opening', () => {
+    it('should open subMenu by default on the right-bottom position of the main menu (scrolled viewport) #dev-1895', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 100),
+        dropdownMenu: true,
+        colHeaders: true,
+      });
+
+      scrollViewportTo(0, countCols() - 1);
+
+      await sleep(50);
+
+      openDropdownSubmenuOption('Alignment', 80);
+
+      await sleep(350);
+
+      const $dropdownMenu = $('.htDropdownMenu');
+      const dropdownOffset = $dropdownMenu.offset();
+      const subMenuItem = $('.htDropdownMenu .ht_master .htCore  td:contains(Alignment)');
+      const subMenuItemOffset = subMenuItem.offset();
+      const subMenuRoot = $('.htDropdownMenuSub_Alignment');
+      const subMenuOffset = subMenuRoot.offset();
+
+      expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
+      expect(subMenuOffset.left).toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth(), 0);
+    });
+
+    it('should open subMenu on the left-bottom of the main menu if on the right there\'s no space left (scrolled viewport) #dev-1895', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 100),
+        dropdownMenu: true,
+        colHeaders: true,
+      });
+
+      scrollViewportTo(0, countCols() - 1);
+
+      await sleep(50);
+
+      openDropdownSubmenuOption('Alignment', countCols() - 1);
+
+      await sleep(350);
+
+      const $dropdownMenu = $('.htDropdownMenu');
+      const dropdownOffset = $dropdownMenu.offset();
+      const subMenuItem = $('.htDropdownMenu .ht_master .htCore  td:contains(Alignment)');
+      const subMenuItemOffset = subMenuItem.offset();
+      const subMenuRoot = $('.htDropdownMenuSub_Alignment');
+      const subMenuOffset = subMenuRoot.offset();
+
+      expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
+      expect(subMenuOffset.left).toBe(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth()));
     });
   });
 });

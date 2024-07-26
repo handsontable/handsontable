@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Remove -ms fix from css",
+  "type": "removed",
+  "issueOrPR": 11055,
+  "breaking": false,
+  "framework": "none"
+}
