@@ -161,7 +161,7 @@ export function getDocumentOffsetByElement(elementToCheck, baseDocument) {
 }
 
 /**
- * Prepares comparator function for use inside checkSelectionConsistency helper.
+ * Prepares comparator function consumable by checkSelectionConsistency
  * Comparator function checks if the cell has the provided class name.
  *
  * @param  {string} htClassName The class name to check.
@@ -172,10 +172,18 @@ export function getAlignmentComparatorByClass(htClassName) {
   return function(row, col) {
     const className = this.getCellMeta(row, col).className;
 
-    if (className && className.indexOf(htClassName) !== -1) {
-      return true;
-    }
-
-    return false;
+    return (className && className.indexOf(htClassName) !== -1);
   };
+}
+
+/**
+ * @param {object} hot Handsontable instance.
+ * @param {string} htClassName The class name to check.
+ * @returns {boolean} Returns true if at least one cell has the provided class name.
+ */
+export function hasSelectionAClass(hot, htClassName) {
+  return checkSelectionConsistency(
+    hot.getSelectedRange(),
+    getAlignmentComparatorByClass(htClassName).bind(hot)
+  );
 }

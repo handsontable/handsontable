@@ -1,9 +1,8 @@
 import {
   align,
   getAlignmentClasses,
-  getAlignmentComparatorByClass,
-  checkSelectionConsistency,
-  markLabelAsSelected
+  markLabelAsSelected,
+  hasSelectionAClass
 } from '../utils';
 import { KEY as SEPARATOR } from './separator';
 import * as C from '../../../i18n/constants';
@@ -16,11 +15,7 @@ export const KEY = 'alignment';
  * @returns {string} The value of aria-checked parameter.
  */
 function ariaChecked(hot, htClassName) {
-  const hasClass = checkSelectionConsistency(
-    hot.getSelectedRange(),
-    getAlignmentComparatorByClass(htClassName).bind(hot));
-
-  return hasClass.toString();
+  return hasSelectionAClass(hot, htClassName).toString();
 }
 
 /**
@@ -30,11 +25,7 @@ function ariaChecked(hot, htClassName) {
  * @returns {string} The value of aria-label parameter.
  */
 function ariaLabel(hot, rawName, htClassName) {
-  const hasClass = checkSelectionConsistency(
-    hot.getSelectedRange(),
-    getAlignmentComparatorByClass(htClassName).bind(hot));
-
-  const checkboxState = hasClass
+  const checkboxState = hasSelectionAClass(hot, htClassName)
     ? hot.getTranslatedPhrase(C.CHECKBOX_CHECKED)
     : hot.getTranslatedPhrase(C.CHECKBOX_UNCHECKED);
 
@@ -80,12 +71,8 @@ export default function alignmentItem() {
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT);
-            const hasClass = checkSelectionConsistency(
-              this.getSelectedRange(),
-              getAlignmentComparatorByClass('htLeft').bind(this)
-            );
 
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htLeft')) {
               label = markLabelAsSelected(label);
             }
 
@@ -115,12 +102,8 @@ export default function alignmentItem() {
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER);
-            const hasClass = checkSelectionConsistency(
-              this.getSelectedRange(),
-              getAlignmentComparatorByClass('htCenter').bind(this)
-            );
 
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htCenter')) {
               label = markLabelAsSelected(label);
             }
 
@@ -150,12 +133,8 @@ export default function alignmentItem() {
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT);
-            const hasClass = checkSelectionConsistency(
-              this.getSelectedRange(),
-              getAlignmentComparatorByClass('htRight').bind(this)
-            );
 
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htRight')) {
               label = markLabelAsSelected(label);
             }
 
@@ -185,12 +164,8 @@ export default function alignmentItem() {
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY);
-            const hasClass = checkSelectionConsistency(
-              this.getSelectedRange(),
-              getAlignmentComparatorByClass('htJustify').bind(this)
-            );
 
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htJustify')) {
               label = markLabelAsSelected(label);
             }
 
@@ -223,12 +198,8 @@ export default function alignmentItem() {
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
-            const hasClass = checkSelectionConsistency(
-              this.getSelectedRange(),
-              getAlignmentComparatorByClass('htTop').bind(this)
-            );
 
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htTop')) {
               label = markLabelAsSelected(label);
             }
 
@@ -258,12 +229,8 @@ export default function alignmentItem() {
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE);
-            const hasClass = checkSelectionConsistency(
-              this.getSelectedRange(),
-              getAlignmentComparatorByClass('htMiddle').bind(this)
-            );
 
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htMiddle')) {
               label = markLabelAsSelected(label);
             }
 
@@ -293,12 +260,8 @@ export default function alignmentItem() {
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM);
-            const hasClass = checkSelectionConsistency(
-              this.getSelectedRange(),
-              getAlignmentComparatorByClass('htBottom').bind(this)
-            );
 
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htBottom')) {
               label = markLabelAsSelected(label);
             }
 
