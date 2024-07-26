@@ -69,7 +69,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should assign the `role=menucheckboxitem` to the `Read only` option of the context menu', () => {
-    handsontable({
+    const hot = handsontable({
       contextMenu: true
     });
 
