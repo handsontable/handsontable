@@ -1,9 +1,21 @@
 .handsontable[dir="ltr"] div.htRight span[class*="sort-"] {
-  margin-right: 20px;
+  margin-right: 15px;
+  margin-left: -15px;
 }
 
 .handsontable[dir="rtl"] div.htLeft span[class*="sort-"] {
+  margin-left: 15px;
+  margin-right: -15px;
+}
+
+.handsontable[dir="ltr"] div.htRight span[class*="sort-"]:only-child {
+  margin-right: 20px;
+  margin-left: -20px;
+}
+
+.handsontable[dir="rtl"] div.htLeft span[class*="sort-"]:only-child {
   margin-left: 20px;
+  margin-right: -20px;
 }
 
 /* Column's number position */
