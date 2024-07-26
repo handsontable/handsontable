@@ -82,10 +82,11 @@ describe('DropdownMenu keyboard shortcut', () => {
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
+      const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
@@ -108,11 +109,12 @@ describe('DropdownMenu keyboard shortcut', () => {
       const menuOffset = $dropdownMenu.offset();
       const menuWidth = $dropdownMenu.outerWidth();
       const cellOffset = $(cell).offset();
-      const cellWidth = $(cell).outerWidth();
+      const buttonOffset = $(cell.querySelector('.changeType')).offset();
+      const buttonWidth = $(cell.querySelector('.changeType')).outerWidth();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-      expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth + cellWidth);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
       expect(getSelectedRange()).toEqualCellRange([
         `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
       ]);
@@ -152,10 +154,11 @@ describe('DropdownMenu keyboard shortcut', () => {
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
+      const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
@@ -176,10 +179,11 @@ describe('DropdownMenu keyboard shortcut', () => {
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
+      const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-      expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
@@ -253,7 +257,7 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     describe('cooperation with nested headers', () => {
-      it('should be possible to open the dropdown menu in the correct position when the cells in-between nested headers is selected', () => {
+      it('should be possible to open the dropdown menu in the correct position when the cells in-between nested headers are selected', () => {
         handsontable({
           data: createSpreadsheetData(3, 8),
           colHeaders: true,
@@ -272,10 +276,11 @@ describe('DropdownMenu keyboard shortcut', () => {
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
         const menuOffset = $dropdownMenu.offset();
         const cellOffset = $(cell).offset();
+        const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight + 2);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left);
+        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,1 to: 2,3']);
       });
     });

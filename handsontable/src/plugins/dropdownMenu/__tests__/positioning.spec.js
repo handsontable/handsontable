@@ -127,12 +127,13 @@ describe('DropdownMenu', () => {
       });
 
       scrollViewportTo(0, countCols() - 1);
+      render();
 
-      await sleep(50);
+      await sleep(150);
 
       openDropdownSubmenuOption('Alignment', countCols() - 1);
 
-      await sleep(350);
+      await sleep(400);
 
       const $dropdownMenu = $('.htDropdownMenu');
       const dropdownOffset = $dropdownMenu.offset();
