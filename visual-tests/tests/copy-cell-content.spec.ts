@@ -9,6 +9,7 @@ test(__filename, async({ tablePage }) => {
 
   let cell = await selectCell(2, 1);
 
+  // TEST
   await cell.click();
   await tablePage.screenshot({ path: helpers.screenshotPath() });
   await tablePage.keyboard.press(`${helpers.modifier}+c`);
