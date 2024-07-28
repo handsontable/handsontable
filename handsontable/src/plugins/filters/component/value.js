@@ -225,6 +225,7 @@ export class ValueComponent extends BaseComponent {
     const rowValues = rowEntries.map(entry => entry.value);
     const rowMetaMap = new Map(rowEntries.map(row => [row.value, row.meta]));
     const values = unifyColumnValues(rowValues);
+    this.hot.runHooks('beforeFilterValueOptionsShow', values);
     const items = intersectValues(values, values, defaultBlankCellValue, (item) => {
       this.#triggerModifyMultipleSelectionValueHook(item, rowMetaMap);
     });

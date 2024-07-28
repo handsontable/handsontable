@@ -181,6 +181,7 @@ export interface Events {
   beforeDropdownMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
   beforeDropdownMenuShow?: (instance: DropdownMenu) => void;
   beforeFilter?: (conditionsStack: FiltersColumnConditions[]) => void | boolean;
+  beforeFilterValueOptionsShow?: (items: object[]) => void; 
   beforeGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
