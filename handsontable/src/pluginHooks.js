@@ -2085,14 +2085,14 @@ const REGISTERED_HOOKS = [
    */
   'beforeStretchingColumnWidth',
 
-    /**
+  /**
    * Fired before showing filter dropdown.
    *
    * @event Hooks#beforeFilterValueOptionsShow
    * @param {object[]} items an array of items to show on the dropdown menu.
    * @returns {undefined}
    */
-    'beforeFilterValueOptionsShow',
+  'beforeFilterValueOptionsShow',
 
   /**
    * Fired by the [`Filters`](@/api/filters.md) plugin,
