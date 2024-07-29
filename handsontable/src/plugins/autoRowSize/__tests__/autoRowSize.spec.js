@@ -646,7 +646,8 @@ describe('AutoRowSize', () => {
 
   it('should correctly calculate row heights for cell\'s content that produce' +
      'heights with fractions (#dev-1926)', () => {
-    const css = '.handsontable .htCheckboxRendererLabel { height: 24px !important }'; // creates cell height with fraction
+    const css = '.handsontable .htCheckboxRendererLabel { height: 24.5px !important }'; // creates cell height with
+    // fraction
     const head = document.head;
     const style = document.createElement('style');
 
