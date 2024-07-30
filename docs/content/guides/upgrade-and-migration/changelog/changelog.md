@@ -30,6 +30,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Release on July 30, 2024
 
 For more information about this release see:
+- [Blog post (14.5.0)](https://handsontable.com/blog/handsontable-14.5.0-improved-performance-and-flexible-column-header-class)
 - [Documentation (14.5)](https://handsontable.com/docs/14.5)
 
 #### Added
