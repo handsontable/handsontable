@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a bug that prevented column sorting of the checkbox cell types.",
-  "type": "fixed",
-  "issueOrPR": 11004,
-  "breaking": false,
-  "framework": "none"
-}
