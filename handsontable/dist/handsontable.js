@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 26/07/2024 12:55:48)
+ * Release date: 30/07/2024 (built at 30/07/2024 09:19:38)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -107,7 +107,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "26/07/2024 12:55:48";
+Handsontable.buildDate = "30/07/2024 09:19:38";
 Handsontable.version = "14.5.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -12116,7 +12116,6 @@ const REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-s
  * @param {object} preventScrolling A reference to the observable object with the `value` property.
  *                                  Property `preventScrolling.value` expects a boolean value that
  *                                  Handsontable uses to control scroll behavior after selection.
- * @param {object} preventScrolling Object with `value` property where its value change will be observed.
  * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
  * @example
  * ::: only-for javascript
