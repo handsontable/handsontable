@@ -168,9 +168,11 @@ module.exports = function(docsVersion, base) {
         const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
         const selectedLang = '$parent.$parent.selectedLang';
+        const isJavaScript = preset.includes('hot');
         const isReact = preset.includes('react');
         const isAngular = preset.includes('angular');
-        const isReactOrJavaScript = preset.includes('hot') || preset.includes('react');
+        const isReactOrJavaScript = isJavaScript || isReact;
+        const isAngularOrReact = isAngular || isReact;
 
         return `
           <div class="example-container">
@@ -198,7 +200,7 @@ module.exports = function(docsVersion, base) {
       'JavaScript'
     )
     : ''}
-                  ${!noEdit && !isAngular
+                  ${!noEdit && !isAngularOrReact
     ? codesandbox(
       id,
       htmlContent,
@@ -233,7 +235,7 @@ module.exports = function(docsVersion, base) {
       'TypeScript'
     )
     : ''}
-                  ${!noEdit
+                  ${!noEdit && !isReact
     ? codesandbox(
       id,
       htmlContent,
