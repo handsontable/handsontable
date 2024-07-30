@@ -27,7 +27,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 ## 14.5.0
 
-Release on July 23, 2024
+Release on July 30, 2024
 
 For more information about this release see:
 - [Documentation (14.5)](https://handsontable.com/docs/14.5)
