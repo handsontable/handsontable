@@ -28,7 +28,7 @@ import DataSource from './dataMap/dataSource';
 import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
-import { ViewportColumnsCalculator } from './3rdparty/walkontable/src';
+import { DEFAULT_COLUMN_WIDTH } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
@@ -1201,6 +1201,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   function validateChanges(changes, source, callback) {
     if (!changes.length) {
+      callback();
+
       return;
     }
 
@@ -1208,12 +1210,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const waitingForValidator = new ValidatorsQueue();
     let shouldBeCanceled = true;
 
-    waitingForValidator.onQueueEmpty = (isValid) => {
+    waitingForValidator.onQueueEmpty = () => {
       if (activeEditor && shouldBeCanceled) {
         activeEditor.cancelChanges();
       }
 
-      callback(isValid); // called when async validators are resolved and beforeChange was not async
+      callback(); // called when async validators are resolved and beforeChange was not async
     };
 
     for (let i = changes.length - 1; i >= 0; i--) {
@@ -1247,12 +1249,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               shouldBeCanceled = false;
               changes.splice(index, 1); // cancel the change
               cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
-
-              const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
-
-              if (cell !== null) {
-                removeClass(cell, tableMeta.invalidCellClassName);
-              }
             }
             waitingForValidator.removeValidatorFormQueue();
           };
@@ -1272,13 +1268,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterChange
    */
   function applyChanges(changes, source) {
-    let i = changes.length - 1;
-
-    if (i < 0) {
-      return;
-    }
-
-    for (; i >= 0; i--) {
+    for (let i = changes.length - 1; i >= 0; i--) {
       let skipThisChange = false;
 
       if (changes[i] === null) {
@@ -1328,19 +1318,27 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
     }
 
-    instance.forceFullRender = true; // used when data was changed
-    grid.adjustRowsAndCols();
-    instance.runHooks('beforeChangeRender', changes, source);
-    editorManager.closeEditor();
-    instance.view.render();
-    editorManager.prepareEditor();
-    instance.view.adjustElementsSize();
-    instance.runHooks('afterChange', changes, source || 'edit');
+    const hasChanges = changes.length > 0;
 
-    const activeEditor = instance.getActiveEditor();
+    instance.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
 
-    if (activeEditor && isDefined(activeEditor.refreshValue)) {
-      activeEditor.refreshValue();
+    if (hasChanges) {
+      grid.adjustRowsAndCols();
+      instance.runHooks('beforeChangeRender', changes, source);
+      editorManager.closeEditor();
+      instance.view.render();
+      editorManager.prepareEditor();
+      instance.view.adjustElementsSize();
+      instance.runHooks('afterChange', changes, source || 'edit');
+
+      const activeEditor = instance.getActiveEditor();
+
+      if (activeEditor && isDefined(activeEditor.refreshValue)) {
+        activeEditor.refreshValue();
+      }
+
+    } else {
+      instance.view.render();
     }
   }
 
@@ -1933,7 +1931,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.render = function() {
     if (this.view) {
       this.renderCall = true;
-      this.forceFullRender = true; // used when data was changed
+      this.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
 
       if (!this.isRenderSuspended()) {
         instance.view.render();
@@ -3328,6 +3326,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * Returns the meta information for the provided column.
+   *
+   * @since 14.5.0
+   * @memberof Core#
+   * @function getColumnMeta
+   * @param {number} column Visual column index.
+   * @returns {object}
+   */
+  this.getColumnMeta = function(column) {
+    return metaManager.getColumnMeta(this.toPhysicalColumn(column));
+  };
+
+  /**
    * Returns an array of cell meta objects for specified physical row index.
    *
    * @memberof Core#
@@ -3795,7 +3806,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     width = instance.runHooks('modifyColWidth', width, column);
 
     if (width === undefined) {
-      width = ViewportColumnsCalculator.DEFAULT_WIDTH;
+      width = DEFAULT_COLUMN_WIDTH;
     }
 
     return width;
@@ -3811,12 +3822,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
-    // let cellProperties = instance.getCellMeta(row, 0);
-    // let height = cellProperties.height;
-    //
-    // if (height === undefined || height === tableMeta.height) {
-    //  height = cellProperties.rowHeights;
-    // }
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {

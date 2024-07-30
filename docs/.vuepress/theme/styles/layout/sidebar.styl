@@ -12,13 +12,6 @@
     flex-direction: column
     display: flex
 
-    .os-scrollbar {
-
-        .os-scrollbar-handle { 
-            background: $borderColor
-        }
-    }
-
     .mobile-nav {
         display: none
     }
@@ -147,8 +140,11 @@
             }
         }
     }
-
-    .sidebar-nav > div > .sidebar-links, > div > .sidebar-links {
+    .sidebar-nav {
+        height: -webkit-fill-available;
+        overflow: scroll;
+    }
+    .sidebar-nav > .sidebar-links, > div > .sidebar-links {
         > li { 
             display: block;
 
@@ -229,7 +225,7 @@
                         }
 
                         + ul {
-                            max-height: 100vh 
+                            max-height: 2000px
                             height: auto
                             opacity: 1
                             padding-bottom: 12px
@@ -611,7 +607,7 @@
     }
 
     .nav-links {
-        .roadmap { 
+        .changelog { 
             display: none
         }
 

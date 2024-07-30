@@ -1,7 +1,7 @@
 {
   "name": "handsontable-visual-tests",
   "private": true,
-  "version": "14.4.0",
+  "version": "14.5.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   "license": "CC BY 4.0",
   "devDependencies": {
     "@argos-ci/cli": "^1.0.3",
-    "@playwright/test": "1.43.x",
+    "@playwright/test": "1.44.x",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",
     "chalk": "^4.1.0",

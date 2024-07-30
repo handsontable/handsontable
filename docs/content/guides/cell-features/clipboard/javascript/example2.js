@@ -2,7 +2,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example2');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
     ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -20,10 +21,17 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   height: 'auto',
   nestedHeaders: [
-    ['A', { label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }, { label: 'E', colspan: 2 }, 'F'],
-    ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
+    [
+      'A',
+      { label: 'B', colspan: 2 },
+      { label: 'C', colspan: 2 },
+      { label: 'D', colspan: 2 },
+      { label: 'E', colspan: 2 },
+      'F',
+    ],
+    ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'],
   ],
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

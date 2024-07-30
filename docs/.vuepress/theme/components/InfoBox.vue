@@ -4,7 +4,9 @@
       <span><i class="ico i-bell"></i></span>
       <div>
         <p>What's new in {{ getVersion }}</p>
-        <RouterLink :to="getVersionUrl" aria-label="Read more about new version">Read more</RouterLink>
+        <RouterLink :to="getVersionUrl">
+          Read more <span class="visually-hidden">Read more about new version</span>
+        </RouterLink>
       </div>
       <button type="button" aria-label="Close info box" class="close" @click="closeInfoBox">
         <i class="ico i-close"></i>
@@ -47,7 +49,7 @@ export default {
     },
     getVersionUrl() {
       // eslint-disable-next-line max-len
-      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/release-notes/#_${this.getVersion.replaceAll('.', '-')}`;
+      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/changelog/#_${this.getVersion.replaceAll('.', '-')}`;
     },
   },
   mounted() {

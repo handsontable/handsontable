@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 14.4.0
- * Release date: 11/06/2024 (built at 06/06/2024 10:09:19)
+ * Version: 14.5.0
+ * Release date: 30/07/2024 (built at 30/07/2024 09:19:38)
  */
 /**
  * Fix for bootstrap styles
@@ -235,13 +235,15 @@
   border-top: 1px solid #ccc;
 }
 
-.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable tbody tr th,
-.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
+.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) tbody tr th,
+.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) thead tr th:first-child,
+.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.htGhostTable) tbody tr th,
+.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top):not(.htGhostTable) thead tr th:first-child {
   border-right-width: 0;
   border-left: 1px solid #ccc;
 }
 
-[dir=rtl].ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable tbody tr th, [dir=rtl].ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
+[dir=rtl].ht_master:not(.innerBorderInlineStart):not(.emptyColumns) tbody tr th, [dir=rtl].ht_master:not(.innerBorderInlineStart):not(.emptyColumns) thead tr th:first-child, [dir=rtl].ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.htGhostTable) tbody tr th, [dir=rtl].ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top):not(.htGhostTable) thead tr th:first-child {
   border-left-width: 0;
   border-right: 1px solid #ccc;
 }
@@ -494,63 +496,6 @@ innerBorderBottom - Property controlled by bottom overlay
 .handsontable .manualRowResizerGuide.active {
   display: block;
   z-index: 209;
-}
-
-.handsontable .columnSorting {
-  position: relative;
-}
-
-.handsontable .columnSorting.sortAction:hover {
-  text-decoration: underline;
-  cursor: pointer;
-} /* Arrow position */
-.handsontable span.colHeader.columnSorting::before {
-  /* Centering start */
-  top: 50%;
-  /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
-  margin-top: -6px;
-  /* Centering end */
-  /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
-  padding-left: 8px;
-  padding-right: 0;
-  position: absolute;
-  right: -9px;
-  left: unset;
-  content: "";
-  height: 10px;
-  width: 5px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position-x: right;
-}
-
-[dir=rtl].handsontable span.colHeader.columnSorting::before {
-  /* Centering end */
-  /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
-  padding-right: 8px;
-  padding-left: 0;
-  left: -9px;
-  right: unset;
-  background-position-x: left;
-}
-
-.handsontable span.colHeader.columnSorting.ascending::before {
-  /* arrow up; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC);
-}
-
-.handsontable span.colHeader.columnSorting.descending::before {
-  /* arrow down; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=);
-}
-
-.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
-  content: "*";
-  display: inline-block;
-  position: relative;
-  /* The multi-line header and header with longer text need more padding to not hide arrow,
-  we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
-  padding-right: 20px;
 }
 
 .handsontable td.area,
@@ -808,32 +753,6 @@ TextRenderer placeholder value
   background: #fcedd9;
   color: #583707;
 }
-
-.handsontable .collapsibleIndicator {
-  position: absolute;
-  top: 50%;
-  transform: translate(0%, -50%);
-  left: unset;
-  right: 5px;
-  border: 1px solid #A6A6A6;
-  line-height: 8px;
-  color: #222;
-  border-radius: 10px;
-  font-size: 10px;
-  width: 10px;
-  height: 10px;
-  cursor: pointer;
-  -webkit-box-shadow: 0 0 0 6px rgb(238, 238, 238);
-  -moz-box-shadow: 0 0 0 6px rgb(238, 238, 238);
-  box-shadow: 0 0 0 3px rgb(238, 238, 238);
-  background: #eee;
-  text-align: center;
-}
-
-[dir=rtl].handsontable .collapsibleIndicator {
-  right: unset;
-  left: 5px;
-}
 /*
 
  Handsontable Mobile Text Editor stylesheet
@@ -938,6 +857,119 @@ CheckboxRenderer
 
 .handsontable .htCheckboxRendererLabel.fullWidth {
   width: 100%;
+}
+.handsontable .collapsibleIndicator {
+  position: absolute;
+  top: 50%;
+  transform: translate(0%, -50%);
+  left: unset;
+  right: 5px;
+  border: 1px solid #A6A6A6;
+  line-height: 8px;
+  color: #222;
+  border-radius: 10px;
+  font-size: 10px;
+  width: 10px;
+  height: 10px;
+  cursor: pointer;
+  -webkit-box-shadow: 0 0 0 6px rgb(238, 238, 238);
+  -moz-box-shadow: 0 0 0 6px rgb(238, 238, 238);
+  box-shadow: 0 0 0 3px rgb(238, 238, 238);
+  background: #eee;
+  text-align: center;
+}
+
+[dir=rtl].handsontable .collapsibleIndicator {
+  right: unset;
+  left: 5px;
+}
+
+.handsontable[dir=ltr] thead th:has(.collapsibleIndicator) div.htRight span.colHeader {
+  margin-right: 20px;
+}
+
+.handsontable[dir=rtl] thead th:has(.collapsibleIndicator) div.htLeft span.colHeader {
+  margin-left: 20px;
+}
+.handsontable .columnSorting {
+  position: relative;
+}
+
+.handsontable[dir=ltr] div.htRight span[class*=ascending],
+.handsontable[dir=ltr] div.htRight span[class*=descending] {
+  margin-right: 10px;
+  margin-left: -10px;
+}
+
+.handsontable[dir=rtl] div.htLeft span[class*=ascending],
+.handsontable[dir=rtl] div.htLeft span[class*=descending] {
+  margin-left: 10px;
+  margin-right: -10px;
+}
+
+.handsontable[dir=ltr] div.htRight span[class*=ascending]:only-child,
+.handsontable[dir=ltr] div.htRight span[class*=descending]:only-child {
+  margin-right: 15px;
+  margin-left: -15px;
+}
+
+.handsontable[dir=rtl] div.htLeft span[class*=ascending]:only-child,
+.handsontable[dir=rtl] div.htLeft span[class*=descending]:only-child {
+  margin-left: 15px;
+  margin-right: -15px;
+}
+
+.handsontable .columnSorting.sortAction:hover {
+  text-decoration: underline;
+  cursor: pointer;
+} /* Arrow position */
+.handsontable span.colHeader.columnSorting::before {
+  /* Centering start */
+  top: 50%;
+  /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
+  margin-top: -6px;
+  /* Centering end */
+  /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
+  padding-left: 8px;
+  padding-right: 0;
+  position: absolute;
+  right: -9px;
+  left: unset;
+  content: "";
+  height: 10px;
+  width: 5px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position-x: right;
+}
+
+[dir=rtl].handsontable span.colHeader.columnSorting::before {
+  /* Centering end */
+  /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
+  padding-right: 8px;
+  padding-left: 0;
+  left: -9px;
+  right: unset;
+  background-position-x: left;
+}
+
+.handsontable span.colHeader.columnSorting.ascending::before {
+  /* arrow up; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC);
+}
+
+.handsontable span.colHeader.columnSorting.descending::before {
+  /* arrow down; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=);
+}
+
+.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
+  content: "*";
+  display: inline-block;
+  position: relative;
+  /* The multi-line header and header with longer text need more padding to not hide arrow,
+  we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
+  padding-right: 20px;
 }
 .handsontable .htCommentCell {
   position: relative;
@@ -1143,6 +1175,10 @@ textarea.HandsontableCopyPaste {
 
 [dir=rtl].handsontable .changeType {
   float: left;
+}
+
+.handsontable[dir=rtl] .changeType {
+  margin: 3px 5px 0 1px;
 }
 
 .handsontable .changeType:before {
@@ -1634,6 +1670,22 @@ textarea.HandsontableCopyPaste {
   position: relative;
 }
 
+.handsontable[dir=ltr] th.afterHiddenColumn div.htLeft {
+  margin-left: 10px;
+}
+
+.handsontable[dir=ltr] th.beforeHiddenColumn div.htRight {
+  margin-right: 10px;
+}
+
+.handsontable[dir=rtl] th.afterHiddenColumn div.htRight {
+  margin-right: 10px;
+}
+
+.handsontable[dir=rtl] th.beforeHiddenColumn div.htLeft {
+  margin-left: 10px;
+}
+
 .handsontable th.beforeHiddenColumn::after {
   right: 1px;
   content: "◀"; /* left arrow */
@@ -1836,6 +1888,26 @@ textarea.HandsontableCopyPaste {
 .handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-7]:before {
   opacity: 0.58;
 }
+.handsontable[dir=ltr] div.htRight span[class*=sort-] {
+  margin-right: 15px;
+  margin-left: -15px;
+}
+
+.handsontable[dir=rtl] div.htLeft span[class*=sort-] {
+  margin-left: 15px;
+  margin-right: -15px;
+}
+
+.handsontable[dir=ltr] div.htRight span[class*=sort-]:only-child {
+  margin-right: 20px;
+  margin-left: -20px;
+}
+
+.handsontable[dir=rtl] div.htLeft span[class*=sort-]:only-child {
+  margin-left: 20px;
+  margin-right: -20px;
+}
+
 /* Column's number position */
 .handsontable span.colHeader.columnSorting::after {
   /* Centering start */

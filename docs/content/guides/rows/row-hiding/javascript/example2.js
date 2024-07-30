@@ -2,7 +2,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example2');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -24,7 +25,7 @@ const hot = new Handsontable(container, {
   // enable the `HiddenRows` plugin
   hiddenRows: {
     // specify rows hidden by default
-    rows: [3, 5, 9]
+    rows: [3, 5, 9],
   },
   autoWrapRow: true,
   autoWrapCol: true,

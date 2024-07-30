@@ -13,6 +13,11 @@
     }
 
     .theme-default-content {
+        .lg-code {
+            display: inline-block;
+            max-width: 100%;
+            overflow-x: auto;
+        }
         a > code,
         li > code,
         p > code {
@@ -34,14 +39,14 @@
         }
 
         td code {
-            white-space: pre-wrap
+            white-space: nowrap
         }
 
         .language-bash:before { 
             display: none
         }
         div[class*="language-"] { 
-            background: $editorColor 
+            background: $editorColor
         }
         
         .source-code-link {
@@ -79,11 +84,12 @@
         pre { 
             margin-top: 16px
             background: $editorColor 
-            padding: 16px 24px
+            padding: 16px 104px 16px 24px
             margin: 16px 0 0
             border-radius: $radius
             font-size: $font-size-s
             line-height: $line-height-s
+            position: relative
 
             table {
                 margin: 8px 0 24px
@@ -183,6 +189,15 @@
         border-radius: $radius
         margin-bottom: 24px
         padding: 0
+
+        @media (max-width: $small) {
+            &:not(:first-child) {
+                pre {
+                    padding: 16px 104px 16px 16px
+                    // padding-top: 60px
+                }
+            }
+        }
     }
 
     @media (max-width: 419px) {
@@ -198,18 +213,24 @@
     white-space: pre
 }
 
+.theme-code-block [class*="language-"] {
+    &:has(.codeControls) {
+        padding-top: 64px
+    }
+    .codeControls {
+        padding: 8px 8px 8px 24px
+        top:-52px
+    }
+}
+
 [class*="language-"] {
     .copycode, .report, .github { 
-        position: absolute 
-        top: 11px
-        right: 10px
+        position: relative 
         transition: all $t ease-in-out !important
-        opacity 0
         padding: 8px !important
         z-index: 1
         color: $textColor
         background:  $editorColor
-        //background: transparent !important
 
         i {
             opacity: .64
@@ -263,13 +284,11 @@
     }
 
     .report {
-        right: 54px
         padding: 8px 16px
         padding: 8px 16px
         border:none
         cursor: pointer
         border-radius: $radius
-        //background: transparent
         border: 1px solid $lightBorderColor
         color: $textColor
 
@@ -280,32 +299,172 @@
             }
         }
     }
-    .github { 
-        right: 75px
+}
+.codeControls {
+    position absolute
+    top: 0
+    right: 0
+    display: flex
+    gap:10px
+    transition: all $t ease-in-out !important
+    z-index 1
+    padding: 11px 11px 8px 0
+    border-radius: $radius
+
+    @media (max-width: $small) {
+        position: absolute;
+        right: -16px !important;
+        left: -16px;
+        width: auto;
+        background: inherit;
+        opacity 1
+    }
+}
+
+pre + .codeControls {
+    &:after { 
+        content:''
+        display: block
+        position absolute
+        top: 0
+        right: 0
+        width: 128px;
+        height: 46px
+        border-radius: 0 $radius $radius 0
+        background: $editorColor 
+        background: linear-gradient(90deg, rgba(247, 247, 249, 0) 0%, $editorColor 20%);
+        pointer-events: none
+    }
+    
+    @media (max-width: $small) {
+        left: auto
+        right: 0 !important
+        background: none
+    }
+}
+
+
+/*.tabs-component:has(.codeControls),
+div[class*="language-"]:has(.codeControls),
+.theme-code-group:has(.codeControls) {
+    @media (hover: hover) {
+        &:hover .codeControls { 
+            opacity 1
+        }
+    }
+}*/
+
+.tabs-component-panel:has(.codeControls) {
+    .codeControls { 
+        padding: 0
+        
+        &:after {
+            display: none
+        }
     }
 
-    @media (hover: hover) {
-        &:hover  {
-            .copycode, .report, .github {
-                opacity 1
+    @media (max-width: $small) {
+        padding-top: 64px !important
+
+        .codeControls {
+            padding: 0 8px
+            right: -16px !important;
+            left: -16px;
+
+            &:after {
+                display: none
             }
         }
     }
 }
 
+.hideElement { 
+    display: none !important
+}
+
+.page .select-type {
+    height: 36px
+    display: none
+
+    > button {
+        padding-right: 32px !important
+        padding-left: 12px !important
+        position: relative
+        min-width: 128px;
+        text-align: left;
+        line-height: 18px;
+        transition: all $t ease-in-out !important
+
+        &.active {
+            & + ul {
+                visibility: visible
+                opacity 1
+            }
+        }
+
+        &:after {
+            content: ''
+            display: block
+            width: 4px
+            height: 4px
+            border-left: 1px solid $textColor
+            border-bottom: 1px solid $textColor
+            transform: rotate(-45deg) translate(-50%)
+            position absolute
+            top: 10px
+            right: 12px
+            pointer-events: none
+            z-index: 1
+        }
+    }
+
+    ul { 
+        opacity: 0
+        visibility: hidden
+        transition: all $t ease-in-out
+        margin: 4px 0
+        border-radius: $radius
+        padding: 8px
+        background: $borderColor
+
+        li {
+            list-style none
+
+            button:not(.theme-code-group__nav-tab) {
+                width: 100%
+                border: none !important
+                padding: 6px 12px
+                background: none
+                line-height: 22px
+                text-align: left
+                color: $text2Color
+                transition: all $t ease-in-out
+
+                &.active { 
+                    background: $lightBorderColor
+                    color: $textColor
+                }
+
+                @media (hover: hover) {
+                    &:hover { 
+                        color: $textColor
+                    }
+                }
+            }
+        }
+    }
+
+    @media (max-width: $medium) {
+        .codeControls {
+            display: none
+        }
+    }
+}
+
 .tabs-component-panel { 
-    .copycode, .report, .github  {
-        opacity 1
+    .codeControls {
         top: -44px
-    }
-    .copycode {
         right: -8px
-    }
-    .report {
-        right: 36px
-    }
-    .github {
-        right: 72px
     }
 }
 

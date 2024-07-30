@@ -1,24 +1,35 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example1');
-const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
+const colorData = [
+  ['yellow'],
+  ['red'],
+  ['orange'],
+  ['green'],
+  ['blue'],
+  ['gray'],
+  ['black'],
+  ['white'],
+];
+
 const manufacturerData = [
   { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
   { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
   { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
   { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
   { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
-  { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' }
+  { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' },
 ];
 
-const hot = new Handsontable(container, {
+const container = document.querySelector('#example1');
+
+new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
     ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray']
+    ['Volvo', 2020, 'white', 'gray'],
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   columns: [
@@ -35,24 +46,24 @@ const hot = new Handsontable(container, {
           // coordinates (negative values)
           return this.getSourceDataAtRow(Math.max(selection[0], 0)).name;
         },
-      }
+      },
     },
     { type: 'numeric' },
     {
       type: 'handsontable',
       handsontable: {
         colHeaders: false,
-        data: colorData
-      }
+        data: colorData,
+      },
     },
     {
       type: 'handsontable',
       handsontable: {
         colHeaders: false,
-        data: colorData
-      }
+        data: colorData,
+      },
     },
   ],
   autoWrapRow: true,
-  autoWrapCol: true
+  autoWrapCol: true,
 });

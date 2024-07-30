@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const button = document.querySelector('#set-data-action');
 const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   data: [
@@ -22,15 +21,16 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   outsideClickDeselects: false,
-  selectionMode: 'multiple', // 'single', 'range' or 'multiple',
+  selectionMode: 'multiple',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
-button.addEventListener('click', (event) => {
+const button = document.querySelector('#set-data-action');
+
+button.addEventListener('click', () => {
   const selected = hot.getSelected() || [];
-  const target = event.target.id;
 
   hot.suspendRender();
 
@@ -42,7 +42,11 @@ button.addEventListener('click', (event) => {
     const endCol = Math.max(column1, column2);
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
-      for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
+      for (
+        let columnIndex = startCol;
+        columnIndex <= endCol;
+        columnIndex += 1
+      ) {
         hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
         hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
       }

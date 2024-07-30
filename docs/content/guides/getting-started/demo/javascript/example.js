@@ -13,7 +13,7 @@ export const data = [
     true,
     '172',
     2,
-    2
+    2,
   ],
   [
     true,
@@ -25,7 +25,7 @@ export const data = [
     true,
     '188',
     6,
-    2
+    2,
   ],
   [
     true,
@@ -37,7 +37,7 @@ export const data = [
     true,
     '162',
     1,
-    3
+    3,
   ],
   [
     false,
@@ -49,7 +49,7 @@ export const data = [
     true,
     '133',
     7,
-    1
+    1,
   ],
   [
     true,
@@ -61,7 +61,7 @@ export const data = [
     true,
     '87',
     1,
-    3
+    3,
   ],
   [
     false,
@@ -73,7 +73,7 @@ export const data = [
     false,
     '26',
     8,
-    1
+    1,
   ],
   [
     false,
@@ -85,7 +85,7 @@ export const data = [
     false,
     '110',
     4,
-    1
+    1,
   ],
   [
     false,
@@ -97,7 +97,7 @@ export const data = [
     true,
     '50',
     4,
-    4
+    4,
   ],
   [
     false,
@@ -109,7 +109,7 @@ export const data = [
     false,
     '160',
     6,
-    1
+    1,
   ],
   [
     false,
@@ -121,7 +121,7 @@ export const data = [
     true,
     '30',
     8,
-    5
+    5,
   ],
   [
     false,
@@ -133,31 +133,31 @@ export const data = [
     true,
     '39',
     7,
-    2
+    2,
   ],
   [
     false,
     'Twinder',
     'Egypt',
-    'Men\'s Bib-Shorts',
+    "Men's Bib-Shorts",
     '31/08/2020',
     '04-4281278',
     false,
     '96',
     6,
-    1
+    1,
   ],
   [
     false,
     'Midel',
     'United States',
-    'Men\'s Sports Shorts',
+    "Men's Sports Shorts",
     '27/06/2020',
     '55-1711908',
     true,
     '108',
     10,
-    3
+    3,
   ],
   [
     false,
@@ -169,7 +169,7 @@ export const data = [
     false,
     '46',
     1,
-    1
+    1,
   ],
   [
     false,
@@ -181,7 +181,7 @@ export const data = [
     true,
     '97',
     8,
-    3
+    3,
   ],
   [
     false,
@@ -193,7 +193,7 @@ export const data = [
     true,
     '161',
     1,
-    4
+    4,
   ],
   [
     false,
@@ -205,7 +205,7 @@ export const data = [
     true,
     '58',
     4,
-    3
+    3,
   ],
   [
     false,
@@ -217,7 +217,7 @@ export const data = [
     true,
     '92',
     8,
-    3
+    3,
   ],
   [
     false,
@@ -229,7 +229,7 @@ export const data = [
     true,
     '5',
     6,
-    5
+    5,
   ],
   [
     false,
@@ -241,7 +241,7 @@ export const data = [
     true,
     '158',
     4,
-    1
+    1,
   ],
   [
     false,
@@ -253,7 +253,7 @@ export const data = [
     false,
     '121',
     5,
-    4
+    4,
   ],
   [
     false,
@@ -265,7 +265,7 @@ export const data = [
     false,
     '61',
     5,
-    4
+    4,
   ],
   [
     false,
@@ -277,7 +277,7 @@ export const data = [
     true,
     '155',
     2,
-    2
+    2,
   ],
   [
     false,
@@ -289,7 +289,7 @@ export const data = [
     true,
     '162',
     2,
-    4
+    4,
   ],
   [
     false,
@@ -301,7 +301,7 @@ export const data = [
     false,
     '46',
     7,
-    1
+    1,
   ],
   [
     false,
@@ -313,7 +313,7 @@ export const data = [
     true,
     '47',
     4,
-    4
+    4,
   ],
   [
     false,
@@ -325,7 +325,7 @@ export const data = [
     true,
     '104',
     2,
-    3
+    3,
   ],
   [
     false,
@@ -337,7 +337,7 @@ export const data = [
     true,
     '101',
     6,
-    4
+    4,
   ],
   [
     false,
@@ -349,7 +349,7 @@ export const data = [
     true,
     '150',
     10,
-    3
+    3,
   ],
   [
     false,
@@ -361,7 +361,7 @@ export const data = [
     true,
     '42',
     4,
-    2
+    2,
   ],
   [
     false,
@@ -373,7 +373,7 @@ export const data = [
     true,
     '144',
     9,
-    3
+    3,
   ],
   [
     false,
@@ -385,7 +385,7 @@ export const data = [
     true,
     '195',
     4,
-    1
+    1,
   ],
   [
     false,
@@ -397,7 +397,7 @@ export const data = [
     true,
     '199',
     4,
-    4
+    4,
   ],
   [
     false,
@@ -409,7 +409,7 @@ export const data = [
     true,
     '110',
     4,
-    5
+    5,
   ],
   [
     false,
@@ -421,7 +421,7 @@ export const data = [
     true,
     '51',
     4,
-    4
+    4,
   ],
   [
     false,
@@ -433,31 +433,31 @@ export const data = [
     false,
     '69',
     2,
-    5
+    5,
   ],
   [
     false,
     'Zoombeat',
     'United States',
-    'Women\'s Mountain Shorts',
+    "Women's Mountain Shorts",
     '03/11/2020',
     '56-8673088',
     false,
     '53',
     2,
-    3
+    3,
   ],
   [
     false,
     'Roomm',
     'China',
-    'Women\'s Tights',
+    "Women's Tights",
     '16/03/2020',
     '76-0085918',
     true,
     '168',
     1,
-    1
+    1,
   ],
   [
     false,
@@ -469,7 +469,7 @@ export const data = [
     false,
     '58',
     1,
-    4
+    4,
   ],
   [
     false,
@@ -481,7 +481,7 @@ export const data = [
     true,
     '152',
     9,
-    3
+    3,
   ],
   [
     false,
@@ -493,7 +493,7 @@ export const data = [
     true,
     '66',
     4,
-    2
+    2,
   ],
   [
     false,
@@ -505,7 +505,7 @@ export const data = [
     false,
     '112',
     9,
-    2
+    2,
   ],
   [
     false,
@@ -517,7 +517,7 @@ export const data = [
     true,
     '50',
     10,
-    4
+    4,
   ],
   [
     false,
@@ -529,7 +529,7 @@ export const data = [
     false,
     '31',
     3,
-    5
+    5,
   ],
   [
     false,
@@ -541,7 +541,7 @@ export const data = [
     true,
     '132',
     5,
-    5
+    5,
   ],
   [
     false,
@@ -553,7 +553,7 @@ export const data = [
     true,
     '45',
     1,
-    5
+    5,
   ],
   [
     false,
@@ -565,7 +565,7 @@ export const data = [
     true,
     '197',
     4,
-    2
+    2,
   ],
   [
     false,
@@ -577,7 +577,7 @@ export const data = [
     true,
     '190',
     4,
-    3
+    3,
   ],
   [
     false,
@@ -589,7 +589,7 @@ export const data = [
     true,
     '184',
     3,
-    4
+    4,
   ],
   [
     false,
@@ -601,7 +601,7 @@ export const data = [
     true,
     '169',
     3,
-    4
+    4,
   ],
   [
     false,
@@ -613,7 +613,7 @@ export const data = [
     false,
     '152',
     4,
-    4
+    4,
   ],
   [
     false,
@@ -625,7 +625,7 @@ export const data = [
     false,
     '182',
     6,
-    4
+    4,
   ],
   [
     false,
@@ -637,7 +637,7 @@ export const data = [
     true,
     '141',
     6,
-    1
+    1,
   ],
   [
     false,
@@ -649,7 +649,7 @@ export const data = [
     true,
     '169',
     7,
-    1
+    1,
   ],
   [
     false,
@@ -661,7 +661,7 @@ export const data = [
     false,
     '39',
     7,
-    1
+    1,
   ],
   [
     false,
@@ -673,7 +673,7 @@ export const data = [
     true,
     '71',
     8,
-    3
+    3,
   ],
   [
     false,
@@ -685,7 +685,7 @@ export const data = [
     true,
     '148',
     10,
-    3
+    3,
   ],
   [
     false,
@@ -697,7 +697,7 @@ export const data = [
     true,
     '116',
     8,
-    1
+    1,
   ],
   [
     false,
@@ -709,7 +709,7 @@ export const data = [
     true,
     '96',
     10,
-    1
+    1,
   ],
   [
     false,
@@ -721,7 +721,7 @@ export const data = [
     true,
     '35',
     4,
-    2
+    2,
   ],
   [
     false,
@@ -733,7 +733,7 @@ export const data = [
     true,
     '16',
     8,
-    2
+    2,
   ],
   [
     false,
@@ -745,7 +745,7 @@ export const data = [
     true,
     '194',
     2,
-    5
+    5,
   ],
   [
     false,
@@ -757,7 +757,7 @@ export const data = [
     true,
     '24',
     1,
-    3
+    3,
   ],
   [
     false,
@@ -769,7 +769,7 @@ export const data = [
     true,
     '170',
     4,
-    4
+    4,
   ],
   [
     false,
@@ -781,7 +781,7 @@ export const data = [
     true,
     '184',
     9,
-    5
+    5,
   ],
   [
     false,
@@ -793,7 +793,7 @@ export const data = [
     false,
     '153',
     10,
-    4
+    4,
   ],
   [
     false,
@@ -805,7 +805,7 @@ export const data = [
     false,
     '88',
     10,
-    1
+    1,
   ],
   [
     false,
@@ -817,7 +817,7 @@ export const data = [
     true,
     '57',
     9,
-    2
+    2,
   ],
   [
     false,
@@ -829,7 +829,7 @@ export const data = [
     false,
     '62',
     4,
-    1
+    1,
   ],
   [
     false,
@@ -841,7 +841,7 @@ export const data = [
     true,
     '123',
     2,
-    4
+    4,
   ],
   [
     false,
@@ -853,7 +853,7 @@ export const data = [
     true,
     '77',
     10,
-    5
+    5,
   ],
   [
     false,
@@ -865,7 +865,7 @@ export const data = [
     false,
     '199',
     9,
-    4
+    4,
   ],
   [
     false,
@@ -877,19 +877,19 @@ export const data = [
     true,
     '149',
     8,
-    2
+    2,
   ],
   [
     false,
     'Quinu',
-    'Xi\'an',
+    "Xi'an",
     '425-777-7829',
     '22/02/2020',
     '83-1713558',
     false,
     '191',
     9,
-    5
+    5,
   ],
   [
     false,
@@ -901,7 +901,7 @@ export const data = [
     true,
     '150',
     10,
-    2
+    2,
   ],
   [
     false,
@@ -913,7 +913,7 @@ export const data = [
     true,
     '130',
     7,
-    3
+    3,
   ],
   [
     false,
@@ -925,7 +925,7 @@ export const data = [
     true,
     '179',
     1,
-    2
+    2,
   ],
   [
     false,
@@ -937,7 +937,7 @@ export const data = [
     true,
     '98',
     5,
-    3
+    3,
   ],
   [
     false,
@@ -949,7 +949,7 @@ export const data = [
     true,
     '175',
     2,
-    3
+    3,
   ],
   [
     false,
@@ -961,7 +961,7 @@ export const data = [
     true,
     '11',
     1,
-    3
+    3,
   ],
   [
     false,
@@ -973,7 +973,7 @@ export const data = [
     false,
     '184',
     7,
-    4
+    4,
   ],
   [
     false,
@@ -985,7 +985,7 @@ export const data = [
     false,
     '27',
     9,
-    3
+    3,
   ],
   [
     false,
@@ -997,7 +997,7 @@ export const data = [
     true,
     '186',
     3,
-    2
+    2,
   ],
   [
     false,
@@ -1009,7 +1009,7 @@ export const data = [
     true,
     '20',
     3,
-    3
+    3,
   ],
   [
     false,
@@ -1021,7 +1021,7 @@ export const data = [
     false,
     '153',
     2,
-    1
+    1,
   ],
   [
     false,
@@ -1033,7 +1033,7 @@ export const data = [
     true,
     '161',
     8,
-    5
+    5,
   ],
   [
     false,
@@ -1045,7 +1045,7 @@ export const data = [
     true,
     '98',
     10,
-    5
+    5,
   ],
   [
     false,
@@ -1057,7 +1057,7 @@ export const data = [
     true,
     '30',
     7,
-    3
+    3,
   ],
   [
     false,
@@ -1069,7 +1069,7 @@ export const data = [
     true,
     '73',
     10,
-    2
+    2,
   ],
   [
     false,
@@ -1081,7 +1081,7 @@ export const data = [
     true,
     '158',
     9,
-    1
+    1,
   ],
   [
     false,
@@ -1093,7 +1093,7 @@ export const data = [
     true,
     '122',
     5,
-    2
+    2,
   ],
   [
     false,
@@ -1105,7 +1105,7 @@ export const data = [
     true,
     '33',
     2,
-    4
+    4,
   ],
   [
     false,
@@ -1117,7 +1117,7 @@ export const data = [
     true,
     '107',
     6,
-    2
+    2,
   ],
   [
     false,
@@ -1129,7 +1129,7 @@ export const data = [
     true,
     '15',
     1,
-    2
+    2,
   ],
   [
     false,
@@ -1141,7 +1141,7 @@ export const data = [
     true,
     '168',
     5,
-    2
+    2,
   ],
   [
     false,
@@ -1153,7 +1153,7 @@ export const data = [
     true,
     '135',
     4,
-    2
+    2,
   ],
   [
     false,
@@ -1165,7 +1165,7 @@ export const data = [
     true,
     '11',
     1,
-    4
+    4,
   ],
   [
     false,
@@ -1177,7 +1177,7 @@ export const data = [
     true,
     '41',
     6,
-    4
+    4,
   ],
   [
     false,
@@ -1189,7 +1189,7 @@ export const data = [
     true,
     '144',
     6,
-    1
+    1,
   ],
   [
     false,
@@ -1201,60 +1201,20 @@ export const data = [
     true,
     '106',
     1,
-    4
-  ]
+    4,
+  ],
 ];
-
 export const SELECTED_CLASS = 'selected';
 export const ODD_ROW_CLASS = 'odd';
 
-// utils.js
-const randomName = () =>
-  ['عمر', 'علي', 'عبد الله', 'معتصم'][Math.floor(Math.random() * 3)];
-const randomCountry = () =>
-  ['تركيا', 'مصر', 'لبنان', 'العراق'][Math.floor(Math.random() * 3)];
-const randomDate = () =>
-  new Date(Math.floor(Math.random() * Date.now())).toLocaleDateString('en-gb');
-const randomBool = () => Math.random() > 0.5;
-const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
-const randomPhrase = () =>
-  `${randomCountry()} ${randomName()} ${randomNumber()}`;
-const randomOrderId = () =>
-  `${randomNumber(100000, 999999).toString().match(/.{1,3}/g).join('-')}`;
-
-function generateArabicData() {
-  return Array.from({ length: 50 }, () => [
-    randomBool(),
-    randomName(),
-    randomCountry(),
-    randomPhrase(),
-    randomDate(),
-    randomOrderId(),
-    randomBool(),
-    randomNumber(0, 200).toString(),
-    randomNumber(1, 10),
-    randomNumber(1, 5),
-  ]);
-}
-
-export function isArabicDemoEnabled() {
-  const urlParams = new URLSearchParams(location.search.replace(/^\?/, ''));
-
-  return urlParams.get('arabicExample') === '1';
-}
-
-export function generateExampleData() {
-  return isArabicDemoEnabled() ? generateArabicData() : data;
-}
-
-// hooksCallbacks.js
-const headerAlignments = new Map([
-  ['9', 'htCenter'],
-  ['10', 'htRight'],
-  ['12', 'htCenter']
-]);
-
-export function addClassesToRows(TD, row, column, prop, value, cellProperties) {
+export function addClassesToRows(
+  TD,
+  row,
+  column,
+  _prop,
+  _value,
+  cellProperties
+) {
   // Adding classes to `TR` just while rendering first visible `TD` element
   if (column !== 0) {
     return;
@@ -1281,29 +1241,10 @@ export function addClassesToRows(TD, row, column, prop, value, cellProperties) {
   }
 }
 
-export function alignHeaders(column, TH) {
-  if (column < 0) {
-    return;
-  }
-
-  const alignmentClass = this.isRtl() ? 'htRight' : 'htLeft';
-
-  if (TH.firstChild) {
-    if (headerAlignments.has(column.toString())) {
-      Handsontable.dom.removeClass(TH.firstChild, alignmentClass);
-      Handsontable.dom.addClass(TH.firstChild, headerAlignments.get(column.toString()));
-    } else {
-      Handsontable.dom.addClass(TH.firstChild, alignmentClass);
-    }
-  }
-}
-
 const example = document.getElementById('example');
 
 new Handsontable(example, {
-  data: generateExampleData(),
-  layoutDirection: isArabicDemoEnabled() ? 'rtl' : 'ltr',
-  language: isArabicDemoEnabled() ? arAR.languageCode : 'en-US',
+  data,
   height: 450,
   colWidths: [140, 192, 100, 90, 90, 100, 126],
   colHeaders: [
@@ -1313,7 +1254,7 @@ new Handsontable(example, {
     'In stock',
     'Qty',
     'Order ID',
-    'Country'
+    'Country',
   ],
   columns: [
     { data: 1, type: 'text' },
@@ -1322,34 +1263,37 @@ new Handsontable(example, {
       data: 4,
       type: 'date',
       allowInvalid: false,
-      dateFormat: isArabicDemoEnabled() ? 'M/D/YYYY' : 'DD/MM/YYYY',
+      dateFormat: 'DD/MM/YYYY',
     },
     {
       data: 6,
       type: 'checkbox',
-      className: 'htCenter'
+      className: 'htCenter',
+      headerClassName: 'htCenter',
     },
     {
       data: 7,
-      type: 'numeric'
+      type: 'numeric',
+      headerClassName: 'htRight',
     },
     { data: 5, type: 'text' },
-    { data: 2, type: 'text' }
+    { data: 2, type: 'text' },
   ],
   dropdownMenu: true,
   hiddenColumns: {
-    indicators: true
+    indicators: true,
   },
   contextMenu: true,
   multiColumnSorting: true,
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
-  afterGetColHeader: alignHeaders,
+  headerClassName: 'htLeft',
   beforeRenderer: addClassesToRows,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
-
-console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);
+console.log(
+  `Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`
+);

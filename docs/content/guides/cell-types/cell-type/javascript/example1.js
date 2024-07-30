@@ -1,21 +1,30 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example1');
-const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
+const colors = [
+  'yellow',
+  'red',
+  'orange',
+  'green',
+  'blue',
+  'gray',
+  'black',
+  'white',
+];
 
-const yellowRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
+const yellowRenderer = (instance, td, ...rest) => {
+  Handsontable.renderers.TextRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'yellow';
 };
 
-const greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-
+const greenRenderer = (instance, td, ...rest) => {
+  Handsontable.renderers.TextRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'green';
 };
 
-const hot = new Handsontable(container, {
+const container = document.querySelector('#example1');
+
+new Handsontable(container, {
   data: [
     { id: 1, name: 'Ted', isActive: true, color: 'orange', date: '2015-01-01' },
     { id: 2, name: 'John', isActive: false, color: 'black', date: null },
@@ -31,17 +40,19 @@ const hot = new Handsontable(container, {
     // use default 'text' cell type but overwrite its renderer with yellowRenderer
     { data: 'isActive', type: 'checkbox' },
     { data: 'date', type: 'date', dateFormat: 'YYYY-MM-DD' },
-    { data: 'color', type: 'autocomplete', source: colors }
+    { data: 'color', type: 'autocomplete', source: colors },
   ],
-  cell: [
-    { row: 1, col: 0, renderer: greenRenderer }
-  ],
-  cells(row, col, prop) {
+  cell: [{ row: 1, col: 0, renderer: greenRenderer }],
+  cells(row, col) {
     if (row === 0 && col === 0) {
       this.renderer = greenRenderer;
+
+      return { renderer: this.renderer };
     }
+
+    return {};
   },
   autoWrapRow: true,
   autoWrapCol: true,
-  height: 'auto'
+  height: 'auto',
 });

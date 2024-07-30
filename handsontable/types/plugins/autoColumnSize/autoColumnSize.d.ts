@@ -24,6 +24,6 @@ export class AutoColumnSize extends BasePlugin {
   getColumnWidth(column: number, defaultWidth?: number, keepMinimum?: boolean): number;
   getFirstVisibleColumn(): number;
   getLastVisibleColumn(): number;
-  clearCache(columns?: number[]): void;
+  clearCache(physicalColumns?: number[]): void;
   isNeedRecalculate(): boolean;
 }

@@ -4,10 +4,9 @@ import 'handsontable/dist/handsontable.full.min.css';
 // generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
-
-  const array2d = [...new Array(rows)]
-    .map(_ => [...new Array(columns)]
-      .map(_ => counter++));
+  const array2d = [...new Array(rows)].map((_) =>
+    [...new Array(columns)].map((_) => counter++)
+  );
 
   if (additionalRows) {
     array2d.push([]);
@@ -18,7 +17,8 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 };
 
 const container = document.querySelector('#example9');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   // initialize a Handsontable instance with the generated numeric data
   data: generateData(5, 7),
@@ -39,14 +39,20 @@ const hot = new Handsontable(container, {
         // implement a function that counts the number of even values in the column
         const hotInstance = this.hot;
         let evenCount = 0;
-
         // a helper function
         const checkRange = (rowRange) => {
           let i = rowRange[1] || rowRange[0];
           let counter = 0;
 
           do {
-            if (parseInt(hotInstance.getDataAtCell(i, endpoint.sourceColumn), 10) % 2 === 0) {
+            if (
+              parseInt(
+                hotInstance.getDataAtCell(i, endpoint.sourceColumn),
+                10
+              ) %
+                2 ===
+              0
+            ) {
               counter++;
             }
 
@@ -65,8 +71,8 @@ const hot = new Handsontable(container, {
 
         return evenCount;
       },
-      forceNumeric: true
-    }
+      forceNumeric: true,
+    },
   ],
   autoWrapRow: true,
   autoWrapCol: true,

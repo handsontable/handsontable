@@ -29,6 +29,8 @@ import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
 import { A11Y_SORT } from '../../helpers/a11y';
 
+import './columnSorting.scss';
+
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;
 export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
@@ -198,6 +200,8 @@ export class ColumnSorting extends BasePlugin {
       if (this.indexesSequenceCache !== null) {
         this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
         this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
+
+        this.indexesSequenceCache = null;
       }
     }, true);
 
@@ -617,9 +621,9 @@ export class ColumnSorting extends BasePlugin {
    * @private
    */
   sortByPresetSortStates(sortConfigs) {
-    if (sortConfigs.length === 0) {
-      this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
+    this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
 
+    if (sortConfigs.length === 0) {
       return;
     }
 

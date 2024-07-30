@@ -1,4 +1,4 @@
-const buildJavascriptBody = ({ id, html, js, css, version, hyperformulaVersion, sandbox }) => {
+const buildJavascriptBody = ({ id, html, js, css, version, hyperformulaVersion, sandbox, lang }) => {
   if (sandbox === 'stackblitz') {
     return {
       files: {
@@ -18,6 +18,7 @@ const buildJavascriptBody = ({ id, html, js, css, version, hyperformulaVersion, 
   <html>
     <head>
       <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>Handsontable</title>
     </head>
   
@@ -29,7 +30,7 @@ const buildJavascriptBody = ({ id, html, js, css, version, hyperformulaVersion, 
         'styles.css': {
           content: css
         },
-        'index.js': {
+        [`index.${lang}`]: {
           content: `import './styles.css'
 ${js}`
         },
@@ -64,6 +65,7 @@ ${js}`
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Handsontable</title>
     <link rel="stylesheet" href="src/styles.css" />
     ${js.includes('import { HyperFormula } from \'hyperformula\';')
@@ -73,14 +75,14 @@ ${js}`
 
   <body>
     ${html || `<div id="${id}"></div>`}
-    <script src="src/index.js"></script>
+    <script src="src/index.${lang}"></script>
   </body>
 </html>`
       },
       'src/styles.css': {
         content: css
       },
-      'src/index.js': {
+      [`src/index.${lang}`]: {
         content: js.replace('import { HyperFormula } from \'hyperformula\';', '')
       }
     }

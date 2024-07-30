@@ -70,7 +70,7 @@ describe('AutoRowSize', () => {
 
     const newHeight = spec().$container[0].scrollHeight;
 
-    expect(oldHeight).toBeLessThan(newHeight);
+    expect(oldHeight).toBeLessThanOrEqual(newHeight);
   });
 
   it('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set ' +
@@ -621,5 +621,26 @@ describe('AutoRowSize', () => {
     });
 
     expect(onErrorSpy).not.toHaveBeenCalled();
+  });
+
+  it('should keep the viewport position unchanged after resetting all rows heights (#dev-1888)', () => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      width: 400,
+      height: 400,
+      autoRowSize: true,
+      rowHeaders: ['Longer <br> header <br> name'],
+      colHeaders: true,
+    });
+
+    scrollViewportTo(49, 0);
+
+    expect(topOverlay().getScrollPosition()).toBe(833);
+
+    selectColumns(2, 2);
+    listen();
+    keyDownUp('delete');
+
+    expect(topOverlay().getScrollPosition()).toBe(833);
   });
 });

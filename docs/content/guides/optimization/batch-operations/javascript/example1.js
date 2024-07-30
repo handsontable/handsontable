@@ -5,7 +5,6 @@ const container = document.querySelector('#example1');
 const buttonWithout = document.querySelector('#buttonWithout');
 const buttonWith = document.querySelector('#buttonWith');
 const output = document.querySelector('#output');
-
 const data1 = [
   [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
   [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
@@ -16,17 +15,15 @@ const data1 = [
   [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
   [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
   [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
-  [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
+  [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no'],
 ];
 
-const data2 = [
-  [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
-];
+const data2 = [[11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes']];
 
 const data3 = [
   [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
   [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
-  [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
+  [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no'],
 ];
 
 const hot = new Handsontable(container, {
@@ -36,7 +33,7 @@ const hot = new Handsontable(container, {
   colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 const alterTable = () => {
@@ -60,7 +57,6 @@ const alterTable = () => {
 
 let loggedText = '';
 let counter = 0;
-
 const logOutput = (msg) => {
   counter++;
   loggedText = `[${counter}] ${msg}\n${loggedText}`;
@@ -71,15 +67,16 @@ buttonWithout.addEventListener('click', () => {
   const t1 = performance.now();
 
   alterTable();
+
   const t2 = performance.now();
 
   logOutput(`Time without batch ${(t2 - t1).toFixed(2)}ms`);
 });
-
 buttonWith.addEventListener('click', () => {
   const t1 = performance.now();
 
   hot.batch(alterTable);
+
   const t2 = performance.now();
 
   logOutput(`Time with batch ${(t2 - t1).toFixed(2)}ms`);

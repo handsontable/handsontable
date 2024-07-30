@@ -58,11 +58,11 @@ Click on one of the column names to sort the values in ascending (↑) or descen
 
 ::: only-for javascript
 
-::: example #exampleSortingDemo --html 1 --js 2
+::: example #exampleSortingDemo --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingDemo.html)
-
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingDemo.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingDemo.ts)
 
 :::
 
@@ -70,9 +70,10 @@ Click on one of the column names to sort the values in ascending (↑) or descen
 
 ::: only-for react
 
-::: example #exampleSortingDemo :react
+::: example #exampleSortingDemo :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleSortingDemo.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortingDemo.tsx)
 
 :::
 
@@ -109,11 +110,12 @@ the following example, only columns **Model**, **Date** and **In stock** are sor
 
 ::: only-for javascript
 
-::: example #exampleEnableSortingForColumns --html 1 --js 2
+::: example #exampleEnableSortingForColumns --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleEnableSortingForColumns.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleEnableSortingForColumns.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleEnableSortingForColumns.ts)
 
 :::
 
@@ -121,9 +123,10 @@ the following example, only columns **Model**, **Date** and **In stock** are sor
 
 ::: only-for react
 
-::: example #exampleEnableSortingForColumns :react
+::: example #exampleEnableSortingForColumns :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleEnableSortingForColumns.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleEnableSortingForColumns.tsx)
 
 :::
 
@@ -222,11 +225,11 @@ You can configure the following types:
 
 ::: only-for javascript
 
-::: example #exampleSortDifferentTypes --html 1 --js 2
+::: example #exampleSortDifferentTypes --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortDifferentTypes.html)
-
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortDifferentTypes.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortDifferentTypes.ts)
 
 :::
 
@@ -234,9 +237,10 @@ You can configure the following types:
 
 ::: only-for react
 
-::: example #exampleSortDifferentTypes :react
+::: example #exampleSortDifferentTypes :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleSortDifferentTypes.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortDifferentTypes.tsx)
 
 :::
 
@@ -256,11 +260,12 @@ To try out sorting by multiple columns, see the following demo:
 
 ::: only-for javascript
 
-::: example #exampleSortByMultipleColumns --html 1 --js 2
+::: example #exampleSortByMultipleColumns --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByMultipleColumns.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByMultipleColumns.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByMultipleColumns.ts)
 
 :::
 
@@ -268,9 +273,10 @@ To try out sorting by multiple columns, see the following demo:
 
 ::: only-for react
 
-::: example #exampleSortByMultipleColumns :react
+::: example #exampleSortByMultipleColumns :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleSortByMultipleColumns.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortByMultipleColumns.tsx)
 
 :::
 
@@ -340,8 +346,7 @@ const configurationOptions = {
 
 :::
 
-The [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options override each other. If you use
-them both, the one defined later takes precedence.
+The [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options are mutually exclusive; do not enable them together. If you do, [`columnSorting`](@/api/options.md#columnsorting) will be automatically disabled as it is overridden by [`multiColumnSorting`](@/api/options.md#multicolumnsorting).
 
 ## Set an initial sort order
 
@@ -354,11 +359,11 @@ In the following demo, the data is initially sorted:
 
 ::: only-for javascript
 
-::: example #exampleInitialSortOrder --html 1 --js 2
+::: example #exampleInitialSortOrder --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleInitialSortOrder.html)
-
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleInitialSortOrder.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleInitialSortOrder.ts)
 
 :::
 
@@ -366,9 +371,10 @@ In the following demo, the data is initially sorted:
 
 ::: only-for react
 
-::: example #exampleInitialSortOrder :react
+::: example #exampleInitialSortOrder :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleInitialSortOrder.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleInitialSortOrder.tsx)
 
 :::
 
@@ -465,12 +471,11 @@ The default sort icons (↑↓) are encoded in Base64. You can replace them by c
 
 ::: only-for javascript
 
-::: example #exampleCustomSortIcons --html 1 --js 2 --css 3
+::: example #exampleCustomSortIcons --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons.html)
-
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons.js)
-
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons.ts)
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons.css)
 
 :::
@@ -479,11 +484,11 @@ The default sort icons (↑↓) are encoded in Base64. You can replace them by c
 
 ::: only-for react
 
-::: example #exampleCustomSortIcons :react --js 1 --css 2
+::: example #exampleCustomSortIcons :react --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons.jsx)
-
 @[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons.css)
+@[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons.tsx)
 
 :::
 
@@ -493,12 +498,11 @@ You can also replace the sort icons by changing `content` for the same pseudo-el
 
 ::: only-for javascript
 
-::: example #exampleCustomSortIcons2 --html 1 --js 2 --css 3
+::: example #exampleCustomSortIcons2 --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.html)
-
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.js)
-
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.ts)
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.css)
 
 :::
@@ -507,11 +511,11 @@ You can also replace the sort icons by changing `content` for the same pseudo-el
 
 ::: only-for react
 
-::: example #exampleCustomSortIcons2 :react --js 1 --css 2
+::: example #exampleCustomSortIcons2 :react --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons2.jsx)
-
 @[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons2.css)
+@[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons2.tsx)
 
 :::
 
@@ -523,12 +527,11 @@ subsequent pseudo-elements:
 
 ::: only-for javascript
 
-::: example #exampleCustomSortIcons3 --html 1 --js 2 --css 3
+::: example #exampleCustomSortIcons3 --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons3.html)
-
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons3.js)
-
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons3.ts)
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons3.css)
 
 :::
@@ -537,11 +540,11 @@ subsequent pseudo-elements:
 
 ::: only-for react
 
-::: example #exampleCustomSortIcons3 :react --js 1 --css 2
+::: example #exampleCustomSortIcons3 :react --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons3.jsx)
-
 @[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons3.css)
+@[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons3.tsx)
 
 :::
 
@@ -659,11 +662,12 @@ For example, if you [freeze](@/guides/rows/row-freezing/row-freezing.md) a row a
 
 ::: only-for javascript
 
-::: example #exampleExcludeRowsFromSorting --html 1 --js 2
+::: example #exampleExcludeRowsFromSorting --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.ts)
 
 :::
 
@@ -671,9 +675,10 @@ For example, if you [freeze](@/guides/rows/row-freezing/row-freezing.md) a row a
 
 ::: only-for react
 
-::: example #exampleExcludeRowsFromSorting :react
+::: example #exampleExcludeRowsFromSorting :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleExcludeRowsFromSorting.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleExcludeRowsFromSorting.tsx)
 
 :::
 
@@ -845,11 +850,12 @@ To see how it works, try out the following demo:
 
 ::: only-for javascript
 
-::: example #exampleSortByAPI --html 1 --js 2
+::: example #exampleSortByAPI --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPI.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPI.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPI.ts)
 
 :::
 
@@ -857,9 +863,10 @@ To see how it works, try out the following demo:
 
 ::: only-for react
 
-::: example #exampleSortByAPI :react
+::: example #exampleSortByAPI :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleSortByAPI.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortByAPI.tsx)
 
 :::
 
@@ -940,11 +947,12 @@ To see how it works, try out the following demo:
 
 ::: only-for javascript
 
-::: example #exampleSortByAPIMultipleColumns --html 1 --js 2
+::: example #exampleSortByAPIMultipleColumns --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPIMultipleColumns.html)
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPIMultipleColumns.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPIMultipleColumns.ts)
 
 :::
 
@@ -952,9 +960,10 @@ To see how it works, try out the following demo:
 
 ::: only-for react
 
-::: example #exampleSortByAPIMultipleColumns :react
+::: example #exampleSortByAPIMultipleColumns :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleSortByAPIMultipleColumns.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortByAPIMultipleColumns.tsx)
 
 :::
 

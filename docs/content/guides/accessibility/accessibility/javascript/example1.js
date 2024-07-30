@@ -1,7 +1,8 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+
 /* start:skip-in-preview */
-const data = [
+const products = [
   {
     companyName: 'Hodkiewicz - Hintz',
     productName: 'Rustic Soft Ball',
@@ -463,7 +464,7 @@ const data = [
   },
 ];
 
-const countries = data.reduce((acc, curr) => {
+const countries = products.reduce((acc, curr) => {
   if (acc.includes(curr.country)) {
     return acc;
   }
@@ -472,13 +473,11 @@ const countries = data.reduce((acc, curr) => {
 }, []);
 
 /* end:skip-in-preview */
-
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const app = document.getElementById('example1');
-
 // Define configuration options for the Handsontable
 const hotOptions = {
-  data,
+  data: products,
   height: 464,
   colWidths: [140, 165, 100, 100, 100, 110, 178],
   autoRowSize: true,
@@ -504,8 +503,13 @@ const hotOptions = {
       data: 'inStock',
       type: 'checkbox',
       className: 'htCenter',
+      headerClassName: 'htCenter',
     },
-    { data: 'qty', type: 'numeric' },
+    {
+      data: 'qty',
+      type: 'numeric',
+      headerClassName: 'htRight',
+    },
     {
       data: 'orderId',
       type: 'text',
@@ -521,128 +525,118 @@ const hotOptions = {
     indicators: true,
   },
   contextMenu: true,
-  navigableHeaders: true, // New accessibility feature
-  tabNavigation: true, // New accessibility feature
+  navigableHeaders: true,
+  tabNavigation: true,
   autoWrapRow: true,
   autoWrapCol: true,
   multiColumnSorting: true,
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
+  headerClassName: 'htLeft',
   licenseKey: 'non-commercial-and-evaluation',
 };
 
 // Initialize the Handsontable instance with the specified configuration options
-let hotInstance = new Handsontable(app, hotOptions);
-
+let hot = new Handsontable(app, hotOptions);
 // Helper function to set up checkbox event handling
 const setupCheckbox = (element, callback) =>
-  element.addEventListener('click', clickEvent => callback(element.checked));
+  element.addEventListener('click', () => callback(element.checked));
 
 // Set up event listeners for various checkboxes to update Handsontable settings.
 // This allows us to change the Handsontable settings from the UI, showcasing
 // the flexibility of Handsontable in configuring according to your needs.
-
 // Checkbox: Enable/Disable Tab Navigation
 setupCheckbox(document.querySelector('#enable-tab-navigation'), (checked) => {
   hotOptions.tabNavigation = checked;
-  hotInstance.updateSettings({
+  hot.updateSettings({
     tabNavigation: hotOptions.tabNavigation,
   });
   console.log(
     'Updated setting: tabNavigation to',
-    hotInstance.getSettings().tabNavigation
+    hot.getSettings().tabNavigation
   );
 });
-
 // Checkbox: Enable/Disable Header Navigation
 setupCheckbox(
   document.querySelector('#enable-header-navigation'),
   (checked) => {
     hotOptions.navigableHeaders = checked;
-    hotInstance.updateSettings({
+    hot.updateSettings({
       navigableHeaders: hotOptions.navigableHeaders,
     });
     console.log(
       'Updated setting: navigableHeaders to',
-      hotInstance.getSettings().navigableHeaders
+      hot.getSettings().navigableHeaders
     );
   }
 );
-
 // Checkbox: Enable/Disable Cell Virtualization
 setupCheckbox(
   document.querySelector('#enable-cell-virtualization'),
   (checked) => {
-    hotInstance.destroy();
-    hotInstance = new Handsontable(document.getElementById('example1'), {
+    hot.destroy();
+    hot = new Handsontable(document.getElementById('example1'), {
       ...hotOptions,
       renderAllRows: !checked,
       renderAllColumns: !checked,
     });
     console.log('Updated virtualization settings:', {
-      renderAllRows: hotInstance.getSettings().renderAllRows,
-      renderAllColumns: hotInstance.getSettings().renderAllColumns,
+      renderAllRows: hot.getSettings().renderAllRows,
+      renderAllColumns: hot.getSettings().renderAllColumns,
     });
   }
 );
-
 // Checkbox: Enable/Disable Cell Enter Editing
 setupCheckbox(
   document.querySelector('#enable-cell-enter-editing'),
   (checked) => {
     hotOptions.enterBeginsEditing = checked;
-    hotInstance.updateSettings({
+    hot.updateSettings({
       enterBeginsEditing: hotOptions.enterBeginsEditing,
     });
     console.log(
       'Updated setting: enable-cell-enter-editing to',
-      hotInstance.getSettings().enterBeginsEditing
+      hot.getSettings().enterBeginsEditing
     );
   }
 );
-
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Row
 setupCheckbox(
   document.querySelector('#enable-arrow-rl-first-last-column'),
   (checked) => {
     hotOptions.autoWrapRow = checked;
-    hotInstance.updateSettings({
+    hot.updateSettings({
       autoWrapRow: hotOptions.autoWrapRow,
     });
     console.log(
       'Updated setting: autoWrapRow to',
-      hotInstance.getSettings().autoWrapRow
+      hot.getSettings().autoWrapRow
     );
   }
 );
-
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Column
 setupCheckbox(
   document.querySelector('#enable-arrow-td-first-last-column'),
   (checked) => {
     hotOptions.autoWrapCol = checked;
-    hotInstance.updateSettings({
+    hot.updateSettings({
       autoWrapCol: hotOptions.autoWrapCol,
     });
     console.log(
       'Updated setting: autoWrapCol to',
-      hotInstance.getSettings().autoWrapCol
+      hot.getSettings().autoWrapCol
     );
   }
 );
-
 // Checkbox: Enable/Disable Enter Key Focus for Editing
 setupCheckbox(
   document.querySelector('#enable-enter-focus-editing'),
   (checked) => {
     hotOptions.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
-    hotInstance.updateSettings({
+    hot.updateSettings({
       enterMoves: hotOptions.enterMoves,
     });
-    console.log(
-      'Updated setting: enterMoves to',
-      hotInstance.getSettings().enterMoves
-    );
+    console.log('Updated setting: enterMoves to', hot.getSettings().enterMoves);
   }
 );

@@ -2,7 +2,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example4');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -27,7 +28,7 @@ const hot = new Handsontable(container, {
   // automatically adds the context menu's row hiding items
   hiddenRows: {
     rows: [3, 5, 9],
-    indicators: true
+    indicators: true,
   },
   autoWrapRow: true,
   autoWrapCol: true,

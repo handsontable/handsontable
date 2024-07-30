@@ -6,6 +6,7 @@ import { requestAnimationFrame } from '../../../helpers/feature';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { isChrome } from '../../../helpers/browser';
+import { warn } from '../../../helpers/console';
 import {
   InlineStartOverlay,
   TopOverlay,
@@ -97,6 +98,20 @@ class Overlays {
   #hasRenderingStateChanged = false;
 
   /**
+   * The amount of times the ResizeObserver callback was fired in direct succession.
+   *
+   * @type {number}
+   */
+  #containerDomResizeCount = 0;
+
+  /**
+   * The timeout ID for the ResizeObserver endless-loop-blocking logic.
+   *
+   * @type {number}
+   */
+  #containerDomResizeCountTimeout = null;
+
+  /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
    * In case of the size change detection the `onContainerElementResize` is fired.
    *
@@ -108,6 +123,27 @@ class Overlays {
       if (!Array.isArray(entries) || !entries.length) {
         return;
       }
+
+      this.#containerDomResizeCount += 1;
+
+      if (this.#containerDomResizeCount === 100) {
+        warn('The ResizeObserver callback was fired too many times in direct succession.' +
+          '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
+          'with the `dvh` units) to a Handsontable container\'s parent. ' +
+          '\nThe observer will be disconnected.');
+
+        this.resizeObserver.disconnect();
+      }
+
+      // This logic is required to prevent an endless loop of the ResizeObserver callback.
+      // https://github.com/handsontable/dev-handsontable/issues/1898#issuecomment-2154794817
+      if (this.#containerDomResizeCountTimeout !== null) {
+        clearTimeout(this.#containerDomResizeCountTimeout);
+      }
+
+      this.#containerDomResizeCountTimeout = setTimeout(() => {
+        this.#containerDomResizeCount = 0;
+      }, 100);
 
       this.wtSettings.getSetting('onContainerElementResize');
     });
@@ -350,6 +386,9 @@ class Overlays {
 
       resizeTimeout = setTimeout(() => {
         this.wtSettings.getSetting('onWindowResize');
+
+        // Remove resizing the window from the ResizeObserver's endless-loop-blocking logic.
+        this.#containerDomResizeCount = 0;
       }, 200);
     });
 
@@ -413,7 +452,11 @@ class Overlays {
     const shouldNotWheelHorizontally = masterHorizontal !== rootWindow &&
       target !== rootWindow && !target.contains(masterHorizontal);
 
-    if (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally)) {
+    if (
+      (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally))
+       ||
+      this.scrollableElement === rootWindow
+    ) {
       return;
     }
 

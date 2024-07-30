@@ -37,7 +37,7 @@ If you're having any issues with Handsontable's [Angular wrapper](@/guides/integ
 ## Stop using the `beforeAutofillInsidePopulate` hook
 
 Handsontable 13.0 removes the [`beforeAutofillInsidePopulate`](https://handsontable.com/docs/12.4/javascript-data-grid/api/hooks/#beforeautofillinsidepopulate) hook,
-which has been marked as deprecated since Handsontable [9.0.0](@/guides/upgrade-and-migration/release-notes/release-notes.md#deprecated-3).
+which has been marked as deprecated since Handsontable [9.0.0](@/guides/upgrade-and-migration/changelog/changelog.md#deprecated-3).
 
 Make sure you're not using this hook.
 
@@ -50,7 +50,7 @@ don't pass these arguments to [`populateFromArray()`](@/api/core.md#populatefrom
 ## Change from `getFirstNotHiddenIndex()` to `getNearestNotHiddenIndex()`
 
 Handsontable 13.0 removes the [`getFirstNotHiddenIndex()`](https://handsontable.com/docs/12.4/javascript-data-grid/api/index-mapper/#getfirstnothiddenindex) method,
-which has been marked as deprecated since Handsontable [12.1.0](@/guides/upgrade-and-migration/release-notes/release-notes.md#deprecated-2). Instead , use the new
+which has been marked as deprecated since Handsontable [12.1.0](@/guides/upgrade-and-migration/changelog/changelog.md#deprecated-2). Instead , use the new
 [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex) method.
 
 For more details, see the API reference:
@@ -73,7 +73,7 @@ handsontableInstance.getNearestNotHiddenIndex(0, 1, true);
 ## Replace `'insert_row'` and `'insert_col'` in your `alter()` calls
 
 The [`alter()`](@/api/core.md#alter) method no longer accepts `'insert_row'` and `'insert_col'` arguments, which have been marked as deprecated since
-Handsontable [12.2.0](@/guides/upgrade-and-migration/release-notes/release-notes.md#deprecated).
+Handsontable [12.2.0](@/guides/upgrade-and-migration/changelog/changelog.md#deprecated).
 
 You can read more about this change on [our blog](https://handsontable.com/blog/handsontable-12.2.0).
 

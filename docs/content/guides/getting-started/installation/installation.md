@@ -158,9 +158,10 @@ const hot = new Handsontable(container, {
 
 ### Preview the result
 
-::: example #example
+::: example #example --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/installation/javascript/example.js)
+@[code](@/content/guides/getting-started/installation/javascript/example.ts)
 
 :::
 
@@ -184,6 +185,13 @@ To install Handsontable locally using a package manager, run one of these comman
 
   ```bash
   yarn add handsontable @handsontable/react
+  ```
+
+  </code-block>
+  <code-block title="pnpm">
+
+  ```bash
+  pnpm add handsontable @handsontable/react
   ```
 
   </code-block>
@@ -239,9 +247,10 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 ## Preview the result
 
-::: example #example :react
+::: example #example :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/installation/react/example.jsx)
+@[code](@/content/guides/getting-started/installation/react/example.tsx)
 
 :::
 

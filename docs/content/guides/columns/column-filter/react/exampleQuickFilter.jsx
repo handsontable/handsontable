@@ -11,38 +11,39 @@ const ExampleComponent = () => {
   const hotTableComponentRef = useRef(null);
 
   useEffect(() => {
-    const handsontableInstance = hotTableComponentRef.current.hotInstance;
+    const handsontableInstance = hotTableComponentRef.current?.hotInstance;
     const filterField = document.querySelector('#filterField');
 
-    filterField.addEventListener('keyup', function (event) {
-      const filtersPlugin = handsontableInstance.getPlugin('filters');
+    filterField?.addEventListener('keyup', function (event) {
+      const filtersPlugin = handsontableInstance?.getPlugin('filters');
       const columnSelector = document.getElementById('columns');
       const columnValue = columnSelector.value;
 
-      filtersPlugin.removeConditions(columnValue);
-      filtersPlugin.addCondition(columnValue, 'contains', [event.target.value]);
-      filtersPlugin.filter();
-
-      handsontableInstance.render();
+      filtersPlugin?.removeConditions(Number(columnValue));
+      filtersPlugin?.addCondition(Number(columnValue), 'contains', [
+        event.target.value,
+      ]);
+      filtersPlugin?.filter();
+      handsontableInstance?.render();
     });
   }, []);
 
   return (
     <>
-      <div class="controlsQuickFilter">
-        <label for="columns" class="selectColumn">
+      <div className="controlsQuickFilter">
+        <label htmlFor="columns" className="selectColumn">
           Select a column:{' '}
+          <select name="columns" id="columns">
+            <option value="0">Brand</option>
+            <option value="1">Model</option>
+            <option value="2">Price</option>
+            <option value="3">Date</option>
+            <option value="4">Time</option>
+            <option value="5">In stock</option>
+          </select>
         </label>
-        <select name="columns" id="columns">
-          <option value="0">Brand</option>
-          <option value="1">Model</option>
-          <option value="2">Price</option>
-          <option value="3">Date</option>
-          <option value="4">Time</option>
-          <option value="5">In stock</option>
-        </select>
       </div>
-      <div class="controlsQuickFilter">
+      <div className="controlsQuickFilter">
         <input id="filterField" type="text" placeholder="Filter" />
       </div>
       <HotTable

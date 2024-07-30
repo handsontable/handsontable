@@ -25,7 +25,8 @@ const ExampleComponent = () => {
       rowHeaders={true}
       colHeaders={true}
       readOnly={false}
-      cell={[{
+      cell={[
+        {
           // bottom-level cell options overwrite the top-level grid options
           // apply only to a cell with coordinates (0, 0)
           row: 0,
@@ -38,8 +39,8 @@ const ExampleComponent = () => {
           row: 1,
           col: 1,
           readOnly: true,
-        }]
-      }
+        },
+      ]}
     />
   );
 };

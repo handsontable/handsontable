@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
-import { HyperFormula } from 'hyperformula';
 import 'handsontable/dist/handsontable.full.min.css';
+import { HyperFormula } from 'hyperformula';
 
 const data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -10,7 +10,7 @@ const data = [
 ];
 
 const container = document.querySelector('#example-named-expressions1');
-const hotNamedExpressions = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   rowHeaders: true,
@@ -30,10 +30,10 @@ const hotNamedExpressions = new Handsontable(container, {
 });
 
 const input = document.getElementById('named-expressions-input');
-const formulasPlugin = hotNamedExpressions.getPlugin('formulas');
+const formulasPlugin = hot.getPlugin('formulas');
 const button = document.getElementById('named-expressions-button');
 
-button.addEventListener('click', (event) => {
-  formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', input.value);
-  hotNamedExpressions.render();
+button.addEventListener('click', () => {
+  formulasPlugin.engine?.changeNamedExpression('ADDITIONAL_COST', input.value);
+  hot.render();
 });

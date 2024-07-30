@@ -2,26 +2,32 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example3');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
-    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+    {
+      car: 'Citroen C4 Coupe',
+      year: 2018,
+      available: false,
+      comesInBlack: 'yes',
+    },
     { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
     { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
-    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' },
   ],
   colHeaders: ['Car model', 'Accepted', 'Comes in black'],
   height: 'auto',
   columns: [
     {
-      data: 'car'
+      data: 'car',
     },
     {
       data: 'available',
       type: 'checkbox',
       label: {
         position: 'after',
-        property: 'car' // Read value from row object
+        property: 'car',
       },
     },
     {
@@ -31,11 +37,11 @@ const hot = new Handsontable(container, {
       uncheckedTemplate: 'no',
       label: {
         position: 'before',
-        value: 'In black? '
+        value: 'In black? ',
       },
     },
   ],
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

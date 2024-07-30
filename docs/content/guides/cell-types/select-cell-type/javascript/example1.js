@@ -2,11 +2,12 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example1');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   data: [
     ['2017', 'Honda', 10],
     ['2018', 'Toyota', 20],
-    ['2019', 'Nissan', 30]
+    ['2019', 'Nissan', 30],
   ],
   colWidths: [50, 70, 50],
   colHeaders: true,
@@ -14,9 +15,9 @@ const hot = new Handsontable(container, {
     {},
     {
       type: 'select',
-      selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
+      selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda'],
     },
-    {}
+    {},
   ],
   autoWrapRow: true,
   autoWrapCol: true,

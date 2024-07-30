@@ -1,4 +1,4 @@
-import { isLeftClick, isRightClick } from 'handsontable/helpers/dom/event';
+import { isLeftClick, isRightClick, isTouchEvent } from 'handsontable/helpers/dom/event';
 
 describe('DomEvent helper', () => {
   //
@@ -35,6 +35,19 @@ describe('DomEvent helper', () => {
       expect(isRightClick({ button: null })).toBe(false);
       expect(isRightClick({ button: undefined })).toBe(false);
       expect(isRightClick({})).toBe(false);
+    });
+  });
+
+  //
+  // Handsontable.dom.isTouchEvent
+  //
+  describe('isTouchEvent', () => {
+    it('should return true for valid touch events', () => {
+      expect(isTouchEvent(new TouchEvent('touchstart'))).toBe(true);
+    });
+
+    it('should return false for invalid touch events', () => {
+      expect(isTouchEvent(new MouseEvent('mousedown'))).toBe(false);
     });
   });
 });

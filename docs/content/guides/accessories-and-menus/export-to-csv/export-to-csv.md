@@ -29,10 +29,11 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2
+::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example1.html)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example1.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example1.ts)
 
 :::
 
@@ -40,9 +41,10 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example1.jsx)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/react/example1.tsx)
 
 :::
 
@@ -55,10 +57,11 @@ Open a console in browser developer tools to see the result for the below exampl
 
 ::: only-for javascript
 
-::: example #example2 --html 1 --js 2
+::: example #example2 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example2.html)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example2.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example2.ts)
 
 :::
 
@@ -66,9 +69,10 @@ Open a console in browser developer tools to see the result for the below exampl
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example2.jsx)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/react/example2.tsx)
 
 :::
 
@@ -80,10 +84,11 @@ Open a console in browser developer tools to see the result for the below exampl
 
 ::: only-for javascript
 
-::: example #example3 --html 1 --js 2
+::: example #example3 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example3.html)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example3.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example3.ts)
 
 :::
 
@@ -91,9 +96,10 @@ Open a console in browser developer tools to see the result for the below exampl
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example3.jsx)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/react/example3.tsx)
 
 :::
 

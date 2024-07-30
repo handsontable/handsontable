@@ -63,7 +63,11 @@ html.theme-dark {
         background: $bgColor //url('{{$basePath}}/img/noise.png') repeat
     }
 
+    .layout-container {
+        scrollbar-color: $borderColor transparent;
 
+        pre { scrollbar-color: $lightBorderColor transparent;}
+    }
     i.Logo { background:  url('{{$basePath}}/img/logo-white.svg');}
     i.ico { filter: brightness(0) invert(1)}
 
@@ -101,10 +105,6 @@ html.theme-dark {
     ------------------------------- */
     .sidebar { 
         //background: $darkDrop
-
-        .os-scrollbar .os-scrollbar-handle { 
-            background: $borderColor
-        }
 
         .info-box { 
             background: $gradient2
@@ -466,6 +466,7 @@ html.theme-dark {
             p {
                 color: $text2Color
             }
+
             ul, ol { 
 
                 li {
@@ -480,9 +481,11 @@ html.theme-dark {
             pre { 
                 background: $editorColor 
             }
+
             .language-bash:before { 
                 display: none
             }
+
             div[class*="language-"] { 
                 background: $editorColor 
             }
@@ -500,6 +503,10 @@ html.theme-dark {
                         color: $linkHoverColor
                     }
                 }
+            }
+
+            .handsontable a { 
+                text-decoration: none
             }
             
             .source-code-link {
@@ -544,7 +551,7 @@ html.theme-dark {
                 box-shadow: 0 0 0 1px $lightBorderColor
             }
             
-            .table-of-contents { 
+            .table-of-contents {
                 ul {
                     li { 
                         > ul {
@@ -741,17 +748,13 @@ html.theme-dark {
                 }
             }
 
-            .footer-support { 
+            .edit-link  { 
                 color: $text2Color
+                //i { filter: brightness(0) invert(.6) }
 
-                .edit-link a { 
-                    color: $linkColor
-                    i { filter: brightness(0) invert(.6) }
-
-                    @media (hover: hover) {
-                        &:hover {  
-                            color: $linkHoverColor
-                        }
+                @media (hover: hover) {
+                    &:hover {  
+                        color: $textColor
                     }
                 }
             }
@@ -1025,6 +1028,44 @@ html.theme-dark {
                 color: $textColor
                 background: black //$sideColor
                 border: 0 solid $lightBorderColor
+            }
+        }
+    }
+
+    .select-type {
+        > button {
+            &:after {
+                border-left: 1px solid $textColor
+                border-bottom: 1px solid $textColor
+            }
+        }
+
+        ul { 
+            background: $editorHeadColor 
+
+            li {
+                button:not(.theme-code-group__nav-tab) {
+                    color: $text2Color !important
+
+                    &.active { 
+                        background: $borderColor !important
+                        color: $textColor !important
+                        
+                        @media (hover: hover) {
+                            &:hover { 
+                                background: $borderColor !important
+                                color: $textColor !important
+                            }
+                        }
+                    }
+
+                    @media (hover: hover) {
+                        &:hover { 
+                            background: none !important
+                            color: $textColor !important
+                        }
+                    }
+                }
             }
         }
     }
@@ -1322,17 +1363,32 @@ html.theme-dark {
 
         #mainInput, select:not(.htSelectEditor), input[type=text], input[type=search], .placeholder-input {
             border-radius: $radius
-            border:1px solid $borderColor
-            background: $editorColor
+            border: 1px solid $lightBorderColor
+            background: $borderColor
             color:$textColor
 
+            &::placeholder {
+                color:$text2Color
+            }
+            
             @media (hover: hover) {
-                &:hover {
-                    background: $bgColor
+                &:hover { 
+                    border: 1px solid $accentColor
                 }
+            }
+            &:focus-visible  { 
+                border: 1px solid $accentColor
             }
         }
     }
+
+    
+    pre + .codeControls {
+        &:after { 
+            background: linear-gradient(90deg, rgba(34, 35, 38, 0) 0%, $editorColor 20%);
+        }
+    }
+    
 }
 
 

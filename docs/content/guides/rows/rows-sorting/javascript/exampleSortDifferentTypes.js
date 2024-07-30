@@ -2,7 +2,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleSortDifferentTypes');
-const handsontableInstance = new Handsontable(container, {
+
+new Handsontable(container, {
   data: [
     {
       model: 'Racing Socks',
@@ -59,7 +60,7 @@ const handsontableInstance = new Handsontable(container, {
     {
       title: 'Model<br>(text)',
       // set the type of the 'Model' column
-      type: 'text', // 'text' is the default type, so you can omit this line
+      type: 'text',
       data: 'model',
     },
     {
@@ -121,7 +122,7 @@ const handsontableInstance = new Handsontable(container, {
     },
   ],
   columnSorting: true,
-  height: "auto",
+  height: 'auto',
   stretchH: 'all',
   autoWrapRow: true,
   autoWrapCol: true,

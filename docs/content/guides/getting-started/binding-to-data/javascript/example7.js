@@ -2,13 +2,14 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example7');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   data: [
     model({ id: 1, name: 'Ted Right', address: '' }),
     model({ id: 2, name: 'Frank Honest', address: '' }),
     model({ id: 3, name: 'Joan Well', address: '' }),
     model({ id: 4, name: 'Gail Polite', address: '' }),
-    model({ id: 5, name: 'Michael Fair', address: '' })
+    model({ id: 5, name: 'Michael Fair', address: '' }),
   ],
   dataSchema: model,
   height: 'auto',
@@ -17,29 +18,31 @@ const hot = new Handsontable(container, {
   columns: [
     { data: property('id') },
     { data: property('name') },
-    { data: property('address') }
+    { data: property('address') },
   ],
   minSpareRows: 1,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
-function model(opts) {
+function model(person) {
   const _pub = {
     id: undefined,
     name: undefined,
-    address: undefined
+    address: undefined,
+    attr: () => _pub,
   };
+
   const _priv = {};
 
-  for (const i in opts) {
-    if (opts.hasOwnProperty(i)) {
-      _priv[i] = opts[i];
+  for (const prop in person) {
+    if (person.hasOwnProperty(prop)) {
+      _priv[prop] = person[prop];
     }
   }
 
-  _pub.attr = function(attr, val) {
+  _pub.attr = (attr, val) => {
     if (typeof val === 'undefined') {
       window.console && console.log('GET the', attr, 'value of', _pub);
 
@@ -56,7 +59,5 @@ function model(opts) {
 }
 
 function property(attr) {
-  return function(row, value) {
-    return row.attr(attr, value);
-  };
+  return (row, value) => row.attr(attr, value);
 }
