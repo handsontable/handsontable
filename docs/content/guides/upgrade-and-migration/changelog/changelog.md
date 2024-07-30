@@ -40,6 +40,7 @@ For more information about this release see:
 
 #### Changed
 - Improved the precision of calculating the height and width of columns and rows. [#11049](https://github.com/handsontable/handsontable/pull/11049)
+- Improved the rendering performance. [#11069](https://github.com/handsontable/handsontable/pull/11069)
 
 #### Fixed
 - Fixed Context.getShortcuts type.  [#10910](https://github.com/handsontable/handsontable/pull/10910)
