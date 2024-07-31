@@ -16,7 +16,7 @@
 
   },
   "sandboxes": [
-    "github/handsontable/handsontable/tree/develop/examples/prs/js/",
+    "github/handsontable/handsontable/tree/1999-improve-pr-demos/examples/prs/js/",
     "github/handsontable/handsontable/tree/develop/examples/prs/ts/",
     "github/handsontable/handsontable/tree/develop/examples/prs/react/",
     "github/handsontable/handsontable/tree/develop/examples/prs/vue/",
