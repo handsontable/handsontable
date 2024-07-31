@@ -28,7 +28,6 @@
  * Version: 14.2.0
  * Release date: 06/03/2024 (built at 31/07/2024 14:34:08)
  */
-@charset "UTF-8";
 /*
 	Elevation
 */
@@ -194,6 +193,7 @@ body {
   --hot-background-color: white;
   --hot-border-color: #D1D1D5;
   --hot-separator-color: #EFEFF3;
+  --hot-off-background-color: #F7F7F9;
   /* Text Colors */
   --hot-read-only-text: color-mix(in srgb, var(--hot-background-color), var(--hot-foreground-color) 37% );
   --hot-placeholder-text: var(--hot-read-only-tex);
@@ -214,7 +214,7 @@ body {
   --hot-column-resizer-color: var(--hot-accent-color);
   --hot-column-resizer-guide-color: var(--hot-accent-color);
   /* Header Colors */
-  --hot-header-background-color: #F7F7F9;
+  --hot-header-background-color: var(--hot-off-background-color);
   --hot-header-foreground-color: #5D5D5D;
   --hot-header-active-background-color: #EFEFF3;
   --hot-header-active-text-color: #D1D1D5;
@@ -320,8 +320,6 @@ body {
   --hot-header-menu-button-border-size: 0;
   --hot-header-menu-button-margin: 8px;
   --hot-header-menu-button-padding: 8px;
-  /* Radio */
-  --hot-radio-wrapper-margin: 8px;
   /* Checkbox */
   --hot-checkbox-margin-bottom-end: 8px;
   --hot-checkbox-height: 16px;
@@ -534,6 +532,9 @@ body {
 .handsontable thead th.ht__active_highlight .columnSorting.sortAction:before {
   filter: invert(1);
   opacity: 0.6;
+}
+.handsontable thead tr:not(:last-child) th {
+  overflow: hidden;
 }
 .handsontable tbody th.ht__highlight:before {
   width: 1px;
@@ -854,7 +855,7 @@ body {
   vertical-align: middle;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--hot-base-grid);
   position: relative;
   cursor: pointer;
 }
@@ -1020,9 +1021,10 @@ body {
 }
 .handsontable .htUISelectCaption {
   background-color: var(--hot-select-background-color);
-  border-radius: var(--hot-border-radius);
-  color: var(--hot-select-text-color);
   border: 1px solid var(--hot-border-color);
+  border-radius: var(--hot-border-radius);
+  border: 1px solid var(--hot-border-color);
+  color: var(--hot-select-text-color);
   font-family: inherit;
   font-size: var(--hot-select-font-size);
   font-weight: var(--hot-select-font-weight);
@@ -1123,19 +1125,55 @@ body {
 
 .handsontable .htUIRadio {
   display: inline-block;
-  margin-inline-start: 0;
-  margin-inline-end: var(--hot-radio-wrapper-margin);
-  height: 100%;
+  padding: var(--hot-base-grid) calc(2 * var(--hot-base-grid));
+  display: inline-flex;
+  align-items: center;
+  gap: calc(2 * var(--hot-base-grid));
+  margin: 0;
+  position: relative;
+  cursor: pointer;
 }
-.handsontable .htUIRadio:last-child {
-  margin-right: 0;
+.handsontable .htUIRadio:first-child {
+  padding-inline-start: 0;
 }
 .handsontable .htUIRadio > input[type=radio] {
-  margin-inline-start: 0;
-  margin-inline-end: var(--hot-radio-margin);
+  width: 16px;
+  height: 16px;
+  appearance: none;
+  position: relative;
+  margin: 0;
+  cursor: pointer;
+}
+.handsontable .htUIRadio > input[type=radio]:before {
+  content: "";
+  display: block;
+  border-radius: 8px;
+  position: absolute;
+  inset: 0;
+  background: var(--hot-off-background-color);
+  border: 1px solid var(--hot-border-color);
+}
+.handsontable .htUIRadio > input[type=radio]:after {
+  content: "";
+  display: block;
+  border-radius: 8px;
+  position: absolute;
+  inset: 2px;
+  border: 2px solid var(--hot-background-color);
+}
+.handsontable .htUIRadio > input[type=radio]:checked:before {
+  background: var(--hot-accent-color);
+  border: 2px solid var(--hot-accent-color);
 }
 .handsontable .htUIRadio label {
   vertical-align: middle;
+  cursor: pointer;
+}
+.handsontable .htUIRadio label:before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  display: block;
 }
 
 .handsontable .collapsibleIndicator,
@@ -1312,9 +1350,9 @@ body {
 .handsontable th.afterHiddenColumn {
   position: relative;
 }
-.handsontable th.beforeHiddenColumn:after, .handsontable th.beforeHiddenColumn:before,
-.handsontable th.afterHiddenColumn:after,
-.handsontable th.afterHiddenColumn:before {
+.handsontable th.beforeHiddenColumn .relative:after, .handsontable th.beforeHiddenColumn .relative:before,
+.handsontable th.afterHiddenColumn .relative:after,
+.handsontable th.afterHiddenColumn .relative:before {
   content: "";
   position: absolute;
   top: 50%;
@@ -1323,25 +1361,20 @@ body {
   height: 0;
   border: 4px solid transparent;
 }
-.handsontable th.beforeHiddenColumn::after {
+.handsontable th.beforeHiddenColumn .relative::after {
   right: 2px;
   border-color: transparent var(--hot-border-color) transparent transparent;
 }
-.handsontable th.afterHiddenColumn::before {
+.handsontable th.afterHiddenColumn .relative::before {
   left: 2px;
   border-color: transparent transparent transparent var(--hot-border-color);
 }
-.handsontable.ht__selection--columns th.beforeHiddenColumn.ht__highlight:after,
-.handsontable.ht__selection--columns th.afterHiddenColumn.ht__highlight:before {
-  color: var(--hot-hidden-dimension-indicator-color-highlighted);
-}
-
-[dir=rtl].handsontable th.beforeHiddenColumn::after {
+[dir=rtl].handsontable th.beforeHiddenColumn .relative::after {
   right: initial;
   left: 2px;
   border-color: transparent transparent transparent var(--hot-border-color);
 }
-[dir=rtl].handsontable th.afterHiddenColumn::before {
+[dir=rtl].handsontable th.afterHiddenColumn .relative::before {
   right: 2px;
   left: initial;
   border-color: transparent var(--hot-border-color) transparent transparent;
@@ -1351,26 +1384,24 @@ body {
 .handsontable th.afterHiddenRow {
   position: relative;
 }
-.handsontable th.beforeHiddenRow:before, .handsontable th.beforeHiddenRow:after,
-.handsontable th.afterHiddenRow:before,
-.handsontable th.afterHiddenRow:after {
-  color: var(--hot-hidden-dimension-indicator-color);
-  font-size: 6pt;
-  line-height: 6pt;
+.handsontable th.beforeHiddenRow .relative:before, .handsontable th.beforeHiddenRow .relative:after,
+.handsontable th.afterHiddenRow .relative:before,
+.handsontable th.afterHiddenRow .relative:after {
+  content: "";
   position: absolute;
-  left: var(--hot-hidden-dimension-indicator-margin-row);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border: 4px solid transparent;
 }
-.handsontable th.beforeHiddenRow::before {
-  content: "▲";
-  bottom: var(--hot-hidden-dimension-indicator-margin-row);
+.handsontable th.beforeHiddenRow .relative::before {
+  bottom: -2px;
+  border-color: transparent transparent var(--hot-border-color) transparent;
 }
-.handsontable th.afterHiddenRow::after {
-  content: "▼";
-  top: var(--hot-hidden-dimension-indicator-margin-row);
-}
-.handsontable.ht__selection--rows tbody th.beforeHiddenRow.ht__highlight:before,
-.handsontable.ht__selection--rows tbody th.afterHiddenRow.ht__highlight:after {
-  color: var(--hot-hidden-dimension-indicator-color-highlighted);
+.handsontable th.afterHiddenRow .relative::after {
+  top: -2px;
+  border-color: var(--hot-border-color) transparent transparent transparent;
 }
 .handsontable td.afterHiddenRow.firstVisibleRow,
 .handsontable th.afterHiddenRow.firstVisibleRow {
@@ -1503,7 +1534,7 @@ body {
   font-style: normal;
   color: var(--hot-foreground-color);
 }
-.handsontable.htDropdownMenu table tbody tr td.current, .handsontable.htContextMenu table tbody tr td.current, .handsontable.htFiltersConditionsMenu table tbody tr td.current {
+.handsontable.htDropdownMenu table tbody tr td.current:not(.htSelectionDisabled), .handsontable.htContextMenu table tbody tr td.current:not(.htSelectionDisabled), .handsontable.htFiltersConditionsMenu table tbody tr td.current:not(.htSelectionDisabled) {
   background: var(--hot-dropdown-item-active);
 }
 .handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after, .handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after, .handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after {
@@ -1670,7 +1701,7 @@ body {
 .htCommentsContainer .htCommentTextArea {
   box-sizing: border-box;
   border: 0;
-  border-inline-start: var(--hot-comment-textarea-border-size) solid var(--hot-accent-color);
+  border-inline-start: 1px solid var(--hot-accent-color);
   border-inline-end: none;
   background-color: var(--hot-background-color);
   width: var(--hot-comment-textarea-width);
@@ -1687,7 +1718,7 @@ body {
 }
 .htCommentsContainer .htCommentTextArea:focus {
   box-shadow: var(--hot-base-shadow);
-  border-inline-start: var(--hot-comment-textarea-border-size) solid var(--hot-comment-textarea-focus-color);
+  border-inline-start: 1px solid var(--hot-accent-color);
   border-inline-end: none;
 }
 
@@ -2273,7 +2304,7 @@ body {
   background-color: var(--hot-foreground-color);
   -webkit-mask: url(676771eb033794e13283.svg) no-repeat center;
 }
-[role=menuitem][aria-label="Hide column"] .htItemWrapper:before, [role=menuitem][aria-label="Hide columns"] .htItemWrapper:before {
+[role=menuitem][aria-label="Hide row"] .htItemWrapper:before, [role=menuitem][aria-label="Hide rows"] .htItemWrapper:before, [role=menuitem][aria-label="Hide column"] .htItemWrapper:before, [role=menuitem][aria-label="Hide columns"] .htItemWrapper:before {
   width: 16px;
   height: 16px;
   display: inline-block;
@@ -2284,6 +2315,18 @@ body {
   mask: url(a285b5e9b363567c335a.svg) no-repeat center;
   background-color: var(--hot-foreground-color);
   -webkit-mask: url(a285b5e9b363567c335a.svg) no-repeat center;
+}
+[role=menuitem][aria-label="Show row"], [role=menuitem][aria-label="Show rows"], [role=menuitem][aria-label="Show column"], [role=menuitem][aria-label="Show columns"] .htItemWrapper:before {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  content: "";
+  background-image: url(e34ffd271b562a0021e1.svg);
+  background-size: contain;
+  background-repeat: no-repeat;
+  mask: url(e34ffd271b562a0021e1.svg) no-repeat center;
+  background-color: var(--hot-foreground-color);
+  -webkit-mask: url(e34ffd271b562a0021e1.svg) no-repeat center;
 }
 [role=menuitem][aria-label="Merge cells"] .htItemWrapper:before {
   width: 16px;

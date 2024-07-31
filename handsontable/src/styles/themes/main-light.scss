@@ -22,6 +22,7 @@
         --hot-background-color: white;
         --hot-border-color: #D1D1D5;
         --hot-separator-color: #EFEFF3;
+        --hot-off-background-color: #F7F7F9;
 
         /* Text Colors */
         --hot-read-only-text: color-mix(in srgb, var(--hot-background-color), var(--hot-foreground-color) 37% );
@@ -40,8 +41,10 @@
 
 
 
+        
         ////////////
-        /// 
+        /// For Review 
+        ////////////
         
         /* Cell States */
         --hot-search-highlight-color: #583707;
@@ -53,7 +56,7 @@
         --hot-column-resizer-guide-color: var(--hot-accent-color);
 
         /* Header Colors */ 
-        --hot-header-background-color: #F7F7F9;
+        --hot-header-background-color: var(--hot-off-background-color);
         --hot-header-foreground-color: #5D5D5D;
         --hot-header-active-background-color: #EFEFF3;
         --hot-header-active-text-color: #D1D1D5;
@@ -173,9 +176,6 @@
         --hot-header-menu-button-border-size: 0;
         --hot-header-menu-button-margin: 8px;
         --hot-header-menu-button-padding: 8px;
-
-        /* Radio */
-        --hot-radio-wrapper-margin: 8px;
 
         /* Checkbox */
         --hot-checkbox-margin-bottom-end: 8px;

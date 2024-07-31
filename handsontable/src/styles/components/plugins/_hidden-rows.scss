@@ -8,30 +8,34 @@
         th.afterHiddenRow {
             position: relative;
 
-            &:before,
-            &:after {
-                color: var(--hot-hidden-dimension-indicator-color);
-                font-size: 6pt;
-                line-height: 6pt;
-                position: absolute;
-                left: var(--hot-hidden-dimension-indicator-margin-row);
+            .relative {
+                &:before,
+                &:after {
+                    content:'';
+                    position: absolute;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 0;
+                    height: 0;
+                    border: 4px solid transparent;
+                }
             }
         }
 
-        th.beforeHiddenRow::before {
-            content: '\25B2';
-            bottom: var(--hot-hidden-dimension-indicator-margin-row);
+        th.beforeHiddenRow .relative::before {
+            bottom: -2px;
+            border-color: transparent transparent var(--hot-border-color) transparent;
         }
 
-        th.afterHiddenRow::after {
-            content: '\25BC';
-            top: var(--hot-hidden-dimension-indicator-margin-row);
+        th.afterHiddenRow .relative::after {
+            top: -2px;
+            border-color: var(--hot-border-color) transparent transparent transparent;
         }
 
         &.ht__selection--rows tbody {
-            th.beforeHiddenRow.ht__highlight:before,
-            th.afterHiddenRow.ht__highlight:after {
-                color: var(--hot-hidden-dimension-indicator-color-highlighted);
+            th.beforeHiddenRow.ht__highlight .relative::before,
+            th.afterHiddenRow.ht__highlight .relative::after {
+
             }
         }
 

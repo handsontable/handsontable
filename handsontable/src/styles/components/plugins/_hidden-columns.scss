@@ -8,44 +8,46 @@
         th.afterHiddenColumn {
             position: relative;
 
-            &:after, 
-            &:before {
-                content:'';
-                position: absolute;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 0;
-                height: 0;
-                border: 4px solid transparent;
+            .relative {
+                &:after, 
+                &:before {
+                    content:'';
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 0;
+                    height: 0;
+                    border: 4px solid transparent;
+                }
             }
         }
 
-        th.beforeHiddenColumn::after {
+        th.beforeHiddenColumn .relative::after {
             right: 2px;
             border-color: transparent var(--hot-border-color) transparent transparent;
         }
 
-        th.afterHiddenColumn::before {
+        th.afterHiddenColumn .relative::before {
             left: 2px;
             border-color: transparent transparent transparent var(--hot-border-color);
         }
 
         &.ht__selection--columns {
-            th.beforeHiddenColumn.ht__highlight:after,
-            th.afterHiddenColumn.ht__highlight:before {
-                color: var(--hot-hidden-dimension-indicator-color-highlighted);
+            th.beforeHiddenColumn.ht__highlight .relative::after,
+            th.afterHiddenColumn.ht__highlight .relative:before {
+                
             }
         }
     }
 
     [dir=rtl].handsontable {
-        th.beforeHiddenColumn::after {
+        th.beforeHiddenColumn .relative::after {
             right: initial;
             left: 2px;
             border-color: transparent transparent transparent var(--hot-border-color);
         }
 
-        th.afterHiddenColumn::before {
+        th.afterHiddenColumn .relative::before {
             right: 2px;
             left: initial;
             border-color: transparent var(--hot-border-color) transparent transparent;

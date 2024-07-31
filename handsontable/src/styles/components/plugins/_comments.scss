@@ -32,7 +32,7 @@
         .htCommentTextArea {
             box-sizing: border-box;
             border: 0;
-            border-inline-start: var(--hot-comment-textarea-border-size) solid var(--hot-accent-color);
+            border-inline-start: 1px solid var(--hot-accent-color);
             border-inline-end: none;
             background-color: var(--hot-background-color);
             width: var(--hot-comment-textarea-width);
@@ -50,7 +50,7 @@
     
             &:focus {
                 box-shadow: var(--hot-base-shadow);
-                border-inline-start: var(--hot-comment-textarea-border-size) solid var(--hot-comment-textarea-focus-color);
+                border-inline-start: 1px solid var(--hot-accent-color);
                 border-inline-end: none;
             }
         }

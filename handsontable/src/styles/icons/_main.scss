@@ -26,8 +26,14 @@
         &[aria-label="Cut"]                     .htItemWrapper:before { @include icon('icon-scissors', 16px, var(--hot-foreground-color)); }
         &[aria-label="Insert child row"]        .htItemWrapper:before { @include icon('icon-inset-child', 16px, var(--hot-foreground-color)); }
         &[aria-label="Detach from parent"]      .htItemWrapper:before { @include icon('icon-detach-child', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Hide row"]                .htItemWrapper:before, 
+        &[aria-label="Hide rows"]               .htItemWrapper:before, 
         &[aria-label="Hide column"]             .htItemWrapper:before, 
         &[aria-label="Hide columns"]            .htItemWrapper:before { @include icon('icon-eye-off', 16px, var(--hot-foreground-color)); }
+        &[aria-label="Show row"],
+        &[aria-label="Show rows"],
+        &[aria-label="Show column"],
+        &[aria-label="Show columns"]            .htItemWrapper:before { @include icon('icon-eye', 16px, var(--hot-foreground-color)); }
         &[aria-label="Merge cells"]             .htItemWrapper:before { @include icon('icon-marge-cell', 16px, var(--hot-foreground-color)); }
 
         // Align Horizontal

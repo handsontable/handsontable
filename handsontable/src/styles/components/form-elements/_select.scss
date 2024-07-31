@@ -13,9 +13,10 @@
 
         .htUISelectCaption {
             background-color: var(--hot-select-background-color);
-            border-radius: var(--hot-border-radius);
-            color: var(--hot-select-text-color);
             border: 1px solid var(--hot-border-color);
+            border-radius: var(--hot-border-radius);
+            border: 1px solid var(--hot-border-color);
+            color: var(--hot-select-text-color);
             font-family: inherit;
             font-size: var(--hot-select-font-size);
             font-weight: var(--hot-select-font-weight);

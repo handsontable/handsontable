@@ -151,7 +151,7 @@
                     color: var(--hot-foreground-color);
                 }
 
-                &.current { 
+                &.current:not(.htSelectionDisabled) { 
                     background: var(--hot-dropdown-item-active);
                 }
 

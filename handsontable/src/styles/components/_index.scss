@@ -8,8 +8,8 @@
 @use './plugins/colapsible-columns';
 @use './plugins/nested-headers';
 @use './plugins/nested-rows';           
-@use './plugins/hidden-columns';        // TODO  styling
-@use './plugins/hidden-rows';           // TODO  styling
+@use './plugins/hidden-columns';        
+@use './plugins/hidden-rows';           
 @use './plugins/dropdown-menu';         // TODO  check submenu RTL
 @use './plugins/context-menu';  
 @use './plugins/filters';               // TODO  styling

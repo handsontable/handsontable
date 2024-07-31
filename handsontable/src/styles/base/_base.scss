@@ -221,7 +221,9 @@
                     }
                 }
             }
-            
+        }
+        thead tr:not(:last-child) th {
+            overflow: hidden;
         }
         
         // Header in Row

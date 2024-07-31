@@ -6,22 +6,65 @@
     .handsontable {
         .htUIRadio {
             display: inline-block;
-            margin-inline-start: 0;
-            margin-inline-end: var(--hot-radio-wrapper-margin);
-            height: 100%;
+            padding: var(--hot-base-grid) calc(2 * var(--hot-base-grid));
+            display: inline-flex;
+            align-items: center;
+            gap: calc(2 * var(--hot-base-grid));
+            margin: 0;
+            position: relative;
+            cursor: pointer;
 
-            &:last-child {
-                margin-right: 0;
+            &:first-child {
+                padding-inline-start: 0;
             }
-
+            
             > input[type=radio] {
-                margin-inline-start: 0;
-                margin-inline-end: var(--hot-radio-margin);
+                width: 16px;
+                height: 16px;
+                appearance: none;
+                position: relative;
+                margin:0;
+                cursor: pointer;
+
+                &:before {
+                    content:'';
+                    display: block;
+                    border-radius: 8px;
+                    position: absolute;
+                    inset: 0;
+                    background: var(--hot-off-background-color);
+                    border: 1px solid var(--hot-border-color)
+                }
+
+                &:after {
+                    content:'';
+                    display: block;
+                    border-radius: 8px;
+                    position: absolute;
+                    inset: 2px;
+                    border: 2px solid var(--hot-background-color);
+                }
+
+                &:checked {
+                    &:before {
+                        background: var(--hot-accent-color);
+                        border: 2px solid var(--hot-accent-color);
+                    }
+                    
+                }
             }
 
             label {
                 vertical-align: middle;
+                cursor: pointer;
+
+                &:before { 
+                    position: absolute;
+                    inset: 0;
+                    content: '';
+                    display: block;
+                }
             }
-}
+        }
     }
 }
