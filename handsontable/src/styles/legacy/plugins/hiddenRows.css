@@ -1,0 +1,34 @@
+/*!
+ * Handsontable HiddenRows
+ */
+.handsontable th.beforeHiddenRow::before,
+.handsontable th.afterHiddenRow::after {
+  color: #bbb;
+  font-size: 6pt;
+  line-height: 6pt;
+  position: absolute;
+  left: 2px;
+}
+
+.handsontable th.beforeHiddenRow,
+.handsontable th.afterHiddenRow {
+  position: relative;
+}
+
+.handsontable th.beforeHiddenRow::before {
+  content: '\25B2';
+  bottom: 2px;
+}
+
+.handsontable th.afterHiddenRow::after {
+  content: '\25BC';
+  top: 2px;
+}
+.handsontable.ht__selection--rows tbody th.beforeHiddenRow.ht__highlight:before,
+.handsontable.ht__selection--rows tbody th.afterHiddenRow.ht__highlight:after {
+  color: #eee;
+}
+.handsontable td.afterHiddenRow.firstVisibleRow,
+.handsontable th.afterHiddenRow.firstVisibleRow {
+  border-top: 1px solid #CCC;
+}

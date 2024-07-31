@@ -1,0 +1,33 @@
+/*
+    Handsontable Select
+    Used in Dropdown Menu
+*/
+
+@mixin output {
+    .handsontable {
+        .htUISelect {
+            cursor: pointer;
+            margin: var(--hot-select-wrapper-margin);
+            position: relative;
+        }
+
+        .htUISelectCaption {
+            background-color: var(--hot-select-background-color);
+            border-radius: var(--hot-border-radius);
+            color: var(--hot-select-text-color);
+            border: 1px solid var(--hot-border-color);
+            font-family: inherit;
+            font-size: var(--hot-select-font-size);
+            font-weight: var(--hot-select-font-weight);
+            padding: var(--hot-select-padding);
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+
+            &:hover {
+                background-color: var(--hot-select-hover-background-color);
+                borde-color: var(--hot-accent-color);
+            }
+        }
+    }
+}

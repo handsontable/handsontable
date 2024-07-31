@@ -1,10 +1,16 @@
 /*
-	Autocomplete
+	Checkbox
 */
 
 @mixin output {
     .handsontable {
         .htCheckboxRendererInput {
+            margin-top: var(--hot-checkbox-margin-bottom-top);
+            margin-inline-end: var(--hot-checkbox-margin-bottom-end);
+            margin-bottom: var(--hot-checkbox-margin-bottom-bottom);
+            margin-inline-start: var(--hot-checkbox-margin-bottom-start);
+            vertical-align: middle;
+            height: var(--hot-checkbox-height);
             display: inline-block;
             position: relative;
             height: var(--hot-checkbox-height);

@@ -21,7 +21,8 @@
             box-sizing: border-box;
             width: calc(4 * var(--hot-base-grid));
             height: calc(4 * var(--hot-base-grid));
-            border: 1px solid var(--hot-border-color);
+            border: 1px solid var(--hot-border-color);    
+
             border-radius: var(--hot-border-radius); ;
 
             /* Typography */
@@ -94,7 +95,15 @@
                         background-color: var(--hot-accent-color);
                     }
                 }
-            }   
+            } 
+            
+            &:hover { 
+                background-color: var(--hot-header-background-color);
+                &:before,
+                &:after {
+                    background-color: var(--hot-border-color);
+                }
+            }
         }
     }  
 

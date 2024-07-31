@@ -1,7 +1,6 @@
 @use 'sass:color';
 
-@use '../utils/variables';
-@use './base';                  // TODO clean up after marge
+@use './base';
 @use './elevation';
 @use './display';
 
@@ -10,7 +9,6 @@
 */
 
 @mixin base-styles() {
-    @include variables.output();
     @include base.output();
     @include elevation.output();
     @include display.output();

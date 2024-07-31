@@ -7,7 +7,7 @@
 /* Plugins */
 @use './plugins/colapsible-columns';
 @use './plugins/nested-headers';
-@use './plugins/nested-rows';           // TODO
+@use './plugins/nested-rows';           
 @use './plugins/hidden-columns';        // TODO  styling
 @use './plugins/hidden-rows';           // TODO  styling
 @use './plugins/dropdown-menu';         // TODO  check submenu RTL
@@ -30,8 +30,15 @@
 
 /* Editors */
 @use './editors/text-editor';
-@use './editors/select-editor';         // TODO  styling        
-@use './editors/dropdown-editor';       // TODO  styling     
+@use './editors/select-editor';              
+@use './editors/dropdown-editor';           
+
+/* Form elements */
+@use './form-elements/select';          // TODO  styling     
+@use './form-elements/input';           // TODO  styling  
+@use './form-elements/button';          // TODO  styling  
+@use './form-elements/radio';           // TODO  styling  
+
 
 /* 
     Components  
@@ -48,6 +55,12 @@
     /* Editor */
     @include text-editor.output();
     @include select-editor.output();
+    @include dropdown-editor.output();
+    /* Form Elements*/
+    @include select.output();
+    @include input.output();
+    @include button.output();
+    @include radio.output();
 }
 
 /* Plugins */
@@ -70,240 +83,3 @@
     @include manual-column-move.output();
     @include manual-row-move.output();
 }
-
-// TEMP
-
-////////////////////////////////////////////////////// TO DO
-/* theme vars */
-.handsontable {
-    
-
-    
-
-    // Active Highlight
-    .ht__active_highlight {
-        .ht_nestingLevel_empty {
-            border-color:#666666;
-
-            &:before { 
-                border-color:#666;
-            }
-        }
-
-        .collapsibleIndicator,
-        .ht_nestingButton {
-            border: 1px solid #000000;
-            background-color: #171717;
-
-            &:hover { 
-                background-color: #373737;
-                &:before,
-                &:after {
-                    background-color: #ffffff;
-                }
-            }
-        }
-
-        .changeType {
-            &:hover {
-                background-color: #000000;
-            }
-            &:hover { 
-                background-color: #000000;
-                box-shadow: 0 0 0 1px #333333;
-
-                &:before {
-                    border-color: var(--hot-background-color);
-                }
-            }
-        }
-    } 
-}
-
-
-/* button */
-.htUIInput.htUIButton {
-    input {
-        border-radius: var(--hot-border-radius);
-        padding: var(--hot-button-padding);
-        box-sizing: border-box;
-        outline: none !important;
-
-        &:focus-visible {
-            border-color: var(--hot-accent-color);
-        }
-    }
-
-    &.htUIButtonOK {
-        input {
-            &:focus-visible {
-                border-color: var(--hot-button-primary-focus-border-color);
-            }
-        }
-    }
-}
-
-
-.handsontable {
-    /* Checkbox */
-    .htCheckboxRendererInput {
-        margin-top: var(--hot-checkbox-margin-bottom-top);
-        margin-inline-end: var(--hot-checkbox-margin-bottom-end);
-        margin-bottom: var(--hot-checkbox-margin-bottom-bottom);
-        margin-inline-start: var(--hot-checkbox-margin-bottom-start);
-        vertical-align: middle;
-        height: var(--hot-checkbox-height);
-    }
-    
-    /* Input */
-    .htUIInput {
-        padding: var(--hot-form-input-wrapper-padding);
-        position: relative;
-        text-align: center;
-    
-        input {
-            border-radius: var(--hot-border-radius);
-            border: var(--hot-form-input-border-size) solid var(--hot-form-input-border-color);
-        }
-    }
-  
-    .htUIInputIcon {
-        position: absolute;
-    }
-    
-    /* Button */
-    .htUIInput {
-        &.htUIButton {
-            cursor: pointer;
-            display: inline-block;
-    
-            input {
-                border-radius: var(--hot-border-radius);
-                border: var(--hot-button-border-size) solid var(--hot-button-border-color);
-                background-color: var(--hot-button-background-color);
-                color: var(--hot-button-text-color);
-                cursor: pointer;
-                font-family: inherit;
-                font-size: var(--hot-button-font-size);
-                font-weight: var(--hot-button-font-weight);
-                height: var(--hot-button-height);
-                min-width: var(--hot-button-width);;
-        
-                &:hover {
-                    border-color: var(--hot-button-hover-border-color);
-                    background-color: var(--hot-button-hover-background-color);
-                    color: var(--hot-button-hover-text-color);
-                }
-            }
-        }
-  
-        &.htUIButtonOK {
-            margin-inline-start: 0;
-            margin-inline-end: var(--hot-button-margin);
-
-            input {
-                border-color: var(--hot-button-primary-border-color);
-                background-color: var(--hot-button-primary-background-color);
-                color: var(--hot-button-primary-text-color);
-
-                &:focus-visible {
-                    background-color: var(--hot-button-primary-focus-background-color);
-                    border-color: var(--hot-button-primary-focus-border-color);
-                    color: var(--hot-button-primary-focus-text-color);
-                }
-
-                &:hover {
-                    border-color: var(--hot-button-primary-hover-border-color);
-                    background-color: var(--hot-button-primary-hover-background-color);
-                    color: var(--hot-button-primary-hover-text-color);
-                }
-            }
-        }
-    }
-
-    /* Select */
-    .htUISelect {
-        cursor: pointer;
-        margin: var(--hot-select-wrapper-margin);
-        position: relative;
-    }
-
-    .htUISelectCaption {
-        background-color: var(--hot-select-background-color);
-        border-radius: var(--hot-border-radius);
-        color: var(--hot-select-text-color);
-        border: var(--hot-select-border-size) solid var(--hot-select-border-color);
-        font-family: inherit;
-        font-size: var(--hot-select-font-size);
-        font-weight: var(--hot-select-font-weight);
-        padding: var(--hot-select-padding);
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
-
-        &:hover {
-            background-color: var(--hot-select-hover-background-color);
-            border: var(--hot-select-border-size) solid var(--hot-select-hover-border-color);
-            color: var(--hot-select-text-color);
-        }
-    }
-
-    /* Select Icon */
-    .htUISelectDropdown {
-        &:after {
-            content: '\25B2';
-            font-size: 7px;
-            position: absolute;
-            right: 10px;
-            top: 0;
-        }
-
-        &:before {
-            content: '\25BC';
-            font-size: 7px;
-            position: absolute;
-            right: 10px;
-            top: 8px;
-        }
-    }
-
-    /* SelectMultiple */
-    .htUIMultipleSelect .ht_master .wtHolder {
-        overflow-y: scroll;
-    }
-
-    .htUIMultipleSelect .handsontable .htCore {
-        border: none;
-
-        td:hover {
-            background-color: var(--hot-dropdown-menu-item-active);
-        }
-    }
-
-    /* Search */
-    .htUIMultipleSelectSearch input {
-        border-radius: var(--hot-border-radius);
-        border: var(--hot-form-input-border-size) solid var(--hot-form-input-border-color);
-    }
-
-    /* Radio */
-    .htUIRadio {
-        display: inline-block;
-        margin-inline-start: 0;
-        margin-inline-end: var(--hot-radio-wrapper-margin);
-        height: 100%;
-
-        &:last-child {
-            margin-right: 0;
-        }
-
-        > input[type=radio] {
-            margin-inline-start: 0;
-            margin-inline-end: var(--hot-radio-margin);
-        }
-
-        label {
-            vertical-align: middle;
-        }
-    }
-}  

@@ -42,24 +42,13 @@
         .htFiltersMenuCondition.border {
             border-bottom: var(--hot-filters-menu-border-width) var(--hot-filters-menu-border-style) var(--hot-border-color) !important;
         }
-        .htFiltersMenuCondition .htUIInput {
-            padding: var(--hot-filters-menu-input-padding);
-        }
+        
         .htFiltersMenuValue {
             border-bottom: var(--hot-filters-menu-border-width) var(--hot-filters-menu-border-style) var(--hot-border-color) !important;
 
             .htUIMultipleSelectSearch {
                 padding: var(--hot-filters-menu-value-search-padding);
             }
-        }
-
-        .htFiltersMenuCondition .htUIInput input,
-        .htFiltersMenuValue .htUIMultipleSelectSearch input {
-            box-sizing: border-box;
-            font-family: inherit;
-            font-size: var(--hot-filters-menu-input-font-size);
-            padding: var(--hot-filters-menu-input-padding);
-            width: 100%;
         }
 
         .htUISelectionControls {
@@ -81,6 +70,23 @@
         .htUISelectAll {
             margin-inline-start: 0;
             margin-inline-end: var(--hot-button-margin);
+        }
+
+        /* SelectMultiple */
+        .htUIMultipleSelect .ht_master .wtHolder {
+            overflow-y: auto;
+
+            .wtHider, 
+            .htCore,
+            tr, td { background: none;}
+        }
+
+        .htUIMultipleSelect .handsontable .htCore {
+            border: none;
+
+            td:hover {
+                background-color: var(--hot-dropdown-menu-item-active);
+            }
         }
     }
 }

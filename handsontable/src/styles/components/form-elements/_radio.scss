@@ -1,0 +1,27 @@
+/*
+    Handsontable Input
+    Used in Dropdown Menu
+*/
+@mixin output {
+    .handsontable {
+        .htUIRadio {
+            display: inline-block;
+            margin-inline-start: 0;
+            margin-inline-end: var(--hot-radio-wrapper-margin);
+            height: 100%;
+
+            &:last-child {
+                margin-right: 0;
+            }
+
+            > input[type=radio] {
+                margin-inline-start: 0;
+                margin-inline-end: var(--hot-radio-margin);
+            }
+
+            label {
+                vertical-align: middle;
+            }
+}
+    }
+}

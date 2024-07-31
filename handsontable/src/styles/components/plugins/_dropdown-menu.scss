@@ -36,13 +36,12 @@
             &:hover {
                 /* Visual Styles */
                 border: var(--hot-header-menu-button-border-size) solid var(--hot-header-menu-button-hover-color);
-                color: var(--hot-header-menu-button-hover-color);
                 cursor: pointer;
                 background-color: var(--hot-background-color);
                 box-shadow: 0 0 0 1px var(--hot-border-color);
                 
                 &:before {
-                    border-color: var(--hot-foreground-color);
+                    border-color: var(--hot-header-menu-button-hover-color);
                 }
             }
 

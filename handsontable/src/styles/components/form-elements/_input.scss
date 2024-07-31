@@ -1,0 +1,48 @@
+/*
+    Handsontable Input
+    Used in Dropdown Menu
+*/
+
+@mixin output {
+    .handsontable {
+        .htFiltersMenuCondition .htUIInput input,
+        .htFiltersMenuValue .htUIMultipleSelectSearch input {
+            background-color: var(--hot-select-background-color);
+            border: 1px solid var(--hot-border-color);
+            border-radius: var(--hot-border-radius);
+            border: 1px solid var(--hot-border-color);
+            color: var(--hot-select-text-color);
+            font-family: inherit;
+            font-size: var(--hot-select-font-size);
+            line-height: var(--hot-line-height);
+            font-weight: var(--hot-select-font-weight);
+            padding: var(--hot-select-padding);
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+
+            &:hover {
+                background-color: var(--hot-select-hover-background-color);
+                borde-color: var(--hot-accent-color);
+            }
+        }
+
+        /* Input */
+        .htUIInput {
+            padding: var(--hot-form-input-wrapper-padding);
+            position: relative;
+            text-align: center;
+        
+            input {
+                border-radius: var(--hot-border-radius);
+                border: var(--hot-form-input-border-size) solid var(--hot-form-input-border-color);
+            }
+        }
+    
+        .htUIInputIcon {
+            position: absolute;
+        }
+    }
+}

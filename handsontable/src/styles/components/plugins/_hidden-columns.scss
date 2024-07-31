@@ -10,22 +10,24 @@
 
             &:after, 
             &:before {
-                color: var(--hot-hidden-dimension-indicator-color);
+                content:'';
                 position: absolute;
                 top: 50%;
-                font-size: 5pt;
                 transform: translateY(-50%);
+                width: 0;
+                height: 0;
+                border: 4px solid transparent;
             }
         }
 
         th.beforeHiddenColumn::after {
-            right: var(--hot-hidden-dimension-indicator-margin-column);
-            content: '\25C0'; /* left arrow */
+            right: 2px;
+            border-color: transparent var(--hot-border-color) transparent transparent;
         }
 
         th.afterHiddenColumn::before {
-            left: var(--hot-hidden-dimension-indicator-margin-column);
-            content: '\25B6'; /* right arrow */
+            left: 2px;
+            border-color: transparent transparent transparent var(--hot-border-color);
         }
 
         &.ht__selection--columns {
@@ -39,14 +41,14 @@
     [dir=rtl].handsontable {
         th.beforeHiddenColumn::after {
             right: initial;
-            left: var(--hot-hidden-dimension-indicator-margin-column);
-            content: '\25B6'; /* right arrow */
+            left: 2px;
+            border-color: transparent transparent transparent var(--hot-border-color);
         }
 
         th.afterHiddenColumn::before {
-            right: var(--hot-hidden-dimension-indicator-margin-column);
+            right: 2px;
             left: initial;
-            content: '\25C0'; /* left arrow */
+            border-color: transparent var(--hot-border-color) transparent transparent;
         }
     }
 }
