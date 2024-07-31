@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added support for other keyboard layouts than QWERTY (e.g. AZERTY etc.).",
-  "type": "added",
-  "issueOrPR": 11027,
-  "breaking": false,
-  "framework": "none"
-}
