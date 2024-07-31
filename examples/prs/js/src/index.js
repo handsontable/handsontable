@@ -5,7 +5,7 @@ import { registerAllModules } from "handsontable/registry";
 // Register all available Handsontable modules
 registerAllModules();
 
-import {data} from "../../data/data";
+import {data} from "./data";
 
 const container = document.querySelector("#handsontable-grid");
 
