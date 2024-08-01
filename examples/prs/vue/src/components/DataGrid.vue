@@ -162,34 +162,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss">
-/*
-  A stylesheet customizing app (custom renderers)
-*/
-
-table.htCore {
-  tr.odd td {
-    background: #fafbff;
-  }
-}
-
-/*
-  A stylesheet customizing Handsontable style
-*/
-
-.handsontable {
-  font-size: 13px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Helvetica Neue", Arial, sans-serif;
-  font-weight: 400;
-
-  .htRight .changeType {
-    margin: 3px 1px 0 13px;
-  }
-
-  .collapsibleIndicator {
-    text-align: center;
-  }
-}
-</style>
