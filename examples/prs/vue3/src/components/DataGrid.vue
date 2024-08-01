@@ -6,8 +6,6 @@ import "handsontable/dist/handsontable.full.min.css";
 
 import { data } from "../data";
 
-import { addClassesToRows, changeCheckboxCell, drawCheckboxInRowHeaders } from "../hooks-callbacks";
-
 // register Handsontable's modules
 registerAllModules();
 
@@ -30,7 +28,6 @@ export default defineComponent({
     <HotTable 
     :data="dataProp" 
     :height="450" 
-    :colWidths="[170, 222, 130, 120, 120, 140, 156]" 
     :colHeaders="[
           'ID',
           'Item Name',
