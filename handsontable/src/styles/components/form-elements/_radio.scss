@@ -19,8 +19,8 @@
             }
             
             > input[type=radio] {
-                width: 16px;
-                height: 16px;
+                width: var(--hot-control-size);
+                height: var(--hot-control-size);
                 appearance: none;
                 position: relative;
                 margin:0;
@@ -39,7 +39,7 @@
                 &:after {
                     content:'';
                     display: block;
-                    border-radius: 8px;
+                    border-radius: calc(.5 * var(--hot-control-size));
                     position: absolute;
                     inset: 2px;
                     border: 2px solid var(--hot-background-color);

@@ -30,22 +30,22 @@
                 position: absolute;
                 height: 100%;
                 display: none;
+                background: var(--hot-accent-color);
             }
 
             &--guideline {
-                background: var(--hot-manualMove-guideline-color);
-                width: var(--hot-manualMove-guideline-size);
+                width: 1px;
                 top: 0;
-                margin-inline-start: calc(var(--hot-manualMove-guideline-size) * -.5);
+                margin-inline-start: -.5px;
                 margin-inline-end: 0;
                 z-index: 205;
             }
 
             &--backlight {
-                background: var(--hot-manualMove-backlight-color);
                 display: none;
                 z-index: 205;
                 pointer-events: none;
+                opacity: .1;
             }
         }
 

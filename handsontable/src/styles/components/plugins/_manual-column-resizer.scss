@@ -11,7 +11,6 @@
             z-index: 210;
 
             /* Box Model */
-            height: calc(var(--hot-cell-height) + var(--hot-cell-horizontal-padding));
             width: 10px;
             margin: 0;
 
@@ -58,13 +57,12 @@
 
             /* Box Model */
             width: 0;
-            margin-inline-start: 5px;
+            margin-inline-start: 4px;
             margin-inline-end: unset;
 
             /* Visual Styles */
             display: none;
-            background-color: var(--hot-column-resizer-color);
-            border-inline-end: var(--hot-border-vertical-size) solid var(--hot-column-resizer-guide-color);
+            border-inline-end: 1px solid var(--hot-accent-color);
             border-inline-start: none;
         }
 

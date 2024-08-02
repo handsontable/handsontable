@@ -38,5 +38,19 @@
         .htBottom {
             vertical-align: bottom;
         }
+
+        /* TextRenderer others */
+        .htInvalid {
+            /*gives priority over td.area selection background*/
+            background-color: var(--hot-invalid-background-color) !important;
+        }
+
+        .htNoWrap {
+            white-space: nowrap;
+        }
+
+        .htSearchResult {
+            background: var(--hot-search-highlight-background-color);
+        }
     }
 }

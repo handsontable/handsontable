@@ -12,46 +12,41 @@
                 display: inline-block;
         
                 input {
+                    /* Box Model */
+                    border: 1px solid var(--hot-border-color);
                     border-radius: var(--hot-border-radius);
-                    border: var(--hot-button-border-size) solid var(--hot-button-border-color);
-                    background-color: var(--hot-button-background-color);
-                    color: var(--hot-button-text-color);
-                    cursor: pointer;
-                    font-family: inherit;
-                    font-size: var(--hot-button-font-size);
-                    font-weight: var(--hot-button-font-weight);
-                    height: var(--hot-button-height);
-                    min-width: var(--hot-button-width);
+                    min-width: 64px;
                     box-sizing: border-box;
+                    padding: calc(1px + var(--hot-base-grid)) calc(2 * var(--hot-base-grid));
+
+                    /* Typography */
+                    font-family: inherit;
+                    font-size: var(--hot-font-size);
+                    line-height: var(--hot-line-height);
+                    font-weight: 400;
+
+                    /* Visual Styles */
+                    background-color: var(--hot-background-color);
+                    cursor: pointer;
                     outline: none !important;
             
                     &:hover {
-                        border-color: var(--hot-button-hover-border-color);
-                        background-color: var(--hot-button-hover-background-color);
-                        color: var(--hot-button-hover-text-color);
+                        background-color: var(--hot-off-background-color);
                     }
                 }
             }
     
             &.htUIButtonOK {
                 margin-inline-start: 0;
-                margin-inline-end: var(--hot-button-margin);
+                margin-inline-end: calc(2 * var(--hot-base-grid));
 
                 input {
-                    border-color: var(--hot-button-primary-border-color);
-                    background-color: var(--hot-button-primary-background-color);
-                    color: var(--hot-button-primary-text-color);
-
-                    &:focus-visible {
-                        background-color: var(--hot-button-primary-focus-background-color);
-                        border-color: var(--hot-button-primary-focus-border-color);
-                        color: var(--hot-button-primary-focus-text-color);
-                    }
+                    border-color: var(--hot-accent-color);
+                    background-color: var(--hot-accent-color);
+                    color: white;
 
                     &:hover {
-                        border-color: var(--hot-button-primary-hover-border-color);
-                        background-color: var(--hot-button-primary-hover-background-color);
-                        color: var(--hot-button-primary-hover-text-color);
+                        background-color: color-mix(in srgb, var(--hot-accent-color), black 12% );
                     }
                 }
             }

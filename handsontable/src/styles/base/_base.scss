@@ -13,7 +13,155 @@
 
         /* Miscellaneous */
         touch-action: manipulation;
+
+        // Cell and Header
+        th,td {
+            /* Positioning */
+            vertical-align: top;
+
+            /* Box Model */
+            height: calc(var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding)));
+            padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
+            border-top-width: 0;
+            border-inline-start-width: 0;
+            border-inline-end-width: var(--hot-border-vertical-size);
+            border-bottom-width: var(--hot-border-horizontal-size);
+            border-style: solid;
+            border-color: var(--hot-border-color);
+            box-sizing: border-box;
+
+            /* Typography */
+            color: var(--hot-foreground-color);
+            font-size: var(--hot-base-font-size);
+            line-height: var(--hot-base-line-height);
+            white-space: pre-wrap;
+
+            /* Visual Styles */
+            overflow: hidden;
+            outline: none;
+            outline-width: 0;
+            empty-cells: show;
+
+            &.invisibleSelection {
+                outline: none;
+
+                &::selection {
+                    background: transparent;
+                }
+            }
+        }
+        
+        // Cell
+        td {
+            &:first-of-type {
+                border-inline-start-width: var(--hot-border-vertical-size);
+            }
+        }
+
+        // Header 
+        th { 
+            /* Positioning */
+            position: relative;
+
+            /* Box Model */
+            border-style: solid;
+            border-color: var(--hot-border-color);
+            overflow: visible;
+
+            /* Typography */
+            text-align: center;
+            font-weight: normal;
+            white-space: nowrap;
+            color: var(--hot-header-foreground-color);
+
+            /* Visual Styles */
+            background-color: var(--hot-header-background-color);
+            
+            &:last-child {
+                /*Foundation framework fix*/
+                border-inline-start-width: 0;
+                border-inline-end-width: var(--hot-border-vertical-size);
+                border-bottom-width: var(--hot-border-horizontal-size);
+            }
     
+            &:first-child,
+            &:nth-child(2) {
+                border-inline-start-width: var(--hot-border-vertical-size);
+            }
+
+            &.active {
+                background-color: var(--hot-highlight-color);
+            }
+            
+            &.current {
+                box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1) var(--hot-header-current-color);
+            }
+    
+            &.ht__active_highlight {
+                border-color: var(--hot-header-highlight-active-border-color);
+                box-shadow: calc(var(--hot-border-vertical-size) * -1) calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-header-highlight-active-border-color), 
+                            0 calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-header-highlight-active-border-color), 
+                            calc(var(--hot-border-vertical-size) * -1) 0 0 var(--hot-header-highlight-active-border-color);
+    
+                &:before {
+                    background: var(--hot-header-highlight-active-background-color)
+                }
+            }
+    
+            &.ht__highlight {     
+                background-color: var(--hot-highlight-color);
+            
+                &:before { 
+                    content:'';
+                    display: block;;
+                    position: absolute;
+                    inset: auto -1px -1px -1px;
+                    height: 1px;
+                    background-color: var(--hot-accent-color);
+                }
+            }
+
+            &.ht__active_highlight {
+                background-color: var(--hot-header-highlight-active-background-color);
+                color: var(--hot-header-active-text-color);
+            }
+        }
+
+        // Header in Col
+        thead th {
+            padding: 0;
+
+            .relative {
+                padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
+                height: calc(var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding))) ;
+            }
+
+            &.ht__active_highlight { 
+                .columnSorting.sortAction {
+                    &:before {
+                        filter: invert(1);
+                        opacity: .6;
+                    }
+                }
+            }
+        }
+        thead tr:not(:last-child) th {
+            // Fix for - nested columns with hidden column
+            overflow: hidden;
+        }
+        
+        // Header in Row
+        tbody th {
+            &.ht__highlight {
+                &:before {
+                    width: 1px;
+                    height: auto;
+                    inset: -1px -1px -1px auto;
+                }
+            }
+        }
+
+        // Bese classes
         .hide {
             display: none;
         }
@@ -66,25 +214,27 @@
         }
     
         .htCore {
-            background: var(--hot-background-color);
-            border-collapse: separate;
-            border-spacing: 0;
-            margin: 0;
+            /* Box Model */
             border-width: 0;
-            table-layout: fixed;
+            border-spacing: 0;
+            border-collapse: separate;
+            margin: 0;
             width: 0;
-            outline-width: 0;
+
+            /* Visual Styles */
+            background: var(--hot-background-color);
             cursor: default;
-            /* reset bootstrap table style. for more info see: https://github.com/handsontable/handsontable/issues/224 */
-            max-width: none;
-            max-height: none;
+            outline-width: 0;
+
+            /* Layout */
+            table-layout: fixed;
         }
     
         col {
-            width: var(--hot-col-width);
+            width: 64px;
     
             &.rowHeader {
-                width: var(--hot-col-width);
+                width: 64px;
             }
     
             &.hidden {
@@ -94,7 +244,7 @@
         
         span.colHeader {
             display: inline-block;
-            line-height: var(--hot-cell-line-height);
+            line-height: var(--hot-base-line-height);
         }
     
         tr.hidden {
@@ -109,159 +259,8 @@
         a {
             color: var(--hot-accent-color);
         }
-
-        // Cell and Header
-        th,td {
-            border-color:  var(--hot-border-color);
-            color: var(--hot-foreground-color);
-            border-top-width: 0;
-            border-inline-start-width: 0;
-            border-inline-end-width: var(--hot-border-vertical-size);
-            border-bottom-width: var(--hot-border-horizontal-size);
-            border-style: solid;
-            height: calc(var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding))) ;            empty-cells: show;
-            line-height: var(--hot-base-line-height);
-            box-sizing: border-box;
-            font-size: var( --hot-base-font-size);
-            padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
-            /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
-            vertical-align: top;
-            overflow: hidden;
-            outline: none;
-            outline-width: 0;
-            white-space: pre-wrap;
-
-            &.invisibleSelection {
-                outline: none;
-
-                &::selection {
-                    background: transparent;
-                }
-            }
-        }
         
-        // Header 
-        th { 
-            border-style: solid;
-            text-align: center;
-            font-weight: normal;
-            white-space: nowrap;
-            background-color: var(--hot-header-background-color);
-            color: var(--hot-header-foreground-color);
-            border-color:  var(--hot-border-color);
-            position: relative;
-            overflow: visible;
-            
-            &:last-child {
-                /*Foundation framework fix*/
-                border-inline-start-width: 0;
-                border-inline-end-width: var(--hot-border-vertical-size);
-                border-bottom-width: var(--hot-border-horizontal-size);
-            }
-    
-            &:first-child,
-            &:nth-child(2) {
-                border-inline-start-width: var(--hot-border-vertical-size);
-            }
-
-            &.active {
-                background-color: var(--hot-header-highlight-background-color);
-            }
-            
-            &.current {
-                box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1) var(--hot-header-current-color);
-            }
-    
-            &.ht__active_highlight {
-                border-color: var(--hot-header-highlight-active-border-color);
-                box-shadow: calc(var(--hot-border-vertical-size) * -1) calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-header-highlight-active-border-color), 
-                            0 calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-header-highlight-active-border-color), 
-                            calc(var(--hot-border-vertical-size) * -1) 0 0 var(--hot-header-highlight-active-border-color);
-    
-                &:before {
-                    background: var(--hot-header-highlight-active-background-color)
-                }
-            }
-    
-            &.ht__highlight {     
-                background-color: var(--hot-header-highlight-background-color);
-            
-                &:before { 
-                    content:'';
-                    display: block;;
-                    position: absolute;
-                    left: -1px;
-                    bottom: -1px;
-                    right: -1px;
-                    height: 1px;
-                    background-color: var(--hot-accent-color);
-                }
-            }
-
-            &.ht__active_highlight {
-                background-color: var(--hot-header-highlight-active-background-color);
-                color: var(--hot-header-active-text-color);
-            }
-        }
-
-        // Header in Col
-        thead th {
-            padding: 0;
-
-            .relative {
-                padding: var(--hot-header-vertical-padding) var(--hot-header-horizontal-padding);
-                height: calc(var(--hot-cell-line-height) + (2 * var(--hot-cell-vertical-padding))) ;
-            }
-
-            &.ht__active_highlight { 
-                .columnSorting.sortAction {
-                    &:before {
-                        filter: invert(1);
-                        opacity: .6;
-                    }
-                }
-            }
-        }
-        thead tr:not(:last-child) th {
-            overflow: hidden;
-        }
-        
-        // Header in Row
-        tbody th {
-            &.ht__highlight {
-                &:before {
-                    width: 1px;
-                    height: auto;
-                    right: -1px;
-                    top: -1px;
-                    bottom: -1px;
-                    left: auto;
-                }
-            }
-        }
-
-        // Cell
-        td {
-            &:first-of-type {
-                border-inline-start-width: var(--hot-border-vertical-size);
-            }
-
-            &.htInvalid {
-                /*gives priority over td.area selection background*/
-                background-color: var(--hot-invalid-background-color) !important;
-            }
-
-            &.htNoWrap {
-                white-space: nowrap;
-            }
-
-            &.htSearchResult {
-                background: var(--hot-search-highlight-background-color);
-                color: var(--hot-search-highlight-color);
-            }
-        }
-    
-        
+        // Visual fixes
         /* It removes double right border from first column header when row headers are disabled */
         .ht_clone_top th:nth-child(2) {
             border-inline-start-width: 0;
@@ -298,5 +297,9 @@
                 border-bottom-width: 0;
             }
         }
+
+        /* Scroll bar  */
+        scrollbar-width: thin;
+        scrollbar-color: var(--hot-border-color) var(--hot-header-background-color);
     }
 }

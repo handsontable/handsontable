@@ -5,16 +5,13 @@
 @mixin output {
     .handsontable {
         .htCheckboxRendererInput {
-            margin-top: var(--hot-checkbox-margin-bottom-top);
-            margin-inline-end: var(--hot-checkbox-margin-bottom-end);
-            margin-bottom: var(--hot-checkbox-margin-bottom-bottom);
-            margin-inline-start: var(--hot-checkbox-margin-bottom-start);
+            margin-inline-end: calc(2* var(--hot-base-grid));
             vertical-align: middle;
-            height: var(--hot-checkbox-height);
+            height: var(--hot-control-size);
             display: inline-block;
             position: relative;
-            height: var(--hot-checkbox-height);
-            width: var(--hot-checkbox-height);
+            height: var(--hot-control-size);
+            width: var(--hot-control-size);
             cursor: pointer;
             appearance: none;
             
@@ -28,8 +25,8 @@
                 content: '';
                 border: 1px solid var(--hot-border-color);
                 border-radius: var(--hot-border-radius);
-                width: var(--hot-checkbox-height);
-                height: var(--hot-checkbox-height);
+                width: var(--hot-control-size);
+                height: var(--hot-control-size);
                 display: inline-block;
                 box-sizing: border-box;
                 background-color: var(--hot-background-color);
@@ -41,7 +38,7 @@
                 width: 6px;
                 height: 10px;
                 position: absolute;
-                left: calc(var(--hot-checkbox-height) * .5);
+                left: calc(var(--hot-control-size) * .5);
                 top: 6.5px;
                 border-left: 2px solid var(--hot-background-color);
                 border-top: 2px solid var(--hot-background-color);

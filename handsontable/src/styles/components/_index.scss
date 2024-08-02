@@ -12,8 +12,8 @@
 @use './plugins/hidden-rows';           
 @use './plugins/dropdown-menu';         // TODO  check submenu RTL
 @use './plugins/context-menu';  
-@use './plugins/filters';               // TODO  styling
-@use './plugins/comments';              // TODO  styling
+@use './plugins/filters';               
+@use './plugins/comments';              
 @use './plugins/manual-column-sorting'; 
 @use './plugins/multi-column-sorting'; 
 @use './plugins/manual-column-freeze'; 
@@ -37,7 +37,7 @@
 @use './form-elements/select';          // TODO  styling     
 @use './form-elements/input';           // TODO  styling  
 @use './form-elements/button';          // TODO  styling  
-@use './form-elements/radio';           // TODO  styling  
+@use './form-elements/radio';           
 
 
 /* 

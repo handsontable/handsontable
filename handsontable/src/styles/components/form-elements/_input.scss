@@ -7,37 +7,40 @@
     .handsontable {
         .htFiltersMenuCondition .htUIInput input,
         .htFiltersMenuValue .htUIMultipleSelectSearch input {
-            background-color: var(--hot-select-background-color);
+            /* Box Model */
             border: 1px solid var(--hot-border-color);
             border-radius: var(--hot-border-radius);
-            border: 1px solid var(--hot-border-color);
-            color: var(--hot-select-text-color);
-            font-family: inherit;
-            font-size: var(--hot-select-font-size);
-            line-height: var(--hot-line-height);
-            font-weight: var(--hot-select-font-weight);
-            padding: var(--hot-select-padding);
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
+            padding: calc(var(--hot-base-grid) + 1px) calc(2 * var(--hot-base-grid));
             width: 100%;
             box-sizing: border-box;
 
-            &:hover {
-                background-color: var(--hot-select-hover-background-color);
-                borde-color: var(--hot-accent-color);
+            /* Typography */
+            font-family: inherit;
+            line-height: var(--hot-line-height);
+            font-size: var(--hot-font-size);
+
+            /* Visual Styles */
+            background-color: var(--hot-background-color);
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            outline: none !important;
+
+            &:hover, &:focus {
+                border-color: var(--hot-accent-color);
             }
         }
 
         /* Input */
         .htUIInput {
-            padding: var(--hot-form-input-wrapper-padding);
+            outline: none !important;
+            padding: 0;
             position: relative;
             text-align: center;
         
             input {
                 border-radius: var(--hot-border-radius);
-                border: var(--hot-form-input-border-size) solid var(--hot-form-input-border-color);
+                border: 1px solid var(--hot-border-color);
             }
         }
     

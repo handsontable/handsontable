@@ -7,19 +7,20 @@
         th {
             &.ht_nestingLevels {
                 text-align: inline-start;
-                padding-inline-start: var(--hot-nestedrows-start);
+                padding-inline-start: calc(2 * var(--hot-base-grid));
 
                 > .relative {
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    gap: calc(.5 * var(--hot-base-grid));;
                 }
             }
 
             div.ht_nestingLevels {
                 display: inline-block;
                 position: absolute;
-                inset-inline-start: var(--hot-nestedrows-levels-padding);
+                inset-inline-start: calc(3 * var(--hot-base-grid));
                 inset-inline-end: unset;
             }
 
@@ -31,7 +32,7 @@
                         display: inline-block;
                         float: inline-start;
                         border-bottom: 1px solid var(--hot-border-color);
-                        height: calc(var(--hot-cell-line-height) / 2 );
+                        height: calc(var(--hot-base-line-height) / 2 );
                         position: relative;
                         width: calc(2 * var(--hot-base-grid));
                         align-self: start;
@@ -44,7 +45,7 @@
                                 content: '';
                                 display: block;
                                 border-left: 1px solid var(--hot-border-color);
-                                height: calc(var(--hot-cell-line-height) * .5 + 3px);
+                                height: calc(var(--hot-base-line-height) * .5 + 3px);
                                 position: absolute;
                                 bottom: 0;
                                 left: 0;

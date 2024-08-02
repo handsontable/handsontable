@@ -33,21 +33,21 @@
                 position: absolute;
                 width: 100%;
                 display: none;
+                background: var(--hot-accent-color);
             }
 
             &--guideline {
-                background: var(--hot-manualMove-guideline-color);
-                height: var(--hot-manualMove-guideline-size);
+                height: 1px;
                 left: 0;
-                margin-top: calc(var(--hot-manualMove-guideline-size) * -0.5);
+                margin-top: -0.5px;
                 z-index: 205;
             }
 
             &--backlight {
-                background: var(--hot-manualMove-backlight-color);
                 display: none;
                 z-index: 205;
                 pointer-events: none;
+                opacity: .1;
             }
         }
 

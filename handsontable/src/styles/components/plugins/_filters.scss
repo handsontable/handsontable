@@ -11,52 +11,50 @@
         }
     }
     .handsontable {
-        ///////////////////////
-        /////////////// TODO Styling
-        /// 
-        /* Menu filtering*/
+
         .htMenuFiltering {
-            border-bottom: var(--hot-filters-menu-filtering-border-width) var(--hot-filters-menu-filtering-border-style) var(--hot-border-color); //#ccc;
+            border-bottom: 1px solid var(--hot-border-color); 
             height: var(--hot-filters-menu-filtering-height);
             overflow: hidden;
         }
+
         .ht_master table td.htCustomMenuRenderer {
-            background-color: var(--hot-filters-menu-background);
             cursor: auto;
         }
 
         /* Menu label */
         .htFiltersMenuLabel {
-            font-size: var(--hot-filters-menu-label-font-size);
-            line-height: var(--hot-filters-menu-label-line-height);
-            padding: var(--hot-filters-menu-label-padding);
-        }
+            font-size: var(--hot-label-font-size);
+            line-height: var(--hot-label-line-height);
+            padding: calc(2 * var(--hot-base-grid)) 0 calc(.5 * var(--hot-base-grid));
 
-        /* Component action bar */
-        .htFiltersMenuActionBar {
-            text-align: var(--hot-filters-menu-action-bar-align);
-            padding: var(--hot-filters-menu-action-bar-padding);
+            &:empty { display: none;}
         }
 
         /* Component filter by conditional */
         .htFiltersMenuCondition.border {
-            border-bottom: var(--hot-filters-menu-border-width) var(--hot-filters-menu-border-style) var(--hot-border-color) !important;
+            border-bottom: 1px solid var(--hot-highlight-color) !important;
+            padding-bottom: calc(4 * var(--hot-base-grid));
         }
-        
+
+        /* Component action bar */
+        .htFiltersMenuActionBar {}
+
         .htFiltersMenuValue {
-            border-bottom: var(--hot-filters-menu-border-width) var(--hot-filters-menu-border-style) var(--hot-border-color) !important;
+            border-bottom: 1px solid var(--hot-highlight-color) !important;
+            padding-bottom: 0 !important;
 
-            .htUIMultipleSelectSearch {
-                padding: var(--hot-filters-menu-value-search-padding);
+            .htUIMultipleSelectSearch {}
+        }
+        .htUISelectionControls {}
+        .htFiltersMenuOperators {}
+        .htUIMultipleSelectHot {
+            border-top: 1px solid var(--hot-highlight-color);
+            margin:0 calc(-4 * var(--hot-base-grid));
+
+            td {
+                padding: calc(2 * var(--hot-base-grid)) calc(4 * var(--hot-base-grid)) !important;
             }
-        }
-
-        .htUISelectionControls {
-            text-align: inline-end;
-        }
-
-        .htFiltersMenuOperators {
-            padding: var(--hot-filters-menu-operators-padding);
         }
 
         /* Filter Links */
@@ -64,12 +62,13 @@
             display: inline-block;
 
             a {
-                font-size: var(--hot-button-font-size);
+                font-size: var(--hot-font-size);
             }
         }
+
         .htUISelectAll {
             margin-inline-start: 0;
-            margin-inline-end: var(--hot-button-margin);
+            margin-inline-end: calc(2 * var(--hot-base-grid));
         }
 
         /* SelectMultiple */
@@ -82,10 +81,11 @@
         }
 
         .htUIMultipleSelect .handsontable .htCore {
-            border: none;
-
             td:hover {
-                background-color: var(--hot-dropdown-menu-item-active);
+                background-color: var(---hot-off-background-color);
+            }
+            td.current {
+                background: var(---hot-background-color);
             }
         }
     }

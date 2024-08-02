@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.2.0
- * Release date: 06/03/2024 (built at 31/07/2024 14:34:08)
+ * Release date: 06/03/2024 (built at 02/08/2024 14:06:26)
  */
 /*
 	Elevation
@@ -178,174 +178,59 @@
 */
 .handsontable,
 body {
-  --hot-col-width: 50px;
   /* Typography */
   --hot-font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
   --hot-base-font-size: 12px;
+  --hot-label-font-size: 10px;
   --hot-base-line-height: 20px;
+  --hot-label-line-height: 18px;
   /* Sizing */
   --hot-border-horizontal-size: 1px;
   --hot-border-vertical-size: 1px;
   --hot-base-grid: 4px;
   --hot-border-radius: 4px;
   --hot-base-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.12);
+  --hot-control-size: 16px;
   /* Core Colors */
   --hot-background-color: white;
   --hot-border-color: #D1D1D5;
-  --hot-separator-color: #EFEFF3;
   --hot-off-background-color: #F7F7F9;
+  --hot-highlight-color: #EFEFF3;
   /* Text Colors */
-  --hot-read-only-text: color-mix(in srgb, var(--hot-background-color), var(--hot-foreground-color) 37% );
-  --hot-placeholder-text: var(--hot-read-only-tex);
   --hot-foreground-color: #222222;
   --hot-foreground-color-active: #000;
+  --hot-search-highlight-background-color: #FBE952;
+  --hot-invalid-background-color: rgba(250,77,50,.3);
+  --hot-read-only-text: color-mix(in srgb, var(--hot-background-color), var(--hot-foreground-color) 37% );
+  --hot-placeholder-text: var(--hot-read-only-tex);
   /* Accents Colors */
   --hot-accent-color: #1A42E8;
-  --hot-area-color: var(--hot-accent-color);
   --hot-input-border-color: var(--hot-accent-color);
   --hot-mobile-focus-color: var(--hot-input-border-color);
   /* Global */
   --hot-transition-time: .2s;
-  /* Cell States */
-  --hot-search-highlight-color: #583707;
-  --hot-search-highlight-background-color: #fcedd9;
-  --hot-invalid-background-color: rgba(250,77,50,.3);
-  /* Column Resizer Colors */
-  --hot-column-resizer-color: var(--hot-accent-color);
-  --hot-column-resizer-guide-color: var(--hot-accent-color);
+  /* Cell */
+  --hot-cell-horizontal-padding: 8px;
+  --hot-cell-vertical-padding: 4px;
   /* Header Colors */
   --hot-header-background-color: var(--hot-off-background-color);
-  --hot-header-foreground-color: #5D5D5D;
-  --hot-header-active-background-color: #EFEFF3;
-  --hot-header-active-text-color: #D1D1D5;
-  --hot-header-highlight-background-color: #EFEFF3;
   --hot-header-highlight-active-background-color: var(--hot-accent-color);
-  --hot-header-highlight-active-border-color: color-mix(in srgb, var(--hot-border-color), var(--hot-header-highlight-active-background-color) 82% );
+  --hot-header-foreground-color: color-mix(in srgb, var(--hot-background-color), var(--hot-foreground-color) 64% );
+  --hot-header-active-text-color: color-mix(in srgb, var(--hot-header-highlight-active-background-color), var(--hot-background-color) 64% );
   --hot-header-current-color: var(--hot-accent-color);
+  --hot-header-highlight-active-border-color: color-mix(in srgb, var(--hot-border-color), var(--hot-header-highlight-active-background-color) 82% );
   /* Dropdown */
   --hot-dropdown-background: var(--hot-background-color);
-  --hot-dropdown-item-active: #F7F7F9;
-  --hot-dropdown-item-margin: 8px;
   --hot-dropdown-border-color: var(--hot-border-color);
   --hot-dropdown-border-width: 0;
-  --hot-dropdown-item-padding: 8px;
-  --hot-dropdown-separator-size: 1px;
-  /* Context Menu */
-  --hot-contextmenu-item-margin: var(--hot-dropdown-item-margin);
-  /* Listbox */
-  --hot-listbox-border-color: var(--hot-border-color);
-  --hot-listbox-background-color: var(--hot-background-color);
-  --hot-listbox-background-current-font-weight: regular;
   /* Comments */
   --hot-comment-indicator-size: 6px;
   --hot-comment-indicator-color: var(--hot-accent-color);
-  --hot-comment-textarea-background-color: var(--hot-background-color);
-  --hot-comment-textarea-border-color: var(--hot-border-color);
-  --hot-comment-textarea-height: 90px;
-  --hot-comment-textarea-width: 215px;
-  --hot-comment-textarea-focus-color: var(--hot-input-border-color);
-  /* Manual Move */
-  --hot-manualMove-guideline-color: rgb(var(--hot-manualMove-color));
-  --hot-manualMove-guideline-size: 1px;
-  --hot-manualMove-backlight-color: rgba(var(--hot-manualMove-color), .1);
-  /* Nested Rows */
-  --hot-nestedrows-start: 7px;
-  --hot-nestedrows-levels-padding: 11px;
-  /* Renderer Autocomplete Arrow */
-  --hot-autocomplete-arrow-color: #bbbbbb;
-  --hot-autocomplete-arrow-hover-color: #777777;
-  --hot-autocomplete-arrow-invalid-color: #555555;
-  --hot-autocomplete-arrow-invalid-hover-color: #1a1a1a;
-  --hot-autocomplete-arrow-area-color: #d3d3d3;
-  /* Input */
-  --hot-form-input-wrapper-padding: 4px 0;
-  --hot-form-input-radius: 4px;
-  --hot-form-input-border-color: #d2d1d1;
-  --hot-form-input-border-size: 1px;
-  /* Button */
-  --hot-button-background-color: var(--hot-background-color);
-  --hot-button-text-color: var(--hot-foreground-color);
-  --hot-button-font-size: var(--hot-base-font-size);
-  --hot-button-font-weight: 400;
-  --hot-button-height: 32px;
-  --hot-button-width: 64px;
-  --hot-button-border-color: var(--hot-border-color);
-  --hot-button-border-size: var(--hot-input-border-size);
-  --hot-button-hover-border-color: color-mix(in srgb, var(--hot-border-color), var(--hot-foreground-color) 16% );
-  --hot-button-hover-background-color: var(--hot-button-background-color);
-  --hot-button-hover-text-color: var(--hot-button-text-color);
-  --hot-button-margin: 8px;
-  /* Primary Button */
-  --hot-button-primary-border-color: var(--hot-accent-color);
-  --hot-button-primary-background-color: var(--hot-accent-color);
-  --hot-button-primary-text-color: var(--hot-background-color);
-  --hot-button-primary-hover-border-color: color-mix(in srgb, var(--hot-accent-color), var(--hot-foreground-color) 16% );
-  --hot-button-primary-hover-background-color: color-mix(in srgb, var(--hot-accent-color), var(--hot-foreground-color) 16% );
-  --hot-button-primary-hover-text-color: var(--hot-button-primary-text-color);
-  --hot-button-primary-focus-border-color: color-mix(in srgb, var(--hot-accent-color), var(--hot-foreground-color) 24% );
-  --hot-button-primary-focus-background-color: color-mix(in srgb, var(--hot-accent-color), var(--hot-background-color) 12% );
-  --hot-button-primary-focus-text-color: var(--hot-button-primary-text-color);
-  /* Cell */
-  --hot-cell-line-height: var(--hot-base-line-height);
-  --hot-cell-horizontal-padding: 8px;
-  --hot-cell-vertical-padding: 4px;
-  /* Header */
-  --hot-header-horizontal-padding: var(--hot-cell-horizontal-padding);
-  --hot-header-vertical-padding: var(--hot-cell-vertical-padding);
-  /* Filters */
-  --hot-filters-menu-filtering-border-width: 1px;
-  --hot-filters-menu-filtering-border-style: solid;
-  --hot-filters-menu-filtering-height: 160px;
-  --hot-filters-menu-label-font-size: 12px;
-  --hot-filters-menu-label-line-height: 20px;
-  --hot-filters-menu-label-padding: 8px 0 2px;
-  --hot-filters-menu-action-bar-padding: 8px 4px 0;
-  --hot-filters-menu-action-bar-align: left;
-  --hot-filters-menu-input-padding: 0 0 5px 0;
-  --hot-filters-menu-border-width: 1px;
-  --hot-filters-menu-conditional-border-color: var(--hot-border-color);
-  --hot-filters-menu-conditional-border-style: solid;
-  --hot-filters-menu-value-search-padding: 0;
-  --hot-filters-menu-input-font-size: var(--hot-button-font-size);
-  --hot-filters-menu-input-padding: 6px 12px;
-  --hot-filters-menu-operators-padding: 4px;
-  /* Header Menu Button */
-  --hot-header-menu-button-background: none;
-  --hot-header-menu-button-color:#bbbbbb;
-  --hot-header-menu-button-hover-color: var(--hot-accent-color);
-  --hot-header-menu-button-background-active: #d2e0d9;
-  --hot-header-menu-button-background-active-color: #18804e;
-  --hot-header-menu-button-border-active-color: #509272;
-  --hot-header-menu-button-border-color: #bbbbbb;
-  --hot-header-menu-button-border-size: 0;
-  --hot-header-menu-button-margin: 8px;
-  --hot-header-menu-button-padding: 8px;
-  /* Checkbox */
-  --hot-checkbox-margin-bottom-end: 8px;
-  --hot-checkbox-height: 16px;
-  /* Select */
-  --hot-select-wrapper-margin: 2px 0 0;
-  --hot-select-background-color: #fff;
-  --hot-select-radius: var(--hot-border-radius);
-  --hot-select-font-size: var(--hot-button-font-size);
-  --hot-select-padding: 6px 20px 6px 12px;
-  --hot-select-font-weight: normal;
-  --hot-select-hover-border-color: var(--hot-button-hover-border-color);
-  --hot-select-hover-background-color: var(--hot-select-background-color);
-  --hot-select-hover-text-color: var(--hot-button-text-color);
-  --hot-select-text-color: var(--hot-foreground-color);
-  /*
-      Custom Syles 
-  */
-  scrollbar-width: thin;
-  scrollbar-color: var(--hot-border-color) var(--hot-header-background-color);
-  /* 
-      Theme Vars 
-  */
+  --hot-comment-textarea-height: 88px;
+  --hot-comment-textarea-width: 240px;
+  /* Frozen */
   --hot-frozen-size: 2px;
   --hot-frozen-shadow: rgba(0, 0, 0, 0.2);
-  --hot-manualMove-color: 53, 53, 53;
-  --hot-button-padding: 4px 16px;
 }
 
 .handsontable {
@@ -363,6 +248,113 @@ body {
   innerBorderTop - Property controlled by top overlay
   innerBorderBottom - Property controlled by bottom overlay
   */
+  /* Scroll bar  */
+  scrollbar-width: thin;
+  scrollbar-color: var(--hot-border-color) var(--hot-header-background-color);
+}
+.handsontable th, .handsontable td {
+  /* Positioning */
+  vertical-align: top;
+  /* Box Model */
+  height: calc(var(--hot-base-line-height) + 2 * var(--hot-cell-vertical-padding));
+  padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
+  border-top-width: 0;
+  border-inline-start-width: 0;
+  border-inline-end-width: var(--hot-border-vertical-size);
+  border-bottom-width: var(--hot-border-horizontal-size);
+  border-style: solid;
+  border-color: var(--hot-border-color);
+  box-sizing: border-box;
+  /* Typography */
+  color: var(--hot-foreground-color);
+  font-size: var(--hot-base-font-size);
+  line-height: var(--hot-base-line-height);
+  white-space: pre-wrap;
+  /* Visual Styles */
+  overflow: hidden;
+  outline: none;
+  outline-width: 0;
+  empty-cells: show;
+}
+.handsontable th.invisibleSelection, .handsontable td.invisibleSelection {
+  outline: none;
+}
+.handsontable th.invisibleSelection::selection, .handsontable td.invisibleSelection::selection {
+  background: transparent;
+}
+.handsontable td:first-of-type {
+  border-inline-start-width: var(--hot-border-vertical-size);
+}
+.handsontable th {
+  /* Positioning */
+  position: relative;
+  /* Box Model */
+  border-style: solid;
+  border-color: var(--hot-border-color);
+  overflow: visible;
+  /* Typography */
+  text-align: center;
+  font-weight: normal;
+  white-space: nowrap;
+  color: var(--hot-header-foreground-color);
+  /* Visual Styles */
+  background-color: var(--hot-header-background-color);
+}
+.handsontable th:last-child {
+  /*Foundation framework fix*/
+  border-inline-start-width: 0;
+  border-inline-end-width: var(--hot-border-vertical-size);
+  border-bottom-width: var(--hot-border-horizontal-size);
+}
+.handsontable th:first-child, .handsontable th:nth-child(2) {
+  border-inline-start-width: var(--hot-border-vertical-size);
+}
+.handsontable th.active {
+  background-color: var(--hot-highlight-color);
+}
+.handsontable th.current {
+  box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1) var(--hot-header-current-color);
+}
+.handsontable th.ht__active_highlight {
+  border-color: var(--hot-header-highlight-active-border-color);
+  box-shadow: calc(var(--hot-border-vertical-size) * -1) calc(var(--hot-border-horizontal-size) * -1) 0 var(--hot-header-highlight-active-border-color), 0 calc(var(--hot-border-horizontal-size) * -1) 0 var(--hot-header-highlight-active-border-color), calc(var(--hot-border-vertical-size) * -1) 0 0 var(--hot-header-highlight-active-border-color);
+}
+.handsontable th.ht__active_highlight:before {
+  background: var(--hot-header-highlight-active-background-color);
+}
+.handsontable th.ht__highlight {
+  background-color: var(--hot-highlight-color);
+}
+.handsontable th.ht__highlight:before {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: auto -1px -1px -1px;
+  height: 1px;
+  background-color: var(--hot-accent-color);
+}
+.handsontable th.ht__active_highlight {
+  background-color: var(--hot-header-highlight-active-background-color);
+  color: var(--hot-header-active-text-color);
+}
+.handsontable thead th {
+  padding: 0;
+}
+.handsontable thead th .relative {
+  padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
+  height: calc(var(--hot-base-line-height) + 2 * var(--hot-cell-vertical-padding));
+}
+.handsontable thead th.ht__active_highlight .columnSorting.sortAction:before {
+  filter: invert(1);
+  opacity: 0.6;
+}
+.handsontable thead tr:not(:last-child) th {
+  overflow: hidden;
+}
+.handsontable tbody th.ht__highlight:before {
+  width: 1px;
+  height: auto;
+  inset: -1px -1px -1px auto;
 }
 .handsontable .hide {
   display: none;
@@ -409,31 +401,31 @@ body {
   min-height: initial;
 }
 .handsontable .htCore {
-  background: var(--hot-background-color);
-  border-collapse: separate;
-  border-spacing: 0;
-  margin: 0;
+  /* Box Model */
   border-width: 0;
-  table-layout: fixed;
+  border-spacing: 0;
+  border-collapse: separate;
+  margin: 0;
   width: 0;
-  outline-width: 0;
+  /* Visual Styles */
+  background: var(--hot-background-color);
   cursor: default;
-  /* reset bootstrap table style. for more info see: https://github.com/handsontable/handsontable/issues/224 */
-  max-width: none;
-  max-height: none;
+  outline-width: 0;
+  /* Layout */
+  table-layout: fixed;
 }
 .handsontable col {
-  width: var(--hot-col-width);
+  width: 64px;
 }
 .handsontable col.rowHeader {
-  width: var(--hot-col-width);
+  width: 64px;
 }
 .handsontable col.hidden {
   width: 0 !important;
 }
 .handsontable span.colHeader {
   display: inline-block;
-  line-height: var(--hot-cell-line-height);
+  line-height: var(--hot-base-line-height);
 }
 .handsontable tr.hidden {
   display: none;
@@ -444,119 +436,6 @@ body {
 }
 .handsontable a {
   color: var(--hot-accent-color);
-}
-.handsontable th, .handsontable td {
-  border-color: var(--hot-border-color);
-  color: var(--hot-foreground-color);
-  border-top-width: 0;
-  border-inline-start-width: 0;
-  border-inline-end-width: var(--hot-border-vertical-size);
-  border-bottom-width: var(--hot-border-horizontal-size);
-  border-style: solid;
-  height: calc(var(--hot-base-line-height) + 2 * var(--hot-cell-vertical-padding));
-  empty-cells: show;
-  line-height: var(--hot-base-line-height);
-  box-sizing: border-box;
-  font-size: var(--hot-base-font-size);
-  padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
-  /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
-  vertical-align: top;
-  overflow: hidden;
-  outline: none;
-  outline-width: 0;
-  white-space: pre-wrap;
-}
-.handsontable th.invisibleSelection, .handsontable td.invisibleSelection {
-  outline: none;
-}
-.handsontable th.invisibleSelection::selection, .handsontable td.invisibleSelection::selection {
-  background: transparent;
-}
-.handsontable th {
-  border-style: solid;
-  text-align: center;
-  font-weight: normal;
-  white-space: nowrap;
-  background-color: var(--hot-header-background-color);
-  color: var(--hot-header-foreground-color);
-  border-color: var(--hot-border-color);
-  position: relative;
-  overflow: visible;
-}
-.handsontable th:last-child {
-  /*Foundation framework fix*/
-  border-inline-start-width: 0;
-  border-inline-end-width: var(--hot-border-vertical-size);
-  border-bottom-width: var(--hot-border-horizontal-size);
-}
-.handsontable th:first-child, .handsontable th:nth-child(2) {
-  border-inline-start-width: var(--hot-border-vertical-size);
-}
-.handsontable th.active {
-  background-color: var(--hot-header-highlight-background-color);
-}
-.handsontable th.current {
-  box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1) var(--hot-header-current-color);
-}
-.handsontable th.ht__active_highlight {
-  border-color: var(--hot-header-highlight-active-border-color);
-  box-shadow: calc(var(--hot-border-vertical-size) * -1) calc(var(--hot-border-horizontal-size) * -1) 0 var(--hot-header-highlight-active-border-color), 0 calc(var(--hot-border-horizontal-size) * -1) 0 var(--hot-header-highlight-active-border-color), calc(var(--hot-border-vertical-size) * -1) 0 0 var(--hot-header-highlight-active-border-color);
-}
-.handsontable th.ht__active_highlight:before {
-  background: var(--hot-header-highlight-active-background-color);
-}
-.handsontable th.ht__highlight {
-  background-color: var(--hot-header-highlight-background-color);
-}
-.handsontable th.ht__highlight:before {
-  content: "";
-  display: block;
-  position: absolute;
-  left: -1px;
-  bottom: -1px;
-  right: -1px;
-  height: 1px;
-  background-color: var(--hot-accent-color);
-}
-.handsontable th.ht__active_highlight {
-  background-color: var(--hot-header-highlight-active-background-color);
-  color: var(--hot-header-active-text-color);
-}
-.handsontable thead th {
-  padding: 0;
-}
-.handsontable thead th .relative {
-  padding: var(--hot-header-vertical-padding) var(--hot-header-horizontal-padding);
-  height: calc(var(--hot-cell-line-height) + 2 * var(--hot-cell-vertical-padding));
-}
-.handsontable thead th.ht__active_highlight .columnSorting.sortAction:before {
-  filter: invert(1);
-  opacity: 0.6;
-}
-.handsontable thead tr:not(:last-child) th {
-  overflow: hidden;
-}
-.handsontable tbody th.ht__highlight:before {
-  width: 1px;
-  height: auto;
-  right: -1px;
-  top: -1px;
-  bottom: -1px;
-  left: auto;
-}
-.handsontable td:first-of-type {
-  border-inline-start-width: var(--hot-border-vertical-size);
-}
-.handsontable td.htInvalid {
-  /*gives priority over td.area selection background*/
-  background-color: var(--hot-invalid-background-color) !important;
-}
-.handsontable td.htNoWrap {
-  white-space: nowrap;
-}
-.handsontable td.htSearchResult {
-  background: var(--hot-search-highlight-background-color);
-  color: var(--hot-search-highlight-color);
 }
 .handsontable .ht_clone_top th:nth-child(2) {
   border-inline-start-width: 0;
@@ -643,7 +522,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--hot-area-color);
+  background: var(--hot-accent-color);
 }
 .handsontable td.area-1 {
   position: relative;
@@ -652,7 +531,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--hot-area-color);
+  background: var(--hot-accent-color);
 }
 .handsontable td.area-2 {
   position: relative;
@@ -661,7 +540,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--hot-area-color);
+  background: var(--hot-accent-color);
 }
 .handsontable td.area-3 {
   position: relative;
@@ -670,7 +549,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--hot-area-color);
+  background: var(--hot-accent-color);
 }
 .handsontable td.area-4 {
   position: relative;
@@ -679,7 +558,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--hot-area-color);
+  background: var(--hot-accent-color);
 }
 .handsontable td.area-5 {
   position: relative;
@@ -688,7 +567,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--hot-area-color);
+  background: var(--hot-accent-color);
 }
 .handsontable td.area-6 {
   position: relative;
@@ -697,7 +576,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--hot-area-color);
+  background: var(--hot-accent-color);
 }
 .handsontable td.area-7 {
   position: relative;
@@ -706,7 +585,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--hot-area-color);
+  background: var(--hot-accent-color);
 }
 .handsontable td.area:before {
   opacity: 0.1;
@@ -804,16 +683,13 @@ body {
 }
 
 .handsontable .htCheckboxRendererInput {
-  margin-top: var(--hot-checkbox-margin-bottom-top);
-  margin-inline-end: var(--hot-checkbox-margin-bottom-end);
-  margin-bottom: var(--hot-checkbox-margin-bottom-bottom);
-  margin-inline-start: var(--hot-checkbox-margin-bottom-start);
+  margin-inline-end: calc(2 * var(--hot-base-grid));
   vertical-align: middle;
-  height: var(--hot-checkbox-height);
+  height: var(--hot-control-size);
   display: inline-block;
   position: relative;
-  height: var(--hot-checkbox-height);
-  width: var(--hot-checkbox-height);
+  height: var(--hot-control-size);
+  width: var(--hot-control-size);
   cursor: pointer;
   appearance: none;
 }
@@ -826,8 +702,8 @@ body {
   content: "";
   border: 1px solid var(--hot-border-color);
   border-radius: var(--hot-border-radius);
-  width: var(--hot-checkbox-height);
-  height: var(--hot-checkbox-height);
+  width: var(--hot-control-size);
+  height: var(--hot-control-size);
   display: inline-block;
   box-sizing: border-box;
   background-color: var(--hot-background-color);
@@ -839,7 +715,7 @@ body {
   width: 6px;
   height: 10px;
   position: absolute;
-  left: calc(var(--hot-checkbox-height) * 0.5);
+  left: calc(var(--hot-control-size) * 0.5);
   top: 6.5px;
   border-left: 2px solid var(--hot-background-color);
   border-top: 2px solid var(--hot-background-color);
@@ -868,6 +744,7 @@ body {
   /* TextRenderer placeholder value */
   /* TextRenderer horizontal alignment */
   /* TextRenderer placeholder value */
+  /* TextRenderer others */
 }
 .handsontable .htPlaceholder {
   color: var(--hot-placeholder-text);
@@ -896,6 +773,16 @@ body {
 .handsontable .htBottom {
   vertical-align: bottom;
 }
+.handsontable .htInvalid {
+  /*gives priority over td.area selection background*/
+  background-color: var(--hot-invalid-background-color) !important;
+}
+.handsontable .htNoWrap {
+  white-space: nowrap;
+}
+.handsontable .htSearchResult {
+  background: var(--hot-search-highlight-background-color);
+}
 
 /* Editor */
 .handsontableInputHolder {
@@ -904,23 +791,27 @@ body {
   left: 0;
 }
 .handsontableInputHolder .handsontableInput {
+  /* Positioning */
+  display: block;
+  /* Box Model */
   border: none;
-  outline-width: 0;
+  border-radius: 0;
   margin: 0;
-  padding-top: var(--hot-border-vertical-size) !important;
+  padding: var(--hot-border-vertical-size) !important;
   padding-bottom: 0 !important;
   padding-left: calc(var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size)) !important;
   padding-right: calc(var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size)) !important;
-  font-family: inherit;
-  line-height: calc(var(--hot-base-line-height) + var(--hot-cell-vertical-padding) * 2);
-  font-size: inherit;
-  box-shadow: 0 0 0 calc(var(--hot-border-horizontal-size) * 2) var(--hot-input-border-color) inset;
   resize: none;
-  /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
-  display: block;
+  box-shadow: 0 0 0 calc(var(--hot-border-horizontal-size) * 2) var(--hot-accent-color) inset;
+  /* Typography */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: calc(var(--hot-base-line-height) + var(--hot-cell-vertical-padding) * 2);
   color: var(--hot-foreground-color-active);
-  border-radius: 0;
+  /* Visual Styles */
   background-color: var(--hot-background-color);
+  /* Miscellaneous */
+  outline-width: 0;
   /*overwrite styles potentionally made by a framework*/
 }
 .handsontableInputHolder .handsontableInput:focus {
@@ -988,7 +879,7 @@ body {
   background: color-mix(in srgb, var(--hot-accent-color), var(--hot-background-color) 88%);
 }
 .handsontable.listbox .ht_master table tr:hover td {
-  background: var(--hot-dropdown-item-active);
+  background: var(--hot-off-background-color);
   cursor: pointer;
 }
 .handsontable.listbox .ht_master table thead th {
@@ -1014,28 +905,31 @@ body {
 }
 
 /* Form Elements*/
-.handsontable .htUISelect {
-  cursor: pointer;
-  margin: var(--hot-select-wrapper-margin);
-  position: relative;
-}
 .handsontable .htUISelectCaption {
-  background-color: var(--hot-select-background-color);
+  /* Box Model */
   border: 1px solid var(--hot-border-color);
   border-radius: var(--hot-border-radius);
-  border: 1px solid var(--hot-border-color);
-  color: var(--hot-select-text-color);
+  padding: calc(var(--hot-base-grid) + 1px) calc(2 * var(--hot-base-grid));
+  width: 100%;
+  box-sizing: border-box;
+  /* Typography */
   font-family: inherit;
-  font-size: var(--hot-select-font-size);
-  font-weight: var(--hot-select-font-weight);
-  padding: var(--hot-select-padding);
+  line-height: var(--hot-line-height);
+  font-size: var(--hot-font-size);
+  /* Visual Styles */
+  background-color: var(--hot-background-color);
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  outline: none !important;
 }
-.handsontable .htUISelectCaption:hover {
-  background-color: var(--hot-select-hover-background-color);
-  borde-color: var(--hot-accent-color);
+.handsontable .htUISelectCaption:hover, .handsontable .htUISelectCaption:focus {
+  border-color: var(--hot-accent-color);
+}
+.handsontable .htUISelect {
+  cursor: pointer;
+  position: relative;
+  outline: none !important;
 }
 
 .handsontable {
@@ -1043,35 +937,37 @@ body {
 }
 .handsontable .htFiltersMenuCondition .htUIInput input,
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
-  background-color: var(--hot-select-background-color);
+  /* Box Model */
   border: 1px solid var(--hot-border-color);
   border-radius: var(--hot-border-radius);
-  border: 1px solid var(--hot-border-color);
-  color: var(--hot-select-text-color);
+  padding: calc(var(--hot-base-grid) + 1px) calc(2 * var(--hot-base-grid));
+  width: 100%;
+  box-sizing: border-box;
+  /* Typography */
   font-family: inherit;
-  font-size: var(--hot-select-font-size);
   line-height: var(--hot-line-height);
-  font-weight: var(--hot-select-font-weight);
-  padding: var(--hot-select-padding);
+  font-size: var(--hot-font-size);
+  /* Visual Styles */
+  background-color: var(--hot-background-color);
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  width: 100%;
-  box-sizing: border-box;
+  outline: none !important;
 }
-.handsontable .htFiltersMenuCondition .htUIInput input:hover,
-.handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input:hover {
-  background-color: var(--hot-select-hover-background-color);
-  borde-color: var(--hot-accent-color);
+.handsontable .htFiltersMenuCondition .htUIInput input:hover, .handsontable .htFiltersMenuCondition .htUIInput input:focus,
+.handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input:hover,
+.handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input:focus {
+  border-color: var(--hot-accent-color);
 }
 .handsontable .htUIInput {
-  padding: var(--hot-form-input-wrapper-padding);
+  outline: none !important;
+  padding: 0;
   position: relative;
   text-align: center;
 }
 .handsontable .htUIInput input {
   border-radius: var(--hot-border-radius);
-  border: var(--hot-form-input-border-size) solid var(--hot-form-input-border-color);
+  border: 1px solid var(--hot-border-color);
 }
 .handsontable .htUIInputIcon {
   position: absolute;
@@ -1085,42 +981,36 @@ body {
   display: inline-block;
 }
 .handsontable .htUIInput.htUIButton input {
+  /* Box Model */
+  border: 1px solid var(--hot-border-color);
   border-radius: var(--hot-border-radius);
-  border: var(--hot-button-border-size) solid var(--hot-button-border-color);
-  background-color: var(--hot-button-background-color);
-  color: var(--hot-button-text-color);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: var(--hot-button-font-size);
-  font-weight: var(--hot-button-font-weight);
-  height: var(--hot-button-height);
-  min-width: var(--hot-button-width);
+  min-width: 64px;
   box-sizing: border-box;
+  padding: calc(1px + var(--hot-base-grid)) calc(2 * var(--hot-base-grid));
+  /* Typography */
+  font-family: inherit;
+  font-size: var(--hot-font-size);
+  line-height: var(--hot-line-height);
+  font-weight: 400;
+  /* Visual Styles */
+  background-color: var(--hot-background-color);
+  cursor: pointer;
   outline: none !important;
 }
 .handsontable .htUIInput.htUIButton input:hover {
-  border-color: var(--hot-button-hover-border-color);
-  background-color: var(--hot-button-hover-background-color);
-  color: var(--hot-button-hover-text-color);
+  background-color: var(--hot-off-background-color);
 }
 .handsontable .htUIInput.htUIButtonOK {
   margin-inline-start: 0;
-  margin-inline-end: var(--hot-button-margin);
+  margin-inline-end: calc(2 * var(--hot-base-grid));
 }
 .handsontable .htUIInput.htUIButtonOK input {
-  border-color: var(--hot-button-primary-border-color);
-  background-color: var(--hot-button-primary-background-color);
-  color: var(--hot-button-primary-text-color);
-}
-.handsontable .htUIInput.htUIButtonOK input:focus-visible {
-  background-color: var(--hot-button-primary-focus-background-color);
-  border-color: var(--hot-button-primary-focus-border-color);
-  color: var(--hot-button-primary-focus-text-color);
+  border-color: var(--hot-accent-color);
+  background-color: var(--hot-accent-color);
+  color: white;
 }
 .handsontable .htUIInput.htUIButtonOK input:hover {
-  border-color: var(--hot-button-primary-hover-border-color);
-  background-color: var(--hot-button-primary-hover-background-color);
-  color: var(--hot-button-primary-hover-text-color);
+  background-color: color-mix(in srgb, var(--hot-accent-color), black 12%);
 }
 
 .handsontable .htUIRadio {
@@ -1137,8 +1027,8 @@ body {
   padding-inline-start: 0;
 }
 .handsontable .htUIRadio > input[type=radio] {
-  width: 16px;
-  height: 16px;
+  width: var(--hot-control-size);
+  height: var(--hot-control-size);
   appearance: none;
   position: relative;
   margin: 0;
@@ -1156,7 +1046,7 @@ body {
 .handsontable .htUIRadio > input[type=radio]:after {
   content: "";
   display: block;
-  border-radius: 8px;
+  border-radius: calc(0.5 * var(--hot-control-size));
   position: absolute;
   inset: 2px;
   border: 2px solid var(--hot-background-color);
@@ -1280,17 +1170,18 @@ body {
 
 .handsontable th.ht_nestingLevels {
   text-align: inline-start;
-  padding-inline-start: var(--hot-nestedrows-start);
+  padding-inline-start: calc(2 * var(--hot-base-grid));
 }
 .handsontable th.ht_nestingLevels > .relative {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: calc(0.5 * var(--hot-base-grid));
 }
 .handsontable th div.ht_nestingLevels {
   display: inline-block;
   position: absolute;
-  inset-inline-start: var(--hot-nestedrows-levels-padding);
+  inset-inline-start: calc(3 * var(--hot-base-grid));
   inset-inline-end: unset;
 }
 .handsontable th span.ht_nestingLevel {
@@ -1300,7 +1191,7 @@ body {
   display: inline-block;
   float: inline-start;
   border-bottom: 1px solid var(--hot-border-color);
-  height: calc(var(--hot-cell-line-height) / 2);
+  height: calc(var(--hot-base-line-height) / 2);
   position: relative;
   width: calc(2 * var(--hot-base-grid));
   align-self: start;
@@ -1313,7 +1204,7 @@ body {
   content: "";
   display: block;
   border-left: 1px solid var(--hot-border-color);
-  height: calc(var(--hot-cell-line-height) * 0.5 + 3px);
+  height: calc(var(--hot-base-line-height) * 0.5 + 3px);
   position: absolute;
   bottom: 0;
   left: 0;
@@ -1423,25 +1314,25 @@ body {
   box-sizing: border-box;
   width: calc(4 * var(--hot-base-grid));
   height: calc(4 * var(--hot-base-grid));
-  padding: var(--hot-header-menu-button-padding);
-  margin-inline-end: calc(var(--hot-base-grid) - var(--hot-header-horizontal-padding));
-  border: var(--hot-header-menu-button-border-size) solid var(--hot-header-menu-button-border-color);
+  padding: calc(2 * var(--hot-base-grid));
+  margin-inline-end: calc(var(--hot-base-grid) - var(--hot-cell-horizontal-padding));
   border-radius: var(--hot-border-radius);
+  border: none;
   /* Visual Styles */
-  background: var(--hot-header-menu-button-background);
+  background: none;
   display: inline-block;
   /* Transition */
   transition: var(--hot-transition-time) all ease-in-out;
 }
 .handsontable .changeType:hover {
   /* Visual Styles */
-  border: var(--hot-header-menu-button-border-size) solid var(--hot-header-menu-button-hover-color);
+  border: none;
   cursor: pointer;
   background-color: var(--hot-background-color);
   box-shadow: 0 0 0 1px var(--hot-border-color);
 }
 .handsontable .changeType:hover:before {
-  border-color: var(--hot-header-menu-button-hover-color);
+  border-color: var(--hot-accent-color);
 }
 .handsontable .changeType:before {
   /* Positioning */
@@ -1451,13 +1342,13 @@ body {
   margin-left: 0.5px;
   transform: rotate(45deg) translate(-100%);
   /* Box Model */
-  width: 4px;
-  height: 4px;
+  width: var(--hot-base-grid);
+  height: var(--hot-base-grid);
   /* Visual Styles */
   content: "";
   display: block;
-  border-right: 1.5px solid var(--hot-read-only-text);
-  border-bottom: 1.5px solid var(--hot-read-only-text);
+  border-right: 1.5px solid var(--hot-header-foreground-color);
+  border-bottom: 1.5px solid var(--hot-header-foreground-color);
   /* Transition */
   transition: var(--hot-transition-time) all ease-in-out;
 }
@@ -1513,7 +1404,7 @@ body {
   position: relative;
   /* Box Model */
   border-width: 0;
-  padding: var(--hot-dropdown-item-padding);
+  padding: calc(2 * var(--hot-base-grid));
   overflow: hidden;
   /* Typography */
   white-space: nowrap;
@@ -1535,14 +1426,14 @@ body {
   color: var(--hot-foreground-color);
 }
 .handsontable.htDropdownMenu table tbody tr td.current:not(.htSelectionDisabled), .handsontable.htContextMenu table tbody tr td.current:not(.htSelectionDisabled), .handsontable.htFiltersConditionsMenu table tbody tr td.current:not(.htSelectionDisabled) {
-  background: var(--hot-dropdown-item-active);
+  background: var(--hot-off-background-color);
 }
 .handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after, .handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after, .handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after {
   content: "";
   display: block;
   position: absolute;
   top: 50%;
-  right: calc(2 * var(--hot-dropdown-item-padding));
+  right: calc(4 * var(--hot-base-grid));
   margin-left: 0.5px;
   transform: rotate(45deg) translate(-100%);
   width: 4px;
@@ -1553,7 +1444,7 @@ body {
   border-top: 1.5px solid var(--hot-read-only-text);
 }
 .handsontable.htDropdownMenu table tbody tr td.htSeparator, .handsontable.htContextMenu table tbody tr td.htSeparator, .handsontable.htFiltersConditionsMenu table tbody tr td.htSeparator {
-  border-top: var(--hot-dropdown-separator-size) solid var(--hot-separator-color);
+  border-top: 1px solid var(--hot-highlight-color);
   height: 0;
   padding: 0;
   cursor: default;
@@ -1570,7 +1461,7 @@ body {
   display: none;
 }
 .handsontable.htDropdownMenu table tbody tr td .htItemWrapper, .handsontable.htContextMenu table tbody tr td .htItemWrapper, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper {
-  margin-inline: var(--hot-dropdown-item-margin);
+  margin-inline: calc(2 * var(--hot-base-grid));
 }
 .handsontable.htDropdownMenu table tbody tr td .htItemWrapper:before, .handsontable.htContextMenu table tbody tr td .htItemWrapper:before, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper:before {
   vertical-align: text-bottom;
@@ -1614,55 +1505,52 @@ body {
 }
 
 .handsontable {
-  /* Menu filtering*/
   /* Menu label */
-  /* Component action bar */
   /* Component filter by conditional */
+  /* Component action bar */
   /* Filter Links */
   /* SelectMultiple */
 }
 .handsontable .htMenuFiltering {
-  border-bottom: var(--hot-filters-menu-filtering-border-width) var(--hot-filters-menu-filtering-border-style) var(--hot-border-color);
+  border-bottom: 1px solid var(--hot-border-color);
   height: var(--hot-filters-menu-filtering-height);
   overflow: hidden;
 }
 .handsontable .ht_master table td.htCustomMenuRenderer {
-  background-color: var(--hot-filters-menu-background);
   cursor: auto;
 }
 .handsontable .htFiltersMenuLabel {
-  font-size: var(--hot-filters-menu-label-font-size);
-  line-height: var(--hot-filters-menu-label-line-height);
-  padding: var(--hot-filters-menu-label-padding);
+  font-size: var(--hot-label-font-size);
+  line-height: var(--hot-label-line-height);
+  padding: calc(2 * var(--hot-base-grid)) 0 calc(0.5 * var(--hot-base-grid));
 }
-.handsontable .htFiltersMenuActionBar {
-  text-align: var(--hot-filters-menu-action-bar-align);
-  padding: var(--hot-filters-menu-action-bar-padding);
+.handsontable .htFiltersMenuLabel:empty {
+  display: none;
 }
 .handsontable .htFiltersMenuCondition.border {
-  border-bottom: var(--hot-filters-menu-border-width) var(--hot-filters-menu-border-style) var(--hot-border-color) !important;
+  border-bottom: 1px solid var(--hot-highlight-color) !important;
+  padding-bottom: calc(4 * var(--hot-base-grid));
 }
 .handsontable .htFiltersMenuValue {
-  border-bottom: var(--hot-filters-menu-border-width) var(--hot-filters-menu-border-style) var(--hot-border-color) !important;
+  border-bottom: 1px solid var(--hot-highlight-color) !important;
+  padding-bottom: 0 !important;
 }
-.handsontable .htFiltersMenuValue .htUIMultipleSelectSearch {
-  padding: var(--hot-filters-menu-value-search-padding);
+.handsontable .htUIMultipleSelectHot {
+  border-top: 1px solid var(--hot-highlight-color);
+  margin: 0 calc(-4 * var(--hot-base-grid));
 }
-.handsontable .htUISelectionControls {
-  text-align: inline-end;
-}
-.handsontable .htFiltersMenuOperators {
-  padding: var(--hot-filters-menu-operators-padding);
+.handsontable .htUIMultipleSelectHot td {
+  padding: calc(2 * var(--hot-base-grid)) calc(4 * var(--hot-base-grid)) !important;
 }
 .handsontable .htUIClearAll, .handsontable .htUISelectAll {
   display: inline-block;
 }
 .handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
-  font-size: var(--hot-button-font-size);
+  font-size: var(--hot-font-size);
 }
 .handsontable .htUISelectAll {
   margin-inline-start: 0;
-  margin-inline-end: var(--hot-button-margin);
+  margin-inline-end: calc(2 * var(--hot-base-grid));
 }
 .handsontable .htUIMultipleSelect .ht_master .wtHolder {
   overflow-y: auto;
@@ -1672,11 +1560,11 @@ body {
 .handsontable .htUIMultipleSelect .ht_master .wtHolder tr, .handsontable .htUIMultipleSelect .ht_master .wtHolder td {
   background: none;
 }
-.handsontable .htUIMultipleSelect .handsontable .htCore {
-  border: none;
-}
 .handsontable .htUIMultipleSelect .handsontable .htCore td:hover {
-  background-color: var(--hot-dropdown-menu-item-active);
+  background-color: var(---hot-off-background-color);
+}
+.handsontable .htUIMultipleSelect .handsontable .htCore td.current {
+  background: var(---hot-background-color);
 }
 
 .handsontable .htCommentCell {
@@ -1895,7 +1783,6 @@ body {
   top: 0;
   z-index: 210;
   /* Box Model */
-  height: calc(var(--hot-cell-height) + var(--hot-cell-horizontal-padding));
   width: 10px;
   margin: 0;
   /* Visual Styles */
@@ -1933,12 +1820,11 @@ body {
   top: 0;
   /* Box Model */
   width: 0;
-  margin-inline-start: 5px;
+  margin-inline-start: 4px;
   margin-inline-end: unset;
   /* Visual Styles */
   display: none;
-  background-color: var(--hot-column-resizer-color);
-  border-inline-end: var(--hot-border-vertical-size) solid var(--hot-column-resizer-guide-color);
+  border-inline-end: 1px solid var(--hot-accent-color);
   border-inline-start: none;
 }
 .handsontable .manualColumnResizerGuide.active {
@@ -1952,7 +1838,6 @@ body {
   left: 0;
   z-index: 210;
   /* Box Model */
-  width: var(--hot-col-width);
   height: 10px;
   margin: 0;
   /* Visual Styles */
@@ -1991,11 +1876,10 @@ body {
   bottom: 0;
   /* Box Model */
   height: 0;
-  margin-top: 5px;
+  margin-top: 4px;
   /* Visual Styles */
   display: none;
-  background-color: var(--hot-column-resizer-color);
-  border-bottom: var(--hot-border-vertical-size) solid var(--hot-column-resizer-guide-color);
+  border-bottom: 1px solid var(--hot-accent-color);
   border-top: none;
 }
 .handsontable .manualRowResizerGuide.active {
@@ -2059,20 +1943,20 @@ body {
   position: absolute;
   height: 100%;
   display: none;
+  background: var(--hot-accent-color);
 }
 .handsontable .ht__manualColumnMove--guideline {
-  background: var(--hot-manualMove-guideline-color);
-  width: var(--hot-manualMove-guideline-size);
+  width: 1px;
   top: 0;
-  margin-inline-start: calc(var(--hot-manualMove-guideline-size) * -0.5);
+  margin-inline-start: -0.5px;
   margin-inline-end: 0;
   z-index: 205;
 }
 .handsontable .ht__manualColumnMove--backlight {
-  background: var(--hot-manualMove-backlight-color);
   display: none;
   z-index: 205;
   pointer-events: none;
+  opacity: 0.1;
 }
 .handsontable.on-moving--columns.show-ui .ht__manualColumnMove--guideline,
 .handsontable.on-moving--columns .ht__manualColumnMove--backlight {
@@ -2102,19 +1986,19 @@ body {
   position: absolute;
   width: 100%;
   display: none;
+  background: var(--hot-accent-color);
 }
 .handsontable .ht__manualRowMove--guideline {
-  background: var(--hot-manualMove-guideline-color);
-  height: var(--hot-manualMove-guideline-size);
+  height: 1px;
   left: 0;
-  margin-top: calc(var(--hot-manualMove-guideline-size) * -0.5);
+  margin-top: -0.5px;
   z-index: 205;
 }
 .handsontable .ht__manualRowMove--backlight {
-  background: var(--hot-manualMove-backlight-color);
   display: none;
   z-index: 205;
   pointer-events: none;
+  opacity: 0.1;
 }
 .handsontable.on-moving--rows.show-ui .ht__manualRowMove--guideline,
 .handsontable.on-moving--rows .ht__manualRowMove--backlight {
