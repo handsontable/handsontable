@@ -155,7 +155,11 @@
 }
 
 .example-container {
-    div[id^="example"] {
+    > .handsontable {
+        display: flex;
+        flex-direction: column;
+    }
+    div > .handsontable {
         display: flex;
         flex-direction: column;
     }
