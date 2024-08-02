@@ -18,10 +18,7 @@
   "sandboxes": [
     "github/handsontable/handsontable/tree/1999-improve-pr-demos/examples/prs/js/",
     "github/handsontable/handsontable/tree/1999-improve-pr-demos/examples/prs/ts/",
-    "github/handsontable/handsontable/tree/1999-improve-pr-demos/examples/prs/react/",
-    "github/handsontable/handsontable/tree/1999-improve-pr-demos/examples/prs/vue/",
-    "github/handsontable/handsontable/tree/1999-improve-pr-demos/examples/prs/vue3/",
-    "github/handsontable/handsontable/tree/1999-improve-pr-demos/examples/prs/angular/"
+    "github/handsontable/handsontable/tree/1999-improve-pr-demos/examples/prs/react/"
   ],
   "node": "18"
 }
