@@ -151,12 +151,13 @@ html.theme-dark {
                 }
             }
             > .sidebar-group {
-                p, a { 
-                    color:  $textColor 
-
-                    &.open { 
+                &.open {
+                    p, a {
                         color: $textColor
                     }
+                }
+                p, a { 
+                    color:  $textColor
 
                     @media (hover: hover) {
                         &:hover { 
