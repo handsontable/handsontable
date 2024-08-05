@@ -5,7 +5,7 @@
       <div>
         <p>What's new in {{ getVersion }}</p>
         <RouterLink :to="getVersionUrl">
-          Read more <span class="visually-hidden">Read more about new version</span>
+          Learn more <span class="visually-hidden">Learn more about new version</span>
         </RouterLink>
       </div>
       <button type="button" aria-label="Close info box" class="close" @click="closeInfoBox">
