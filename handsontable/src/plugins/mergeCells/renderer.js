@@ -59,8 +59,11 @@ export function createMergeCellRenderer(plugin) {
     const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
     const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
 
-    const notHiddenRow = rowMapper.getNearestNotHiddenIndex(origRow, 1);
-    const notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
+    const firstRenderedColumn = hot.view.getFirstRenderedVisibleColumn();
+    const firstRenderedRow = hot.view.getFirstRenderedVisibleRow();
+
+    const notHiddenRow = Math.max(rowMapper.getNearestNotHiddenIndex(origRow, 1), firstRenderedRow);
+    const notHiddenColumn = Math.max(columnMapper.getNearestNotHiddenIndex(origColumn, 1), firstRenderedColumn);
     const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);
     const notHiddenColspan = Math.min(origColspan, maxColSpan);
 

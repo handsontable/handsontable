@@ -159,10 +159,10 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterRenderer', (...args) => this.#cellRenderer.after(...args));
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.#addMergeActionsToContextMenu(...args));
     this.addHook('afterGetCellMeta', (...args) => this.#onAfterGetCellMeta(...args));
-    this.addHook('afterViewportRowCalculatorOverride',
-      (...args) => this.#onAfterViewportRowCalculatorOverride(...args));
-    this.addHook('afterViewportColumnCalculatorOverride',
-      (...args) => this.#onAfterViewportColumnCalculatorOverride(...args));
+    // this.addHook('afterViewportRowCalculatorOverride',
+    //   (...args) => this.#onAfterViewportRowCalculatorOverride(...args));
+    // this.addHook('afterViewportColumnCalculatorOverride',
+    //   (...args) => this.#onAfterViewportColumnCalculatorOverride(...args));
     this.addHook('modifyAutofillRange', (...args) => this.#onModifyAutofillRange(...args));
     this.addHook('afterCreateCol', (...args) => this.#onAfterCreateCol(...args));
     this.addHook('afterRemoveCol', (...args) => this.#onAfterRemoveCol(...args));
@@ -1038,10 +1038,10 @@ export class MergeCells extends BasePlugin {
    * @param {object} calc The row calculator object.
    */
   #onAfterViewportRowCalculatorOverride(calc) {
-    const nrOfColumns = this.hot.countCols();
+    // const nrOfColumns = this.hot.countCols();
 
-    this.modifyViewportRowStart(calc, nrOfColumns);
-    this.modifyViewportRowEnd(calc, nrOfColumns);
+    // this.modifyViewportRowStart(calc, nrOfColumns);
+    // this.modifyViewportRowEnd(calc, nrOfColumns);
   }
 
   /**
@@ -1113,10 +1113,10 @@ export class MergeCells extends BasePlugin {
    * @param {object} calc The column calculator object.
    */
   #onAfterViewportColumnCalculatorOverride(calc) {
-    const nrOfRows = this.hot.countRows();
+    // const nrOfRows = this.hot.countRows();
 
-    this.modifyViewportColumnStart(calc, nrOfRows);
-    this.modifyViewportColumnEnd(calc, nrOfRows);
+    // this.modifyViewportColumnStart(calc, nrOfRows);
+    // this.modifyViewportColumnEnd(calc, nrOfRows);
   }
 
   /**
