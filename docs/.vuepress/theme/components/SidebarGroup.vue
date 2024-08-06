@@ -4,6 +4,7 @@
     :class="[
       {
         collapsable,
+        open: isOpen || Boolean(item.path),
         'is-sub-group': depth !== 0,
       },
       `depth-${depth}`,
@@ -11,9 +12,8 @@
   >
     <RouterLink
       v-if="item.path"
-      class="sidebar-heading clickable open"
+      class="sidebar-heading clickable"
       :class="{
-        open: isOpen,
         active: isActive($route, item.path),
       }"
       :to="item.path"
@@ -31,7 +31,6 @@
     <p
       v-else
       class="sidebar-heading"
-      :class="{ open: isOpen }"
       @click="toggleOpen()"
       @keyup.enter="toggleOpen"
       tabindex="0"
