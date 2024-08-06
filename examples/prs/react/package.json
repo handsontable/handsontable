@@ -5,8 +5,8 @@
     "keywords": [],
     "main": "src/index.js",
     "dependencies": {
-      "@handsontable/react": "14.4.0",
-      "handsontable": "14.4.0",
+      "@handsontable/react": "latest",
+      "handsontable": "latest",
       "react": "18.2.0",
       "react-dom": "18.2.0",
       "react-native-listener": "1.1.0",
@@ -19,7 +19,7 @@
       "typescript": "4.2.4"
     },
     "scripts": {
-      "start": "SKIP_PREFLIGHT_CHECK=true react-scripts start",
+      "start": "NODE_OPTIONS=--openssl-legacy-provider SKIP_PREFLIGHT_CHECK=true react-scripts start",
       "build": "SKIP_PREFLIGHT_CHECK=true react-scripts build",
       "test": "react-scripts test --env=jsdom",
       "eject": "react-scripts eject"

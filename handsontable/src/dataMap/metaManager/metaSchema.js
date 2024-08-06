@@ -401,8 +401,7 @@ export default () => {
      * | `true`    | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin with the default configuration |
      * | An object | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin and modify the plugin options  |
      *
-     * To give Handsontable's [scrollbar](https://handsontable.com/docs/8.0.0/demo-scrolling.html)
-     * a proper size, set the `autoRowSize` option to `true`.
+     * To give Handsontable's scrollbar a proper size, set the `autoRowSize` option to `true`.
      *
      * If you set the `autoRowSize` option to an object, you can set the following [`AutoRowSize`](@/api/autoRowSize.md) plugin options:
      *
@@ -2986,10 +2985,10 @@ export default () => {
      * manualRowMove: true,
      *
      * // enable the `ManualRowMove` plugin
-     * // at initialization, move row 0 to 1
-     * // at initialization, move row 1 to 4
-     * // at initialization, move row 2 to 6
-     * manualColumnMove: [1, 4, 6],
+     * // at initialization, move row 1 to 0
+     * // at initialization, move row 4 to 1
+     * // at initialization, move row 6 to 2
+     * manualRowMove: [1, 4, 6],
      * ```
      */
     manualRowMove: undefined,

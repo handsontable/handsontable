@@ -618,17 +618,16 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCopy(event) {
-    if ((!this.hot.isListening() && !this.#isTriggeredByCopy) || this.isEditorOpened()) {
-      return;
-    }
-
     if (
-      !this.hot.getSettings().outsideClickDeselects &&
-      (event.target !== this.hot.rootDocument.body)
+      !this.hot.isListening() && !this.#isTriggeredByCopy ||
+      this.isEditorOpened() ||
+      event.target?.hasAttribute('data-hot-input') ||
+      !this.hot.getSettings().outsideClickDeselects && event.target !== this.hot.rootDocument.body
     ) {
       return;
     }
 
+    event.preventDefault();
     this.setCopyableText();
     this.#isTriggeredByCopy = false;
 
@@ -653,7 +652,6 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.#copyMode = 'cells-only';
-    event.preventDefault();
   }
 
   /**
@@ -663,17 +661,16 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCut(event) {
-    if ((!this.hot.isListening() && !this.#isTriggeredByCut) || this.isEditorOpened()) {
-      return;
-    }
-
     if (
-      !this.hot.getSettings().outsideClickDeselects &&
-      (event.target !== this.hot.rootDocument.body)
+      !this.hot.isListening() && !this.#isTriggeredByCut ||
+      this.isEditorOpened() ||
+      event.target?.hasAttribute('data-hot-input') ||
+      !this.hot.getSettings().outsideClickDeselects && event.target !== this.hot.rootDocument.body
     ) {
       return;
     }
 
+    event.preventDefault();
     this.setCopyableText();
     this.#isTriggeredByCut = false;
 
@@ -696,8 +693,6 @@ export class CopyPaste extends BasePlugin {
       this.hot.emptySelectedCells('CopyPaste.cut');
       this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
     }
-
-    event.preventDefault();
   }
 
   /**
@@ -707,13 +702,12 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onPaste(event) {
-    if (!this.hot.isListening() || this.isEditorOpened() || !this.hot.getSelected()) {
-      return;
-    }
-
     if (
-      !this.hot.getSettings().outsideClickDeselects &&
-      (event.target !== this.hot.rootDocument.body)
+      !this.hot.isListening() ||
+      this.isEditorOpened() ||
+      event.target?.hasAttribute('data-hot-input') ||
+      !this.hot.getSelected() ||
+      !this.hot.getSettings().outsideClickDeselects && event.target !== this.hot.rootDocument.body
     ) {
       return;
     }
