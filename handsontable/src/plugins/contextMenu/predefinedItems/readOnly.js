@@ -17,7 +17,7 @@ export default function readOnlyItem() {
         (row, col) => this.getCellMeta(row, col).readOnly
       );
 
-      return atLeastOneReadOnly.toString();
+      return atLeastOneReadOnly;
     },
 
     ariaLabel() {

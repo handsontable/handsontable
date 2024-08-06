@@ -11,15 +11,6 @@ export const KEY = 'alignment';
 
 /**
  * @param {object} hot The current Handsontable instance.
- * @param {string} htClassName The class name to check.
- * @returns {string} The value of aria-checked parameter.
- */
-function ariaChecked(hot, htClassName) {
-  return hasSelectionAClass(hot, htClassName).toString();
-}
-
-/**
- * @param {object} hot The current Handsontable instance.
  * @param {string} rawName The raw name of the menu item.
  * @param {string} htClassName The class name to check.
  * @returns {string} The value of aria-label parameter.
@@ -67,7 +58,7 @@ export default function alignmentItem() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT), 'htLeft');
           },
           ariaChecked() {
-            return ariaChecked(this, 'htLeft');
+            return hasSelectionAClass(this, 'htLeft');
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT);
@@ -98,7 +89,7 @@ export default function alignmentItem() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER), 'htCenter');
           },
           ariaChecked() {
-            return ariaChecked(this, 'htCenter');
+            return hasSelectionAClass(this, 'htCenter');
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER);
@@ -129,7 +120,7 @@ export default function alignmentItem() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT), 'htRight');
           },
           ariaChecked() {
-            return ariaChecked(this, 'htRight');
+            return hasSelectionAClass(this, 'htRight');
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT);
@@ -160,7 +151,7 @@ export default function alignmentItem() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY), 'htJustify');
           },
           ariaChecked() {
-            return ariaChecked(this, 'htJustify');
+            return hasSelectionAClass(this, 'htJustify');
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY);
@@ -194,7 +185,7 @@ export default function alignmentItem() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP), 'htTop');
           },
           ariaChecked() {
-            return ariaChecked(this, 'htTop');
+            return ahasSelectionAClass(this, 'htTop');
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
@@ -225,7 +216,7 @@ export default function alignmentItem() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE), 'htMiddle');
           },
           ariaChecked() {
-            return ariaChecked(this, 'htMiddle');
+            return hasSelectionAClass(this, 'htMiddle');
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE);
@@ -256,7 +247,7 @@ export default function alignmentItem() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM), 'htBottom');
           },
           ariaChecked() {
-            return ariaChecked(this, 'htBottom');
+            return hasSelectionAClass(this, 'htBottom');
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM);

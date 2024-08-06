@@ -134,7 +134,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(deselected.ariaLabel).toEqual('Left unchecked');
   });
 
-  it(' should assign the `role=menuitemcheckbox` attribute to the all alignment options', async() => {
+  it('should assign the `role=menuitemcheckbox` attribute to the all alignment options', async() => {
     handsontable({
       contextMenu: ['alignment']
     });
