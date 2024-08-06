@@ -18,10 +18,7 @@
   "sandboxes": [
     "github/handsontable/handsontable/tree/develop/examples/prs/js/",
     "github/handsontable/handsontable/tree/develop/examples/prs/ts/",
-    "github/handsontable/handsontable/tree/develop/examples/prs/react/",
-    "github/handsontable/handsontable/tree/develop/examples/prs/vue/",
-    "github/handsontable/handsontable/tree/develop/examples/prs/vue3/",
-    "github/handsontable/handsontable/tree/develop/examples/prs/angular/"
+    "github/handsontable/handsontable/tree/develop/examples/prs/react/"
   ],
   "node": "18"
 }
