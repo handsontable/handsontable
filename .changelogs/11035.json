@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed invalid cells states after data population that was canceled in the `beforeChange` hook.",
-  "type": "fixed",
-  "issueOrPR": 11035,
-  "breaking": false,
-  "framework": "none"
-}

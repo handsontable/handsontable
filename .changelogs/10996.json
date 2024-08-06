@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where clicking and dragging on cells on a window-controlled scrolled instances would end up in unpredictable results.",
-  "type": "fixed",
-  "issueOrPR": 10996,
-  "breaking": false,
-  "framework": "none"
-}

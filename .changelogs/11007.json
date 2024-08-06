@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed merged cells misalignment in overlays",
-  "type": "fixed",
-  "issueOrPR": 11007,
-  "breaking": false,
-  "framework": "none"
-}

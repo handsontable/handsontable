@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where the Dropdown Menu would not close after tapping on the table cells on mobile browsers.",
-  "type": "fixed",
-  "issueOrPR": 11044,
-  "breaking": false,
-  "framework": "none"
-}

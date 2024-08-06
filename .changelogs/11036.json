@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added missing \"this\" typing for ColumnSummary plugin.",
-  "type": "added",
-  "issueOrPR": 11036,
-  "breaking": false,
-  "framework": "none"
-}
