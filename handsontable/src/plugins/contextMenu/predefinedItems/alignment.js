@@ -185,7 +185,7 @@ export default function alignmentItem() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP), 'htTop');
           },
           ariaChecked() {
-            return ahasSelectionAClass(this, 'htTop');
+            return hasSelectionAClass(this, 'htTop');
           },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
