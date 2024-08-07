@@ -1,5 +1,5 @@
 import { webfont } from 'webfont';
-import { writeFile } from 'fs/promises';
+import { writeFile } from 'node:fs/promises';
 
 const fontName = 'ht-icons';
 
@@ -24,7 +24,7 @@ ${glyphsData.map(glyph => `.${fontName}-${glyph.metadata.name}:before {
 }`).join('\n')}
 `;
 
-const writeToFile = async (fileName, data) => {
+const writeToFile = async(fileName, data) => {
   try {
     await writeFile(fileName, data);
     console.log(`Wrote data to ${fileName}`);
@@ -33,11 +33,12 @@ const writeToFile = async (fileName, data) => {
   }
 };
 
+// eslint-disable-next-line no-useless-catch
 try {
   const theme = process.env.npm_config_theme;
 
   if (!theme) {
-    throw new Error('Type theme name.');
+    throw new Error('Enter font type name. Example: npm run generate-svg-font --theme=main-light');
   }
 
   const result = await webfont({

@@ -1,15 +1,15 @@
 import SVGFixer from 'oslllo-svg-fixer';
-import { cp, readdir, unlink, rm } from 'fs/promises';
-import path from "node:path";
+import { cp, readdir, unlink, rm } from 'node:fs/promises';
+import path from 'node:path';
 
 try {
   const theme = process.env.npm_config_theme;
 
   if (!theme) {
-    throw new Error('Type theme name.');
+    throw new Error('Enter font type name. Example: npm run fix-svg-icons --theme=main-light');
   }
 
-  const basePath = `./src/styles/themes/${theme}/icons/files`
+  const basePath = `./src/styles/themes/${theme}/icons/files`;
   const tempPath = `./src/styles/themes/${theme}/icons/files-to-fix`;
 
   await cp(
@@ -28,7 +28,7 @@ try {
     { showProgressBar: true }
   ).fix();
 
-  rm(tempPath, { recursive: true })
+  rm(tempPath, { recursive: true });
 } catch (err) {
   console.log(err);
   throw err;
