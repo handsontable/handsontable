@@ -28,7 +28,7 @@ try {
     { showProgressBar: true }
   ).fix();
 
-  rm(tempPath, { recursive: true });
+  await rm(tempPath, { recursive: true });
 } catch (err) {
   console.log(err);
   throw err;

@@ -33,28 +33,23 @@ const writeToFile = async(fileName, data) => {
   }
 };
 
-// eslint-disable-next-line no-useless-catch
-try {
-  const theme = process.env.npm_config_theme;
+const theme = process.env.npm_config_theme;
 
-  if (!theme) {
-    throw new Error('Enter font type name. Example: npm run generate-svg-font --theme=main-light');
-  }
-
-  const result = await webfont({
-    files: `./src/styles/themes/${theme}/icons/files/*.svg`,
-    fontName,
-    formats: 'woff2',
-    ligatures: false,
-    fontHeight: 1000,
-    normalize: true
-  });
-
-  const data = createFontData(result.woff2);
-  const scss = createFontScss(data, result.glyphsData);
-
-  writeToFile(`./src/styles/themes/${theme}/icons/index.scss`, scss);
-} catch (err) {
-  throw err;
+if (!theme) {
+  throw new Error('Enter font type name. Example: npm run generate-svg-font --theme=main-light');
 }
+
+const result = await webfont({
+  files: `./src/styles/themes/${theme}/icons/files/*.svg`,
+  fontName,
+  formats: 'woff2',
+  ligatures: false,
+  fontHeight: 1000,
+  normalize: true
+});
+
+const data = createFontData(result.woff2);
+const scss = createFontScss(data, result.glyphsData);
+
+await writeToFile(`./src/styles/themes/${theme}/icons/index.scss`, scss);
 
