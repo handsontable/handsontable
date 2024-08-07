@@ -842,7 +842,21 @@ export class ColumnSorting extends BasePlugin {
         this.hot.selectColumns(coords.col);
       }
 
-      this.sort(this.getColumnNextConfig(coords.col));
+      const activeEditor = this.hot.getActiveEditor();
+      const nextConfig = this.getColumnNextConfig(coords.col);
+
+      if (
+        activeEditor?.isOpened() &&
+        this.hot.getCellValidator(activeEditor.row, activeEditor.col)
+      ) {
+        // Postpone sorting until the cell's value is validated and saved.
+        this.hot.addHookOnce('postAfterValidate', () => {
+          this.sort(nextConfig);
+        });
+
+      } else {
+        this.sort(nextConfig);
+      }
     }
   }
 
