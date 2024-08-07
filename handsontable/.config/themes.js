@@ -1,4 +1,3 @@
-const path = require('path');
 const configFactory = require('./base');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
@@ -27,7 +26,6 @@ module.exports.create = function create(envArgs) {
             { loader: MiniCssExtractPlugin.loader },
             { loader: 'css-loader' },
             { loader: 'sass-loader' },
-            { loader: path.resolve(__dirname, 'loader/sass-rtl-loader.js') }
           ]
         }
       ],
@@ -75,7 +73,6 @@ module.exports.create = function create(envArgs) {
             { loader: MiniCssExtractPlugin.loader },
             { loader: 'css-loader' },
             { loader: 'sass-loader' },
-            { loader: path.resolve(__dirname, 'loader/sass-rtl-loader.js') }
           ]
         }
       ],

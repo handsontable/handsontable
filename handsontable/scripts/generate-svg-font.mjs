@@ -24,7 +24,7 @@ ${glyphsData.map(glyph => `.${fontName}-${glyph.metadata.name}:before {
 }`).join('\n')}
 `;
 
-const writeToFile = async(fileName, data) => {
+const writeToFile = async (fileName, data) => {
   try {
     await writeFile(fileName, data);
     console.log(`Wrote data to ${fileName}`);
@@ -33,31 +33,27 @@ const writeToFile = async(fileName, data) => {
   }
 };
 
-((async function() {
+try {
   const theme = process.env.npm_config_theme;
 
   if (!theme) {
-    console.error('Type theme name.');
-
-    return;
+    throw new Error('Type theme name.');
   }
 
-  // eslint-disable-next-line no-useless-catch
-  try {
-    const result = await webfont({
-      files: `./src/styles/themes/${theme}/icons/files/*.svg`,
-      fontName,
-      formats: 'woff2',
-      ligatures: false,
-      fontHeight: 1000,
-      normalize: true
-    });
+  const result = await webfont({
+    files: `./src/styles/themes/${theme}/icons/files/*.svg`,
+    fontName,
+    formats: 'woff2',
+    ligatures: false,
+    fontHeight: 1000,
+    normalize: true
+  });
 
-    const data = createFontData(result.woff2);
-    const scss = createFontScss(data, result.glyphsData);
+  const data = createFontData(result.woff2);
+  const scss = createFontScss(data, result.glyphsData);
 
-    writeToFile(`./src/styles/themes/${theme}/icons/index.scss`, scss);
-  } catch (err) {
-    throw err;
-  }
-})());
+  writeToFile(`./src/styles/themes/${theme}/icons/index.scss`, scss);
+} catch (err) {
+  throw err;
+}
+
