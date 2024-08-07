@@ -1,0 +1,49 @@
+/*
+  Handsontable HiddenRows
+*/
+
+@mixin output {
+  .handsontable {
+    th.beforeHiddenRow,
+    th.afterHiddenRow {
+      position: relative;
+
+      .relative {
+        &:before,
+        &:after {
+          content: "";
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0;
+          height: 0;
+          border: 4px solid transparent;
+        }
+      }
+    }
+
+    th.beforeHiddenRow .relative::before {
+      bottom: -2px;
+      border-color: transparent transparent var(--hot-border-color) transparent;
+    }
+
+    th.afterHiddenRow .relative::after {
+      top: -2px;
+      border-color: var(--hot-border-color) transparent transparent transparent;
+    }
+
+    &.ht__selection--rows tbody {
+      th.beforeHiddenRow.ht__highlight .relative::before,
+      th.afterHiddenRow.ht__highlight .relative::after {
+      }
+    }
+
+    td,
+    th {
+      &.afterHiddenRow.firstVisibleRow {
+        border-top: var(--hot-border-horizontal-size) solid
+          var(--hot-border-color);
+      }
+    }
+  }
+}

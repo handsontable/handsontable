@@ -1,0 +1,116 @@
+@import "../../utils/mixins";
+
+/*
+  Helper element for plugins:
+    - Nested Headers
+    - Nested Rows
+*/
+
+@mixin output {
+  .handsontable {
+    .collapsibleIndicator,
+    .ht_nestingButton {
+      /* Positioning */
+      position: absolute;
+      top: 50%;
+      inset-inline-start: unset;
+      inset-inline-end: var(--hot-base-grid);
+      transform: translate(0%, -50%);
+
+      /* Box Model */
+      box-sizing: border-box;
+      width: calc(4 * var(--hot-base-grid));
+      height: calc(4 * var(--hot-base-grid));
+      border: 1px solid var(--hot-border-color);
+
+      border-radius: var(--hot-border-radius);
+
+      /* Typography */
+      text-indent: -100px;
+      font-size: 0;
+      overflow: hidden;
+
+      /* Visual Styles */
+      background-color: var(--hot-background-color);
+      cursor: pointer;
+
+      /* Transition */
+      transition: var(--hot-transition-time) all ease-in-out;
+
+      &:after,
+      &:before {
+        @include pseudo;
+
+        /* Positioning */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        /* Box Model */
+        width: calc(2 * var(--hot-base-grid));
+        height: 1.5px;
+        border-radius: var(--hot-border-radius);
+
+        /* Visual Styles */
+        background-color: var(--hot-border-color);
+
+        /* Transition */
+        transition: var(--hot-transition-time) all ease-in-out;
+      }
+
+      &:before {
+        /* Positioning */
+        height: calc(2 * var(--hot-base-grid));
+        width: 1.5px;
+
+        /* Display */
+        opacity: 0;
+      }
+
+      /* Expanded */
+      &.expanded {
+        &:hover {
+          &:after {
+            background-color: var(--hot-accent-color);
+          }
+        }
+      }
+
+      /* Collapsed */
+      &.collapsed,
+      &.ht_nestingExpand {
+        background-color: var(--hot-header-active-background-color);
+        border-color: var(--hot-border-color);
+
+        &:before,
+        &:after {
+          background-color: var(--hot-border-color);
+          opacity: 1;
+        }
+
+        &:hover {
+          background-color: var(--hot-header-active-background-color);
+
+          &:before,
+          &:after {
+            background-color: var(--hot-accent-color);
+          }
+        }
+      }
+
+      &:hover {
+        background-color: var(--hot-header-background-color);
+        &:before,
+        &:after {
+          background-color: var(--hot-border-color);
+        }
+      }
+    }
+  }
+
+  [dir="rtl"].handsontable .collapsibleIndicator {
+    right: unset;
+    left: var(--hot-base-grid);
+  }
+}

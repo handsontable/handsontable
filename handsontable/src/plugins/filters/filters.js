@@ -25,8 +25,6 @@ import {
 } from './constants';
 import { TrimmingMap } from '../../translations';
 
-import './filters.scss';
-
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
 const SHORTCUTS_GROUP = PLUGIN_KEY;

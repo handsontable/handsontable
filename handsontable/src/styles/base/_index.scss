@@ -1,0 +1,14 @@
+@use "sass:color";
+
+@use "./base";
+@use "./elevation";
+@use "./display";
+
+/*
+  Walkontable migration
+*/
+@mixin base-styles() {
+  @include base.output();
+  @include elevation.output();
+  @include display.output();
+}
