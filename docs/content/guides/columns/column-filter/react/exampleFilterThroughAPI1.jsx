@@ -10,37 +10,45 @@ const ExampleComponent = () => {
   const hotTableComponentRef = useRef(null);
   const filterBelow200 = () => {
     // get the `Filters` plugin, so you can use its API
-    const filters = hotTableComponentRef.current.hotInstance.getPlugin('filters');
+    const filters =
+      hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
 
     // clear any existing filters
-    filters.clearConditions();
+    filters?.clearConditions();
     // filter data by the 'Price' column (column at index 2)
     // to display only items that are less than ('lt') $200
-    filters.addCondition(2, 'lt', [200]);
-    filters.filter();
+    filters?.addCondition(2, 'lt', [200]);
+    filters?.filter();
   };
 
   const filterAbove200 = () => {
     // get the `Filters` plugin, so you can use its API
-    const filters = hotTableComponentRef.current.hotInstance.getPlugin('filters');
+    const filters =
+      hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
 
-    filters.clearConditions();
+    filters?.clearConditions();
     // display only items that are more than ('gt') $200
-    filters.addCondition(2, 'gt', [200]);
-    filters.filter();
+    filters?.addCondition(2, 'gt', [200]);
+    filters?.filter();
   };
 
   const clearAllFilters = () => {
     // get the `Filters` plugin, so you can use its API
-    const filters = hotTableComponentRef.current.hotInstance.getPlugin('filters');
+    const filters =
+      hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
 
     // clear all filters
-    filters.clearConditions();
-    filters.filter();
+    filters?.clearConditions();
+    filters?.filter();
   };
 
   return (
     <>
+      <div className="controls">
+        <button onClick={filterBelow200}>Show items &lt; $200</button>
+        <button onClick={filterAbove200}>Show items &gt; $200</button>
+        <button onClick={clearAllFilters}>Clear filters</button>
+      </div>
       <HotTable
         ref={hotTableComponentRef}
         data={[
@@ -137,15 +145,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button onClick={filterBelow200}>Show items &lt; $200</button>
-        <br />
-        <br />
-        <button onClick={filterAbove200}>Show items &gt; $200</button>
-        <br />
-        <br />
-        <button onClick={clearAllFilters}>Clear filters</button>
-      </div>
     </>
   );
 };

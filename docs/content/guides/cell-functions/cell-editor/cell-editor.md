@@ -9,6 +9,7 @@ react:
   id: 6i8ttta0
   metaTitle: Cell editor - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell functions
 ---
 
 # Cell editor
@@ -39,9 +40,10 @@ If you are using React 17 and newer, `event.stopPropagation()` should work for y
 
 Note that in case of React 16 and older, it wouldn't work out of the box because of the way how React used to handle events. [This article by Eric Clemmons](https://medium.com/@ericclemmons/react-event-preventdefault-78c28c950e46) sums it up pretty well and presents a solution ([react-native-listener](https://www.npmjs.com/package/react-native-listener)).
 
-::: example #example1 :react --tab preview
+::: example #example1 :react --js 1 --ts 2 --tab preview 
 
 @[code](@/content/guides/cell-functions/cell-editor/react/example1.jsx)
+@[code](@/content/guides/cell-functions/cell-editor/react/example1.tsx)
 
 :::
 
@@ -51,9 +53,10 @@ You can also declare a custom editor for the `HotTable` component by declaring i
 
 The following example implements the `@handsontable/react` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
 
-::: example #example2 :react 
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-editor/react/example2.jsx)
+@[code](@/content/guides/cell-functions/cell-editor/react/example2.tsx)
 
 :::
 
@@ -1221,10 +1224,14 @@ const hot = new Handsontable(container, {
 ## Related articles
 
 ### Related guides
+<div class="boxes-list gray">
+
 - [Custom editor in React](@/react/guides/cell-functions/cell-editor/cell-editor.md)
 - [Custom editor in Angular](@/guides/integrate-with-angular/angular-custom-editor-example/angular-custom-editor-example.md)
 - [Custom editor in Vue 2](@/guides/integrate-with-vue/vue-custom-editor-example/vue-custom-editor-example.md)
 - [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md)
+
+</div>
 
 ### Related API reference
 

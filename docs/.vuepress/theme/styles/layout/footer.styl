@@ -1,0 +1,248 @@
+.footer { 
+    margin: 24px auto 0
+    padding: 24px 0 16px
+    box-sizing: border-box;
+    color: $text2Color
+
+    .copyright {
+        border-top: 1px solid $borderColor
+        width: 100%;
+        display: flex;
+        align-items: center;
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+        padding-top: 16px
+        margin-top: 16px
+    }
+
+    .edit-link  { 
+        display: flex
+        gap: 8px
+        font-weight: 300
+        align-items: center
+        margin-left: auto
+        color: $text2Color
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+        font-weight: 400
+        
+        i { 
+            opacity: .6
+        }
+        
+        @media (hover: hover) {
+            &:hover {  
+                color: $textColor
+
+                i { 
+                    opacity: .8
+                }
+            }
+        }
+    }
+    
+
+    .footer-links {
+        border-top: 1px solid $borderColor    
+        display: flex
+        color: $text2Color
+        align-items: center;
+        gap: 24px;
+        padding-top: 16px
+        margin-top: 16px
+
+        p,a { 
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+            font-weight: 400
+        }
+
+        p { 
+            opacity .6
+            text-align: center
+        }
+        
+        .socail-links {
+            margin: 0 0 0 -8px
+            gap:0
+            
+            a {
+                padding: 8px
+                border-radius: $radius-xxl
+                transition: all $t ease-in-out
+                display: block
+
+                @media (hover: hover) {
+                    &:hover {  
+                        background: $onsurfaceColor
+                    }
+                }
+            }
+        }
+        
+        div { 
+            display: flex
+            gap:8px
+
+            a { 
+                color: $text2Color
+                text-decoration: none
+                transition: all $t ease-in-out
+                padding: 0 4px
+                border-radius: $radius-s
+
+                &.status:before {
+                    content:''
+                    margin: 2px 6px
+                    display: block
+                    border-radius: $radius
+                    width: 6px
+                    height: 6px
+                    background: $successColor
+                    display: inline-block
+                }
+                
+                @media (hover: hover) {
+                    &:hover {  
+                        color: $textColor
+                    }
+                }
+            }
+            
+        }
+        
+    }
+
+    .footer-support { 
+        display: flex
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+        justify-content: space-between
+        color: $text2Color
+        padding-bottom: 40px
+
+        .edit-link a { 
+            display: flex
+            gap: 8px
+            font-weight: 300
+            align-items: center;
+
+            i { filter:none }
+
+            @media (hover: hover) {
+                &:hover {  
+                    color: $textColor
+                }
+            }
+        }
+    }
+
+    .rate-post {
+        padding: 48px 0 
+        text-align: center
+
+        p {
+            font-weight: 300
+            padding-bottom: 8px
+        }
+
+        .btn-group { 
+            display: flex;
+            gap: 8px
+            margin: 8px auto 0 
+            width: fit-content;
+        }
+
+        button { 
+            border:0;
+            padding: 8px 16px;
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+            border-radius: $radius
+            background: $onsurfaceColor !important
+            cursor: pointer
+            transition: all $t ease-in-out
+
+            @media (hover: hover) {
+                &:hover {  
+                    background: $bgColor  !important
+                }
+            }
+        }
+    }
+
+    .dark-mode { 
+        cursor pointer
+        margin-left: auto
+
+        .inner { 
+            display:flex
+            padding: 6px 16px 6px 12px
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+            background: $sideColor 
+            color: $textColor
+            border-radius: $radius-xl
+            transition: all $t ease-in-out
+            
+            span {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+
+            i { 
+                display: inline-block
+            }
+            input { 
+                display none 
+            }
+
+            @media (hover: hover) {
+                &:hover {  
+                    background: $siderColor
+                }
+            }
+        }
+    }
+
+    @media (max-width: $large) {
+        background: $borderColor
+        margin: 80px -32px -24px
+        padding: 32px 32px 32px
+        border-radius: 0
+        position: relative
+
+        .edit-link { 
+            position absolute
+            top:-48px
+        }
+
+        .footer-links {
+            margin-top: 0
+            padding-top: 0
+            border: 0
+        }
+    }
+
+    @media (max-width: $medium) {
+        background: $borderColor
+        margin: 80px -32px -24px
+        padding: 32px 32px 32px
+        border-radius: 0
+
+        .footer-links {
+            flex-direction: column
+            align-items: start
+
+            .hot-links {
+                flex-direction: column
+            }
+
+            .edit-link  { 
+                order: -1
+                margin-left: 0
+            }
+        }
+    }
+}

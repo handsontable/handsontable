@@ -8,13 +8,14 @@ import { StarsRenderer } from "./renderers/Stars";
 import {
   drawCheckboxInRowHeaders,
   addClassesToRows,
-  changeCheckboxCell,
-  alignHeaders
+  changeCheckboxCell
 } from "./hooksCallbacks";
 
 import "handsontable/dist/handsontable.css";
 
 const DataGrid = () => {
+  const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
+
   return (
     <HotTable
       data={data}
@@ -39,24 +40,27 @@ const DataGrid = () => {
       multiColumnSorting={true}
       filters={true}
       rowHeaders={true}
-      afterGetColHeader={alignHeaders}
+      headerClassName={isRtl ? "htRight" : "htLeft"}
       beforeRenderer={addClassesToRows}
       afterGetRowHeader={drawCheckboxInRowHeaders}
       afterOnCellMouseDown={changeCheckboxCell}
       mergeCells={true}
       manualRowMove={true}
       navigableHeaders={true}
+      comments={true}
+      manualColumnMove={true}
+      customBorders={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />
       <HotColumn data={3} />
       <HotColumn data={4} type="date" allowInvalid={false} />
-      <HotColumn data={6} type="checkbox" className="htCenter" />
-      <HotColumn data={7} type="numeric" />
+      <HotColumn data={6} type="checkbox" className="htCenter" headerClassName="htCenter" />
+      <HotColumn data={7} type="numeric" headerClassName="htRight" />
       <HotColumn data={8} readOnly={true} className="htMiddle">
         <ProgressBarRenderer hot-renderer />
       </HotColumn>
-      <HotColumn data={9} readOnly={true} className="htCenter">
+      <HotColumn data={9} readOnly={true} className="htCenter" headerClassName="htCenter">
         <StarsRenderer hot-renderer />
       </HotColumn>
       <HotColumn data={5} />

@@ -50,6 +50,6 @@
   "defaultProject": "hot-table",
   "cli": {
     "defaultCollection": "@angular-eslint/schematics",
-    "analytics": "fbaa8d35-b703-427f-984c-3c9d85655c61"
+    "analytics": "3cc71fb4-b6d3-4709-8c94-c6d52c459c3d"
   }
 }

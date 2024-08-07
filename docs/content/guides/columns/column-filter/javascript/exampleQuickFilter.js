@@ -3,8 +3,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleQuickFilter');
 const filterField = document.querySelector('#filterField');
-
-const handsontableInstance = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -98,13 +97,12 @@ const handsontableInstance = new Handsontable(container, {
 
 // add a filter input listener
 filterField.addEventListener('keyup', (event) => {
-  const filters = handsontableInstance.getPlugin('filters');
+  const filters = hot.getPlugin('filters');
   const columnSelector = document.getElementById('columns');
   const columnValue = columnSelector.value;
 
   filters.removeConditions(columnValue);
   filters.addCondition(columnValue, 'contains', [event.target.value]);
   filters.filter();
-
-  handsontableInstance.render();
+  hot.render();
 });

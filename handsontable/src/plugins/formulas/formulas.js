@@ -688,8 +688,8 @@ export class Formulas extends BasePlugin {
       for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
         populatedColumnIndex += 1) {
         const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
-        const sourceRow = populatedRowIndex % populationRowLength;
-        const sourceColumn = populatedColumnIndex % populationColumnLength;
+        const sourceRow = sourceStartRow + (populatedRowIndex % populationRowLength);
+        const sourceColumn = sourceStartColumn + (populatedColumnIndex % populationColumnLength);
         const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
 
         if (isDate(populatedValue, sourceCellMeta.type)) {
@@ -1150,7 +1150,10 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingHfRows = this.rowAxisSyncer.getRemovedHfIndexes().sort().reverse();
+    const descendingHfRows = this.rowAxisSyncer
+      .getRemovedHfIndexes()
+      .sort((a, b) => b - a); // sort numeric values descending
+
     const changes = this.engine.batch(() => {
       descendingHfRows.forEach((hfRow) => {
         this.engine.removeRows(this.sheetId, [hfRow, 1]);
@@ -1174,7 +1177,9 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingHfColumns = this.columnAxisSyncer.getRemovedHfIndexes().sort().reverse();
+    const descendingHfColumns = this.columnAxisSyncer
+      .getRemovedHfIndexes()
+      .sort((a, b) => b - a); // sort numeric values descending
 
     const changes = this.engine.batch(() => {
       descendingHfColumns.forEach((hfColumn) => {

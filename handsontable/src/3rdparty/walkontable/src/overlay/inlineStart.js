@@ -59,7 +59,7 @@ export class InlineStartOverlay extends Overlay {
   resetFixedPosition() {
     const { wtTable } = this.wot;
 
-    if (!this.needFullRender || !wtTable.holder.parentNode) {
+    if (!this.needFullRender || !this.shouldBeRendered() || !wtTable.holder.parentNode) {
       // removed from DOM
       return false;
     }
@@ -139,14 +139,12 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Adjust overlay root element, childs and master table element sizes (width, height).
-   *
-   * @param {boolean} [force=false] When `true`, it adjusts the DOM nodes sizes for that overlay.
+   * Adjust overlay root element, children and master table element sizes (width, height).
    */
-  adjustElementsSize(force = false) {
+  adjustElementsSize() {
     this.updateTrimmingContainer();
 
-    if (this.needFullRender || force) {
+    if (this.needFullRender) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
     }
@@ -358,10 +356,12 @@ export class InlineStartOverlay extends Overlay {
    * @returns {boolean}
    */
   adjustHeaderBordersPosition(position) {
+    const { wtSettings } = this;
     const masterParent = this.wot.wtTable.holder.parentNode;
-    const rowHeaders = this.wtSettings.getSetting('rowHeaders');
-    const fixedColumnsStart = this.wtSettings.getSetting('fixedColumnsStart');
-    const totalRows = this.wtSettings.getSetting('totalRows');
+    const rowHeaders = wtSettings.getSetting('rowHeaders');
+    const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
+    const totalRows = wtSettings.getSetting('totalRows');
+    const preventVerticalOverflow = wtSettings.getSetting('preventOverflow') === 'vertical';
 
     if (totalRows) {
       removeClass(masterParent, 'emptyRows');
@@ -371,19 +371,21 @@ export class InlineStartOverlay extends Overlay {
 
     let positionChanged = false;
 
-    if (fixedColumnsStart && !rowHeaders.length) {
-      // "innerBorderLeft" is for backward compatibility
-      addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
-
-    } else if (!fixedColumnsStart && rowHeaders.length) {
-      const previousState = hasClass(masterParent, 'innerBorderInlineStart');
-
-      if (position) {
+    if (!preventVerticalOverflow) {
+      if (fixedColumnsStart && !rowHeaders.length) {
+        // "innerBorderLeft" is for backward compatibility
         addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
-        positionChanged = !previousState;
-      } else {
-        removeClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
-        positionChanged = previousState;
+
+      } else if (!fixedColumnsStart && rowHeaders.length) {
+        const previousState = hasClass(masterParent, 'innerBorderInlineStart');
+
+        if (position) {
+          addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
+          positionChanged = !previousState;
+        } else {
+          removeClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
+          positionChanged = previousState;
+        }
       }
     }
 

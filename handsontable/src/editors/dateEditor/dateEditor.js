@@ -1,5 +1,6 @@
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
+import { EDITOR_STATE } from '../baseEditor';
 import { TextEditor } from '../textEditor';
 import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
@@ -116,8 +117,8 @@ export class DateEditor extends TextEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    super.open();
     this.showDatepicker(event);
+    super.open();
 
     editorContext.addShortcuts([{
       keys: [['ArrowLeft']],
@@ -156,7 +157,11 @@ export class DateEditor extends TextEditor {
     }
 
     this.hot._registerTimeout(() => {
-      this.hot._refreshBorders();
+      const editorManager = this.hot._getEditorManager();
+
+      editorManager.closeEditor();
+      this.hot.view.render();
+      editorManager.prepareEditor();
     });
 
     const shortcutManager = this.hot.getShortcutManager();
@@ -183,7 +188,6 @@ export class DateEditor extends TextEditor {
    * @param {Event} event The event object.
    */
   showDatepicker(event) {
-    const offset = this.TD.getBoundingClientRect();
     const dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
     const isMouseDown = this.hot.view.isMouseDown();
     const isMeta = event ? isFunctionKey(event.keyCode) : false;
@@ -198,18 +202,6 @@ export class DateEditor extends TextEditor {
     }
 
     this.$datePicker._onInputFocus = function() {};
-
-    this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
-
-    let pickerLeftPosition = this.hot.rootWindow.pageXOffset;
-
-    if (this.hot.isRtl()) {
-      pickerLeftPosition = offset.right - outerWidth(this.datePicker);
-    } else {
-      pickerLeftPosition = offset.left;
-    }
-
-    this.datePickerStyle.left = `${pickerLeftPosition}px`;
 
     if (this.originalValue) {
       dateStr = this.originalValue;
@@ -301,5 +293,58 @@ export class DateEditor extends TextEditor {
     };
 
     return options;
+  }
+
+  /**
+   * Refreshes datepicker's size and position. The method is called internally by Handsontable.
+   *
+   * @private
+   * @param {boolean} force Indicates if the refreshing editor dimensions should be triggered.
+   */
+  refreshDimensions(force) {
+    super.refreshDimensions(force);
+
+    if (this.state !== EDITOR_STATE.EDITING) {
+      return;
+    }
+
+    this.TD = this.getEditedCell();
+
+    if (!this.TD) {
+      this.hideDatepicker();
+
+      return;
+    }
+
+    const { rowIndexMapper, columnIndexMapper } = this.hot;
+    const { wtOverlays } = this.hot.view._wt;
+    const { wtTable } = wtOverlays.getParentOverlay(this.TD) ?? this.hot.view._wt;
+
+    const firstVisibleRow = rowIndexMapper.getVisualFromRenderableIndex(wtTable.getFirstPartiallyVisibleRow());
+    const lastVisibleRow = rowIndexMapper.getVisualFromRenderableIndex(wtTable.getLastPartiallyVisibleRow());
+    const firstVisibleColumn = columnIndexMapper.getVisualFromRenderableIndex(wtTable.getFirstPartiallyVisibleColumn());
+    const lastVisibleColumn = columnIndexMapper.getVisualFromRenderableIndex(wtTable.getLastPartiallyVisibleColumn());
+
+    if (
+      this.row >= firstVisibleRow && this.row <= lastVisibleRow &&
+      this.col >= firstVisibleColumn && this.col <= lastVisibleColumn
+    ) {
+      const offset = this.TD.getBoundingClientRect();
+
+      this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
+
+      let pickerLeftPosition = this.hot.rootWindow.pageXOffset;
+
+      if (this.hot.isRtl()) {
+        pickerLeftPosition += offset.right - outerWidth(this.datePicker);
+      } else {
+        pickerLeftPosition += offset.left;
+      }
+
+      this.datePickerStyle.left = `${pickerLeftPosition}px`;
+
+    } else {
+      this.hideDatepicker();
+    }
   }
 }

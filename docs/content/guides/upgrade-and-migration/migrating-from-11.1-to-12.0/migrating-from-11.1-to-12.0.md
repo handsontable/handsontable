@@ -10,6 +10,7 @@ react:
   id: ncj9bstu
   metaTitle: Migrate from 11.1 to 12.0 - React Data Grid | Handsontable
 searchCategory: Guides
+category: Upgrade and migration
 ---
 
 # Migrate from 11.1 to 12.0

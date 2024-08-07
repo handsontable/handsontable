@@ -2,7 +2,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example6');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   data: [],
   dataSchema: { id: null, name: { first: null, last: null }, address: null },
   startRows: 5,
@@ -14,10 +15,10 @@ const hot = new Handsontable(container, {
     { data: 'id' },
     { data: 'name.first' },
     { data: 'name.last' },
-    { data: 'address' }
+    { data: 'address' },
   ],
   minSpareRows: 1,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

@@ -9,7 +9,7 @@ const babelPresetConfig = () => ({
   debug: false,
   useBuiltIns: 'usage',
   corejs: {
-    version: '3.31'
+    version: '3.37'
   }
 });
 
@@ -18,6 +18,7 @@ module.exports = {
     ['@babel/preset-env', babelPresetConfig()]
   ],
   plugins: [
-    ['transform-inline-environment-variables']
+    ['transform-inline-environment-variables'],
+    '@babel/plugin-syntax-jsx'
   ]
 };

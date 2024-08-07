@@ -1,0 +1,19 @@
+{
+  "name": "handsontable-vue-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "vue": "2.7.14",
+    "hyperformula": "^2.4.0",
+    "handsontable": "14.5",
+    "@handsontable/vue": "14.5"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "5.0.8"
+  }
+}

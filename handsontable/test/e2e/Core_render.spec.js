@@ -79,6 +79,27 @@ describe('Core_render', () => {
     expect(afterRender).toHaveBeenCalledTimes(2); // 1 from load and 1 from populateFromArray
   });
 
+  it('should render the table when there is no changes in the dataset', () => {
+    const afterRender = jasmine.createSpy('afterRender');
+
+    handsontable({
+      data: [
+        ['Joe Red']
+      ],
+      beforeChange(changes) {
+        changes.length = 0;
+      },
+      afterRender,
+    });
+
+    afterRender.calls.reset();
+    setDataAtCell(0, 0, 'Test');
+
+    // even though the changes are canceled, the table should be rendered to reset
+    // the cells states (e.g. validation CSS classes)
+    expect(afterRender).toHaveBeenCalledTimes(1);
+  });
+
   it('should run afterRenderer hook', () => {
     let lastCellProperties;
 
@@ -206,5 +227,55 @@ describe('Core_render', () => {
     await sleep(100);
 
     expect(wotRenderSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it('should trigger only the "fast" render for oversized columns (#dev-1849)', async() => {
+    const renderer = jasmine.createSpy('renderer');
+
+    handsontable({
+      data: createSpreadsheetData(10, 2),
+      fixedColumnsStart: 1,
+      colWidths: [30, 500],
+      width: 200,
+      height: 200,
+      renderer,
+    });
+
+    renderer.calls.reset();
+    selectCell(0, 0);
+
+    expect(renderer).toHaveBeenCalledTimes(0);
+  });
+
+  it('should trigger only the "fast" render for oversized rows (#dev-1849)', async() => {
+    const renderer = jasmine.createSpy('renderer');
+
+    handsontable({
+      data: createSpreadsheetData(2, 10),
+      fixedRowsTop: 1,
+      rowHeights: [30, 500],
+      width: 200,
+      height: 200,
+      renderer,
+    });
+
+    renderer.calls.reset();
+    selectCell(0, 0);
+
+    expect(renderer).toHaveBeenCalledTimes(0);
+  });
+
+  it('should correctly render oversized cells after scroll (#dev-1849)', async() => {
+    handsontable({
+      data: createSpreadsheetData(20, 20),
+      rowHeights: 300,
+      colWidths: 300,
+      width: 200,
+      height: 200,
+    });
+
+    selectCell(19, 19);
+
+    expect(getMaster().find('tr:last td:last').text()).toBe('T20');
   });
 });

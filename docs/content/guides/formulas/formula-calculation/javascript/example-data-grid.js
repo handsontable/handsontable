@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
-import HyperFormula from 'hyperformula';
 import 'handsontable/dist/handsontable.full.min.css';
+import { HyperFormula } from 'hyperformula';
 
 const data = [
   ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
@@ -104,11 +104,18 @@ const data = [
   ['41', '739', '0.88', '11', '=A99*(B99*C99)+D99'],
   ['144', '289', '0.87', '13', '=A100*(B100*C100)+D100'],
   ['Sum', 'Average', 'Average', 'Sum', 'Sum'],
-  ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)'],
+  [
+    '=SUM(A1:A100)',
+    '=AVERAGE(B1:B100)',
+    '=AVERAGE(C1:C100)',
+    '=SUM(D1:D100)',
+    '=SUM(E1:E100)',
+  ],
 ];
 
 const container = document.querySelector('#example-data-grid');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   data,
   formulas: {
     engine: HyperFormula,

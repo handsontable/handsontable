@@ -1,3 +1,25 @@
+const specContext = {};
+
+beforeEach(function() {
+  specContext.spec = this;
+});
+afterEach(() => {
+  specContext.spec = null;
+});
+
+beforeAll(() => {
+  // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').hide();
+  }
+});
+afterAll(() => {
+  // After the test are finished show the test suite dots
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').show();
+  }
+});
+
 /**
  * @param {number} [delay=100] The delay in ms after which the Promise is resolved.
  * @returns {Promise}
@@ -80,6 +102,7 @@ export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
 export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
 export const getCellValidator = handsontableMethodFactory('getCellValidator');
 export const getColHeader = handsontableMethodFactory('getColHeader');
+export const getColumnMeta = handsontableMethodFactory('getColumnMeta');
 export const getColWidth = handsontableMethodFactory('getColWidth');
 export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
@@ -139,28 +162,6 @@ export const updateSettings = handsontableMethodFactory('updateSettings');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
 export const unlisten = handsontableMethodFactory('unlisten');
-
-const specContext = {};
-
-beforeEach(function() {
-  specContext.spec = this;
-});
-afterEach(() => {
-  specContext.spec = null;
-});
-
-beforeAll(() => {
-  // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
-  if (!process.env.JEST_WORKER_ID) {
-    $('.jasmine_html-reporter').hide();
-  }
-});
-afterAll(() => {
-  // After the test are finished show the test suite dots
-  if (!process.env.JEST_WORKER_ID) {
-    $('.jasmine_html-reporter').show();
-  }
-});
 
 /**
  * @returns {object} Returns the spec object for currently running test.
@@ -223,6 +224,32 @@ export function inlineStartOverlay() {
  */
 export function bottomInlineStartCornerOverlay() {
   return hot().view._wt.wtOverlays.bottomInlineStartCornerOverlay;
+}
+
+/**
+ * Moves the table's viewport to the specified y scroll position.
+ *
+ * @param {number} y The scroll position.
+ */
+export function setScrollTop(y) {
+  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
+    window.scrollTo(window.scrollX, y);
+  } else {
+    getMaster().find('.wtHolder')[0].scrollTop = y;
+  }
+}
+
+/**
+ * Moves the table's viewport to the specified x scroll position.
+ *
+ * @param {number} x The scroll position.
+ */
+export function setScrollLeft(x) {
+  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
+    window.scrollTo(x, window.scrollY);
+  } else {
+    getMaster().find('.wtHolder')[0].scrollLeft = x;
+  }
 }
 
 /**

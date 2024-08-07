@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
-import HyperFormula from 'hyperformula';
 import 'handsontable/dist/handsontable.full.min.css';
+import { HyperFormula } from 'hyperformula';
 
 const data1 = [
   ['10.26', null, 'Sum', '=SUM(A:A)'],

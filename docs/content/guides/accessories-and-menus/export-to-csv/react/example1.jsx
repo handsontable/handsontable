@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -8,31 +8,33 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
+  const buttonClickCallback = () => {
+    const hot = hotRef.current?.hotInstance;
+    const exportPlugin = hot?.getPlugin('exportFile');
 
-  let buttonClickCallback;
-
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
-
-    const exportPlugin = hot.getPlugin('exportFile');
-    buttonClickCallback = () => {
-      exportPlugin.downloadFile('csv', {
-        bom: false,
-        columnDelimiter: ',',
-        columnHeaders: false,
-        exportHiddenColumns: true,
-        exportHiddenRows: true,
-        fileExtension: 'csv',
-        filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
-        mimeType: 'text/csv',
-        rowDelimiter: '\r\n',
-        rowHeaders: true
-      });
-    };
-  });
+    exportPlugin?.downloadFile('csv', {
+      bom: false,
+      columnDelimiter: ',',
+      columnHeaders: false,
+      exportHiddenColumns: true,
+      exportHiddenRows: true,
+      fileExtension: 'csv',
+      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+      mimeType: 'text/csv',
+      rowDelimiter: '\r\n',
+      rowHeaders: true,
+    });
+  };
 
   return (
     <>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button id="export-file" onClick={() => buttonClickCallback()}>
+            Download CSV
+          </button>
+        </div>
+      </div>
       <HotTable
         ref={hotRef}
         data={[
@@ -53,9 +55,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button id="export-file" onClick={(...args) => buttonClickCallback(...args)}>Download CSV</button>
-      </div>
     </>
   );
 };

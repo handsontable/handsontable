@@ -9,6 +9,7 @@ react:
   id: tfr1gisf
   metaTitle: Checkbox cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Checkbox cell type
@@ -33,9 +34,10 @@ This is the default usage scenario where column data has a `true` or `false` val
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example1.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example1.ts)
 
 :::
 
@@ -43,9 +45,10 @@ This is the default usage scenario where column data has a `true` or `false` val
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/react/example1.jsx)
+@[code](@/content/guides/cell-types/checkbox-cell-type/react/example1.tsx)
 
 :::
 
@@ -57,9 +60,10 @@ If you want to use values other than `true` and `false`, you have to provide thi
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example2.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example2.ts)
 
 :::
 
@@ -67,9 +71,10 @@ If you want to use values other than `true` and `false`, you have to provide thi
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/react/example2.jsx)
+@[code](@/content/guides/cell-types/checkbox-cell-type/react/example2.tsx)
 
 :::
 
@@ -81,9 +86,10 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 
 ::: only-for javascript
 
-::: example #example3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example3.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example3.ts)
 
 :::
 
@@ -91,9 +97,10 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/react/example3.jsx)
+@[code](@/content/guides/cell-types/checkbox-cell-type/react/example3.tsx)
 
 :::
 
@@ -111,7 +118,6 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 ## Related articles
 
 ### Related guides
-
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 
 ### Related API reference

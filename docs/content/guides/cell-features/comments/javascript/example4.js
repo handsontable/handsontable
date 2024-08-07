@@ -2,7 +2,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example4');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
     ['2018', 10, 11, 12, 13, 15, 16],
@@ -16,11 +17,9 @@ const hot = new Handsontable(container, {
     // on mouseover, wait 2 seconds before the comment box displays
     displayDelay: 2000,
   },
-  cell: [
-    { row: 1, col: 1, comment: { value: 'Some comment' } },
-  ],
+  cell: [{ row: 1, col: 1, comment: { value: 'Some comment' } }],
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

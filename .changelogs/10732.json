@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added new feature which is navigation and edit cells within a range",
-  "type": "added",
-  "issueOrPR": 10732,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,0 +1,20 @@
+{
+  "name": "handsontable-vue3-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./src/main.ts",
+  "scripts": {
+    "start": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "@handsontable/vue3": "latest",
+    "handsontable": "latest",
+    "vue": "3.2.45"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-typescript": "^5.0.8",
+    "@vue/cli-service": "5.0.8",
+    "typescript": "^5.5.4"
+  }
+}

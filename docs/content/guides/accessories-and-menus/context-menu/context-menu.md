@@ -14,6 +14,7 @@ react:
   id: r2x6mh6h
   metaTitle: Context menu - React Data Grid | Handsontable
 searchCategory: Guides
+category: Accessories and menus
 ---
 
 # Context menu
@@ -34,9 +35,10 @@ To see the context menu, right-click on a cell:
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/context-menu/javascript/example1.js)
+@[code](@/content/guides/accessories-and-menus/context-menu/javascript/example1.ts)
 
 :::
 
@@ -44,9 +46,10 @@ To see the context menu, right-click on a cell:
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/context-menu/react/example1.jsx)
+@[code](@/content/guides/accessories-and-menus/context-menu/react/example1.tsx)
 
 :::
 
@@ -64,7 +67,8 @@ You can define items in the menu by passing the [`contextMenu`](@/api/options.md
 | [`col_left`](@/api/contextMenu.md)                       | Insert a column to the left                                                                                                                                 |
 | [`col_right`](@/api/contextMenu.md)                      | Insert a column to the right                                                                                                                                |
 | [`---------`](@/api/contextMenu.md)                      | The menu items separator                                                                                                                                    |
-| [`remove_row`](@/api/contextMenu.md)                     | Remove the selected row                                                                                                                                     |
+| [`remove_row`](@/api/contextMenu.md)                     | Remove the selected row   
+| [`remove_col`](@/api/contextMenu.md)                     | Remove the selected col                                                                                                                                  |
 | [`clear_column`](@/api/contextMenu.md)                   | Delete the data of the selected columns                                                                                                                     |
 | [`undo`](@/api/contextMenu.md)                           | Undo the last action ([`UndoRedo`](@/api/undoRedo.md))                                                                                                      |
 | [`redo`](@/api/contextMenu.md)                           | Redo the last action ([`UndoRedo`](@/api/undoRedo.md))                                                                                                      |
@@ -98,9 +102,10 @@ To see the context menu, right-click on a cell:
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/context-menu/javascript/example2.js)
+@[code](@/content/guides/accessories-and-menus/context-menu/javascript/example2.ts)
 
 :::
 
@@ -108,9 +113,10 @@ To see the context menu, right-click on a cell:
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/context-menu/react/example2.jsx)
+@[code](@/content/guides/accessories-and-menus/context-menu/react/example2.tsx)
 
 :::
 
@@ -124,9 +130,10 @@ In addition to built-in options, you can equip your context menu with custom opt
 
 To see the context menu, right-click on a cell:
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/context-menu/react/example4.jsx)
+@[code](@/content/guides/accessories-and-menus/context-menu/react/example4.tsx)
 
 :::
 
@@ -146,9 +153,10 @@ To see the context menu, right-click on a cell:
 
 ::: only-for javascript
 
-::: example #example3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/context-menu/javascript/example3.js)
+@[code](@/content/guides/accessories-and-menus/context-menu/javascript/example3.ts)
 
 :::
 
@@ -156,9 +164,10 @@ To see the context menu, right-click on a cell:
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/context-menu/react/example3.jsx)
+@[code](@/content/guides/accessories-and-menus/context-menu/react/example3.tsx)
 
 :::
 
@@ -179,6 +188,8 @@ To see the context menu, right-click on a cell:
 
 ### Related guides
 
+<div class="boxes-list gray">
+ 
 - [Adding comments via the context menu](@/guides/cell-features/comments/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack/icon-pack.md)
@@ -189,9 +200,15 @@ To see the context menu, right-click on a cell:
 - [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md)
 :::
 
+</div>
+
 ### Related blog articles
 
+<div class="boxes-list">
+
 - [Customize Handsontable context menu](https://handsontable.com/blog/customize-handsontable-context-menu)
+
+</div>
 
 ### Related API reference
 

@@ -9,6 +9,7 @@ import {
   GridSettings,
   CellMeta,
   CellProperties,
+  ColumnSettings,
 } from './settings';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
@@ -25,8 +26,8 @@ type AlterActions = 'insert_row_above' | 'insert_row_below' |
                     'remove_row' | 'remove_col';
 
 export default class Core {
-  addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
-  addHookOnce<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
+  addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, orderIndex?: number): void;
+  addHookOnce<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, orderIndex?: number): void;
   alter(action: AlterActions, index?: number | Array<[number, number]>, amount?: number, source?: string, keepEmptyRows?: boolean): void;
   batch<R>(wrappedOperations: () => R): R;
   batchExecution<R>(wrappedOperations: () => R, forceFlushChanges: boolean): R;
@@ -67,6 +68,7 @@ export default class Core {
   getCellValidator(row: number, column: number): BaseValidator | RegExp | undefined;
   getColHeader(): Array<number | string>;
   getColHeader(column: number, headerLevel?: number): number | string;
+  getColumnMeta(column: number): ColumnSettings;
   getColWidth(column: number): number;
   getCoords(element: Element | null): CellCoords;
   getCopyableData(row: number, column: number): string;

@@ -8,10 +8,13 @@ registerLanguageDictionary(arAR);
 function generateArabicData() {
   const randomName = () =>
     ['عمر', 'علي', 'عبد الله', 'معتصم'][Math.floor(Math.random() * 3)];
+
   const randomCountry = () =>
     ['تركيا', 'مصر', 'لبنان', 'العراق'][Math.floor(Math.random() * 3)];
+
   const randomDate = () =>
     new Date(Math.floor(Math.random() * Date.now())).toLocaleDateString();
+
   const randomBool = () => Math.random() > 0.5;
   const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
   const randomPhrase = () =>
@@ -34,7 +37,8 @@ function generateArabicData() {
 }
 
 const container = document.querySelector('#example1');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: generateArabicData(),
   colHeaders: true,

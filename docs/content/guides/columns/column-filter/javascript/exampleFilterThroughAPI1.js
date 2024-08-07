@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleFilterThroughAPI1');
-const handsontableInstance = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -99,7 +99,7 @@ const handsontableInstance = new Handsontable(container, {
 });
 
 // get the `Filters` plugin, so you can use its API
-const filters = handsontableInstance.getPlugin('Filters');
+const filters = hot.getPlugin('filters');
 
 document.querySelector('.filterBelow200').addEventListener('click', () => {
   // clear any existing filters
@@ -109,14 +109,12 @@ document.querySelector('.filterBelow200').addEventListener('click', () => {
   filters.addCondition(2, 'lt', [200]);
   filters.filter();
 });
-
 document.querySelector('.filterAbove200').addEventListener('click', () => {
   filters.clearConditions();
   // display only items that are more than ('gt') $200
   filters.addCondition(2, 'gt', [200]);
   filters.filter();
 });
-
 document.querySelector('.clearAllFilters').addEventListener('click', () => {
   filters.clearConditions();
   filters.filter();

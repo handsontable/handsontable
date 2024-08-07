@@ -13,6 +13,7 @@ react:
   id: y5wx1mrk
   metaTitle: Row freezing - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Row freezing
@@ -33,9 +34,10 @@ The following example specifies two fixed rows with `fixedRowsTop: 2`. Horizonta
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-freezing/javascript/example1.js)
+@[code](@/content/guides/rows/row-freezing/javascript/example1.ts)
 
 :::
 
@@ -43,9 +45,10 @@ The following example specifies two fixed rows with `fixedRowsTop: 2`. Horizonta
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-freezing/react/example1.jsx)
+@[code](@/content/guides/rows/row-freezing/react/example1.tsx)
 
 :::
 

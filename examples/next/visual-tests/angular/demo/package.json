@@ -13,7 +13,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "ng": "ng",
-    "serve": "http-server dist",
+    "serve": "node server.js",
     "start": "ng serve --port 8080",
     "build": "ng build",
     "test": "node spec/support/jasmine.config.js"
@@ -28,6 +28,8 @@
     "@angular/platform-browser-dynamic": "latest",
     "@angular/router": "latest",
     "@handsontable/angular": "latest",
+    "connect-history-api-fallback": "^2.0.0",
+    "express": "^4.19.2",
     "handsontable": "latest",
     "rxjs": "6.6.7",
     "tslib": "2.1.0",
@@ -35,10 +37,11 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "latest",
-    "@angular/localize": "latest",
-    "@angular/service-worker": "latest",
     "@angular/cli": "latest",
     "@angular/compiler-cli": "latest",
+    "@angular/localize": "latest",
+    "@angular/service-worker": "latest",
+    "@ngneat/falso": "^7.2.0",
     "@types/jasmine": "3.6.9",
     "@types/node": "12.20.7",
     "http-server": "^14.1.1",
@@ -46,7 +49,7 @@
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "14.3.0",
     "ts-node": "8.3.0",
-    "typescript": "5.2.2"
+    "typescript": "5.4.5"
   },
   "license": "SEE LICENSE IN LICENSE.txt"
 }

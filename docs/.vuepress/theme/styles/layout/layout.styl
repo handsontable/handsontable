@@ -1,0 +1,135 @@
+html {
+	font-size $font-size
+	line-height: $line-height
+	background: $bgColor
+	color: $textColor
+}
+body { 
+	font-family: $font
+	background: $bgColor
+	-webkit-font-smoothing: antialiased
+}
+
+.Inter { font-family: $font }
+h1,h2,h3,h4,h5,h6 { font-family: $font-aeonik }
+.whitespace-nowrap { white-space nowrap}
+	
+a { 
+	color: $accentColor 
+	font-weight: 400
+}
+
+#app,
+.layout-container,
+.theme-container { 
+	min-height:100vh
+	min-height:100dvh
+}
+.layout-container {
+	scrollbar-color: $borderColor transparent;
+	scrollbar-width:thin
+
+	.handsontable {
+		scrollbar-color: auto
+	}
+
+	pre { scrollbar-color: $lightBorderColor transparent;}
+}
+
+::selection {
+		//background-color: $accentColor
+		//color: $bgColor
+}
+
+:not(.handsontable) {
+	* { 
+		outline: $accentColor solid 0 
+		outline-offset: -2px;
+	}
+
+	:focus-visible {
+		outline: $accentColor solid 1px 
+	}
+}
+
+
+#nprogress .bar { 
+	background: $accentColor 
+}
+.hidden { 
+	display:none
+}
+
+.visually-hidden { 
+	border: 0
+	clip: rect(0, 0, 0, 0)
+	height: 1px
+	width: 1px
+	margin: -1px
+	padding: 0
+	overflow: hidden
+	white-space: nowrap
+	position: absolute
+}
+
+@media (min-width: $xxxLarge) {
+	#app { 
+		width:$xxxLarge
+		margin: 0 auto
+
+		.navbar .navbar-wrapper { 
+			width:$xxxLarge
+			margin: 0 auto
+		}
+		.sidebar { 
+			left: 50%
+			transform: translateX(16 + $xxxLarge/-2)  
+		}
+		.table-of-contents { 
+			right:50%
+			transform: translateX(0 + $xxxLarge/2)  
+		}
+	}
+}
+
+@media (min-width: $xLarge) {
+	#app {
+	 .footer {
+			max-width: 720px
+
+			.footer-links {
+				flex-wrap: wrap
+				
+				.edit-link { 
+					order: -1
+					margin-left: 0	
+				}
+			}
+		}
+	}
+}
+
+.decoration-right { 
+	display: block
+	background:  url('{{$basePath}}/img/deco3.svg');
+	background-size: 100%
+	width: 80vh
+	height: 80vh
+	position: fixed
+	pointer-events: none
+	z-index -1
+	opacity: .5
+	zoom: 1.8;
+	filter: blur(30px) hue-rotate(45deg) saturate(4.5);
+	right: -250px;
+	bottom: -240px;
+} 
+
+
+.theme-container {
+	overflow: hidden
+}
+
+.no-pointer {
+	pointer-events: none
+}

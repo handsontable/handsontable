@@ -1,3 +1,5 @@
+import { DEFAULT_COLUMN_WIDTH } from '../calculator';
+
 /**
  * @typedef {object} ColumnStretchingOptions
  * @property {number} totalColumns Total number of columns.
@@ -9,15 +11,6 @@
  * @class ColumnStretching
  */
 export class ColumnStretching {
-  /**
-   * Default column width.
-   *
-   * @type {number}
-   */
-  static get DEFAULT_WIDTH() {
-    return 50;
-  }
-
   /**
    * @type {number}
    */
@@ -83,6 +76,10 @@ export class ColumnStretching {
       return;
     }
 
+    this.stretchAllRatio = 0;
+    this.stretchAllColumnsWidth = [];
+    this.needVerifyLastColumnWidth = true;
+    this.stretchLastWidth = 0;
     this.#totalTargetWidth = totalWidth;
 
     let sumAll = 0;
@@ -189,7 +186,7 @@ export class ColumnStretching {
     let width = this.#columnWidthFn(column);
 
     if (isNaN(width)) {
-      width = ColumnStretching.DEFAULT_WIDTH;
+      width = DEFAULT_COLUMN_WIDTH;
     }
 
     return width;

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Blocked the `Cmd/Ctrl + A` action for situations where the focus is placed on the headers.",
-  "type": "fixed",
-  "issueOrPR": 10853,
-  "breaking": false,
-  "framework": "none"
-}

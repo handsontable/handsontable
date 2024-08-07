@@ -4,7 +4,7 @@ import {
 } from '../../helpers/dom/element';
 import { isNumeric, clamp } from '../../helpers/number';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { isLeftClick, isRightClick } from '../../helpers/dom/event';
+import { isLeftClick, isRightClick, isTouchEvent } from '../../helpers/dom/event';
 import { warn } from '../../helpers/console';
 import {
   ACTIVE_HEADER_TYPE,
@@ -29,6 +29,7 @@ export const PLUGIN_PRIORITY = 280;
  * To make any header wider (covering multiple table columns), it's corresponding configuration array element should be
  * provided as an object with `label` and `colspan` properties. The `label` property defines the header's label,
  * while the `colspan` property defines a number of columns that the header should cover.
+ * You can also set custom class names to any of the headers by providing the `headerClassName` property.
  *
  * __Note__ that the plugin supports a *nested* structure, which means, any header cannot be wider than it's "parent". In
  * other words, headers cannot overlap each other.
@@ -40,7 +41,7 @@ export const PLUGIN_PRIORITY = 280;
  * const hot = new Handsontable(container, {
  *   data: getData(),
  *   nestedHeaders: [
- *     ['A', {label: 'B', colspan: 8}, 'C'],
+ *     ['A', {label: 'B', colspan: 8, headerClassName: 'htRight'}, 'C'],
  *     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
  *     ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
  *     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
@@ -53,7 +54,7 @@ export const PLUGIN_PRIORITY = 280;
  * <HotTable
  *   data={getData()}
  *   nestedHeaders={[
- *     ['A', {label: 'B', colspan: 8}, 'C'],
+ *     ['A', {label: 'B', colspan: 8, headerClassName: 'htRight'}, 'C'],
  *     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
  *     ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
  *     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
@@ -345,6 +346,7 @@ export class NestedHeaders extends BasePlugin {
         colspan,
         isHidden,
         isPlaceholder,
+        headerClassNames,
       } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? { label: '' };
 
       if (isPlaceholder || isHidden) {
@@ -368,8 +370,18 @@ export class NestedHeaders extends BasePlugin {
         visualColumnIndex,
         TH,
         (...args) => this.getColumnHeaderValue(...args),
-        headerLevel
+        headerLevel,
       );
+
+      // Replace the higher-order `headerClassName`s with the one provided in the plugin config, if it was provided.
+      if (!isPlaceholder && !isHidden) {
+        const innerHeaderDiv = TH.querySelector('div.relative');
+
+        if (innerHeaderDiv && headerClassNames && headerClassNames.length > 0) {
+          removeClass(innerHeaderDiv, this.hot.getColumnMeta(visualColumnIndex).headerClassName);
+          addClass(innerHeaderDiv, headerClassNames);
+        }
+      }
     };
   }
 
@@ -604,7 +616,7 @@ export class NestedHeaders extends BasePlugin {
         columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
       }
 
-    } else if (isLeftClick(event) || (isRightClick(event) && allowRightClickSelection)) {
+    } else if (isLeftClick(event) || (isRightClick(event) && allowRightClickSelection) || isTouchEvent(event)) {
       columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
 

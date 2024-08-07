@@ -53,13 +53,15 @@ registerCellType(NumericCellType);
 registerLanguageDictionary(arAR);
 
 import {
-  alignHeaders,
   addClassesToRows,
   changeCheckboxCell,
   drawCheckboxInRowHeaders
 } from "./hooksCallbacks";
 
-const example = document.getElementById("example");
+const root = document.getElementById('root');
+const example = document.createElement('div');
+root.appendChild(example);
+
 export function initializeDataGrid() {
 
 new Handsontable(example, {
@@ -91,11 +93,13 @@ new Handsontable(example, {
     {
       data: 6,
       type: "checkbox",
-      className: "htCenter"
+      className: "htCenter",
+      headerClassName: "htCenter"
     },
     {
       data: 7,
-      type: "numeric"
+      type: "numeric",
+      headerClassName: "htRight"
     },
     {
       data: 8,
@@ -107,7 +111,8 @@ new Handsontable(example, {
       data: 9,
       renderer: starRenderer,
       readOnly: true,
-      className: "star htCenter"
+      className: "star htCenter",
+      headerClassName: "htCenter"
     },
     { data: 5, type: "text" },
     { data: 2, type: "text" }
@@ -123,7 +128,10 @@ new Handsontable(example, {
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
-  afterGetColHeader: alignHeaders,
+  comments: true,
+  manualColumnMove: true,
+  customBorders: true,
+  headerClassName: isArabicDemoEnabled() ? 'htRight' : 'htLeft',
   afterGetRowHeader: drawCheckboxInRowHeaders,
   afterOnCellMouseDown: changeCheckboxCell,
   beforeRenderer: addClassesToRows,

@@ -1,12 +1,14 @@
-<div id="example1"></div>
+<div class="example-controls-container">
+  <div class="controls">
+    <button id="load" class="button button--primary button--blue">Load data</button>&nbsp;
+    <button id="save" class="button button--primary button--blue">Save data</button>
+    <label>
+      <input type="checkbox" name="autosave" id="autosave"/>
+      Autosave
+    </label>
+  </div>
 
-<div class="controls">
-  <button id="load" class="button button--primary button--blue">Load data</button>&nbsp;
-  <button id="save" class="button button--primary button--blue">Save data</button>
-  <label>
-    <input type="checkbox" name="autosave" id="autosave"/>
-    Autosave
-  </label>
+  <output class="console" id="output">Click "Load" to load data from server</output>
 </div>
 
-<output class="console" id="output">Click "Load" to load data from server</output>
+<div id="example1"></div>

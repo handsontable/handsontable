@@ -3,7 +3,7 @@ import { addClass, closest, hasClass, removeClass, outerWidth, isDetached } from
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { ViewportRowsCalculator } from '../../3rdparty/walkontable/src';
+import { DEFAULT_ROW_HEIGHT } from '../../3rdparty/walkontable/src';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
@@ -204,11 +204,20 @@ export class ManualRowResize extends BasePlugin {
    */
   setManualSize(row, height) {
     const physicalRow = this.hot.toPhysicalRow(row);
-    const newHeight = Math.max(height, ViewportRowsCalculator.DEFAULT_HEIGHT);
+    const newHeight = Math.max(height, DEFAULT_ROW_HEIGHT);
 
     this.#rowHeightsMap.setValueAtIndex(physicalRow, newHeight);
 
     return newHeight;
+  }
+
+  /**
+   * Returns the last desired row height set manually with the resize handle.
+   *
+   * @returns {number} The last desired row height.
+   */
+  getLastDesiredRowHeight() {
+    return this.#currentHeight;
   }
 
   /**
@@ -442,7 +451,7 @@ export class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize();
     };
     const resize = (row, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
@@ -529,7 +538,7 @@ export class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize();
     };
     const runHooks = (row, forceRender) => {
       this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);

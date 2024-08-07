@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const selectOption = document.querySelector('#selectOption');
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
@@ -21,17 +20,17 @@ const hot = new Handsontable(container, {
   rowHeights: 23,
   rowHeaders: true,
   colHeaders: true,
-  selectionMode: 'multiple', // 'single', 'range' or 'multiple',
+  selectionMode: 'multiple',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
+
+const selectOption = document.querySelector('#selectOption');
 
 selectOption.addEventListener('change', (event) => {
   const value = event.target.value;
   const first = value.split(' ')[0].toLowerCase();
 
-  hot.updateSettings({
-    selectionMode: first
-  });
+  hot.updateSettings({ selectionMode: first });
 });

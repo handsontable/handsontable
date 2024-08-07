@@ -11,14 +11,14 @@ const ExampleComponent = () => {
   const hotTableComponentRef = useRef(null);
 
   useEffect(() => {
-    const handsontableInstance = hotTableComponentRef.current.hotInstance;
+    const handsontableInstance = hotTableComponentRef.current?.hotInstance;
     // get the `Filters` plugin, so you can use its API
-    const filters = handsontableInstance.getPlugin('Filters');
+    const filters = handsontableInstance?.getPlugin('filters');
 
     // filter data by the 'Price' column (column at index 2)
     // to display only items that are less than ('lt') $200
-    filters.addCondition(2, 'lt', [200]);
-    filters.filter();
+    filters?.addCondition(2, 'lt', [200]);
+    filters?.filter();
   }, []);
 
   return (

@@ -189,8 +189,27 @@ describe('WalkontableTable', () => {
     expect(firstRow.find('td:first').text()).toBe('0');
     expect(firstRow.find('td:last').text()).toBe('0');
 
+    getTableMaster().find('.wtHolder').scrollLeft(1715); // 1px before the 2nd column is loaded
+
+    wt.draw();
+    await sleep(20);
+
+    expect(firstRow.find('td').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('0');
+    expect(firstRow.find('td:last').text()).toBe('0');
+
+    getTableMaster().find('.wtHolder').scrollLeft(1716); // the 2nd column is loaded
+
+    wt.draw();
+    await sleep(20);
+
+    expect(firstRow.find('td').length).toBe(2);
+    expect(firstRow.find('td:first').text()).toBe('0');
+    expect(firstRow.find('td:last').text()).toBe('a');
+
     getTableMaster().find('.wtHolder').scrollLeft(2000);
 
+    wt.draw();
     await sleep(20);
 
     expect(firstRow.find('td').length).toBe(1);
@@ -199,6 +218,7 @@ describe('WalkontableTable', () => {
 
     getTableMaster().find('.wtHolder').scrollLeft(3500);
 
+    wt.draw();
     await sleep(20);
 
     expect(firstRow.find('td').length).toBe(1);
@@ -207,6 +227,7 @@ describe('WalkontableTable', () => {
 
     getTableMaster().find('.wtHolder').scrollLeft(4000);
 
+    wt.draw();
     await sleep(20);
 
     expect(firstRow.find('td').length).toBe(1);
@@ -235,13 +256,31 @@ describe('WalkontableTable', () => {
 
     getTableMaster().find('.wtHolder').scrollTop(2000);
 
+    wt.draw();
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
     expect(firstRow.find('td:first').text()).toBe('1');
 
+    getTableMaster().find('.wtHolder').scrollTop(3814); // 1px before the 3rd row is loaded
+
+    wt.draw();
+    await sleep(20);
+
+    expect(getTableMaster().find('tbody tr').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('1');
+
+    getTableMaster().find('.wtHolder').scrollTop(3815); // the 3rd row is loaded
+
+    wt.draw();
+    await sleep(20);
+
+    expect(getTableMaster().find('tbody tr').length).toBe(2);
+    expect(firstRow.find('td:first').text()).toBe('1');
+
     getTableMaster().find('.wtHolder').scrollTop(3500);
 
+    wt.draw();
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
@@ -249,6 +288,7 @@ describe('WalkontableTable', () => {
 
     getTableMaster().find('.wtHolder').scrollTop(4000);
 
+    wt.draw();
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
@@ -516,8 +556,7 @@ describe('WalkontableTable', () => {
 
       expect($('.ht_clone_top_inline_start_corner thead tr th').eq(0).css('border-left-width')).toBe('1px');
       expect($('.ht_clone_top_inline_start_corner thead tr th').eq(0).css('border-right-width')).toBe('1px');
-      // was 0 before https://github.com/handsontable/handsontable/commit/32c163c6a98903a30daddac7582276d18a12a81a
-      expect($('.ht_clone_top_inline_start_corner thead tr th').eq(1).css('border-left-width')).toBe('1px');
+      expect($('.ht_clone_top_inline_start_corner thead tr th').eq(1).css('border-left-width')).toBe('0px');
       expect($('.ht_clone_top_inline_start_corner thead tr th').eq(1).css('border-right-width')).toBe('1px');
     });
   });
@@ -537,5 +576,25 @@ describe('WalkontableTable', () => {
     expect($('.ht_clone_top_inline_start_corner')[0]).toHaveClass('ht_clone_top_left_corner');
     expect($('.ht_clone_inline_start')[0]).toHaveClass('ht_clone_left');
     expect($('.ht_clone_bottom_inline_start_corner')[0]).toHaveClass('ht_clone_bottom_left_corner');
+  });
+
+  it('should not re-render the full table when the table has `display: none` declared', () => {
+    const cellRenderer = jasmine.createSpy('cellRenderer');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer
+    });
+
+    wt.draw();
+
+    expect(cellRenderer).toHaveBeenCalledTimes(18);
+
+    spec().$wrapper.css('display', 'none');
+
+    wt.draw();
+
+    expect(cellRenderer).toHaveBeenCalledTimes(18);
   });
 });

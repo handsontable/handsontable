@@ -2,7 +2,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleFilterDifferentTypes');
-const handsontableInstance = new Handsontable(container, {
+
+new Handsontable(container, {
   data: [
     {
       model: 'Racing Socks',
@@ -54,7 +55,7 @@ const handsontableInstance = new Handsontable(container, {
     {
       title: 'Model',
       // set the type of the 'Model' column
-      type: 'text', // 'text' is the default type, so you can omit this line
+      type: 'text',
       data: 'model',
     },
     {

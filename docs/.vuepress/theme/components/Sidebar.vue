@@ -1,50 +1,76 @@
 <template>
   <aside class="sidebar">
-
-    <div class="framework-switcher-item">
-      <span>Framework</span> <FrameworksDropdown class="sidebar-mode"/>
-    </div>
-
-    <NavLinks class="sidebar-mode additional-menu" />
-
+    <InfoBox />
     <slot name="top" />
 
-    <SidebarLinks
-      :depth="0"
-      :items="items"
-    />
-    <slot name="bottom" />
-
-    <ExternalNavLinks class="can-hide additional-menu" />
-
-    <VersionsDropdown class="can-hide additional-menu"></VersionsDropdown>
-
-    <div class="theme-switcher-item">
-      Dark mode <ThemeSwitcher />
+    <div class="sidebar-nav">
+      <div class="mobile-nav">
+        <FrameworksDropdown />
+        <NavLinks />
+      </div>
+      <SidebarLinks :depth="0" :items="items" />
     </div>
+    <slot name="bottom" />
   </aside>
 </template>
 
 <script>
 import SidebarLinks from '@theme/components/SidebarLinks.vue';
+import Logo from '@theme/components/Logo.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
 import ExternalNavLinks from '@theme/components/ExternalNavLinks.vue';
+import InfoBox from '@theme/components/InfoBox.vue';
 
 export default {
   name: 'Sidebar',
-
   components: {
+    Logo,
     SidebarLinks,
-    NavLinks,
-    ThemeSwitcher,
     FrameworksDropdown,
+    NavLinks,
     VersionsDropdown,
-    ExternalNavLinks
+    ThemeSwitcher,
+    ExternalNavLinks,
+    InfoBox,
   },
+  props: ['items'],
+  data() {
+    return {
+      osInstance: undefined,
+    };
+  },
+  computed: {
+    frameworkUrlPrefix() {
+      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
+    },
+  },
+  methods: {
+    scrollToActiveElement(path) {
+      const sidebar = document.querySelector('.sidebar-nav');
+      const { scrollTop, offsetHeight } = sidebar;
 
-  props: ['items']
+      const element = `.sidebar-links .sidebar-link[href='/docs${path}']`;
+      const top = document?.querySelector(element)?.closest('.sidebar-group')?.offsetTop || 0;
+
+      if (top > scrollTop + offsetHeight - 50) {
+        setTimeout(() => {
+          sidebar.scrollTo({ top, behavior: 'smooth' });
+        }, 500);
+      }
+    },
+  },
+  mounted() {
+    this.scrollToActiveElement(this.$route.path);
+  },
+  watch: {
+    $route(to, from) {
+      if (from.path !== to.path) {
+        this.scrollToActiveElement(to.path);
+      }
+    },
+  },
 };
 </script>

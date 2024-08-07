@@ -2,7 +2,6 @@ import Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
-// tslint:disable-next-line:no-null-undefined-union
 declare function oneOf<T extends Array<string | number | boolean | undefined | null | object>>(...args: T): T[number];
 declare const true_or_false: true | false;
 
@@ -14,6 +13,8 @@ enum SortDirection { asc = 'asc', desc = 'desc' }
 const contextMenuDemo: Handsontable.plugins.ContextMenu.Settings = {
   callback(key, selection, clickEvent) { },
   items: {
+    sep1: '---------',
+    row_above: 'row_above',
     item: {
       name() {
         return '';
@@ -188,6 +189,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   ]),
   data: oneOf([{}, {}, {}], [[], [], []]),
+  dataDotNotation: oneOf(true),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
   datePickerConfig: {
@@ -252,6 +254,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     },
   ),
   fragmentSelection: oneOf(true, 'cell'),
+  headerClassName: 'htCenter test',
   height: oneOf(500, () => 500),
   hiddenColumns: true,
   hiddenRows: true,
@@ -647,7 +650,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},
-  modifyRowHeight: (height, row) => {},
+  modifyRowHeight: (height, row) => {
+    const _height: number = height;
+    const _row: number = row;
+  },
+  modifyRowHeightByOverlayName: (height, row, overlayType) => {
+    const _height: number = height;
+    const _row: number = row;
+    const _overlayType: string = overlayType;
+  },
   modifyTransformEnd: (delta) => {
     const rowDelta: number = delta.row;
     const colDelta: number = delta.row;

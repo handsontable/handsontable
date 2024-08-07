@@ -68,7 +68,6 @@ class Table {
    * @type {boolean}
    */
   isTableVisible = false;
-
   tableOffset = 0;
   holderOffset = 0;
   /**
@@ -285,12 +284,12 @@ class Table {
     const rowHeadersCount = rowHeaders.length;
     const columnHeaders = wtSettings.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
-    let syncScroll = false;
     let runFastDraw = fastDraw;
 
     if (this.isMaster) {
+      wtOverlays.beforeDraw();
       this.holderOffset = offset(this.holder);
-      runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
+      runFastDraw = wtViewport.createCalculators(runFastDraw);
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
         const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
@@ -304,17 +303,8 @@ class Table {
       }
     }
 
-    if (this.isMaster) {
-      syncScroll = wtOverlays.updateStateOfRendering();
-    }
-
     if (runFastDraw) {
       if (this.isMaster) {
-        // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
-        wtViewport.createVisibleCalculators();
-        wtViewport.createPartiallyVisibleCalculators();
-      }
-      if (wtOverlays) {
         wtOverlays.refresh(true);
       }
     } else {
@@ -352,6 +342,7 @@ class Table {
         this.resetOversizedRows();
 
         this.tableRenderer
+          .setActiveOverlayName(this.name)
           .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
@@ -360,7 +351,7 @@ class Table {
 
         if (this.isMaster) {
           workspaceWidth = this.dataAccessObject.workspaceWidth;
-          this.dataAccessObject.wtViewport.containerWidth = null;
+          wtViewport.containerWidth = null;
           this.markOversizedColumnHeaders();
         }
 
@@ -371,10 +362,12 @@ class Table {
         }
 
         if (this.isMaster) {
-          this.dataAccessObject.wtViewport.createVisibleCalculators();
-          this.dataAccessObject.wtViewport.createPartiallyVisibleCalculators();
-          this.dataAccessObject.wtOverlays.refresh(false);
-          this.dataAccessObject.wtOverlays.applyToDOM();
+          if (!this.wtSettings.getSetting('externalRowCalculator')) {
+            wtViewport.createVisibleCalculators();
+          }
+
+          wtOverlays.refresh(false);
+          wtOverlays.applyToDOM();
 
           const hiderWidth = outerWidth(this.hider);
           const tableWidth = outerWidth(this.TABLE);
@@ -385,9 +378,9 @@ class Table {
             this.tableRenderer.renderer.colGroup.render();
           }
 
-          if (workspaceWidth !== this.dataAccessObject.wtViewport.getWorkspaceWidth()) {
+          if (workspaceWidth !== wtViewport.getWorkspaceWidth()) {
             // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
-            this.dataAccessObject.wtViewport.containerWidth = null;
+            wtViewport.containerWidth = null;
             this.columnUtils.calculateWidths();
             this.tableRenderer.renderer.colGroup.render();
           }
@@ -432,8 +425,8 @@ class Table {
         .render(runFastDraw);
     }
 
-    if (syncScroll) {
-      wtOverlays.syncScrollWithMaster();
+    if (this.isMaster) {
+      wtOverlays.afterDraw();
     }
 
     this.dataAccessObject.drawn = true;

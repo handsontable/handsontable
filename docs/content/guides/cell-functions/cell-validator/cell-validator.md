@@ -9,6 +9,7 @@ react:
   id: fvou30a5
   metaTitle: Cell validator - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell functions
 ---
 
 # Cell validator
@@ -164,10 +165,11 @@ Callback console log:
 
 ::: only-for javascript
 
-::: example #example1 --js 2 --html 1
+::: example #example1 --js 2 --ts 3 --html 1
 
 @[code](@/content/guides/cell-functions/cell-validator/javascript/example1.html)
 @[code](@/content/guides/cell-functions/cell-validator/javascript/example1.js)
+@[code](@/content/guides/cell-functions/cell-validator/javascript/example1.ts)
 
 :::
 
@@ -175,9 +177,10 @@ Callback console log:
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-validator/react/example1.jsx)
+@[code](@/content/guides/cell-functions/cell-validator/react/example1.tsx)
 
 :::
 

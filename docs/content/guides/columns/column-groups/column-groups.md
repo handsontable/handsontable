@@ -14,6 +14,7 @@ react:
   id: 2ei1omu0
   metaTitle: Column groups - React Data Grid | Handsontable
 searchCategory: Guides
+category: Columns
 ---
 
 # Column groups
@@ -61,9 +62,10 @@ nestedHeaders={[
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-groups/javascript/example1.js)
+@[code](@/content/guides/columns/column-groups/javascript/example1.ts)
 
 :::
 
@@ -71,9 +73,10 @@ nestedHeaders={[
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-groups/react/example1.jsx)
+@[code](@/content/guides/columns/column-groups/react/example1.tsx)
 
 :::
 
@@ -121,9 +124,10 @@ collapsibleColumns={[
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-groups/javascript/example2.js)
+@[code](@/content/guides/columns/column-groups/javascript/example2.ts)
 
 :::
 
@@ -131,9 +135,10 @@ collapsibleColumns={[
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-groups/react/example2.jsx)
+@[code](@/content/guides/columns/column-groups/react/example2.tsx)
 
 :::
 

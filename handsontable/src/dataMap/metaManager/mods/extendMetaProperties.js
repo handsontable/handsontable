@@ -16,13 +16,7 @@ export class ExtendMetaPropertiesMod {
   propDescriptors = new Map([
     [
       'ariaTags', {
-        onChange(propName, value, isInitialChange) {
-          if (!isInitialChange) {
-            throw new Error(
-              `The \`${propName}\` option can not be updated after the Handsontable instance was initialized.`
-            );
-          }
-        }
+        initOnly: true,
       }],
     ['fixedColumnsLeft', {
       target: 'fixedColumnsStart',
@@ -40,27 +34,14 @@ export class ExtendMetaPropertiesMod {
       }
     }],
     ['layoutDirection', {
-      onChange(propName, value, isInitialChange) {
-        if (!isInitialChange) {
-          throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
-        }
-      }
+      initOnly: true,
     }],
-    // Temporary commented out due to the bug in the React wrapper.
-    // ['renderAllColumns', {
-    //   onChange(propName, value, isInitialChange) {
-    //     if (!isInitialChange) {
-    //       throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
-    //     }
-    //   }
-    // }],
-    // ['renderAllRows', {
-    //   onChange(propName, value, isInitialChange) {
-    //     if (!isInitialChange) {
-    //       throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
-    //     }
-    //   }
-    // }],
+    ['renderAllColumns', {
+      initOnly: true,
+    }],
+    ['renderAllRows', {
+      initOnly: true,
+    }],
   ]);
 
   constructor(metaManager) {
@@ -70,21 +51,45 @@ export class ExtendMetaPropertiesMod {
   }
 
   /**
+   * Callback called when the prop is marked as `initOnly`.
+   *
+   * @param {string} propName The property name.
+   * @param {*} value The new value.
+   * @param {boolean} isInitialChange Is the change initial.
+   */
+  #initOnlyCallback = (propName, value, isInitialChange) => {
+    if (!isInitialChange) {
+      throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+    }
+  }
+
+  /**
    * Extends the meta options based on the object descriptors from the `propDescriptors` list.
    */
   extendMetaProps() {
     this.propDescriptors.forEach((descriptor, alias) => {
-      const { target, onChange = () => {} } = descriptor;
+      const { initOnly, target, onChange } = descriptor;
       const hasTarget = typeof target === 'string';
       const targetProp = hasTarget ? target : alias;
       const origProp = `_${targetProp}`;
 
       this.metaManager.globalMeta.meta[origProp] = this.metaManager.globalMeta.meta[targetProp];
 
-      this.installPropWatcher(alias, origProp, onChange);
+      if (onChange) {
+        this.installPropWatcher(alias, origProp, onChange);
 
-      if (hasTarget) {
-        this.installPropWatcher(target, origProp, onChange);
+        if (hasTarget) {
+          this.installPropWatcher(target, origProp, onChange);
+        }
+
+      } else if (initOnly) {
+        this.installPropWatcher(alias, origProp, this.#initOnlyCallback);
+
+        if (!this.metaManager.globalMeta.meta._initOnlySettings) {
+          this.metaManager.globalMeta.meta._initOnlySettings = [];
+        }
+
+        this.metaManager.globalMeta.meta._initOnlySettings.push(alias);
       }
     });
   }

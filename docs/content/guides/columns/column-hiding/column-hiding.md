@@ -11,6 +11,7 @@ react:
   id: u1aw329h
   metaTitle: Column hiding - React Data Grid | Handsontable
 searchCategory: Guides
+category: Columns
 ---
 
 # Column hiding
@@ -36,9 +37,10 @@ To enable column hiding, use the [`hiddenColumns`](@/api/options.md#hiddencolumn
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/javascript/example1.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example1.ts)
 
 :::
 
@@ -46,9 +48,10 @@ To enable column hiding, use the [`hiddenColumns`](@/api/options.md#hiddencolumn
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/react/example1.jsx)
+@[code](@/content/guides/columns/column-hiding/react/example1.tsx)
 
 :::
 
@@ -70,9 +73,10 @@ Now, those columns are hidden by default:
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/javascript/example2.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example2.ts)
 
 :::
 
@@ -80,9 +84,10 @@ Now, those columns are hidden by default:
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/react/example2.jsx)
+@[code](@/content/guides/columns/column-hiding/react/example2.tsx)
 
 :::
 
@@ -106,9 +111,10 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the
 
 ::: only-for javascript
 
-::: example #example3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/javascript/example3.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example3.ts)
 
 :::
 
@@ -116,9 +122,10 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/react/example3.jsx)
+@[code](@/content/guides/columns/column-hiding/react/example3.tsx)
 
 :::
 
@@ -135,9 +142,10 @@ additional items for hiding and unhiding columns.
 
 ::: only-for javascript
 
-::: example #example4
+::: example #example4 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/javascript/example4.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example4.ts)
 
 :::
 
@@ -145,9 +153,10 @@ additional items for hiding and unhiding columns.
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/react/example4.jsx)
+@[code](@/content/guides/columns/column-hiding/react/example4.tsx)
 
 :::
 
@@ -161,9 +170,10 @@ strings to the[ `contextMenu`](@/api/contextMenu.md) parameter:
 
 ::: only-for javascript
 
-::: example #example5
+::: example #example5 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/javascript/example5.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example5.ts)
 
 :::
 
@@ -171,9 +181,10 @@ strings to the[ `contextMenu`](@/api/contextMenu.md) parameter:
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #example5 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/react/example5.jsx)
+@[code](@/content/guides/columns/column-hiding/react/example5.tsx)
 
 :::
 
@@ -188,9 +199,10 @@ object, set the [`copyPasteEnabled`](@/api/hiddenColumns.md) property to `false`
 
 ::: only-for javascript
 
-::: example #example6
+::: example #example6 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/javascript/example6.js)
+@[code](@/content/guides/columns/column-hiding/javascript/example6.ts)
 
 :::
 
@@ -198,9 +210,10 @@ object, set the [`copyPasteEnabled`](@/api/hiddenColumns.md) property to `false`
 
 ::: only-for react
 
-::: example #example6 :react
+::: example #example6 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-hiding/react/example6.jsx)
+@[code](@/content/guides/columns/column-hiding/react/example6.tsx)
 
 :::
 

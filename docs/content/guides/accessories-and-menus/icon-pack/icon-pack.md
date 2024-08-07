@@ -12,6 +12,7 @@ react:
   id: 24wgu6o9
   metaTitle: Icon pack - React Data Grid | Handsontable
 searchCategory: Guides
+category: Accessories and menus
 ---
 
 # Icon pack
@@ -212,4 +213,8 @@ npm install @handsontable/spreadsheet-icons
 
 ## Related blog articles
 
+<div class="boxes-list">
+
 - [Introducing the new Handsontable spreadsheet icons](https://handsontable.com/blog/handsontable-spreadsheet-icons)
+
+</div>

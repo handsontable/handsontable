@@ -1091,5 +1091,35 @@ describe('manualRowResize', () => {
       expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false]);
       expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false]);
     });
+
+    it('should be able to get the last desired row height from the `getLastDesiredRowHeight` method in the ' +
+    '`afterRowResize` hook callback', async() => {
+      const desiredHeightsLog = [];
+
+      handsontable({
+        data: [['value \n value \n value \n value \n value']],
+        rowHeaders: true,
+        manualRowResize: true,
+        // eslint-disable-next-line object-shorthand
+        afterRowResize: function() {
+          desiredHeightsLog.push(this.getPlugin('manualRowResize').getLastDesiredRowHeight());
+        },
+      });
+
+      const $rowHeader = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $resizer.position();
+
+      await sleep(100);
+
+      $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+      $resizer.simulate('mousemove', { clientY: resizerPosition.top + $resizer.height() - 50 });
+      $resizer.simulate('mouseup');
+
+      expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 6]);
+    });
   });
 });

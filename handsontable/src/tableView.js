@@ -166,14 +166,12 @@ class TableView {
 
   /**
    * Adjust overlays elements size and master table size.
-   *
-   * @param {boolean} [force=false] When `true`, it adjust the DOM nodes sizes for all overlays.
    */
-  adjustElementsSize(force = false) {
+  adjustElementsSize() {
     if (this.hot.isRenderSuspended()) {
       this.postponedAdjustElementsSize = true;
     } else {
-      this._wt.wtOverlays.adjustElementsSize(force);
+      this._wt.wtOverlays.adjustElementsSize();
     }
   }
 
@@ -364,7 +362,7 @@ class TableView {
       }
 
       // immediate click on "holder" means click on the right side of vertical scrollbar
-      const { holder } = this.hot.view._wt.wtTable;
+      const { holder } = this._wt.wtTable;
 
       if (next === holder) {
         const scrollbarWidth = getScrollbarWidth(rootDocument);
@@ -750,6 +748,13 @@ class TableView {
         const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
 
         return this.hot.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex);
+      },
+      rowHeightByOverlayName: (renderedRowIndex, overlayType) => {
+        const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
+        const visualRowIndex = visualIndex === null ? renderedRowIndex : visualIndex;
+
+        return this.hot.runHooks('modifyRowHeightByOverlayName',
+          this.hot.getRowHeight(visualRowIndex), visualRowIndex, overlayType);
       },
       cellRenderer: (renderedRowIndex, renderedColumnIndex, TD) => {
         const [visualRowIndex, visualColumnIndex] = this
@@ -1175,7 +1180,7 @@ class TableView {
     if (isInput(el)) {
       return true;
     }
-    const isChildOfTableBody = isChildOf(el, this.hot.view._wt.wtTable.spreader);
+    const isChildOfTableBody = isChildOf(el, this._wt.wtTable.spreader);
 
     if (this.settings.fragmentSelection === true && isChildOfTableBody) {
       return true;
@@ -1298,12 +1303,29 @@ class TableView {
    * @param {number} [headerLevel=0] The index of header level counting from the top (positive
    *                                 values counting from 0 to N).
    */
-  appendColHeader(visualColumnIndex, TH, label = this.hot.getColHeader, headerLevel = 0) {
+  appendColHeader(
+    visualColumnIndex,
+    TH,
+    label = this.hot.getColHeader,
+    headerLevel = 0
+  ) {
+    const getColumnHeaderClassNames = () => {
+      const metaHeaderClassNames =
+        visualColumnIndex >= 0 ?
+          this.hot.getColumnMeta(visualColumnIndex).headerClassName :
+          null;
+
+      return metaHeaderClassNames ? metaHeaderClassNames.split(' ') : [];
+    };
+
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
         this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label, headerLevel);
+
+        container.className = '';
+        addClass(container, ['relative', ...getColumnHeaderClassNames()]);
 
       } else {
         empty(TH);
@@ -1314,8 +1336,9 @@ class TableView {
       const { rootDocument } = this.hot;
       const div = rootDocument.createElement('div');
       const span = rootDocument.createElement('span');
+      const classNames = getColumnHeaderClassNames();
 
-      div.className = 'relative';
+      div.classList.add('relative', ...classNames);
       span.className = 'colHeader';
 
       if (this.settings.ariaTags) {
@@ -1420,83 +1443,147 @@ class TableView {
   }
 
   /**
-   * Returns the first fully visible row in the table viewport.
+   * Returns the first rendered row in the DOM (usually is not visible in the table's viewport).
+   *
+   * @returns {number | null}
+   */
+  getFirstRenderedVisibleRow() {
+    if (!this._wt.wtViewport.rowsRenderCalculator) {
+      return null;
+    }
+
+    return this.hot.rowIndexMapper
+      .getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedRow(), 1);
+  }
+
+  /**
+   * Returns the last rendered row in the DOM (usually is not visible in the table's viewport).
+   *
+   * @returns {number | null}
+   */
+  getLastRenderedVisibleRow() {
+    if (!this._wt.wtViewport.rowsRenderCalculator) {
+      return null;
+    }
+
+    return this.hot.rowIndexMapper
+      .getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedRow(), -1);
+  }
+
+  /**
+   * Returns the first rendered column in the DOM (usually is not visible in the table's viewport).
+   *
+   * @returns {number | null}
+   */
+  getFirstRenderedVisibleColumn() {
+    if (!this._wt.wtViewport.columnsRenderCalculator) {
+      return null;
+    }
+
+    return this.hot.columnIndexMapper
+      .getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedColumn(), 1);
+  }
+
+  /**
+   * Returns the last rendered column in the DOM (usually is not visible in the table's viewport).
+   *
+   * @returns {number | null}
+   */
+  getLastRenderedVisibleColumn() {
+    if (!this._wt.wtViewport.columnsRenderCalculator) {
+      return null;
+    }
+
+    return this.hot.columnIndexMapper
+      .getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedColumn(), -1);
+  }
+
+  /**
+   * Returns the first fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getFirstFullyVisibleRow() {
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstVisibleRow());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstVisibleRow());
   }
 
   /**
-   * Returns the last fully visible row in the table viewport.
+   * Returns the last fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getLastFullyVisibleRow() {
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastVisibleRow());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getLastVisibleRow());
   }
 
   /**
-   * Returns the first fully visible column in the table viewport.
+   * Returns the first fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getFirstFullyVisibleColumn() {
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstVisibleColumn());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstVisibleColumn());
   }
 
   /**
-   * Returns the last fully visible column in the table viewport.
+   * Returns the last fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getLastFullyVisibleColumn() {
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastVisibleColumn());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getLastVisibleColumn());
   }
 
   /**
-   * Returns the first partially visible row in the table viewport.
+   * Returns the first partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getFirstPartiallyVisibleRow() {
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleRow());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstPartiallyVisibleRow());
   }
 
   /**
-   * Returns the last partially visible row in the table viewport.
+   * Returns the last partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getLastPartiallyVisibleRow() {
     return this.hot.rowIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleRow());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getLastPartiallyVisibleRow());
   }
 
   /**
-   * Returns the first partially visible column in the table viewport.
+   * Returns the first partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getFirstPartiallyVisibleColumn() {
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getFirstPartiallyVisibleColumn());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstPartiallyVisibleColumn());
   }
 
   /**
-   * Returns the last partially visible column in the table viewport.
+   * Returns the last partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the master table that is not overlapped by overlay.
    *
    * @returns {number}
    */
   getLastPartiallyVisibleColumn() {
     return this.hot.columnIndexMapper
-      .getVisualFromRenderableIndex(this.hot.view._wt.wtScroll.getLastPartiallyVisibleColumn());
+      .getVisualFromRenderableIndex(this._wt.wtScroll.getLastPartiallyVisibleColumn());
   }
 
   /**
@@ -1525,7 +1612,7 @@ class TableView {
    * @returns {number}
    */
   getViewportWidth() {
-    return this.hot.view._wt.wtViewport.getViewportWidth();
+    return this._wt.wtViewport.getViewportWidth();
   }
 
   /**
@@ -1534,7 +1621,7 @@ class TableView {
    * @returns {number}
    */
   getWorkspaceWidth() {
-    return this.hot.view._wt.wtViewport.getWorkspaceWidth();
+    return this._wt.wtViewport.getWorkspaceWidth();
   }
 
   /**
@@ -1545,7 +1632,7 @@ class TableView {
    * @returns {number}
    */
   getViewportHeight() {
-    return this.hot.view._wt.wtViewport.getViewportHeight();
+    return this._wt.wtViewport.getViewportHeight();
   }
 
   /**
@@ -1554,7 +1641,36 @@ class TableView {
    * @returns {number}
    */
   getWorkspaceHeight() {
-    return this.hot.view._wt.wtViewport.getWorkspaceHeight();
+    return this._wt.wtViewport.getWorkspaceHeight();
+  }
+
+  /**
+   * Checks to what overlay the provided element belongs.
+   *
+   * @param {HTMLElement} element The DOM element to check.
+   * @returns {'master'|'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'}
+   */
+  getElementOverlayName(element) {
+    return (this._wt.wtOverlays.getParentOverlay(element) ?? this._wt).wtTable.name;
+  }
+
+  /**
+   * Gets the overlay instance by its name.
+   *
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
+   * @returns {Overlay | null}
+   */
+  getOverlayByName(overlayName) {
+    return this._wt.getOverlayByName(overlayName);
+  }
+
+  /**
+   * Checks if the table is visible or not.
+   *
+   * @returns {boolean}
+   */
+  isVisible() {
+    return this._wt.wtTable.isVisible();
   }
 
   /**

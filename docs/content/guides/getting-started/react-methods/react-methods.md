@@ -14,6 +14,8 @@ tags:
 react:
   metaTitle: Instance methods - React Data Grid | Handsontable
 searchCategory: Guides
+onlyFor: react
+category: Getting started
 ---
 
 # Instance methods
@@ -28,8 +30,9 @@ You can programmatically change the internal state of Handsontable beyond what's
 
 The following example implements the [`HotTable`](@/guides/getting-started/installation/installation.md#_4-use-the-hottable-component) component showing how to reference the Handsontable instance from the wrapper component.
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/react-methods/react/example1.jsx)
+@[code](@/content/guides/getting-started/react-methods/react/example1.tsx)
 
 :::

@@ -9,6 +9,7 @@ react:
   id: 959g5cbf
   metaTitle: Text alignment - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Text alignment
@@ -52,9 +53,10 @@ The following code sample configures the grid to use `htCenter` and configures i
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/text-alignment/javascript/example1.js)
+@[code](@/content/guides/cell-features/text-alignment/javascript/example1.ts)
 
 :::
 
@@ -62,9 +64,10 @@ The following code sample configures the grid to use `htCenter` and configures i
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/text-alignment/react/example1.jsx)
+@[code](@/content/guides/cell-features/text-alignment/react/example1.tsx)
 
 :::
 

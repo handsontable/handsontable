@@ -14,7 +14,10 @@ const test = baseTest.extend<{ tablePage: Page, customTitle: string }>({
     helpers.init(workerInfo);
     PageHolder.getInstance().setPage(page);
 
-    await page.goto(helpers.testURL);
+    // Reset screenshotsCount before each test
+    helpers.screenshotsCount = 0;
+
+    await page.goto('/');
     await expect(page).toHaveTitle(helpers.expectedPageTitle);
     stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
     const table = page.locator(helpers.selectors.mainTable);

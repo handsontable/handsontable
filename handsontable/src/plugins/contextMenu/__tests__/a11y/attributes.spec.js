@@ -17,6 +17,17 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     });
   };
 
+  const getAlignmentMenuCheckboxes = () => {
+    return $('.htContextMenuSub_Alignment .htCore tbody td[role="menuitemcheckbox"]')
+      .toArray()
+      .map((el) => {
+        return {
+          ariaChecked: el.getAttribute('aria-checked'),
+          ariaLabel: el.getAttribute('aria-label')
+        };
+      });
+  };
+
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
@@ -40,7 +51,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(hot.getPlugin('contextMenu').menu.container.getAttribute('role')).toEqual('menu');
   });
 
-  it('should assign the `role=menuitem` attribute to all the options of the context menu', () => {
+  it('should assign the `role=menuitem` attribute to all the options of the context menu except of the `Read only` option', () => {
     const hot = handsontable({
       contextMenu: true
     });
@@ -54,12 +65,111 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       'td',
       'role',
       'menuitem'
-    ).length).toEqual(cMenu.hotMenu.countRows());
-
-    expect(cMenu.hotMenu.getCell(0, 0).getAttribute('role')).toEqual('menuitem');
+    ).length).toEqual(cMenu.hotMenu.countRows() - 1);
   });
 
-  it('should assign the `aria-label` attribute to all the options of the context menu', () => {
+  it('should assign the `role=menucheckboxitem` to the `Read only` option of the context menu', () => {
+    const hot = handsontable({
+      contextMenu: true
+    });
+
+    contextMenu();
+
+    const cMenu = hot.getPlugin('contextMenu').menu;
+
+    const menuItemCheckboxes = filterElementsByAttribute(
+      cMenu.container,
+      'td',
+      'role',
+      'menuitemcheckbox'
+    );
+
+    expect(menuItemCheckboxes.length).toEqual(1);
+    expect(menuItemCheckboxes[0].ariaLabel).toBe('Read only unchecked');
+  });
+
+  it('selected alignment option should have `aria-checked=false` attribute and proper `aria-label=Left unchecked`', async() => {
+    handsontable({
+      contextMenu: ['alignment']
+    });
+
+    openContextSubmenuOption('Alignment');
+    await sleep(300);
+
+    const leftAlignmentItems = getAlignmentMenuCheckboxes();
+
+    expect(leftAlignmentItems[0].ariaChecked).toEqual('false');
+    expect(leftAlignmentItems[0].ariaLabel).toEqual('Left unchecked');
+  });
+
+  it('selected and deselected menuitemcheckboxes change aria-label and aria-checked values accordingly', async() => {
+    handsontable({
+      contextMenu: ['alignment']
+    });
+
+    contextMenu();
+    await sleep(300);
+    await selectContextSubmenuOption('Alignment', 'Left');
+    contextMenu();
+    await sleep(300);
+    openContextSubmenuOption('Alignment');
+    await sleep(300);
+
+    const selected = getAlignmentMenuCheckboxes()[0];
+
+    expect(selected.ariaChecked).toEqual('true');
+    expect(selected.ariaLabel).toEqual('Left checked');
+
+    contextMenu();
+    await sleep(300);
+    await selectContextSubmenuOption('Alignment', 'Right');
+    contextMenu();
+    await sleep(300);
+    openContextSubmenuOption('Alignment');
+    await sleep(300);
+
+    const deselected = getAlignmentMenuCheckboxes()[0];
+
+    expect(deselected.ariaChecked).toEqual('false');
+    expect(deselected.ariaLabel).toEqual('Left unchecked');
+  });
+
+  it('should assign the `role=menuitemcheckbox` attribute to the all alignment options', async() => {
+    handsontable({
+      contextMenu: ['alignment']
+    });
+
+    openContextSubmenuOption('Alignment');
+    await sleep(300);
+
+    const alignmentItems = $('.htContextMenuSub_Alignment .htCore tbody td[role="menuitemcheckbox"]').toArray();
+
+    const subMenu = [
+      ...alignmentItems
+    ].map(el => el.textContent);
+
+    expect(subMenu).toEqual([
+      'Left', 'Center', 'Right', 'Justify',
+      'Top', 'Middle', 'Bottom'
+    ]);
+
+    const ariaChecked = alignmentItems.map(el => el.getAttribute('aria-checked'));
+
+    expect(ariaChecked).toEqual([
+      'false', 'false', 'false', 'false',
+      'false', 'false', 'false'
+    ]);
+
+    const ariaLabels = alignmentItems.map(el => el.getAttribute('aria-label'));
+
+    expect(ariaLabels).toEqual([
+      'Left unchecked', 'Center unchecked', 'Right unchecked', 'Justify unchecked',
+      'Top unchecked', 'Middle unchecked', 'Bottom unchecked'
+    ]);
+  });
+
+  it('should assign the `aria-label` attribute to all the options of the context menu', async() => {
+
     handsontable({
       contextMenu: true
     });
@@ -68,12 +178,13 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     const cMenu = getPlugin('contextMenu').menu;
 
-    expect(filterElementsByAttribute(
-      cMenu.container,
-      'td',
-      'aria-label',
-      el => (el.innerText === '' ? '---------' : el.innerText)
-    ).length).toBe(cMenu.hotMenu.countRows());
+    await sleep(300);
+
+    const ariaLabelledCells = [...cMenu.container.querySelectorAll('td')]
+      .filter(el => el.ariaLabel !== undefined);
+
+    expect(ariaLabelledCells.length).toBe(cMenu.hotMenu.countRows());
+
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert row above');
   });
 
