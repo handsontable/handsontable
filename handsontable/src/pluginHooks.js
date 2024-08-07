@@ -647,7 +647,6 @@ const REGISTERED_HOOKS = [
    * @param {object} preventScrolling A reference to the observable object with the `value` property.
    *                                  Property `preventScrolling.value` expects a boolean value that
    *                                  Handsontable uses to control scroll behavior after selection.
-   * @param {object} preventScrolling Object with `value` property where its value change will be observed.
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    * @example
    * ::: only-for javascript

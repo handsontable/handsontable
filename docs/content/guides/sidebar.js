@@ -187,9 +187,6 @@ const upgradeAndMigrationItems = [
 module.exports = {
   sidebar: [
     { title: 'Getting started', children: gettingStartedItems },
-    { title: 'Integrate with Angular', children: integrateWithAngularItems },
-    { title: 'Integrate with Vue 2', children: integrateWithVueItems },
-    { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
     { title: 'Cell features', children: cellFeaturesItems },
@@ -200,6 +197,9 @@ module.exports = {
     { title: 'Accessibility', children: accessibilityItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
+    { title: 'Integrate with Angular', children: integrateWithAngularItems },
+    { title: 'Integrate with Vue 2', children: integrateWithVueItems },
+    { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
     { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },
     { title: 'Security', children: securityItems },

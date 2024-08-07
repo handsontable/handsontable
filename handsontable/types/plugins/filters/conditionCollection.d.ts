@@ -5,9 +5,10 @@ import {
   ColumnConditions,
 } from './filters';
 
-export type ConditionName = 'begins_with' | 'between' | 'by_value' | 'contains' | 'empty' | 'ends_with' |
-                            'eq' | 'gt' | 'gte' | 'lt' | 'lte' | 'not_between' | 'not_contains' |
-                            'not_empty' | 'neq';
+export type ConditionName = 'begins_with' | 'between' | 'by_value' | 'contains' |
+                            'date_after' | 'date_before' | 'date_today' | 'date_tomorrow' | 'date_yesterday' |
+                            'empty' | 'ends_with' | 'eq' | 'gt' | 'gte' | 'lt' | 'lte' |
+                            'not_between' | 'not_contains' | 'not_empty' | 'neq' | 'none';
 
 export interface Condition {
   name: ConditionName;

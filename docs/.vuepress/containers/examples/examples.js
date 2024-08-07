@@ -7,7 +7,6 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 const Token = require('markdown-it/lib/token');
 const { buildCode } = require('./code-builder');
 const { addCodeForPreset } = require('./add-code-for-preset');
-const { codesandbox } = require('./codesandbox');
 const { jsfiddle } = require('./jsfiddle');
 const { stackblitz } = require('./stackblitz');
 
@@ -168,9 +167,9 @@ module.exports = function(docsVersion, base) {
         const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
         const selectedLang = '$parent.$parent.selectedLang';
+        const isJavaScript = preset.includes('hot');
         const isReact = preset.includes('react');
-        const isAngular = preset.includes('angular');
-        const isReactOrJavaScript = preset.includes('hot') || preset.includes('react');
+        const isReactOrJavaScript = isJavaScript || isReact;
 
         return `
           <div class="example-container">
@@ -198,17 +197,6 @@ module.exports = function(docsVersion, base) {
       'JavaScript'
     )
     : ''}
-                  ${!noEdit && !isAngular
-    ? codesandbox(
-      id,
-      htmlContent,
-      codeToCompileSandbox,
-      cssContent,
-      docsVersion,
-      preset,
-      'JavaScript'
-    )
-    : ''}
                   ${!noEdit
     ? jsfiddle(
       id,
@@ -224,17 +212,6 @@ module.exports = function(docsVersion, base) {
                 <div class="examples-buttons" v-if="${selectedLang} === 'TypeScript' && ${isReactOrJavaScript}">
                   ${!noEdit
     ? stackblitz(
-      id,
-      htmlContent,
-      tsCodeToCompileSandbox,
-      cssContent,
-      docsVersion,
-      preset,
-      'TypeScript'
-    )
-    : ''}
-                  ${!noEdit
-    ? codesandbox(
       id,
       htmlContent,
       tsCodeToCompileSandbox,

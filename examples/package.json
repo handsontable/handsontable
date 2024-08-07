@@ -1,7 +1,7 @@
 {
   "name": "handsontable-examples-internal",
   "private": true,
-  "version": "14.4.0",
+  "version": "14.5.0",
   "scripts": {
     "clean": "node ./scripts/clean-subpackages.mjs",
     "test": "cd .. && npm run examples:test next",

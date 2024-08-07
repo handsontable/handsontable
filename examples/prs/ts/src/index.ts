@@ -1,63 +1,152 @@
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.min.css";
-import "pikaday/css/pikaday.css";
+import Handsontable from "handsontable/base";
+import "handsontable/dist/handsontable.full.min.css";
+import { registerAllModules } from "handsontable/registry";
 
-import { data } from "./constants";
+// Register all available Handsontable modules
+registerAllModules();
 
-import { addClassesToRows } from "./hooksCallbacks";
+import {data} from "./data";
 
-const example = document.getElementById("handsontable");
-if (example) {
-  const handsontable = new Handsontable(example, {
-    preventWheel: true,
-    data,
-    height: 450,
-    colWidths: [170, 156, 222, 130, 130, 120, 120],
-    colHeaders: [
-      "Company name",
-      "Country",
-      "Name",
-      "Sell date",
-      "Order ID",
-      "In stock",
-      "Qty",
-    ],
-    columns: [
-      { data: 1, type: "text" },
-      { data: 2, type: "text" },
-      { data: 3, type: "text" },
-      {
-        data: 4,
-        type: "date",
-        allowInvalid: false,
-      },
-      { data: 5, type: "text" },
-      {
-        data: 6,
-        type: "checkbox",
-        className: "htCenter",
-        headerClassName: "htCenter",
-      },
-      {
-        data: 7,
-        type: "numeric",
-        headerClassName: "htRight",
-      },
-    ],
-    dropdownMenu: true,
-    hiddenColumns: {
-      indicators: true,
-    },
-    contextMenu: true,
-    multiColumnSorting: true,
-    filters: true,
-    rowHeaders: true,
-    autoWrapCol: true,
-    autoWrapRow: true,
-    headerClassName: "htLeft",
-    beforeRenderer: addClassesToRows,
-    licenseKey: "non-commercial-and-evaluation",
-  });
+const container = document.querySelector("#handsontable-grid");
 
-  console.log(handsontable);
+if (!container) {
+  throw new Error("No container element found");
 }
+new Handsontable(container, {
+  data: data,
+  colHeaders: [
+    "ID",
+    "Item Name",
+    "Item No.",
+    "Lead Engineer",
+    "Cost",
+    "In Stock",
+    "Category",
+    "Item Quality",
+    "Origin",
+    "Quantity",
+    "Value Stock",
+    "Repairable",
+    "Supplier Name",
+    "Restock Date",
+    "Operational Status",
+  ],
+  rowHeaders: true,
+  height: 340,
+  width: 800,
+  autoWrapRow: true,
+  autoWrapCol: true,
+  dropdownMenu: true,
+  filters: true,
+  multiColumnSorting: true,
+  hiddenColumns: {
+    columns: [0, 2], // Hides the ID and Item No. columns
+    indicators: true,
+  },
+  columns: [
+    { data: "id", type: "numeric", width: 150 },
+    {
+      data: "itemName",
+      type: "text",
+      headerClassName: "htLeft",
+      className: "htLeft",
+      width: 150,
+    },
+    {
+      data: "itemNo",
+      type: "text",
+      headerClassName: "htLeft",
+      className: "htLeft",
+      width: 150,
+    }, // Hidden column
+    {
+      data: "leadEngineer",
+      type: "text",
+      headerClassName: "htLeft",
+      className: "htLeft",
+      width: 150,
+    },
+    {
+      data: "cost",
+      type: "numeric",
+      numericFormat: { pattern: "$0 0" },
+      headerClassName: "htRight",
+      className: "htRight",
+      width: 150,
+    },
+    {
+      data: "inStock",
+      type: "checkbox",
+      headerClassName: "htCenter",
+      className: "htCenter",
+      width: 100,
+    },
+    {
+      data: "category",
+      type: "text",
+      headerClassName: "htLeft",
+      className: "htLeft",
+      width: 150,
+    },
+    {
+      data: "itemQuality",
+      type: "numeric",
+      numericFormat: { pattern: "0%" },
+      headerClassName: "htRight",
+      className: "htRight",
+      width: 150,
+    },
+    {
+      data: "origin",
+      type: "text",
+      headerClassName: "htLeft",
+      className: "htLeft",
+      width: 150,
+    },
+    {
+      data: "quantity",
+      type: "numeric",
+      headerClassName: "htRight",
+      className: "htRight",
+      width: 150,
+    },
+    {
+      data: "valueStock",
+      type: "numeric",
+      numericFormat: { pattern: "$0 0" },
+      headerClassName: "htRight",
+      className: "htRight",
+      width: 150,
+    },
+    {
+      data: "repairable",
+      type: "checkbox",
+      headerClassName: "htCenter",
+      className: "htCenter",
+      width: 100,
+    },
+    {
+      data: "supplierName",
+      type: "text",
+      headerClassName: "htLeft",
+      className: "htLeft",
+      width: 150,
+    },
+    {
+      data: "restockDate",
+      type: "date",
+      dateFormat: "YYYY-MM-DD",
+      headerClassName: "htRight",
+      className: "htRight",
+      width: 150,
+    },
+    {
+      data: "operationalStatus",
+      type: "text",
+      headerClassName: "htLeft",
+      className: "htLeft",
+      width: 180,
+    },
+  ],
+  licenseKey: "non-commercial-and-evaluation",
+});
