@@ -16,8 +16,6 @@ import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
 
-//import './comments.scss';
-
 export const PLUGIN_KEY = 'comments';
 export const PLUGIN_PRIORITY = 60;
 export const META_COMMENT = 'comment';

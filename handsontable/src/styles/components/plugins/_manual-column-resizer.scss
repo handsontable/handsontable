@@ -1,74 +1,75 @@
 /*
-    Handsontable Column Resizer
+  Handsontable Column Resizer
 */
 
 @mixin output {
-    .handsontable {
-        .manualColumnResizer {
-            /* Positioning */
-            position: absolute;
-            top: 0;
-            z-index: 210;
+  .handsontable {
+    .manualColumnResizer {
+      /* Positioning */
+      position: absolute;
+      top: 0;
+      z-index: 210;
 
-            /* Box Model */
-            width: 10px;
-            margin: 0;
+      /* Box Model */
+      width: 10px;
+      margin: 0;
 
-            /* Visual Styles */
-            cursor: col-resize;
-            background: none;
-            opacity: 0;
-            transition: opacity var(--hot-transition-time) ease-in-out;
+      /* Visual Styles */
+      cursor: col-resize;
+      background: none;
+      opacity: 0;
+      transition: opacity var(--hot-transition-time) ease-in-out;
 
-            &::before, &::after {
-                /* Positioning */
-                position: absolute;
-                top: 0;
-                left: 1px;
+      &::before,
+      &::after {
+        /* Positioning */
+        position: absolute;
+        top: 0;
+        left: 1px;
 
-                /* Box Model */
-                height: calc(100% - 8px);
-                width: 2px;
-                margin: 4px 0;
+        /* Box Model */
+        height: calc(100% - 8px);
+        width: 2px;
+        margin: 4px 0;
 
-                /* Visual Styles */
-                content: '';
-                display: block;
-                background: var(--hot-read-only-text);
-                border-radius: 2px;
-            }
+        /* Visual Styles */
+        content: "";
+        display: block;
+        background: var(--hot-read-only-text);
+        border-radius: 2px;
+      }
 
-            &::after {
-                left: auto;
-                right: 0;
-            }
+      &::after {
+        left: auto;
+        right: 0;
+      }
 
-            &:hover, 
-            &.active {
-                opacity: 1;
-            }
-        }
-
-        .manualColumnResizerGuide {
-            /* Positioning */
-            position: absolute;
-            inset-inline-end: unset;
-            top: 0;
-
-            /* Box Model */
-            width: 0;
-            margin-inline-start: 4px;
-            margin-inline-end: unset;
-
-            /* Visual Styles */
-            display: none;
-            border-inline-end: 1px solid var(--hot-accent-color);
-            border-inline-start: none;
-        }
-
-        .manualColumnResizerGuide.active {
-            display: block;
-            z-index: 209;
-        }
+      &:hover,
+      &.active {
+        opacity: 1;
+      }
     }
+
+    .manualColumnResizerGuide {
+      /* Positioning */
+      position: absolute;
+      inset-inline-end: unset;
+      top: 0;
+
+      /* Box Model */
+      width: 0;
+      margin-inline-start: 4px;
+      margin-inline-end: unset;
+
+      /* Visual Styles */
+      display: none;
+      border-inline-end: 1px solid var(--hot-accent-color);
+      border-inline-start: none;
+    }
+
+    .manualColumnResizerGuide.active {
+      display: block;
+      z-index: 209;
+    }
+  }
 }

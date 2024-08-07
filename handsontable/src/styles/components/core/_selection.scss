@@ -1,72 +1,70 @@
+@import "../../utils/mixins";
+
 /*
-	Selection
+  Selection
 */
-
-@import '../../utils/mixins';
-
-@keyframes marching-ants {
+@mixin output {
+  @keyframes marching-ants {
     0% {
-        background-position: 0 0, 8px 100%, 0 8px, 100% 0;
+      background-position: 0 0, 8px 100%, 0 8px, 100% 0;
     }
     100% {
-        background-position: 8px 0, 0 100%, 0 0, 100% 8px;
+      background-position: 8px 0, 0 100%, 0 0, 100% 8px;
     }
-}
+  }
 
-@mixin output {
-    .handsontable {
-        /* Fill */
-        @for $i from 0 through 7 {
-            td.area#{if($i == 0, "", "-#{$i}")} {
-                @include area-styles;
-            }
-        }
-    
-        @for $i from 0 through 7 {
-            td.area#{if($i == 0, "", "-#{$i}")}:before {
-                opacity: get-opacity($i);
-            }
-        }
-
-        /* Borders */
-        .wtBorder {
-            position: absolute;
-            font-size: 0;
-
-            &.hidden {
-                display: none !important;
-            }
-
-            /* A layer order of the selection types */
-            &.current {
-                z-index: 10;
-                background-color: var(--hot-accent-color) !important;
-            }
-
-            &.area {
-                z-index: 8;
-                background-color: var(--hot-accent-color) !important;
-            }
-
-            &.fill {
-                z-index: 6;
-                background-image: 
-                linear-gradient(90deg, white 50%, transparent 50%), 
-                linear-gradient(90deg, white 50%, transparent 50%), 
-                linear-gradient(0, white 50%, transparent 50%), 
-                linear-gradient(0, white 50%, transparent 50%);
-                background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
-                background-size: 8px 2px,0px 0px,2px 8px,0px 0px;
-                animation: marching-ants 600ms infinite linear;
-                background-color: var(--hot-accent-color) !important;
-            }
-
-            /* fill handle */
-            &.corner {
-                font-size: 0;
-                cursor: crosshair;
-                z-index: 10;
-            }
-        }
+  .handsontable {
+    /* Fill */
+    @for $i from 0 through 7 {
+      td.area#{if($i == 0, "", "-#{$i}")} {
+        @include area-styles;
+      }
     }
+
+    @for $i from 0 through 7 {
+      td.area#{if($i == 0, "", "-#{$i}")}:before {
+        opacity: get-opacity($i);
+      }
+    }
+
+    /* Borders */
+    .wtBorder {
+      position: absolute;
+      font-size: 0;
+
+      &.hidden {
+        display: none !important;
+      }
+
+      /* A layer order of the selection types */
+      &.current {
+        z-index: 10;
+        background-color: var(--hot-accent-color) !important;
+      }
+
+      &.area {
+        z-index: 8;
+        background-color: var(--hot-accent-color) !important;
+      }
+
+      &.fill {
+        z-index: 6;
+        background-image: linear-gradient(90deg, white 50%, transparent 50%),
+          linear-gradient(90deg, white 50%, transparent 50%),
+          linear-gradient(0, white 50%, transparent 50%),
+          linear-gradient(0, white 50%, transparent 50%);
+        background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+        background-size: 8px 2px, 0px 0px, 2px 8px, 0px 0px;
+        animation: marching-ants 600ms infinite linear;
+        background-color: var(--hot-accent-color) !important;
+      }
+
+      /* fill handle */
+      &.corner {
+        font-size: 0;
+        cursor: crosshair;
+        z-index: 10;
+      }
+    }
+  }
 }

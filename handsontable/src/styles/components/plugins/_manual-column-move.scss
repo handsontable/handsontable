@@ -1,59 +1,59 @@
+@import "../../utils/mixins";
+
 /*
-    Handsontable Column Move
+  Handsontable Column Move
 */
 
-@import '../../utils/mixins';
-
 @mixin output {
-    .handsontable {
-        .wtHider {
-            position: relative;
-        }
-
-        .ht__manualColumnMove {
-            &.after-selection--columns thead th.ht__highlight {
-                @include coursor-grab; 
-            }
-            &.on-moving--columns {
-                & *,
-                thead th.ht__highlight {
-                    @include coursor-grabbing;
-                }
-
-                .manualColumnResizer {
-                    display: none;
-                }
-            }
-            
-            &--guideline,
-            &--backlight {
-                position: absolute;
-                height: 100%;
-                display: none;
-                background: var(--hot-accent-color);
-            }
-
-            &--guideline {
-                width: 1px;
-                top: 0;
-                margin-inline-start: -.5px;
-                margin-inline-end: 0;
-                z-index: 205;
-            }
-
-            &--backlight {
-                display: none;
-                z-index: 205;
-                pointer-events: none;
-                opacity: .1;
-            }
-        }
-
-        &.on-moving--columns {
-            &.show-ui .ht__manualColumnMove--guideline,
-            .ht__manualColumnMove--backlight {
-                display: block;
-            }
-        }
+  .handsontable {
+    .wtHider {
+      position: relative;
     }
+
+    .ht__manualColumnMove {
+      &.after-selection--columns thead th.ht__highlight {
+        @include coursor-grab;
+      }
+      &.on-moving--columns {
+        & *,
+        thead th.ht__highlight {
+          @include coursor-grabbing;
+        }
+
+        .manualColumnResizer {
+          display: none;
+        }
+      }
+
+      &--guideline,
+      &--backlight {
+        position: absolute;
+        height: 100%;
+        display: none;
+        background: var(--hot-accent-color);
+      }
+
+      &--guideline {
+        width: 1px;
+        top: 0;
+        margin-inline-start: -0.5px;
+        margin-inline-end: 0;
+        z-index: 205;
+      }
+
+      &--backlight {
+        display: none;
+        z-index: 205;
+        pointer-events: none;
+        opacity: 0.1;
+      }
+    }
+
+    &.on-moving--columns {
+      &.show-ui .ht__manualColumnMove--guideline,
+      .ht__manualColumnMove--backlight {
+        display: block;
+      }
+    }
+  }
 }

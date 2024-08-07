@@ -51,7 +51,7 @@ module.exports.create = function create(envArgs) {
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
     });
     c.plugins.push(
-      new MiniCssExtractPlugin({ filename: `${PACKAGE_FILENAME}.css` })
+      new MiniCssExtractPlugin({ filename: `../styles/${PACKAGE_FILENAME}.css` })
     );
   });
 

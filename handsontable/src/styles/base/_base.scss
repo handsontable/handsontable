@@ -1,305 +1,318 @@
-@import '../utils/mixins';
+@import "../utils/mixins";
 
 @mixin output {
-    .handsontable {
-        /* Positioning */
-        position: relative;
+  .handsontable {
+    /* Positioning */
+    position: relative;
 
-        /* Typography */
-        font-family: var(--hot-font-family);
-        font-size: var(--hot-base-font-size);
-        font-weight: normal;
-        color: var(--hot-foreground-color);
+    /* Typography */
+    font-family: var(--hot-font-family);
+    font-size: var(--hot-base-font-size);
+    font-weight: normal;
+    color: var(--hot-foreground-color);
 
-        /* Miscellaneous */
-        touch-action: manipulation;
+    /* Miscellaneous */
+    touch-action: manipulation;
 
-        // Cell and Header
-        th,td {
-            /* Positioning */
-            vertical-align: top;
+    // Cell and Header
+    th,
+    td {
+      /* Positioning */
+      vertical-align: top;
 
-            /* Box Model */
-            height: calc(var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding)));
-            padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
-            border-top-width: 0;
-            border-inline-start-width: 0;
-            border-inline-end-width: var(--hot-border-vertical-size);
-            border-bottom-width: var(--hot-border-horizontal-size);
-            border-style: solid;
-            border-color: var(--hot-border-color);
-            box-sizing: border-box;
+      /* Box Model */
+      height: calc(
+        var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding))
+      );
+      padding: var(--hot-cell-vertical-padding)
+        var(--hot-cell-horizontal-padding);
+      border-top-width: 0;
+      border-inline-start-width: 0;
+      border-inline-end-width: var(--hot-border-vertical-size);
+      border-bottom-width: var(--hot-border-horizontal-size);
+      border-style: solid;
+      border-color: var(--hot-border-color);
+      box-sizing: border-box;
 
-            /* Typography */
-            color: var(--hot-foreground-color);
-            font-size: var(--hot-base-font-size);
-            line-height: var(--hot-base-line-height);
-            white-space: pre-wrap;
+      /* Typography */
+      color: var(--hot-foreground-color);
+      font-size: var(--hot-base-font-size);
+      line-height: var(--hot-base-line-height);
+      white-space: pre-wrap;
 
-            /* Visual Styles */
-            overflow: hidden;
-            outline: none;
-            outline-width: 0;
-            empty-cells: show;
+      /* Visual Styles */
+      overflow: hidden;
+      outline: none;
+      outline-width: 0;
+      empty-cells: show;
 
-            &.invisibleSelection {
-                outline: none;
+      &.invisibleSelection {
+        outline: none;
 
-                &::selection {
-                    background: transparent;
-                }
-            }
+        &::selection {
+          background: transparent;
         }
-        
-        // Cell
-        td {
-            &:first-of-type {
-                border-inline-start-width: var(--hot-border-vertical-size);
-            }
-        }
+      }
+    }
 
-        // Header 
-        th { 
-            /* Positioning */
-            position: relative;
+    // Cell
+    td {
+      &:first-of-type {
+        border-inline-start-width: var(--hot-border-vertical-size);
+      }
+    }
 
-            /* Box Model */
-            border-style: solid;
-            border-color: var(--hot-border-color);
-            overflow: visible;
+    // Header
+    th {
+      /* Positioning */
+      position: relative;
 
-            /* Typography */
-            text-align: center;
-            font-weight: normal;
-            white-space: nowrap;
-            color: var(--hot-header-foreground-color);
+      /* Box Model */
+      border-style: solid;
+      border-color: var(--hot-border-color);
+      overflow: visible;
 
-            /* Visual Styles */
-            background-color: var(--hot-header-background-color);
-            
-            &:last-child {
-                /*Foundation framework fix*/
-                border-inline-start-width: 0;
-                border-inline-end-width: var(--hot-border-vertical-size);
-                border-bottom-width: var(--hot-border-horizontal-size);
-            }
-    
-            &:first-child,
-            &:nth-child(2) {
-                border-inline-start-width: var(--hot-border-vertical-size);
-            }
+      /* Typography */
+      text-align: center;
+      font-weight: normal;
+      white-space: nowrap;
+      color: var(--hot-header-foreground-color);
 
-            &.active {
-                background-color: var(--hot-highlight-color);
-            }
-            
-            &.current {
-                box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1) var(--hot-header-current-color);
-            }
-    
-            &.ht__active_highlight {
-                border-color: var(--hot-header-highlight-active-border-color);
-                box-shadow: calc(var(--hot-border-vertical-size) * -1) calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-header-highlight-active-border-color), 
-                            0 calc(var(--hot-border-horizontal-size) * -1) 0  var(--hot-header-highlight-active-border-color), 
-                            calc(var(--hot-border-vertical-size) * -1) 0 0 var(--hot-header-highlight-active-border-color);
-    
-                &:before {
-                    background: var(--hot-header-highlight-active-background-color)
-                }
-            }
-    
-            &.ht__highlight {     
-                background-color: var(--hot-highlight-color);
-            
-                &:before { 
-                    content:'';
-                    display: block;;
-                    position: absolute;
-                    inset: auto -1px -1px -1px;
-                    height: 1px;
-                    background-color: var(--hot-accent-color);
-                }
-            }
+      /* Visual Styles */
+      background-color: var(--hot-header-background-color);
 
-            &.ht__active_highlight {
-                background-color: var(--hot-header-highlight-active-background-color);
-                color: var(--hot-header-active-text-color);
-            }
-        }
+      &:last-child {
+        /*Foundation framework fix*/
+        border-inline-start-width: 0;
+        border-inline-end-width: var(--hot-border-vertical-size);
+        border-bottom-width: var(--hot-border-horizontal-size);
+      }
 
-        // Header in Col
-        thead th {
-            padding: 0;
+      &:first-child,
+      &:nth-child(2) {
+        border-inline-start-width: var(--hot-border-vertical-size);
+      }
 
-            .relative {
-                padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
-                height: calc(var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding))) ;
-            }
+      &.active {
+        background-color: var(--hot-highlight-color);
+      }
 
-            &.ht__active_highlight { 
-                .columnSorting.sortAction {
-                    &:before {
-                        filter: invert(1);
-                        opacity: .6;
-                    }
-                }
-            }
-        }
-        thead tr:not(:last-child) th {
-            // Fix for - nested columns with hidden column
-            overflow: hidden;
-        }
-        
-        // Header in Row
-        tbody th {
-            &.ht__highlight {
-                &:before {
-                    width: 1px;
-                    height: auto;
-                    inset: -1px -1px -1px auto;
-                }
-            }
-        }
+      &.current {
+        box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1)
+          var(--hot-header-current-color);
+      }
 
-        // Bese classes
-        .hide {
-            display: none;
-        }
-    
-        .relative {
-            position: relative;
-            box-sizing: border-box;
-        }
-    
-        .wtHider {
-            width: 0;
-        }
-    
-        .wtSpreader {
-            position: relative;
-            /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
-            width: 0;
-            height: auto;
-        }
+      &.ht__active_highlight {
+        border-color: var(--hot-header-highlight-active-border-color);
+        box-shadow: calc(var(--hot-border-vertical-size) * -1)
+            calc(var(--hot-border-horizontal-size) * -1) 0
+            var(--hot-header-highlight-active-border-color),
+          0 calc(var(--hot-border-horizontal-size) * -1) 0
+            var(--hot-header-highlight-active-border-color),
+          calc(var(--hot-border-vertical-size) * -1) 0 0
+            var(--hot-header-highlight-active-border-color);
 
-        .htAutoSize {
-            position: absolute;
-            left: -99000px;
-            top: -99000px;
-            visibility: hidden;
+        &:before {
+          background: var(--hot-header-highlight-active-background-color);
         }
+      }
 
-        .htFocusCatcher {
-            position: absolute;
-            z-index: -1;
-            opacity: 0;
-            border: 0;
-            margin: 0;
-            padding: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        table,
-        tbody,
-        thead,
-        input,
-        textarea,
-        div {
-            box-sizing: content-box;
-        }
-        input,
-        textarea {
-            min-height: initial;
-        }
-    
-        .htCore {
-            /* Box Model */
-            border-width: 0;
-            border-spacing: 0;
-            border-collapse: separate;
-            margin: 0;
-            width: 0;
+      &.ht__highlight {
+        background-color: var(--hot-highlight-color);
 
-            /* Visual Styles */
-            background: var(--hot-background-color);
-            cursor: default;
-            outline-width: 0;
+        &:before {
+          content: "";
+          display: block;
+          position: absolute;
+          inset: auto -1px -1px -1px;
+          height: 1px;
+          background-color: var(--hot-accent-color);
+        }
+      }
 
-            /* Layout */
-            table-layout: fixed;
-        }
-    
-        col {
-            width: 64px;
-    
-            &.rowHeader {
-                width: 64px;
-            }
-    
-            &.hidden {
-                width: 0 !important;
-            }
-        }
-        
-        span.colHeader {
-            display: inline-block;
-            line-height: var(--hot-base-line-height);
-        }
-    
-        tr.hidden {
-            display: none;
-    
-            td, 
-            th {
-                display: none;
-            }
-        }
+      &.ht__active_highlight {
+        background-color: var(--hot-header-highlight-active-background-color);
+        color: var(--hot-header-active-text-color);
+      }
+    }
 
-        a {
-            color: var(--hot-accent-color);
+    // Header in Col
+    thead th {
+      padding: 0;
+
+      .relative {
+        padding: var(--hot-cell-vertical-padding)
+          var(--hot-cell-horizontal-padding);
+        height: calc(
+          var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding))
+        );
+      }
+
+      &.ht__active_highlight {
+        .columnSorting.sortAction {
+          &:before {
+            filter: invert(1);
+            opacity: 0.6;
+          }
         }
-        
-        // Visual fixes
-        /* It removes double right border from first column header when row headers are disabled */
-        .ht_clone_top th:nth-child(2) {
-            border-inline-start-width: 0;
-            border-inline-end-width: var(--hot-border-vertical-size);
+      }
+    }
+    thead tr:not(:last-child) th {
+      // Fix for - nested columns with hidden column
+      overflow: hidden;
+    }
+
+    // Header in Row
+    tbody th {
+      &.ht__highlight {
+        &:before {
+          width: 1px;
+          height: auto;
+          inset: -1px -1px -1px auto;
         }
-    
-        &.htRowHeaders thead tr th:nth-child(2) {
-            border-inline-start-width: var(--hot-border-vertical-size);
-        }
-    
-        tr:first-child {
-            th, td {
-                border-top-width: var(--hot-border-horizontal-size);
-            }
-        }
-    
-        .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable {
-            tbody tr th,
-            &:not(.ht_clone_top) thead tr th:first-child {
-                border-inline-end-width: 0;
-                border-inline-start-width: var(--hot-border-vertical-size);
-            }
-        }
-    
-        /*
+      }
+    }
+
+    // Bese classes
+    .hide {
+      display: none;
+    }
+
+    .relative {
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    .wtHider {
+      width: 0;
+    }
+
+    .wtSpreader {
+      position: relative;
+      /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
+      width: 0;
+      height: auto;
+    }
+
+    .htAutoSize {
+      position: absolute;
+      left: -99000px;
+      top: -99000px;
+      visibility: hidden;
+    }
+
+    .htFocusCatcher {
+      position: absolute;
+      z-index: -1;
+      opacity: 0;
+      border: 0;
+      margin: 0;
+      padding: 0;
+      width: 0;
+      height: 0;
+    }
+
+    table,
+    tbody,
+    thead,
+    input,
+    textarea,
+    div {
+      box-sizing: content-box;
+    }
+    input,
+    textarea {
+      min-height: initial;
+    }
+
+    .htCore {
+      /* Box Model */
+      border-width: 0;
+      border-spacing: 0;
+      border-collapse: separate;
+      margin: 0;
+      width: 0;
+
+      /* Visual Styles */
+      background: var(--hot-background-color);
+      cursor: default;
+      outline-width: 0;
+
+      /* Layout */
+      table-layout: fixed;
+    }
+
+    col {
+      width: 64px;
+
+      &.rowHeader {
+        width: 64px;
+      }
+
+      &.hidden {
+        width: 0 !important;
+      }
+    }
+
+    span.colHeader {
+      display: inline-block;
+      line-height: var(--hot-base-line-height);
+    }
+
+    tr.hidden {
+      display: none;
+
+      td,
+      th {
+        display: none;
+      }
+    }
+
+    a {
+      color: var(--hot-accent-color);
+    }
+
+    // Visual fixes
+    /* It removes double right border from first column header when row headers are disabled */
+    .ht_clone_top th:nth-child(2) {
+      border-inline-start-width: 0;
+      border-inline-end-width: var(--hot-border-vertical-size);
+    }
+
+    &.htRowHeaders thead tr th:nth-child(2) {
+      border-inline-start-width: var(--hot-border-vertical-size);
+    }
+
+    tr:first-child {
+      th,
+      td {
+        border-top-width: var(--hot-border-horizontal-size);
+      }
+    }
+
+    .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable {
+      tbody tr th,
+      &:not(.ht_clone_top) thead tr th:first-child {
+        border-inline-end-width: 0;
+        border-inline-start-width: var(--hot-border-vertical-size);
+      }
+    }
+
+    /*
         innerBorderTop - Property controlled by top overlay
         innerBorderBottom - Property controlled by bottom overlay
         */
-        .ht_master:not(.innerBorderTop):not(.innerBorderBottom) {
-            thead tr:last-child th,
-            & ~ .handsontable thead tr:last-child th,
-            thead tr.lastChild th,
-            & ~ .handsontable thead tr.lastChild th {
-                border-bottom-width: 0;
-            }
-        }
-
-        /* Scroll bar  */
-        scrollbar-width: thin;
-        scrollbar-color: var(--hot-border-color) var(--hot-header-background-color);
+    .ht_master:not(.innerBorderTop):not(.innerBorderBottom) {
+      thead tr:last-child th,
+      & ~ .handsontable thead tr:last-child th,
+      thead tr.lastChild th,
+      & ~ .handsontable thead tr.lastChild th {
+        border-bottom-width: 0;
+      }
     }
+
+    /* Scroll bar  */
+    scrollbar-width: thin;
+    scrollbar-color: var(--hot-border-color) var(--hot-header-background-color);
+  }
 }

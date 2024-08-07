@@ -1,85 +1,80 @@
-@use 'sass:color';
+@use "sass:color";
 
 /* Core */
-@use './core/selection';
-@use './core/license-notification';
+@use "./core/selection";
+@use "./core/license-notification";
 
 /* Plugins */
-@use './plugins/colapsible-columns';
-@use './plugins/nested-headers';
-@use './plugins/nested-rows';           
-@use './plugins/hidden-columns';        
-@use './plugins/hidden-rows';           
-@use './plugins/dropdown-menu';         // TODO  check submenu RTL
-@use './plugins/context-menu';  
-@use './plugins/filters';               
-@use './plugins/comments';              
-@use './plugins/manual-column-sorting'; 
-@use './plugins/multi-column-sorting'; 
-@use './plugins/manual-column-freeze'; 
-@use './plugins/manual-column-resizer'; 
-@use './plugins/manual-row-resizer'; 
-@use './plugins/marge-cells'; 
-@use './plugins/manual-column-move'; 
-@use './plugins/manual-row-move'; 
+@use "./plugins/colapsible-columns";
+@use "./plugins/nested-headers";
+@use "./plugins/nested-rows";
+@use "./plugins/hidden-columns";
+@use "./plugins/hidden-rows";
+@use "./plugins/dropdown-menu"; // TODO  check submenu RTL
+@use "./plugins/filters";
+@use "./plugins/comments";
+@use "./plugins/manual-column-sorting";
+@use "./plugins/multi-column-sorting";
+@use "./plugins/manual-column-freeze";
+@use "./plugins/manual-column-resizer";
+@use "./plugins/manual-row-resizer";
+@use "./plugins/merge-cells";
+@use "./plugins/manual-column-move";
+@use "./plugins/manual-row-move";
 
 /* Renderers */
-@use './renderers/text-renderer';
-@use './renderers/autocomplete-renderer';
-@use './renderers/checkbox-renderer';
+@use "./renderers/text-renderer";
+@use "./renderers/autocomplete-renderer";
+@use "./renderers/checkbox-renderer";
 
 /* Editors */
-@use './editors/text-editor';
-@use './editors/select-editor';              
-@use './editors/dropdown-editor';           
+@use "./editors/text-editor";
+@use "./editors/select-editor";
+@use "./editors/dropdown-editor";
 
 /* Form elements */
-@use './form-elements/select';          // TODO  styling     
-@use './form-elements/input';           // TODO  styling  
-@use './form-elements/button';          // TODO  styling  
-@use './form-elements/radio';           
+@use "./form-elements/select"; // TODO  styling
+@use "./form-elements/input"; // TODO  styling
+@use "./form-elements/button"; // TODO  styling
+@use "./form-elements/radio";
 
-
-/* 
-    Components  
-*/
+/* Components */
 
 /* Core */
 @mixin core-components-styles() {
-    @include selection.output();
-    @include license-notification.output();
-    /* Renderers */
-    @include autocomplete-renderer.output();
-    @include checkbox-renderer.output();
-    @include text-renderer.output();
-    /* Editor */
-    @include text-editor.output();
-    @include select-editor.output();
-    @include dropdown-editor.output();
-    /* Form Elements*/
-    @include select.output();
-    @include input.output();
-    @include button.output();
-    @include radio.output();
+  @include selection.output();
+  @include license-notification.output();
+  /* Renderers */
+  @include autocomplete-renderer.output();
+  @include checkbox-renderer.output();
+  @include text-renderer.output();
+  /* Editor */
+  @include text-editor.output();
+  @include select-editor.output();
+  @include dropdown-editor.output();
+  /* Form Elements*/
+  @include select.output();
+  @include input.output();
+  @include button.output();
+  @include radio.output();
 }
 
 /* Plugins */
 @mixin plugins-components-styles() {
-    @include colapsible-columns.output();
-    @include nested-headers.output();
-    @include nested-rows.output();
-    @include hidden-columns.output();
-    @include hidden-rows.output();
-    @include dropdown-menu.output();
-    @include context-menu.output();
-    @include filters.output();
-    @include comments.output();
-    @include manual-column-sorting.output();
-    @include multi-column-sorting.output();
-    @include manual-column-freeze.output();
-    @include manual-column-resizer.output();
-    @include manual-row-resizer.output();
-    @include marge-cells.output();
-    @include manual-column-move.output();
-    @include manual-row-move.output();
+  @include colapsible-columns.output();
+  @include nested-headers.output();
+  @include nested-rows.output();
+  @include hidden-columns.output();
+  @include hidden-rows.output();
+  @include dropdown-menu.output();
+  @include filters.output();
+  @include comments.output();
+  @include manual-column-sorting.output();
+  @include multi-column-sorting.output();
+  @include manual-column-freeze.output();
+  @include manual-column-resizer.output();
+  @include manual-row-resizer.output();
+  @include merge-cells.output();
+  @include manual-column-move.output();
+  @include manual-row-move.output();
 }

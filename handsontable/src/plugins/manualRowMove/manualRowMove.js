@@ -6,8 +6,6 @@ import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
-//import './manualRowMove.css';
-
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
 

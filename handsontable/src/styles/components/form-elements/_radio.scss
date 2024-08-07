@@ -1,70 +1,70 @@
 /*
-    Handsontable Input
-    Used in Dropdown Menu
+  Handsontable Input
+  Used in Dropdown Menu
 */
+
 @mixin output {
-    .handsontable {
-        .htUIRadio {
-            display: inline-block;
-            padding: var(--hot-base-grid) calc(2 * var(--hot-base-grid));
-            display: inline-flex;
-            align-items: center;
-            gap: calc(2 * var(--hot-base-grid));
-            margin: 0;
-            position: relative;
-            cursor: pointer;
+  .handsontable {
+    .htUIRadio {
+      display: inline-block;
+      padding: var(--hot-base-grid) calc(2 * var(--hot-base-grid));
+      display: inline-flex;
+      align-items: center;
+      gap: calc(2 * var(--hot-base-grid));
+      margin: 0;
+      position: relative;
+      cursor: pointer;
 
-            &:first-child {
-                padding-inline-start: 0;
-            }
-            
-            > input[type=radio] {
-                width: var(--hot-control-size);
-                height: var(--hot-control-size);
-                appearance: none;
-                position: relative;
-                margin:0;
-                cursor: pointer;
+      &:first-child {
+        padding-inline-start: 0;
+      }
 
-                &:before {
-                    content:'';
-                    display: block;
-                    border-radius: 8px;
-                    position: absolute;
-                    inset: 0;
-                    background: var(--hot-off-background-color);
-                    border: 1px solid var(--hot-border-color)
-                }
+      > input[type="radio"] {
+        width: var(--hot-control-size);
+        height: var(--hot-control-size);
+        appearance: none;
+        position: relative;
+        margin: 0;
+        cursor: pointer;
 
-                &:after {
-                    content:'';
-                    display: block;
-                    border-radius: calc(.5 * var(--hot-control-size));
-                    position: absolute;
-                    inset: 2px;
-                    border: 2px solid var(--hot-background-color);
-                }
-
-                &:checked {
-                    &:before {
-                        background: var(--hot-accent-color);
-                        border: 2px solid var(--hot-accent-color);
-                    }
-                    
-                }
-            }
-
-            label {
-                vertical-align: middle;
-                cursor: pointer;
-
-                &:before { 
-                    position: absolute;
-                    inset: 0;
-                    content: '';
-                    display: block;
-                }
-            }
+        &:before {
+          content: "";
+          display: block;
+          border-radius: 8px;
+          position: absolute;
+          inset: 0;
+          background: var(--hot-off-background-color);
+          border: 1px solid var(--hot-border-color);
         }
+
+        &:after {
+          content: "";
+          display: block;
+          border-radius: calc(0.5 * var(--hot-control-size));
+          position: absolute;
+          inset: 2px;
+          border: 2px solid var(--hot-background-color);
+        }
+
+        &:checked {
+          &:before {
+            background: var(--hot-accent-color);
+            border: 2px solid var(--hot-accent-color);
+          }
+        }
+      }
+
+      label {
+        vertical-align: middle;
+        cursor: pointer;
+
+        &:before {
+          position: absolute;
+          inset: 0;
+          content: "";
+          display: block;
+        }
+      }
     }
+  }
 }

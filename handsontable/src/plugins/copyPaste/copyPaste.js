@@ -21,8 +21,6 @@ import {
 } from './copyableRanges';
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
 
-//import './copyPaste.css';
-
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
 Hooks.getSingleton().register('beforeCut');

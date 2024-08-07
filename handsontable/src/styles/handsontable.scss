@@ -2,14 +2,7 @@
 
 @use "base";
 @use "components";
-@use "icons/main";
-
-@use 'themes/main-light';       // Theme - TEMP import
-@include main-light.output();   // Theme - TEMP import
 
 @include base.base-styles();
 @include components.core-components-styles();
 @include components.plugins-components-styles();
-
-// Icons
-@include main.output();

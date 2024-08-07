@@ -3,7 +3,6 @@
  *  - handsontable.js
  *  - handsontable.css
  *  - handsontable.full.js
- *  - handsontable.full.css
  */
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
@@ -15,7 +14,7 @@ module.exports.create = function create(envArgs) {
   const configBase = configFactory.create(envArgs);
   const configFull = configFactory.create(envArgs);
 
-  configBase.forEach(function(c) {
+  configBase.forEach(function (c) {
     c.output.filename = PACKAGE_FILENAME + '.js';
     c.devtool = 'source-map';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css files)
@@ -45,21 +44,21 @@ module.exports.create = function create(envArgs) {
         amd: 'dompurify',
       },
     };
-    c.module.rules.unshift({
-      test: [
-        // Disable loading css files from pikaday module
-        /pikaday\/css/,
-      ],
-      loader: path.resolve(__dirname, 'loader/empty-loader.js'),
-    });
+
     c.plugins.push(
-      new MiniCssExtractPlugin({ filename: `${PACKAGE_FILENAME}.css` }),
+      new MiniCssExtractPlugin({ filename: `../styles/${PACKAGE_FILENAME}.css` }),
     );
   });
 
-  configFull.forEach(function(c) {
+  configFull.forEach(function (c) {
     c.entry = ['hyperformula', ...c.entry];
     c.output.filename = PACKAGE_FILENAME + '.full.js';
+
+    // Remove all 'MiniCssExtractPlugin' instances
+    c.plugins = c.plugins.filter(function (plugin) {
+      return !(plugin instanceof MiniCssExtractPlugin);
+    });
+
     // Export these dependencies to the window object. So they can be custom configured
     // before the Handsontable initializiation.
     c.module.rules.unshift({
@@ -115,10 +114,10 @@ module.exports.create = function create(envArgs) {
         }
       ]
     });
-
-    c.plugins.push(
-      new MiniCssExtractPlugin({ filename: `${PACKAGE_FILENAME}.full.css` })
-    );
+    c.module.rules.unshift({
+      test: /\.(scss|css)$/,
+      loader: path.resolve(__dirname, 'loader/empty-loader.js'),
+    });
   });
 
   return [].concat(configBase, configFull);

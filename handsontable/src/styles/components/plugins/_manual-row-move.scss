@@ -1,61 +1,58 @@
+@import "../../utils/mixins";
+
 /*
-    Handsontable Row Move
+  Handsontable Row Move
 */
-
-@import '../../utils/mixins';
-
 @mixin output {
-
-    .handsontable {
-        .wtHider {
-            position: relative;
-        }
-
-        .ht__manualRowMove {
-            &.after-selection--rows tbody th.ht__highlight {
-                @include coursor-grab; 
-            }
-
-            &.on-moving--rows {
-                & *,
-                /* Additional specific selector may be needed, because `grab` got assigned very specificaly */
-                tbody th.ht__highlight {
-                    @include coursor-grabbing;
-                }
-
-                .manualRowResizer {
-                    display: none;
-                }
-            }
-
-            &--guideline,
-            &--backlight {
-                position: absolute;
-                width: 100%;
-                display: none;
-                background: var(--hot-accent-color);
-            }
-
-            &--guideline {
-                height: 1px;
-                left: 0;
-                margin-top: -0.5px;
-                z-index: 205;
-            }
-
-            &--backlight {
-                display: none;
-                z-index: 205;
-                pointer-events: none;
-                opacity: .1;
-            }
-        }
-
-        &.on-moving--rows {
-            &.show-ui .ht__manualRowMove--guideline,
-            .ht__manualRowMove--backlight {
-                display: block;
-            }
-        }
+  .handsontable {
+    .wtHider {
+      position: relative;
     }
+
+    .ht__manualRowMove {
+      &.after-selection--rows tbody th.ht__highlight {
+        @include coursor-grab;
+      }
+
+      &.on-moving--rows {
+        & *,
+        tbody th.ht__highlight {
+          @include coursor-grabbing;
+        }
+
+        .manualRowResizer {
+          display: none;
+        }
+      }
+
+      &--guideline,
+      &--backlight {
+        position: absolute;
+        width: 100%;
+        display: none;
+        background: var(--hot-accent-color);
+      }
+
+      &--guideline {
+        height: 1px;
+        left: 0;
+        margin-top: -0.5px;
+        z-index: 205;
+      }
+
+      &--backlight {
+        display: none;
+        z-index: 205;
+        pointer-events: none;
+        opacity: 0.1;
+      }
+    }
+
+    &.on-moving--rows {
+      &.show-ui .ht__manualRowMove--guideline,
+      .ht__manualRowMove--backlight {
+        display: block;
+      }
+    }
+  }
 }

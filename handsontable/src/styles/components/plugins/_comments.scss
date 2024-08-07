@@ -1,58 +1,59 @@
 /*
-	Comments
-
-    !! vars on wrong root
+  Comments
+  !! vars on wrong root
 */
 
 @mixin output {
-    .handsontable {
-        .htCommentCell {
-            position: relative;
+  .handsontable {
+    .htCommentCell {
+      position: relative;
 
-            &:after {
-                content: '';
-                position: absolute;
-                top: 0;
-                inset-inline-end: 0;
-                inset-inline-start: unset;
-                border-inline-start: var(--hot-comment-indicator-size) solid transparent;
-                border-inline-end: none;
-                border-top: var(--hot-comment-indicator-size) solid var(--hot-comment-indicator-color);
-            }
-        }
+      &:after {
+        content: "";
+        position: absolute;
+        top: 0;
+        inset-inline-end: 0;
+        inset-inline-start: unset;
+        border-inline-start: var(--hot-comment-indicator-size) solid transparent;
+        border-inline-end: none;
+        border-top: var(--hot-comment-indicator-size) solid
+          var(--hot-comment-indicator-color);
+      }
+    }
+  }
+
+  .htCommentsContainer {
+    .htComments {
+      display: none;
+      z-index: 1059;
+      position: absolute;
     }
 
-    .htCommentsContainer {
-        .htComments {
-            display: none;
-            z-index: 1059;
-            position: absolute;
-        }
-    
-        .htCommentTextArea {
-            box-sizing: border-box;
-            border: 0;
-            border-inline-start: 1px solid var(--hot-accent-color);
-            border-inline-end: none;
-            background-color: var(--hot-background-color);
-            width: var(--hot-comment-textarea-width);
-            height: var(--hot-comment-textarea-height);
-            outline: 0px !important;
-            -webkit-appearance: none;
+    .htCommentTextArea {
+      box-sizing: border-box;
+      border: 0;
+      border-inline-start: 1px solid var(--hot-accent-color);
+      border-inline-end: none;
+      background-color: var(--hot-background-color);
+      width: var(--hot-comment-textarea-width);
+      height: var(--hot-comment-textarea-height);
+      outline: 0px !important;
+      -webkit-appearance: none;
 
-            box-shadow: var(--hot-base-shadow);
-            border-radius: 0 calc( 2 * var(--hot-base-grid)) calc( 2 * var(--hot-base-grid)) 0;
-            margin: 0 -1px;
-            padding: calc( 3 * var(--hot-base-grid));
-            font-family: var(--hot-font-family);
-            font-size: var(--hot-base-font-size);
-            line-height: var(--hot-base-line-height);;
-    
-            &:focus {
-                box-shadow: var(--hot-base-shadow);
-                border-inline-start: 1px solid var(--hot-accent-color);
-                border-inline-end: none;
-            }
-        }
-    } 
+      box-shadow: var(--hot-base-shadow);
+      border-radius: 0 calc(2 * var(--hot-base-grid))
+        calc(2 * var(--hot-base-grid)) 0;
+      margin: 0 -1px;
+      padding: calc(3 * var(--hot-base-grid));
+      font-family: var(--hot-font-family);
+      font-size: var(--hot-base-font-size);
+      line-height: var(--hot-base-line-height);
+
+      &:focus {
+        box-shadow: var(--hot-base-shadow);
+        border-inline-start: 1px solid var(--hot-accent-color);
+        border-inline-end: none;
+      }
+    }
+  }
 }

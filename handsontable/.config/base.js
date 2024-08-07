@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
 const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
+const { option } = require('yargs');
 
 let licenseBody = fs.readFileSync(path.resolve(__dirname, '../../LICENSE.txt'), 'utf8');
 
@@ -35,10 +36,9 @@ module.exports.create = function create(envArgs) {
           test: /\.(scss|css)$/,
           use: [
             { loader: MiniCssExtractPlugin.loader },
-            { loader: 'css-loader' },
-            { loader: 'sass-loader'},
-            { loader: path.resolve(__dirname, 'loader/sass-rtl-loader.js')}
-          ]
+            { loader: 'css-loader', options: { sourceMap: false } },
+            { loader: 'sass-loader' },
+          ],
         },
         {
           test: [

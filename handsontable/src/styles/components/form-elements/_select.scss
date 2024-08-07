@@ -1,39 +1,40 @@
 /*
-    Handsontable Select
-    Used in Dropdown Menu
+  Handsontable Select
+  Used in Dropdown Menu
 */
 
 @mixin output {
-    .handsontable {
-        .htUISelectCaption {
-            /* Box Model */
-            border: 1px solid var(--hot-border-color);
-            border-radius: var(--hot-border-radius);
-            padding: calc(var(--hot-base-grid) + 1px) calc(2 * var(--hot-base-grid));
-            width: 100%;
-            box-sizing: border-box;
+  .handsontable {
+    .htUISelectCaption {
+      /* Box Model */
+      border: 1px solid var(--hot-border-color);
+      border-radius: var(--hot-border-radius);
+      padding: calc(var(--hot-base-grid) + 1px) calc(2 * var(--hot-base-grid));
+      width: 100%;
+      box-sizing: border-box;
 
-            /* Typography */
-            font-family: inherit;
-            line-height: var(--hot-line-height);
-            font-size: var(--hot-font-size);
+      /* Typography */
+      font-family: inherit;
+      line-height: var(--hot-line-height);
+      font-size: var(--hot-font-size);
 
-            /* Visual Styles */
-            background-color: var(--hot-background-color);
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-            outline: none !important;
+      /* Visual Styles */
+      background-color: var(--hot-background-color);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      outline: none !important;
 
-            &:hover, &:focus {
-                border-color: var(--hot-accent-color);
-            }
-        }
-
-        .htUISelect {
-            cursor: pointer;
-            position: relative;
-            outline: none !important;
-        }
+      &:hover,
+      &:focus {
+        border-color: var(--hot-accent-color);
+      }
     }
+
+    .htUISelect {
+      cursor: pointer;
+      position: relative;
+      outline: none !important;
+    }
+  }
 }
