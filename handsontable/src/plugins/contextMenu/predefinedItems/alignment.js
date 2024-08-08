@@ -1,8 +1,27 @@
-import { align, getAlignmentClasses, checkSelectionConsistency, markLabelAsSelected } from '../utils';
+import {
+  align,
+  getAlignmentClasses,
+  markLabelAsSelected,
+  hasSelectionAClass
+} from '../utils';
 import { KEY as SEPARATOR } from './separator';
 import * as C from '../../../i18n/constants';
 
 export const KEY = 'alignment';
+
+/**
+ * @param {object} hot The current Handsontable instance.
+ * @param {string} rawName The raw name of the menu item.
+ * @param {string} htClassName The class name to check.
+ * @returns {string} The value of aria-label parameter.
+ */
+function ariaLabel(hot, rawName, htClassName) {
+  const checkboxState = hasSelectionAClass(hot, htClassName)
+    ? hot.getTranslatedPhrase(C.CHECKBOX_CHECKED)
+    : hot.getTranslatedPhrase(C.CHECKBOX_UNCHECKED);
+
+  return `${rawName} ${checkboxState.toLowerCase()}`;
+}
 
 /**
  * @returns {object}
@@ -34,17 +53,17 @@ export default function alignmentItem() {
       items: [
         {
           key: `${KEY}:left`,
+          checkable: true,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT), 'htLeft');
+          },
+          ariaChecked() {
+            return hasSelectionAClass(this, 'htLeft');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
 
-              if (className && className.indexOf('htLeft') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htLeft')) {
               label = markLabelAsSelected(label);
             }
 
@@ -65,17 +84,17 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:center`,
+          checkable: true,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER), 'htCenter');
+          },
+          ariaChecked() {
+            return hasSelectionAClass(this, 'htCenter');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
 
-              if (className && className.indexOf('htCenter') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htCenter')) {
               label = markLabelAsSelected(label);
             }
 
@@ -96,17 +115,17 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:right`,
+          checkable: true,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT), 'htRight');
+          },
+          ariaChecked() {
+            return hasSelectionAClass(this, 'htRight');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
 
-              if (className && className.indexOf('htRight') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htRight')) {
               label = markLabelAsSelected(label);
             }
 
@@ -127,17 +146,17 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:justify`,
+          checkable: true,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY), 'htJustify');
+          },
+          ariaChecked() {
+            return hasSelectionAClass(this, 'htJustify');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
 
-              if (className && className.indexOf('htJustify') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htJustify')) {
               label = markLabelAsSelected(label);
             }
 
@@ -161,17 +180,17 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:top`,
+          checkable: true,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP), 'htTop');
+          },
+          ariaChecked() {
+            return hasSelectionAClass(this, 'htTop');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
 
-              if (className && className.indexOf('htTop') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htTop')) {
               label = markLabelAsSelected(label);
             }
 
@@ -192,17 +211,17 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:middle`,
+          checkable: true,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE), 'htMiddle');
+          },
+          ariaChecked() {
+            return hasSelectionAClass(this, 'htMiddle');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
 
-              if (className && className.indexOf('htMiddle') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htMiddle')) {
               label = markLabelAsSelected(label);
             }
 
@@ -223,17 +242,17 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:bottom`,
+          checkable: true,
+          ariaLabel() {
+            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM), 'htBottom');
+          },
+          ariaChecked() {
+            return hasSelectionAClass(this, 'htBottom');
+          },
           name() {
             let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM);
-            const hasClass = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {
-              const className = this.getCellMeta(row, col).className;
 
-              if (className && className.indexOf('htBottom') !== -1) {
-                return true;
-              }
-            });
-
-            if (hasClass) {
+            if (hasSelectionAClass(this, 'htBottom')) {
               label = markLabelAsSelected(label);
             }
 
