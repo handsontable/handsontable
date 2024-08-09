@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useDeferredValue } from "react";
 import Handsontable from "handsontable/base";
 import { HotEditorHooks, UseHotEditorImpl } from "./types";
 
@@ -148,6 +148,9 @@ export function useHotEditor<T>(
   const [rerenderTrigger, setRerenderTrigger] = React.useState();
   const [editorValue, setEditorValue] = React.useState<T>();
 
+  // return a deferred value that allows for optimizing performance by delaying the update of a value until the next render.
+  const deferredValue = useDeferredValue(editorValue);
+
   React.useImperativeHandle(
     hooksRef,
     () => ({
@@ -165,7 +168,7 @@ export function useHotEditor<T>(
   return React.useMemo(
     () => ({
       get value(): T | undefined {
-        return editorValue;
+        return deferredValue;
       },
       setValue(newValue) {
         setEditorValue(newValue);
@@ -184,6 +187,6 @@ export function useHotEditor<T>(
         return hotCustomEditorInstanceRef.current?.col;
       },
     }),
-    [rerenderTrigger, hotCustomEditorInstanceRef, editorValue]
+    [rerenderTrigger, hotCustomEditorInstanceRef, deferredValue]
   );
 }
