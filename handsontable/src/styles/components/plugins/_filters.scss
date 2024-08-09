@@ -1,0 +1,102 @@
+@import "../../utils/mixins";
+
+/*
+  Filters
+  Base styling in Dropdown Menu Plugin
+*/
+
+@mixin output {
+  .handsontable.htFiltersConditionsMenu {
+    &:not(.htGhostTable) {
+      z-index: 1070;
+    }
+  }
+  .handsontable {
+    .htMenuFiltering {
+      border-bottom: 1px solid var(--hot-border-color);
+      height: var(--hot-filters-menu-filtering-height);
+      overflow: hidden;
+    }
+
+    .ht_master table td.htCustomMenuRenderer {
+      cursor: auto;
+    }
+
+    /* Menu label */
+    .htFiltersMenuLabel {
+      font-size: var(--hot-label-font-size);
+      line-height: var(--hot-label-line-height);
+      padding: calc(2 * var(--hot-base-grid)) 0 calc(0.5 * var(--hot-base-grid));
+
+      &:empty {
+        display: none;
+      }
+    }
+
+    /* Component filter by conditional */
+    .htFiltersMenuCondition.border {
+      border-bottom: 1px solid var(--hot-highlight-color) !important;
+      padding-bottom: calc(4 * var(--hot-base-grid));
+    }
+
+    /* Component action bar */
+    .htFiltersMenuActionBar {
+    }
+
+    .htFiltersMenuValue {
+      border-bottom: 1px solid var(--hot-highlight-color) !important;
+      padding-bottom: 0 !important;
+
+      .htUIMultipleSelectSearch {
+      }
+    }
+    .htUISelectionControls {
+    }
+    .htFiltersMenuOperators {
+    }
+    .htUIMultipleSelectHot {
+      border-top: 1px solid var(--hot-highlight-color);
+      margin: 0 calc(-4 * var(--hot-base-grid));
+
+      td {
+        padding: calc(2 * var(--hot-base-grid)) calc(4 * var(--hot-base-grid)) !important;
+      }
+    }
+
+    /* Filter Links */
+    .htUIClearAll,
+    .htUISelectAll {
+      display: inline-block;
+
+      a {
+        font-size: var(--hot-font-size);
+      }
+    }
+
+    .htUISelectAll {
+      margin-inline-start: 0;
+      margin-inline-end: calc(2 * var(--hot-base-grid));
+    }
+
+    /* SelectMultiple */
+    .htUIMultipleSelect .ht_master .wtHolder {
+      overflow-y: auto;
+
+      .wtHider,
+      .htCore,
+      tr,
+      td {
+        background: none;
+      }
+    }
+
+    .htUIMultipleSelect .handsontable .htCore {
+      td:hover {
+        background-color: var(---hot-off-background-color);
+      }
+      td.current {
+        background: var(---hot-background-color);
+      }
+    }
+  }
+}

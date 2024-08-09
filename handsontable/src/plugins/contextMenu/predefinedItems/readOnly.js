@@ -10,6 +10,7 @@ export const KEY = 'make_read_only';
 export default function readOnlyItem() {
   return {
     key: KEY,
+    iconName: 'eye',
     checkable: true,
     ariaChecked() {
       const atLeastOneReadOnly = checkSelectionConsistency(

@@ -3,14 +3,13 @@
  *  - handsontable.min.js
  *  - handsontable.min.css
  *  - handsontable.full.min.js
- *  - handsontable.full.min.css
  */
 const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const configFactory = require('./development');
-const { getClosest }  = require('./helper/path');
+const { getClosest } = require('./helper/path');
 
 const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
@@ -41,7 +40,7 @@ module.exports.create = function create(envArgs) {
 
     c.plugins.push(
       new MiniCssExtractPlugin({
-        filename: `${PACKAGE_FILENAME}${isFullBuild ? '.full' : ''}.min.css`,
+        filename: `../styles/${PACKAGE_FILENAME}.min.css`,
       }),
     );
 

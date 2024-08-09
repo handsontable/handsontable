@@ -9,6 +9,7 @@ export const KEY = 'remove_row';
 export default function removeRowItem() {
   return {
     key: KEY,
+    iconName: 'row-remove',
     name() {
       const selection = this.getSelected();
       let pluralForm = 0;

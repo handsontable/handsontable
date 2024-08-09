@@ -1,0 +1,27 @@
+/*
+  Walkontable Foundation
+*/
+@mixin output {
+  .ht_master,
+  .ht_clone_inline_start,
+  .ht_clone_top,
+  .ht_clone_bottom {
+    overflow: hidden;
+
+    .wtHolder {
+      overflow: hidden;
+    }
+  }
+
+  .ht_master .wtHolder {
+    overflow: auto;
+  }
+
+  .handsontable {
+    .ht_master table.htCore > thead,
+    .ht_master table.htCore > tbody > tr > th,
+    .ht_clone_inline_start table.htCore > thead {
+      visibility: hidden;
+    }
+  }
+}

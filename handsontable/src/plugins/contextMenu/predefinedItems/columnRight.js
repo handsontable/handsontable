@@ -8,6 +8,7 @@ export const KEY = 'col_right';
 export default function columnRightItem() {
   return {
     key: KEY,
+    iconName: 'column-insert-right',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
     },

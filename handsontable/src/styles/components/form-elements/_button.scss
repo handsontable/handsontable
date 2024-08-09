@@ -1,0 +1,60 @@
+/*
+  Handsontable Button
+  Used in Dropdown Menu
+*/
+
+@mixin output {
+  .handsontable {
+    /* Button */
+    .htUIInput {
+      &.htUIButton {
+        cursor: pointer;
+        display: inline-block;
+
+        input {
+          /* Box Model */
+          border: 1px solid var(--hot-border-color);
+          border-radius: var(--hot-border-radius);
+          min-width: 64px;
+          box-sizing: border-box;
+          padding: calc(1px + var(--hot-base-grid))
+            calc(2 * var(--hot-base-grid));
+
+          /* Typography */
+          font-family: inherit;
+          font-size: var(--hot-font-size);
+          line-height: var(--hot-line-height);
+          font-weight: 400;
+
+          /* Visual Styles */
+          background-color: var(--hot-background-color);
+          cursor: pointer;
+          outline: none !important;
+
+          &:hover {
+            background-color: var(--hot-off-background-color);
+          }
+        }
+      }
+
+      &.htUIButtonOK {
+        margin-inline-start: 0;
+        margin-inline-end: calc(2 * var(--hot-base-grid));
+
+        input {
+          border-color: var(--hot-accent-color);
+          background-color: var(--hot-accent-color);
+          color: white;
+
+          &:hover {
+            background-color: color-mix(
+              in srgb,
+              var(--hot-accent-color),
+              black 12%
+            );
+          }
+        }
+      }
+    }
+  }
+}

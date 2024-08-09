@@ -8,6 +8,7 @@ export const KEY = 'row_below';
 export default function rowBelowItem() {
   return {
     key: KEY,
+    iconName: 'row-insert-bottom',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
     },
