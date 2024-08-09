@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed F2 keyboard shortcut (enter into editing mode).",
+  "type": "fixed",
+  "issueOrPR": 11151,
+  "breaking": false,
+  "framework": "none"
+}
