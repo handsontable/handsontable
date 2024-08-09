@@ -16,8 +16,8 @@
     border-color: var(--hot-accent-color);
     background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI4IiB2aWV3Qm94PSIwIDAgOCA4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTAuNDY0NTc3IDIuNTM1MTZMNC4wMDAxMSA2LjA3MDY5TDcuNTM1NjQgMi41MzUxNkw2LjgyODU0IDEuODI4MDVMNC4wMDAxMSA0LjY1NjQ4TDEuMTcxNjggMS44MjgwNUwwLjQ2NDU3NyAyLjUzNTE2WiIgZmlsbD0iIzc3Nzc3NyIvPgo8L3N2Zz4K");
     background-repeat: no-repeat;
-    background-size: 36px 8px;
-    background-position: right center;
+    background-size: 8px 8px;
+    background-position: 95% center;
     background-clip: border-box;
 
     &:focus {
@@ -25,3 +25,4 @@
     }
   }
 }
+  

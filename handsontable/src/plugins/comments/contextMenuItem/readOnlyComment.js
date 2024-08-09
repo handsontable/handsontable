@@ -9,6 +9,7 @@ import { META_READONLY } from '../comments';
 export default function readOnlyCommentItem(plugin) {
   return {
     key: 'commentsReadOnly',
+    iconName: 'message-cancel',
     name() {
       const label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
       const areReadOnly = checkSelectionConsistency(this.getSelectedRange(), (row, col) => {

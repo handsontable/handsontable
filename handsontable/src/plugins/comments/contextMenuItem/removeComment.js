@@ -7,6 +7,7 @@ import * as C from '../../../i18n/constants';
 export default function removeCommentItem(plugin) {
   return {
     key: 'commentsRemove',
+    iconName: 'message-x',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
     },

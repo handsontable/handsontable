@@ -1,3 +1,8 @@
+/**
+ * Script for fix SVG files and make it font compatible 
+ * to run script SVG's directory is required, example: `./src/styles/themes/[theme]/icons/files`
+*/
+
 import SVGFixer from 'oslllo-svg-fixer';
 import { cp, readdir, unlink, rm } from 'node:fs/promises';
 import path from 'node:path';
@@ -6,7 +11,7 @@ try {
   const theme = process.env.npm_config_theme;
 
   if (!theme) {
-    throw new Error('Enter font type name. Example: npm run fix-svg-icons --theme=main-light');
+    throw new Error('Enter font theme name. Example: npm run fix-svg-icons --theme=main-light');
   }
 
   const basePath = `./src/styles/themes/${theme}/icons/files`;

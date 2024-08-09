@@ -3,6 +3,7 @@
 @use "./base";
 @use "./elevation";
 @use "./display";
+@use "./font";
 
 /*
   Walkontable migration
@@ -11,4 +12,5 @@
   @include base.output();
   @include elevation.output();
   @include display.output();
+  @include font.output();
 }

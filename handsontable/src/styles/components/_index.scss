@@ -26,6 +26,7 @@
 @use "./renderers/text-renderer";
 @use "./renderers/autocomplete-renderer";
 @use "./renderers/checkbox-renderer";
+@use "./renderers/select-renderer";
 
 /* Editors */
 @use "./editors/text-editor";
@@ -48,6 +49,7 @@
   @include autocomplete-renderer.output();
   @include checkbox-renderer.output();
   @include text-renderer.output();
+  @include select-renderer.output();
   /* Editor */
   @include text-editor.output();
   @include select-editor.output();

@@ -26,13 +26,16 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 07/08/2024 10:35:56)
+ * Release date: 30/07/2024 (built at 09/08/2024 13:32:27)
  */
 /*
   Elevation
 */
 /*
   Walkontable Foundation
+*/
+/*
+  Icon Font
 */
 /*
   Walkontable migration
@@ -119,6 +122,9 @@
   Handsontable Row Move
 */
 /* Renderers */
+/*
+  Handsontable Select
+*/
 /* Editors */
 /*
   Handsontable Input Editor
@@ -161,12 +167,9 @@
   touch-action: manipulation;
   /* It removes double right border from first column header when row headers are disabled */
   /*
-      innerBorderTop - Property controlled by top overlay
-      innerBorderBottom - Property controlled by bottom overlay
-      */
-  /* Scroll bar  */
-  scrollbar-width: thin;
-  scrollbar-color: var(--hot-border-color) var(--hot-header-background-color);
+    innerBorderTop - Property controlled by top overlay
+    innerBorderBottom - Property controlled by bottom overlay
+  */
 }
 .handsontable th,
 .handsontable td {
@@ -375,6 +378,11 @@
 .handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th, .handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
+.handsontable {
+  /* Scroll bar  */
+  scrollbar-width: thin;
+  scrollbar-color: var(--hot-border-color) var(--hot-header-background-color);
+}
 
 .ht_clone_master {
   z-index: 100;
@@ -429,6 +437,17 @@
 .handsontable .ht_master table.htCore > tbody > tr > th,
 .handsontable .ht_clone_inline_start table.htCore > thead {
   visibility: hidden;
+}
+
+[class^=ht-icons],
+[class*=ht-icons] {
+  font-family: "ht-icons" !important;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 18px;
+  vertical-align: middle;
+  margin-right: 5px;
 }
 
 @keyframes marching-ants {
@@ -721,6 +740,15 @@
   background: var(--hot-search-highlight-background-color);
 }
 
+.htSelect {
+  padding-right: 26px !important;
+  background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI4IiB2aWV3Qm94PSIwIDAgOCA4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTAuNDY0NTc3IDIuNTM1MTZMNC4wMDAxMSA2LjA3MDY5TDcuNTM1NjQgMi41MzUxNkw2LjgyODU0IDEuODI4MDVMNC4wMDAxMSA0LjY1NjQ4TDEuMTcxNjggMS44MjgwNUwwLjQ2NDU3NyAyLjUzNTE2WiIgZmlsbD0iIzc3Nzc3NyIvPgo8L3N2Zz4K);
+  background-repeat: no-repeat;
+  background-size: 8px 8px;
+  background-position: 95% center;
+  background-clip: border-box;
+}
+
 /* Editor */
 .handsontableInputHolder {
   position: absolute;
@@ -768,8 +796,8 @@
   border-color: var(--hot-accent-color);
   background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI4IiB2aWV3Qm94PSIwIDAgOCA4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTAuNDY0NTc3IDIuNTM1MTZMNC4wMDAxMSA2LjA3MDY5TDcuNTM1NjQgMi41MzUxNkw2LjgyODU0IDEuODI4MDVMNC4wMDAxMSA0LjY1NjQ4TDEuMTcxNjggMS44MjgwNUwwLjQ2NDU3NyAyLjUzNTE2WiIgZmlsbD0iIzc3Nzc3NyIvPgo8L3N2Zz4K);
   background-repeat: no-repeat;
-  background-size: 36px 8px;
-  background-position: right center;
+  background-size: 8px 8px;
+  background-position: 95% center;
   background-clip: border-box;
 }
 .htSelectEditor:focus {
@@ -2160,102 +2188,4 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .pika-table abbr {
   border-bottom: none;
   cursor: help;
-}
-.handsontable .collapsibleIndicator {
-  position: absolute;
-  top: 50%;
-  transform: translate(0%, -50%);
-  inset-inline-start: unset;
-  inset-inline-end: 5px;
-  border: 1px solid #A6A6A6;
-  line-height: 8px;
-  color: #222;
-  border-radius: 10px;
-  font-size: 10px;
-  width: 10px;
-  height: 10px;
-  cursor: pointer;
-  -webkit-box-shadow: 0 0 0 6px rgb(238, 238, 238);
-  -moz-box-shadow: 0 0 0 6px rgb(238, 238, 238);
-  box-shadow: 0 0 0 3px rgb(238, 238, 238);
-  background: #eee;
-  text-align: center;
-}
-
-.handsontable[dir=ltr] thead th:has(.collapsibleIndicator) div.htRight span.colHeader {
-  margin-right: 20px;
-}
-
-.handsontable[dir=rtl] thead th:has(.collapsibleIndicator) div.htLeft span.colHeader {
-  margin-left: 20px;
-}
-.handsontable .columnSorting {
-  position: relative;
-}
-
-.handsontable[dir=ltr] div.htRight span[class*=ascending],
-.handsontable[dir=ltr] div.htRight span[class*=descending] {
-  margin-right: 10px;
-  margin-left: -10px;
-}
-
-.handsontable[dir=rtl] div.htLeft span[class*=ascending],
-.handsontable[dir=rtl] div.htLeft span[class*=descending] {
-  margin-left: 10px;
-  margin-right: -10px;
-}
-
-.handsontable[dir=ltr] div.htRight span[class*=ascending]:only-child,
-.handsontable[dir=ltr] div.htRight span[class*=descending]:only-child {
-  margin-right: 15px;
-  margin-left: -15px;
-}
-
-.handsontable[dir=rtl] div.htLeft span[class*=ascending]:only-child,
-.handsontable[dir=rtl] div.htLeft span[class*=descending]:only-child {
-  margin-left: 15px;
-  margin-right: -15px;
-}
-
-.handsontable .columnSorting.sortAction:hover {
-  text-decoration: underline;
-  cursor: pointer;
-} /* Arrow position */
-.handsontable span.colHeader.columnSorting::before {
-  /* Centering start */
-  top: 50%;
-  /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
-  margin-top: -6px;
-  /* Centering end */
-  /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
-  padding-inline-start: 8px;
-  padding-inline-end: 0;
-  position: absolute;
-  inset-inline-end: -9px;
-  inset-inline-start: unset;
-  content: "";
-  height: 10px;
-  width: 5px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position-x: inline-end;
-}
-
-.handsontable span.colHeader.columnSorting.ascending::before {
-  /* arrow up; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFNJREFUeAHtzjkSgCAUBNHPgsoy97+ulGXRqJE5L+xkxoYt2UdsLb5bqFINz+aLuuLn5rIu2RkO3fZpWENimNgiw6iBYRTPMLJjGFxQZ1hxxb/xBI1qC8k39CdKAAAAAElFTkSuQmCC);
-}
-
-.handsontable span.colHeader.columnSorting.descending::before {
-  /* arrow down; 20 x 40 px, scaled to 5 x 10 px; base64 size: 0.3kB */
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAMAAADJ7yrpAAAAKlBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE86IAAAADXRSTlMABBEmRGprlJW72e77tTkTKwAAAFJJREFUeAHtzjkSgCAQRNFmQYUZ7n9dKUvru0TmvPAn3br0QfgdZ5xx6x+rQn23GqTYnq1FDcnuzZIO2WmedVqIRVxgGKEyjNgYRjKGkZ1hFIZ3I70LyM0VtU8AAAAASUVORK5CYII=);
-}
-
-.htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
-  content: "*";
-  display: inline-block;
-  position: relative;
-  /* The multi-line header and header with longer text need more padding to not hide arrow,
-  we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
-  padding-right: 20px;
 }

@@ -299,9 +299,9 @@
     }
 
     /*
-        innerBorderTop - Property controlled by top overlay
-        innerBorderBottom - Property controlled by bottom overlay
-        */
+      innerBorderTop - Property controlled by top overlay
+      innerBorderBottom - Property controlled by bottom overlay
+    */
     .ht_master:not(.innerBorderTop):not(.innerBorderBottom) {
       thead tr:last-child th,
       & ~ .handsontable thead tr:last-child th,
@@ -311,8 +311,10 @@
       }
     }
 
-    /* Scroll bar  */
-    scrollbar-width: thin;
-    scrollbar-color: var(--hot-border-color) var(--hot-header-background-color);
+    & {
+      /* Scroll bar  */
+      scrollbar-width: thin;
+      scrollbar-color: var(--hot-border-color) var(--hot-header-background-color);
+    }
   }
 }

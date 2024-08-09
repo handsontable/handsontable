@@ -1,3 +1,7 @@
+/**
+ * Script for generating font file inside `./src/styles/themes/[theme]/icons/index.scss`
+*/
+
 import { webfont } from 'webfont';
 import { writeFile } from 'node:fs/promises';
 
@@ -11,20 +15,13 @@ const createFontScss = (data, glyphsData) => `@font-face {
   font-weight: normal;
   font-style: normal;
 }
-    
-[class^="${fontName}"], [class*="${fontName}"] {
-  font-family: '${fontName}' !important;
-  font-style:normal;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
 
 ${glyphsData.map(glyph => `.${fontName}-${glyph.metadata.name}:before { 
   content: '\\${glyph.metadata.unicode[0].charCodeAt(0).toString(16)}'; 
 }`).join('\n')}
 `;
 
-const writeToFile = async(fileName, data) => {
+const writeToFile = async (fileName, data) => {
   try {
     await writeFile(fileName, data);
     console.log(`Wrote data to ${fileName}`);
@@ -36,7 +33,7 @@ const writeToFile = async(fileName, data) => {
 const theme = process.env.npm_config_theme;
 
 if (!theme) {
-  throw new Error('Enter font type name. Example: npm run generate-svg-font --theme=main-light');
+  throw new Error('Enter font theme name. Example: npm run generate-svg-font --theme=main-light');
 }
 
 const result = await webfont({

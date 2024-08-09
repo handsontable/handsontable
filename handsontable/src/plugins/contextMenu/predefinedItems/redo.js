@@ -8,6 +8,7 @@ export const KEY = 'redo';
 export default function redoItem() {
   return {
     key: KEY,
+    iconName: 'arrow-forward-up',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REDO);
     },

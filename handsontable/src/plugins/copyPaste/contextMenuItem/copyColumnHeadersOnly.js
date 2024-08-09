@@ -8,6 +8,7 @@ import { clamp } from '../../../helpers/number';
 export default function copyColumnHeadersOnlyItem(copyPastePlugin) {
   return {
     key: 'copy_column_headers_only',
+    iconName: 'copy',
     name() {
       const selectedRange = this.getSelectedRangeLast();
       const nounForm = selectedRange ? clamp(selectedRange.getWidth() - 1, 0, 1) : 0;

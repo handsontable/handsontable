@@ -7,6 +7,7 @@ import * as C from '../../../i18n/constants';
 export default function cutItem(copyPastePlugin) {
   return {
     key: 'cut',
+    iconName: 'scissors',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CUT);
     },
