@@ -32,9 +32,9 @@ export interface HotEditorHooks {
 /**
  * Interface for custom component-based editor API exposed by useHotEditor
  */
-export interface UseHotEditorImpl {
-  value?: any
-  setValue: React.Dispatch<any>
+export interface UseHotEditorImpl<T> {
+  value?: T
+  setValue: React.Dispatch<T>
   isOpen: boolean
   finishEditing: React.DispatchWithoutAction
   row?: number

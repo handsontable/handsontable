@@ -1,17 +1,26 @@
-import React from 'react';
-import Handsontable from 'handsontable/base';
-import { HotEditorHooks, UseHotEditorImpl } from './types';
+import React, { useDeferredValue } from "react";
+import Handsontable from "handsontable/base";
+import { HotEditorHooks, UseHotEditorImpl } from "./types";
 
-type HookPropName = (keyof Handsontable.editors.BaseEditor) | 'constructor';
+type HookPropName = keyof Handsontable.editors.BaseEditor | "constructor";
 
-const AbstractMethods: (keyof Handsontable.editors.BaseEditor)[] = ['close', 'focus', 'open'];
-const ExcludedMethods: (keyof Handsontable.editors.BaseEditor)[] = ['getValue', 'setValue'];
+const AbstractMethods: (keyof Handsontable.editors.BaseEditor)[] = [
+  "close",
+  "focus",
+  "open",
+];
+const ExcludedMethods: (keyof Handsontable.editors.BaseEditor)[] = [
+  "getValue",
+  "setValue",
+];
 
-const MethodsMap: Partial<Record<keyof Handsontable.editors.BaseEditor, keyof HotEditorHooks>> = {
-  open: 'onOpen',
-  close: 'onClose',
-  prepare: 'onPrepare',
-  focus: 'onFocus',
+const MethodsMap: Partial<
+  Record<keyof Handsontable.editors.BaseEditor, keyof HotEditorHooks>
+> = {
+  open: "onOpen",
+  close: "onClose",
+  prepare: "onPrepare",
+  focus: "onFocus",
 };
 
 /**
@@ -21,29 +30,48 @@ const MethodsMap: Partial<Record<keyof Handsontable.editors.BaseEditor, keyof Ho
  * @param {React.RefObject} instanceRef Reference to Handsontable-native custom editor class instance.
  * @returns {Function} A class to be passed to the Handsontable editor settings.
  */
-export function makeEditorClass(hooksRef: React.MutableRefObject<HotEditorHooks | null>, instanceRef: React.MutableRefObject<Handsontable.editors.BaseEditor | null>): typeof Handsontable.editors.BaseEditor {
-  return class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable.editors.BaseEditor {
+export function makeEditorClass(
+  hooksRef: React.MutableRefObject<HotEditorHooks | null>,
+  instanceRef: React.MutableRefObject<Handsontable.editors.BaseEditor | null>
+): typeof Handsontable.editors.BaseEditor {
+  return class CustomEditor
+    extends Handsontable.editors.BaseEditor
+    implements Handsontable.editors.BaseEditor
+  {
     private value: any;
 
     constructor(hotInstance: Handsontable.Core) {
       super(hotInstance);
       instanceRef.current = this;
 
-      (Object.getOwnPropertyNames(Handsontable.editors.BaseEditor.prototype) as HookPropName[]).forEach((propName) => {
-        if (propName === 'constructor' || ExcludedMethods.includes(propName)) {
+      (
+        Object.getOwnPropertyNames(
+          Handsontable.editors.BaseEditor.prototype
+        ) as HookPropName[]
+      ).forEach((propName) => {
+        if (propName === "constructor" || ExcludedMethods.includes(propName)) {
           return;
         }
 
         const baseMethod = Handsontable.editors.BaseEditor.prototype[propName];
-        (CustomEditor.prototype as any)[propName] = function (this: CustomEditor, ...args: any[]) {
+        (CustomEditor.prototype as any)[propName] = function (
+          this: CustomEditor,
+          ...args: any[]
+        ) {
           let result;
 
           if (!AbstractMethods.includes(propName)) {
             result = baseMethod.call(this, ...args); // call super
           }
 
-          if (MethodsMap[propName] && hooksRef.current?.[MethodsMap[propName]!]) {
-            result = (hooksRef.current[MethodsMap[propName]!] as any).call(this, ...args);
+          if (
+            MethodsMap[propName] &&
+            hooksRef.current?.[MethodsMap[propName]!]
+          ) {
+            result = (hooksRef.current[MethodsMap[propName]!] as any).call(
+              this,
+              ...args
+            );
           }
 
           return result;
@@ -51,8 +79,7 @@ export function makeEditorClass(hooksRef: React.MutableRefObject<HotEditorHooks 
       });
     }
 
-    focus() {
-    }
+    focus() {}
 
     getValue() {
       return this.value;
@@ -62,28 +89,28 @@ export function makeEditorClass(hooksRef: React.MutableRefObject<HotEditorHooks 
       this.value = newValue;
     }
 
-    open() {
-    }
+    open() {}
 
-    close() {
-    }
-  }
+    close() {}
+  };
 }
 
 interface EditorContextType {
-  hooksRef: React.Ref<HotEditorHooks>
-  hotCustomEditorInstanceRef: React.RefObject<Handsontable.editors.BaseEditor>
+  hooksRef: React.Ref<HotEditorHooks>;
+  hotCustomEditorInstanceRef: React.RefObject<Handsontable.editors.BaseEditor>;
 }
 
 /**
  * Context to provide Handsontable-native custom editor class instance to overridden hooks object.
  */
-const EditorContext = React.createContext<EditorContextType | undefined>(undefined);
+const EditorContext = React.createContext<EditorContextType | undefined>(
+  undefined
+);
 
 interface EditorContextProviderProps {
-  hooksRef: React.Ref<HotEditorHooks>
-  hotCustomEditorInstanceRef: React.RefObject<Handsontable.editors.BaseEditor>
-  children: React.ReactNode
+  hooksRef: React.Ref<HotEditorHooks>;
+  hotCustomEditorInstanceRef: React.RefObject<Handsontable.editors.BaseEditor>;
+  children: React.ReactNode;
 }
 
 /**
@@ -93,11 +120,17 @@ interface EditorContextProviderProps {
  * @param {React.Ref} hooksRef Reference for component-based editor overridden hooks object.
  * @param {React.RefObject} hotCustomEditorInstanceRef  Reference to Handsontable-native editor instance.
  */
-export const EditorContextProvider: React.FC<EditorContextProviderProps> = ({ hooksRef, hotCustomEditorInstanceRef, children }) => {
-  return <EditorContext.Provider value={{ hooksRef, hotCustomEditorInstanceRef }}>
-    {children}
-  </EditorContext.Provider>
-}
+export const EditorContextProvider: React.FC<EditorContextProviderProps> = ({
+  hooksRef,
+  hotCustomEditorInstanceRef,
+  children,
+}) => {
+  return (
+    <EditorContext.Provider value={{ hooksRef, hotCustomEditorInstanceRef }}>
+      {children}
+    </EditorContext.Provider>
+  );
+};
 
 /**
  * Hook that allows encapsulating custom behaviours of component-based editor by customizing passed ref with overridden hooks object.
@@ -106,36 +139,53 @@ export const EditorContextProvider: React.FC<EditorContextProviderProps> = ({ ho
  * @param {React.DependencyList} deps Overridden hooks object React dependency list.
  * @returns {UseHotEditorImpl} Editor API methods
  */
-export function useHotEditor(overriddenHooks?: HotEditorHooks, deps?: React.DependencyList): UseHotEditorImpl {
-  const { hooksRef, hotCustomEditorInstanceRef } = React.useContext(EditorContext)!;
+export function useHotEditor<T>(
+  overriddenHooks?: HotEditorHooks,
+  deps?: React.DependencyList
+): UseHotEditorImpl<T> {
+  const { hooksRef, hotCustomEditorInstanceRef } =
+    React.useContext(EditorContext)!;
   const [rerenderTrigger, setRerenderTrigger] = React.useState(0);
+  const [editorValue, setEditorValue] = React.useState<T>();
 
-  React.useImperativeHandle(hooksRef, () => ({
-    ...overriddenHooks,
-    onOpen() {
-      overriddenHooks?.onOpen?.();
-      setRerenderTrigger((t) => t + 1);
-    },
-  }), deps);
+  // return a deferred value that allows for optimizing performance by delaying the update of a value until the next render.
+  const deferredValue = useDeferredValue(editorValue);
 
-  return React.useMemo(() => ({
-    get value() {
-      return hotCustomEditorInstanceRef.current?.getValue();
-    },
-    setValue(newValue) {
-      hotCustomEditorInstanceRef.current?.setValue(newValue);
-    },
-    get isOpen() {
-      return hotCustomEditorInstanceRef.current?.isOpened() ?? false;
-    },
-    finishEditing() {
-      hotCustomEditorInstanceRef.current?.finishEditing();
-    },
-    get row() {
-      return hotCustomEditorInstanceRef.current?.row;
-    },
-    get col() {
-      return hotCustomEditorInstanceRef.current?.col;
-    }
-  }), [rerenderTrigger, hotCustomEditorInstanceRef]);
+  React.useImperativeHandle(
+    hooksRef,
+    () => ({
+      ...overriddenHooks,
+      onOpen() {
+        setEditorValue(hotCustomEditorInstanceRef.current?.getValue());
+        overriddenHooks?.onOpen?.();
+        setRerenderTrigger((t) => t + 1);
+      },
+    }),
+    deps
+  );
+
+  return React.useMemo(
+    () => ({
+      get value(): T | undefined {
+        return deferredValue;
+      },
+      setValue(newValue) {
+        setEditorValue(newValue);
+        hotCustomEditorInstanceRef.current?.setValue(newValue);
+      },
+      get isOpen() {
+        return hotCustomEditorInstanceRef.current?.isOpened() ?? false;
+      },
+      finishEditing() {
+        hotCustomEditorInstanceRef.current?.finishEditing();
+      },
+      get row() {
+        return hotCustomEditorInstanceRef.current?.row;
+      },
+      get col() {
+        return hotCustomEditorInstanceRef.current?.col;
+      },
+    }),
+    [rerenderTrigger, hotCustomEditorInstanceRef, deferredValue]
+  );
 }
