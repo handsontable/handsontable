@@ -145,7 +145,7 @@ export function useHotEditor<T>(
 ): UseHotEditorImpl<T> {
   const { hooksRef, hotCustomEditorInstanceRef } =
     React.useContext(EditorContext)!;
-  const [rerenderTrigger, setRerenderTrigger] = React.useState();
+  const [rerenderTrigger, setRerenderTrigger] = React.useState(0);
   const [editorValue, setEditorValue] = React.useState<T>();
 
   // return a deferred value that allows for optimizing performance by delaying the update of a value until the next render.
@@ -156,7 +156,6 @@ export function useHotEditor<T>(
     () => ({
       ...overriddenHooks,
       onOpen() {
-        // console.log("onOpen", hotCustomEditorInstanceRef.current?.getValue());
         setEditorValue(hotCustomEditorInstanceRef.current?.getValue());
         overriddenHooks?.onOpen?.();
         setRerenderTrigger((t) => t + 1);
