@@ -4,10 +4,12 @@ import { HotTableModule } from '@handsontable/angular';
 import { DataGridComponent } from '../data-grid/data-grid.component';
 import { RouterModule, Routes } from '@angular/router';
 import { ScenarioGridComponent } from '../scenario-two-grid/scenario-grid.component';
+import { EditorsGridComponent } from '../editors-grid/editors-grid.component';
 import { AppComponent } from './app.component'; // Import AppComponent
 
 const routes: Routes = [
   { path: 'scenario-grid', component: ScenarioGridComponent },
+  { path: 'editors-grid', component: EditorsGridComponent },
   { path: '', component: DataGridComponent },
 ];
 
@@ -16,6 +18,7 @@ const routes: Routes = [
     AppComponent, // Declare AppComponent
     DataGridComponent,
     ScenarioGridComponent,
+    EditorsGridComponent,
   ],
   imports: [
     BrowserModule,

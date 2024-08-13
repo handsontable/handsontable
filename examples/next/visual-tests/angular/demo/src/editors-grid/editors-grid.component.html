@@ -1,0 +1,20 @@
+<div>
+    <hot-table
+      class="hot"
+      id="root"
+      [data]="dataset"
+      height="350"
+      [colHeaders]="true"
+      [rowHeaders]="true"
+      [navigableHeaders]="true"
+      [autoWrapCol]="true"
+      [autoWrapRow]="true"
+      licenseKey="non-commercial-and-evaluation"
+    >
+      <hot-column data="brand" type="dropdown" [source]="['Mercedes', 'Citroen', 'Audi', 'Opel', 'BMW']"></hot-column>
+      <hot-column data="model" type="autocomplete" [source]="['A 160', 'C4', 'A4', 'Astra', '320i']"></hot-column>
+      <hot-column data="year" type="select" [selectOptions]="['2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024']"></hot-column>
+      <hot-column data="price_usd" type="numeric"></hot-column>
+      <hot-column data="sell_date" type="date" dateFormat="DD/MM/YYYY"></hot-column>
+    </hot-table>
+</div>
