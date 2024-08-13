@@ -10,10 +10,11 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<DataGrid />} />
-        <Route path="/scenario-grid" element={<ScenarioTwoGrid />} />
+        <Route path="/scenario-grid" element={<ScenarioTwoGrid />} /> 
       </Routes>
     </Router>
   );
 }
 
 ReactDOM.render(<App />, document.getElementById('root'));
+
