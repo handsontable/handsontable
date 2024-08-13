@@ -18,7 +18,7 @@
   "sandboxes": [
     "github/handsontable/handsontable/tree/develop/examples/prs/js/",
     "github/handsontable/handsontable/tree/develop/examples/prs/ts/",
-    "github/handsontable/handsontable/tree/develop/examples/prs/react/"
+    "github/handsontable/handsontable/tree/develop/examples/next/docs/react/accessibility"
   ],
   "node": "18"
 }
