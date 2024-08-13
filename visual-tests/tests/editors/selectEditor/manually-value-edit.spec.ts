@@ -10,13 +10,12 @@ test(__filename, async({ tablePage }) => {
 
   const table = tablePage.locator(helpers.selectors.mainTable);
 
-  await table.waitFor();
+  await table.waitFor({ timeout: 2000 });
 
-  const cloneInlineStartTable = table.locator(helpers.selectors.mainTableBody);
-  const cell = cloneInlineStartTable.locator(helpers.findCell({ row: 2, column: 2, cellType: 'td' }));
+  const tableBody = table.locator(helpers.selectors.mainTableBody);
+  const cell = tableBody.locator(helpers.findCell({ row: 2, column: 2, cellType: 'td' }));
 
   await openEditor(cell);
-
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   const cellEditor = table.locator('select.htSelectEditor');
