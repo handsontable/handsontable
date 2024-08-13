@@ -16,7 +16,6 @@ const routes: Routes = [
     AppComponent, // Declare AppComponent
     DataGridComponent,
     ScenarioGridComponent,
-    EditorsGridComponent,
   ],
   imports: [
     BrowserModule,
