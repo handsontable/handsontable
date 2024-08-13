@@ -41,7 +41,7 @@ function operationalStatusRenderer(
 }
 
 export function initializeCellTypeDemo() {
-  const hot = new Handsontable(container, {
+  new Handsontable(container, {
     data,
     colHeaders: [
       'ID',
