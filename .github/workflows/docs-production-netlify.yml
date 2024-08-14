@@ -19,7 +19,7 @@ defaults:
 
 jobs:
   docker:
-    name: Build and push Docker image
+    name: Build Docs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
@@ -42,7 +42,7 @@ jobs:
 
       - name: Docker build
         run: |
-          npm run docs:docker:build:production
+          npm run docs:docker:build:production:netlify
         working-directory: ./latest/docs/
 
       - name: Test examples
