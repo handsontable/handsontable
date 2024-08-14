@@ -139,8 +139,7 @@ export default class Core {
   scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean, considerHiddenIndexes?: boolean): boolean;
   scrollToFocusedCell(callback?: () => void): void;
   selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, options?: { focusPosition?: SimpleCellCoords | CellCoords, disableHeadersHighlight?: boolean }): void;
-  selectCell(row: number, column: number, endRow?: number, endColumn?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
-  selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
+  selectCell(row: number, column: number | string, endRow?: number, endColumn?: number | string, scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectCells(coords: Array<[number, number | string, number, number | string]> | CellRange[], scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectColumns(startColumn: number | string, endColumn?: number | string, focusPosition?: number | SimpleCellCoords | CellCoords): boolean;
   selectRows(startRow: number, endRow?: number, focusPosition?: number | SimpleCellCoords | CellCoords): boolean;
