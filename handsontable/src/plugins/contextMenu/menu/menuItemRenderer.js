@@ -47,11 +47,9 @@ export function createMenuItemRenderer(mainTableHot) {
 
     const item = menuHot.getSourceDataAtRow(row);
     const wrapper = mainTableHot.rootDocument.createElement('div');
-    const icon = item.iconName ?  mainTableHot.rootDocument.createElement('i') : undefined;
     const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
     const ariaLabel = typeof item.ariaLabel === 'function' ? item.ariaLabel.call(mainTableHot) : item.ariaLabel;
     const ariaChecked = typeof item.ariaChecked === 'function' ? item.ariaChecked.call(mainTableHot) : item.ariaChecked;
-
 
     empty(TD);
     addClass(wrapper, 'htItemWrapper');
@@ -88,13 +86,7 @@ export function createMenuItemRenderer(mainTableHot) {
 
     } else {
       fastInnerHTML(wrapper, itemValue);
-      
-      if(icon) {
-        addClass(icon, `ht-icons-icon-${item.iconName}`);
-        wrapper.insertBefore(icon, wrapper.firstChild);
-      }
     }
-
 
     if (isItemDisabled(item, mainTableHot)) {
       addClass(TD, 'htDisabled');

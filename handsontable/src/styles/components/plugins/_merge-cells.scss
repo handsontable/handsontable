@@ -1,10 +1,11 @@
-@import "../../utils/mixins";
+@use "../../utils/mixins";
 
 /*
   Handsontable Merge Cells
 */
+
 @mixin output {
   @for $i from 0 through 7 {
-    @include selection-opacity($i);
+    @include mixins.selection-opacity($i);
   }
 }

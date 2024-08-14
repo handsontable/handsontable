@@ -1,4 +1,3 @@
-import { addClass } from '../../helpers/dom/element';
 import { textRenderer } from '../textRenderer';
 
 export const RENDERER_TYPE = 'select';
@@ -15,7 +14,6 @@ export const RENDERER_TYPE = 'select';
  */
 export function selectRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
-  addClass(TD, 'htSelect');
 }
 
 selectRenderer.RENDERER_TYPE = RENDERER_TYPE;

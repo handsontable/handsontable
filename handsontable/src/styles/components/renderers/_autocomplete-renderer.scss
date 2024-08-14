@@ -1,26 +1,28 @@
+@use "../../utils/mixins";
+
+/*
+  Autocomplete
+*/
+
 @mixin output {
-  /*
-    Autocomplete
-  */
   .handsontable {
     /* Arrow */
     .htAutocompleteArrow {
+      position: relative;
       float: inline-end;
       cursor: default;
       width: 16px;
       height: 16px;
       font-size: 0;
-      position: relative;
       top: calc((var(--hot-base-line-height) - 16px) * 0.5);
       margin-inline-end: calc(
         var(--hot-base-grid) - var(--hot-cell-horizontal-padding)
       );
 
       &:after {
+        @include mixins.pseudo;
         width: 4px;
         height: 4px;
-        content: "";
-        display: block;
         position: absolute;
         top: 50%;
         left: 50%;

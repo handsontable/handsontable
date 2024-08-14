@@ -1,41 +1,34 @@
-@import "../../utils/mixins";
+@use "../../utils/mixins";
 
 /*
   Handsontable DropdownMenu
     - Button
     - Dropdown Menu and Context Menu and Filters
 */
+
 @mixin output {
   .handsontable {
     /* Menu Button */
     .changeType {
-      /* Positioning */
       position: relative;
-      float: inline-end;
-      z-index: 1;
-      transform: translate(0%, -50%);
       top: 50%;
-
-      /* Box Model */
-      box-sizing: border-box;
+      display: inline-block;
+      float: inline-end;
       width: calc(4 * var(--hot-base-grid));
       height: calc(4 * var(--hot-base-grid));
       padding: calc(2 * var(--hot-base-grid));
       margin-inline-end: calc(
         var(--hot-base-grid) - var(--hot-cell-horizontal-padding)
       );
+      box-sizing: border-box;
       border-radius: var(--hot-border-radius);
       border: none;
-
-      /* Visual Styles */
       background: none;
-      display: inline-block;
-
-      /* Transition */
+      z-index: 1;
+      transform: translate(0%, -50%);
       transition: var(--hot-transition-time) all ease-in-out;
 
       &:hover {
-        /* Visual Styles */
         border: none;
         cursor: pointer;
         background-color: var(--hot-background-color);
@@ -47,24 +40,17 @@
       }
 
       &:before {
-        /* Positioning */
+        content: "";
         position: absolute;
         top: 50%;
         left: 50%;
-        margin-left: 0.5px;
-        transform: rotate(45deg) translate(-100%);
-
-        /* Box Model */
+        display: block;
         width: var(--hot-base-grid);
         height: var(--hot-base-grid);
-
-        /* Visual Styles */
-        content: "";
-        display: block;
+        margin-left: 0.5px;
         border-right: 1.5px solid var(--hot-header-foreground-color);
         border-bottom: 1.5px solid var(--hot-header-foreground-color);
-
-        /* Transition */
+        transform: rotate(45deg) translate(-100%);
         transition: var(--hot-transition-time) all ease-in-out;
       }
     }
@@ -100,13 +86,13 @@
       }
 
       table.htCore {
+        padding: calc(2 * var(--hot-base-grid)) 0;
         border-color: var(--hot-dropdown-border-color);
         border-style: solid;
         border-width: var(--hot-dropdown-border-width);
         border-radius: calc(2 * var(--hot-border-radius));
         overflow: hidden;
         box-shadow: var(--hot-base-shadow);
-        padding: calc(2 * var(--hot-base-grid)) 0;
       }
 
       .htCustomMenuRenderer .table.htCore {
@@ -122,23 +108,14 @@
       }
 
       table tbody tr td {
-        /* Positioning */
         position: relative;
-
-        /* Box Model */
-        border-width: 0;
         padding: calc(2 * var(--hot-base-grid));
+        border-width: 0;
         overflow: hidden;
-
-        /* Typography */
         white-space: nowrap;
         text-overflow: ellipsis;
-
-        /* Visual Styles */
         background: var(--hot-dropdown-background);
         cursor: pointer;
-
-        /* Transition */
         transition: background calc(0.5 * var(--hot-transition-time))
           ease-in-out;
 
@@ -160,18 +137,16 @@
 
         &.htSubmenu {
           .htItemWrapper:after {
-            @include pseudo;
+            @include mixins.pseudo;
             position: absolute;
             top: 50%;
             right: calc(4 * var(--hot-base-grid));
             margin-left: 0.5px;
-            transform: rotate(45deg) translate(-100%);
             width: 4px;
             height: 4px;
-            content: "";
-            display: block;
             border-right: 1.5px solid var(--hot-read-only-text);
             border-top: 1.5px solid var(--hot-read-only-text);
+            transform: rotate(45deg) translate(-100%);
           }
         }
 
@@ -199,24 +174,28 @@
         .htItemWrapper {
           margin-inline: calc(2 * var(--hot-base-grid));
 
+          i {
+            font-size: 18px;
+            margin-right: 5px;
+          }
+
           &:before {
             vertical-align: text-bottom;
             margin-right: 12px;
           }
+
           span.selected {
             font-size: 0;
             inset: 0;
 
             &:after {
-              content: "";
-              display: block;
-              pointer-events: none;
-              content: "";
+              @include mixins.pseudo;
+              position: absolute;
               width: 6px;
               height: 10px;
-              position: absolute;
               right: 16px;
               top: 50%;
+              pointer-events: none;
               border-left: 1.5px solid var(--hot-accent-color);
               border-top: 1.5px solid var(--hot-accent-color);
               transform: translate(-50%, -50%) rotate(-135deg);
@@ -225,8 +204,7 @@
             }
 
             &::before {
-              content: "";
-              display: block;
+              @include mixins.pseudo;
               position: absolute;
               inset: 0;
               background-color: var(--hot-accent-color);

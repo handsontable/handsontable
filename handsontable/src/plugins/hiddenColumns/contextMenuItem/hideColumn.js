@@ -7,7 +7,6 @@ import * as C from '../../../i18n/constants';
 export default function hideColumnItem(hiddenColumnsPlugin) {
   return {
     key: 'hidden_columns_hide',
-    iconName: 'eye-off',
     name() {
       const selection = this.getSelectedLast();
       let pluralForm = 0;

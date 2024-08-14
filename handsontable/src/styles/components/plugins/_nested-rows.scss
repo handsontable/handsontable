@@ -31,11 +31,11 @@
           &_empty {
             display: inline-block;
             float: inline-start;
-            border-bottom: 1px solid var(--hot-border-color);
+            width: calc(2 * var(--hot-base-grid));
             height: calc(var(--hot-base-line-height) / 2);
             position: relative;
-            width: calc(2 * var(--hot-base-grid));
             align-self: start;
+            border-bottom: 1px solid var(--hot-border-color);
 
             &:first-child {
               margin-left: -2px;

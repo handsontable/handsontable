@@ -1,3 +1,5 @@
+@use "../../utils/mixins";
+
 /*
   Handsontable Row Resizer
 */
@@ -5,16 +7,11 @@
 @mixin output {
   .handsontable {
     .manualRowResizer {
-      /* Positioning */
       position: absolute;
       left: 0;
       z-index: 210;
-
-      /* Box Model */
       height: 10px;
       margin: 0;
-
-      /* Visual Styles */
       cursor: row-resize;
       background: none;
       opacity: 0;
@@ -22,19 +19,13 @@
 
       &::before,
       &::after {
-        /* Positioning */
+        @include mixins.pseudo;
         position: absolute;
         top: 1px;
         left: 0;
-
-        /* Box Model */
         width: calc(100% - 8px);
         height: 2px;
         margin: 0 4px;
-
-        /* Visual Styles */
-        content: "";
-        display: block;
         background: var(--hot-read-only-text);
         border-radius: 2px;
       }
@@ -46,29 +37,22 @@
 
       &:hover,
       &.active {
-        /* Visual Styles */
         opacity: 1;
       }
     }
 
     .manualRowResizerGuide {
-      /* Positioning */
       position: absolute;
       left: 0;
       bottom: 0;
-
-      /* Box Model */
       height: 0;
       margin-top: 4px;
-
-      /* Visual Styles */
       display: none;
       border-bottom: 1px solid var(--hot-accent-color);
       border-top: none;
     }
 
     .manualRowResizerGuide.active {
-      /* Visual Styles */
       display: block;
       z-index: 209;
     }

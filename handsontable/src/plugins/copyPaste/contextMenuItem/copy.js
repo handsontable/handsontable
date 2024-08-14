@@ -7,7 +7,6 @@ import { CONTEXTMENU_ITEMS_COPY } from '../../../i18n/constants';
 export default function copyItem(copyPastePlugin) {
   return {
     key: 'copy',
-    iconName: 'copy',
     name() {
       return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_COPY);
     },

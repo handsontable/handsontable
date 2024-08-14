@@ -5,24 +5,34 @@
 @mixin output {
   .htSelectEditor {
     position: absolute;
-    width: auto;
-    font-family: var(--hot-font-family);
-    font-size: inherit;
-    line-height: var(--hot-base-line-height);
-    padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
-    padding-right: 26px;
-    -webkit-appearance: none !important;
-    box-shadow: 0 0 0px 1px inset var(--hot-accent-color);
-    border-color: var(--hot-accent-color);
-    background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI4IiB2aWV3Qm94PSIwIDAgOCA4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTAuNDY0NTc3IDIuNTM1MTZMNC4wMDAxMSA2LjA3MDY5TDcuNTM1NjQgMi41MzUxNkw2LjgyODU0IDEuODI4MDVMNC4wMDAxMSA0LjY1NjQ4TDEuMTcxNjggMS44MjgwNUwwLjQ2NDU3NyAyLjUzNTE2WiIgZmlsbD0iIzc3Nzc3NyIvPgo8L3N2Zz4K");
-    background-repeat: no-repeat;
-    background-size: 8px 8px;
-    background-position: 95% center;
-    background-clip: border-box;
 
-    &:focus {
-      outline: none;
+    select {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      font-family: var(--hot-font-family);
+      font-size: inherit;
+      line-height: var(--hot-base-line-height);
+      padding: var(--hot-cell-vertical-padding) var(--hot-cell-horizontal-padding);
+      padding-right: 26px;
+      -webkit-appearance: none !important;
+      border-color: var(--hot-accent-color);
+      box-shadow: 0 0 0px 1px inset var(--hot-accent-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--hot-foreground-color);
+      background: var(--hot-background-color);
+      &:focus {
+        outline: none;
+      }
+    }
+
+    .htAutocompleteArrow {
+      top: calc((var(--hot-base-line-height) - 6px)*.5);
+      margin-inline-end: 4px;
+      z-index: 1;
     }
   }
 }
-  

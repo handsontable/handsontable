@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 09/08/2024 13:32:27)
+ * Release date: 30/07/2024 (built at 14/08/2024 13:54:20)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "09/08/2024 13:32:27";
+Handsontable.buildDate = "14/08/2024 13:54:20";
 Handsontable.version = "14.5.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -50395,6 +50395,7 @@ exports.__esModule = true;
 var _baseEditor = __webpack_require__(326);
 var _element = __webpack_require__(135);
 var _object = __webpack_require__(145);
+var _a11y = __webpack_require__(142);
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const SHORTCUTS_GROUP = 'selectEditor';
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'select';
@@ -50412,11 +50413,21 @@ class SelectEditor extends _baseEditor.BaseEditor {
    * Initializes editor instance, DOM Element and mount hooks.
    */
   init() {
+    this.selectWrapper = this.hot.rootDocument.createElement('div');
     this.select = this.hot.rootDocument.createElement('select');
     this.select.setAttribute('data-hot-input', 'true');
-    this.select.style.display = 'none';
-    (0, _element.addClass)(this.select, 'htSelectEditor');
-    this.hot.rootElement.appendChild(this.select);
+    this.selectWrapper.style.display = 'none';
+    const ARROW = this.hot.rootDocument.createElement('DIV');
+    const isAriaEnabled = this.hot.getSettings().ariaTags;
+    ARROW.className = 'htAutocompleteArrow';
+    if (isAriaEnabled) {
+      ARROW.setAttribute(...(0, _a11y.A11Y_HIDDEN)());
+    }
+    ARROW.appendChild(this.hot.rootDocument.createTextNode(String.fromCharCode(9660)));
+    (0, _element.addClass)(this.selectWrapper, 'htSelectEditor');
+    this.selectWrapper.appendChild(this.select);
+    this.selectWrapper.insertBefore(ARROW, this.selectWrapper.firstChild);
+    this.hot.rootElement.appendChild(this.selectWrapper);
     this.registerHooks();
   }
 
@@ -50444,7 +50455,7 @@ class SelectEditor extends _baseEditor.BaseEditor {
   open() {
     this._opened = true;
     this.refreshDimensions();
-    this.select.style.display = '';
+    this.selectWrapper.style.display = '';
     const shortcutManager = this.hot.getShortcutManager();
     shortcutManager.setActiveContextName('editor');
     this.registerShortcuts();
@@ -50455,9 +50466,9 @@ class SelectEditor extends _baseEditor.BaseEditor {
    */
   close() {
     this._opened = false;
-    this.select.style.display = 'none';
-    if ((0, _element.hasClass)(this.select, EDITOR_VISIBLE_CLASS_NAME)) {
-      (0, _element.removeClass)(this.select, EDITOR_VISIBLE_CLASS_NAME);
+    this.selectWrapper.style.display = 'none';
+    if ((0, _element.hasClass)(this.selectWrapper, EDITOR_VISIBLE_CLASS_NAME)) {
+      (0, _element.removeClass)(this.selectWrapper, EDITOR_VISIBLE_CLASS_NAME);
     }
     this.unregisterShortcuts();
     this.clearHooks();
@@ -50563,13 +50574,13 @@ class SelectEditor extends _baseEditor.BaseEditor {
       width,
       height
     } = this.getEditedCellRect();
-    const selectStyle = this.select.style;
+    const selectStyle = this.selectWrapper.style;
     selectStyle.height = `${height}px`;
     selectStyle.width = `${width}px`;
     selectStyle.top = `${top}px`;
     selectStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
     selectStyle.margin = '0px';
-    (0, _element.addClass)(this.select, EDITOR_VISIBLE_CLASS_NAME);
+    (0, _element.addClass)(this.selectWrapper, EDITOR_VISIBLE_CLASS_NAME);
   }
 
   /**
@@ -51553,7 +51564,6 @@ exports.selectRenderer = _selectRenderer.selectRenderer;
 
 exports.__esModule = true;
 exports.selectRenderer = selectRenderer;
-var _element = __webpack_require__(135);
 var _textRenderer = __webpack_require__(392);
 const RENDERER_TYPE = exports.RENDERER_TYPE = 'select';
 
@@ -51569,7 +51579,6 @@ const RENDERER_TYPE = exports.RENDERER_TYPE = 'select';
  */
 function selectRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   _textRenderer.textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
-  (0, _element.addClass)(TD, 'htSelect');
 }
 selectRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
@@ -60511,7 +60520,6 @@ function ariaLabel(hot, rawName, htClassName) {
 function alignmentItem() {
   return {
     key: KEY,
-    iconName: 'align-left',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT);
     },
@@ -60531,7 +60539,6 @@ function alignmentItem() {
     submenu: {
       items: [{
         key: `${KEY}:left`,
-        iconName: 'align-left',
         checkable: true,
         ariaLabel() {
           return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT), 'htLeft');
@@ -60558,7 +60565,6 @@ function alignmentItem() {
         disabled: false
       }, {
         key: `${KEY}:center`,
-        iconName: 'align-center',
         checkable: true,
         ariaLabel() {
           return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER), 'htCenter');
@@ -60585,7 +60591,6 @@ function alignmentItem() {
         disabled: false
       }, {
         key: `${KEY}:right`,
-        iconName: 'align-right',
         checkable: true,
         ariaLabel() {
           return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT), 'htRight');
@@ -60612,7 +60617,6 @@ function alignmentItem() {
         disabled: false
       }, {
         key: `${KEY}:justify`,
-        iconName: 'align-justified',
         checkable: true,
         ariaLabel() {
           return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY), 'htJustify');
@@ -60641,7 +60645,6 @@ function alignmentItem() {
         name: _separator.KEY
       }, {
         key: `${KEY}:top`,
-        iconName: 'arrow-bar-to-up',
         checkable: true,
         ariaLabel() {
           return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP), 'htTop');
@@ -60668,7 +60671,6 @@ function alignmentItem() {
         disabled: false
       }, {
         key: `${KEY}:middle`,
-        iconName: 'arrow-bar-both',
         checkable: true,
         ariaLabel() {
           return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE), 'htMiddle');
@@ -60695,7 +60697,6 @@ function alignmentItem() {
         disabled: false
       }, {
         key: `${KEY}:bottom`,
-        iconName: 'arrow-bar-to-down',
         checkable: true,
         ariaLabel() {
           return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM), 'htBottom');
@@ -60951,7 +60952,6 @@ const KEY = exports.KEY = 'clear_column';
 function clearColumnItem() {
   return {
     key: KEY,
-    iconName: 'x',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CLEAR_COLUMN);
     },
@@ -60995,7 +60995,6 @@ const KEY = exports.KEY = 'col_left';
 function columnLeftItem() {
   return {
     key: KEY,
-    iconName: 'column-insert-left',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
     },
@@ -61049,7 +61048,6 @@ const KEY = exports.KEY = 'col_right';
 function columnRightItem() {
   return {
     key: KEY,
-    iconName: 'column-insert-right',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
     },
@@ -61103,7 +61101,6 @@ const KEY = exports.KEY = 'make_read_only';
 function readOnlyItem() {
   return {
     key: KEY,
-    iconName: 'eye',
     checkable: true,
     ariaChecked() {
       const atLeastOneReadOnly = (0, _utils.checkSelectionConsistency)(this.getSelectedRange(), (row, col) => this.getCellMeta(row, col).readOnly);
@@ -61177,7 +61174,6 @@ const KEY = exports.KEY = 'redo';
 function redoItem() {
   return {
     key: KEY,
-    iconName: 'arrow-forward-up',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REDO);
     },
@@ -61215,7 +61211,6 @@ const KEY = exports.KEY = 'remove_col';
 function removeColumnItem() {
   return {
     key: KEY,
-    iconName: 'column-remove',
     name() {
       const selection = this.getSelected();
       let pluralForm = 0;
@@ -61279,7 +61274,6 @@ const KEY = exports.KEY = 'remove_row';
 function removeRowItem() {
   return {
     key: KEY,
-    iconName: 'row-remove',
     name() {
       const selection = this.getSelected();
       let pluralForm = 0;
@@ -61341,7 +61335,6 @@ const KEY = exports.KEY = 'row_above';
 function rowAboveItem() {
   return {
     key: KEY,
-    iconName: 'row-insert-top',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_ABOVE);
     },
@@ -61391,7 +61384,6 @@ const KEY = exports.KEY = 'row_below';
 function rowBelowItem() {
   return {
     key: KEY,
-    iconName: 'row-insert-bottom',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
     },
@@ -61465,7 +61457,6 @@ const KEY = exports.KEY = 'undo';
 function undoItem() {
   return {
     key: KEY,
-    iconName: 'arrow-back-up',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNDO);
     },
@@ -61501,7 +61492,6 @@ function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; 
 function addEditCommentItem(plugin) {
   return {
     key: 'commentsAddEdit',
-    iconName: 'message-plus',
     name() {
       var _this$getSelectedRang;
       const highlight = (_this$getSelectedRang = this.getSelectedRangeLast()) === null || _this$getSelectedRang === void 0 ? void 0 : _this$getSelectedRang.highlight;
@@ -61545,7 +61535,6 @@ function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; 
 function removeCommentItem(plugin) {
   return {
     key: 'commentsRemove',
-    iconName: 'message-x',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
     },
@@ -61589,7 +61578,6 @@ function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; 
 function readOnlyCommentItem(plugin) {
   return {
     key: 'commentsReadOnly',
-    iconName: 'message-cancel',
     name() {
       const label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
       const areReadOnly = (0, _utils.checkSelectionConsistency)(this.getSelectedRange(), (row, col) => {
@@ -64003,7 +63991,6 @@ function createMenuItemRenderer(mainTableHot) {
     }
     const item = menuHot.getSourceDataAtRow(row);
     const wrapper = mainTableHot.rootDocument.createElement('div');
-    const icon = item.iconName ? mainTableHot.rootDocument.createElement('i') : undefined;
     const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
     const ariaLabel = typeof item.ariaLabel === 'function' ? item.ariaLabel.call(mainTableHot) : item.ariaLabel;
     const ariaChecked = typeof item.ariaChecked === 'function' ? item.ariaChecked.call(mainTableHot) : item.ariaChecked;
@@ -64022,10 +64009,6 @@ function createMenuItemRenderer(mainTableHot) {
       TD.appendChild(item.renderer(menuHot, wrapper, row, col, prop, itemValue));
     } else {
       (0, _element.fastInnerHTML)(wrapper, itemValue);
-      if (icon) {
-        (0, _element.addClass)(icon, `ht-icons-icon-${item.iconName}`);
-        wrapper.insertBefore(icon, wrapper.firstChild);
-      }
     }
     if ((0, _utils.isItemDisabled)(item, mainTableHot)) {
       (0, _element.addClass)(TD, 'htDisabled');
@@ -64875,7 +64858,6 @@ var _constants = __webpack_require__(284);
 function copyItem(copyPastePlugin) {
   return {
     key: 'copy',
-    iconName: 'copy',
     name() {
       return this.getTranslatedPhrase(_constants.CONTEXTMENU_ITEMS_COPY);
     },
@@ -64923,7 +64905,6 @@ var _number = __webpack_require__(175);
 function copyColumnHeadersOnlyItem(copyPastePlugin) {
   return {
     key: 'copy_column_headers_only',
-    iconName: 'copy',
     name() {
       const selectedRange = this.getSelectedRangeLast();
       const nounForm = selectedRange ? (0, _number.clamp)(selectedRange.getWidth() - 1, 0, 1) : 0;
@@ -64973,7 +64954,6 @@ var _number = __webpack_require__(175);
 function copyWithColumnGroupHeadersItem(copyPastePlugin) {
   return {
     key: 'copy_with_column_group_headers',
-    iconName: 'copy',
     name() {
       const selectedRange = this.getSelectedRangeLast();
       const nounForm = selectedRange ? (0, _number.clamp)(selectedRange.getWidth() - 1, 0, 1) : 0;
@@ -65023,7 +65003,6 @@ var _number = __webpack_require__(175);
 function copyWithColumnHeadersItem(copyPastePlugin) {
   return {
     key: 'copy_with_column_headers',
-    iconName: 'copy',
     name() {
       const selectedRange = this.getSelectedRangeLast();
       const nounForm = selectedRange ? (0, _number.clamp)(selectedRange.getWidth() - 1, 0, 1) : 0;
@@ -65074,7 +65053,6 @@ function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; 
 function cutItem(copyPastePlugin) {
   return {
     key: 'cut',
-    iconName: 'scissors',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CUT);
     },
@@ -75903,7 +75881,6 @@ function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; 
 function hideColumnItem(hiddenColumnsPlugin) {
   return {
     key: 'hidden_columns_hide',
-    iconName: 'eye-off',
     name() {
       const selection = this.getSelectedLast();
       let pluralForm = 0;
@@ -83110,7 +83087,6 @@ function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; 
 function toggleMergeItem(plugin) {
   return {
     key: 'mergeCells',
-    iconName: 'marge-cell',
     name() {
       const sel = this.getSelectedLast();
       if (sel) {
@@ -89619,7 +89595,6 @@ class ContextMenuUI extends _base.default {
   appendOptions(defaultOptions) {
     const newEntries = [{
       key: 'add_child',
-      iconName: 'inset-child',
       name() {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD);
       },
@@ -89634,7 +89609,6 @@ class ContextMenuUI extends _base.default {
       }
     }, {
       key: 'detach_from_parent',
-      iconName: 'detach-child',
       name() {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD);
       },

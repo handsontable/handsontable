@@ -1,0 +1,12 @@
+@use "sass:color";
+@use "utils/main";
+
+/* Light mode */
+@media (prefers-color-scheme: light) {
+  @include main.light();
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  @include main.dark();
+}

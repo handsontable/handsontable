@@ -29,7 +29,6 @@ function ariaLabel(hot, rawName, htClassName) {
 export default function alignmentItem() {
   return {
     key: KEY,
-    iconName: 'align-left',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT);
     },
@@ -54,7 +53,6 @@ export default function alignmentItem() {
       items: [
         {
           key: `${KEY}:left`,
-          iconName: 'align-left',
           checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT), 'htLeft');
@@ -86,7 +84,6 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:center`,
-          iconName: 'align-center',
           checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER), 'htCenter');
@@ -118,7 +115,6 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:right`,
-          iconName: 'align-right',
           checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT), 'htRight');
@@ -150,7 +146,6 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:justify`,
-          iconName: 'align-justified',
           checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY), 'htJustify');
@@ -185,7 +180,6 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:top`,
-          iconName: 'arrow-bar-to-up',
           checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP), 'htTop');
@@ -217,7 +211,6 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:middle`,
-          iconName: 'arrow-bar-both',
           checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE), 'htMiddle');
@@ -249,7 +242,6 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:bottom`,
-          iconName: 'arrow-bar-to-down',
           checkable: true,
           ariaLabel() {
             return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM), 'htBottom');

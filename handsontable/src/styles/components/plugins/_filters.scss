@@ -1,4 +1,4 @@
-@import "../../utils/mixins";
+@use "../../utils/mixins";
 
 /*
   Filters
@@ -11,10 +11,11 @@
       z-index: 1070;
     }
   }
+
   .handsontable {
     .htMenuFiltering {
-      border-bottom: 1px solid var(--hot-border-color);
       height: var(--hot-filters-menu-filtering-height);
+      border-bottom: 1px solid var(--hot-border-color);
       overflow: hidden;
     }
 
@@ -39,21 +40,11 @@
       padding-bottom: calc(4 * var(--hot-base-grid));
     }
 
-    /* Component action bar */
-    .htFiltersMenuActionBar {
-    }
-
     .htFiltersMenuValue {
       border-bottom: 1px solid var(--hot-highlight-color) !important;
       padding-bottom: 0 !important;
+    }
 
-      .htUIMultipleSelectSearch {
-      }
-    }
-    .htUISelectionControls {
-    }
-    .htFiltersMenuOperators {
-    }
     .htUIMultipleSelectHot {
       border-top: 1px solid var(--hot-highlight-color);
       margin: 0 calc(-4 * var(--hot-base-grid));

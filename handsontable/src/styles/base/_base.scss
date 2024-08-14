@@ -1,31 +1,22 @@
-@import "../utils/mixins";
-
 @mixin output {
   .handsontable {
-    /* Positioning */
     position: relative;
-
-    /* Typography */
     font-family: var(--hot-font-family);
     font-size: var(--hot-base-font-size);
     font-weight: normal;
     color: var(--hot-foreground-color);
-
     /* Miscellaneous */
     touch-action: manipulation;
 
     // Cell and Header
     th,
     td {
-      /* Positioning */
-      vertical-align: top;
-
-      /* Box Model */
       height: calc(
         var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding))
       );
       padding: var(--hot-cell-vertical-padding)
         var(--hot-cell-horizontal-padding);
+      vertical-align: top;
       border-top-width: 0;
       border-inline-start-width: 0;
       border-inline-end-width: var(--hot-border-vertical-size);
@@ -33,14 +24,10 @@
       border-style: solid;
       border-color: var(--hot-border-color);
       box-sizing: border-box;
-
-      /* Typography */
       color: var(--hot-foreground-color);
       font-size: var(--hot-base-font-size);
       line-height: var(--hot-base-line-height);
       white-space: pre-wrap;
-
-      /* Visual Styles */
       overflow: hidden;
       outline: none;
       outline-width: 0;
@@ -64,21 +51,14 @@
 
     // Header
     th {
-      /* Positioning */
       position: relative;
-
-      /* Box Model */
       border-style: solid;
       border-color: var(--hot-border-color);
       overflow: visible;
-
-      /* Typography */
       text-align: center;
       font-weight: normal;
       white-space: nowrap;
       color: var(--hot-header-foreground-color);
-
-      /* Visual Styles */
       background-color: var(--hot-header-background-color);
 
       &:last-child {
@@ -147,15 +127,6 @@
           var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding))
         );
       }
-
-      &.ht__active_highlight {
-        .columnSorting.sortAction {
-          &:before {
-            filter: invert(1);
-            opacity: 0.6;
-          }
-        }
-      }
     }
     thead tr:not(:last-child) th {
       // Fix for - nested columns with hidden column
@@ -173,7 +144,7 @@
       }
     }
 
-    // Bese classes
+    // Base classes
     .hide {
       display: none;
     }
@@ -203,13 +174,13 @@
 
     .htFocusCatcher {
       position: absolute;
-      z-index: -1;
-      opacity: 0;
-      border: 0;
-      margin: 0;
-      padding: 0;
       width: 0;
       height: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      z-index: -1;
     }
 
     table,
@@ -226,20 +197,15 @@
     }
 
     .htCore {
-      /* Box Model */
+      width: 0;
+      margin: 0;
       border-width: 0;
       border-spacing: 0;
       border-collapse: separate;
-      margin: 0;
-      width: 0;
-
-      /* Visual Styles */
-      background: var(--hot-background-color);
-      cursor: default;
       outline-width: 0;
-
-      /* Layout */
       table-layout: fixed;
+      cursor: default;
+      background: var(--hot-background-color);
     }
 
     col {

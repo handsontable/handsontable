@@ -1,3 +1,5 @@
+@use "../../utils/mixins";
+
 /*
   Handsontable Column Resizer
 */
@@ -5,36 +7,25 @@
 @mixin output {
   .handsontable {
     .manualColumnResizer {
-      /* Positioning */
       position: absolute;
       top: 0;
-      z-index: 210;
-
-      /* Box Model */
       width: 10px;
       margin: 0;
-
-      /* Visual Styles */
       cursor: col-resize;
       background: none;
       opacity: 0;
+      z-index: 210;
       transition: opacity var(--hot-transition-time) ease-in-out;
 
       &::before,
       &::after {
-        /* Positioning */
+        @include mixins.pseudo;
         position: absolute;
         top: 0;
         left: 1px;
-
-        /* Box Model */
-        height: calc(100% - 8px);
         width: 2px;
+        height: calc(100% - 8px);
         margin: 4px 0;
-
-        /* Visual Styles */
-        content: "";
-        display: block;
         background: var(--hot-read-only-text);
         border-radius: 2px;
       }
@@ -51,17 +42,12 @@
     }
 
     .manualColumnResizerGuide {
-      /* Positioning */
       position: absolute;
       inset-inline-end: unset;
       top: 0;
-
-      /* Box Model */
       width: 0;
       margin-inline-start: 4px;
       margin-inline-end: unset;
-
-      /* Visual Styles */
       display: none;
       border-inline-end: 1px solid var(--hot-accent-color);
       border-inline-start: none;

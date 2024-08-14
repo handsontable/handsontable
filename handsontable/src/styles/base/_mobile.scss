@@ -1,15 +1,16 @@
-@import "../utils/mixins";
+@use "../utils/mixins";
 
 /*
-  Handsontable Mobile Text Editor stylesheet
+  Handsontable Mobile Text Editor stylesheets
 */
+
 @mixin output {
   .handsontable {
     &.mobile {
-      @include user-select-none;
+      @include mixins.user-select-none;
 
       .wtHolder {
-        @include user-select-none;
+        @include mixins.user-select-none;
       }
 
       .handsontableInput:focus {

@@ -1,16 +1,14 @@
 @use "sass:color";
 
 @use "./base";
-@use "./elevation";
+@use "./z-order";
 @use "./display";
-@use "./font";
+@use "./mobile";
 
-/*
-  Walkontable migration
-*/
+/* Walkontable migration */
 @mixin base-styles() {
   @include base.output();
-  @include elevation.output();
+  @include z-order.output();
   @include display.output();
-  @include font.output();
+  @include mobile.output();
 }

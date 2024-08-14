@@ -9,7 +9,6 @@ export const KEY = 'remove_col';
 export default function removeColumnItem() {
   return {
     key: KEY,
-    iconName: 'column-remove',
     name() {
       const selection = this.getSelected();
       let pluralForm = 0;

@@ -5,7 +5,7 @@
 @use "./core/license-notification";
 
 /* Plugins */
-@use "./plugins/colapsible-columns";
+@use "./plugins/collapsible-columns";
 @use "./plugins/nested-headers";
 @use "./plugins/nested-rows";
 @use "./plugins/hidden-columns";
@@ -26,7 +26,6 @@
 @use "./renderers/text-renderer";
 @use "./renderers/autocomplete-renderer";
 @use "./renderers/checkbox-renderer";
-@use "./renderers/select-renderer";
 
 /* Editors */
 @use "./editors/text-editor";
@@ -49,7 +48,6 @@
   @include autocomplete-renderer.output();
   @include checkbox-renderer.output();
   @include text-renderer.output();
-  @include select-renderer.output();
   /* Editor */
   @include text-editor.output();
   @include select-editor.output();
@@ -63,7 +61,7 @@
 
 /* Plugins */
 @mixin plugins-components-styles() {
-  @include colapsible-columns.output();
+  @include collapsible-columns.output();
   @include nested-headers.output();
   @include nested-rows.output();
   @include hidden-columns.output();

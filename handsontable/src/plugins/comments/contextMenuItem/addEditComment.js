@@ -7,7 +7,6 @@ import * as C from '../../../i18n/constants';
 export default function addEditCommentItem(plugin) {
   return {
     key: 'commentsAddEdit',
-    iconName: 'message-plus',
     name() {
       const highlight = this.getSelectedRangeLast()?.highlight;
 

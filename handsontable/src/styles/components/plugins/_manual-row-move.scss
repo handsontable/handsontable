@@ -1,8 +1,9 @@
-@import "../../utils/mixins";
+@use "../../utils/mixins";
 
 /*
   Handsontable Row Move
 */
+
 @mixin output {
   .handsontable {
     .wtHider {
@@ -11,13 +12,13 @@
 
     .ht__manualRowMove {
       &.after-selection--rows tbody th.ht__highlight {
-        @include coursor-grab;
+        @include mixins.cursor-grab;
       }
 
       &.on-moving--rows {
         & *,
         tbody th.ht__highlight {
-          @include coursor-grabbing;
+          @include mixins.cursor-grabbing;
         }
 
         .manualRowResizer {

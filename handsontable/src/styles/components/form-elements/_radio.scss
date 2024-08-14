@@ -6,13 +6,12 @@
 @mixin output {
   .handsontable {
     .htUIRadio {
-      display: inline-block;
-      padding: var(--hot-base-grid) calc(2 * var(--hot-base-grid));
+      position: relative;
       display: inline-flex;
+      margin: 0;
+      padding: var(--hot-base-grid) calc(2 * var(--hot-base-grid));
       align-items: center;
       gap: calc(2 * var(--hot-base-grid));
-      margin: 0;
-      position: relative;
       cursor: pointer;
 
       &:first-child {
@@ -20,11 +19,11 @@
       }
 
       > input[type="radio"] {
+        position: relative;
         width: var(--hot-control-size);
         height: var(--hot-control-size);
-        appearance: none;
-        position: relative;
         margin: 0;
+        appearance: none;
         cursor: pointer;
 
         &:before {
@@ -39,9 +38,9 @@
 
         &:after {
           content: "";
+          position: absolute;
           display: block;
           border-radius: calc(0.5 * var(--hot-control-size));
-          position: absolute;
           inset: 2px;
           border: 2px solid var(--hot-background-color);
         }

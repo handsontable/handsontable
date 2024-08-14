@@ -63,9 +63,7 @@
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ../hot.config.js webpack",
     "publish-package": "cd tmp && npm publish",
     "postbuild": "node ./scripts/prepare-package-for-publish.mjs && npm run swap-package-links",
-    "swap-package-links": "node ./scripts/swap-package-links.mjs handsontable",
-    "fix-svg-icons": "node ./scripts/fix-svg-icons.mjs",
-    "generate-svg-font": "node ./scripts/generate-svg-font.mjs"
+    "swap-package-links": "node ./scripts/swap-package-links.mjs handsontable"
   },
   "keywords": [
     "data",
@@ -142,14 +140,12 @@
     "puppeteer": "^19.2.2",
     "replace-in-file": "^6.1.0",
     "rimraf": "^3.0.2",
-    "oslllo-svg-fixer": "^5.0.0",
     "sass": "^1.58.0",
     "sass-loader": "^10.4.1",
     "string-replace-loader": "^3.1.0",
     "stylelint": "^16.3.1",
     "typescript": "3.8.2",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "webfont": "^11.2.26",
     "webpack": "^5.88.1",
     "webpack-cli": "^5.1.4",
     "webpack-remove-empty-scripts": "^1.0.4"

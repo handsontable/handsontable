@@ -1,4 +1,4 @@
-@import "../../utils/mixins";
+@use "../../utils/mixins";
 
 /*
   Handsontable Column Move
@@ -12,12 +12,12 @@
 
     .ht__manualColumnMove {
       &.after-selection--columns thead th.ht__highlight {
-        @include coursor-grab;
+        @include mixins.cursor-grab;
       }
       &.on-moving--columns {
         & *,
         thead th.ht__highlight {
-          @include coursor-grabbing;
+          @include mixins.cursor-grabbing;
         }
 
         .manualColumnResizer {

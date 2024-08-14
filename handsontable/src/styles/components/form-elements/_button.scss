@@ -12,25 +12,20 @@
         display: inline-block;
 
         input {
-          /* Box Model */
-          border: 1px solid var(--hot-border-color);
-          border-radius: var(--hot-border-radius);
           min-width: 64px;
-          box-sizing: border-box;
           padding: calc(1px + var(--hot-base-grid))
             calc(2 * var(--hot-base-grid));
-
-          /* Typography */
+          border: 1px solid var(--hot-border-color);
+          border-radius: var(--hot-border-radius);
+          box-sizing: border-box;
           font-family: inherit;
           font-size: var(--hot-font-size);
           line-height: var(--hot-line-height);
           font-weight: 400;
-
-          /* Visual Styles */
+          color: var(--hot-foreground-color);
           background-color: var(--hot-background-color);
           cursor: pointer;
           outline: none !important;
-
           &:hover {
             background-color: var(--hot-off-background-color);
           }

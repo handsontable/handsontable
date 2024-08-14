@@ -2,21 +2,23 @@ const configFactory = require('./base');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+const glob = require("glob");
+const path = require('path');
 
 module.exports.create = function create(envArgs) {
   const configDev = configFactory.create(envArgs);
   const configProd = configFactory.create(envArgs);
 
+  const entry = glob.sync('./src/styles/themes/*.scss').reduce((obj, el) => {
+    obj[path.parse(el).name] = el;
+
+    return obj
+  }, {});
+
   configDev.forEach(function (c) {
     c.devtool = false;
 
-    c.entry = {
-      'ht-theme-main-light': [
-        './src/styles/themes/main-light/icons/index.scss',
-        './src/styles/themes/main-light/index.scss'
-      ],
-      'ht-theme-main-light-no-icons': './src/styles/themes/main-light/index.scss'
-    };
+    c.entry = entry;
 
     c.module = {
       rules: [
@@ -31,15 +33,10 @@ module.exports.create = function create(envArgs) {
       ],
     };
 
-    // Remove all 'MiniCssExtractPlugin' instances
-    c.plugins = c.plugins.filter(function (plugin) {
-      return !(plugin instanceof MiniCssExtractPlugin);
-    });
-
     c.plugins.push(
       new RemoveEmptyScriptsPlugin(),
       new MiniCssExtractPlugin({
-        filename: '../styles/[name].css',
+        filename: '../styles/ht-theme-[name].css',
       }),
     );
   });
@@ -50,13 +47,7 @@ module.exports.create = function create(envArgs) {
 
     c.mode = 'production';
 
-    c.entry = {
-      'ht-theme-main-light.min': [
-        './src/styles/themes/main-light/icons/index.scss',
-        './src/styles/themes/main-light/index.scss'
-      ],
-      'ht-theme-main-light-no-icons.min': './src/styles/themes/main-light/index.scss'
-    };
+    c.entry = entry;
 
     c.optimization = {
       minimize: true,
@@ -78,15 +69,10 @@ module.exports.create = function create(envArgs) {
       ],
     };
 
-    // Remove all 'MiniCssExtractPlugin' instances
-    c.plugins = c.plugins.filter(function (plugin) {
-      return !(plugin instanceof MiniCssExtractPlugin);
-    });
-
     c.plugins.push(
       new RemoveEmptyScriptsPlugin(),
       new MiniCssExtractPlugin({
-        filename: '../styles/[name].css',
+        filename: '../styles/ht-theme-[name].min.css',
       }),
     );
   });

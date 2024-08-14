@@ -8,7 +8,6 @@ import MergedCellCoords from '../cellCoords';
 export default function toggleMergeItem(plugin) {
   return {
     key: 'mergeCells',
-    iconName: 'marge-cell',
     name() {
       const sel = this.getSelectedLast();
 

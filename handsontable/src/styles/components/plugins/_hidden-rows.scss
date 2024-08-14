@@ -14,9 +14,9 @@
           content: "";
           position: absolute;
           left: 50%;
-          transform: translateX(-50%);
           width: 0;
           height: 0;
+          transform: translateX(-50%);
           border: 4px solid transparent;
         }
       }
@@ -30,12 +30,6 @@
     th.afterHiddenRow .relative::after {
       top: -2px;
       border-color: var(--hot-border-color) transparent transparent transparent;
-    }
-
-    &.ht__selection--rows tbody {
-      th.beforeHiddenRow.ht__highlight .relative::before,
-      th.afterHiddenRow.ht__highlight .relative::after {
-      }
     }
 
     td,

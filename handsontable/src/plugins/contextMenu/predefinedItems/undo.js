@@ -8,7 +8,6 @@ export const KEY = 'undo';
 export default function undoItem() {
   return {
     key: KEY,
-    iconName: 'arrow-back-up',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNDO);
     },

@@ -4,14 +4,14 @@
   -webkit-overflow-scrolling: touch;
 }
 
-@mixin coursor-grab {
+@mixin cursor-grab {
   cursor: move;
   cursor: -moz-grab;
   cursor: -webkit-grab;
   cursor: grab;
 }
 
-@mixin coursor-grabbing {
+@mixin cursor-grabbing {
   cursor: move;
   cursor: -moz-grabbing;
   cursor: -webkit-grabbing;
@@ -34,25 +34,6 @@
   display: block;
 }
 
-@mixin icon($name, $size: 16px, $color: null, $iconset: main) {
-  width: $size;
-  height: $size;
-  display: inline-block;
-  content:'';
-  background: {
-    image: url('icons/#{$iconset}/#{$name}.svg');
-    size: contain;
-    repeat: no-repeat;
-  }
-
-  @if $color != null {
-    // This part assumes the SVGs are simple icons and allows color overrides
-    mask: url('icons/#{$iconset}/#{$name}.svg') no-repeat center;
-    background-color: $color;
-    -webkit-mask: url('icons/#{$iconset}/#{$name}.svg') no-repeat center;
-  }
-}
-
 @mixin selection-opacity($index) {
   $opacity: 0.1 + ($index * 0.07);
   .handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-#{$index}"]:before {
@@ -63,4 +44,12 @@
 // Function to return opacity values - selection [area]
 @function get-opacity($index) {
   @return 0.1 + ($index * 0.07);
+}
+
+@mixin icon($url) {
+  width: var(--hot-icon-size);
+  height: var(--hot-icon-size);
+  mask-size: contain;
+  mask-image: url($url);
+  background-color: currentColor;
 }

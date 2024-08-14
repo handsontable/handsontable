@@ -14,9 +14,9 @@
           content: "";
           position: absolute;
           top: 50%;
-          transform: translateY(-50%);
           width: 0;
           height: 0;
+          transform: translateY(-50%);
           border: 4px solid transparent;
         }
       }
@@ -30,12 +30,6 @@
     th.afterHiddenColumn .relative::before {
       left: 2px;
       border-color: transparent transparent transparent var(--hot-border-color);
-    }
-
-    &.ht__selection--columns {
-      th.beforeHiddenColumn.ht__highlight .relative::after,
-      th.afterHiddenColumn.ht__highlight .relative:before {
-      }
     }
   }
 

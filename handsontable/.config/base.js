@@ -37,6 +37,18 @@ module.exports.create = function create(envArgs) {
           use: [
             { loader: MiniCssExtractPlugin.loader },
             { loader: 'css-loader', options: { sourceMap: false } },
+            {
+              loader: 'postcss-loader',
+              options: {
+                postcssOptions: {
+                  plugins: [
+                    require('postcss-discard-comments')({
+                      removeAll: true, // Removes all comments
+                    }),
+                  ],
+                },
+              },
+            },
             { loader: 'sass-loader' },
           ],
         },

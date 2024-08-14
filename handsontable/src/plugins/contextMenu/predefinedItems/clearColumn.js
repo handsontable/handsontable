@@ -8,7 +8,6 @@ export const KEY = 'clear_column';
 export default function clearColumnItem() {
   return {
     key: KEY,
-    iconName: 'x',
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CLEAR_COLUMN);
     },

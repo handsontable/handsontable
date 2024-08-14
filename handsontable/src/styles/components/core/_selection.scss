@@ -1,8 +1,9 @@
-@import "../../utils/mixins";
+@use "../../utils/mixins";
 
 /*
   Selection
 */
+
 @mixin output {
   @keyframes marching-ants {
     0% {
@@ -17,13 +18,13 @@
     /* Fill */
     @for $i from 0 through 7 {
       td.area#{if($i == 0, "", "-#{$i}")} {
-        @include area-styles;
+        @include mixins.area-styles;
       }
     }
 
     @for $i from 0 through 7 {
       td.area#{if($i == 0, "", "-#{$i}")}:before {
-        opacity: get-opacity($i);
+        opacity: mixins.get-opacity($i);
       }
     }
 

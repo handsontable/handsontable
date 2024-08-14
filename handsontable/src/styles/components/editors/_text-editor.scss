@@ -9,12 +9,7 @@
     left: 0;
 
     .handsontableInput {
-      /* Positioning */
       display: block;
-
-      /* Box Model */
-      border: none;
-      border-radius: 0;
       margin: 0;
       padding: var(--hot-border-vertical-size) !important;
       padding-bottom: 0 !important;
@@ -24,24 +19,22 @@
       padding-right: calc(
         var(--hot-cell-horizontal-padding) + var(--hot-border-horizontal-size)
       ) !important;
+      border: none;
+      border-radius: 0;
       resize: none;
       box-shadow: 0 0 0 calc(var(--hot-border-horizontal-size) * 2)
         var(--hot-accent-color) inset;
-
-      /* Typography */
       font-family: inherit;
       font-size: inherit;
       line-height: calc(
         var(--hot-base-line-height) + (var(--hot-cell-vertical-padding) * 2)
       );
       color: var(--hot-foreground-color-active);
-
-      /* Visual Styles */
       background-color: var(--hot-background-color);
 
       /* Miscellaneous */
       outline-width: 0;
-      /*overwrite styles potentionally made by a framework*/
+      /*overwrite styles potentially made by a framework*/
       &:focus {
         outline: none;
       }

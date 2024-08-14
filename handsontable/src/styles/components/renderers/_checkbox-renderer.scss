@@ -1,16 +1,16 @@
+/*
+  Checkbox
+*/
+
 @mixin output {
-  /*
-    Checkbox
-  */
   .handsontable {
     .htCheckboxRendererInput {
+      position: relative;
+      display: inline-block;
+      width: var(--hot-control-size);
+      height: var(--hot-control-size);
       margin-inline-end: calc(2 * var(--hot-base-grid));
       vertical-align: middle;
-      height: var(--hot-control-size);
-      display: inline-block;
-      position: relative;
-      height: var(--hot-control-size);
-      width: var(--hot-control-size);
       cursor: pointer;
       appearance: none;
 
@@ -20,19 +20,18 @@
       }
 
       &::before {
-        pointer-events: none;
         content: "";
-        border: 1px solid var(--hot-border-color);
-        border-radius: var(--hot-border-radius);
+        display: inline-block;
         width: var(--hot-control-size);
         height: var(--hot-control-size);
-        display: inline-block;
+        border: 1px solid var(--hot-border-color);
+        border-radius: var(--hot-border-radius);
         box-sizing: border-box;
         background-color: var(--hot-background-color);
         transition: all 0.5s ease-in-out;
+        pointer-events: none;
       }
       &::after {
-        pointer-events: none;
         content: "";
         width: 6px;
         height: 10px;
@@ -44,6 +43,7 @@
         transform: translate(-50%, -50%) rotate(-135deg);
         box-sizing: border-box;
         transition: all 0.2s ease-in-out;
+        pointer-events: none;
       }
 
       &.noValue {

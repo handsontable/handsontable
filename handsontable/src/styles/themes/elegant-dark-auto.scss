@@ -1,0 +1,12 @@
+@use "sass:color";
+@use "utils/elegant";
+
+/* Light mode */
+@media (prefers-color-scheme: light) {
+  @include elegant.light();
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  @include elegant.dark();
+}
