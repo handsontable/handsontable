@@ -32,6 +32,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+        working-directory: ./latest/
 
       - name: Dependencies
         run: |
