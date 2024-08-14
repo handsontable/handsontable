@@ -162,6 +162,12 @@ describe('utils', () => {
       expect(key).toBe('add');
     });
 
+    it('should get canonical form from the decimal sign', () => {
+      const key = normalizeEventKey({ key: '.', code: 'decimal', which: 108 });
+
+      expect(key).toBe('decimal');
+    });
+
     it('should get canonical form from the subtract sign', () => {
       const key = normalizeEventKey({ key: '-', code: 'subtract', which: 109 });
 
