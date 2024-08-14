@@ -34,7 +34,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-
       - name: Dependencies
         run: |
           npm ci
@@ -42,7 +41,7 @@ jobs:
 
       - name: Docker build
         run: |
-          npm run docs:docker:build:production:netlify
+          npm run docs:build:production:netlify
         working-directory: ./latest/docs/
 
       - name: Test examples
