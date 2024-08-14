@@ -1,6 +1,6 @@
-import { test } from '../../src/test-runner';
-import { helpers } from '../../src/helpers';
-import { selectCell, tryToEscapeFromTheComponentsFocus } from '../../src/page-helpers';
+import { test } from '../../../src/test-runner';
+import { helpers } from '../../../src/helpers';
+import { selectCell, tryToEscapeFromTheComponentsFocus } from '../../../src/page-helpers';
 
 /**
  * Checks whether pressing the Shift+Tab moves the focus backward within the filter's components.

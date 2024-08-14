@@ -1,5 +1,5 @@
-import { test } from '../../src/test-runner';
-import { helpers } from '../../src/helpers';
+import { test } from '../../../src/test-runner';
+import { helpers } from '../../../src/helpers';
 
 /**
  * Checks whether the hovering the menu items (e.g "Read only" entry) clears the state of the

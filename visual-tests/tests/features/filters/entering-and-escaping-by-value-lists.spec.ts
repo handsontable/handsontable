@@ -1,6 +1,6 @@
-import { test } from '../../src/test-runner';
-import { helpers } from '../../src/helpers';
-import { selectCell } from '../../src/page-helpers';
+import { test } from '../../../src/test-runner';
+import { helpers } from '../../../src/helpers';
+import { selectCell } from '../../../src/page-helpers';
 
 /**
  * Checks whether entering to the list component (ArrowDown) or escaping (Tab or Shift+Tab) works correctly.
