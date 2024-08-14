@@ -1,6 +1,6 @@
-import { test } from '../../src/test-runner';
-import { helpers } from '../../src/helpers';
-import { selectCell } from '../../src/page-helpers';
+import { test } from '../../../src/test-runner';
+import { helpers } from '../../../src/helpers';
+import { selectCell } from '../../../src/page-helpers';
 
 /**
  * Checks whether ENTER does not close the menu at inappropriate moments. ENTER should accept the

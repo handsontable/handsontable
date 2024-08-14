@@ -5,13 +5,13 @@ import './styles.css';
 import { data } from './nestedHeadersData';
 
 const root = document.getElementById('root');
-
+// const removeHeightBtn = document.createElement('button');
+// removeHeightBtn.id = 'remove-height-btn';
+// removeHeightBtn.textContent = 'Remove Height';
+// root.appendChild(removeHeightBtn);
 const container = document.createElement('div');
 root.appendChild(container);
-const removeHeightBtn = document.createElement('button');
-removeHeightBtn.id = 'switch-dimensions-btn';
-removeHeightBtn.textContent = 'Remove Height';
-root.appendChild(removeHeightBtn);
+
 
 export function initializeNestedHeadersDemo() {
   const hot = new Handsontable(container, {
@@ -75,12 +75,12 @@ export function initializeNestedHeadersDemo() {
   });
   hot.selectColumns(2, 3);
 
-  removeHeightBtn.addEventListener('click', () => {
-    hot.updateSettings({
-      height: null,
-    });
-    hot.render();
-  });
+  // removeHeightBtn.addEventListener('click', () => {
+  //   hot.updateSettings({
+  //     height: null,
+  //   });
+  //   hot.render();
+  // });
   console.log(
     `Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`
   );

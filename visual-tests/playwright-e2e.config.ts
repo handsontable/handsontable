@@ -10,7 +10,7 @@ import { PlaywrightTestConfig, devices } from '@playwright/test';
  * @see https://playwright.dev/docs/test-configuration
  */
 const config: PlaywrightTestConfig = {
-  testDir: './tests/features',
+  testDir: './tests/e2e',
   /* Maximum time one test can run for. */
   timeout: 10 * 1000,
   expect: {
@@ -41,6 +41,11 @@ const config: PlaywrightTestConfig = {
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
+  webServer: {
+    command: 'npm run serve-example-e2e',
+    url: 'http://localhost:8082',
+    reuseExistingServer: !process.env.CI,
+  },
 
   /* Configure projects for major browsers */
   projects: [
@@ -53,6 +58,15 @@ const config: PlaywrightTestConfig = {
           permissions: ['clipboard-read', 'clipboard-write'],
         },
       },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
     },
   ]
 };

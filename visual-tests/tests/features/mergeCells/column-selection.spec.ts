@@ -1,12 +1,12 @@
-import { test } from '../../src/test-runner';
-import { helpers } from '../../src/helpers';
+import { test } from '../../../src/test-runner';
+import { helpers } from '../../../src/helpers';
 import {
   selectCell,
   createSelection,
   clickWithPosition,
   clickWithPositionAndModifiers,
   selectClonedCell,
-} from '../../src/page-helpers';
+} from '../../../src/page-helpers';
 
 /**
  * Checks whether the selection highlights the merged cells correctly.
