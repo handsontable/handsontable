@@ -144,10 +144,10 @@ describe('utils', () => {
       expect(key).toBe('numpad8');
     });
 
-    it('should get canonical form from the numpad 1', () => {
-      const key = normalizeEventKey({ key: '1', code: 'Numpad1', which: 97 });
+    it('should get canonical form from the numpad 9', () => {
+      const key = normalizeEventKey({ key: '9', code: 'Numpad9', which: 105 });
 
-      expect(key).toBe('numpad1');
+      expect(key).toBe('numpad9');
     });
 
     it('should get canonical form from the multiply sign', () => {

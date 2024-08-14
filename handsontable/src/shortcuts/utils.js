@@ -64,6 +64,7 @@ const specialCharactersSet = new Map([
   [105, 'numpad9'],
   [106, 'multiply'],
   [107, 'add'],
+  [108, 'decimal'], // firefox
   [109, 'subtract'],
   [110, 'decimal'],
   [111, 'divide'],
