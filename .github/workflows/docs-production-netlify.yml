@@ -22,9 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-        with:
-          ref: feature/dev-issue-1790
-          # path: latest
+        # with:
+        #   ref: feature/dev-issue-1790
+        #   # path: latest
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
@@ -48,10 +48,10 @@ jobs:
           npm run docs:test:example-checker
         # working-directory: ./latest/docs/
 
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-        with:
-          ref: prod-docs-netlify
-          path: prod-docs-netlify
+      # - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+      #   with:
+      #     ref: prod-docs-netlify
+      #     path: prod-docs-netlify
 
       - name: List files in the repository
         run: ls ${{ github.workspace }}
