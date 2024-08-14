@@ -33,6 +33,15 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # https://github.com/actions/github-script/releases/tag/v6.3.3
+        id: get-docs-version
+        with:
+          script: return context.ref.match(/^refs\/heads\/prod\-docs\/(\d+\.\d+)$/)[1] ?? '';
+          result-encoding: string
+
+      - name: Validate Docs version
+        run: if [ -z "${{steps.get-docs-version.outputs.result}}" ]; then echo "Docs version is empty"; exit 1; fi
+
       - name: Dependencies
         run: |
           npm ci
@@ -53,19 +62,19 @@ jobs:
       #     ref: prod-docs-netlify
       #     path: prod-docs-netlify
 
-      - name: List files in the repository
-        run: ls ${{ github.workspace }}
+      # - name: List files in the repository
+      #   run: ls ${{ github.workspace }}
 
-      - name: Copy docs to the prod netlify
-        run: cp -r ../dist/* .
-        working-directory: ./docs/tmp
+      # - name: Copy docs to the prod netlify
+      #   run: cp -r ../dist/* .
+      #   working-directory: ./docs/tmp
 
-      - name: List files in the repository
-        run: ls ${{ github.workspace }}
+      # - name: List files in the repository
+      #   run: ls ${{ github.workspace }}
 
       - name: Deploy to Netlify
         uses: jsmrcaga/action-netlify-deploy@v2.0.0
         with:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          build_directory: ./docs/tmp
+          build_directory: ../dist
