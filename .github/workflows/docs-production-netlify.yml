@@ -38,7 +38,7 @@ jobs:
       - name: Dependencies
         run: |
           npm ci
-        working-directory: ./latest/
+        working-directory: ./latest/docs/
 
       - name: Docker build
         run: |
