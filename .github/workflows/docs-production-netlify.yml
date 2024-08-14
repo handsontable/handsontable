@@ -36,7 +36,7 @@ jobs:
       - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # https://github.com/actions/github-script/releases/tag/v6.3.3
         id: get-docs-version
         with:
-          script: return context.ref.match(/^refs\/heads\/prod\-docs\/(\d+\.\d+)$/)[1] ?? '';
+          script: return '14.5';
           result-encoding: string
 
       - name: Validate Docs version
