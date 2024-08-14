@@ -47,7 +47,7 @@ jobs:
           npm ci
         # working-directory: ./latest/docs/
 
-      - name: Docker build
+      - name: Docs build
         run: |
           npm run docs:build:production:netlify
         # working-directory: ./latest/docs/
