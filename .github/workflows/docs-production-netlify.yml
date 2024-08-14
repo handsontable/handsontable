@@ -43,12 +43,12 @@ jobs:
       - name: Docker build
         run: |
           npm run docs:docker:build:production
-        working-directory: ./latest/
+        working-directory: ./latest/docs/
 
       - name: Test examples
         run: |
           npm run docs:test:example-checker
-        working-directory: ./latest/
+        working-directory: ./latest/docs/
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
         with:
