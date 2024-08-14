@@ -193,6 +193,7 @@
       "./i18n/+(index|registry)*",
       "./i18n/languages/*",
       "./dist/**/*.+(js|css)",
+      "./styles/**/*.+(css)",
       {
         ".": {
           "types": "./index.d.ts",
