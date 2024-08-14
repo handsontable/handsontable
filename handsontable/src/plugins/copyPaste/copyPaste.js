@@ -91,6 +91,17 @@ export class CopyPaste extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get DEFAULT_SETTINGS() {
+    return {
+      pasteMode: 'overwrite',
+      rowsLimit: Infinity,
+      columnsLimit: Infinity,
+      copyColumnHeaders: false,
+      copyColumnGroupHeaders: false,
+      copyColumnHeadersOnly: false,
+    };
+  }
+
   /**
    * The maximum number of columns than can be copied to the clipboard.
    *
@@ -213,17 +224,14 @@ export class CopyPaste extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    const { [PLUGIN_KEY]: settings } = this.hot.getSettings();
 
-    if (typeof settings === 'object') {
-      this.pasteMode = settings.pasteMode ?? this.pasteMode;
-      this.rowsLimit = isNaN(settings.rowsLimit) ? this.rowsLimit : settings.rowsLimit;
-      this.columnsLimit = isNaN(settings.columnsLimit) ? this.columnsLimit : settings.columnsLimit;
-      this.#enableCopyColumnHeaders = !!settings.copyColumnHeaders;
-      this.#enableCopyColumnGroupHeaders = !!settings.copyColumnGroupHeaders;
-      this.#enableCopyColumnHeadersOnly = !!settings.copyColumnHeadersOnly;
-      this.uiContainer = settings.uiContainer ?? this.uiContainer;
-    }
+    this.pasteMode = this.getSetting('pasteMode') ?? this.pasteMode;
+    this.rowsLimit = isNaN(this.getSetting('rowsLimit')) ? this.rowsLimit : this.getSetting('rowsLimit');
+    this.columnsLimit = isNaN(this.getSetting('columnsLimit')) ? this.columnsLimit : this.getSetting('columnsLimit');
+    this.#enableCopyColumnHeaders = this.getSetting('copyColumnHeaders');
+    this.#enableCopyColumnGroupHeaders = this.getSetting('copyColumnGroupHeaders');
+    this.#enableCopyColumnHeadersOnly = this.getSetting('copyColumnHeadersOnly');
+    this.uiContainer = this.getSetting('uiContainer') ?? this.uiContainer;
 
     this.addHook('afterContextMenuDefaultOptions', options => this.#onAfterContextMenuDefaultOptions(options));
     this.addHook('afterSelection', (...args) => this.#onAfterSelection(...args));

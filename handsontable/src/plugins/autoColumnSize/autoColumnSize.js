@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
 import Hooks from '../../pluginHooks';
-import { isObject, hasOwnProperty } from '../../helpers/object';
+import { isObject } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
@@ -125,6 +125,14 @@ export class AutoColumnSize extends BasePlugin {
     return true;
   }
 
+  static get DEFAULT_SETTINGS() {
+    return {
+      useHeaders: true,
+      samplingRatio: null,
+      allowSampleDuplicates: false,
+    };
+  }
+
   static get CALCULATION_STEP() {
     return 50;
   }
@@ -232,13 +240,14 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    const setting = this.hot.getSettings()[PLUGIN_KEY];
+    this.ghostTable.setSetting('useHeaders', this.getSetting('useHeaders'));
+    this.samplesGenerator.setAllowDuplicates(this.getSetting('allowSampleDuplicates'));
 
-    if (setting && setting.useHeaders !== null && setting.useHeaders !== undefined) {
-      this.ghostTable.setSetting('useHeaders', setting.useHeaders);
+    const samplingRatio = this.getSetting('samplingRatio');
+
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
     }
-
-    this.setSamplingOptions();
 
     this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
     this.addHook('beforeChangeRender', (...args) => this.#onBeforeChange(...args));
@@ -427,27 +436,6 @@ export class AutoColumnSize extends BasePlugin {
       }, true);
 
       this.ghostTable.clean();
-    }
-  }
-
-  /**
-   * Sets the sampling options.
-   *
-   * @private
-   */
-  setSamplingOptions() {
-    const setting = this.hot.getSettings()[PLUGIN_KEY];
-    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
-      setting.samplingRatio : undefined;
-    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
-      setting.allowSampleDuplicates : undefined;
-
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
-    }
-
-    if (allowSampleDuplicates) {
-      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
     }
   }
 

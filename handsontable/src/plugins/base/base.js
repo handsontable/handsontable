@@ -1,4 +1,4 @@
-import { defineGetter, objectEach } from '../../helpers/object';
+import { defineGetter, objectEach, isObject } from '../../helpers/object';
 import { arrayEach } from '../../helpers/array';
 import { getPluginsNames, hasPlugin } from '../registry';
 import { hasCellType } from '../../cellTypes/registry';
@@ -15,6 +15,7 @@ const DEPS_TYPE_CHECKERS = new Map([
   ['validator', hasValidator],
 ]);
 
+export const defaultMainSettingSymbol = Symbol('mainSetting');
 export const PLUGIN_KEY = 'base';
 const missingDepsMsgs = [];
 let initializedPlugins = null;
@@ -41,6 +42,13 @@ export class BasePlugin {
     return [
       this.PLUGIN_KEY
     ];
+  }
+
+  /**
+   * The `DEFAULT_SETTINGS` getter defines the plugin default settings.
+   */
+  static get DEFAULT_SETTINGS() {
+    return {};
   }
 
   /**
@@ -178,6 +186,32 @@ export class BasePlugin {
     this.eventManager?.clear();
     this.clearHooks();
     this.enabled = false;
+  }
+
+  /**
+   * Gets the plugin settings. If there is no setting under the provided key, it returns the default setting
+   * provided by the DEFAULT_SETTINGS static property of the class.
+   *
+   * @param {string} settingName The setting name.
+   * @returns {*}
+   */
+  getSetting(settingName) {
+    const pluginSettings = this.hot.getSettings()[this.constructor.PLUGIN_KEY];
+    const defaultSettings = this.constructor.DEFAULT_SETTINGS;
+
+    if (!isObject(pluginSettings)) {
+      if (
+        !settingName ||
+        isObject(defaultSettings) &&
+        defaultSettings[defaultMainSettingSymbol] === settingName
+      ) {
+        return pluginSettings;
+      }
+
+      return defaultSettings[settingName];
+    }
+
+    return pluginSettings[settingName] ?? defaultSettings[settingName];
   }
 
   /**

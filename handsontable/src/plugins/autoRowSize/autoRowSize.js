@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
-import { isObject, hasOwnProperty } from '../../helpers/object';
+import { isObject } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
@@ -105,6 +105,14 @@ export class AutoRowSize extends BasePlugin {
 
   static get SETTING_KEYS() {
     return true;
+  }
+
+  static get DEFAULT_SETTINGS() {
+    return {
+      useHeaders: true,
+      samplingRatio: null,
+      allowSampleDuplicates: false,
+    };
   }
 
   static get CALCULATION_STEP() {
@@ -218,7 +226,13 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    this.setSamplingOptions();
+    this.samplesGenerator.setAllowDuplicates(this.getSetting('allowSampleDuplicates'));
+
+    const samplingRatio = this.getSetting('samplingRatio');
+
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
+    }
 
     this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
     this.addHook('beforeChangeRender', (...args) => this.#onBeforeChange(...args));
@@ -410,27 +424,6 @@ export class AutoRowSize extends BasePlugin {
       }, true);
 
       this.ghostTable.clean();
-    }
-  }
-
-  /**
-   * Sets the sampling options.
-   *
-   * @private
-   */
-  setSamplingOptions() {
-    const setting = this.hot.getSettings()[PLUGIN_KEY];
-    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
-      setting.samplingRatio : undefined;
-    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
-      setting.allowSampleDuplicates : undefined;
-
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
-    }
-
-    if (allowSampleDuplicates) {
-      this.samplesGenerator.setAllowDuplicates(allowSampleDuplicates);
     }
   }
 

@@ -2,8 +2,6 @@ import { BasePlugin } from '../base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
-import { isObject } from '../../helpers/object';
-import { isUndefined } from '../../helpers/mixed';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import Hooks from '../../pluginHooks';
 import hideRowItem from './contextMenuItem/hideRow';
@@ -135,13 +133,14 @@ export class HiddenRows extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  /**
-   * Cached settings from Handsontable settings.
-   *
-   * @private
-   * @type {object}
-   */
-  #settings = {};
+  static get DEFAULT_SETTINGS() {
+    return {
+      copyPasteEnabled: true,
+      indicators: false,
+      rows: [],
+    };
+  }
+
   /**
    * Map of hidden rows by the plugin.
    *
@@ -166,16 +165,6 @@ export class HiddenRows extends BasePlugin {
   enablePlugin() {
     if (this.enabled) {
       return;
-    }
-
-    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-
-    if (isObject(pluginSettings)) {
-      this.#settings = pluginSettings;
-
-      if (isUndefined(pluginSettings.copyPasteEnabled)) {
-        pluginSettings.copyPasteEnabled = true;
-      }
     }
 
     this.#hiddenRowsMap = new HidingMap();
@@ -209,7 +198,6 @@ export class HiddenRows extends BasePlugin {
    */
   disablePlugin() {
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
-    this.#settings = {};
 
     super.disablePlugin();
     this.resetCellsMeta();
@@ -385,7 +373,7 @@ export class HiddenRows extends BasePlugin {
    * @param {object} cellProperties Object containing the cell properties.
    */
   #onAfterGetCellMeta(row, column, cellProperties) {
-    if (this.#settings.copyPasteEnabled === false && this.isHidden(row)) {
+    if (this.getSetting('copyPasteEnabled') === false && this.isHidden(row)) {
       // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
       cellProperties.skipRowOnPaste = true;
     }
@@ -419,7 +407,7 @@ export class HiddenRows extends BasePlugin {
    */
   #onModifyCopyableRange(ranges) {
     // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
-    if (this.#settings.copyPasteEnabled) {
+    if (this.getSetting('copyPasteEnabled')) {
       return ranges;
     }
 
@@ -465,7 +453,7 @@ export class HiddenRows extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   #onAfterGetRowHeader(row, TH) {
-    if (!this.#settings.indicators || row < 0) {
+    if (!this.getSetting('indicators') || row < 0) {
       return;
     }
 
@@ -501,8 +489,10 @@ export class HiddenRows extends BasePlugin {
    * On map initialized hook callback.
    */
   #onMapInit() {
-    if (Array.isArray(this.#settings.rows)) {
-      this.hideRows(this.#settings.rows);
+    const rows = this.getSetting('rows');
+
+    if (Array.isArray(rows)) {
+      this.hideRows(rows);
     }
   }
 
@@ -510,7 +500,6 @@ export class HiddenRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.#settings = null;
     this.#hiddenRowsMap = null;
 
     super.destroy();

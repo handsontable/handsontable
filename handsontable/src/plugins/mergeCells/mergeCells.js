@@ -1,4 +1,4 @@
-import { BasePlugin } from '../base';
+import { BasePlugin, defaultMainSettingSymbol } from '../base';
 import Hooks from '../../pluginHooks';
 import MergedCellsCollection from './cellsCollection';
 import MergedCellCoords from './cellCoords';
@@ -68,6 +68,14 @@ export class MergeCells extends BasePlugin {
 
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  static get DEFAULT_SETTINGS() {
+    return {
+      [defaultMainSettingSymbol]: 'cells',
+      virtualized: false,
+      cells: [],
+    };
   }
 
   /**
@@ -159,10 +167,10 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterRenderer', (...args) => this.#cellRenderer.after(...args));
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.#addMergeActionsToContextMenu(...args));
     this.addHook('afterGetCellMeta', (...args) => this.#onAfterGetCellMeta(...args));
-    // this.addHook('afterViewportRowCalculatorOverride',
-    //   (...args) => this.#onAfterViewportRowCalculatorOverride(...args));
-    // this.addHook('afterViewportColumnCalculatorOverride',
-    //   (...args) => this.#onAfterViewportColumnCalculatorOverride(...args));
+    this.addHook('afterViewportRowCalculatorOverride',
+      (...args) => this.#onAfterViewportRowCalculatorOverride(...args));
+    this.addHook('afterViewportColumnCalculatorOverride',
+      (...args) => this.#onAfterViewportColumnCalculatorOverride(...args));
     this.addHook('modifyAutofillRange', (...args) => this.#onModifyAutofillRange(...args));
     this.addHook('afterCreateCol', (...args) => this.#onAfterCreateCol(...args));
     this.addHook('afterRemoveCol', (...args) => this.#onAfterRemoveCol(...args));
@@ -1038,10 +1046,14 @@ export class MergeCells extends BasePlugin {
    * @param {object} calc The row calculator object.
    */
   #onAfterViewportRowCalculatorOverride(calc) {
-    // const nrOfColumns = this.hot.countCols();
+    if (this.getSetting('virtualized')) {
+      return;
+    }
 
-    // this.modifyViewportRowStart(calc, nrOfColumns);
-    // this.modifyViewportRowEnd(calc, nrOfColumns);
+    const nrOfColumns = this.hot.countCols();
+
+    this.modifyViewportRowStart(calc, nrOfColumns);
+    this.modifyViewportRowEnd(calc, nrOfColumns);
   }
 
   /**
@@ -1113,10 +1125,14 @@ export class MergeCells extends BasePlugin {
    * @param {object} calc The column calculator object.
    */
   #onAfterViewportColumnCalculatorOverride(calc) {
-    // const nrOfRows = this.hot.countRows();
+    if (this.getSetting('virtualized')) {
+      return;
+    }
 
-    // this.modifyViewportColumnStart(calc, nrOfRows);
-    // this.modifyViewportColumnEnd(calc, nrOfRows);
+    const nrOfRows = this.hot.countRows();
+
+    this.modifyViewportColumnStart(calc, nrOfRows);
+    this.modifyViewportColumnEnd(calc, nrOfRows);
   }
 
   /**
