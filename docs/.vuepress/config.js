@@ -25,13 +25,6 @@ const {
 
 require('dotenv').config();
 
-const DOCSEARCH_API_KEY = process.env.DOCSEARCH_API_KEY;
-const DOCSEARCH_APP_ID = process.env.DOCSEARCH_APP_ID;
-
-if (!DOCSEARCH_API_KEY || !DOCSEARCH_APP_ID) {
-  throw new Error('DOCSEARCH_API_KEY or DOCSEARCH_APP_ID is missing in docs/.env');
-}
-
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction
@@ -54,14 +47,16 @@ const environmentHead = isProduction
       {},
       `
       (function(h,o,t,j,a,r){
-        if(h.innerWidth > 600) {
-          h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
-          h._hjSettings={hjid:329042,hjsv:6};
-          a=o.getElementsByTagName('head')[0];
-          r=o.createElement('script');r.async=1;
-          r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
-          a.appendChild(r);
-        }
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
       })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
       `,
     ],
@@ -415,8 +410,8 @@ module.exports = {
     searchPlaceholder: 'Search...',
     algolia: {
       indexName: 'handsontable',
-      apiKey: DOCSEARCH_API_KEY,
-      appId: DOCSEARCH_APP_ID
+      apiKey: 'c2430302c91e0162df988d4b383c9d8b',
+      appId: 'MMN6OTJMGX'
     }
   },
 };
