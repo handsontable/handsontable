@@ -16,10 +16,6 @@ export const KEY = 'alignment';
  * @returns {string} The value of aria-label parameter.
  */
 function ariaLabel(hot, rawName, htClassName) {
-  const checkboxState = hasSelectionAClass(hot, htClassName)
-    ? hot.getTranslatedPhrase(C.CHECKBOX_CHECKED)
-    : hot.getTranslatedPhrase(C.CHECKBOX_UNCHECKED);
-
   return `${rawName} ${checkboxState.toLowerCase()}`;
 }
 
