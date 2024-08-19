@@ -46,6 +46,8 @@ export class BasePlugin {
 
   /**
    * The `DEFAULT_SETTINGS` getter defines the plugin default settings.
+   *
+   * @returns {object}
    */
   static get DEFAULT_SETTINGS() {
     return {};
@@ -192,7 +194,8 @@ export class BasePlugin {
    * Gets the plugin settings. If there is no setting under the provided key, it returns the default setting
    * provided by the DEFAULT_SETTINGS static property of the class.
    *
-   * @param {string} settingName The setting name.
+   * @param {string} [settingName] The setting name. If the setting name is not provided, it returns
+   * the whole plugin's settings object.
    * @returns {*}
    */
   getSetting(settingName) {
