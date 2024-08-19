@@ -56,9 +56,30 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       'td',
       'role',
       'menuitem'
-    ).length).toEqual(cMenu.hotMenu.countRows());
+    ).length).toEqual(cMenu.hotMenu.countRows() - 1);
 
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('role')).toEqual('menuitem');
+  });
+
+  it('should assign the `role=menuitemcheckbox` attribute to the `Read only` item', () => {
+    const hot = handsontable({
+      dropdownMenu: true,
+      colHeaders: true,
+    });
+
+    dropdownMenu(0);
+
+    const cMenu = hot.getPlugin('dropdownMenu').menu;
+
+    const menuItemCheckboxes = filterElementsByAttribute(
+      cMenu.container,
+      'td',
+      'role',
+      'menuitemcheckbox'
+    );
+
+    expect(menuItemCheckboxes.length).toEqual(1);
+    expect(menuItemCheckboxes[0].ariaLabel).toBe('Read only unchecked');
   });
 
   it('should assign the `aria-label` attribute to all the options of the dropdown menu', () => {
@@ -71,12 +92,11 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     const cMenu = getPlugin('dropdownMenu').menu;
 
-    expect(filterElementsByAttribute(
-      cMenu.container,
-      'td',
-      'aria-label',
-      el => (el.innerText === '' ? '---------' : el.innerText)
-    ).length).toBe(cMenu.hotMenu.countRows());
+    const ariaLabelledCells = [...cMenu.container.querySelectorAll('td')]
+      .filter(el => el.ariaLabel !== undefined);
+
+    expect(ariaLabelledCells.length).toBe(cMenu.hotMenu.countRows());
+
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert column left');
   });
 

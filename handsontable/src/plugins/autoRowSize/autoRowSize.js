@@ -23,8 +23,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * resize the rows accordingly.
  * If you experience problems with the performance, try turning this feature off and declaring the row heights manually.
  *
- * But, to display Handsontable's [scrollbar](https://handsontable.com/docs/8.0.0/demo-scrolling.html)
- * in a proper size, you need to enable the `AutoRowSize` plugin,
+ * But, to display Handsontable's scrollbar in a proper size, you need to enable the `AutoRowSize` plugin,
  * by setting the [`autoRowSize`](@/api/options.md#autoRowSize) option to `true`.
  *
  * Row height calculations are divided into sync and async part. Each of this parts has their own advantages and

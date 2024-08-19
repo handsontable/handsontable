@@ -2,11 +2,9 @@
 import { defineComponent } from "vue";
 import { HotTable, HotColumn } from "@handsontable/vue3";
 import { registerAllModules } from "handsontable/registry";
-import "handsontable/dist/handsontable.full.css";
+import "handsontable/dist/handsontable.full.min.css";
 
-import { data } from "../constants";
-
-import { addClassesToRows, changeCheckboxCell, drawCheckboxInRowHeaders } from "../hooks-callbacks";
+import { data } from "../data";
 
 // register Handsontable's modules
 registerAllModules();
@@ -18,19 +16,6 @@ export default defineComponent({
     HotColumn,
   },
   computed: {
-
-    addClassesToRowsProp() {
-      return addClassesToRows;
-    },
-
-    drawCheckboxInRowHeadersProp() {
-      return drawCheckboxInRowHeaders;
-    },
-
-    changeCheckboxCellProp() {
-      return changeCheckboxCell;
-    },
-
     dataProp() {
       return data;
     },
@@ -40,41 +25,55 @@ export default defineComponent({
 
 <template>
   <div id="example">
-    <HotTable
-      :data="dataProp"
-      :height="450"
-      :colWidths="[170, 222, 130, 120, 120, 140, 156]"
-      :colHeaders="[
-        'Company name',
-        'Name',
-        'Sell date',
-        'In stock',
-        'Qty',
-        'Order ID',
-        'Country',
-      ]"
-      :dropdownMenu="true"
-      :hiddenColumns="{
+    <HotTable 
+    :data="dataProp" 
+    :height="450" 
+    :colHeaders="[
+          'ID',
+          'Item Name',
+          'Item No.',
+          'Lead Engineer',
+          'Cost',
+          'In Stock',
+          'Category',
+          'Item Quality',
+          'Origin',
+          'Quantity',
+          'Value Stock',
+          'Repairable',
+          'Supplier Name',
+          'Restock Date',
+          'Operational Status',
+    ]" 
+    :dropdownMenu="true" 
+    :hiddenColumns="{
+        columns: [0, 2], 
         indicators: true,
-      }"
-      :contextMenu="true"
-      :multiColumnSorting="true"
-      :filters="true"
-      :rowHeaders="true"
-      headerClassName="htLeft"
-      :beforeRenderer="addClassesToRowsProp"
-      :manualRowMove="true"
-      :autoWrapRow="true"
-      :autoWrapCol="true"
-      licenseKey="non-commercial-and-evaluation"
-    >
-      <HotColumn data="companyName" />
-      <HotColumn data="name" />
-      <HotColumn data="sellDate" type="date" :allowInvalid="false" />
-      <HotColumn data="inStock" type="checkbox" className="htCenter" headerClassName="htCenter" />
-      <HotColumn data="quantity" type="numeric" headerClassName="htRight" />
-      <HotColumn data="orderId" />
-      <HotColumn data="country" />
+      }" 
+    :contextMenu="true" 
+    :multiColumnSorting="true" 
+    :filters="true" 
+    :rowHeaders="true" headerClassName="htLeft"
+    :manualRowMove="true" 
+    :autoWrapRow="true" 
+    :autoWrapCol="true"
+    licenseKey="non-commercial-and-evaluation">
+      <HotColumn data="id" type="numeric" [width]="150"></HotColumn>
+      <HotColumn data="itemName" type="text" headerClassName="htLeft" className="htLeft" [width]="150"></HotColumn>
+      <HotColumn data="itemNo" type="text" headerClassName="htLeft" className="htLeft" [width]="150"></HotColumn>
+      <HotColumn data="leadEngineer" type="text" headerClassName="htLeft" className="htLeft"></HotColumn>
+      <HotColumn data="cost" type="numeric" headerClassName="htRight" className="htRight"></HotColumn>
+      <HotColumn data="inStock" type="checkbox" className="htCenter" headerClassName="htCenter"></HotColumn>
+      <HotColumn data="category" type="text" headerClassName="htLeft" className="htLeft"></HotColumn>
+      <HotColumn data="itemQuality" type="text" headerClassName="htLeft" className="htLeft"></HotColumn>
+      <HotColumn data="origin" type="text" headerClassName="htLeft" className="htLeft"></HotColumn>
+      <HotColumn data="quantity" type="numeric" headerClassName="htRight" className="htRight"></HotColumn>
+      <HotColumn data="valueStock" type="numeric" headerClassName="htRight" className="htRight"></HotColumn>
+      <HotColumn data="repairable" type="checkbox" className="htCenter" headerClassName="htCenter"></HotColumn>
+      <HotColumn data="supplierName" type="text" headerClassName="htLeft" className="htLeft"></HotColumn>
+      <HotColumn data="restockDate" type="date" [allowInvalid]="false" headerClassName="htLeft" className="htLeft">
+      </HotColumn>
+      <HotColumn data="operationalStatus" type="text" headerClassName="htLeft" className="htLeft"></HotColumn>
     </HotTable>
   </div>
 </template>
