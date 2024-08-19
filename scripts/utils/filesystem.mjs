@@ -1,5 +1,5 @@
 import rimraf from 'rimraf';
-import mainPackageJSON from '../../package.json' assert { type: 'json' };
+import mainPackageJSON from '../../package.json' with { type: 'json' };
 
 const workspaces = mainPackageJSON.workspaces;
 

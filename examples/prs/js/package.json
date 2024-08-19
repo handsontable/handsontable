@@ -9,7 +9,7 @@
       "build": "parcel build index.html"
     },
     "dependencies": {
-      "handsontable": "14.4.0"
+      "handsontable": "latest"
     },
     "devDependencies": {
       "@babel/core": "^7.14.3",

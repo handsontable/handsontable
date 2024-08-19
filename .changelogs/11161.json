@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Updated TS typings for `selectCell` method.",
+  "type": "fixed",
+  "issueOrPR": 11161,
+  "breaking": false,
+  "framework": "none"
+}
