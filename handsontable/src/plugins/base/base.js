@@ -200,21 +200,25 @@ export class BasePlugin {
    */
   getSetting(settingName) {
     const pluginSettings = this.hot.getSettings()[this.constructor.PLUGIN_KEY];
-    const defaultSettings = this.constructor.DEFAULT_SETTINGS;
 
-    if (!isObject(pluginSettings)) {
-      if (
-        !settingName ||
-        isObject(defaultSettings) &&
-        defaultSettings[defaultMainSettingSymbol] === settingName
-      ) {
-        return pluginSettings;
-      }
-
-      return defaultSettings[settingName];
+    if (settingName === undefined) {
+      return pluginSettings;
     }
 
-    return pluginSettings[settingName] ?? defaultSettings[settingName];
+    const defaultSettings = this.constructor.DEFAULT_SETTINGS;
+
+    if (
+      (Array.isArray(pluginSettings) || isObject(pluginSettings)) &&
+      defaultSettings[defaultMainSettingSymbol] === settingName
+    ) {
+      return pluginSettings[settingName] ?? pluginSettings;
+    }
+
+    if (isObject(pluginSettings)) {
+      return pluginSettings[settingName] ?? defaultSettings[settingName];
+    }
+
+    return defaultSettings[settingName];
   }
 
   /**
