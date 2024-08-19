@@ -26,3 +26,4 @@ const routes: Routes = [
   bootstrap: [AppComponent] // Use AppComponent as the bootstrap component
 })
 export class AppModule { }
+
