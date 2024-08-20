@@ -47,14 +47,13 @@ jobs:
           npm ci
         # working-directory: ./latest/docs/
 
-      - name: List files in the repository
-        run: ls -al ./.vuepress
-
       - name: Docs build
         run: |
           npm run docs:build:production:netlify
         # working-directory: ./latest/docs/
 
+      - name: List files in the repository
+        run: ls -al ./.vuepress
 
       # - name: Test examples
       #   run: |
