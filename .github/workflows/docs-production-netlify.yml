@@ -47,8 +47,8 @@ jobs:
           npm ci
         # working-directory: ./latest/docs/
 
-      - name: install netlify-cli
-        run: npm install -g netlify-cli
+      # - name: install netlify-cli
+      #   run: npm install -g netlify-cli
 
       - name: Docs build
         run: |
@@ -61,7 +61,7 @@ jobs:
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3.0.0
         with:
-          publish-dir: ./.vuepress/dist/docs
+          publish-dir: ../docs/.vuepress/dist/docs
           production-branch: feature/dev-issue-1790
           enable-pull-request-comment: false
           enable-commit-comment: false
