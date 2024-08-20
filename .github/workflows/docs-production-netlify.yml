@@ -53,7 +53,7 @@ jobs:
         # working-directory: ./latest/docs/
 
       - name: List files in the repository
-        run: ls -al ./.vuepress
+        run: ls -al ./.vuepress/dist
 
       # - name: Test examples
       #   run: |
