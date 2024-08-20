@@ -646,7 +646,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
   modifyData: () => {},
   modifyFocusOnTabNavigation: (tabActivationDir, visualCoords) => {},
-  modifyGetCellCoords: (row, column, topmost) => {},
+  modifyGetCellCoords: (row, column, topmost, source) => {
+    const _row: number = row;
+    const _column: number = column;
+    const _topmost: boolean = topmost;
+    const _source: string = source ?? '';
+  },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},

@@ -761,7 +761,8 @@ class TableView {
           .translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
 
         // Coords may be modified. For example, by the `MergeCells` plugin. It should affect cell value and cell meta.
-        const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex);
+        const modifiedCellCoords = this.hot
+          .runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, false, 'meta');
 
         let visualRowToCheck = visualRowIndex;
         let visualColumnToCheck = visualColumnIndex;
@@ -1058,7 +1059,7 @@ class TableView {
         const visualRowIndex = renderableRowIndex >= 0 ?
           rowMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
 
-        const visualIndexes = this.hot.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost);
+        const visualIndexes = this.hot.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost, 'render');
 
         if (Array.isArray(visualIndexes)) {
           const [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = visualIndexes;
@@ -1452,8 +1453,10 @@ class TableView {
       return null;
     }
 
-    return this.hot.rowIndexMapper
-      .getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedRow(), 1);
+    const indexMapper = this.hot.rowIndexMapper;
+
+    return indexMapper.getNearestNotHiddenIndex(indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedRow()), 1);
   }
 
   /**
@@ -1466,8 +1469,10 @@ class TableView {
       return null;
     }
 
-    return this.hot.rowIndexMapper
-      .getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedRow(), -1);
+    const indexMapper = this.hot.rowIndexMapper;
+
+    return indexMapper.getNearestNotHiddenIndex(indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedRow()), -1);
   }
 
   /**
@@ -1480,8 +1485,10 @@ class TableView {
       return null;
     }
 
-    return this.hot.columnIndexMapper
-      .getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedColumn(), 1);
+    const indexMapper = this.hot.columnIndexMapper;
+
+    return indexMapper.getNearestNotHiddenIndex(indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedColumn()), 1);
   }
 
   /**
@@ -1494,8 +1501,10 @@ class TableView {
       return null;
     }
 
-    return this.hot.columnIndexMapper
-      .getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedColumn(), -1);
+    const indexMapper = this.hot.columnIndexMapper;
+
+    return indexMapper.getNearestNotHiddenIndex(indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedColumn()), -1);
   }
 
   /**

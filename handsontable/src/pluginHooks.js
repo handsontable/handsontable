@@ -1572,6 +1572,9 @@ const REGISTERED_HOOKS = [
    * @param {boolean} topmost If set to `true`, it returns the TD element from the topmost overlay. For example,
    *                          if the wanted cell is in the range of fixed rows, it will return a TD element
    *                          from the `top` overlay.
+   * @param {string} source String that identifies how this coords change will be processed. Possible values:
+   *                        `meta` the change will affect the cell meta and data; `render` the change will affect the
+   *                        DOM element that will be returned by the `getCell` method
    * @returns {undefined|number[]}
    */
   'modifyGetCellCoords',

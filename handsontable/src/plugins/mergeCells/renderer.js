@@ -28,7 +28,7 @@ export function createMergeCellRenderer(plugin) {
    *
    * @private
    * @param {HTMLElement} TD The cell to be modified.
-   * @param {number} row Row index.
+   * @param {number} row Visual row index.
    * @param {number} col Visual column index.
    */
   function after(TD, row, col) {
@@ -52,6 +52,7 @@ export function createMergeCellRenderer(plugin) {
       lastMergedRowIndex,
       lastMergedColumnIndex,
     ] = plugin.translateMergedCellToRenderable(origRow, origRowspan, origColumn, origColspan);
+    const isVirtualRenderingEnabled = plugin.getSetting('virtualized');
 
     const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
     const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
@@ -59,16 +60,14 @@ export function createMergeCellRenderer(plugin) {
     const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
     const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
 
-    // const firstRenderedColumn = hot.view.getFirstRenderedVisibleColumn();
-    // const firstRenderedRow = hot.view.getFirstRenderedVisibleRow();
+    let notHiddenRow = rowMapper.getNearestNotHiddenIndex(origRow, 1);
+    let notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
 
-    // const notHiddenRow = Math.max(rowMapper.getNearestNotHiddenIndex(origRow, 1), firstRenderedRow);
-    // const notHiddenColumn = Math.max(columnMapper.getNearestNotHiddenIndex(origColumn, 1), firstRenderedColumn);
-    // const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);
-    // const notHiddenColspan = Math.min(origColspan, maxColSpan);
+    if (isVirtualRenderingEnabled) {
+      notHiddenRow = Math.max(notHiddenRow, hot.view.getFirstRenderedVisibleRow());
+      notHiddenColumn = Math.max(notHiddenColumn, hot.view.getFirstRenderedVisibleColumn());
+    }
 
-    const notHiddenRow = rowMapper.getNearestNotHiddenIndex(origRow, 1);
-    const notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
     const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);
     const notHiddenColspan = Math.min(origColspan, maxColSpan);
 

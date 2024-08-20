@@ -388,62 +388,35 @@ class Border {
     }
 
     const { wtTable, rootDocument, rootWindow } = this.wot; // todo refactoring: consider about using internal facade (it is given by external code)
-    let fromRow;
-    let toRow;
-    let fromColumn;
-    let toColumn;
-    let rowHeader;
-    let columnHeader;
+    let [fromRow, fromColumn, toRow, toColumn] = corners;
+    const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
+    const firstRenderedRow = wtTable.getFirstRenderedRow();
+    const lastRenderedRow = wtTable.getLastRenderedRow();
+    const firstRenderedColumn = wtTable.getFirstRenderedColumn();
+    const lastRenderedColumn = wtTable.getLastRenderedColumn();
 
-    const rowsCount = wtTable.getRenderedRowsCount();
+    fromColumn = Math.max(fromColumn, firstRenderedColumn);
+    toColumn = Math.min(toColumn, lastRenderedColumn);
+    fromRow = Math.max(fromRow, firstRenderedRow);
+    toRow = Math.min(toRow, lastRenderedRow);
 
-    for (let i = 0; i < rowsCount; i += 1) {
-      const s = wtTable.rowFilter.renderedToSource(i);
+    const rowHeader = fromRow;
+    const columnHeader = fromColumn;
 
-      if (s >= corners[0] && s <= corners[2]) {
-        fromRow = s;
-        rowHeader = corners[0];
-        break;
-      }
-    }
-
-    for (let i = rowsCount - 1; i >= 0; i -= 1) {
-      const s = wtTable.rowFilter.renderedToSource(i);
-
-      if (s >= corners[0] && s <= corners[2]) {
-        toRow = s;
-        break;
-      }
-    }
-
-    const columnsCount = wtTable.getRenderedColumnsCount();
-
-    for (let i = 0; i < columnsCount; i += 1) {
-      const s = wtTable.columnFilter.renderedToSource(i);
-
-      if (s >= corners[1] && s <= corners[3]) {
-        fromColumn = s;
-        columnHeader = corners[1];
-        break;
-      }
-    }
-
-    for (let i = columnsCount - 1; i >= 0; i -= 1) {
-      const s = wtTable.columnFilter.renderedToSource(i);
-
-      if (s >= corners[1] && s <= corners[3]) {
-        toColumn = s;
-        break;
-      }
-    }
-    if (fromRow === undefined || fromColumn === undefined) {
+    if (toColumn < fromColumn || toRow < fromRow) {
       this.disappear();
 
       return;
     }
 
     let fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
-    const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
+
+    if (!(fromTD instanceof HTMLElement)) {
+      this.disappear();
+
+      return;
+    }
+
     const toTD = isMultiple ? wtTable.getCell(this.wot.createCellCoords(toRow, toColumn)) : fromTD;
     const fromOffset = offset(fromTD);
     const toOffset = isMultiple ? offset(toTD) : fromOffset;

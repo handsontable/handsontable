@@ -106,7 +106,7 @@ class EditorManager {
     }
 
     const { row, col } = highlight;
-    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', row, col);
+    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', row, col, false, 'meta');
     let visualRowToCheck = row;
     let visualColumnToCheck = col;
 

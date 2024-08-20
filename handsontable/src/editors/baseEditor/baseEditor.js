@@ -206,7 +206,8 @@ export class BaseEditor {
       [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = [this.row, this.col, null, null];
     }
 
-    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRowFrom, visualColumnFrom);
+    const modifiedCellCoords = this.hot
+      .runHooks('modifyGetCellCoords', visualRowFrom, visualColumnFrom, false, 'meta');
 
     if (Array.isArray(modifiedCellCoords)) {
       [visualRowFrom, visualColumnFrom] = modifiedCellCoords;

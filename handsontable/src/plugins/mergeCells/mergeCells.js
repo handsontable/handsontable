@@ -156,6 +156,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('modifyTransformFocus', (...args) => this.#onModifyTransformFocus(...args));
     this.addHook('modifyTransformStart', (...args) => this.#onModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.#onModifyTransformEnd(...args));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
     this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
     this.addHook('beforeSetRangeStart', (...args) => this.#onBeforeSetRangeStart(...args));
     this.addHook('beforeSetRangeStartOnly', (...args) => this.#onBeforeSetRangeStart(...args));
@@ -211,12 +212,10 @@ export class MergeCells extends BasePlugin {
    *  - [`mergeCells`](@/api/options.md#mergecells)
    */
   updatePlugin() {
-    const settings = this.hot.getSettings()[PLUGIN_KEY];
-
     this.disablePlugin();
     this.enablePlugin();
 
-    this.generateFromSettings(settings);
+    this.generateFromSettings();
 
     super.updatePlugin();
   }
@@ -314,16 +313,11 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Generates the merged cells from the settings provided to the plugin.
-   *
+   *.
    * @private
-   * @param {Array|boolean} settings The settings provided to the plugin.
    */
-  generateFromSettings(settings) {
-    if (!Array.isArray(settings)) {
-      return;
-    }
-
-    const validSettings = settings
+  generateFromSettings() {
+    const validSettings = this.getSetting('cells')
       .filter(mergeCellInfo => this.validateSetting(mergeCellInfo));
     const nonOverlappingSettings = this.mergedCellsCollection
       .filterOverlappingMergeCells(validSettings);
@@ -584,7 +578,7 @@ export class MergeCells extends BasePlugin {
    * `afterInit` hook callback.
    */
   #onAfterInit() {
-    this.generateFromSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    this.generateFromSettings();
     this.hot.render();
   }
 
@@ -834,6 +828,14 @@ export class MergeCells extends BasePlugin {
     }
   }
 
+  #onBeforeOnCellMouseDown(event, visualCoords) {
+    // const mergeParent = this.mergedCellsCollection.get(visualCoords.row, visualCoords.col);
+
+    // if (mergeParent) {
+    //   visualCoords.col = mergeParent.col;
+    // }
+  }
+
   /**
    * The hook corrects the range (before drawing it) after the selection was made on the merged cells.
    * It expands the range to cover the entire area of the selected merged cells.
@@ -874,7 +876,7 @@ export class MergeCells extends BasePlugin {
    * @param {number} column Visual column index.
    * @returns {Array|undefined} Visual coordinates of the merge.
    */
-  #onModifyGetCellCoords(row, column) {
+  #onModifyGetCellCoords(row, column, topmost, source) {
     if (row < 0 || column < 0) {
       return;
     }
@@ -886,13 +888,25 @@ export class MergeCells extends BasePlugin {
     }
 
     const { row: mergeRow, col: mergeColumn, colspan, rowspan } = mergeParent;
+    const topStartRow = mergeRow;
+    const topStartColumn = mergeColumn;
+    const bottomEndRow = mergeRow + rowspan - 1;
+    const bottomEndColumn = mergeColumn + colspan - 1;
+
+    if (source === 'render' && this.getSetting('virtualized')) {
+      return [
+        Math.max(topStartRow, this.hot.view.getFirstRenderedVisibleRow()),
+        Math.max(topStartColumn, this.hot.view.getFirstRenderedVisibleColumn()),
+        Math.min(bottomEndRow, this.hot.view.getLastRenderedVisibleRow()),
+        Math.min(bottomEndColumn, this.hot.view.getLastRenderedVisibleColumn()),
+      ];
+    }
 
     return [
-      // Most top-left merged cell coords.
-      mergeRow, mergeColumn,
-      // Most bottom-right merged cell coords.
-      mergeRow + rowspan - 1,
-      mergeColumn + colspan - 1
+      topStartRow,
+      topStartColumn,
+      bottomEndRow,
+      bottomEndColumn,
     ];
   }
 
