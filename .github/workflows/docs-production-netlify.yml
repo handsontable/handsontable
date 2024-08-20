@@ -56,11 +56,24 @@ jobs:
         # working-directory: ./latest/docs/
 
       - name: List files in the repository
-        run: ls -al ./.vuepress/dist
+        run: ls -al ./.vuepress/dist/docs
 
       - name: Deploy to Netlify
-        run: |
-          netlify deploy --prod --dir=./.vuepress/dist --message="Deployed from GitHub Action" --auth=$NETLIFY_AUTH_TOKEN
+        uses: nwtgck/actions-netlify@v3.0.0
+        with:
+          publish-dir: ./.vuepress/dist/docs
+          production-branch: feature/dev-issue-1790
+          enable-pull-request-comment: false
+          enable-commit-comment: false
+          overwrites-pull-request-comment: false
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1
+
+      # - name: Deploy to Netlify
+      #   run: |
+      #     netlify deploy --prod --dir=./.vuepress/dist --message="Deployed from GitHub Action" --auth=$NETLIFY_AUTH_TOKEN
         # working-directory: ./latest/docs/
 
       # - name: Test examples
