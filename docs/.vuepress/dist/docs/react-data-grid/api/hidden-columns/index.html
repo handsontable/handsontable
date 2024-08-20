@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <!--
+Generated at Tue Aug 20 2024 18:52:15 GMT+0000 (Coordinated Universal Time)
+SHA: 421062b52ca15bc853e1513ee72f46112a634702
+-->
+  <meta charset="utf-8">
+  <title>HiddenColumns - React Data Grid | Handsontable</title>
+  <meta name="generator" content="VuePress 1.9.10">
+  <link rel="icon" media="(prefers-color-scheme: light)" href="https://handsontable.com/docs/img/favicon.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="https://handsontable.com/docs/img/favicon-dark.png">
+    <link rel="preload" href="https://handsontable.com/docs/data/common.json" as="fetch" crossorigin="">
+    <script>
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          environment: 'production',
+          tracesSampleRate: 0,
+          profilesSampleRate: 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0.2,
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),   
+          ],
+        });
+      };
+    </script>
+    <script id="Sentry.io" src="https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js" crossorigin="anonymous" defer="true"></script>
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="ef171f1d-a288-433f-b680-3cdbdebd5646" defer="true"></script>
+    <script id="Headwayapp" src="https://cdn.headwayapp.co/widget.js" defer="true"></script>
+    <script>const DOCS_VERSION = 'next';</script>
+    <script>
+      (function(w, d) {
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    </script>
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-55L5D3');
+    </script>
+    <script>
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      </script>
+  <meta name="description" content="Use the HiddenColumns plugin with its API options and methods to hide specified columns, without modifying your source data.">
+    <meta name="og:url" content="https://handsontable.com/docs/react-data-grid/api/hidden-columns/">
+    <meta name="og:type" content="website">
+    <meta name="og:title" content="HiddenColumns">
+    <meta name="og:description" content="Use the HiddenColumns plugin with its API options and methods to hide specified columns, without modifying your source data.">
+    <meta name="og:image" content="https://handsontable.com/docs/img/handsontable-banner-og.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://handsontable.com/docs/react-data-grid/api/hidden-columns/" rel="canonical" />
+  <link rel="preload" href="/docs/assets/css/0.styles.efdf810f.css" as="style"><link rel="preload" href="/docs/assets/js/app.3f2e5286.js" as="script"><link rel="preload" href="/docs/assets/js/4.a71c13f3.js" as="script"><link rel="preload" href="/docs/assets/js/3.341147d5.js" as="script"><link rel="preload" href="/docs/assets/js/2.25ad14de.js" as="script"><link rel="preload" href="/docs/assets/js/248.adabf23d.js" as="script">
+  <link rel="stylesheet" href="/docs/assets/css/0.styles.efdf810f.css">
+</head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="//www.googletagmanager.com/ns.html?id=GTM-55L5D3"
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<div id="app" data-server-rendered="true"><div class="layout-container"><script type="application/ld+json">{
+    "@context": "https://schema.org/",
+    "@type": "WebPage",
+    "name": "HiddenColumns - React Data Grid  Handsontable",
+    "headline": "HiddenColumns - React Data Grid  Handsontable",
+    "description": "Use the HiddenColumns plugin with its API options and methods to hide specified columns, without modifying your source data.",
+    "url": "https://handsontable.com/docs/react-data-grid/api/hidden-columns/",
+    "mainEntityOfPage": {
+        "@type": "TechArticle",
+        "@id": "https://handsontable.com/docs/react-data-grid/api/hidden-columns/"
+    },
+    "keywords": [],
+    "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsonable-docs-cover.png"
+    },
+    "image": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsonable-docs-cover.png"
+    },
+    "author": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable Team",
+        "url": "https://handsontable.com",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "alternateName": "Handsontable",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "dateModified": "2024-08-20T18:58:51.807Z",
+    "lastReviewed": "2024-08-20T18:58:51.807Z",
+    "copyrightHolder": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://handsontable.com/docs/img/handsonable-docs-cover.png"
+        }
+    },
+    "copyrightYear": "2024"
+}</script> <div class="theme-container"><header class="navbar"><div class="navbar-wrapper"><a href="/docs/react-data-grid/" aria-label="Docs Homepage Link" class="home-link router-link-active"><i class="Logo"></i></a> <div class="top-bar"><div class="top-bar_left"><div class="framework-and-version"><nav class="nav-frameworks nav-links"><i class="ico i-react"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="React" class="dropdown-title"><span class="title">React</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/next/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/next/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav></div></div> <div id="algolia-search"></div> <div class="menu"><nav class="nav-links"><div class="nav-item"><a href="/docs/react-data-grid/" class="nav-link">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/react-data-grid/api/" class="nav-link router-link-active">
+  API Reference
+</a></div> <div class="nav-item changelog"><a href="/docs/react-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav> <nav class="nav-links"><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Support" class="dropdown-title"><span class="title">Support</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="https://forum.handsontable.com" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Developers Forum
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://github.com/handsontable/handsontable/discussions" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    GitHub Discussions
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://stackoverflow.com/tags/handsontable" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    StackOverflow
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://handsontable.com/contact?category=technical_support" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Contact support
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div></nav> <nav class="icons-nav"><span class="news"><i class="ico i-bell"></i></span> <a href="https://github.com/handsontable/handsontable" target="_blank" class="github-stars"><i class="ico i-github"></i> <!----></a> <button id="mobileSearch" aria-label="Search" class="menuButton"><i class="ico i-search"></i></button> <button aria-label="Menu button" class="menuButton"><i class="ico i-menu"></i> <i class="ico i-close"></i></button></nav></div></div></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <div class="sidebar-nav"><div class="mobile-nav"><nav class="nav-frameworks nav-links"><i class="ico i-react"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="React" class="dropdown-title"><span class="title">React</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/next/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/next/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav> <nav class="nav-links"><div class="nav-item"><a href="/docs/react-data-grid/" class="nav-link">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/react-data-grid/api/" class="nav-link router-link-active">
+  API Reference
+</a></div> <div class="nav-item changelog"><a href="/docs/react-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav></div> <ul class="sidebar-links"><li><a href="/docs/react-data-grid/api/" aria-current="page" class="sidebar-link">Introduction</a></li><li><a href="/docs/react-data-grid/api/core/" class="sidebar-link">Core</a></li><li><a href="/docs/react-data-grid/api/hooks/" class="sidebar-link">Hooks</a></li><li><a href="/docs/react-data-grid/api/options/" class="sidebar-link">Configuration options</a></li><li><section class="sidebar-group open depth-0"><a href="/docs/react-data-grid/api/plugins/" class="sidebar-heading clickable"><i class="ico v-511702f6"></i> <span>Plugins</span> <!----></a> <ul class="sidebar-links sidebar-group-items"><li><a href="/docs/react-data-grid/api/auto-column-size/" class="sidebar-link">AutoColumnSize</a></li><li><a href="/docs/react-data-grid/api/auto-row-size/" class="sidebar-link">AutoRowSize</a></li><li><a href="/docs/react-data-grid/api/autofill/" class="sidebar-link">Autofill</a></li><li><a href="/docs/react-data-grid/api/bind-rows-with-headers/" class="sidebar-link">BindRowsWithHeaders</a></li><li><a href="/docs/react-data-grid/api/collapsible-columns/" class="sidebar-link">CollapsibleColumns</a></li><li><a href="/docs/react-data-grid/api/column-sorting/" class="sidebar-link">ColumnSorting</a></li><li><a href="/docs/react-data-grid/api/column-summary/" class="sidebar-link">ColumnSummary</a></li><li><a href="/docs/react-data-grid/api/comments/" class="sidebar-link">Comments</a></li><li><a href="/docs/react-data-grid/api/context-menu/" class="sidebar-link">ContextMenu</a></li><li><a href="/docs/react-data-grid/api/copy-paste/" class="sidebar-link">CopyPaste</a></li><li><a href="/docs/react-data-grid/api/custom-borders/" class="sidebar-link">CustomBorders</a></li><li><a href="/docs/react-data-grid/api/drag-to-scroll/" class="sidebar-link">DragToScroll</a></li><li><a href="/docs/react-data-grid/api/dropdown-menu/" class="sidebar-link">DropdownMenu</a></li><li><a href="/docs/react-data-grid/api/export-file/" class="sidebar-link">ExportFile</a></li><li><a href="/docs/react-data-grid/api/filters/" class="sidebar-link">Filters</a></li><li><a href="/docs/react-data-grid/api/formulas/" class="sidebar-link">Formulas</a></li><li><a href="/docs/react-data-grid/api/hidden-columns/" aria-current="page" class="active sidebar-link">HiddenColumns</a></li><li><a href="/docs/react-data-grid/api/hidden-rows/" class="sidebar-link">HiddenRows</a></li><li><a href="/docs/react-data-grid/api/manual-column-freeze/" class="sidebar-link">ManualColumnFreeze</a></li><li><a href="/docs/react-data-grid/api/manual-column-move/" class="sidebar-link">ManualColumnMove</a></li><li><a href="/docs/react-data-grid/api/manual-column-resize/" class="sidebar-link">ManualColumnResize</a></li><li><a href="/docs/react-data-grid/api/manual-row-move/" class="sidebar-link">ManualRowMove</a></li><li><a href="/docs/react-data-grid/api/manual-row-resize/" class="sidebar-link">ManualRowResize</a></li><li><a href="/docs/react-data-grid/api/merge-cells/" class="sidebar-link">MergeCells</a></li><li><a href="/docs/react-data-grid/api/multi-column-sorting/" class="sidebar-link">MultiColumnSorting</a></li><li><a href="/docs/react-data-grid/api/nested-headers/" class="sidebar-link">NestedHeaders</a></li><li><a href="/docs/react-data-grid/api/nested-rows/" class="sidebar-link">NestedRows</a></li><li><a href="/docs/react-data-grid/api/persistent-state/" class="sidebar-link">PersistentState</a></li><li><a href="/docs/react-data-grid/api/search/" class="sidebar-link">Search</a></li><li><a href="/docs/react-data-grid/api/trim-rows/" class="sidebar-link">TrimRows</a></li><li><a href="/docs/react-data-grid/api/undo-redo/" class="sidebar-link">UndoRedo</a></li></ul></section></li></ul></div> </aside> <main class="page api"><div class="breadcrumbs"><a href="https://handsontable.com/docs/react-data-grid/api/"><i class="ico i-home"></i> <span> <span></span>React Data Grid</span></a> <a href="https://handsontable.com/docs/react-data-grid/api/hidden-columns"><span>HiddenColumns</span></a></div> <div class="theme-default-content content__default"><h1 id="hiddencolumns"><a href="#hiddencolumns" class="header-link"><span class="header-framework">React Data Grid</span>HiddenColumns</a></h1> <p></p><div class="table-of-contents"><div class="toc-container-header"><i class="ico i-toc"></i>On this page</div><ul><li><a href="#description">Description</a></li><li><a href="#options">Options</a><ul><li><a href="#hiddencolumns-2">hiddenColumns</a></li></ul></li><li><a href="#methods">Methods</a><ul><li><a href="#destroy">destroy</a></li><li><a href="#disableplugin">disablePlugin</a></li><li><a href="#enableplugin">enablePlugin</a></li><li><a href="#gethiddencolumns">getHiddenColumns</a></li><li><a href="#hidecolumn">hideColumn</a></li><li><a href="#hidecolumns">hideColumns</a></li><li><a href="#isenabled">isEnabled</a></li><li><a href="#ishidden">isHidden</a></li><li><a href="#isvalidconfig">isValidConfig</a></li><li><a href="#showcolumn">showColumn</a></li><li><a href="#showcolumns">showColumns</a></li><li><a href="#updateplugin">updatePlugin</a></li></ul></li></ul></div><p></p> <h2 id="description"><a href="#description" class="header-link">Description</a></h2> <p>The <code>HiddenColumns</code> plugin lets you <a href="/docs/react-data-grid/column-hiding/">hide specified columns</a>.</p> <p>&quot;Hiding a column&quot; means that the hidden column doesn't get rendered as a DOM element.</p> <p>The <code>HiddenColumns</code> plugin doesn't modify the source data,
+and doesn't participate in data transformation
+(the shape of the data returned by the <a href="/docs/react-data-grid/api/core/#getdata"><code>getData*()</code> methods</a> stays intact).</p> <p>You can set the following configuration options:</p> <table><thead><tr><th>Option</th> <th>Required</th> <th>Type</th> <th>Default</th> <th>Description</th></tr></thead> <tbody><tr><td><code>columns</code></td> <td>No</td> <td>Array</td> <td>-</td> <td><a href="/docs/react-data-grid/column-hiding/#step-1-specify-columns-hidden-by-default">Hides specified columns by default</a></td></tr> <tr><td><code>indicators</code></td> <td>No</td> <td>Boolean</td> <td><code>false</code></td> <td><a href="/docs/react-data-grid/column-hiding/#step-2-show-ui-indicators">Shows UI indicators</a></td></tr> <tr><td><code>copyPasteEnabled</code></td> <td>No</td> <td>Boolean</td> <td><code>true</code></td> <td><a href="/docs/react-data-grid/column-hiding/#step-4-set-up-copy-and-paste-behavior">Sets up copy/paste behavior</a></td></tr></tbody></table> <p><strong>Example</strong><br></p> <p></p> <div class="language-jsx extra-class"><pre class="language-jsx"><code><span class="token keyword">const</span> hotRef <span class="token operator">=</span> <span class="token function">useRef</span><span class="token punctuation">(</span><span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token operator">...</span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotTable</span></span>
+  <span class="token attr-name">ref</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>hotRef<span class="token punctuation">}</span></span>
+  <span class="token attr-name">data</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token function">getData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span>
+  <span class="token attr-name">hiddenColumns</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">copyPasteEnabled</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">indicators</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">columns</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span><span class="token punctuation">}</span></span>
+<span class="token punctuation">/&gt;</span></span>
+
+<span class="token comment">// access the `HiddenColumns` plugin's instance</span>
+<span class="token keyword">const</span> hot <span class="token operator">=</span> hotRef<span class="token punctuation">.</span>current<span class="token punctuation">.</span>hotInstance<span class="token punctuation">;</span>
+<span class="token keyword">const</span> hiddenColumnsPlugin <span class="token operator">=</span> hot<span class="token punctuation">.</span><span class="token function">getPlugin</span><span class="token punctuation">(</span><span class="token string">'hiddenColumns'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// hide a single column</span>
+hiddenColumnsPlugin<span class="token punctuation">.</span><span class="token function">hideColumn</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// hide multiple columns</span>
+hiddenColumnsPlugin<span class="token punctuation">.</span><span class="token function">hideColumn</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">9</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// hide multiple columns as an array</span>
+hiddenColumnsPlugin<span class="token punctuation">.</span><span class="token function">hideColumns</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">9</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// unhide a single column</span>
+hiddenColumnsPlugin<span class="token punctuation">.</span><span class="token function">showColumn</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// unhide multiple columns</span>
+hiddenColumnsPlugin<span class="token punctuation">.</span><span class="token function">showColumn</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">9</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// unhide multiple columns as an array</span>
+hiddenColumnsPlugin<span class="token punctuation">.</span><span class="token function">showColumns</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">9</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// to see your changes, re-render your Handsontable instance</span>
+hot<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="jsx" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p></p> <h2 id="options"><a href="#options" class="header-link">Options</a></h2> <h3 id="hiddencolumns-2"><a href="#hiddencolumns-2" class="header-link">hiddenColumns</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\dataMap\metaManager/metaSchema.js#L2507" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.hiddenColumns : boolean | object</em></p> <p>The <code>hiddenColumns</code> option configures the <a href="/docs/react-data-grid/api/hidden-columns/" aria-current="page" class="router-link-exact-active router-link-active"><code>HiddenColumns</code></a> plugin.</p> <p>You can set the <code>hiddenColumns</code> option to one of the following:</p> <table><thead><tr><th>Setting</th> <th>Description</th></tr></thead> <tbody><tr><td><code>false</code></td> <td>Disable the <a href="/docs/react-data-grid/api/hidden-columns/" aria-current="page" class="router-link-exact-active router-link-active"><code>HiddenColumns</code></a> plugin</td></tr> <tr><td><code>true</code></td> <td>Enable the <a href="/docs/react-data-grid/api/hidden-columns/" aria-current="page" class="router-link-exact-active router-link-active"><code>HiddenColumns</code></a> plugin with the default plugin options</td></tr> <tr><td>An object</td> <td>- Enable the <a href="/docs/react-data-grid/api/hidden-columns/" aria-current="page" class="router-link-exact-active router-link-active"><code>HiddenColumns</code></a> plugin<br>- Modify the plugin options</td></tr></tbody></table> <p>If you set the <code>hiddenColumns</code> to an object, you can set the following <a href="/docs/react-data-grid/api/hidden-columns/" aria-current="page" class="router-link-exact-active router-link-active"><code>HiddenColumns</code></a> plugin options:</p> <table><thead><tr><th>Property</th> <th>Possible values</th> <th>Description</th></tr></thead> <tbody><tr><td><code>columns</code></td> <td>An array of indexes</td> <td>An array of indexes of columns that are hidden at initialization</td></tr> <tr><td><code>copyPasteEnabled</code></td> <td><code>true</code> | <code>false</code></td> <td><code>true</code>: when copying or pasting data, take hidden columns into account<br><code>false</code>: when copying or pasting data, don't take hidden columns into account</td></tr> <tr><td><code>indicators</code></td> <td><code>true</code> | <code>false</code></td> <td><code>true</code>: display UI markers to indicate the presence of hidden columns<br><code>false</code>: display UI markers</td></tr></tbody></table> <p>Read more:</p> <ul><li><a href="/docs/react-data-grid/api/hidden-columns/" aria-current="page" class="router-link-exact-active router-link-active">Plugins: <code>HiddenColumns</code></a></li> <li><a href="/docs/react-data-grid/column-hiding/">Column hiding</a></li></ul> <p><strong>Default</strong>: <code>undefined</code><br> <strong>Example</strong></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token comment">// enable the `HiddenColumns` plugin</span>
+<span class="token literal-property property">hiddenColumns</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+
+<span class="token comment">// enable `HiddenColumns` plugin, and modify the plugin options</span>
+<span class="token literal-property property">hiddenColumns</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+  <span class="token comment">// set columns that are hidden by default</span>
+  <span class="token literal-property property">columns</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">5</span><span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">15</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token comment">// when copying or pasting data, take hidden columns into account</span>
+  <span class="token literal-property property">copyPasteEnabled</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token comment">// show where hidden columns are</span>
+  <span class="token literal-property property">indicators</span><span class="token operator">:</span> <span class="token boolean">true</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><h2 id="methods"><a href="#methods" class="header-link">Methods</a></h2> <h3 id="destroy"><a href="#destroy" class="header-link">destroy</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L523" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.destroy()</em></p> <p>Destroys the plugin instance.</p> <h3 id="disableplugin"><a href="#disableplugin" class="header-link">disablePlugin</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L210" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.disablePlugin()</em></p> <p>Disables the plugin functionality for this Handsontable instance.</p> <h3 id="enableplugin"><a href="#enableplugin" class="header-link">enablePlugin</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L166" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.enablePlugin()</em></p> <p>Enables the plugin functionality for this Handsontable instance.</p> <h3 id="gethiddencolumns"><a href="#gethiddencolumns" class="header-link">getHiddenColumns</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L322" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.getHiddenColumns() ⇒ Array&lt;number&gt;</em></p> <p>Returns an array of visual indexes of hidden columns.</p> <h3 id="hidecolumn"><a href="#hidecolumn" class="header-link">hideColumn</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L313" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.hideColumn(...column)</em></p> <p>Hides a single column.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Description</th></tr></thead> <tbody><tr><td>...column</td> <td><code>number</code></td> <td>Visual column index.</td></tr></tbody></table> <h3 id="hidecolumns"><a href="#hidecolumns" class="header-link">hideColumns</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L280" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.hideColumns(columns)</em></p> <p>Hides the columns provided in the array.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Description</th></tr></thead> <tbody><tr><td>columns</td> <td><code>Array&lt;number&gt;</code></td> <td>Array of visual column indexes.</td></tr></tbody></table> <h3 id="isenabled"><a href="#isenabled" class="header-link">isEnabled</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L159" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.isEnabled() ⇒ boolean</em></p> <p>Checks if the plugin is enabled in the handsontable settings. This method is executed in <a href="/docs/react-data-grid/api/hooks/#beforeinit">Hooks#beforeInit</a>
+hook and if it returns <code>true</code> then the <a href="/docs/react-data-grid/api/hidden-columns/#enableplugin">HiddenColumns#enablePlugin</a> method is called.</p> <h3 id="ishidden"><a href="#ishidden" class="header-link">isHidden</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L334" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.isHidden(column) ⇒ boolean</em></p> <p>Checks if the provided column is hidden.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Description</th></tr></thead> <tbody><tr><td>column</td> <td><code>number</code></td> <td>Visual column index.</td></tr></tbody></table> <h3 id="isvalidconfig"><a href="#isvalidconfig" class="header-link">isValidConfig</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L344" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.isValidConfig(hiddenColumns) ⇒ boolean</em></p> <p>Get if trim config is valid. Check whether all of the provided column indexes are within the bounds of the table.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Description</th></tr></thead> <tbody><tr><td>hiddenColumns</td> <td><code>Array</code></td> <td>List of hidden column indexes.</td></tr></tbody></table> <h3 id="showcolumn"><a href="#showcolumn" class="header-link">showColumn</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L271" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.showColumn(...column)</em></p> <p>Shows a single column.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Description</th></tr></thead> <tbody><tr><td>...column</td> <td><code>number</code></td> <td>Visual column index.</td></tr></tbody></table> <h3 id="showcolumns"><a href="#showcolumns" class="header-link">showColumns</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L223" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.showColumns(columns)</em></p> <p>Shows the provided columns.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Description</th></tr></thead> <tbody><tr><td>columns</td> <td><code>Array&lt;number&gt;</code></td> <td>Array of visual column indexes.</td></tr></tbody></table> <h3 id="updateplugin"><a href="#updateplugin" class="header-link">updatePlugin</a></h3> <a href="https://github.com/handsontable/handsontable/blob/3d620674b8d47d39f08596d8bc413ee314849214/handsontable\src\plugins\hiddenColumns/hiddenColumns.js#L200" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>hiddenColumns.updatePlugin()</em></p> <p>Updates the plugin's state.</p> <p>This method is executed when <a href="/docs/react-data-grid/api/core/#updatesettings"><code>updateSettings()</code></a> is invoked with any of the following configuration options:</p> <ul><li><a href="/docs/react-data-grid/api/options/#hiddencolumns"><code>hiddenColumns</code></a></li></ul></div> <div class="page-top" style="display:none;"><div class="custom-block tip version-alert"><p>There is a newer version of Handsontable available.
+            <a href="/docs/">Switch to the latest version ⟶</a></p></div></div> <footer class="footer"><!----> <div class="footer-links"><div class="socail-links"><a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a> <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a> <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a></div> <div class="hot-links"><a href="https://handsontable.com/privacy">Privacy policy</a> <a href="https://handsontable.com/terms-of-use">Terms of use</a> <a href="https://handsontable.com/team">Team</a> <a href="https://handsontable.com/contact?category=technical_support">Contact</a> <a href="https://handsontable.com/blog/">Blog</a> <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a></div></div> <div class="copyright"><p>© 2012 - 2024 Handsoncode</p> <label id="switch" class="dark-mode"><span class="inner" style="display:none;"><input type="checkbox"> <span style="display:none;"><i class="ico i-dm-dark"></i>Light</span> <span style="display:;"><i class="ico i-dm-light"></i>Dark</span></span></label></div></footer> </main></div></div><div class="global-ui"></div></div>
+
+<script src="/docs/assets/js/app.3f2e5286.js" defer></script><script src="/docs/assets/js/4.a71c13f3.js" defer></script><script src="/docs/assets/js/3.341147d5.js" defer></script><script src="/docs/assets/js/2.25ad14de.js" defer></script><script src="/docs/assets/js/248.adabf23d.js" defer></script>
+</body>
+</html>

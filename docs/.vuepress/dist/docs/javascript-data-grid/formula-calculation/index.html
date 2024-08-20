@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <!--
+Generated at Tue Aug 20 2024 18:52:15 GMT+0000 (Coordinated Universal Time)
+SHA: 421062b52ca15bc853e1513ee72f46112a634702
+-->
+  <meta charset="utf-8">
+  <title>Formula calculation - JavaScript Data Grid | Handsontable</title>
+  <meta name="generator" content="VuePress 1.9.10">
+  <link rel="icon" media="(prefers-color-scheme: light)" href="https://handsontable.com/docs/img/favicon.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="https://handsontable.com/docs/img/favicon-dark.png">
+    <link rel="preload" href="https://handsontable.com/docs/data/common.json" as="fetch" crossorigin="">
+    <script>
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          environment: 'production',
+          tracesSampleRate: 0,
+          profilesSampleRate: 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0.2,
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),   
+          ],
+        });
+      };
+    </script>
+    <script id="Sentry.io" src="https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js" crossorigin="anonymous" defer="true"></script>
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="ef171f1d-a288-433f-b680-3cdbdebd5646" defer="true"></script>
+    <script id="Headwayapp" src="https://cdn.headwayapp.co/widget.js" defer="true"></script>
+    <script>const DOCS_VERSION = 'next';</script>
+    <script>
+      (function(w, d) {
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    </script>
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-55L5D3');
+    </script>
+    <script>
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      </script>
+  <meta name="description" content="Perform calculations on cells&#39; values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.">
+    <meta name="og:url" content="https://handsontable.com/docs/javascript-data-grid/formula-calculation/">
+    <meta name="og:type" content="website">
+    <meta name="og:title" content="Formula calculation">
+    <meta name="og:description" content="Perform calculations on cells&#39; values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.">
+    <meta name="og:image" content="https://handsontable.com/docs/img/handsontable-banner-og.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://handsontable.com/docs/javascript-data-grid/formula-calculation/" rel="canonical" />
+  <link rel="preload" href="/docs/assets/css/0.styles.efdf810f.css" as="style"><link rel="preload" href="/docs/assets/js/app.3f2e5286.js" as="script"><link rel="preload" href="/docs/assets/js/4.a71c13f3.js" as="script"><link rel="preload" href="/docs/assets/js/3.341147d5.js" as="script"><link rel="preload" href="/docs/assets/js/2.25ad14de.js" as="script"><link rel="preload" href="/docs/assets/js/138.7df0ebcd.js" as="script"><link rel="preload" href="/docs/assets/js/37.9c7fd50b.js" as="script">
+  <link rel="stylesheet" href="/docs/assets/css/0.styles.efdf810f.css">
+</head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="//www.googletagmanager.com/ns.html?id=GTM-55L5D3"
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<div id="app" data-server-rendered="true"><div class="layout-container"><script type="application/ld+json">{
+    "@context": "https://schema.org/",
+    "@type": "WebPage",
+    "name": "Formula calculation - JavaScript Data Grid  Handsontable",
+    "headline": "Formula calculation - JavaScript Data Grid  Handsontable",
+    "description": "Perform calculations on cells values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.",
+    "url": "https://handsontable.com/docs/javascript-data-grid/formula-calculation/",
+    "mainEntityOfPage": {
+        "@type": "TechArticle",
+        "@id": "https://handsontable.com/docs/javascript-data-grid/formula-calculation/"
+    },
+    "keywords": [
+        "formulas",
+        "formula",
+        "excel",
+        "spreadsheet",
+        "worksheet",
+        "workbook",
+        "sheet",
+        "function",
+        "hyperformula"
+    ],
+    "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsonable-docs-cover.png"
+    },
+    "image": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsonable-docs-cover.png"
+    },
+    "author": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable Team",
+        "url": "https://handsontable.com",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "alternateName": "Handsontable",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "dateModified": "2024-08-20T18:58:44.881Z",
+    "lastReviewed": "2024-08-20T18:58:44.881Z",
+    "copyrightHolder": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://handsontable.com/docs/img/handsonable-docs-cover.png"
+        }
+    },
+    "copyrightYear": "2024"
+}</script> <div class="theme-container"><header class="navbar"><div class="navbar-wrapper"><a href="/docs/javascript-data-grid/" aria-label="Docs Homepage Link" class="home-link router-link-active"><i class="Logo"></i></a> <div class="top-bar"><div class="top-bar_left"><div class="framework-and-version"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/next/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/next/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav></div></div> <div id="algolia-search"></div> <div class="menu"><nav class="nav-links"><div class="nav-item"><a href="/docs/javascript-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/javascript-data-grid/api/" class="nav-link">
+  API Reference
+</a></div> <div class="nav-item changelog"><a href="/docs/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav> <nav class="nav-links"><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Support" class="dropdown-title"><span class="title">Support</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="https://forum.handsontable.com" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Developers Forum
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://github.com/handsontable/handsontable/discussions" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    GitHub Discussions
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://stackoverflow.com/tags/handsontable" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    StackOverflow
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://handsontable.com/contact?category=technical_support" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Contact support
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div></nav> <nav class="icons-nav"><span class="news"><i class="ico i-bell"></i></span> <a href="https://github.com/handsontable/handsontable" target="_blank" class="github-stars"><i class="ico i-github"></i> <!----></a> <button id="mobileSearch" aria-label="Search" class="menuButton"><i class="ico i-search"></i></button> <button aria-label="Menu button" class="menuButton"><i class="ico i-menu"></i> <i class="ico i-close"></i></button></nav></div></div></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <div class="sidebar-nav"><div class="mobile-nav"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/next/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/next/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav> <nav class="nav-links"><div class="nav-item"><a href="/docs/javascript-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/javascript-data-grid/api/" class="nav-link">
+  API Reference
+</a></div> <div class="nav-item changelog"><a href="/docs/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav></div> <ul class="sidebar-links"><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-3d811caf"></i> <span>Getting started</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/" aria-current="page" class="sidebar-link">Introduction</a></li><li><a href="/docs/javascript-data-grid/demo/" class="sidebar-link">Demo</a></li><li><a href="/docs/javascript-data-grid/installation/" class="sidebar-link">Installation</a></li><li><a href="/docs/javascript-data-grid/binding-to-data/" class="sidebar-link">Binding to data</a></li><li><a href="/docs/javascript-data-grid/saving-data/" class="sidebar-link">Saving data</a></li><li><a href="/docs/javascript-data-grid/configuration-options/" class="sidebar-link">Configuration options</a></li><li><a href="/docs/javascript-data-grid/grid-size/" class="sidebar-link">Grid size</a></li><li><a href="/docs/javascript-data-grid/events-and-hooks/" class="sidebar-link">Events and hooks</a></li><li><a href="/docs/javascript-data-grid/license-key/" class="sidebar-link">License key</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5e6bf2de"></i> <span>Columns</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/column-header/" class="sidebar-link">Column headers</a></li><li><a href="/docs/javascript-data-grid/column-groups/" class="sidebar-link">Column groups</a></li><li><a href="/docs/javascript-data-grid/column-hiding/" class="sidebar-link">Column hiding</a></li><li><a href="/docs/javascript-data-grid/column-moving/" class="sidebar-link">Column moving</a></li><li><a href="/docs/javascript-data-grid/column-freezing/" class="sidebar-link">Column freezing</a></li><li><a href="/docs/javascript-data-grid/column-width/" class="sidebar-link">Column widths</a></li><li><a href="/docs/javascript-data-grid/column-summary/" class="sidebar-link">Column summary</a></li><li><a href="/docs/javascript-data-grid/column-virtualization/" class="sidebar-link">Column virtualization</a></li><li><a href="/docs/javascript-data-grid/column-menu/" class="sidebar-link">Column menu</a></li><li><a href="/docs/javascript-data-grid/column-filter/" class="sidebar-link">Column filter</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5c42e7f6"></i> <span>Rows</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/row-header/" class="sidebar-link">Row headers</a></li><li><a href="/docs/javascript-data-grid/row-parent-child/" class="sidebar-link">Row parent-child</a></li><li><a href="/docs/javascript-data-grid/row-hiding/" class="sidebar-link">Row hiding</a></li><li><a href="/docs/javascript-data-grid/row-moving/" class="sidebar-link">Row moving</a></li><li><a href="/docs/javascript-data-grid/row-freezing/" class="sidebar-link">Row freezing</a></li><li><a href="/docs/javascript-data-grid/row-height/" class="sidebar-link">Row heights</a></li><li><a href="/docs/javascript-data-grid/row-virtualization/" class="sidebar-link">Row virtualization</a></li><li><a href="/docs/javascript-data-grid/rows-sorting/" class="sidebar-link">Rows sorting</a></li><li><a href="/docs/javascript-data-grid/row-trimming/" class="sidebar-link">Row trimming</a></li><li><a href="/docs/javascript-data-grid/row-prepopulating/" class="sidebar-link">Row pre-populating</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-04fc4d33"></i> <span>Cell features</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/basic-clipboard/" class="sidebar-link">Clipboard</a></li><li><a href="/docs/javascript-data-grid/selection/" class="sidebar-link">Selection</a></li><li><a href="/docs/javascript-data-grid/merge-cells/" class="sidebar-link">Merge cells</a></li><li><a href="/docs/javascript-data-grid/conditional-formatting/" class="sidebar-link">Conditional formatting</a></li><li><a href="/docs/javascript-data-grid/text-alignment/" class="sidebar-link">Text alignment</a></li><li><a href="/docs/javascript-data-grid/disabled-cells/" class="sidebar-link">Disabled cells</a></li><li><a href="/docs/javascript-data-grid/comments/" class="sidebar-link">Comments</a></li><li><a href="/docs/javascript-data-grid/autofill-values/" class="sidebar-link">Autofill values</a></li><li><a href="/docs/javascript-data-grid/formatting-cells/" class="sidebar-link">Formatting cells</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-f7a21ab6"></i> <span>Cell functions</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/cell-function/" class="sidebar-link">Cell functions</a></li><li><a href="/docs/javascript-data-grid/cell-renderer/" class="sidebar-link">Cell renderer</a></li><li><a href="/docs/javascript-data-grid/cell-editor/" class="sidebar-link">Cell editor</a></li><li><a href="/docs/javascript-data-grid/cell-validator/" class="sidebar-link">Cell validator</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-12d75036"></i> <span>Cell types</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/cell-type/" class="sidebar-link">Cell type</a></li><li><a href="/docs/javascript-data-grid/numeric-cell-type/" class="sidebar-link">Numeric cell type</a></li><li><a href="/docs/javascript-data-grid/date-cell-type/" class="sidebar-link">Date cell type</a></li><li><a href="/docs/javascript-data-grid/time-cell-type/" class="sidebar-link">Time cell type</a></li><li><a href="/docs/javascript-data-grid/checkbox-cell-type/" class="sidebar-link">Checkbox cell type</a></li><li><a href="/docs/javascript-data-grid/select-cell-type/" class="sidebar-link">Select cell type</a></li><li><a href="/docs/javascript-data-grid/dropdown-cell-type/" class="sidebar-link">Dropdown cell type</a></li><li><a href="/docs/javascript-data-grid/autocomplete-cell-type/" class="sidebar-link">Autocomplete cell type</a></li><li><a href="/docs/javascript-data-grid/password-cell-type/" class="sidebar-link">Password cell type</a></li><li><a href="/docs/javascript-data-grid/handsontable-cell-type/" class="sidebar-link">Handsontable cell type</a></li></ul></section></li><li><section class="sidebar-group collapsable open depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-811e5476"></i> <span>Formulas</span> <i class="ico i-arrow down"></i></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/docs/javascript-data-grid/formula-calculation/" aria-current="page" class="active sidebar-link">Formula calculation</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5a6efe65"></i> <span>Navigation</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/keyboard-shortcuts/" class="sidebar-link">Keyboard shortcuts</a></li><li><a href="/docs/javascript-data-grid/custom-shortcuts/" class="sidebar-link">Custom shortcuts</a></li><li><a href="/docs/javascript-data-grid/searching-values/" class="sidebar-link">Searching values</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-1110acc7"></i> <span>Accessibility</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/accessibility/" class="sidebar-link">Accessibility</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-18763746"></i> <span>Accessories and menus</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/context-menu/" class="sidebar-link">Context menu</a></li><li><a href="/docs/javascript-data-grid/undo-redo/" class="sidebar-link">Undo and redo</a></li><li><a href="/docs/javascript-data-grid/icon-pack/" class="sidebar-link">Icon pack</a></li><li><a href="/docs/javascript-data-grid/export-to-csv/" class="sidebar-link">Export to CSV</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-69214965"></i> <span>Internationalization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/language/" class="sidebar-link">Language</a></li><li><a href="/docs/javascript-data-grid/locale/" class="sidebar-link">Locale</a></li><li><a href="/docs/javascript-data-grid/layout-direction/" class="sidebar-link">Layout direction</a></li><li><a href="/docs/javascript-data-grid/ime-support/" class="sidebar-link">IME support</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-8a776f76"></i> <span>Integrate with Angular</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/angular-installation/" class="sidebar-link">Installation in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-basic-example/" class="sidebar-link">Basic example in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-modules/" class="sidebar-link">Modules in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-id/" class="sidebar-link">Custom ID in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-context-menu-example/" class="sidebar-link">Custom context menu in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-editor-example/" class="sidebar-link">Custom editor in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-renderer-example/" class="sidebar-link">Custom renderer in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-language-change-example/" class="sidebar-link">Language change in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-hot-reference/" class="sidebar-link">Referencing a Handsontable instance in Angular</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-ed097276"></i> <span>Integrate with Vue 2</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/vue-installation/" class="sidebar-link">Installation in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-basic-example/" class="sidebar-link">Basic example in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-modules/" class="sidebar-link">Modules in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-editor-example/" class="sidebar-link">Custom editor in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-language-change-example/" class="sidebar-link">Language change in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-vuex-example/" class="sidebar-link">Vuex example in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 2</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-0cb42003"></i> <span>Integrate with Vue 3</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/vue3-installation/" class="sidebar-link">Installation in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-basic-example/" class="sidebar-link">Basic example in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-modules/" class="sidebar-link">Modules in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-editor-example/" class="sidebar-link">Custom editor in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-language-change-example/" class="sidebar-link">Language change in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-vuex-example/" class="sidebar-link">Vuex in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 3</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-786864e5"></i> <span>Tools and building</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/packages/" class="sidebar-link">Packages</a></li><li><a href="/docs/javascript-data-grid/modules/" class="sidebar-link">Modules</a></li><li><a href="/docs/javascript-data-grid/custom-plugins/" class="sidebar-link">Custom plugins</a></li><li><a href="/docs/javascript-data-grid/custom-builds/" class="sidebar-link">Custom builds</a></li><li><a href="/docs/javascript-data-grid/testing/" class="sidebar-link">Testing</a></li><li><a href="/docs/javascript-data-grid/folder-structure/" class="sidebar-link">Folder structure</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-17c10e85"></i> <span>Optimization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/batch-operations/" class="sidebar-link">Batch operations</a></li><li><a href="/docs/javascript-data-grid/performance/" class="sidebar-link">Performance</a></li><li><a href="/docs/javascript-data-grid/bundle-size/" class="sidebar-link">Bundle size</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-6e40b0b6"></i> <span>Security</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/security/" class="sidebar-link">Security</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-23ef33b9"></i> <span>Technical specification</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/supported-browsers/" class="sidebar-link">Supported browsers</a></li><li><a href="/docs/javascript-data-grid/software-license/" class="sidebar-link">Software license</a></li><li><a href="/docs/javascript-data-grid/third-party-licenses/" class="sidebar-link">Third-party licenses</a></li><li><a href="/docs/javascript-data-grid/documentation-license/" class="sidebar-link">Documentation license</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-00e59586"></i> <span>Upgrade and migration</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/changelog/" class="sidebar-link">Changelog</a></li><li><a href="/docs/javascript-data-grid/versioning-policy/" class="sidebar-link">Versioning policy</a></li><li><a href="/docs/javascript-data-grid/migration-from-7.4-to-8.0/" class="sidebar-link">Migrate from 7.4 to 8.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-8.4-to-9.0/" class="sidebar-link">Migrating from 8.4 to 9.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-9.0-to-10.0/" class="sidebar-link">Migrating from 9.0 to 10.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-10.0-to-11.0/" class="sidebar-link">Migrating from 10.0 to 11.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-11.1-to-12.0/" class="sidebar-link">Migrating from 11.1 to 12.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-12.4-to-13.0/" class="sidebar-link">Migrating from 12.4 to 13.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-13.1-to-14.0/" class="sidebar-link">Migrating from 13.1 to 14.0</a></li></ul></section></li></ul></div> </aside> <main class="page"><div class="breadcrumbs"><a href="https://handsontable.com/docs/javascript-data-grid/"><i class="ico i-home"></i> <span> <span></span>JavaScript Data Grid</span></a> <a href="https://handsontable.com/docs/javascript-data-grid/formula-calculation"><span>Formula calculation</span></a></div> <div class="theme-default-content content__default"><h1 id="formula-calculation"><a href="#formula-calculation" class="header-link"><span class="header-framework">JavaScript Data Grid</span>Formula calculation</a></h1> <p>Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400
+functions, custom functions, named expressions, and more.</p> <p></p><div class="table-of-contents"><div class="toc-container-header"><i class="ico i-toc"></i>On this page</div><ul><li><a href="#overview">Overview</a></li><li><a href="#basic-multi-sheet-example">Basic multi-sheet example</a></li><li><a href="#data-grid-example">Data grid example</a></li><li><a href="#initialization-methods">Initialization methods</a><ul><li><a href="#pass-the-hyperformula-class-instance-to-handsontable">Pass the HyperFormula class/instance to Handsontable</a></li><li><a href="#single-handsontable-instance-with-an-external-hyperformula-instance">Single Handsontable instance with an external HyperFormula instance</a></li><li><a href="#multiple-independent-handsontable-instances">Multiple independent Handsontable instances</a></li><li><a href="#multiple-handsontable-instances-with-a-shared-hyperformula-instance">Multiple Handsontable instances with a shared HyperFormula instance</a></li><li><a href="#multiple-handsontable-instances-with-an-external-shared-hyperformula-instance">Multiple Handsontable instances with an external shared HyperFormula instance</a></li></ul></li><li><a href="#available-options-and-methods">Available options and methods</a></li><li><a href="#available-functions">Available functions</a></li><li><a href="#afterformulasvaluesupdate-hook">afterFormulasValuesUpdate hook</a></li><li><a href="#named-expressions">Named expressions</a></li><li><a href="#view-the-explainer-video">View the explainer video</a></li><li><a href="#known-limitations">Known limitations</a><ul><li><a href="#hyperformula-version-support">HyperFormula version support</a></li></ul></li><li><a href="#related-articles">Related articles</a><ul><li><a href="#hyperformula-documentation">HyperFormula documentation</a></li><li><a href="#related-blog-articles">Related blog articles</a></li><li><a href="#related-api-reference">Related API reference</a></li></ul></li></ul></div><p></p> <h2 id="overview"><a href="#overview" class="header-link">Overview</a></h2> <p>The <em>Formulas</em> plugin provides you an extensive calculation capabilities based on formulas using the
+spreadsheet notation. Under the hood, it uses an engine called
+<a href="https://hyperformula.handsontable.com/" target="_blank" rel="nofollow noopener noreferrer">HyperFormula<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a> created by the Handsontable team as an
+independent library to help developers build complex data management apps.</p> <p>This plugin comes with a library of 386 functions grouped into categories, such as Math and
+trigonometry, Engineering, Statistical, Financial, and Logical. Using these, you can create complex
+data entry rules in business apps and much more. Below are some ideas on what you can do with it:</p> <ul><li>Fully-featured spreadsheet apps</li> <li>Smart documents</li> <li>Educational apps</li> <li>Business logic builders</li> <li>Forms and form builders</li> <li>Online calculators</li> <li>Low connectivity apps</li></ul> <h2 id="basic-multi-sheet-example"><a href="#basic-multi-sheet-example" class="header-link">Basic multi-sheet example</a></h2> <p>You can use formulas in a single-sheet mode or with multiple Handsontable instances with
+cross-sheet references.</p> <p>Double click on a cell to open the editor and preview the formula.</p> <p></p> <div class="example-container"><style>h3.demo-preview {
+  margin-bottom: 0.3rem !important;
+  padding-top: 0 !important;
+  margin-top: 0.5rem !important;
+}</style> <div><div data-preset-type="hot" data-example-id="example1"><h3 class="demo-preview">Sheet 1</h3> <div id="example-basic-multi-sheet-1"></div> <h3 class="demo-preview">Sheet 2</h3> <div id="example-basic-multi-sheet-2"></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+    &quot;name&quot;: &quot;handsontable&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;description&quot;: &quot;&quot;,
+    &quot;dependencies&quot;: {
+      &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+      &quot;handsontable&quot;: &quot;latest&quot;
+    }
+  }</textarea> <textarea class="hidden" name="project[files][index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+  &lt;html&gt;
+    &lt;head&gt;
+      &lt;meta charset=&quot;utf-8&quot; /&gt;
+      &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+      &lt;title&gt;Handsontable&lt;/title&gt;
+    &lt;/head&gt;
+  
+    &lt;body&gt;
+      &lt;h3 class=&quot;demo-preview&quot;&gt;Sheet 1&lt;/h3&gt;
+&lt;div id=&quot;example-basic-multi-sheet-1&quot;&gt;&lt;/div&gt;
+&lt;h3 class=&quot;demo-preview&quot;&gt;Sheet 2&lt;/h3&gt;
+&lt;div id=&quot;example-basic-multi-sheet-2&quot;&gt;&lt;/div&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;</textarea> <textarea class="hidden" name="project[files][styles.css]" readOnly="">h3.demo-preview {
+  margin-bottom: 0.3rem !important;
+  padding-top: 0 !important;
+  margin-top: 0.5rem !important;
+}</textarea> <textarea class="hidden" name="project[files][index.js]" readOnly="">import './styles.css'
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+import { HyperFormula } from 'hyperformula';
+
+const data1 = [
+  ['10.26', null, 'Sum', '=SUM(A:A)'],
+  ['20.12', null, 'Average', '=AVERAGE(A:A)'],
+  ['30.01', null, 'Median', '=MEDIAN(A:A)'],
+  ['40.29', null, 'MAX', '=MAX(A:A)'],
+  ['50.18', null, 'MIN', '=MIN(A1:A5)'],
+];
+
+const data2 = [
+  ['Is A1 in Sheet1 &gt; 10?', '=IF(Sheet1!A1&gt;10,&quot;TRUE&quot;,&quot;FALSE&quot;)'],
+  ['Is A:A in Sheet &gt; 150?', '=IF(SUM(Sheet1!A:A)&gt;150,&quot;TRUE&quot;,&quot;FALSE&quot;)'],
+  ['How many blank cells are in the Sheet1?', '=COUNTBLANK(Sheet1!A1:D5)'],
+  ['Generate a random number', '=RAND()'],
+  ['Number of sheets in this workbook', '=SHEETS()'],
+];
+
+// create an external HyperFormula instance
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+
+const container1 = document.querySelector('#example-basic-multi-sheet-1');
+
+new Handsontable(container1, {
+  data: data1,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet1',
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const container2 = document.querySelector('#example-basic-multi-sheet-2');
+
+new Handsontable(container2, {
+  data: data2,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet2',
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="javascript"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+import { HyperFormula } from 'hyperformula';
+
+const data1 = [
+  ['10.26', null, 'Sum', '=SUM(A:A)'],
+  ['20.12', null, 'Average', '=AVERAGE(A:A)'],
+  ['30.01', null, 'Median', '=MEDIAN(A:A)'],
+  ['40.29', null, 'MAX', '=MAX(A:A)'],
+  ['50.18', null, 'MIN', '=MIN(A1:A5)'],
+];
+
+const data2 = [
+  ['Is A1 in Sheet1 &gt; 10?', '=IF(Sheet1!A1&gt;10,&quot;TRUE&quot;,&quot;FALSE&quot;)'],
+  ['Is A:A in Sheet &gt; 150?', '=IF(SUM(Sheet1!A:A)&gt;150,&quot;TRUE&quot;,&quot;FALSE&quot;)'],
+  ['How many blank cells are in the Sheet1?', '=COUNTBLANK(Sheet1!A1:D5)'],
+  ['Generate a random number', '=RAND()'],
+  ['Number of sheets in this workbook', '=SHEETS()'],
+];
+
+// create an external HyperFormula instance
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+
+const container1 = document.querySelector('#example-basic-multi-sheet-1');
+
+new Handsontable(container1, {
+  data: data1,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet1',
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const container2 = document.querySelector('#example-basic-multi-sheet-2');
+
+new Handsontable(container2, {
+  data: data2,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet2',
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css&quot; /&gt; 
+&lt;script src=&quot;https://handsontable.com/docs/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;h3 class=&quot;demo-preview&quot;&gt;Sheet 1&lt;/h3&gt;
+&lt;div id=&quot;example-basic-multi-sheet-1&quot;&gt;&lt;/div&gt;
+&lt;h3 class=&quot;demo-preview&quot;&gt;Sheet 2&lt;/h3&gt;
+&lt;div id=&quot;example-basic-multi-sheet-2&quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly="">h3.demo-preview {
+  margin-bottom: 0.3rem !important;
+  padding-top: 0 !important;
+  margin-top: 0.5rem !important;
+}</textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button> <select value="ts" hidden="hidden" class="selected-lang"><option value="ts">ts</option> <option value="js">js</option></select></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example1" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> Handsontable <span class="token keyword">from</span> <span class="token string">'handsontable'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/dist/handsontable.full.min.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> HyperFormula <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'hyperformula'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> data1 <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">[</span><span class="token string">'10.26'</span><span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">,</span> <span class="token string">'Sum'</span><span class="token punctuation">,</span> <span class="token string">'=SUM(A:A)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'20.12'</span><span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">,</span> <span class="token string">'Average'</span><span class="token punctuation">,</span> <span class="token string">'=AVERAGE(A:A)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'30.01'</span><span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">,</span> <span class="token string">'Median'</span><span class="token punctuation">,</span> <span class="token string">'=MEDIAN(A:A)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'40.29'</span><span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">,</span> <span class="token string">'MAX'</span><span class="token punctuation">,</span> <span class="token string">'=MAX(A:A)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'50.18'</span><span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">,</span> <span class="token string">'MIN'</span><span class="token punctuation">,</span> <span class="token string">'=MIN(A1:A5)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> data2 <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">[</span><span class="token string">'Is A1 in Sheet1 &gt; 10?'</span><span class="token punctuation">,</span> <span class="token string">'=IF(Sheet1!A1&gt;10,&quot;TRUE&quot;,&quot;FALSE&quot;)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Is A:A in Sheet &gt; 150?'</span><span class="token punctuation">,</span> <span class="token string">'=IF(SUM(Sheet1!A:A)&gt;150,&quot;TRUE&quot;,&quot;FALSE&quot;)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'How many blank cells are in the Sheet1?'</span><span class="token punctuation">,</span> <span class="token string">'=COUNTBLANK(Sheet1!A1:D5)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Generate a random number'</span><span class="token punctuation">,</span> <span class="token string">'=RAND()'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Number of sheets in this workbook'</span><span class="token punctuation">,</span> <span class="token string">'=SHEETS()'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">// create an external HyperFormula instance</span>
+<span class="token keyword">const</span> hyperformulaInstance <span class="token operator">=</span> HyperFormula<span class="token punctuation">.</span><span class="token function">buildEmpty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token comment">// to use an external HyperFormula instance,</span>
+  <span class="token comment">// initialize it with the `'internal-use-in-handsontable'` license key</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'internal-use-in-handsontable'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> container1 <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#example-basic-multi-sheet-1'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>container1<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">data</span><span class="token operator">:</span> data1<span class="token punctuation">,</span>
+  <span class="token literal-property property">colHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">rowHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'auto'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> hyperformulaInstance<span class="token punctuation">,</span>
+    <span class="token literal-property property">sheetName</span><span class="token operator">:</span> <span class="token string">'Sheet1'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapRow</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapCol</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'non-commercial-and-evaluation'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> container2 <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#example-basic-multi-sheet-2'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>container2<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">data</span><span class="token operator">:</span> data2<span class="token punctuation">,</span>
+  <span class="token literal-property property">colHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">rowHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'auto'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> hyperformulaInstance<span class="token punctuation">,</span>
+    <span class="token literal-property property">sheetName</span><span class="token operator">:</span> <span class="token string">'Sheet2'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapRow</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapCol</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'non-commercial-and-evaluation'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section><section aria-hidden="true" id="html-tab-example1" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h3</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>demo-preview<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>Sheet 1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h3</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example-basic-multi-sheet-1<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h3</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>demo-preview<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>Sheet 2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h3</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example-basic-multi-sheet-2<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="html" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></section><section aria-hidden="true" id="css-tab-example1" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="language-css extra-class"><pre class="language-css"><code><span class="token selector">h3.demo-preview</span> <span class="token punctuation">{</span>
+  <span class="token property">margin-bottom</span><span class="token punctuation">:</span> 0.3rem <span class="token important">!important</span><span class="token punctuation">;</span>
+  <span class="token property">padding-top</span><span class="token punctuation">:</span> 0 <span class="token important">!important</span><span class="token punctuation">;</span>
+  <span class="token property">margin-top</span><span class="token punctuation">:</span> 0.5rem <span class="token important">!important</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="css" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></section></div></div></div></div><p></p> <p></p> <h2 id="data-grid-example"><a href="#data-grid-example" class="header-link">Data grid example</a></h2> <p>This example is more typical of data grids than spreadsheets. Calculations are present in two places
+– in column “Total due (fx)”, and in the summary row at the bottom.</p> <p></p> <div class="example-container"><style></style> <div><div data-preset-type="hot" data-example-id="example-data-grid"><div id="example-data-grid" class="hot "></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+    &quot;name&quot;: &quot;handsontable&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;description&quot;: &quot;&quot;,
+    &quot;dependencies&quot;: {
+      &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+      &quot;handsontable&quot;: &quot;latest&quot;
+    }
+  }</textarea> <textarea class="hidden" name="project[files][index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+  &lt;html&gt;
+    &lt;head&gt;
+      &lt;meta charset=&quot;utf-8&quot; /&gt;
+      &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+      &lt;title&gt;Handsontable&lt;/title&gt;
+    &lt;/head&gt;
+  
+    &lt;body&gt;
+      &lt;div id=&quot;example-data-grid&quot; class=&quot;hot &quot;&gt;&lt;/div&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;</textarea> <textarea class="hidden" name="project[files][styles.css]" readOnly=""></textarea> <textarea class="hidden" name="project[files][index.js]" readOnly="">import './styles.css'
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+import { HyperFormula } from 'hyperformula';
+
+const data = [
+  ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
+  ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
+  ['188', '371', '0.59', '11', '=A3*(B3*C3)+D3'],
+  ['162', '731', '0.21', '10', '=A4*(B4*C4)+D4'],
+  ['133', '682', '0.81', '9', '=A5*(B5*C5)+D5'],
+  ['87', '553', '0.66', '10', '=A6*(B6*C6)+D6'],
+  ['26', '592', '0.62', '11', '=A7*(B7*C7)+D7'],
+  ['110', '461', '0.73', '9', '=A8*(B8*C8)+D8'],
+  ['50', '346', '0.52', '15', '=A9*(B9*C9)+D9'],
+  ['160', '423', '0.82', '11', '=A10*(B10*C10)+D10'],
+  ['30', '216', '0.26', '9', '=A11*(B11*C11)+D11'],
+  ['39', '473', '0.44', '5', '=A12*(B12*C12)+D12'],
+  ['96', '490', '0.43', '5', '=A13*(B13*C13)+D13'],
+  ['108', '176', '0.71', '7', '=A14*(B14*C14)+D14'],
+  ['46', '586', '0.01', '14', '=A15*(B15*C15)+D15'],
+  ['97', '514', '0.7', '14', '=A16*(B16*C16)+D16'],
+  ['161', '717', '0.01', '13', '=A17*(B17*C17)+D17'],
+  ['58', '123', '0.4', '8', '=A18*(B18*C18)+D18'],
+  ['92', '739', '0.76', '14', '=A19*(B19*C19)+D19'],
+  ['5', '320', '0.52', '13', '=A20*(B20*C20)+D20'],
+  ['158', '480', '0.65', '5', '=A21*(B21*C21)+D21'],
+  ['121', '373', '0.66', '8', '=A22*(B22*C22)+D22'],
+  ['61', '704', '0.95', '7', '=A23*(B23*C23)+D23'],
+  ['155', '452', '0.71', '10', '=A24*(B24*C24)+D24'],
+  ['162', '693', '0.73', '11', '=A25*(B25*C25)+D25'],
+  ['46', '75', '0.14', '15', '=A26*(B26*C26)+D26'],
+  ['47', '691', '0.58', '15', '=A27*(B27*C27)+D27'],
+  ['104', '346', '0.04', '7', '=A28*(B28*C28)+D28'],
+  ['101', '717', '0.87', '5', '=A29*(B29*C29)+D29'],
+  ['150', '487', '0.26', '15', '=A30*(B30*C30)+D30'],
+  ['42', '465', '0.09', '14', '=A31*(B31*C31)+D31'],
+  ['144', '337', '0.72', '7', '=A32*(B32*C32)+D32'],
+  ['195', '138', '0.3', '6', '=A33*(B33*C33)+D33'],
+  ['199', '717', '0.16', '6', '=A34*(B34*C34)+D34'],
+  ['110', '236', '0.91', '9', '=A35*(B35*C35)+D35'],
+  ['51', '351', '0.81', '13', '=A36*(B36*C36)+D36'],
+  ['69', '221', '0.64', '9', '=A37*(B37*C37)+D37'],
+  ['53', '125', '0.28', '12', '=A38*(B38*C38)+D38'],
+  ['168', '428', '0.68', '9', '=A39*(B39*C39)+D39'],
+  ['58', '361', '0.36', '5', '=A40*(B40*C40)+D40'],
+  ['152', '213', '0.13', '13', '=A41*(B41*C41)+D41'],
+  ['66', '431', '0.93', '10', '=A42*(B42*C42)+D42'],
+  ['112', '108', '0.5', '14', '=A43*(B43*C43)+D43'],
+  ['50', '127', '0.7', '7', '=A44*(B44*C44)+D44'],
+  ['31', '200', '0.15', '14', '=A45*(B45*C45)+D45'],
+  ['132', '654', '0.81', '8', '=A46*(B46*C46)+D46'],
+  ['45', '438', '0.79', '6', '=A47*(B47*C47)+D47'],
+  ['197', '615', '0.63', '7', '=A48*(B48*C48)+D48'],
+  ['190', '592', '0.37', '8', '=A49*(B49*C49)+D49'],
+  ['184', '419', '0.78', '8', '=A50*(B50*C50)+D50'],
+  ['169', '58', '0.13', '7', '=A51*(B51*C51)+D51'],
+  ['152', '324', '0.58', '5', '=A52*(B52*C52)+D52'],
+  ['182', '713', '0.53', '5', '=A53*(B53*C53)+D53'],
+  ['141', '576', '0.63', '12', '=A54*(B54*C54)+D54'],
+  ['169', '429', '0.14', '13', '=A55*(B55*C55)+D55'],
+  ['39', '694', '0.98', '13', '=A56*(B56*C56)+D56'],
+  ['71', '361', '0.3', '13', '=A57*(B57*C57)+D57'],
+  ['148', '540', '0.89', '6', '=A58*(B58*C58)+D58'],
+  ['116', '52', '0.3', '7', '=A59*(B59*C59)+D59'],
+  ['96', '395', '0.28', '7', '=A60*(B60*C60)+D60'],
+  ['35', '222', '0.86', '13', '=A61*(B61*C61)+D61'],
+  ['16', '430', '0.8', '8', '=A62*(B62*C62)+D62'],
+  ['194', '357', '0.72', '9', '=A63*(B63*C63)+D63'],
+  ['24', '498', '0.7', '7', '=A64*(B64*C64)+D64'],
+  ['170', '142', '0.52', '5', '=A65*(B65*C65)+D65'],
+  ['184', '614', '0.68', '9', '=A66*(B66*C66)+D66'],
+  ['153', '524', '0.15', '9', '=A67*(B67*C67)+D67'],
+  ['88', '620', '0.39', '15', '=A68*(B68*C68)+D68'],
+  ['57', '452', '0.11', '6', '=A69*(B69*C69)+D69'],
+  ['62', '493', '0.03', '11', '=A70*(B70*C70)+D70'],
+  ['123', '431', '0.75', '15', '=A71*(B71*C71)+D71'],
+  ['77', '113', '0.63', '12', '=A72*(B72*C72)+D72'],
+  ['199', '208', '0.07', '6', '=A73*(B73*C73)+D73'],
+  ['149', '514', '0.42', '12', '=A74*(B74*C74)+D74'],
+  ['191', '334', '0.78', '13', '=A75*(B75*C75)+D75'],
+  ['150', '643', '0.32', '11', '=A76*(B76*C76)+D76'],
+  ['130', '721', '0.62', '5', '=A77*(B77*C77)+D77'],
+  ['179', '517', '0.1', '8', '=A78*(B78*C78)+D78'],
+  ['98', '31', '0.01', '10', '=A79*(B79*C79)+D79'],
+  ['175', '509', '0.7', '11', '=A80*(B80*C80)+D80'],
+  ['11', '569', '0.37', '7', '=A81*(B81*C81)+D81'],
+  ['184', '630', '0.19', '6', '=A82*(B82*C82)+D82'],
+  ['27', '165', '0.51', '13', '=A83*(B83*C83)+D83'],
+  ['186', '417', '0.85', '15', '=A84*(B84*C84)+D84'],
+  ['20', '741', '0.76', '11', '=A85*(B85*C85)+D85'],
+  ['153', '640', '0.28', '6', '=A86*(B86*C86)+D86'],
+  ['161', '542', '0.43', '14', '=A87*(B87*C87)+D87'],
+  ['98', '344', '0.77', '6', '=A88*(B88*C88)+D88'],
+  ['30', '400', '0.71', '13', '=A89*(B89*C89)+D89'],
+  ['73', '91', '0.78', '8', '=A90*(B90*C90)+D90'],
+  ['158', '72', '0.66', '12', '=A91*(B91*C91)+D91'],
+  ['122', '35', '0.32', '15', '=A92*(B92*C92)+D92'],
+  ['33', '99', '0.92', '9', '=A93*(B93*C93)+D93'],
+  ['107', '538', '0.75', '10', '=A94*(B94*C94)+D94'],
+  ['15', '563', '0.32', '6', '=A95*(B95*C95)+D95'],
+  ['168', '572', '0.71', '6', '=A96*(B96*C96)+D96'],
+  ['135', '217', '0.49', '12', '=A97*(B97*C97)+D97'],
+  ['11', '595', '0.03', '13', '=A98*(B98*C98)+D98'],
+  ['41', '739', '0.88', '11', '=A99*(B99*C99)+D99'],
+  ['144', '289', '0.87', '13', '=A100*(B100*C100)+D100'],
+  ['Sum', 'Average', 'Average', 'Sum', 'Sum'],
+  [
+    '=SUM(A1:A100)',
+    '=AVERAGE(B1:B100)',
+    '=AVERAGE(C1:C100)',
+    '=SUM(D1:D100)',
+    '=SUM(E1:E100)',
+  ],
+];
+
+const container = document.querySelector('#example-data-grid');
+
+new Handsontable(container, {
+  data,
+  formulas: {
+    engine: HyperFormula,
+  },
+  colHeaders: ['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)'],
+  fixedRowsBottom: 2,
+  stretchH: 'all',
+  height: 500,
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="javascript"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+import { HyperFormula } from 'hyperformula';
+
+const data = [
+  ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
+  ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
+  ['188', '371', '0.59', '11', '=A3*(B3*C3)+D3'],
+  ['162', '731', '0.21', '10', '=A4*(B4*C4)+D4'],
+  ['133', '682', '0.81', '9', '=A5*(B5*C5)+D5'],
+  ['87', '553', '0.66', '10', '=A6*(B6*C6)+D6'],
+  ['26', '592', '0.62', '11', '=A7*(B7*C7)+D7'],
+  ['110', '461', '0.73', '9', '=A8*(B8*C8)+D8'],
+  ['50', '346', '0.52', '15', '=A9*(B9*C9)+D9'],
+  ['160', '423', '0.82', '11', '=A10*(B10*C10)+D10'],
+  ['30', '216', '0.26', '9', '=A11*(B11*C11)+D11'],
+  ['39', '473', '0.44', '5', '=A12*(B12*C12)+D12'],
+  ['96', '490', '0.43', '5', '=A13*(B13*C13)+D13'],
+  ['108', '176', '0.71', '7', '=A14*(B14*C14)+D14'],
+  ['46', '586', '0.01', '14', '=A15*(B15*C15)+D15'],
+  ['97', '514', '0.7', '14', '=A16*(B16*C16)+D16'],
+  ['161', '717', '0.01', '13', '=A17*(B17*C17)+D17'],
+  ['58', '123', '0.4', '8', '=A18*(B18*C18)+D18'],
+  ['92', '739', '0.76', '14', '=A19*(B19*C19)+D19'],
+  ['5', '320', '0.52', '13', '=A20*(B20*C20)+D20'],
+  ['158', '480', '0.65', '5', '=A21*(B21*C21)+D21'],
+  ['121', '373', '0.66', '8', '=A22*(B22*C22)+D22'],
+  ['61', '704', '0.95', '7', '=A23*(B23*C23)+D23'],
+  ['155', '452', '0.71', '10', '=A24*(B24*C24)+D24'],
+  ['162', '693', '0.73', '11', '=A25*(B25*C25)+D25'],
+  ['46', '75', '0.14', '15', '=A26*(B26*C26)+D26'],
+  ['47', '691', '0.58', '15', '=A27*(B27*C27)+D27'],
+  ['104', '346', '0.04', '7', '=A28*(B28*C28)+D28'],
+  ['101', '717', '0.87', '5', '=A29*(B29*C29)+D29'],
+  ['150', '487', '0.26', '15', '=A30*(B30*C30)+D30'],
+  ['42', '465', '0.09', '14', '=A31*(B31*C31)+D31'],
+  ['144', '337', '0.72', '7', '=A32*(B32*C32)+D32'],
+  ['195', '138', '0.3', '6', '=A33*(B33*C33)+D33'],
+  ['199', '717', '0.16', '6', '=A34*(B34*C34)+D34'],
+  ['110', '236', '0.91', '9', '=A35*(B35*C35)+D35'],
+  ['51', '351', '0.81', '13', '=A36*(B36*C36)+D36'],
+  ['69', '221', '0.64', '9', '=A37*(B37*C37)+D37'],
+  ['53', '125', '0.28', '12', '=A38*(B38*C38)+D38'],
+  ['168', '428', '0.68', '9', '=A39*(B39*C39)+D39'],
+  ['58', '361', '0.36', '5', '=A40*(B40*C40)+D40'],
+  ['152', '213', '0.13', '13', '=A41*(B41*C41)+D41'],
+  ['66', '431', '0.93', '10', '=A42*(B42*C42)+D42'],
+  ['112', '108', '0.5', '14', '=A43*(B43*C43)+D43'],
+  ['50', '127', '0.7', '7', '=A44*(B44*C44)+D44'],
+  ['31', '200', '0.15', '14', '=A45*(B45*C45)+D45'],
+  ['132', '654', '0.81', '8', '=A46*(B46*C46)+D46'],
+  ['45', '438', '0.79', '6', '=A47*(B47*C47)+D47'],
+  ['197', '615', '0.63', '7', '=A48*(B48*C48)+D48'],
+  ['190', '592', '0.37', '8', '=A49*(B49*C49)+D49'],
+  ['184', '419', '0.78', '8', '=A50*(B50*C50)+D50'],
+  ['169', '58', '0.13', '7', '=A51*(B51*C51)+D51'],
+  ['152', '324', '0.58', '5', '=A52*(B52*C52)+D52'],
+  ['182', '713', '0.53', '5', '=A53*(B53*C53)+D53'],
+  ['141', '576', '0.63', '12', '=A54*(B54*C54)+D54'],
+  ['169', '429', '0.14', '13', '=A55*(B55*C55)+D55'],
+  ['39', '694', '0.98', '13', '=A56*(B56*C56)+D56'],
+  ['71', '361', '0.3', '13', '=A57*(B57*C57)+D57'],
+  ['148', '540', '0.89', '6', '=A58*(B58*C58)+D58'],
+  ['116', '52', '0.3', '7', '=A59*(B59*C59)+D59'],
+  ['96', '395', '0.28', '7', '=A60*(B60*C60)+D60'],
+  ['35', '222', '0.86', '13', '=A61*(B61*C61)+D61'],
+  ['16', '430', '0.8', '8', '=A62*(B62*C62)+D62'],
+  ['194', '357', '0.72', '9', '=A63*(B63*C63)+D63'],
+  ['24', '498', '0.7', '7', '=A64*(B64*C64)+D64'],
+  ['170', '142', '0.52', '5', '=A65*(B65*C65)+D65'],
+  ['184', '614', '0.68', '9', '=A66*(B66*C66)+D66'],
+  ['153', '524', '0.15', '9', '=A67*(B67*C67)+D67'],
+  ['88', '620', '0.39', '15', '=A68*(B68*C68)+D68'],
+  ['57', '452', '0.11', '6', '=A69*(B69*C69)+D69'],
+  ['62', '493', '0.03', '11', '=A70*(B70*C70)+D70'],
+  ['123', '431', '0.75', '15', '=A71*(B71*C71)+D71'],
+  ['77', '113', '0.63', '12', '=A72*(B72*C72)+D72'],
+  ['199', '208', '0.07', '6', '=A73*(B73*C73)+D73'],
+  ['149', '514', '0.42', '12', '=A74*(B74*C74)+D74'],
+  ['191', '334', '0.78', '13', '=A75*(B75*C75)+D75'],
+  ['150', '643', '0.32', '11', '=A76*(B76*C76)+D76'],
+  ['130', '721', '0.62', '5', '=A77*(B77*C77)+D77'],
+  ['179', '517', '0.1', '8', '=A78*(B78*C78)+D78'],
+  ['98', '31', '0.01', '10', '=A79*(B79*C79)+D79'],
+  ['175', '509', '0.7', '11', '=A80*(B80*C80)+D80'],
+  ['11', '569', '0.37', '7', '=A81*(B81*C81)+D81'],
+  ['184', '630', '0.19', '6', '=A82*(B82*C82)+D82'],
+  ['27', '165', '0.51', '13', '=A83*(B83*C83)+D83'],
+  ['186', '417', '0.85', '15', '=A84*(B84*C84)+D84'],
+  ['20', '741', '0.76', '11', '=A85*(B85*C85)+D85'],
+  ['153', '640', '0.28', '6', '=A86*(B86*C86)+D86'],
+  ['161', '542', '0.43', '14', '=A87*(B87*C87)+D87'],
+  ['98', '344', '0.77', '6', '=A88*(B88*C88)+D88'],
+  ['30', '400', '0.71', '13', '=A89*(B89*C89)+D89'],
+  ['73', '91', '0.78', '8', '=A90*(B90*C90)+D90'],
+  ['158', '72', '0.66', '12', '=A91*(B91*C91)+D91'],
+  ['122', '35', '0.32', '15', '=A92*(B92*C92)+D92'],
+  ['33', '99', '0.92', '9', '=A93*(B93*C93)+D93'],
+  ['107', '538', '0.75', '10', '=A94*(B94*C94)+D94'],
+  ['15', '563', '0.32', '6', '=A95*(B95*C95)+D95'],
+  ['168', '572', '0.71', '6', '=A96*(B96*C96)+D96'],
+  ['135', '217', '0.49', '12', '=A97*(B97*C97)+D97'],
+  ['11', '595', '0.03', '13', '=A98*(B98*C98)+D98'],
+  ['41', '739', '0.88', '11', '=A99*(B99*C99)+D99'],
+  ['144', '289', '0.87', '13', '=A100*(B100*C100)+D100'],
+  ['Sum', 'Average', 'Average', 'Sum', 'Sum'],
+  [
+    '=SUM(A1:A100)',
+    '=AVERAGE(B1:B100)',
+    '=AVERAGE(C1:C100)',
+    '=SUM(D1:D100)',
+    '=SUM(E1:E100)',
+  ],
+];
+
+const container = document.querySelector('#example-data-grid');
+
+new Handsontable(container, {
+  data,
+  formulas: {
+    engine: HyperFormula,
+  },
+  colHeaders: ['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)'],
+  fixedRowsBottom: 2,
+  stretchH: 'all',
+  height: 500,
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css&quot; /&gt; 
+&lt;script src=&quot;https://handsontable.com/docs/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div id=&quot;example-data-grid&quot; class=&quot;hot &quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly=""></textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button> <select value="ts" hidden="hidden" class="selected-lang"><option value="ts">ts</option> <option value="js">js</option></select></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example-data-grid" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> Handsontable <span class="token keyword">from</span> <span class="token string">'handsontable'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/dist/handsontable.full.min.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> HyperFormula <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'hyperformula'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">[</span><span class="token string">'150'</span><span class="token punctuation">,</span> <span class="token string">'643'</span><span class="token punctuation">,</span> <span class="token string">'0.32'</span><span class="token punctuation">,</span> <span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'=A1*(B1*C1)+D1'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'172'</span><span class="token punctuation">,</span> <span class="token string">'474'</span><span class="token punctuation">,</span> <span class="token string">'0.51'</span><span class="token punctuation">,</span> <span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'=A2*(B2*C2)+D2'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'188'</span><span class="token punctuation">,</span> <span class="token string">'371'</span><span class="token punctuation">,</span> <span class="token string">'0.59'</span><span class="token punctuation">,</span> <span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'=A3*(B3*C3)+D3'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'162'</span><span class="token punctuation">,</span> <span class="token string">'731'</span><span class="token punctuation">,</span> <span class="token string">'0.21'</span><span class="token punctuation">,</span> <span class="token string">'10'</span><span class="token punctuation">,</span> <span class="token string">'=A4*(B4*C4)+D4'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'133'</span><span class="token punctuation">,</span> <span class="token string">'682'</span><span class="token punctuation">,</span> <span class="token string">'0.81'</span><span class="token punctuation">,</span> <span class="token string">'9'</span><span class="token punctuation">,</span> <span class="token string">'=A5*(B5*C5)+D5'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'87'</span><span class="token punctuation">,</span> <span class="token string">'553'</span><span class="token punctuation">,</span> <span class="token string">'0.66'</span><span class="token punctuation">,</span> <span class="token string">'10'</span><span class="token punctuation">,</span> <span class="token string">'=A6*(B6*C6)+D6'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'26'</span><span class="token punctuation">,</span> <span class="token string">'592'</span><span class="token punctuation">,</span> <span class="token string">'0.62'</span><span class="token punctuation">,</span> <span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'=A7*(B7*C7)+D7'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'110'</span><span class="token punctuation">,</span> <span class="token string">'461'</span><span class="token punctuation">,</span> <span class="token string">'0.73'</span><span class="token punctuation">,</span> <span class="token string">'9'</span><span class="token punctuation">,</span> <span class="token string">'=A8*(B8*C8)+D8'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'50'</span><span class="token punctuation">,</span> <span class="token string">'346'</span><span class="token punctuation">,</span> <span class="token string">'0.52'</span><span class="token punctuation">,</span> <span class="token string">'15'</span><span class="token punctuation">,</span> <span class="token string">'=A9*(B9*C9)+D9'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'160'</span><span class="token punctuation">,</span> <span class="token string">'423'</span><span class="token punctuation">,</span> <span class="token string">'0.82'</span><span class="token punctuation">,</span> <span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'=A10*(B10*C10)+D10'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'30'</span><span class="token punctuation">,</span> <span class="token string">'216'</span><span class="token punctuation">,</span> <span class="token string">'0.26'</span><span class="token punctuation">,</span> <span class="token string">'9'</span><span class="token punctuation">,</span> <span class="token string">'=A11*(B11*C11)+D11'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'39'</span><span class="token punctuation">,</span> <span class="token string">'473'</span><span class="token punctuation">,</span> <span class="token string">'0.44'</span><span class="token punctuation">,</span> <span class="token string">'5'</span><span class="token punctuation">,</span> <span class="token string">'=A12*(B12*C12)+D12'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'96'</span><span class="token punctuation">,</span> <span class="token string">'490'</span><span class="token punctuation">,</span> <span class="token string">'0.43'</span><span class="token punctuation">,</span> <span class="token string">'5'</span><span class="token punctuation">,</span> <span class="token string">'=A13*(B13*C13)+D13'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'108'</span><span class="token punctuation">,</span> <span class="token string">'176'</span><span class="token punctuation">,</span> <span class="token string">'0.71'</span><span class="token punctuation">,</span> <span class="token string">'7'</span><span class="token punctuation">,</span> <span class="token string">'=A14*(B14*C14)+D14'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'46'</span><span class="token punctuation">,</span> <span class="token string">'586'</span><span class="token punctuation">,</span> <span class="token string">'0.01'</span><span class="token punctuation">,</span> <span class="token string">'14'</span><span class="token punctuation">,</span> <span class="token string">'=A15*(B15*C15)+D15'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'97'</span><span class="token punctuation">,</span> <span class="token string">'514'</span><span class="token punctuation">,</span> <span class="token string">'0.7'</span><span class="token punctuation">,</span> <span class="token string">'14'</span><span class="token punctuation">,</span> <span class="token string">'=A16*(B16*C16)+D16'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'161'</span><span class="token punctuation">,</span> <span class="token string">'717'</span><span class="token punctuation">,</span> <span class="token string">'0.01'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A17*(B17*C17)+D17'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'58'</span><span class="token punctuation">,</span> <span class="token string">'123'</span><span class="token punctuation">,</span> <span class="token string">'0.4'</span><span class="token punctuation">,</span> <span class="token string">'8'</span><span class="token punctuation">,</span> <span class="token string">'=A18*(B18*C18)+D18'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'92'</span><span class="token punctuation">,</span> <span class="token string">'739'</span><span class="token punctuation">,</span> <span class="token string">'0.76'</span><span class="token punctuation">,</span> <span class="token string">'14'</span><span class="token punctuation">,</span> <span class="token string">'=A19*(B19*C19)+D19'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'5'</span><span class="token punctuation">,</span> <span class="token string">'320'</span><span class="token punctuation">,</span> <span class="token string">'0.52'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A20*(B20*C20)+D20'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'158'</span><span class="token punctuation">,</span> <span class="token string">'480'</span><span class="token punctuation">,</span> <span class="token string">'0.65'</span><span class="token punctuation">,</span> <span class="token string">'5'</span><span class="token punctuation">,</span> <span class="token string">'=A21*(B21*C21)+D21'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'121'</span><span class="token punctuation">,</span> <span class="token string">'373'</span><span class="token punctuation">,</span> <span class="token string">'0.66'</span><span class="token punctuation">,</span> <span class="token string">'8'</span><span class="token punctuation">,</span> <span class="token string">'=A22*(B22*C22)+D22'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'61'</span><span class="token punctuation">,</span> <span class="token string">'704'</span><span class="token punctuation">,</span> <span class="token string">'0.95'</span><span class="token punctuation">,</span> <span class="token string">'7'</span><span class="token punctuation">,</span> <span class="token string">'=A23*(B23*C23)+D23'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'155'</span><span class="token punctuation">,</span> <span class="token string">'452'</span><span class="token punctuation">,</span> <span class="token string">'0.71'</span><span class="token punctuation">,</span> <span class="token string">'10'</span><span class="token punctuation">,</span> <span class="token string">'=A24*(B24*C24)+D24'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'162'</span><span class="token punctuation">,</span> <span class="token string">'693'</span><span class="token punctuation">,</span> <span class="token string">'0.73'</span><span class="token punctuation">,</span> <span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'=A25*(B25*C25)+D25'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'46'</span><span class="token punctuation">,</span> <span class="token string">'75'</span><span class="token punctuation">,</span> <span class="token string">'0.14'</span><span class="token punctuation">,</span> <span class="token string">'15'</span><span class="token punctuation">,</span> <span class="token string">'=A26*(B26*C26)+D26'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'47'</span><span class="token punctuation">,</span> <span class="token string">'691'</span><span class="token punctuation">,</span> <span class="token string">'0.58'</span><span class="token punctuation">,</span> <span class="token string">'15'</span><span class="token punctuation">,</span> <span class="token string">'=A27*(B27*C27)+D27'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'104'</span><span class="token punctuation">,</span> <span class="token string">'346'</span><span class="token punctuation">,</span> <span class="token string">'0.04'</span><span class="token punctuation">,</span> <span class="token string">'7'</span><span class="token punctuation">,</span> <span class="token string">'=A28*(B28*C28)+D28'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'101'</span><span class="token punctuation">,</span> <span class="token string">'717'</span><span class="token punctuation">,</span> <span class="token string">'0.87'</span><span class="token punctuation">,</span> <span class="token string">'5'</span><span class="token punctuation">,</span> <span class="token string">'=A29*(B29*C29)+D29'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'150'</span><span class="token punctuation">,</span> <span class="token string">'487'</span><span class="token punctuation">,</span> <span class="token string">'0.26'</span><span class="token punctuation">,</span> <span class="token string">'15'</span><span class="token punctuation">,</span> <span class="token string">'=A30*(B30*C30)+D30'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'42'</span><span class="token punctuation">,</span> <span class="token string">'465'</span><span class="token punctuation">,</span> <span class="token string">'0.09'</span><span class="token punctuation">,</span> <span class="token string">'14'</span><span class="token punctuation">,</span> <span class="token string">'=A31*(B31*C31)+D31'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'144'</span><span class="token punctuation">,</span> <span class="token string">'337'</span><span class="token punctuation">,</span> <span class="token string">'0.72'</span><span class="token punctuation">,</span> <span class="token string">'7'</span><span class="token punctuation">,</span> <span class="token string">'=A32*(B32*C32)+D32'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'195'</span><span class="token punctuation">,</span> <span class="token string">'138'</span><span class="token punctuation">,</span> <span class="token string">'0.3'</span><span class="token punctuation">,</span> <span class="token string">'6'</span><span class="token punctuation">,</span> <span class="token string">'=A33*(B33*C33)+D33'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'199'</span><span class="token punctuation">,</span> <span class="token string">'717'</span><span class="token punctuation">,</span> <span class="token string">'0.16'</span><span class="token punctuation">,</span> <span class="token string">'6'</span><span class="token punctuation">,</span> <span class="token string">'=A34*(B34*C34)+D34'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'110'</span><span class="token punctuation">,</span> <span class="token string">'236'</span><span class="token punctuation">,</span> <span class="token string">'0.91'</span><span class="token punctuation">,</span> <span class="token string">'9'</span><span class="token punctuation">,</span> <span class="token string">'=A35*(B35*C35)+D35'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'51'</span><span class="token punctuation">,</span> <span class="token string">'351'</span><span class="token punctuation">,</span> <span class="token string">'0.81'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A36*(B36*C36)+D36'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'69'</span><span class="token punctuation">,</span> <span class="token string">'221'</span><span class="token punctuation">,</span> <span class="token string">'0.64'</span><span class="token punctuation">,</span> <span class="token string">'9'</span><span class="token punctuation">,</span> <span class="token string">'=A37*(B37*C37)+D37'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'53'</span><span class="token punctuation">,</span> <span class="token string">'125'</span><span class="token punctuation">,</span> <span class="token string">'0.28'</span><span class="token punctuation">,</span> <span class="token string">'12'</span><span class="token punctuation">,</span> <span class="token string">'=A38*(B38*C38)+D38'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'168'</span><span class="token punctuation">,</span> <span class="token string">'428'</span><span class="token punctuation">,</span> <span class="token string">'0.68'</span><span class="token punctuation">,</span> <span class="token string">'9'</span><span class="token punctuation">,</span> <span class="token string">'=A39*(B39*C39)+D39'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'58'</span><span class="token punctuation">,</span> <span class="token string">'361'</span><span class="token punctuation">,</span> <span class="token string">'0.36'</span><span class="token punctuation">,</span> <span class="token string">'5'</span><span class="token punctuation">,</span> <span class="token string">'=A40*(B40*C40)+D40'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'152'</span><span class="token punctuation">,</span> <span class="token string">'213'</span><span class="token punctuation">,</span> <span class="token string">'0.13'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A41*(B41*C41)+D41'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'66'</span><span class="token punctuation">,</span> <span class="token string">'431'</span><span class="token punctuation">,</span> <span class="token string">'0.93'</span><span class="token punctuation">,</span> <span class="token string">'10'</span><span class="token punctuation">,</span> <span class="token string">'=A42*(B42*C42)+D42'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'112'</span><span class="token punctuation">,</span> <span class="token string">'108'</span><span class="token punctuation">,</span> <span class="token string">'0.5'</span><span class="token punctuation">,</span> <span class="token string">'14'</span><span class="token punctuation">,</span> <span class="token string">'=A43*(B43*C43)+D43'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'50'</span><span class="token punctuation">,</span> <span class="token string">'127'</span><span class="token punctuation">,</span> <span class="token string">'0.7'</span><span class="token punctuation">,</span> <span class="token string">'7'</span><span class="token punctuation">,</span> <span class="token string">'=A44*(B44*C44)+D44'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'31'</span><span class="token punctuation">,</span> <span class="token string">'200'</span><span class="token punctuation">,</span> <span class="token string">'0.15'</span><span class="token punctuation">,</span> <span class="token string">'14'</span><span class="token punctuation">,</span> <span class="token string">'=A45*(B45*C45)+D45'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'132'</span><span class="token punctuation">,</span> <span class="token string">'654'</span><span class="token punctuation">,</span> <span class="token string">'0.81'</span><span class="token punctuation">,</span> <span class="token string">'8'</span><span class="token punctuation">,</span> <span class="token string">'=A46*(B46*C46)+D46'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'45'</span><span class="token punctuation">,</span> <span class="token string">'438'</span><span class="token punctuation">,</span> <span class="token string">'0.79'</span><span class="token punctuation">,</span> <span class="token string">'6'</span><span class="token punctuation">,</span> <span class="token string">'=A47*(B47*C47)+D47'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'197'</span><span class="token punctuation">,</span> <span class="token string">'615'</span><span class="token punctuation">,</span> <span class="token string">'0.63'</span><span class="token punctuation">,</span> <span class="token string">'7'</span><span class="token punctuation">,</span> <span class="token string">'=A48*(B48*C48)+D48'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'190'</span><span class="token punctuation">,</span> <span class="token string">'592'</span><span class="token punctuation">,</span> <span class="token string">'0.37'</span><span class="token punctuation">,</span> <span class="token string">'8'</span><span class="token punctuation">,</span> <span class="token string">'=A49*(B49*C49)+D49'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'184'</span><span class="token punctuation">,</span> <span class="token string">'419'</span><span class="token punctuation">,</span> <span class="token string">'0.78'</span><span class="token punctuation">,</span> <span class="token string">'8'</span><span class="token punctuation">,</span> <span class="token string">'=A50*(B50*C50)+D50'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'169'</span><span class="token punctuation">,</span> <span class="token string">'58'</span><span class="token punctuation">,</span> <span class="token string">'0.13'</span><span class="token punctuation">,</span> <span class="token string">'7'</span><span class="token punctuation">,</span> <span class="token string">'=A51*(B51*C51)+D51'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'152'</span><span class="token punctuation">,</span> <span class="token string">'324'</span><span class="token punctuation">,</span> <span class="token string">'0.58'</span><span class="token punctuation">,</span> <span class="token string">'5'</span><span class="token punctuation">,</span> <span class="token string">'=A52*(B52*C52)+D52'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'182'</span><span class="token punctuation">,</span> <span class="token string">'713'</span><span class="token punctuation">,</span> <span class="token string">'0.53'</span><span class="token punctuation">,</span> <span class="token string">'5'</span><span class="token punctuation">,</span> <span class="token string">'=A53*(B53*C53)+D53'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'141'</span><span class="token punctuation">,</span> <span class="token string">'576'</span><span class="token punctuation">,</span> <span class="token string">'0.63'</span><span class="token punctuation">,</span> <span class="token string">'12'</span><span class="token punctuation">,</span> <span class="token string">'=A54*(B54*C54)+D54'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'169'</span><span class="token punctuation">,</span> <span class="token string">'429'</span><span class="token punctuation">,</span> <span class="token string">'0.14'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A55*(B55*C55)+D55'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'39'</span><span class="token punctuation">,</span> <span class="token string">'694'</span><span class="token punctuation">,</span> <span class="token string">'0.98'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A56*(B56*C56)+D56'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'71'</span><span class="token punctuation">,</span> <span class="token string">'361'</span><span class="token punctuation">,</span> <span class="token string">'0.3'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A57*(B57*C57)+D57'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'148'</span><span class="token punctuation">,</span> <span class="token string">'540'</span><span class="token punctuation">,</span> <span class="token string">'0.89'</span><span class="token punctuation">,</span> <span class="token string">'6'</span><span class="token punctuation">,</span> <span class="token string">'=A58*(B58*C58)+D58'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'116'</span><span class="token punctuation">,</span> <span class="token string">'52'</span><span class="token punctuation">,</span> <span class="token string">'0.3'</span><span class="token punctuation">,</span> <span class="token string">'7'</span><span class="token punctuation">,</span> <span class="token string">'=A59*(B59*C59)+D59'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'96'</span><span class="token punctuation">,</span> <span class="token string">'395'</span><span class="token punctuation">,</span> <span class="token string">'0.28'</span><span class="token punctuation">,</span> <span class="token string">'7'</span><span class="token punctuation">,</span> <span class="token string">'=A60*(B60*C60)+D60'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'35'</span><span class="token punctuation">,</span> <span class="token string">'222'</span><span class="token punctuation">,</span> <span class="token string">'0.86'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A61*(B61*C61)+D61'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'16'</span><span class="token punctuation">,</span> <span class="token string">'430'</span><span class="token punctuation">,</span> <span class="token string">'0.8'</span><span class="token punctuation">,</span> <span class="token string">'8'</span><span class="token punctuation">,</span> <span class="token string">'=A62*(B62*C62)+D62'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'194'</span><span class="token punctuation">,</span> <span class="token string">'357'</span><span class="token punctuation">,</span> <span class="token string">'0.72'</span><span class="token punctuation">,</span> <span class="token string">'9'</span><span class="token punctuation">,</span> <span class="token string">'=A63*(B63*C63)+D63'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'24'</span><span class="token punctuation">,</span> <span class="token string">'498'</span><span class="token punctuation">,</span> <span class="token string">'0.7'</span><span class="token punctuation">,</span> <span class="token string">'7'</span><span class="token punctuation">,</span> <span class="token string">'=A64*(B64*C64)+D64'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'170'</span><span class="token punctuation">,</span> <span class="token string">'142'</span><span class="token punctuation">,</span> <span class="token string">'0.52'</span><span class="token punctuation">,</span> <span class="token string">'5'</span><span class="token punctuation">,</span> <span class="token string">'=A65*(B65*C65)+D65'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'184'</span><span class="token punctuation">,</span> <span class="token string">'614'</span><span class="token punctuation">,</span> <span class="token string">'0.68'</span><span class="token punctuation">,</span> <span class="token string">'9'</span><span class="token punctuation">,</span> <span class="token string">'=A66*(B66*C66)+D66'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'153'</span><span class="token punctuation">,</span> <span class="token string">'524'</span><span class="token punctuation">,</span> <span class="token string">'0.15'</span><span class="token punctuation">,</span> <span class="token string">'9'</span><span class="token punctuation">,</span> <span class="token string">'=A67*(B67*C67)+D67'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'88'</span><span class="token punctuation">,</span> <span class="token string">'620'</span><span class="token punctuation">,</span> <span class="token string">'0.39'</span><span class="token punctuation">,</span> <span class="token string">'15'</span><span class="token punctuation">,</span> <span class="token string">'=A68*(B68*C68)+D68'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'57'</span><span class="token punctuation">,</span> <span class="token string">'452'</span><span class="token punctuation">,</span> <span class="token string">'0.11'</span><span class="token punctuation">,</span> <span class="token string">'6'</span><span class="token punctuation">,</span> <span class="token string">'=A69*(B69*C69)+D69'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'62'</span><span class="token punctuation">,</span> <span class="token string">'493'</span><span class="token punctuation">,</span> <span class="token string">'0.03'</span><span class="token punctuation">,</span> <span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'=A70*(B70*C70)+D70'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'123'</span><span class="token punctuation">,</span> <span class="token string">'431'</span><span class="token punctuation">,</span> <span class="token string">'0.75'</span><span class="token punctuation">,</span> <span class="token string">'15'</span><span class="token punctuation">,</span> <span class="token string">'=A71*(B71*C71)+D71'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'77'</span><span class="token punctuation">,</span> <span class="token string">'113'</span><span class="token punctuation">,</span> <span class="token string">'0.63'</span><span class="token punctuation">,</span> <span class="token string">'12'</span><span class="token punctuation">,</span> <span class="token string">'=A72*(B72*C72)+D72'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'199'</span><span class="token punctuation">,</span> <span class="token string">'208'</span><span class="token punctuation">,</span> <span class="token string">'0.07'</span><span class="token punctuation">,</span> <span class="token string">'6'</span><span class="token punctuation">,</span> <span class="token string">'=A73*(B73*C73)+D73'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'149'</span><span class="token punctuation">,</span> <span class="token string">'514'</span><span class="token punctuation">,</span> <span class="token string">'0.42'</span><span class="token punctuation">,</span> <span class="token string">'12'</span><span class="token punctuation">,</span> <span class="token string">'=A74*(B74*C74)+D74'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'191'</span><span class="token punctuation">,</span> <span class="token string">'334'</span><span class="token punctuation">,</span> <span class="token string">'0.78'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A75*(B75*C75)+D75'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'150'</span><span class="token punctuation">,</span> <span class="token string">'643'</span><span class="token punctuation">,</span> <span class="token string">'0.32'</span><span class="token punctuation">,</span> <span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'=A76*(B76*C76)+D76'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'130'</span><span class="token punctuation">,</span> <span class="token string">'721'</span><span class="token punctuation">,</span> <span class="token string">'0.62'</span><span class="token punctuation">,</span> <span class="token string">'5'</span><span class="token punctuation">,</span> <span class="token string">'=A77*(B77*C77)+D77'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'179'</span><span class="token punctuation">,</span> <span class="token string">'517'</span><span class="token punctuation">,</span> <span class="token string">'0.1'</span><span class="token punctuation">,</span> <span class="token string">'8'</span><span class="token punctuation">,</span> <span class="token string">'=A78*(B78*C78)+D78'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'98'</span><span class="token punctuation">,</span> <span class="token string">'31'</span><span class="token punctuation">,</span> <span class="token string">'0.01'</span><span class="token punctuation">,</span> <span class="token string">'10'</span><span class="token punctuation">,</span> <span class="token string">'=A79*(B79*C79)+D79'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'175'</span><span class="token punctuation">,</span> <span class="token string">'509'</span><span class="token punctuation">,</span> <span class="token string">'0.7'</span><span class="token punctuation">,</span> <span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'=A80*(B80*C80)+D80'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'569'</span><span class="token punctuation">,</span> <span class="token string">'0.37'</span><span class="token punctuation">,</span> <span class="token string">'7'</span><span class="token punctuation">,</span> <span class="token string">'=A81*(B81*C81)+D81'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'184'</span><span class="token punctuation">,</span> <span class="token string">'630'</span><span class="token punctuation">,</span> <span class="token string">'0.19'</span><span class="token punctuation">,</span> <span class="token string">'6'</span><span class="token punctuation">,</span> <span class="token string">'=A82*(B82*C82)+D82'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'27'</span><span class="token punctuation">,</span> <span class="token string">'165'</span><span class="token punctuation">,</span> <span class="token string">'0.51'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A83*(B83*C83)+D83'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'186'</span><span class="token punctuation">,</span> <span class="token string">'417'</span><span class="token punctuation">,</span> <span class="token string">'0.85'</span><span class="token punctuation">,</span> <span class="token string">'15'</span><span class="token punctuation">,</span> <span class="token string">'=A84*(B84*C84)+D84'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'20'</span><span class="token punctuation">,</span> <span class="token string">'741'</span><span class="token punctuation">,</span> <span class="token string">'0.76'</span><span class="token punctuation">,</span> <span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'=A85*(B85*C85)+D85'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'153'</span><span class="token punctuation">,</span> <span class="token string">'640'</span><span class="token punctuation">,</span> <span class="token string">'0.28'</span><span class="token punctuation">,</span> <span class="token string">'6'</span><span class="token punctuation">,</span> <span class="token string">'=A86*(B86*C86)+D86'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'161'</span><span class="token punctuation">,</span> <span class="token string">'542'</span><span class="token punctuation">,</span> <span class="token string">'0.43'</span><span class="token punctuation">,</span> <span class="token string">'14'</span><span class="token punctuation">,</span> <span class="token string">'=A87*(B87*C87)+D87'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'98'</span><span class="token punctuation">,</span> <span class="token string">'344'</span><span class="token punctuation">,</span> <span class="token string">'0.77'</span><span class="token punctuation">,</span> <span class="token string">'6'</span><span class="token punctuation">,</span> <span class="token string">'=A88*(B88*C88)+D88'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'30'</span><span class="token punctuation">,</span> <span class="token string">'400'</span><span class="token punctuation">,</span> <span class="token string">'0.71'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A89*(B89*C89)+D89'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'73'</span><span class="token punctuation">,</span> <span class="token string">'91'</span><span class="token punctuation">,</span> <span class="token string">'0.78'</span><span class="token punctuation">,</span> <span class="token string">'8'</span><span class="token punctuation">,</span> <span class="token string">'=A90*(B90*C90)+D90'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'158'</span><span class="token punctuation">,</span> <span class="token string">'72'</span><span class="token punctuation">,</span> <span class="token string">'0.66'</span><span class="token punctuation">,</span> <span class="token string">'12'</span><span class="token punctuation">,</span> <span class="token string">'=A91*(B91*C91)+D91'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'122'</span><span class="token punctuation">,</span> <span class="token string">'35'</span><span class="token punctuation">,</span> <span class="token string">'0.32'</span><span class="token punctuation">,</span> <span class="token string">'15'</span><span class="token punctuation">,</span> <span class="token string">'=A92*(B92*C92)+D92'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'33'</span><span class="token punctuation">,</span> <span class="token string">'99'</span><span class="token punctuation">,</span> <span class="token string">'0.92'</span><span class="token punctuation">,</span> <span class="token string">'9'</span><span class="token punctuation">,</span> <span class="token string">'=A93*(B93*C93)+D93'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'107'</span><span class="token punctuation">,</span> <span class="token string">'538'</span><span class="token punctuation">,</span> <span class="token string">'0.75'</span><span class="token punctuation">,</span> <span class="token string">'10'</span><span class="token punctuation">,</span> <span class="token string">'=A94*(B94*C94)+D94'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'15'</span><span class="token punctuation">,</span> <span class="token string">'563'</span><span class="token punctuation">,</span> <span class="token string">'0.32'</span><span class="token punctuation">,</span> <span class="token string">'6'</span><span class="token punctuation">,</span> <span class="token string">'=A95*(B95*C95)+D95'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'168'</span><span class="token punctuation">,</span> <span class="token string">'572'</span><span class="token punctuation">,</span> <span class="token string">'0.71'</span><span class="token punctuation">,</span> <span class="token string">'6'</span><span class="token punctuation">,</span> <span class="token string">'=A96*(B96*C96)+D96'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'135'</span><span class="token punctuation">,</span> <span class="token string">'217'</span><span class="token punctuation">,</span> <span class="token string">'0.49'</span><span class="token punctuation">,</span> <span class="token string">'12'</span><span class="token punctuation">,</span> <span class="token string">'=A97*(B97*C97)+D97'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'595'</span><span class="token punctuation">,</span> <span class="token string">'0.03'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A98*(B98*C98)+D98'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'41'</span><span class="token punctuation">,</span> <span class="token string">'739'</span><span class="token punctuation">,</span> <span class="token string">'0.88'</span><span class="token punctuation">,</span> <span class="token string">'11'</span><span class="token punctuation">,</span> <span class="token string">'=A99*(B99*C99)+D99'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'144'</span><span class="token punctuation">,</span> <span class="token string">'289'</span><span class="token punctuation">,</span> <span class="token string">'0.87'</span><span class="token punctuation">,</span> <span class="token string">'13'</span><span class="token punctuation">,</span> <span class="token string">'=A100*(B100*C100)+D100'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Sum'</span><span class="token punctuation">,</span> <span class="token string">'Average'</span><span class="token punctuation">,</span> <span class="token string">'Average'</span><span class="token punctuation">,</span> <span class="token string">'Sum'</span><span class="token punctuation">,</span> <span class="token string">'Sum'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span>
+    <span class="token string">'=SUM(A1:A100)'</span><span class="token punctuation">,</span>
+    <span class="token string">'=AVERAGE(B1:B100)'</span><span class="token punctuation">,</span>
+    <span class="token string">'=AVERAGE(C1:C100)'</span><span class="token punctuation">,</span>
+    <span class="token string">'=SUM(D1:D100)'</span><span class="token punctuation">,</span>
+    <span class="token string">'=SUM(E1:E100)'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> container <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#example-data-grid'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>container<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  data<span class="token punctuation">,</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> HyperFormula<span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">colHeaders</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'Qty'</span><span class="token punctuation">,</span> <span class="token string">'Unit price'</span><span class="token punctuation">,</span> <span class="token string">'Discount'</span><span class="token punctuation">,</span> <span class="token string">'Freight'</span><span class="token punctuation">,</span> <span class="token string">'Total due (fx)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">fixedRowsBottom</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">stretchH</span><span class="token operator">:</span> <span class="token string">'all'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token number">500</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapRow</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapCol</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'non-commercial-and-evaluation'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section></div></div></div></div><p></p> <p></p> <h2 id="initialization-methods"><a href="#initialization-methods" class="header-link">Initialization methods</a></h2> <p>There are multiple ways of initializing the Formulas plugin. You can select the most convenient one
+depending on your use case.</p> <p>In all cases, it is required to either pass in the <code>HyperFormula</code> object or a HyperFormula instance:</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> <span class="token punctuation">{</span> HyperFormula <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'hyperformula'</span><span class="token punctuation">;</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p>There are also other installation methods available. Check out
+<a href="https://handsontable.github.io/hyperformula/guide/client-side-installation.html" target="_blank" rel="nofollow noopener noreferrer">HyperFormula's installation documentation<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>.</p> <div class="custom-block tip"><p class="custom-block-title">HyperFormula instance</p> <p>To use the <a href="/docs/javascript-data-grid/api/formulas/"><code>Formulas</code></a> plugin with an external HyperFormula instance, initialize
+HyperFormula with the <code>'internal-use-in-handsontable'</code> license key:</p></div> <div class="language-js extra-class"><pre class="language-js"><code><span class="token comment">// create an external HyperFormula instance</span>
+<span class="token keyword">const</span> hyperformulaInstance <span class="token operator">=</span> HyperFormula<span class="token punctuation">.</span><span class="token function">buildEmpty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token comment">// initialize it with the `'internal-use-in-handsontable'` license key</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'internal-use-in-handsontable'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><h3 id="pass-the-hyperformula-class-instance-to-handsontable"><a href="#pass-the-hyperformula-class-instance-to-handsontable" class="header-link">Pass the HyperFormula class/instance to Handsontable</a></h3> <p></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">{</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> HyperFormula<span class="token punctuation">,</span>
+    <span class="token comment">// [plugin configuration]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p></p> <p></p> <p>or</p> <p></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">{</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">hyperformula</span><span class="token operator">:</span> HyperFormula<span class="token punctuation">,</span> <span class="token comment">// or `engine: hyperformulaInstance`</span>
+      <span class="token literal-property property">leapYear1900</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+      <span class="token comment">// ...and more engine configuration options.</span>
+      <span class="token comment">// See https://handsontable.github.io/hyperformula/api/interfaces/configparams.html#number</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token comment">// [plugin configuration]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p></p> <p></p> <h3 id="single-handsontable-instance-with-an-external-hyperformula-instance"><a href="#single-handsontable-instance-with-an-external-hyperformula-instance" class="header-link">Single Handsontable instance with an external HyperFormula instance</a></h3> <p></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">const</span> hyperformulaInstance <span class="token operator">=</span> HyperFormula<span class="token punctuation">.</span><span class="token function">buildEmpty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token comment">// to use an external HyperFormula instance,</span>
+  <span class="token comment">// initialize it with the `'internal-use-in-handsontable'` license key</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'internal-use-in-handsontable'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">{</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> hyperformulaInstance<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p></p> <p></p> <h3 id="multiple-independent-handsontable-instances"><a href="#multiple-independent-handsontable-instances" class="header-link">Multiple independent Handsontable instances</a></h3> <p></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token comment">// Instance 1</span>
+<span class="token punctuation">{</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> HyperFormula<span class="token punctuation">,</span>
+    <span class="token comment">// [plugin configuration]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// Instance 2</span>
+<span class="token punctuation">{</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> HyperFormula<span class="token punctuation">,</span>
+    <span class="token comment">// [plugin configuration]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p></p> <p></p> <p></p> <h3 id="multiple-handsontable-instances-with-a-shared-hyperformula-instance"><a href="#multiple-handsontable-instances-with-a-shared-hyperformula-instance" class="header-link">Multiple Handsontable instances with a shared HyperFormula instance</a></h3> <div class="language-js extra-class"><pre class="language-js"><code><span class="token comment">// Instance 1</span>
+<span class="token punctuation">{</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> HyperFormula<span class="token punctuation">,</span>
+    <span class="token literal-property property">sheetName</span><span class="token operator">:</span> <span class="token string">'Sheet1'</span>
+    <span class="token comment">// [plugin configuration]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// Instance 2</span>
+<span class="token punctuation">{</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> hot1<span class="token punctuation">.</span><span class="token function">getPlugin</span><span class="token punctuation">(</span><span class="token string">'formulas'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>engine<span class="token punctuation">,</span>
+    <span class="token literal-property property">sheetName</span><span class="token operator">:</span> <span class="token string">'Sheet2'</span>
+    <span class="token comment">// [plugin configuration]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p></p> <h3 id="multiple-handsontable-instances-with-an-external-shared-hyperformula-instance"><a href="#multiple-handsontable-instances-with-an-external-shared-hyperformula-instance" class="header-link">Multiple Handsontable instances with an external shared HyperFormula instance</a></h3> <p></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">const</span> hyperformulaInstance <span class="token operator">=</span> HyperFormula<span class="token punctuation">.</span><span class="token function">buildEmpty</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token comment">// to use an external HyperFormula instance,</span>
+  <span class="token comment">// initialize it with the `'internal-use-in-handsontable'` license key</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'internal-use-in-handsontable'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Instance 1</span>
+<span class="token punctuation">{</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> hyperformulaInstance<span class="token punctuation">,</span>
+    <span class="token literal-property property">sheetName</span><span class="token operator">:</span> <span class="token string">'Sheet1'</span>
+    <span class="token comment">// [plugin configuration]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// Instance 2</span>
+<span class="token punctuation">{</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> hyperformulaInstance<span class="token punctuation">,</span>
+    <span class="token literal-property property">sheetName</span><span class="token operator">:</span> <span class="token string">'Sheet2'</span>
+    <span class="token comment">// [plugin configuration]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p></p> <p></p> <h2 id="available-options-and-methods"><a href="#available-options-and-methods" class="header-link">Available options and methods</a></h2> <p>For the list of available settings and methods, visit the <a href="/docs/javascript-data-grid/api/formulas/">API reference</a>.</p> <h2 id="available-functions"><a href="#available-functions" class="header-link">Available functions</a></h2> <p>This plugin inherits the calculation powers from <em>HyperFormula</em>. The complete functions reference
+can be found in the
+<a href="https://handsontable.github.io/hyperformula/guide/built-in-functions.html" target="_blank" rel="nofollow noopener noreferrer">HyperFormula documentation<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>.</p> <h2 id="afterformulasvaluesupdate-hook"><a href="#afterformulasvaluesupdate-hook" class="header-link"><a href="/docs/javascript-data-grid/api/hooks/#afterformulasvaluesupdate"><code>afterFormulasValuesUpdate</code></a> hook</a></h2> <p>This hook listens for any changes to cells in the calculation engine, including dependent cells
+containing formulas.</p> <p></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">const</span> <span class="token function-variable function">afterFormulasValuesUpdate</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">changes</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  changes<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">change</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'change'</span><span class="token punctuation">,</span> change<span class="token punctuation">.</span>address<span class="token punctuation">,</span> change<span class="token punctuation">.</span>newValue<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>element<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> HyperFormula<span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  afterFormulasValuesUpdate<span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p></p> <p></p> <h2 id="named-expressions"><a href="#named-expressions" class="header-link">Named expressions</a></h2> <p>You can use custom-named expressions in your formula expressions. A named expression can be either
+plain values or formulas with references to absolute cell addresses. To register a named expression,
+pass an array with <code>name</code> and <code>expression</code> to your <code>formulas</code> configuration object:</p> <p></p> <div class="example-container"><style></style> <div><div data-preset-type="hot" data-example-id="example-named-expressions1"><div class="example-controls-container"><div class="controls"><input id="named-expressions-input" type="text" value="=10 * Sheet1!$A$2"> <button id="named-expressions-button">Calculate the price</button></div></div> <div id="example-named-expressions1"></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+    &quot;name&quot;: &quot;handsontable&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;description&quot;: &quot;&quot;,
+    &quot;dependencies&quot;: {
+      &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+      &quot;handsontable&quot;: &quot;latest&quot;
+    }
+  }</textarea> <textarea class="hidden" name="project[files][index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+  &lt;html&gt;
+    &lt;head&gt;
+      &lt;meta charset=&quot;utf-8&quot; /&gt;
+      &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+      &lt;title&gt;Handsontable&lt;/title&gt;
+    &lt;/head&gt;
+  
+    &lt;body&gt;
+      &lt;div class=&quot;example-controls-container&quot;&gt;
+  &lt;div class=&quot;controls&quot;&gt;
+    &lt;input id=&quot;named-expressions-input&quot; type=&quot;text&quot; value=&quot;=10 * Sheet1!$A$2&quot; /&gt;
+    &lt;button id=&quot;named-expressions-button&quot;&gt;Calculate the price&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;example-named-expressions1&quot;&gt;&lt;/div&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;</textarea> <textarea class="hidden" name="project[files][styles.css]" readOnly=""></textarea> <textarea class="hidden" name="project[files][index.js]" readOnly="">import './styles.css'
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+import { HyperFormula } from 'hyperformula';
+
+const data = [
+  ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
+  ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
+  ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
+  ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)'],
+];
+
+const container = document.querySelector('#example-named-expressions1');
+const hot = new Handsontable(container, {
+  data,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: HyperFormula,
+    namedExpressions: [
+      {
+        name: 'ADDITIONAL_COST',
+        expression: 100,
+      },
+    ],
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const input = document.getElementById('named-expressions-input');
+const formulasPlugin = hot.getPlugin('formulas');
+const button = document.getElementById('named-expressions-button');
+
+button.addEventListener('click', () =&gt; {
+  formulasPlugin.engine?.changeNamedExpression('ADDITIONAL_COST', input.value);
+  hot.render();
+});
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="javascript"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+import { HyperFormula } from 'hyperformula';
+
+const data = [
+  ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
+  ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
+  ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
+  ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)'],
+];
+
+const container = document.querySelector('#example-named-expressions1');
+const hot = new Handsontable(container, {
+  data,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: HyperFormula,
+    namedExpressions: [
+      {
+        name: 'ADDITIONAL_COST',
+        expression: 100,
+      },
+    ],
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const input = document.getElementById('named-expressions-input');
+const formulasPlugin = hot.getPlugin('formulas');
+const button = document.getElementById('named-expressions-button');
+
+button.addEventListener('click', () =&gt; {
+  formulasPlugin.engine?.changeNamedExpression('ADDITIONAL_COST', input.value);
+  hot.render();
+});
+</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css&quot; /&gt; 
+&lt;script src=&quot;https://handsontable.com/docs/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div class=&quot;example-controls-container&quot;&gt;
+  &lt;div class=&quot;controls&quot;&gt;
+    &lt;input id=&quot;named-expressions-input&quot; type=&quot;text&quot; value=&quot;=10 * Sheet1!$A$2&quot; /&gt;
+    &lt;button id=&quot;named-expressions-button&quot;&gt;Calculate the price&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;example-named-expressions1&quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly=""></textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button> <select value="ts" hidden="hidden" class="selected-lang"><option value="ts">ts</option> <option value="js">js</option></select></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example-named-expressions1" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> Handsontable <span class="token keyword">from</span> <span class="token string">'handsontable'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/dist/handsontable.full.min.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> HyperFormula <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'hyperformula'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">[</span><span class="token string">'Travel ID'</span><span class="token punctuation">,</span> <span class="token string">'Destination'</span><span class="token punctuation">,</span> <span class="token string">'Base price'</span><span class="token punctuation">,</span> <span class="token string">'Price with extra cost'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'154'</span><span class="token punctuation">,</span> <span class="token string">'Rome'</span><span class="token punctuation">,</span> <span class="token number">400</span><span class="token punctuation">,</span> <span class="token string">'=ROUND(ADDITIONAL_COST+C2,0)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'155'</span><span class="token punctuation">,</span> <span class="token string">'Athens'</span><span class="token punctuation">,</span> <span class="token number">300</span><span class="token punctuation">,</span> <span class="token string">'=ROUND(ADDITIONAL_COST+C3,0)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'156'</span><span class="token punctuation">,</span> <span class="token string">'Warsaw'</span><span class="token punctuation">,</span> <span class="token number">150</span><span class="token punctuation">,</span> <span class="token string">'=ROUND(ADDITIONAL_COST+C4,0)'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> container <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#example-named-expressions1'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> hot <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>container<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  data<span class="token punctuation">,</span>
+  <span class="token literal-property property">colHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">rowHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'auto'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">formulas</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">engine</span><span class="token operator">:</span> HyperFormula<span class="token punctuation">,</span>
+    <span class="token literal-property property">namedExpressions</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token punctuation">{</span>
+        <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'ADDITIONAL_COST'</span><span class="token punctuation">,</span>
+        <span class="token literal-property property">expression</span><span class="token operator">:</span> <span class="token number">100</span><span class="token punctuation">,</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapRow</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapCol</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'non-commercial-and-evaluation'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> input <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'named-expressions-input'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> formulasPlugin <span class="token operator">=</span> hot<span class="token punctuation">.</span><span class="token function">getPlugin</span><span class="token punctuation">(</span><span class="token string">'formulas'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> button <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'named-expressions-button'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+button<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  formulasPlugin<span class="token punctuation">.</span>engine<span class="token operator">?.</span><span class="token function">changeNamedExpression</span><span class="token punctuation">(</span><span class="token string">'ADDITIONAL_COST'</span><span class="token punctuation">,</span> input<span class="token punctuation">.</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  hot<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section><section aria-hidden="true" id="html-tab-example-named-expressions1" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example-controls-container<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>controls<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>named-expressions-input<span class="token punctuation">&quot;</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>text<span class="token punctuation">&quot;</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>=10 * Sheet1!$A$2<span class="token punctuation">&quot;</span></span> <span class="token punctuation">/&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>named-expressions-button<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>Calculate the price<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example-named-expressions1<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="html" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></section></div></div></div></div><p></p> <p></p> <p>For more information about named expressions, refer to the
+<a href="https://hyperformula.handsontable.com/guide/cell-references.html#relative-references" target="_blank" rel="nofollow noopener noreferrer">HyperFormula docs<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>.</p> <h2 id="view-the-explainer-video"><a href="#view-the-explainer-video" class="header-link">View the explainer video</a></h2> <iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe> <h2 id="known-limitations"><a href="#known-limitations" class="header-link">Known limitations</a></h2> <ul><li>Using the <a href="/docs/javascript-data-grid/api/index-mapper/"><code>IndexMapper</code></a> API to programmatically <a href="/docs/javascript-data-grid/row-moving/">move rows</a> or <a href="/docs/javascript-data-grid/column-moving/">columns</a> that contain formulas is not supported. Instead, use the <a href="/docs/javascript-data-grid/api/manual-row-move/"><code>ManualRowMove</code></a> or <a href="/docs/javascript-data-grid/api/manual-column-move/"><code>ManualColumnMove</code></a> APIs.</li> <li>Formulas don't support <a href="/docs/javascript-data-grid/api/core/#getsourcedata"><code>getSourceData()</code></a>, as this method operates on source data (using <a href="/docs/javascript-data-grid/api/index-mapper/">physical indexes</a>), whereas formulas operate on visual data (using visual indexes).</li> <li>Formulas don't support nested data, i.e., when Handsontable's <a href="/docs/javascript-data-grid/api/options/#data"><code>data</code></a> is set to an <a href="/docs/javascript-data-grid/binding-to-data/#array-of-objects">array of nested objects</a>.</li></ul> <h3 id="hyperformula-version-support"><a href="#hyperformula-version-support" class="header-link">HyperFormula version support</a></h3> <p>Different versions of Handsontable support different versions of HyperFormula.</p> <p>To find out which HyperFormula version to use, see the table below:</p> <table><thead><tr><th>Handsontable version</th> <th>HyperFormula version</th></tr></thead> <tbody><tr><td><a href="https://github.com/handsontable/handsontable/releases/tag/8.0.0" target="_blank" rel="nofollow noopener noreferrer"><code>8.x.x</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a> and lower</td> <td>No HyperFormula support old Formulas plugin</td></tr> <tr><td><a href="https://github.com/handsontable/handsontable/releases/tag/9.0.0" target="_blank" rel="nofollow noopener noreferrer"><code>9.x.x</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></td> <td><a href="https://github.com/handsontable/hyperformula/releases/tag/0.6.2" target="_blank" rel="nofollow noopener noreferrer"><code>0.6.2</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></td></tr> <tr><td><a href="https://github.com/handsontable/handsontable/releases/tag/10.0.0" target="_blank" rel="nofollow noopener noreferrer"><code>10.x.x</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></td> <td><a href="https://github.com/handsontable/hyperformula/releases/tag/1.2.0" target="_blank" rel="nofollow noopener noreferrer"><code>^1.2.0</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></td></tr> <tr><td><a href="https://github.com/handsontable/handsontable/releases/tag/11.0.0" target="_blank" rel="nofollow noopener noreferrer"><code>11.x.x</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></td> <td><a href="https://github.com/handsontable/hyperformula/releases/tag/1.2.0" target="_blank" rel="nofollow noopener noreferrer"><code>^1.2.0</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></td></tr> <tr><td><a href="https://github.com/handsontable/handsontable/releases/tag/12.0.0" target="_blank" rel="nofollow noopener noreferrer"><code>12.x.x</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></td> <td><a href="https://github.com/handsontable/hyperformula/releases/tag/2.0.0" target="_blank" rel="nofollow noopener noreferrer"><code>^2.0.0</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></td></tr> <tr><td><a href="https://github.com/handsontable/handsontable/releases/tag/13.0.0" target="_blank" rel="nofollow noopener noreferrer"><code>13.x.x</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></td> <td><a href="https://github.com/handsontable/hyperformula/releases/tag/2.4.0" target="_blank" rel="nofollow noopener noreferrer"><code>^2.4.0</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></td></tr> <tr><td><a href="https://github.com/handsontable/handsontable/releases/tag/14.0.0" target="_blank" rel="nofollow noopener noreferrer"><code>14.x.x</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a> and higher</td> <td><a href="https://github.com/handsontable/hyperformula/releases/tag/2.4.0" target="_blank" rel="nofollow noopener noreferrer"><code>^2.4.0</code><span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></td></tr></tbody></table> <div class="custom-block tip"><p class="custom-block-title">TIP</p> <p>You can use the <code>'internal-use-in-handsontable'</code> license key only in those HyperFormula instances
+that are connected to a Handsontable instance.</p> <p>To use HyperFormula outside of a Handsontable instance (e.g., on a server), you need a dedicated
+<a href="https://hyperformula.handsontable.com/guide/license-key.html" target="_blank" rel="nofollow noopener noreferrer">HyperFormula license key<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>. For
+details, <a href="https://handsontable.com/get-a-quote" target="_blank" rel="nofollow noopener noreferrer">contact our Sales Team<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>.</p></div> <h2 id="related-articles"><a href="#related-articles" class="header-link">Related articles</a></h2> <h3 id="hyperformula-documentation"><a href="#hyperformula-documentation" class="header-link">HyperFormula documentation</a></h3> <div class="boxes-list gray"><ul><li><a href="https://handsontable.github.io/hyperformula/" target="_blank" rel="nofollow noopener noreferrer">HyperFormula guides<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li> <li><a href="https://handsontable.github.io/hyperformula/api/" target="_blank" rel="nofollow noopener noreferrer">HyperFormula API reference<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div> <h3 id="related-blog-articles"><a href="#related-blog-articles" class="header-link">Related blog articles</a></h3> <div class="boxes-list gray"><ul><li><a href="https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin" target="_blank" rel="nofollow noopener noreferrer">Handsontable 9.0.0: New formula plugin<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li> <li><a href="https://handsontable.com/blog/8-examples-of-useful-excel-functions-in-hyperformula" target="_blank" rel="nofollow noopener noreferrer">8 examples of useful Excel functions in HyperFormula<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div> <h3 id="related-api-reference"><a href="#related-api-reference" class="header-link">Related API reference</a></h3> <ul><li>Configuration options:
+<ul><li><a href="/docs/javascript-data-grid/api/options/#formulas"><code>formulas</code></a></li></ul></li> <li>Hooks:
+<ul><li><a href="/docs/javascript-data-grid/api/hooks/#afterformulasvaluesupdate"><code>afterFormulasValuesUpdate</code></a></li> <li><a href="/docs/javascript-data-grid/api/hooks/#afternamedexpressionadded"><code>afterNamedExpressionAdded</code></a></li> <li><a href="/docs/javascript-data-grid/api/hooks/#afternamedexpressionremoved"><code>afterNamedExpressionRemoved</code></a></li> <li><a href="/docs/javascript-data-grid/api/hooks/#aftersheetadded"><code>afterSheetAdded</code></a></li> <li><a href="/docs/javascript-data-grid/api/hooks/#aftersheetremoved"><code>afterSheetRemoved</code></a></li> <li><a href="/docs/javascript-data-grid/api/hooks/#aftersheetrenamed"><code>afterSheetRenamed</code></a></li></ul></li> <li>Plugins:
+<ul><li><a href="/docs/javascript-data-grid/api/formulas/"><code>Formulas</code></a></li></ul></li></ul></div> <div class="page-top" style="display:none;"><div class="custom-block tip version-alert"><p>There is a newer version of Handsontable available.
+            <a href="/docs/">Switch to the latest version ⟶</a></p></div></div> <footer class="footer"><a href="https://github.com/handsontable/handsontable/edit/develop/docs/content/guides/formulas/formula-calculation/formula-calculation.md" target="_blank" rel="noopener noreferrer" class="edit-link">Edit on GitHub <i class="ico i-external"></i></a> <div class="footer-links"><div class="socail-links"><a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a> <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a> <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a></div> <div class="hot-links"><a href="https://handsontable.com/privacy">Privacy policy</a> <a href="https://handsontable.com/terms-of-use">Terms of use</a> <a href="https://handsontable.com/team">Team</a> <a href="https://handsontable.com/contact?category=technical_support">Contact</a> <a href="https://handsontable.com/blog/">Blog</a> <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a></div></div> <div class="copyright"><p>© 2012 - 2024 Handsoncode</p> <label id="switch" class="dark-mode"><span class="inner" style="display:none;"><input type="checkbox"> <span style="display:none;"><i class="ico i-dm-dark"></i>Light</span> <span style="display:;"><i class="ico i-dm-light"></i>Dark</span></span></label></div></footer> </main></div></div><div class="global-ui"></div></div>
+
+<script src="/docs/assets/js/app.3f2e5286.js" defer></script><script src="/docs/assets/js/4.a71c13f3.js" defer></script><script src="/docs/assets/js/3.341147d5.js" defer></script><script src="/docs/assets/js/2.25ad14de.js" defer></script><script src="/docs/assets/js/138.7df0ebcd.js" defer></script><script src="/docs/assets/js/37.9c7fd50b.js" defer></script>
+</body>
+</html>
