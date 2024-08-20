@@ -80,3 +80,4 @@ jobs:
           build_directory: ../dist
           build_command: ''
           production-branch: feature/dev-issue-1790
+          debug: true
