@@ -48,7 +48,7 @@ jobs:
         # working-directory: ./latest/docs/
 
       - name: List files in the repository
-        run: ls -al
+        run: ls -al ./vuepress
 
       - name: Docs build
         run: |
