@@ -57,7 +57,7 @@ jobs:
         # working-directory: ./latest/docs/
 
       - name: List files in the repository
-        run: ls -al ../.vuepress/dist/docs
+        run: ls -al ./vuepress/dist/docs
 
       - name: "commit changes"
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -94,15 +94,9 @@ jobs:
       #     ref: prod-docs-netlify
       #     path: prod-docs-netlify
 
-      # - name: List files in the repository
-      #   run: ls ${{ github.workspace }}
-
       # - name: Copy docs to the prod netlify
       #   run: cp -r ../dist/* .
       #   working-directory: ./docs/tmp
-
-      # - name: List files in the repository
-      #   run: ls ${{ github.workspace }}
 
       # - name: Deploy to Netlify
       #   uses: jsmrcaga/action-netlify-deploy@v2.0.0
