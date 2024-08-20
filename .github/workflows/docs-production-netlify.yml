@@ -20,11 +20,12 @@ jobs:
   docker:
     name: Build Docs
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-        # with:
-        #   ref: feature/dev-issue-1790
-        #   # path: latest
+        with:
+          ref: feature/dev-issue-1790
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
@@ -58,8 +59,16 @@ jobs:
       - name: List files in the repository
         run: ls -al ./.vuepress/dist/docs
 
+      - name "commit changes"
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Docs: build production"
+          commit_user_name: "Docs Deployment"
+          commit_user_email: "docs-deployment@handsontable.com"
+
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3.0.0
+        working-directory: ./docs/
         with:
           publish-dir: ../docs/.vuepress/dist/docs
           production-branch: feature/dev-issue-1790
