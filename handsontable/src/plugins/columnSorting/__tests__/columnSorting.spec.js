@@ -2856,6 +2856,33 @@ describe('ColumnSorting', () => {
 
       expect(getDataAtCol(0)).toEqual(['Mary', 'Henry', 'Ann', 'Robert', 'Ann', 'David', 'John', 'Mary', 'Robert']);
     });
+
+    it('should wait before sorting until the edited cell is validated and saved, if the cell has a validator and its' +
+      ' editor is open while clicking on a sortable header', async() => {
+      const hot = handsontable({
+        data: [
+          { a: 9, b: 9 },
+          { a: 8, b: 8 },
+          { a: 7, b: 7 },
+        ],
+        colHeaders: true,
+        columnSorting: true,
+        columns: [
+          { data: 'a' },
+          { data: 'b', type: 'numeric' }
+        ]
+      });
+
+      selectCell(2, 1);
+      hot._getEditorManager().openEditor();
+      getActiveEditor().setValue('444');
+
+      spec().sortByClickOnColumnHeader(1);
+
+      await sleep(50);
+
+      expect(getDataAtCol(1)).toEqual([8, 9, 444]);
+    });
   });
 
   describe('rendering headers', () => {
