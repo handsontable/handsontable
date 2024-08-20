@@ -56,9 +56,6 @@ jobs:
           npm run docs:build:production:netlify
         # working-directory: ./latest/docs/
 
-      - name: List files in the repository
-        run: ls -al ./vuepress/dist/docs
-
       - name: "commit changes"
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
