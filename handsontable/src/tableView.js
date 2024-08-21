@@ -1059,7 +1059,8 @@ class TableView {
         const visualRowIndex = renderableRowIndex >= 0 ?
           rowMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
 
-        const visualIndexes = this.hot.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost, 'render');
+        const visualIndexes = this.hot
+          .runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost, 'render');
 
         if (Array.isArray(visualIndexes)) {
           const [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = visualIndexes;

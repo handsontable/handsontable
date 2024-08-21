@@ -313,7 +313,7 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Generates the merged cells from the settings provided to the plugin.
-   *.
+   *
    * @private
    */
   generateFromSettings() {
@@ -828,12 +828,18 @@ export class MergeCells extends BasePlugin {
     }
   }
 
+  /**
+   * The hook corrects the clicked coords to correct ones if the clicked cell is a merged cell.
+   *
+   * @param {Event} event The mouse event object.
+   * @param {CellCoords} visualCoords The visual coordinates object.
+   */
   #onBeforeOnCellMouseDown(event, visualCoords) {
-    // const mergeParent = this.mergedCellsCollection.get(visualCoords.row, visualCoords.col);
+    const mergeParent = this.mergedCellsCollection.get(visualCoords.row, visualCoords.col);
 
-    // if (mergeParent) {
-    //   visualCoords.col = mergeParent.col;
-    // }
+    if (mergeParent) {
+      // visualCoords.col = mergeParent.col;
+    }
   }
 
   /**
@@ -874,6 +880,8 @@ export class MergeCells extends BasePlugin {
    *
    * @param {number} row Row index.
    * @param {number} column Visual column index.
+   * @param {boolean} topmost Indicates if the hook request refers to overlay's element or the main table.
+   * @param {string} [source] String that identifies how this coords change will be processed.
    * @returns {Array|undefined} Visual coordinates of the merge.
    */
   #onModifyGetCellCoords(row, column, topmost, source) {
