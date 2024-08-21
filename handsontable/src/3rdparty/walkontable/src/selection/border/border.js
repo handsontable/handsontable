@@ -400,9 +400,6 @@ class Border {
     fromRow = Math.max(fromRow, firstRenderedRow);
     toRow = Math.min(toRow, lastRenderedRow);
 
-    const rowHeader = fromRow;
-    const columnHeader = fromColumn;
-
     if (toColumn < fromColumn || toRow < fromRow) {
       this.disappear();
 
@@ -410,18 +407,10 @@ class Border {
     }
 
     let fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
-
-    if (!(fromTD instanceof HTMLElement)) {
-      this.disappear();
-
-      return;
-    }
-
     const toTD = isMultiple ? wtTable.getCell(this.wot.createCellCoords(toRow, toColumn)) : fromTD;
     const fromOffset = offset(fromTD);
     const toOffset = isMultiple ? offset(toTD) : fromOffset;
     const containerOffset = offset(wtTable.TABLE);
-    const containerWidth = outerWidth(wtTable.TABLE);
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
@@ -430,6 +419,7 @@ class Border {
     let width = 0;
 
     if (isRtl) {
+      const containerWidth = outerWidth(wtTable.TABLE);
       const fromWidth = outerWidth(fromTD);
       const gridRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
 
@@ -442,6 +432,7 @@ class Border {
     }
 
     if (this.isEntireColumnSelected(fromRow, toRow)) {
+      const rowHeader = fromRow;
       const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, rowHeader, containerOffset);
       let fromTH = null;
 
@@ -458,6 +449,7 @@ class Border {
     let height = toOffset.top + outerHeight(toTD) - minTop;
 
     if (this.isEntireRowSelected(fromColumn, toColumn)) {
+      const columnHeader = fromColumn;
       const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, columnHeader, containerOffset);
       let fromTH = null;
 

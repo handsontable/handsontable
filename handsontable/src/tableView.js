@@ -1455,9 +1455,10 @@ class TableView {
     }
 
     const indexMapper = this.hot.rowIndexMapper;
+    const visualRowIndex = indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedRow());
 
-    return indexMapper.getNearestNotHiddenIndex(indexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedRow()), 1);
+    return indexMapper.getNearestNotHiddenIndex(visualRowIndex ?? 0, 1);
   }
 
   /**
@@ -1471,9 +1472,10 @@ class TableView {
     }
 
     const indexMapper = this.hot.rowIndexMapper;
+    const visualRowIndex = indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedRow());
 
-    return indexMapper.getNearestNotHiddenIndex(indexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedRow()), -1);
+    return indexMapper.getNearestNotHiddenIndex(visualRowIndex ?? this.hot.countRows() - 1, -1);
   }
 
   /**
@@ -1487,9 +1489,10 @@ class TableView {
     }
 
     const indexMapper = this.hot.columnIndexMapper;
+    const visualColumnIndex = indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedColumn());
 
-    return indexMapper.getNearestNotHiddenIndex(indexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedColumn()), 1);
+    return indexMapper.getNearestNotHiddenIndex(visualColumnIndex ?? 0, 1);
   }
 
   /**
@@ -1503,9 +1506,10 @@ class TableView {
     }
 
     const indexMapper = this.hot.columnIndexMapper;
+    const visualColumnIndex = indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedColumn());
 
-    return indexMapper.getNearestNotHiddenIndex(indexMapper
-      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedColumn()), -1);
+    return indexMapper.getNearestNotHiddenIndex(visualColumnIndex ?? this.hot.countCols() - 1, -1);
   }
 
   /**
