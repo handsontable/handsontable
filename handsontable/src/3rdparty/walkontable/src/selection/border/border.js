@@ -387,7 +387,7 @@ class Border {
       return;
     }
 
-    const { wtTable, rootDocument, rootWindow } = this.wot; // todo refactoring: consider about using internal facade (it is given by external code)
+    const { wtTable, rootDocument, rootWindow } = this.wot;
     let [fromRow, fromColumn, toRow, toColumn] = corners;
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     const firstRenderedRow = wtTable.getFirstRenderedRow();
@@ -395,18 +395,32 @@ class Border {
     const firstRenderedColumn = wtTable.getFirstRenderedColumn();
     const lastRenderedColumn = wtTable.getLastRenderedColumn();
 
-    fromColumn = Math.max(fromColumn, firstRenderedColumn);
-    toColumn = Math.min(toColumn, lastRenderedColumn);
-    fromRow = Math.max(fromRow, firstRenderedRow);
-    toRow = Math.min(toRow, lastRenderedRow);
+    let fromTD;
 
-    if (toColumn < fromColumn || toRow < fromRow) {
-      this.disappear();
+    if (isMultiple) {
+      fromColumn = Math.max(fromColumn, firstRenderedColumn);
+      toColumn = Math.min(toColumn, lastRenderedColumn);
+      fromRow = Math.max(fromRow, firstRenderedRow);
+      toRow = Math.min(toRow, lastRenderedRow);
 
-      return;
+      if (toColumn < fromColumn || toRow < fromRow) {
+        this.disappear();
+
+        return;
+      }
+
+      fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
+
+    } else {
+      fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
+
+      if (!(fromTD instanceof HTMLElement)) {
+        this.disappear();
+
+        return;
+      }
     }
 
-    let fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
     const toTD = isMultiple ? wtTable.getCell(this.wot.createCellCoords(toRow, toColumn)) : fromTD;
     const fromOffset = offset(fromTD);
     const toOffset = isMultiple ? offset(toTD) : fromOffset;

@@ -1,5 +1,5 @@
 import MergedCellCoords from './cellCoords';
-import { rangeEach, rangeEachReverse } from '../../helpers/number';
+import { rangeEach, rangeEachReverse, clamp } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -283,9 +283,23 @@ class MergedCellsCollection {
   isFirstRenderableMergedCell(row, column) {
     const mergeParent = this.get(row, column);
 
-    // Return if row and column indexes are within merge area and if they are first rendered indexes within the area.
-    return mergeParent && this.hot.rowIndexMapper.getNearestNotHiddenIndex(mergeParent.row, 1) === row &&
-        this.hot.columnIndexMapper.getNearestNotHiddenIndex(mergeParent.col, 1) === column;
+    if (!mergeParent) {
+      return false;
+    }
+
+    const {
+      row: mergeRow,
+      col: mergeColumn,
+      rowspan,
+      colspan,
+    } = mergeParent;
+    const firstRenderedRow = this.hot.view.getFirstRenderedVisibleRow();
+    const firstRenderedColumn = this.hot.view.getFirstRenderedVisibleColumn();
+    const mergeCellsTopRow = clamp(firstRenderedRow, mergeRow, mergeRow + rowspan - 1);
+    const mergeCellsStartColumn = clamp(firstRenderedColumn, mergeColumn, mergeColumn + colspan - 1);
+
+    return this.hot.rowIndexMapper.getNearestNotHiddenIndex(mergeCellsTopRow, 1) === row &&
+      this.hot.columnIndexMapper.getNearestNotHiddenIndex(mergeCellsStartColumn, 1) === column;
   }
 
   /**

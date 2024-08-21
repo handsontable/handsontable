@@ -611,10 +611,9 @@ class Table {
       } else {
         return parentElement.childNodes[renderedRowIndex];
       }
-
-    } else {
-      return false;
     }
+
+    return false;
   }
 
   /**

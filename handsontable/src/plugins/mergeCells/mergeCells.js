@@ -8,7 +8,7 @@ import toggleMergeItem from './contextMenuItem/toggleMerge';
 import { arrayEach } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { warn } from '../../helpers/console';
-import { rangeEach } from '../../helpers/number';
+import { rangeEach, clamp } from '../../helpers/number';
 import './mergeCells.css';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
@@ -895,7 +895,12 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const { row: mergeRow, col: mergeColumn, colspan, rowspan } = mergeParent;
+    const {
+      row: mergeRow,
+      col: mergeColumn,
+      colspan,
+      rowspan,
+    } = mergeParent;
     const topStartRow = mergeRow;
     const topStartColumn = mergeColumn;
     const bottomEndRow = mergeRow + rowspan - 1;
@@ -903,10 +908,10 @@ export class MergeCells extends BasePlugin {
 
     if (source === 'render' && this.getSetting('virtualized')) {
       return [
-        Math.max(topStartRow, this.hot.view.getFirstRenderedVisibleRow()),
-        Math.max(topStartColumn, this.hot.view.getFirstRenderedVisibleColumn()),
-        Math.min(bottomEndRow, this.hot.view.getLastRenderedVisibleRow()),
-        Math.min(bottomEndColumn, this.hot.view.getLastRenderedVisibleColumn()),
+        clamp(this.hot.view.getFirstRenderedVisibleRow(), topStartRow, bottomEndRow),
+        clamp(this.hot.view.getFirstRenderedVisibleColumn(), topStartColumn, bottomEndColumn),
+        clamp(this.hot.view.getLastRenderedVisibleRow(), topStartRow, bottomEndRow),
+        clamp(this.hot.view.getLastRenderedVisibleColumn(), topStartColumn, bottomEndColumn),
       ];
     }
 
