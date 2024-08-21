@@ -41,10 +41,6 @@ export function createMenuItemRenderer(mainTableHot) {
    * @param {string} value The cell value.
    */
   return (menuHot, TD, row, col, prop, value) => {
-    if (TD.hasAttribute('ghost-table')) {
-      return;
-    }
-
     const item = menuHot.getSourceDataAtRow(row);
     const wrapper = mainTableHot.rootDocument.createElement('div');
     const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
