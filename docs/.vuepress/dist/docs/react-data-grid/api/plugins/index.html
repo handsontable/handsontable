@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <!--
+Generated at Tue Aug 20 2024 18:52:15 GMT+0000 (Coordinated Universal Time)
+SHA: 421062b52ca15bc853e1513ee72f46112a634702
+-->
+  <meta charset="utf-8">
+  <title>API reference: Plugins - React Data Grid | Handsontable</title>
+  <meta name="generator" content="VuePress 1.9.10">
+  <link rel="icon" media="(prefers-color-scheme: light)" href="https://handsontable.com/docs/img/favicon.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="https://handsontable.com/docs/img/favicon-dark.png">
+    <link rel="preload" href="https://handsontable.com/docs/data/common.json" as="fetch" crossorigin="">
+    <script>
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          environment: 'production',
+          tracesSampleRate: 0,
+          profilesSampleRate: 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0.2,
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),   
+          ],
+        });
+      };
+    </script>
+    <script id="Sentry.io" src="https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js" crossorigin="anonymous" defer="true"></script>
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="ef171f1d-a288-433f-b680-3cdbdebd5646" defer="true"></script>
+    <script id="Headwayapp" src="https://cdn.headwayapp.co/widget.js" defer="true"></script>
+    <script>const DOCS_VERSION = 'next';</script>
+    <script>
+      (function(w, d) {
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    </script>
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-55L5D3');
+    </script>
+    <script>
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      </script>
+  <meta name="description" content="A complete list of Handsontable&#39;s plugins that can extend your data grid&#39;s capabilities.">
+    <meta name="og:url" content="https://handsontable.com/docs/react-data-grid/api/plugins/">
+    <meta name="og:type" content="website">
+    <meta name="og:title" content="Plugins">
+    <meta name="og:description" content="A complete list of Handsontable&#39;s plugins that can extend your data grid&#39;s capabilities.">
+    <meta name="og:image" content="https://handsontable.com/docs/img/handsontable-banner-og.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://handsontable.com/docs/react-data-grid/api/plugins/" rel="canonical" />
+  <link rel="preload" href="/docs/assets/css/0.styles.efdf810f.css" as="style"><link rel="preload" href="/docs/assets/js/app.3f2e5286.js" as="script"><link rel="preload" href="/docs/assets/js/4.a71c13f3.js" as="script"><link rel="preload" href="/docs/assets/js/3.341147d5.js" as="script"><link rel="preload" href="/docs/assets/js/2.25ad14de.js" as="script"><link rel="preload" href="/docs/assets/js/269.382e2c2b.js" as="script">
+  <link rel="stylesheet" href="/docs/assets/css/0.styles.efdf810f.css">
+</head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="//www.googletagmanager.com/ns.html?id=GTM-55L5D3"
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<div id="app" data-server-rendered="true"><div class="layout-container"><script type="application/ld+json">{
+    "@context": "https://schema.org/",
+    "@type": "WebPage",
+    "name": "API reference: Plugins - React Data Grid  Handsontable",
+    "headline": "API reference: Plugins - React Data Grid  Handsontable",
+    "description": "A complete list of Handsontables plugins that can extend your data grids capabilities.",
+    "url": "https://handsontable.com/docs/react-data-grid/api/plugins/",
+    "mainEntityOfPage": {
+        "@type": "TechArticle",
+        "@id": "https://handsontable.com/docs/react-data-grid/api/plugins/"
+    },
+    "keywords": [],
+    "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsonable-docs-cover.png"
+    },
+    "image": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsonable-docs-cover.png"
+    },
+    "author": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable Team",
+        "url": "https://handsontable.com",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "alternateName": "Handsontable",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "dateModified": "2024-08-20T18:58:52.536Z",
+    "lastReviewed": "2024-08-20T18:58:52.536Z",
+    "copyrightHolder": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://handsontable.com/docs/img/handsonable-docs-cover.png"
+        }
+    },
+    "copyrightYear": "2024"
+}</script> <div class="theme-container"><header class="navbar"><div class="navbar-wrapper"><a href="/docs/react-data-grid/" aria-label="Docs Homepage Link" class="home-link router-link-active"><i class="Logo"></i></a> <div class="top-bar"><div class="top-bar_left"><div class="framework-and-version"><nav class="nav-frameworks nav-links"><i class="ico i-react"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="React" class="dropdown-title"><span class="title">React</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/next/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/next/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav></div></div> <div id="algolia-search"></div> <div class="menu"><nav class="nav-links"><div class="nav-item"><a href="/docs/react-data-grid/" class="nav-link">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/react-data-grid/api/" class="nav-link router-link-active">
+  API Reference
+</a></div> <div class="nav-item changelog"><a href="/docs/react-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav> <nav class="nav-links"><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Support" class="dropdown-title"><span class="title">Support</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="https://forum.handsontable.com" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Developers Forum
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://github.com/handsontable/handsontable/discussions" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    GitHub Discussions
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://stackoverflow.com/tags/handsontable" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    StackOverflow
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://handsontable.com/contact?category=technical_support" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Contact support
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div></nav> <nav class="icons-nav"><span class="news"><i class="ico i-bell"></i></span> <a href="https://github.com/handsontable/handsontable" target="_blank" class="github-stars"><i class="ico i-github"></i> <!----></a> <button id="mobileSearch" aria-label="Search" class="menuButton"><i class="ico i-search"></i></button> <button aria-label="Menu button" class="menuButton"><i class="ico i-menu"></i> <i class="ico i-close"></i></button></nav></div></div></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <div class="sidebar-nav"><div class="mobile-nav"><nav class="nav-frameworks nav-links"><i class="ico i-react"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="React" class="dropdown-title"><span class="title">React</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/next/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/next/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav> <nav class="nav-links"><div class="nav-item"><a href="/docs/react-data-grid/" class="nav-link">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/react-data-grid/api/" class="nav-link router-link-active">
+  API Reference
+</a></div> <div class="nav-item changelog"><a href="/docs/react-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav></div> <ul class="sidebar-links"><li><a href="/docs/react-data-grid/api/" aria-current="page" class="sidebar-link">Introduction</a></li><li><a href="/docs/react-data-grid/api/core/" class="sidebar-link">Core</a></li><li><a href="/docs/react-data-grid/api/hooks/" class="sidebar-link">Hooks</a></li><li><a href="/docs/react-data-grid/api/options/" class="sidebar-link">Configuration options</a></li><li><section class="sidebar-group open depth-0"><a href="/docs/react-data-grid/api/plugins/" aria-current="page" class="sidebar-heading clickable router-link-exact-active router-link-active active"><i class="ico v-511702f6"></i> <span>Plugins</span> <!----></a> <ul class="sidebar-links sidebar-group-items"><li><a href="/docs/react-data-grid/api/auto-column-size/" class="sidebar-link">AutoColumnSize</a></li><li><a href="/docs/react-data-grid/api/auto-row-size/" class="sidebar-link">AutoRowSize</a></li><li><a href="/docs/react-data-grid/api/autofill/" class="sidebar-link">Autofill</a></li><li><a href="/docs/react-data-grid/api/bind-rows-with-headers/" class="sidebar-link">BindRowsWithHeaders</a></li><li><a href="/docs/react-data-grid/api/collapsible-columns/" class="sidebar-link">CollapsibleColumns</a></li><li><a href="/docs/react-data-grid/api/column-sorting/" class="sidebar-link">ColumnSorting</a></li><li><a href="/docs/react-data-grid/api/column-summary/" class="sidebar-link">ColumnSummary</a></li><li><a href="/docs/react-data-grid/api/comments/" class="sidebar-link">Comments</a></li><li><a href="/docs/react-data-grid/api/context-menu/" class="sidebar-link">ContextMenu</a></li><li><a href="/docs/react-data-grid/api/copy-paste/" class="sidebar-link">CopyPaste</a></li><li><a href="/docs/react-data-grid/api/custom-borders/" class="sidebar-link">CustomBorders</a></li><li><a href="/docs/react-data-grid/api/drag-to-scroll/" class="sidebar-link">DragToScroll</a></li><li><a href="/docs/react-data-grid/api/dropdown-menu/" class="sidebar-link">DropdownMenu</a></li><li><a href="/docs/react-data-grid/api/export-file/" class="sidebar-link">ExportFile</a></li><li><a href="/docs/react-data-grid/api/filters/" class="sidebar-link">Filters</a></li><li><a href="/docs/react-data-grid/api/formulas/" class="sidebar-link">Formulas</a></li><li><a href="/docs/react-data-grid/api/hidden-columns/" class="sidebar-link">HiddenColumns</a></li><li><a href="/docs/react-data-grid/api/hidden-rows/" class="sidebar-link">HiddenRows</a></li><li><a href="/docs/react-data-grid/api/manual-column-freeze/" class="sidebar-link">ManualColumnFreeze</a></li><li><a href="/docs/react-data-grid/api/manual-column-move/" class="sidebar-link">ManualColumnMove</a></li><li><a href="/docs/react-data-grid/api/manual-column-resize/" class="sidebar-link">ManualColumnResize</a></li><li><a href="/docs/react-data-grid/api/manual-row-move/" class="sidebar-link">ManualRowMove</a></li><li><a href="/docs/react-data-grid/api/manual-row-resize/" class="sidebar-link">ManualRowResize</a></li><li><a href="/docs/react-data-grid/api/merge-cells/" class="sidebar-link">MergeCells</a></li><li><a href="/docs/react-data-grid/api/multi-column-sorting/" class="sidebar-link">MultiColumnSorting</a></li><li><a href="/docs/react-data-grid/api/nested-headers/" class="sidebar-link">NestedHeaders</a></li><li><a href="/docs/react-data-grid/api/nested-rows/" class="sidebar-link">NestedRows</a></li><li><a href="/docs/react-data-grid/api/persistent-state/" class="sidebar-link">PersistentState</a></li><li><a href="/docs/react-data-grid/api/search/" class="sidebar-link">Search</a></li><li><a href="/docs/react-data-grid/api/trim-rows/" class="sidebar-link">TrimRows</a></li><li><a href="/docs/react-data-grid/api/undo-redo/" class="sidebar-link">UndoRedo</a></li></ul></section></li></ul></div> </aside> <main class="page api"><div class="breadcrumbs"><a href="https://handsontable.com/docs/react-data-grid/api/"><i class="ico i-home"></i> <span> <span></span>React Data Grid</span></a> <a href="https://handsontable.com/docs/react-data-grid/api/plugins"><span>Plugins</span></a></div> <div class="theme-default-content content__default"><h1 id="available-plugins"><a href="#available-plugins" class="header-link"><span class="header-framework">React Data Grid</span>Available plugins</a></h1> <table><thead><tr><th>Plugin Name</th> <th>Description</th></tr></thead> <tbody><tr><td><a href="/docs/react-data-grid/api/auto-column-size/">AutoColumnSize</a></td> <td>Automatically adjusts the column's width to the size of the content.</td></tr> <tr><td><a href="/docs/react-data-grid/api/auto-row-size/">AutoRowSize</a></td> <td>Automatically adjusts the row's height to the size of the content.</td></tr> <tr><td><a href="/docs/react-data-grid/api/autofill/">Autofill</a></td> <td>Drag the fill handle - a square in the bottom right corner of the cell to fill cells with the data series.</td></tr> <tr><td><a href="/docs/react-data-grid/api/bind-rows-with-headers/">BindRowsWithHeaders</a></td> <td>Bind rows with headers to lock the row number, always displaying them side by side. Especially useful when each row has its unique ID.</td></tr> <tr><td><a href="/docs/react-data-grid/api/collapsible-columns/">CollapsibleColumns</a></td> <td>Expand and collapse columns.</td></tr> <tr><td><a href="/docs/react-data-grid/api/column-sorting/">ColumnSorting</a></td> <td>Sort data in ascending or descending order throughout the column (note: this plugin also represents the ability to sort rows, its name might cause confusion).</td></tr> <tr><td><a href="/docs/react-data-grid/api/column-summary/">ColumnSummary</a></td> <td>Make pre-defined basic calculations (such as average, sum, max, min) and display the results.</td></tr> <tr><td><a href="/docs/react-data-grid/api/comments/">Comments</a></td> <td>Provide an additional note about the cell to help better understand its content.</td></tr> <tr><td><a href="/docs/react-data-grid/api/context-menu/">ContextMenu</a></td> <td>Right-click to open a context menu.</td></tr> <tr><td><a href="/docs/react-data-grid/api/copy-paste/">CopyPaste</a></td> <td>Copy, cut, and paste data.</td></tr> <tr><td><a href="/docs/react-data-grid/api/custom-borders/">CustomBorders</a></td> <td>Apply a custom border style around a single cell or a range of cells.</td></tr> <tr><td><a href="/docs/react-data-grid/api/drag-to-scroll/">DragToScroll</a></td> <td>Drag the selection outside of the viewport to enable scrolling.</td></tr> <tr><td><a href="/docs/react-data-grid/api/dropdown-menu/">DropdownMenu</a></td> <td>Add a menu to the column header to enable additional operations for the column.</td></tr> <tr><td><a href="/docs/react-data-grid/api/export-file/">ExportFile</a></td> <td>Export the data to a CSV file (note: this plugin provides a capability to export the data to only a CSV file type, its name might cause confusion).</td></tr> <tr><td><a href="/docs/react-data-grid/api/filters/">Filters</a></td> <td>Display rows that meet your criteria and hide the rest.</td></tr> <tr><td><a href="/docs/react-data-grid/api/formulas/">Formulas</a></td> <td>Use Excel-like functions inside of cells to perform calculations.</td></tr> <tr><td><a href="/docs/react-data-grid/api/hidden-columns/">HiddenColumns</a></td> <td>Hide specific columns.</td></tr> <tr><td><a href="/docs/react-data-grid/api/hidden-rows/">HiddenRows</a></td> <td>Hide specific rows.</td></tr> <tr><td><a href="/docs/react-data-grid/api/manual-column-freeze/">ManualColumnFreeze</a></td> <td>Pin the columns to the left to keep them visible while scrolling.</td></tr> <tr><td><a href="/docs/react-data-grid/api/manual-column-move/">ManualColumnMove</a></td> <td>Drag a column to change its order in the data grid.</td></tr> <tr><td><a href="/docs/react-data-grid/api/manual-column-resize/">ManualColumnResize</a></td> <td>Drag the sizing handle to change the width of a column.</td></tr> <tr><td><a href="/docs/react-data-grid/api/manual-row-move/">ManualRowMove</a></td> <td>Drag a row to change its order in the data grid.</td></tr> <tr><td><a href="/docs/react-data-grid/api/manual-row-resize/">ManualRowResize</a></td> <td>Drag the sizing handle to change the height of a row.</td></tr> <tr><td><a href="/docs/react-data-grid/api/merge-cells/">MergeCells</a></td> <td>Span the cells across multiple rows or columns.</td></tr> <tr><td><a href="/docs/react-data-grid/api/multi-column-sorting/">MultiColumnSorting</a></td> <td>Sort the rows by multiple columns.</td></tr> <tr><td><a href="/docs/react-data-grid/api/nested-headers/">NestedHeaders</a></td> <td>Create a nested, hierarchical structure of column headers to put your data into groups.</td></tr> <tr><td><a href="/docs/react-data-grid/api/nested-rows/">NestedRows</a></td> <td>Enable editable views of data sources with nested (tree/parent-child) structures.</td></tr> <tr><td><a href="/docs/react-data-grid/api/persistent-state/">PersistentState</a></td> <td>Save the state of column sorting, column positions, and column sizes in local storage to preserve the table state between page reloads.</td></tr> <tr><td><a href="/docs/react-data-grid/api/search/">Search</a></td> <td>Search for specific values in the displayed data across the table.</td></tr> <tr><td><a href="/docs/react-data-grid/api/trim-rows/">TrimRows</a></td> <td>Exclude the specific rows from being rendered and calculated by the data grid. This feature is mainly used internally, for example, in the filter plugin.</td></tr> <tr><td><a href="/docs/react-data-grid/api/undo-redo/">UndoRedo</a></td> <td>Undo or redo changes made by the user.</td></tr></tbody></table></div> <div class="page-top" style="display:none;"><div class="custom-block tip version-alert"><p>There is a newer version of Handsontable available.
+            <a href="/docs/">Switch to the latest version ⟶</a></p></div></div> <footer class="footer"><a href="https://github.com/handsontable/handsontable/edit/develop/docs/content/api/plugins.md" target="_blank" rel="noopener noreferrer" class="edit-link">Edit on GitHub <i class="ico i-external"></i></a> <div class="footer-links"><div class="socail-links"><a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a> <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a> <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a></div> <div class="hot-links"><a href="https://handsontable.com/privacy">Privacy policy</a> <a href="https://handsontable.com/terms-of-use">Terms of use</a> <a href="https://handsontable.com/team">Team</a> <a href="https://handsontable.com/contact?category=technical_support">Contact</a> <a href="https://handsontable.com/blog/">Blog</a> <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a></div></div> <div class="copyright"><p>© 2012 - 2024 Handsoncode</p> <label id="switch" class="dark-mode"><span class="inner" style="display:none;"><input type="checkbox"> <span style="display:none;"><i class="ico i-dm-dark"></i>Light</span> <span style="display:;"><i class="ico i-dm-light"></i>Dark</span></span></label></div></footer> </main></div></div><div class="global-ui"></div></div>
+
+<script src="/docs/assets/js/app.3f2e5286.js" defer></script><script src="/docs/assets/js/4.a71c13f3.js" defer></script><script src="/docs/assets/js/3.341147d5.js" defer></script><script src="/docs/assets/js/2.25ad14de.js" defer></script><script src="/docs/assets/js/269.382e2c2b.js" defer></script>
+</body>
+</html>
