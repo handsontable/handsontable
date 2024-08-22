@@ -801,13 +801,12 @@ inherit(UndoRedo.FiltersAction, UndoRedo.Action);
 
 UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
   const filters = instance.getPlugin('filters');
-  const previousStack =
-    this.previousConditionsStack ||
-    this.conditionsStack.slice(0, this.conditionsStack.length - 1);
 
   instance.addHookOnce('afterViewRender', undoneCallback);
 
-  filters.conditionCollection.importAllConditions(previousStack);
+  if (this.previousConditionsStack) {
+    filters.conditionCollection.importAllConditions(this.previousConditionsStack);
+  }
 
   filters.filter();
 };
