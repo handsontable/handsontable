@@ -804,7 +804,9 @@ UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
 
   instance.addHookOnce('afterViewRender', undoneCallback);
 
-  filters.conditionCollection.importAllConditions(this.previousConditionsStack);
+  if (this.previousConditionsStack) {
+    filters.conditionCollection.importAllConditions(this.previousConditionsStack);
+  }
 
   filters.filter();
 };
