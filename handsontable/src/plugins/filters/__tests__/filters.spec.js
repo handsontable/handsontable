@@ -727,6 +727,71 @@ describe('Filters', () => {
 
       expect(getData().length).toEqual(2);
     });
+
+    it('should undo multiple steps of filtering performed with the Filters\' UI', async() => {
+      const hot = handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(1);
+      openDropdownByConditionMenu();
+      selectDropdownByConditionMenuOption('Begins with');
+
+      await sleep(20);
+      document.activeElement.value = 'R';
+      keyUp('R');
+
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      expect(getData().length).toEqual(2);
+
+      setDataAtCell(0, 1, `${getDataAtCell(0, 1)}!`);
+      setDataAtCell(1, 1, `${getDataAtCell(1, 1)}!`);
+
+      expect(getDataAtCell(0, 1).includes('!')).toBe(true);
+      expect(getDataAtCell(1, 1).includes('!')).toBe(true);
+
+      dropdownMenu(1);
+      openDropdownByConditionMenu();
+      selectDropdownByConditionMenuOption('Begins with');
+
+      await sleep(20);
+      document.activeElement.value = '';
+      keyUp('Backspace');
+
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      expect(getData().length).toEqual(39);
+      expect(getDataAtCell(0, 1).includes('!')).toBe(false);
+      expect(getDataAtCell(1, 1).includes('!')).toBe(false);
+      expect(getDataAtCell(4, 1).includes('!')).toBe(true);
+      expect(getDataAtCell(33, 1).includes('!')).toBe(true);
+
+      hot.undo();
+      expect(getData().length).toEqual(2);
+      expect(getDataAtCell(0, 1).includes('!')).toBe(true);
+      expect(getDataAtCell(1, 1).includes('!')).toBe(true);
+
+      hot.undo();
+      expect(getDataAtCell(0, 1).includes('!')).toBe(true);
+      expect(getDataAtCell(1, 1).includes('!')).toBe(false);
+
+      hot.undo();
+      expect(getDataAtCell(0, 1).includes('!')).toBe(false);
+      expect(getDataAtCell(1, 1).includes('!')).toBe(false);
+
+      hot.undo();
+      expect(getData().length).toEqual(39);
+      expect(getDataAtCell(0, 1).includes('!')).toBe(false);
+      expect(getDataAtCell(1, 1).includes('!')).toBe(false);
+      expect(getDataAtCell(4, 1).includes('!')).toBe(false);
+      expect(getDataAtCell(33, 1).includes('!')).toBe(false);
+    });
   });
 
   describe('Hooks', () => {

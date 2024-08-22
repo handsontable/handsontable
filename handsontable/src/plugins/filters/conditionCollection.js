@@ -35,6 +35,13 @@ class ConditionCollection {
    * @type {LinkedPhysicalIndexToValueMap}
    */
   filteringStates = new IndexToValueMap();
+  /**
+   * Stores the previous state of the condition stack before the latest filter operation.
+   * This is used in the `beforeFilter` plugin to allow performing the undo operation.
+   *
+   * @type {null|Array}
+   */
+  previousConditionStack = null;
 
   constructor(hot, isMapRegistrable = true) {
     this.hot = hot;
@@ -46,6 +53,8 @@ class ConditionCollection {
     } else {
       this.filteringStates.init(this.hot.columnIndexMapper.getNumberOfIndexes());
     }
+
+    this.hot.addHook('afterFilter', () => this.#onAfterFilter());
   }
 
   /**
@@ -226,6 +235,8 @@ class ConditionCollection {
    * @fires ConditionCollection#afterRemove
    */
   removeConditions(column) {
+    this.previousConditionStack = this.exportAllConditions();
+
     this.runLocalHooks('beforeRemove', column);
     this.filteringStates.clearValue(column);
     this.runLocalHooks('afterRemove', column);
@@ -271,6 +282,15 @@ class ConditionCollection {
 
     this.filteringStates = null;
     this.clearLocalHooks();
+  }
+
+  /**
+   * Callback for the `afterFilter` hook.
+   *
+   * @private
+   */
+  #onAfterFilter() {
+    this.previousConditionStack = null;
   }
 }
 
