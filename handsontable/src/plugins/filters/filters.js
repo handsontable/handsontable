@@ -515,7 +515,11 @@ export class Filters extends BasePlugin {
     let visibleVisualRows = [];
 
     const conditions = this.conditionCollection.exportAllConditions();
-    const allowFiltering = this.hot.runHooks('beforeFilter', conditions);
+    const allowFiltering = this.hot.runHooks(
+      'beforeFilter',
+      conditions,
+      this.conditionCollection.previousConditionStack
+    );
 
     if (allowFiltering !== false) {
       if (needToFilter) {
@@ -548,6 +552,8 @@ export class Filters extends BasePlugin {
     }
 
     this.hot.runHooks('afterFilter', conditions);
+
+    this.conditionCollection.setPreviousConditionStack(null);
 
     this.hot.view.adjustElementsSize();
     this.hot.render();
