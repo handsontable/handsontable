@@ -553,6 +553,8 @@ export class Filters extends BasePlugin {
 
     this.hot.runHooks('afterFilter', conditions);
 
+    this.conditionCollection.setPreviousConditionStack(null);
+
     this.hot.view.adjustElementsSize();
     this.hot.render();
 

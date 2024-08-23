@@ -773,23 +773,23 @@ describe('Filters', () => {
       expect(getDataAtCell(33, 1).includes('!')).toBe(true);
 
       hot.undo();
-      
+
       expect(getData().length).toEqual(2);
       expect(getDataAtCell(0, 1).includes('!')).toBe(true);
       expect(getDataAtCell(1, 1).includes('!')).toBe(true);
 
       hot.undo();
-      
+
       expect(getDataAtCell(0, 1).includes('!')).toBe(true);
       expect(getDataAtCell(1, 1).includes('!')).toBe(false);
 
       hot.undo();
-      
+
       expect(getDataAtCell(0, 1).includes('!')).toBe(false);
       expect(getDataAtCell(1, 1).includes('!')).toBe(false);
 
       hot.undo();
-      
+
       expect(getData().length).toEqual(39);
       expect(getDataAtCell(0, 1).includes('!')).toBe(false);
       expect(getDataAtCell(1, 1).includes('!')).toBe(false);

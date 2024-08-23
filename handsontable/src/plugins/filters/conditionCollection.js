@@ -53,8 +53,6 @@ class ConditionCollection {
     } else {
       this.filteringStates.init(this.hot.columnIndexMapper.getNumberOfIndexes());
     }
-
-    this.hot.addHook('afterFilter', () => this.#onAfterFilter());
   }
 
   /**
@@ -300,15 +298,6 @@ class ConditionCollection {
 
     this.filteringStates = null;
     this.clearLocalHooks();
-  }
-
-  /**
-   * Callback for the `afterFilter` hook.
-   *
-   * @private
-   */
-  #onAfterFilter() {
-    this.setPreviousConditionStack(null);
   }
 }
 
