@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed copy/paste/cut issues when `outsideClickDeselects` was disabled",
+  "type": "fixed",
+  "issueOrPR": 11139,
+  "breaking": false,
+  "framework": "none"
+}

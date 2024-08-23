@@ -626,11 +626,16 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCopy(event) {
+    const focusedElement = this.hot.getFocusManager().getRefocusElement();
+    const isHotInput = event.target?.hasAttribute('data-hot-input');
+
     if (
       !this.hot.isListening() && !this.#isTriggeredByCopy ||
       this.isEditorOpened() ||
-      event.target?.hasAttribute('data-hot-input') ||
-      !this.hot.getSettings().outsideClickDeselects && event.target !== this.hot.rootDocument.body
+      event.target instanceof HTMLElement && (
+        isHotInput && event.target !== focusedElement ||
+        !isHotInput && event.target !== this.hot.rootDocument.body
+      )
     ) {
       return;
     }
@@ -669,11 +674,16 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCut(event) {
+    const focusedElement = this.hot.getFocusManager().getRefocusElement();
+    const isHotInput = event.target?.hasAttribute('data-hot-input');
+
     if (
       !this.hot.isListening() && !this.#isTriggeredByCut ||
       this.isEditorOpened() ||
-      event.target?.hasAttribute('data-hot-input') ||
-      !this.hot.getSettings().outsideClickDeselects && event.target !== this.hot.rootDocument.body
+      event.target instanceof HTMLElement && (
+        isHotInput && event.target !== focusedElement ||
+        !isHotInput && event.target !== this.hot.rootDocument.body
+      )
     ) {
       return;
     }
@@ -710,12 +720,17 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onPaste(event) {
+    const focusedElement = this.hot.getFocusManager().getRefocusElement();
+    const isHotInput = event.target?.hasAttribute('data-hot-input');
+
     if (
       !this.hot.isListening() ||
       this.isEditorOpened() ||
-      event.target?.hasAttribute('data-hot-input') ||
       !this.hot.getSelected() ||
-      !this.hot.getSettings().outsideClickDeselects && event.target !== this.hot.rootDocument.body
+      event.target instanceof HTMLElement && (
+        isHotInput && event.target !== focusedElement ||
+        !isHotInput && event.target !== this.hot.rootDocument.body
+      )
     ) {
       return;
     }

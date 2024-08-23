@@ -1,5 +1,5 @@
 import MergedCellCoords from './cellCoords';
-import { rangeEach, rangeEachReverse, clamp } from '../../helpers/number';
+import { rangeEach, clamp } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -483,19 +483,24 @@ class MergedCellsCollection {
       default:
     }
 
-    arrayEach(this.mergedCells, (currentMerge) => {
-      this.#removeMergedCellFromMatrix(currentMerge);
+    const removedMergedCells = [];
+
+    this.mergedCells.forEach((currentMerge) => {
       currentMerge.shift(shiftVector, index);
-      this.#addMergedCellToMatrix(currentMerge);
+
+      if (currentMerge.removed) {
+        removedMergedCells.push(currentMerge);
+      }
     });
 
-    rangeEachReverse(this.mergedCells.length - 1, 0, (i) => {
-      const currentMerge = this.mergedCells[i];
+    removedMergedCells.forEach((removedMerge) => {
+      this.mergedCells.splice(this.mergedCells.indexOf(removedMerge), 1);
+    });
 
-      if (currentMerge && currentMerge.removed) {
-        this.mergedCells.splice(this.mergedCells.indexOf(currentMerge), 1);
-        this.#removeMergedCellFromMatrix(currentMerge);
-      }
+    this.mergedCellsMatrix.clear();
+
+    this.mergedCells.forEach((currentMerge) => {
+      this.#addMergedCellToMatrix(currentMerge);
     });
   }
 

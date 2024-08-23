@@ -880,7 +880,8 @@ describe('MergeCells', () => {
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 1, col: 1, rowspan: 2, colspan: 2 },
-          { row: 2, col: 5, rowspan: 2, colspan: 2 }
+          { row: 3, col: 5, rowspan: 2, colspan: 1 },
+          { row: 3, col: 6, rowspan: 2, colspan: 1 },
         ],
         height: 400,
         width: 400
@@ -888,11 +889,16 @@ describe('MergeCells', () => {
 
       hot.alter('insert_col_start', 3, 2);
 
-      const plugin = hot.getPlugin('mergeCells');
-      const mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
+      const cellsCollection = hot.getPlugin('mergeCells').mergedCellsCollection;
 
-      expect(mergedCellsCollection[0].col).toEqual(1);
-      expect(mergedCellsCollection[1].col).toEqual(7);
+      expect(cellsCollection.get(1, 1).col).toBe(1);
+      expect(cellsCollection.get(3, 3)).toBe(false);
+      expect(cellsCollection.get(3, 4)).toBe(false);
+      expect(cellsCollection.get(3, 5)).toBe(false);
+      expect(cellsCollection.get(3, 6)).toBe(false);
+      expect(cellsCollection.get(3, 7).col).toBe(7);
+      expect(cellsCollection.get(3, 8).col).toBe(8);
+      expect(cellsCollection.get(3, 9)).toBe(false);
     });
 
     it('should shift the merged cells left, when removing a column on the left side of them', () => {
@@ -900,7 +906,8 @@ describe('MergeCells', () => {
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 1, col: 1, rowspan: 2, colspan: 2 },
-          { row: 2, col: 5, rowspan: 2, colspan: 2 }
+          { row: 3, col: 5, rowspan: 2, colspan: 1 },
+          { row: 3, col: 6, rowspan: 2, colspan: 1 },
         ],
         height: 400,
         width: 400
@@ -908,11 +915,14 @@ describe('MergeCells', () => {
 
       hot.alter('remove_col', 3, 2);
 
-      const plugin = hot.getPlugin('mergeCells');
-      const mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
+      const cellsCollection = hot.getPlugin('mergeCells').mergedCellsCollection;
 
-      expect(mergedCellsCollection[0].col).toEqual(1);
-      expect(mergedCellsCollection[1].col).toEqual(3);
+      expect(cellsCollection.get(1, 1).col).toBe(1);
+      expect(cellsCollection.get(3, 3).col).toBe(3);
+      expect(cellsCollection.get(3, 4).col).toBe(4);
+      expect(cellsCollection.get(3, 5)).toBe(false);
+      expect(cellsCollection.get(3, 6)).toBe(false);
+      expect(cellsCollection.get(3, 7)).toBe(false);
 
     });
 
@@ -920,8 +930,9 @@ describe('MergeCells', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
-          { row: 1, col: 1, rowspan: 2, colspan: 2 },
-          { row: 5, col: 5, rowspan: 2, colspan: 2 }
+          { row: 1, col: 1, rowspan: 1, colspan: 2 },
+          { row: 5, col: 5, rowspan: 2, colspan: 2 },
+          { row: 7, col: 5, rowspan: 2, colspan: 2 },
         ],
         height: 400,
         width: 400
@@ -929,11 +940,15 @@ describe('MergeCells', () => {
 
       hot.alter('insert_row_above', 3, 2);
 
-      const plugin = hot.getPlugin('mergeCells');
-      const mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
+      const cellsCollection = hot.getPlugin('mergeCells').mergedCellsCollection;
 
-      expect(mergedCellsCollection[0].row).toEqual(1);
-      expect(mergedCellsCollection[1].row).toEqual(7);
+      expect(cellsCollection.get(1, 1).row).toBe(1);
+      expect(cellsCollection.get(5, 5)).toBe(false);
+      expect(cellsCollection.get(6, 5)).toBe(false);
+      expect(cellsCollection.get(7, 5).row).toBe(7);
+      expect(cellsCollection.get(8, 5).row).toBe(7);
+      expect(cellsCollection.get(9, 5).row).toBe(9);
+      expect(cellsCollection.get(10, 5).row).toBe(9);
     });
 
     it('should shift the merged cells up, when removing rows above them', () => {
@@ -941,7 +956,8 @@ describe('MergeCells', () => {
         data: Handsontable.helper.createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 1, col: 1, rowspan: 2, colspan: 2 },
-          { row: 5, col: 5, rowspan: 2, colspan: 2 }
+          { row: 5, col: 5, rowspan: 2, colspan: 2 },
+          { row: 7, col: 5, rowspan: 2, colspan: 2 },
         ],
         height: 400,
         width: 400
@@ -949,11 +965,15 @@ describe('MergeCells', () => {
 
       hot.alter('remove_row', 3, 2);
 
-      const plugin = hot.getPlugin('mergeCells');
-      const mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
+      const cellsCollection = hot.getPlugin('mergeCells').mergedCellsCollection;
 
-      expect(mergedCellsCollection[0].row).toEqual(1);
-      expect(mergedCellsCollection[1].row).toEqual(3);
+      expect(cellsCollection.get(1, 1).row).toBe(1);
+      expect(cellsCollection.get(2, 5)).toBe(false);
+      expect(cellsCollection.get(3, 5).row).toBe(3);
+      expect(cellsCollection.get(4, 5).row).toBe(3);
+      expect(cellsCollection.get(5, 5).row).toBe(5);
+      expect(cellsCollection.get(6, 5).row).toBe(5);
+      expect(cellsCollection.get(7, 5)).toBe(false);
     });
 
     it('should trim the merged cell\'s height, when removing rows between their start and end', () => {
