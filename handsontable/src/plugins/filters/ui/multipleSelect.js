@@ -106,10 +106,7 @@ export class MultipleSelectUI extends BaseUI {
    */
   setItems(items) {
     this.#items = items;
-
-    if (this.#itemsBox) {
-      this.#itemsBox.loadData(this.#items);
-    }
+    this.#itemsBox?.loadData(this.#items);
   }
 
   /**
@@ -205,11 +202,10 @@ export class MultipleSelectUI extends BaseUI {
       if (!this._element) {
         return;
       }
-      if (this.#itemsBox) {
-        this.#itemsBox.destroy();
-      }
 
+      this.#itemsBox?.destroy();
       addClass(wrapper, 'htUIMultipleSelectHot');
+
       // Constructs and initializes a new Handsontable instance
       this.#itemsBox = new this.hot.constructor(wrapper, {
         data: this.#items,
@@ -305,9 +301,7 @@ export class MultipleSelectUI extends BaseUI {
    * Destroy instance.
    */
   destroy() {
-    if (this.#itemsBox) {
-      this.#itemsBox.destroy();
-    }
+    this.#itemsBox?.destroy();
     this.#searchInput.destroy();
     this.#clearAllUI.destroy();
     this.#selectAllUI.destroy();

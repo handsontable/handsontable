@@ -8,6 +8,7 @@ const hotMock = {
   toVisualColumn: column => column,
   columnIndexMapper: new IndexMapper(),
   getCellMeta: () => ({}),
+  addHook: () => {},
 };
 
 // Mocking that table have 5 columns.

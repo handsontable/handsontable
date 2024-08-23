@@ -35,6 +35,13 @@ class ConditionCollection {
    * @type {LinkedPhysicalIndexToValueMap}
    */
   filteringStates = new IndexToValueMap();
+  /**
+   * Stores the previous state of the condition stack before the latest filter operation.
+   * This is used in the `beforeFilter` plugin to allow performing the undo operation.
+   *
+   * @type {null|Array}
+   */
+  previousConditionStack = null;
 
   constructor(hot, isMapRegistrable = true) {
     this.hot = hot;
@@ -106,6 +113,13 @@ class ConditionCollection {
     const args = arrayMap(conditionDefinition.args,
       v => (typeof v === 'string' ? v.toLocaleLowerCase(localeForColumn) : v));
     const name = conditionDefinition.name || conditionDefinition.command.key;
+
+    // If there's no previous condition stack defined (which means the condition stack was not cleared after the
+    // previous filter operation or that there was no filter operation performed yet), store the current conditions as
+    // the previous condition stack.
+    if (this.previousConditionStack === null) {
+      this.setPreviousConditionStack(this.exportAllConditions());
+    }
 
     this.runLocalHooks('beforeAdd', column);
 
@@ -226,6 +240,9 @@ class ConditionCollection {
    * @fires ConditionCollection#afterRemove
    */
   removeConditions(column) {
+    // Store the current conditions as the previous condition stack before it's cleared.
+    this.setPreviousConditionStack(this.exportAllConditions());
+
     this.runLocalHooks('beforeRemove', column);
     this.filteringStates.clearValue(column);
     this.runLocalHooks('afterRemove', column);
@@ -259,6 +276,16 @@ class ConditionCollection {
     }
 
     return conditions.length > 0;
+  }
+
+  /**
+   * Updates the `previousConditionStack` property with the provided stack.
+   * It is used to store the current conditions before they are modified, allowing for undo operations.
+   *
+   * @param {Array|null} previousConditionStack The stack of previous conditions.
+   */
+  setPreviousConditionStack(previousConditionStack) {
+    this.previousConditionStack = previousConditionStack;
   }
 
   /**

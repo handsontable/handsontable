@@ -2139,6 +2139,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeFilter
    * @param {object[]} conditionsStack An array of objects with your [column filters](@/api/filters.md#addcondition).
+   * @param {object[]|null} previousConditionsStack An array of objects with your previous [column filters](@/api/filters.md#addcondition). It can also be `null` if there was no previous filters applied or the conditions did not change between performing the `filter` action.
    * @returns {boolean} To perform server-side filtering (i.e., to not apply filtering to Handsontable's UI), return `false`.
    */
   'beforeFilter',
