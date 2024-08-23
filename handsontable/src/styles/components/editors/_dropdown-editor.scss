@@ -5,16 +5,16 @@
 @mixin output {
   .handsontable.listbox {
     margin: 0;
+    box-shadow: var(--hot-base-shadow);
 
     .ht_master {
-      overflow: visible;
-
+      overflow: hidden;
+   
       .wtHolder {
-        overflow: visible;
+        overflow: auto;
       }
 
       table {
-        border: 1px solid var(--hot-border-color);
         overflow: hidden;
 
         th,

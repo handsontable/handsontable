@@ -1,3 +1,5 @@
+@use "../../utils/icons";
+
 /*
   Checkbox
 */
@@ -9,6 +11,7 @@
       display: inline-block;
       width: var(--hot-control-size);
       height: var(--hot-control-size);
+      margin: 0;
       margin-inline-end: calc(2 * var(--hot-base-grid));
       vertical-align: middle;
       cursor: pointer;
@@ -33,16 +36,11 @@
       }
       &::after {
         content: "";
-        width: 6px;
-        height: 10px;
         position: absolute;
-        left: calc(var(--hot-control-size) * 0.5);
-        top: 6.5px;
-        border-left: 2px solid var(--hot-background-color);
-        border-top: 2px solid var(--hot-background-color);
-        transform: translate(-50%, -50%) rotate(-135deg);
-        box-sizing: border-box;
-        transition: all 0.2s ease-in-out;
+        top: 0;
+        left: 0;
+        color: white; //TODO: replace with var
+        @include icons.check;
         pointer-events: none;
       }
 

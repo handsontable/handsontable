@@ -1,4 +1,5 @@
 @use "../../utils/mixins";
+@use "../../utils/icons";
 
 /*
   Handsontable DropdownMenu
@@ -11,23 +12,18 @@
     /* Menu Button */
     .changeType {
       position: relative;
-      top: 50%;
-      display: inline-block;
-      float: inline-end;
       width: calc(4 * var(--hot-base-grid));
       height: calc(4 * var(--hot-base-grid));
       padding: calc(2 * var(--hot-base-grid));
-      margin-inline-end: calc(
-        var(--hot-base-grid) - var(--hot-cell-horizontal-padding)
-      );
       box-sizing: border-box;
       border-radius: var(--hot-border-radius);
       border: none;
       background: none;
       z-index: 1;
-      transform: translate(0%, -50%);
       transition: var(--hot-transition-time) all ease-in-out;
-
+      color: inherit;
+      order: 1;
+      
       &:hover {
         border: none;
         cursor: pointer;
@@ -40,18 +36,11 @@
       }
 
       &:before {
-        content: "";
+        @include mixins.pseudo;
         position: absolute;
-        top: 50%;
-        left: 50%;
-        display: block;
-        width: var(--hot-base-grid);
-        height: var(--hot-base-grid);
-        margin-left: 0.5px;
-        border-right: 1.5px solid var(--hot-header-foreground-color);
-        border-bottom: 1.5px solid var(--hot-header-foreground-color);
-        transform: rotate(45deg) translate(-100%);
-        transition: var(--hot-transition-time) all ease-in-out;
+        top: 0;
+        left: 0;
+        @include icons.arrow-down;
       }
     }
 
@@ -67,7 +56,8 @@
     &.htContextMenu,
     &.htFiltersConditionsMenu {
       .ht_master .wtHolder {
-        overflow: hidden;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
       }
 
       &:not(.htGhostTable) {
@@ -141,12 +131,8 @@
             position: absolute;
             top: 50%;
             right: calc(4 * var(--hot-base-grid));
-            margin-left: 0.5px;
-            width: 4px;
-            height: 4px;
-            border-right: 1.5px solid var(--hot-read-only-text);
-            border-top: 1.5px solid var(--hot-read-only-text);
-            transform: rotate(45deg) translate(-100%);
+            transform: translateY(-50%);
+            @include icons.arrow-right;
           }
         }
 
@@ -191,16 +177,11 @@
             &:after {
               @include mixins.pseudo;
               position: absolute;
-              width: 6px;
-              height: 10px;
-              right: 16px;
               top: 50%;
-              pointer-events: none;
-              border-left: 1.5px solid var(--hot-accent-color);
-              border-top: 1.5px solid var(--hot-accent-color);
-              transform: translate(-50%, -50%) rotate(-135deg);
-              box-sizing: border-box;
-              transition: all var(--hot-transition-time) ease-in-out;
+              right: calc(4 * var(--hot-base-grid));
+              color: var(--hot-accent-color);
+              transform: translateY(-50%);
+              @include icons.check;
             }
 
             &::before {

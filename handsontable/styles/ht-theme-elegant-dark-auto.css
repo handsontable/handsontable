@@ -26,12 +26,11 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 14/08/2024 13:55:05)
+ * Release date: 30/07/2024 (built at 23/08/2024 14:15:38)
  */
 /* Light mode */
 @media (prefers-color-scheme: light) {
-  .handsontable,
-  body {
+  .ht-main-wrapper {
     /* Typography */
     --hot-font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
       "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
@@ -107,8 +106,7 @@
 }
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
-  .handsontable,
-  body {
+  .ht-main-wrapper {
     /* Typography */
     --hot-font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
       "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;

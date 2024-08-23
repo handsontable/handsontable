@@ -1,4 +1,5 @@
 @use "../../utils/mixins";
+@use "../../utils/icons";
 
 /*
   Autocomplete
@@ -21,14 +22,10 @@
 
       &:after {
         @include mixins.pseudo;
-        width: 4px;
-        height: 4px;
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: rotate(45deg) translate(-100%);
-        border-right: 1.5px solid var(--hot-read-only-text);
-        border-bottom: 1.5px solid var(--hot-read-only-text);
+        top: 0;
+        left: 0;
+        @include icons.arrow-down;
       }
     }
   }

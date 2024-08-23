@@ -1,4 +1,5 @@
 @use "../../utils/mixins";
+@use "../../utils/icons";
 
 /*
   Helper element for plugins:
@@ -27,62 +28,30 @@
       background-color: var(--hot-background-color);
       transition: var(--hot-transition-time) all ease-in-out;
 
-      &:after,
+      &:hover {
+        &::before {
+          color: var(--hot-foreground-color-active);
+        }
+      }
+
       &:before {
         @include mixins.pseudo;
         position: absolute;
-        top: 50%;
-        left: 50%;
-        width: calc(2 * var(--hot-base-grid));
-        height: 1.5px;
-        border-radius: var(--hot-border-radius);
-        background-color: var(--hot-border-color);
-        transform: translate(-50%, -50%);
-        transition: var(--hot-transition-time) all ease-in-out;
-      }
-
-      &:before {
-        height: calc(2 * var(--hot-base-grid));
-        width: 1.5px;
-        opacity: 0;
-      }
-
-      /* Expanded */
-      &.expanded {
-        &:hover {
-          &:after {
-            background-color: var(--hot-accent-color);
-          }
-        }
+        top: 0;
+        left: 0;
+        @include icons.minus;
+        width: 14px;
+        height: 14px;
+        color: var(--hot-border-color);
       }
 
       /* Collapsed */
       &.collapsed,
       &.ht_nestingExpand {
-        background-color: var(--hot-header-active-background-color);
-        border-color: var(--hot-border-color);
-
-        &:before,
-        &:after {
-          background-color: var(--hot-border-color);
-          opacity: 1;
-        }
-
-        &:hover {
-          background-color: var(--hot-header-active-background-color);
-
-          &:before,
-          &:after {
-            background-color: var(--hot-accent-color);
-          }
-        }
-      }
-
-      &:hover {
-        background-color: var(--hot-header-background-color);
-        &:before,
-        &:after {
-          background-color: var(--hot-border-color);
+        &:before {
+          @include icons.plus;
+          width: 14px;
+          height: 14px;
         }
       }
     }

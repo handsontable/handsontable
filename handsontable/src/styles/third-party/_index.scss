@@ -1,0 +1,7 @@
+@use "sass:color";
+
+@use "./pikaday";
+
+@mixin third-party-styles() {
+  @include pikaday.output();
+}

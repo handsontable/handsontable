@@ -1110,6 +1110,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       addClass(instance.rootElement, 'mobile');
     }
 
+    addClass(instance.rootElement, 'ht-main-wrapper');
+
     this.updateSettings(tableMeta, true);
 
     this.view = new TableView(this);

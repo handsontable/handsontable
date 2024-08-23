@@ -11,9 +11,10 @@
 
         > .relative {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
           gap: calc(0.5 * var(--hot-base-grid));
+          height: 100%;
         }
       }
 
@@ -72,7 +73,7 @@
         position: relative;
         order: -1;
         transform: none;
-        top: 0;
+        top: 2px;
         margin-right: var(--hot-base-grid);
       }
     }

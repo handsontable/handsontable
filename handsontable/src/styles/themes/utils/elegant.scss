@@ -1,7 +1,5 @@
 @mixin light {
-  .handsontable,
-    body // for test
-  {
+  .ht-main-wrapper {
     /* Typography */
     --hot-font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
       "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
@@ -88,9 +86,7 @@
 }
 
 @mixin dark {
-  .handsontable,
-    body // for test
-  {
+  .ht-main-wrapper {
     /* Typography */
     --hot-font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
       "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
