@@ -55,6 +55,10 @@ jobs:
         run: |
           npm run docs:build:production:netlify
         # working-directory: ./latest/docs/
+      - name: Preserve _redirects
+        run: |
+          git checkout HEAD -- docs/.vuepress/dist/docs/_redirects
+        # working-directory: ./latest/docs/
 
       - name: "commit changes"
         uses: stefanzweifel/git-auto-commit-action@v5
