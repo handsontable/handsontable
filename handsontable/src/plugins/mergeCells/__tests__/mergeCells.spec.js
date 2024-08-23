@@ -348,7 +348,6 @@ describe('MergeCells', () => {
 
       expect(hot.getSelectedRangeLast().from.col).toEqual(6);
       expect(hot.getSelectedRangeLast().from.row).toEqual(6);
-
     });
 
     // TODO: After some changes please take a look at #7010 (test for unspecified behavior)

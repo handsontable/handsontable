@@ -211,7 +211,11 @@ export class BasePlugin {
       (Array.isArray(pluginSettings) || isObject(pluginSettings)) &&
       defaultSettings[defaultMainSettingSymbol] === settingName
     ) {
-      return pluginSettings[settingName] ?? pluginSettings;
+      if (Array.isArray(pluginSettings)) {
+        return pluginSettings;
+      }
+
+      return pluginSettings[settingName] ?? defaultSettings[settingName];
     }
 
     if (isObject(pluginSettings)) {

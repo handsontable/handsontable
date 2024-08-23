@@ -67,7 +67,7 @@ export class SelectionScanner {
     } else if (selectionType === 'focus') {
       this.scanColumnsInHeadersRange(element => elements.add(element));
       this.scanRowsInHeadersRange(element => elements.add(element));
-      this.scanCellsRange(element => elements.add(element));
+      this.scanViewportRange(element => elements.add(element));
 
     } else if (selectionType === 'fill') {
       this.scanCellsRange(element => elements.add(element));
@@ -192,7 +192,7 @@ export class SelectionScanner {
    *
    * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanCellsRange(callback) {
+  scanViewportRange(callback) {
     const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
 
@@ -201,15 +201,39 @@ export class SelectionScanner {
         const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
 
         // support for old API
-        const additionalSelectionClass = this.#activeOverlaysWot
-          .getSetting('onAfterDrawSelection', sourceRow, sourceColumn, this.#selection.settings.layerLevel);
+        // const additionalSelectionClass = this.#activeOverlaysWot
+        //   .getSetting('onAfterDrawSelection', sourceRow, sourceColumn, this.#selection.settings.layerLevel);
 
-        if (typeof additionalSelectionClass === 'string') {
-          addClass(cell, additionalSelectionClass);
-        }
+        // if (typeof additionalSelectionClass === 'string') {
+        //   addClass(cell, additionalSelectionClass);
+        // }
 
         callback(cell);
       }
+    });
+  }
+
+  /**
+   * Scans the table (only rendered cells) and collect all cells (TR) that match
+   * the coordinates passed in the Selection instance.
+   *
+   * @param {function(HTMLTableElement): void} callback The callback function to trigger.
+   */
+  scanCellsRange(callback) {
+    const { wtTable } = this.#activeOverlaysWot;
+
+    this.#scanCellsRange((sourceRow, sourceColumn) => {
+      const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
+
+      // support for old API
+      const additionalSelectionClass = this.#activeOverlaysWot
+        .getSetting('onAfterDrawSelection', sourceRow, sourceColumn, this.#selection.settings.layerLevel);
+
+      if (typeof additionalSelectionClass === 'string') {
+        addClass(cell, additionalSelectionClass);
+      }
+
+      callback(cell);
     });
   }
 
@@ -224,7 +248,7 @@ export class SelectionScanner {
     const [topRow,, bottomRow,] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
 
-    this.#scanCellsRange((sourceRow, sourceColumn) => {
+    this.#scanViewportRange((sourceRow, sourceColumn) => {
       if (sourceRow >= topRow && sourceRow <= bottomRow) {
         const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
 
@@ -243,7 +267,7 @@ export class SelectionScanner {
     const [, topColumn,, bottomColumn] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
 
-    this.#scanCellsRange((sourceRow, sourceColumn) => {
+    this.#scanViewportRange((sourceRow, sourceColumn) => {
       if (sourceColumn >= topColumn && sourceColumn <= bottomColumn) {
         const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
 
@@ -258,6 +282,46 @@ export class SelectionScanner {
    * @param {function(number, number): void} callback The callback function to trigger.
    */
   #scanCellsRange(callback) {
+    const { wtTable } = this.#activeOverlaysWot;
+    let [topRow, startColumn, bottomRow, endColumn] = this.#selection.getCorners();
+    const isMultiple = (topRow !== bottomRow || startColumn !== endColumn);
+
+    startColumn = Math.max(startColumn, 0);
+    endColumn = Math.max(endColumn, 0);
+    topRow = Math.max(topRow, 0);
+    bottomRow = Math.max(bottomRow, 0);
+
+    if (isMultiple) {
+      startColumn = Math.max(startColumn, wtTable.getFirstRenderedColumn());
+      endColumn = Math.min(endColumn, wtTable.getLastRenderedColumn());
+      topRow = Math.max(topRow, wtTable.getFirstRenderedRow());
+      bottomRow = Math.min(bottomRow, wtTable.getLastRenderedRow());
+
+      if (endColumn < startColumn || bottomRow < topRow) {
+        return;
+      }
+
+    } else {
+      const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(topRow, startColumn));
+
+      if (!(cell instanceof HTMLElement)) {
+        return;
+      }
+    }
+
+    for (let row = topRow; row <= bottomRow; row += 1) {
+      for (let column = startColumn; column <= endColumn; column += 1) {
+        callback(row, column);
+      }
+    }
+  }
+
+  /**
+   * The method triggers a callback for each rendered cell.
+   *
+   * @param {function(number, number): void} callback The callback function to trigger.
+   */
+  #scanViewportRange(callback) {
     const { wtTable } = this.#activeOverlaysWot;
     const renderedRowsCount = wtTable.getRenderedRowsCount();
     const renderedColumnsCount = wtTable.getRenderedColumnsCount();
