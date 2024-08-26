@@ -57,8 +57,13 @@ jobs:
         # working-directory: ./latest/docs/
       - name: Preserve _redirects
         run: |
-          git checkout HEAD -- docs/.vuepress/dist/docs/_redirects
+          cp docs/netlify/_redirects docs/.vuepress/dist/docs/
         # working-directory: ./latest/docs/
+       - name: Preserve edge functions
+        run: |
+          cp docs/netlify docs/.vuepress/dist/docs/
+        # working-directory: ./latest/docs/
+
 
       - name: "commit changes"
         uses: stefanzweifel/git-auto-commit-action@v5
