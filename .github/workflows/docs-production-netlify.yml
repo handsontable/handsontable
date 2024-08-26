@@ -46,21 +46,18 @@ jobs:
       - name: Dependencies
         run: |
           npm ci
-        # working-directory: ./latest/docs/
-      # - name: install netlify-cli
-      #   run: npm install -g netlify-cli
+
       - name: Docs build
         run: |
           npm run docs:build:production:netlify
-        # working-directory: ./latest/docs/
+
       - name: Preserve _redirects
         run: |
           cp docs/netlify/_redirects docs/.vuepress/dist/docs/
-        # working-directory: ./latest/docs/
-       - name: Preserve edge functions
+
+      - name: Preserve edge functions
         run: |
           cp docs/netlify docs/.vuepress/dist/docs/
-        # working-directory: ./latest/docs/
 
       - name: "commit changes"
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -81,32 +78,3 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 1
-
-      # - name: Deploy to Netlify
-      #   run: |
-      #     netlify deploy --prod --dir=./.vuepress/dist --message="Deployed from GitHub Action" --auth=$NETLIFY_AUTH_TOKEN
-        # working-directory: ./latest/docs/
-
-      # - name: Test examples
-      #   run: |
-      #     npm run docs:test:example-checker
-      #   # working-directory: ./latest/docs/
-
-      # - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-      #   with:
-      #     ref: prod-docs-netlify
-      #     path: prod-docs-netlify
-
-      # - name: Copy docs to the prod netlify
-      #   run: cp -r ../dist/* .
-      #   working-directory: ./docs/tmp
-
-      # - name: Deploy to Netlify
-      #   uses: jsmrcaga/action-netlify-deploy@v2.0.0
-      #   with:
-      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-      #     build_directory: ../dist
-      #     build_command: ''
-      #     production-branch: feature/dev-issue-1790
-      #     debug: true
