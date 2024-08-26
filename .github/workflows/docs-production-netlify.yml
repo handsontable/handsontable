@@ -69,7 +69,7 @@ jobs:
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3.0.0
         with:
-          publish-dir: ./docs/.vuepress/dist/
+          publish-dir: ./docs/.vuepress/dist/docs
           production-branch: feature/dev-issue-1790
           enable-pull-request-comment: false
           enable-commit-comment: false
