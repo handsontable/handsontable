@@ -59,6 +59,10 @@ jobs:
         run: |
           cp -r netlify .vuepress/dist/docs/
 
+      - name: Preserve edge functions - dotfiles
+        run: |
+          cp -r .netlify .vuepress/dist/docs/
+
       - name: "commit changes"
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
