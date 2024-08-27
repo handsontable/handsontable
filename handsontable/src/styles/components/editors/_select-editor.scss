@@ -24,13 +24,15 @@
       text-overflow: ellipsis;
       color: var(--hot-foreground-color);
       background: var(--hot-background-color);
+      
       &:focus {
         outline: none;
       }
     }
 
     .htAutocompleteArrow {
-      top: calc((var(--hot-base-line-height) - 6px)*.5);
+      top: 50%;
+      transform: translateY(-50%);
       margin-inline-end: 4px;
       z-index: 1;
     }

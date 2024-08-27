@@ -55,6 +55,15 @@
     &.htDropdownMenu,
     &.htContextMenu,
     &.htFiltersConditionsMenu {
+      .ht_master {
+        border-color: var(--hot-dropdown-border-color);
+        border-style: solid;
+        border-width: var(--hot-dropdown-border-width);
+        box-shadow: var(--hot-base-shadow);
+        border-radius: calc(2 * var(--hot-border-radius));
+        overflow: hidden !important;
+      }
+
       .ht_master .wtHolder {
         overflow-x: hidden !important;
         overflow-y: auto !important;
@@ -77,12 +86,7 @@
 
       table.htCore {
         padding: calc(2 * var(--hot-base-grid)) 0;
-        border-color: var(--hot-dropdown-border-color);
-        border-style: solid;
-        border-width: var(--hot-dropdown-border-width);
-        border-radius: calc(2 * var(--hot-border-radius));
         overflow: hidden;
-        box-shadow: var(--hot-base-shadow);
       }
 
       .htCustomMenuRenderer .table.htCore {

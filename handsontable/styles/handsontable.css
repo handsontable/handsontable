@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 23/08/2024 14:14:51)
+ * Release date: 30/07/2024 (built at 27/08/2024 08:42:25)
  */
 .handsontable{
 }
@@ -677,7 +677,8 @@
   outline:none;
 }
 .htSelectEditor .htAutocompleteArrow{
-  top:calc((var(--hot-base-line-height) - 6px) * 0.5);
+  top:50%;
+  transform:translateY(-50%);
   margin-inline-end:4px;
   z-index:1;
 }
@@ -1155,6 +1156,14 @@
   border:var(--hot-header-menu-button-border-size) solid var(--hot-header-menu-button-border-active-color);
   background-color:var(--hot-header-menu-button-background-active);
 }
+.handsontable.htDropdownMenu .ht_master, .handsontable.htContextMenu .ht_master, .handsontable.htFiltersConditionsMenu .ht_master{
+  border-color:var(--hot-dropdown-border-color);
+  border-style:solid;
+  border-width:var(--hot-dropdown-border-width);
+  box-shadow:var(--hot-base-shadow);
+  border-radius:calc(2 * var(--hot-border-radius));
+  overflow:hidden !important;
+}
 .handsontable.htDropdownMenu .ht_master .wtHolder, .handsontable.htContextMenu .ht_master .wtHolder, .handsontable.htFiltersConditionsMenu .ht_master .wtHolder{
   overflow-x:hidden !important;
   overflow-y:auto !important;
@@ -1181,12 +1190,7 @@
 }
 .handsontable.htDropdownMenu table.htCore, .handsontable.htContextMenu table.htCore, .handsontable.htFiltersConditionsMenu table.htCore{
   padding:calc(2 * var(--hot-base-grid)) 0;
-  border-color:var(--hot-dropdown-border-color);
-  border-style:solid;
-  border-width:var(--hot-dropdown-border-width);
-  border-radius:calc(2 * var(--hot-border-radius));
   overflow:hidden;
-  box-shadow:var(--hot-base-shadow);
 }
 .handsontable.htDropdownMenu .htCustomMenuRenderer .table.htCore, .handsontable.htContextMenu .htCustomMenuRenderer .table.htCore, .handsontable.htFiltersConditionsMenu .htCustomMenuRenderer .table.htCore{
   box-shadow:none;

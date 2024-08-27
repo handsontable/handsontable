@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 23/08/2024 14:14:51)
+ * Release date: 30/07/2024 (built at 27/08/2024 08:42:25)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "23/08/2024 14:14:51";
+Handsontable.buildDate = "27/08/2024 08:42:25";
 Handsontable.version = "14.5.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -13484,6 +13484,7 @@ const REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-s
  *
  * @event Hooks#beforeFilter
  * @param {object[]} conditionsStack An array of objects with your [column filters](@/api/filters.md#addcondition).
+ * @param {object[]|null} previousConditionsStack An array of objects with your previous [column filters](@/api/filters.md#addcondition). It can also be `null` if there was no previous filters applied or the conditions did not change between performing the `filter` action.
  * @returns {boolean} To perform server-side filtering (i.e., to not apply filtering to Handsontable's UI), return `false`.
  */
 'beforeFilter',
@@ -53652,7 +53653,7 @@ class GhostTable {
     if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
       // Please keep in mind that the renderable column index equal to the visual columns index for the GhostTable.
       // We render all columns.
-      this.hot.view.appendColHeader(column, this.table.th);
+      this.hot.view.appendColHeader(column, this.table.th, undefined, -1);
     }
     this.table.tBody.appendChild(this.createCol(column));
     this.container.container.appendChild(this.table.fragment);
@@ -57160,7 +57161,16 @@ class ColumnSorting extends _base.BasePlugin {
         this.hot.deselectCell();
         this.hot.selectColumns(coords.col);
       }
-      this.sort(this.getColumnNextConfig(coords.col));
+      const activeEditor = this.hot.getActiveEditor();
+      const nextConfig = this.getColumnNextConfig(coords.col);
+      if (activeEditor !== null && activeEditor !== void 0 && activeEditor.isOpened() && this.hot.getCellValidator(activeEditor.row, activeEditor.col)) {
+        // Postpone sorting until the cell's value is validated and saved.
+        this.hot.addHookOnce('postAfterValidate', () => {
+          this.sort(nextConfig);
+        });
+      } else {
+        this.sort(nextConfig);
+      }
     }
   }
 
@@ -63980,9 +63990,6 @@ function createMenuItemRenderer(mainTableHot) {
    * @param {string} value The cell value.
    */
   return (menuHot, TD, row, col, prop, value) => {
-    if (TD.hasAttribute('ghost-table')) {
-      return;
-    }
     const item = menuHot.getSourceDataAtRow(row);
     const wrapper = mainTableHot.rootDocument.createElement('div');
     const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
@@ -64586,7 +64593,9 @@ class CopyPaste extends _base.BasePlugin {
    */
   onCopy(event) {
     var _event$target;
-    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCopy, this) || this.isEditorOpened() || (_event$target = event.target) !== null && _event$target !== void 0 && _event$target.hasAttribute('data-hot-input') || !this.hot.getSettings().outsideClickDeselects && event.target !== this.hot.rootDocument.body) {
+    const focusedElement = this.hot.getFocusManager().getRefocusElement();
+    const isHotInput = (_event$target = event.target) === null || _event$target === void 0 ? void 0 : _event$target.hasAttribute('data-hot-input');
+    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCopy, this) || this.isEditorOpened() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body)) {
       return;
     }
     event.preventDefault();
@@ -64617,7 +64626,9 @@ class CopyPaste extends _base.BasePlugin {
    */
   onCut(event) {
     var _event$target2;
-    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCut, this) || this.isEditorOpened() || (_event$target2 = event.target) !== null && _event$target2 !== void 0 && _event$target2.hasAttribute('data-hot-input') || !this.hot.getSettings().outsideClickDeselects && event.target !== this.hot.rootDocument.body) {
+    const focusedElement = this.hot.getFocusManager().getRefocusElement();
+    const isHotInput = (_event$target2 = event.target) === null || _event$target2 === void 0 ? void 0 : _event$target2.hasAttribute('data-hot-input');
+    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCut, this) || this.isEditorOpened() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body)) {
       return;
     }
     event.preventDefault();
@@ -64647,7 +64658,9 @@ class CopyPaste extends _base.BasePlugin {
    */
   onPaste(event) {
     var _event$target3;
-    if (!this.hot.isListening() || this.isEditorOpened() || (_event$target3 = event.target) !== null && _event$target3 !== void 0 && _event$target3.hasAttribute('data-hot-input') || !this.hot.getSelected() || !this.hot.getSettings().outsideClickDeselects && event.target !== this.hot.rootDocument.body) {
+    const focusedElement = this.hot.getFocusManager().getRefocusElement();
+    const isHotInput = (_event$target3 = event.target) === null || _event$target3 === void 0 ? void 0 : _event$target3.hasAttribute('data-hot-input');
+    if (!this.hot.isListening() || this.isEditorOpened() || !this.hot.getSelected() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body)) {
       return;
     }
     event.preventDefault();
@@ -68498,7 +68511,7 @@ class Filters extends _base.BasePlugin {
     const needToFilter = !this.conditionCollection.isEmpty();
     let visibleVisualRows = [];
     const conditions = this.conditionCollection.exportAllConditions();
-    const allowFiltering = this.hot.runHooks('beforeFilter', conditions);
+    const allowFiltering = this.hot.runHooks('beforeFilter', conditions, this.conditionCollection.previousConditionStack);
     if (allowFiltering !== false) {
       if (needToFilter) {
         const trimmedRows = [];
@@ -68523,6 +68536,7 @@ class Filters extends _base.BasePlugin {
       }
     }
     this.hot.runHooks('afterFilter', conditions);
+    this.conditionCollection.setPreviousConditionStack(null);
     this.hot.view.adjustElementsSize();
     this.hot.render();
     if (this.hot.selection.isSelected()) {
@@ -69126,7 +69140,12 @@ class ConditionComponent extends _base.BaseComponent {
         (0, _element.addClass)(label, 'htFiltersMenuLabel');
         label.textContent = value;
         wrapper.appendChild(label);
-        (0, _array.arrayEach)(this.elements, ui => wrapper.appendChild(ui.element));
+
+        // The SelectUI should not extend the menu width (it should adjust to the menu item width only).
+        // That's why it's skipped from rendering when the GhostTable tries to render it.
+        if (!wrapper.parentElement.hasAttribute('ghost-table')) {
+          (0, _array.arrayEach)(this.elements, ui => wrapper.appendChild(ui.element));
+        }
         return wrapper;
       }
     };
@@ -71578,7 +71597,12 @@ class ValueComponent extends _base.BaseComponent {
         (0, _element.addClass)(label, 'htFiltersMenuLabel');
         label.textContent = value;
         wrapper.appendChild(label);
-        (0, _array.arrayEach)(this.elements, ui => wrapper.appendChild(ui.element));
+
+        // The MultipleSelectUI should not extend the menu width (it should adjust to the menu item width only).
+        // That's why it's skipped from rendering when the GhostTable tries to render it.
+        if (!wrapper.parentElement.hasAttribute('ghost-table')) {
+          (0, _array.arrayEach)(this.elements, ui => wrapper.appendChild(ui.element));
+        }
         return wrapper;
       }
     };
@@ -71792,10 +71816,9 @@ class MultipleSelectUI extends _base.BaseUI {
    * @param {Array} items Array of objects with `checked` and `label` property.
    */
   setItems(items) {
+    var _classPrivateFieldGet2;
     _classPrivateFieldSet(_items, this, items);
-    if (_classPrivateFieldGet(_itemsBox, this)) {
-      _classPrivateFieldGet(_itemsBox, this).loadData(_classPrivateFieldGet(_items, this));
-    }
+    (_classPrivateFieldGet2 = _classPrivateFieldGet(_itemsBox, this)) === null || _classPrivateFieldGet2 === void 0 || _classPrivateFieldGet2.loadData(_classPrivateFieldGet(_items, this));
   }
 
   /**
@@ -71887,13 +71910,13 @@ class MultipleSelectUI extends _base.BaseUI {
     this._element.appendChild(selectionControl.element);
     this._element.appendChild(itemsBoxWrapper);
     const hotInitializer = wrapper => {
+      var _classPrivateFieldGet3;
       if (!this._element) {
         return;
       }
-      if (_classPrivateFieldGet(_itemsBox, this)) {
-        _classPrivateFieldGet(_itemsBox, this).destroy();
-      }
+      (_classPrivateFieldGet3 = _classPrivateFieldGet(_itemsBox, this)) === null || _classPrivateFieldGet3 === void 0 || _classPrivateFieldGet3.destroy();
       (0, _element.addClass)(wrapper, 'htUIMultipleSelectHot');
+
       // Constructs and initializes a new Handsontable instance
       _classPrivateFieldSet(_itemsBox, this, new this.hot.constructor(wrapper, {
         data: _classPrivateFieldGet(_items, this),
@@ -71987,9 +72010,8 @@ class MultipleSelectUI extends _base.BaseUI {
    * Destroy instance.
    */
   destroy() {
-    if (_classPrivateFieldGet(_itemsBox, this)) {
-      _classPrivateFieldGet(_itemsBox, this).destroy();
-    }
+    var _classPrivateFieldGet4;
+    (_classPrivateFieldGet4 = _classPrivateFieldGet(_itemsBox, this)) === null || _classPrivateFieldGet4 === void 0 || _classPrivateFieldGet4.destroy();
     _classPrivateFieldGet(_searchInput, this).destroy();
     _classPrivateFieldGet(_clearAllUI, this).destroy();
     _classPrivateFieldGet(_selectAllUI, this).destroy();
@@ -72339,6 +72361,13 @@ class ConditionCollection {
      * @type {LinkedPhysicalIndexToValueMap}
      */
     (0, _defineProperty2.default)(this, "filteringStates", new _translations.LinkedPhysicalIndexToValueMap());
+    /**
+     * Stores the previous state of the condition stack before the latest filter operation.
+     * This is used in the `beforeFilter` plugin to allow performing the undo operation.
+     *
+     * @type {null|Array}
+     */
+    (0, _defineProperty2.default)(this, "previousConditionStack", null);
     this.hot = hot;
     this.isMapRegistrable = isMapRegistrable;
     if (this.isMapRegistrable === true) {
@@ -72407,6 +72436,13 @@ class ConditionCollection {
     const localeForColumn = this.hot.getCellMeta(0, column).locale;
     const args = (0, _array.arrayMap)(conditionDefinition.args, v => typeof v === 'string' ? v.toLocaleLowerCase(localeForColumn) : v);
     const name = conditionDefinition.name || conditionDefinition.command.key;
+
+    // If there's no previous condition stack defined (which means the condition stack was not cleared after the
+    // previous filter operation or that there was no filter operation performed yet), store the current conditions as
+    // the previous condition stack.
+    if (this.previousConditionStack === null) {
+      this.setPreviousConditionStack(this.exportAllConditions());
+    }
     this.runLocalHooks('beforeAdd', column);
     const columnType = this.getOperation(column);
     if (columnType) {
@@ -72535,6 +72571,8 @@ class ConditionCollection {
    * @fires ConditionCollection#afterRemove
    */
   removeConditions(column) {
+    // Store the current conditions as the previous condition stack before it's cleared.
+    this.setPreviousConditionStack(this.exportAllConditions());
     this.runLocalHooks('beforeRemove', column);
     this.filteringStates.clearValue(column);
     this.runLocalHooks('afterRemove', column);
@@ -72566,6 +72604,16 @@ class ConditionCollection {
       return conditions.some(condition => condition.name === name);
     }
     return conditions.length > 0;
+  }
+
+  /**
+   * Updates the `previousConditionStack` property with the provided stack.
+   * It is used to store the current conditions before they are modified, allowing for undo operations.
+   *
+   * @param {Array|null} previousConditionStack The stack of previous conditions.
+   */
+  setPreviousConditionStack(previousConditionStack) {
+    this.previousConditionStack = previousConditionStack;
   }
 
   /**
@@ -82086,17 +82134,19 @@ class MergedCellsCollection {
         break;
       default:
     }
-    (0, _array.arrayEach)(this.mergedCells, currentMerge => {
-      _assertClassBrand(_MergedCellsCollection_brand, this, _removeMergedCellFromMatrix).call(this, currentMerge);
+    const removedMergedCells = [];
+    this.mergedCells.forEach(currentMerge => {
       currentMerge.shift(shiftVector, index);
-      _assertClassBrand(_MergedCellsCollection_brand, this, _addMergedCellToMatrix).call(this, currentMerge);
-    });
-    (0, _number.rangeEachReverse)(this.mergedCells.length - 1, 0, i => {
-      const currentMerge = this.mergedCells[i];
-      if (currentMerge && currentMerge.removed) {
-        this.mergedCells.splice(this.mergedCells.indexOf(currentMerge), 1);
-        _assertClassBrand(_MergedCellsCollection_brand, this, _removeMergedCellFromMatrix).call(this, currentMerge);
+      if (currentMerge.removed) {
+        removedMergedCells.push(currentMerge);
       }
+    });
+    removedMergedCells.forEach(removedMerge => {
+      this.mergedCells.splice(this.mergedCells.indexOf(removedMerge), 1);
+    });
+    this.mergedCellsMatrix.clear();
+    this.mergedCells.forEach(currentMerge => {
+      _assertClassBrand(_MergedCellsCollection_brand, this, _addMergedCellToMatrix).call(this, currentMerge);
     });
   }
 
@@ -91237,8 +91287,8 @@ function UndoRedo(instance) {
   instance.addHook('beforeCellAlignment', (stateBefore, range, type, alignment) => {
     plugin.done(() => new UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment));
   });
-  instance.addHook('beforeFilter', conditionsStack => {
-    plugin.done(() => new UndoRedo.FiltersAction(conditionsStack));
+  instance.addHook('beforeFilter', (conditionsStack, previousConditionsStack) => {
+    plugin.done(() => new UndoRedo.FiltersAction(conditionsStack, previousConditionsStack));
   });
   instance.addHook('beforeRowMove', (rows, finalIndex) => {
     if (rows === false) {
@@ -91758,9 +91808,11 @@ UndoRedo.CellAlignmentAction.prototype.redo = function (instance, undoneCallback
  * Filters action.
  *
  * @private
- * @param {Array} conditionsStack An array of the filter condition.
+ * @param {Array} conditionsStack An array of the filter conditions.
+ * @param {Array} previousConditionsStack An array of the previous filter conditions.
  */
-UndoRedo.FiltersAction = function (conditionsStack) {
+UndoRedo.FiltersAction = function (conditionsStack, previousConditionsStack) {
+  this.previousConditionsStack = previousConditionsStack;
   this.conditionsStack = conditionsStack;
   this.actionType = 'filter';
 };
@@ -91768,7 +91820,9 @@ UndoRedo.FiltersAction = function (conditionsStack) {
 UndoRedo.FiltersAction.prototype.undo = function (instance, undoneCallback) {
   const filters = instance.getPlugin('filters');
   instance.addHookOnce('afterViewRender', undoneCallback);
-  filters.conditionCollection.importAllConditions(this.conditionsStack.slice(0, this.conditionsStack.length - 1));
+  if (this.previousConditionsStack) {
+    filters.conditionCollection.importAllConditions(this.previousConditionsStack);
+  }
   filters.filter();
 };
 UndoRedo.FiltersAction.prototype.redo = function (instance, redoneCallback) {
