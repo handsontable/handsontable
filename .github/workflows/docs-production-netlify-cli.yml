@@ -1,0 +1,68 @@
+name: Docs Production Deployment - Netlify
+
+env:
+  GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation
+  NODE_VERSION: 20
+  DOCSEARCH_API_KEY: ${{ secrets.DOCSEARCH_API_KEY }}
+  DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
+
+on:
+  push:
+    branches:
+      - feature/dev-issue-1790
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./docs/
+
+jobs:
+  docker:
+    name: Build Docs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+        with:
+          ref: feature/dev-issue-1790
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          # cache-dependency-path: ./latest/package-lock.json
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # https://github.com/actions/github-script/releases/tag/v6.3.3
+        id: get-docs-version
+        with:
+          script: return '14.5';
+          result-encoding: string
+
+      - name: Validate Docs version
+        run: if [ -z "${{steps.get-docs-version.outputs.result}}" ]; then echo "Docs version is empty"; exit 1; fi
+
+      - name: Dependencies
+        run: |
+          npm ci
+
+      - name: Docs build
+        run: |
+          npm run docs:build:production:netlify
+
+      - name: Install Netlify CLI
+        run: npm install netlify-cli -g
+
+      - name: "commit changes"
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Docs: build production"
+          commit_user_name: "Docs Deployment"
+          commit_user_email: "docs-deployment@handsontable.com"
+
+      - name: Deploy to Netlify
+        run: netlify deploy --prod
+        env:
+            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+            NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
