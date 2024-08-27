@@ -1,3 +1,4 @@
 [build]
     edge_functions="netlify/edge_functions"
     functions="netlify/functions"
+    command=""
