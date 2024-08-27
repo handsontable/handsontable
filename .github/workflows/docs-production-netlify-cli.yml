@@ -62,7 +62,7 @@ jobs:
           commit_user_email: "docs-deployment@handsontable.com"
 
       - name: Deploy to Netlify
-        run: netlify deploy --prod prodIfUnlocked --dir .vuepress/dist/docs/
+        run: netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
         env:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
