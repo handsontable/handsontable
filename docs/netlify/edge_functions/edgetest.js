@@ -1,3 +1,3 @@
-export default () => new Response("Hello world");
+export default () => new Response("Edge function hello world");
 
-export const config = { path: "/edgetest" };
+export const config = { path: "/test" };
