@@ -1,7 +1,8 @@
 import type { Config, Context } from "https://edge.netlify.com";
 
 export default async (req: Request, context: Context) => {
-    return Response.redirect("/docs/javascript-data-grid/");
+    //return Response.redirect("/docs/javascript-data-grid/");
+    return new URL("/docs/javascript-data-grid/", req.url);
   };
 
   export const config: Config = {
