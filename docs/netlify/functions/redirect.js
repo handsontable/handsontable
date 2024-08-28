@@ -1,5 +1,5 @@
-export default async (req, { cookies, geo }) => {
-    return new URL("/docs/next/javascript-data-grid/", request.url);
+export default async () => {
+    return new URL("/docs/javascript-data-grid/", request.url);
 };
 
 export const config = {
