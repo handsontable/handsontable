@@ -85,19 +85,6 @@
     /* Frozen */
     --hot-frozen-size: 2px;
     --hot-frozen-shadow: rgba(0, 0, 0, 0.2);
-
-    /* ========= NEW STYLES ============ */
-    --hot-header-row-even-background: var(--hot-header-background-color);
-    --hot-header-row-even-color: var(--hot-header-foreground-color);
-
-    --hot-header-row-odd-background: var(--hot-header-background-color);
-    --hot-header-row-odd-color: var(--hot-header-foreground-color);
-
-    --hot-row-even-background: var(--hot-background-color);
-    --hot-row-even-color: inherit;
-
-    --hot-row-odd-background: var(--hot-background-color);
-    --hot-row-odd-color: inherit;
   }
 }
 

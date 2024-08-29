@@ -209,31 +209,6 @@
       table-layout: fixed;
       cursor: default;
       background: var(--hot-background-color);
-
-      tbody {
-        tr {
-          &:nth-child(even) {
-            th {
-              background: var(--hot-header-row-even-background);
-              color: var(--hot-header-row-even-color);
-            }
-            td {
-              background: var(--hot-row-even-background);
-              color: var(--hot-row-even-color);
-            }
-          }
-          &:nth-child(odd) {
-            th {
-              background: var(--hot-header-row-odd-background);
-              color: var(--hot-header-row-odd-color);
-            }
-            td {
-              background: var(--hot-row-odd-background);
-              color: var(--hot-row-odd-color);
-            }
-          }
-        }
-      }
     }
 
     col {
