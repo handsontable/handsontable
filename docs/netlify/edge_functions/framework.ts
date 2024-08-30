@@ -7,7 +7,7 @@ export default async (request: Request, context: Context) => {
   const framework = value === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
   console.log(framework, context, request);
-  Response.redirect(`/docs/${framework}`, 301);
+  return Response.redirect(`/docs/${framework}`, 301);
 }
 
 export const config: Config = {
