@@ -8,10 +8,10 @@ export default async (request: Request, context: Context) => {
   console.log(url, params.get('framework'), params);
   const framework = params.get('framework') === 'react-data-grid' ? 'react-data-grid' : 'javascript-data-grid';
 
-  console.log(framework, context, request);
+  // console.log(framework, context, request);
   return Response.redirect(`/docs/${framework}`, 301);
 }
 
 export const config: Config = {
-  path: ["/docs/next/:framework"],
+  path: ["/docs/next/:framework/"],
 }
