@@ -6,7 +6,7 @@ export default async (request: Request, context: Context) => {
   const url = new URL(request.url);
   const params = url.searchParams;
 
-  const framework = params.get('framework') === 'react' ? 'react-data-grid' : 'javascript-data-grid';
+  const framework = params.get('framework') === 'react-data-grid' ? 'react-data-grid' : 'javascript-data-grid';
 
   console.log(framework, context, request);
   return Response.redirect(`/docs/${framework}`, 301);
