@@ -2,7 +2,7 @@ import type { Context, Config } from "@netlify/edge-functions";
 
 export default async (request: Request, context: Context) => {  
 
-    const value = context.cookies.get("docs_fw");
+  const value = context.cookies.get("docs_fw");
 
   const framework = value === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
