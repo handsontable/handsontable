@@ -1,6 +1,6 @@
 import type { Context, Config } from "@netlify/edge-functions";
 
-export default async (request: Request, context: Context) => {  
+export default async (request: Request, context: Context) => {q
 
   const value = context.cookies.get("docs_fw");
 
