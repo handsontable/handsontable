@@ -5,3 +5,7 @@
 [[edge_functions]]
     pattern="/docs/frameworks-wrapper-for(angular|vue)
     function = "wrapper"
+[[redirects]]
+    from="docs/react-installation/"
+    to="docs/react-data-grid/installation/"
+    status = 301
