@@ -2,8 +2,8 @@
 <html lang="en-US">
 <head>
   <!--
-Generated at Fri Aug 30 2024 07:30:19 GMT+0000 (Coordinated Universal Time)
-SHA: 059c7009fdb748c9162ac40b7a0287073e282cc8
+Generated at Mon Sep 02 2024 06:54:03 GMT+0000 (Coordinated Universal Time)
+SHA: 4e573dc93c03f849a1ae5da37408068fb1b12117
 -->
   <meta charset="utf-8">
   <title>Migrate from 13.1 to 14.0 - React Data Grid | Handsontable</title>
@@ -78,7 +78,7 @@ SHA: 059c7009fdb748c9162ac40b7a0287073e282cc8
     <meta name="og:image" content="https://handsontable.com/docs/img/handsontable-banner-og.png">
     <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://handsontable.com/docs/react-data-grid/migration-from-13.1-to-14.0/" rel="canonical" />
-  <link rel="preload" href="/docs/assets/css/0.styles.efdf810f.css" as="style"><link rel="preload" href="/docs/assets/js/app.4abbaa5a.js" as="script"><link rel="preload" href="/docs/assets/js/4.a71c13f3.js" as="script"><link rel="preload" href="/docs/assets/js/3.341147d5.js" as="script"><link rel="preload" href="/docs/assets/js/2.25ad14de.js" as="script"><link rel="preload" href="/docs/assets/js/395.f0fe89d9.js" as="script">
+  <link rel="preload" href="/docs/assets/css/0.styles.efdf810f.css" as="style"><link rel="preload" href="/docs/assets/js/app.26ca8786.js" as="script"><link rel="preload" href="/docs/assets/js/4.a71c13f3.js" as="script"><link rel="preload" href="/docs/assets/js/3.341147d5.js" as="script"><link rel="preload" href="/docs/assets/js/2.25ad14de.js" as="script"><link rel="preload" href="/docs/assets/js/395.da7ace14.js" as="script">
   <link rel="stylesheet" href="/docs/assets/css/0.styles.efdf810f.css">
 </head>
 <body>
@@ -127,8 +127,8 @@ SHA: 059c7009fdb748c9162ac40b7a0287073e282cc8
             "https://www.linkedin.com/company/handsontable"
         ]
     },
-    "dateModified": "2024-08-30T07:37:09.769Z",
-    "lastReviewed": "2024-08-30T07:37:09.770Z",
+    "dateModified": "2024-09-02T07:00:51.582Z",
+    "lastReviewed": "2024-09-02T07:00:51.582Z",
     "copyrightHolder": {
         "@context": "https://schema.org/",
         "@type": "Organization",
@@ -172,6 +172,6 @@ SHA: 059c7009fdb748c9162ac40b7a0287073e282cc8
 However, this makes the IME editor not compatible with our &quot;fast edit&quot; functionality (the ability to start editing a cell without opening the editor first).</p> <p>To maintain the IME functionalities, we introduce the <a href="/docs/react-data-grid/api/options/#imefastedit"><code>imeFastEdit</code></a> option that swaps the browser focus to the editor's editable element after a small, configurable delay.</p> <p>To utilize it in your implementation, set the <a href="/docs/react-data-grid/api/options/#imefastedit"><code>imeFastEdit</code></a> option to <code>true</code> in your settings object.</p> <h3 id="adjust-your-application-to-the-modified-keyboard-shortcuts"><a href="#adjust-your-application-to-the-modified-keyboard-shortcuts" class="header-link">Adjust your application to the modified keyboard shortcuts</a></h3> <p>The new Handsontable version comes with an updated set of keyboard shortcuts. Most of them are new additions, but there have been some changes in the already-existing ones. Make sure to adjust your application to the current specification.</p> <h5 id="ctrl-cmd-a"><kbd>Ctrl/Cmd</kbd> + <kbd>A</kbd></h5> <table><thead><tr><th>Before</th> <th>After</th></tr></thead> <tbody><tr><td>Selects all cells and headers</td> <td>Selects all cells <em>without</em> headers</td></tr> <tr><td>Selection highlight moves to the top-left cell of the selection</td> <td>Focused cell does not move</td></tr></tbody></table> <h5 id="tab-in-the-filtering-menu"><kbd>TAB</kbd> in the Filtering menu</h5> <table><thead><tr><th>Before</th> <th>After</th></tr></thead> <tbody><tr><td>Iterates through the content list</td> <td>Iterates through the menu items. When focused on the search input, the arrow keys allow iterating through the content list</td></tr></tbody></table> <p>More information: <a href="/docs/react-data-grid/keyboard-shortcuts/">Keyboard Shortcuts page in the documentation</a></p> <h3 id="check-if-your-template-looks-fine-with-the-updated-colors"><a href="#check-if-your-template-looks-fine-with-the-updated-colors" class="header-link">Check if your template looks fine with the updated colors</a></h3> <p>To make the table more accessible, this release changes the color of the invalid cells and some of the cell icons. Make sure it looks good with your application template.</p> <table><thead><tr><th>Before</th> <th>After</th></tr></thead> <tbody><tr><td>Cell background: <code>#ff4c42</code></td> <td>Cell background: <code>#ffbeba</code></td></tr> <tr><td>Autocomplete-typed cells arrow: <code>#eeeeee</code></td> <td>Autocomplete-typed cells arrow: <code>#bbbbbb</code></td></tr> <tr><td>Invalid autocomplete-typed cells arrow: <code>#eeeeee</code></td> <td>Invalid autocomplete-typed cells arrow: <code>#555555</code></td></tr> <tr><td>Invalid autocomplete-typed cells arrow on hover: <code>#777777</code></td> <td>Invalid autocomplete-typed cells arrow on hover: <code>#1a1a1a</code></td></tr></tbody></table></div> <div class="page-top" style="display:none;"><div class="custom-block tip version-alert"><p>There is a newer version of Handsontable available.
             <a href="/docs/">Switch to the latest version ⟶</a></p></div></div> <footer class="footer"><a href="https://github.com/handsontable/handsontable/edit/develop/docs/content/guides/upgrade-and-migration/migrating-from-13.1-to-14.0/migrating-from-13.1-to-14.0.md" target="_blank" rel="noopener noreferrer" class="edit-link">Edit on GitHub <i class="ico i-external"></i></a> <div class="footer-links"><div class="socail-links"><a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a> <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a> <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a></div> <div class="hot-links"><a href="https://handsontable.com/privacy">Privacy policy</a> <a href="https://handsontable.com/terms-of-use">Terms of use</a> <a href="https://handsontable.com/team">Team</a> <a href="https://handsontable.com/contact?category=technical_support">Contact</a> <a href="https://handsontable.com/blog/">Blog</a> <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a></div></div> <div class="copyright"><p>© 2012 - 2024 Handsoncode</p> <label id="switch" class="dark-mode"><span class="inner" style="display:none;"><input type="checkbox"> <span style="display:none;"><i class="ico i-dm-dark"></i>Light</span> <span style="display:;"><i class="ico i-dm-light"></i>Dark</span></span></label></div></footer> </main></div></div><div class="global-ui"></div></div>
 
-<script src="/docs/assets/js/app.4abbaa5a.js" defer></script><script src="/docs/assets/js/4.a71c13f3.js" defer></script><script src="/docs/assets/js/3.341147d5.js" defer></script><script src="/docs/assets/js/2.25ad14de.js" defer></script><script src="/docs/assets/js/395.f0fe89d9.js" defer></script>
+<script src="/docs/assets/js/app.26ca8786.js" defer></script><script src="/docs/assets/js/4.a71c13f3.js" defer></script><script src="/docs/assets/js/3.341147d5.js" defer></script><script src="/docs/assets/js/2.25ad14de.js" defer></script><script src="/docs/assets/js/395.da7ace14.js" defer></script>
 </body>
 </html>
