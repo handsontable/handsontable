@@ -1,9 +1,9 @@
 import type { Context, Config } from "@netlify/edge-functions";
 
 export default async (request: Request, context: Context) => {
-  return Response.redirect(`/docs/react-data-grid/installation`, 301);
+  return Response.redirect(`/docs/react-data-grid/modules`, 301);
 }
 
 export const config: Config = {
-  path: ["/docs/react"],
+  path: ["/docs/react-modules"],
 }
