@@ -5,5 +5,8 @@ export default async (request: Request, context: Context) => {
 }
 
 export const config: Config = {
-  path: ["/docs/react-redux-example"],
+  path: [
+    "/docs/react-hot-reference",
+    "/docs/frameworks-wrapper-for-react-hot-reference"
+  ],
 }

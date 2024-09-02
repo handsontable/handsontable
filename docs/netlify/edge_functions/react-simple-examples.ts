@@ -5,5 +5,8 @@ export default async (request: Request, context: Context) => {
 }
 
 export const config: Config = {
-  path: ["/docs/react-simple-examples"],
+  path: [
+    "/docs/react-simple-examples",
+     "frameworks-wrapper-for-react-simple-examples"
+    ],
 }

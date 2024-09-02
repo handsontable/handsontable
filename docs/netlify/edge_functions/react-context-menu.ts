@@ -5,5 +5,8 @@ export default async (request: Request, context: Context) => {
 }
 
 export const config: Config = {
-  path: ["/docs/react-custom-context-menu-example"],
+  path: [
+    "/docs/react-custom-context-menu-example",
+    "/docs/frameworks-wrapper-for-react-custom-context-menu-example"
+  ],
 }
