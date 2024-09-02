@@ -28,7 +28,7 @@ function setCookie(name, value) {
   }
   let str = `${name}=${value}`;
 
-  str += `; Domain=${domainWithoutSubdomain}`;
+  str += `; Domain=${window.location.hostname}`;
   str += '; Path=/docs';
   str += `; Expires=${new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString()}`; // 1 year
 
