@@ -2,11 +2,9 @@ import type { Context, Config } from "@netlify/edge-functions";
 
 export default async (request: Request, context: Context) => {
 
-  const value = context.cookies.get("docs_fw");
+  const cookieValue = context.cookies.get("docs_fw");
+  const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
-  const framework = value === 'react' ? 'react-data-grid' : 'javascript-data-grid';
-
-  console.log(framework, context, request);
   return Response.redirect(`/docs/${framework}`, 301);
 }
 
