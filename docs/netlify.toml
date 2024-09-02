@@ -4,3 +4,4 @@
     command=""
 [[edge_functions]]
     function="middleware-cookie"
+    path="/*"
