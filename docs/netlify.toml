@@ -2,3 +2,6 @@
     edge_functions="netlify/edge_functions"
     functions="netlify/functions"
     command=""
+[[edge_functions]]
+    pattern="/docs/frameworks-wrapper-for(angular|vue)
+    function = "wrapper"
