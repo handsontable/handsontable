@@ -5,5 +5,5 @@ export default async (request: Request, context: Context) => {
 }
 
 export const config: Config = {
-  path: ["/docs/react", "docs/react/installation"],
+  path: ["/docs/react", "/docs/react/installation"],
 }
