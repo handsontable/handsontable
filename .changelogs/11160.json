@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Improved rendering performance",
+  "title": "Make the focus visible for `select` cell type cells.",
   "type": "changed",
-  "issueOrPR": 11069,
+  "issueOrPR": 11160,
   "breaking": false,
   "framework": "none"
 }
