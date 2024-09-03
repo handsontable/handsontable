@@ -246,10 +246,6 @@ module.exports = function(docsVersion, base) {
                 >
                   <i class="ico i-github"></i>
                 </button>
-                <select class="selected-lang" value="ts" hidden>
-                  <option value="ts">ts</option>
-                  <option value="js">js</option>
-                </select>
               </div>
             </div>
             <div class="example-container-code">

@@ -1,0 +1,5 @@
+#example-main-light-container {
+  --hot-background-color: white;
+  --hot-foreground-color: #222222;
+  --hot-accent-color: #1a42e8;
+}

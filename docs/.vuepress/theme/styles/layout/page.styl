@@ -425,6 +425,37 @@
             }
         }
     }
+    .theme-examples {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+
+        .theme-examples-controls {
+            .example-container {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .color-box {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+
+                .color {
+                    width: 20px;
+                    height: 20px;
+                    background-color: grey;
+                }
+            }
+        }
+
+        .theme-example {
+            &.hide {
+                display: none;
+            }
+        }
+    }
 }
 
 .handsontable-drawing p:last-child { 
