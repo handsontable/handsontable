@@ -2,6 +2,3 @@
     edge_functions="netlify/edge_functions"
     functions="netlify/functions"
     command=""
-[[edge_functions]]
-    function="middleware-cookie"
-    path="/*"
