@@ -5,9 +5,9 @@ export default async (request: Request, context: Context) => {
   const cookieValue = context.cookies.get("docs_fw");
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
-  return Response.redirect(`/docs/${framework}/binding-to-data/`, 301);
+  return Response.redirect(`/docs/${framework}/saving-data/`, 301);
 }
 
 export const config: Config = {
-  path: ["/docs/data-binding"],
+  path: ["/docs/tutorial-load-and-save"],
 }
