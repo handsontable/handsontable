@@ -9,7 +9,7 @@ env:
 on:
   push:
     branches:
-      - master
+      - feature/dev-issue-1790
   workflow_dispatch:
 
 defaults:
