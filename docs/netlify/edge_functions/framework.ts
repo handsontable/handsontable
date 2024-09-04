@@ -9,5 +9,5 @@ export default async (request: Request, context: Context) => {
 }
 
 export const config: Config = {
-  path: ["/", "/docs/", "/docs/tutorial-introduction/"],
+  path: ["/", "/docs", "/docs/tutorial-introduction"],
 }
