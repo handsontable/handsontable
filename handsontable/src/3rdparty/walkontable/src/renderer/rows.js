@@ -2,7 +2,7 @@ import BaseRenderer from './_base';
 import { warn } from './../../../../helpers/console';
 import { toSingleLine } from './../../../../helpers/templateLiteralTag';
 import { OrderView } from './../utils/orderView';
-import { setAttribute } from '../../../../helpers/dom/element';
+import { addClass, removeClass, setAttribute } from '../../../../helpers/dom/element';
 import {
   A11Y_ROW,
   A11Y_ROWGROUP,
@@ -87,6 +87,15 @@ export default class RowsRenderer extends BaseRenderer {
           // `aria-rowindex` is incremented by both tbody and thead rows.
           A11Y_ROWINDEX(sourceRowIndex + (this.table.rowUtils?.dataAccessObject?.columnHeaders.length ?? 0) + 1),
         ]);
+      }
+
+      removeClass(TR, ['ht__row_odd', 'ht__row_even']);
+
+      if ((sourceRowIndex + 1) % 2 === 0) {
+        addClass(TR, 'ht__row_even');
+
+      } else {
+        addClass(TR, 'ht__row_odd');
       }
     }
 
