@@ -5,9 +5,9 @@ export default async (request: Request, context: Context) => {
   const cookieValue = context.cookies.get("docs_fw");
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
-  return Response.redirect(`/docs/${framework}`, 301);
+  return Response.redirect(`/docs/${framework}/installation`, 301);
 }
 
 export const config: Config = {
-  path: ["/", "/docs/"],
+  path: ["/docs/tutorial-quick-start"],
 }

@@ -5,5 +5,5 @@ export default async (request: Request, context: Context) => {
 }
 
 export const config: Config = {
-  path: ["/docs/next/react-data-grid"],
+  path: ["/docs/next/javascript-data-grid"],
 }
