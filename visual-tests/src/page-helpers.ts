@@ -94,8 +94,49 @@ export async function selectClonedCell(
  * @param {Locator} cell The locator of the cell.
  */
 export async function openEditor(cell: Locator) {
+  await cell.waitFor(); // Ensure the cell is available
+  await retry(async() => {
+    await cell.click();
+    await cell.press('Enter');
+  });
+}
+
+/**
+ * @param {Locator} cell The locator of the cell.
+ */
+export async function openContextMenu(cell: Locator) {
+  await cell.waitFor(); // Ensure the cell is available
+  await retry(async() => {
+    await cell.click({ button: 'right' })
+  });
+}
+
+/**
+ * @param alignment
+ * @param {Locator} cell The locator of the cell.
+ */
+export async function setCellAlignment(alignment: string, cell: Locator) {
+  await cell.waitFor(); // Ensure the cell is available
   await cell.click();
-  await cell.press('Enter');
+  await cell.click({ button: 'right' });
+  await getPageInstance().getByRole('menuitem', { name: 'Alignment' }).hover();
+  await getPageInstance().getByRole('menuitemcheckbox', { name: alignment }).click();
+}
+
+/**
+ * Retry a function multiple times.
+ * @param {Function} fn - The function to retry.
+ * @param {number} retries - The number of retries.
+ */
+async function retry(fn: Function, retries: number = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await fn();
+      return;
+    } catch (error) {
+      if (i === retries - 1) throw error;
+    }
+  }
 }
 
 /**
@@ -247,6 +288,15 @@ export async function rowsCount() {
   const count = await getPageInstance().getByRole('rowheader').count();
 
   return count;
+}
+
+/**
+ * @param {number} index Column index.
+ */
+export async function clearColumn(index: number) {
+  openHeaderDropdownMenu(index);
+  await getPageInstance().getByText('Clear column').click();
+
 }
 
 /**
