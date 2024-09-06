@@ -2641,7 +2641,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * by adding or removing rows and columns at specified positions.
    *
    * ::: tip
-   * The `alter()` method works only when your [`data`](@/api/options.md#data)
+   * For column-related actions, the `alter()` method works only when your [`data`](@/api/options.md#data)
    * is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays).
    * :::
    *
