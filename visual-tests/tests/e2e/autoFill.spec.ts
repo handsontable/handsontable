@@ -1,5 +1,5 @@
 import path from 'path';
-import { test } from '../../src/test-runner';
+import { testE2E } from '../../src/test-runner';
 import { openEditor, selectCell, selectEditor, clearColumn } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
@@ -14,7 +14,7 @@ const urls = [
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  test(`Test for URL: ${url}`, async({ tablePage }) => {
+  testE2E(`Test for URL: ${url}`, async({ tablePage }) => {
     await tablePage.goto(url);
 
     const table = tablePage.locator(helpers.selectors.mainTable);

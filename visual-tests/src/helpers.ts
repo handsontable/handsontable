@@ -13,7 +13,8 @@ export const helpers = {
     mainTableBody: '> .ht_master.handsontable table tbody',
     cloneTopTable: '> .ht_clone_top.handsontable table thead',
     cloneInlineStartTable: '> .ht_clone_inline_start.handsontable table tbody',
-    cloneInlineStartCornerTable: '> .ht_clone_top_inline_start_corner.handsontable table thead',
+    cloneInlineStartCornerTable:
+      '> .ht_clone_top_inline_start_corner.handsontable table thead',
     dropdownMenu: '.htMenu.htDropdownMenu.handsontable',
   },
 
@@ -21,7 +22,7 @@ export const helpers = {
     cookieInfo: 'remove-cookie-info.css',
     changeCellsBackground: 'change-cells-background.css',
     changeCellTextColor: 'change-cell-text-color.css',
-    dynamicDataFreeze: 'dynamic-data-freeze.css'
+    dynamicDataFreeze: 'dynamic-data-freeze.css',
   },
 
   expectedPageTitle: /Handsontable for .* example/,
@@ -47,11 +48,15 @@ export const helpers = {
   },
 
   findCell({ row = 0, column = 0, cellType = 'td' }) {
-    return `> tr:nth-of-type(${row + 1}) > ${cellType}:nth-of-type(${column + 1})`;
+    return `> tr:nth-of-type(${row + 1}) > ${cellType}:nth-of-type(${
+      column + 1
+    })`;
   },
 
   findDropdownMenuExpander({ col = 1 }) {
-    return `${this.selectors.cloneTopTable} > tr > th:nth-of-type(${col + 1}) button.changeType`;
+    return `${this.selectors.cloneTopTable} > tr > th:nth-of-type(${
+      col + 1
+    }) button.changeType`;
   },
 
   findCellEditor() {
@@ -68,6 +73,22 @@ export const helpers = {
     this.screenshotsCount += 1;
 
     // eslint-disable-next-line max-len
-    return `${this.screenshotsDirectory}/${this.hotWrapper}/${this.browser}/${this.screenshotDirName}/${path.basename(this.screenshotDirName)}-${this.screenshotsCount}.${this.screenshotsExtension}`;
+    return `${this.screenshotsDirectory}/${this.hotWrapper}/${this.browser}/${
+      this.screenshotDirName
+    }/${path.basename(this.screenshotDirName)}-${this.screenshotsCount}.${
+      this.screenshotsExtension
+    }`;
+  },
+
+  screenshotE2ePath(testFileName: string, url: string) {
+    const safeUrl = url.replace(/[^\w]/g, '_');
+    const screenshotPath = path.join(
+      __dirname,
+      `../../screenshots/e2e/${this.browser}`,
+      `${testFileName}_${safeUrl}.png`
+    );
+
+    // eslint-disable-next-line max-len
+    return screenshotPath;
   },
 };

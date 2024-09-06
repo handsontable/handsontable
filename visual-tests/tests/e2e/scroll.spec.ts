@@ -1,8 +1,7 @@
 import path from 'path';
 import { test } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
-
-import { openEditor, selectCell, selectEditor } from '../../src/page-helpers';
+import { selectCell } from '../../src/page-helpers';
 
 const urls = [
   '/cell-types-demo',
@@ -16,22 +15,18 @@ const urls = [
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
   test(`Test alignment for URL: ${url}`, async({ tablePage }) => {
-    await tablePage.goto(url);
-    await tablePage.waitForLoadState('load');
+    const testFileName = path.basename(__filename, '.spec.ts');
 
-    const table = tablePage.locator('#root > .handsontable');
+    await tablePage.goto(url);
+
+    const table = tablePage.locator(helpers.selectors.mainTable);
 
     await table.waitFor();
     const cell = await selectCell(2, 2, table);
-
-    await openEditor(cell);
-
-    const cellEditor = await selectEditor();
-
-    await cellEditor.fill('test');
-
-    const testFileName = path.basename(__filename, '.spec.ts');
-
+    
+    await cell.click();
+    await tablePage.mouse.wheel(500, 1000);
+    await tablePage.waitForTimeout(500);
     await tablePage.screenshot({ path: helpers.screenshotE2ePath(testFileName, url) });
   });
 });

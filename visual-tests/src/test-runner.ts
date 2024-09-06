@@ -33,5 +33,21 @@ const test = baseTest.extend<{ tablePage: Page, customTitle: string }>({
   }
 });
 
+// Define your custom fixture
+const testE2E = baseTest.extend<{ tablePage: Page, customTitle: string }>({
+  tablePage: async({ page }, use, workerInfo) => {
+    helpers.init(workerInfo);
+    PageHolder.getInstance().setPage(page);
+
+    await use(page);
+  },
+  // eslint-disable-next-line no-empty-pattern
+  customTitle: async({}, use, testInfo) => {
+    const title = helpers.testTitle(path.basename(testInfo.title));
+
+    await use(title);
+  }
+});
+
 // Export the custom fixture
-export { expect, test };
+export { expect, test, testE2E };
