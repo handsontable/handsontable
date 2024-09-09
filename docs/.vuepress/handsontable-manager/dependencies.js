@@ -41,7 +41,7 @@ const getPackageUrls = (packageName, version, fileSelection) => {
   //     `/docs/${packageName}/${fileSelection}`;
   // }
 
-  // const mappedVersion = formatVersion(version);
+  const mappedVersion = formatVersion(version);
 
   return urlSet[fileSelection] ?
     `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${urlSet.subDir || 'dist/'}${urlSet[fileSelection]}` :
