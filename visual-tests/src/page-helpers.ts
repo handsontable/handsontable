@@ -1,6 +1,7 @@
 import type { Locator } from '@playwright/test';
 import PageHolder from './page-holder';
 import { helpers } from './helpers';
+type ModifierKey = 'Meta' | 'Control' | 'Alt' | 'ControlOrMeta' | 'Shift';
 
 // eslint-disable-next-line no-shadow
 export enum SortDirection {
@@ -271,6 +272,25 @@ export async function selectColumnHeaderByNameAndOpenMenu(columnName: string, ta
       button: 'right',
       modifiers: ['Shift'],
     });
+}
+
+/**
+ * @param {number} columnIndex Cell locator.
+ * @param modifiers Optional click modifiers
+ */
+export async function selectColumnHeaderByIndex(columnIndex: number, modifiers: ModifierKey[] = []) {
+  const table = getPageInstance().locator(helpers.selectors.mainTable);
+  
+  await table.getByRole('columnheader').nth(columnIndex).click({ modifiers });
+}
+/**
+ * @param {number} rowIndex Cell locator.
+ * @param modifiers Optional click modifiers
+ */
+export async function selectRowHeaderByIndex(rowIndex: number, modifiers: ModifierKey[] = []) {
+  const table = getPageInstance().locator(helpers.selectors.mainTable);
+  
+  await table.getByRole('rowheader').nth(rowIndex).click({ modifiers });
 }
 
 /**
