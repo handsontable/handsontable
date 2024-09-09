@@ -1,6 +1,7 @@
 import type { Locator } from '@playwright/test';
 import PageHolder from './page-holder';
 import { helpers } from './helpers';
+
 type ModifierKey = 'Meta' | 'Control' | 'Alt' | 'ControlOrMeta' | 'Shift';
 
 // eslint-disable-next-line no-shadow
@@ -108,12 +109,12 @@ export async function openEditor(cell: Locator) {
 export async function openContextMenu(cell: Locator) {
   await cell.waitFor(); // Ensure the cell is available
   await retry(async() => {
-    await cell.click({ button: 'right' })
+    await cell.click({ button: 'right' });
   });
 }
 
 /**
- * @param alignment
+ * @param {string} alignment The alignment to set.
  * @param {Locator} cell The locator of the cell.
  */
 export async function setCellAlignment(alignment: string, cell: Locator) {
@@ -126,13 +127,16 @@ export async function setCellAlignment(alignment: string, cell: Locator) {
 
 /**
  * Retry a function multiple times.
+ *
  * @param {Function} fn - The function to retry.
  * @param {number} retries - The number of retries.
  */
 async function retry(fn: Function, retries: number = 3) {
   for (let i = 0; i < retries; i++) {
     try {
+      // eslint-disable-next-line no-await-in-loop
       await fn();
+
       return;
     } catch (error) {
       if (i === retries - 1) throw error;
@@ -263,7 +267,7 @@ export async function selectCo(option: string) {
 
 /**
  * @param {string} columnName Column name.
- * @param table
+ * @param {Locator} table The locator of the table.
  */
 export async function selectColumnHeaderByNameAndOpenMenu(columnName: string, table = getDefaultTableInstance()) {
   await table
@@ -276,20 +280,20 @@ export async function selectColumnHeaderByNameAndOpenMenu(columnName: string, ta
 
 /**
  * @param {number} columnIndex Cell locator.
- * @param modifiers Optional click modifiers
+ * @param {ModifierKey} modifiers Optional click modifiers.
  */
 export async function selectColumnHeaderByIndex(columnIndex: number, modifiers: ModifierKey[] = []) {
   const table = getPageInstance().locator(helpers.selectors.mainTable);
-  
+
   await table.getByRole('columnheader').nth(columnIndex).click({ modifiers });
 }
 /**
  * @param {number} rowIndex Cell locator.
- * @param modifiers Optional click modifiers
+ * @param {ModifierKey} modifiers Optional click modifiers.
  */
 export async function selectRowHeaderByIndex(rowIndex: number, modifiers: ModifierKey[] = []) {
   const table = getPageInstance().locator(helpers.selectors.mainTable);
-  
+
   await table.getByRole('rowheader').nth(rowIndex).click({ modifiers });
 }
 
@@ -458,7 +462,7 @@ export async function undo() {
  */
 export async function redo() {
   const isMac = process.platform === 'darwin';
-  
+
   if (isMac) {
     await getPageInstance().keyboard.press('Meta+X');
   } else {

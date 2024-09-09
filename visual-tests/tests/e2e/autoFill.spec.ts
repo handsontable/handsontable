@@ -37,7 +37,7 @@ urls.forEach((url) => {
     await cell.click();
 
     const cornerDiv = table.locator('div.wtBorder.current.corner').first();
-    
+
     await cornerDiv.dblclick();
 
     // Generate a safe file name from the URL

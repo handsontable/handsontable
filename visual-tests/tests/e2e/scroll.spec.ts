@@ -23,7 +23,7 @@ urls.forEach((url) => {
 
     await table.waitFor();
     const cell = await selectCell(2, 2, table);
-    
+
     await cell.click();
     await tablePage.mouse.wheel(500, 1000);
     await tablePage.waitForTimeout(500);

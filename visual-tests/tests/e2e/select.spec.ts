@@ -23,13 +23,12 @@ urls.forEach((url) => {
 
     await table.waitFor();
     const cell = await selectCell(2, 2, table);
-    
+
     await cell.click();
     await tablePage.screenshot({ path: helpers.screenshotE2ePath(testFileName, url, 'select-cell') });
 
     await selectColumnHeaderByIndex(2);
     await selectColumnHeaderByIndex(5, ['Shift']);
-
 
     await tablePage.screenshot({ path: helpers.screenshotE2ePath(testFileName, url, 'select-column') });
 
