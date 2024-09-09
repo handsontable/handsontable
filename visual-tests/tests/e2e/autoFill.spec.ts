@@ -40,13 +40,8 @@ urls.forEach((url) => {
 
     await cornerDiv.dblclick();
 
-    // Generate a safe file name from the URL
-    const safeUrl = url.replace(/[^\w]/g, '_');
-    // Get the current test file name
-    const testFileName = path.basename(__filename, '.ts');
-    // Combine the test file name and the safe URL to create the screenshot path
-    const screenshotPath = path.join(__dirname, 'screenshots', `${testFileName}_${safeUrl}.png`);
+    const testFileName = path.basename(__filename, '.spec.ts');
 
-    await tablePage.screenshot({ path: screenshotPath });
+    await tablePage.screenshot({ path: helpers.screenshotE2ePath(testFileName, url) });
   });
 });

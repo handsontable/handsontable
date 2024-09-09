@@ -1,9 +1,9 @@
-import { test, expect } from '../../src/test-runner';
+import { testE2E, expect } from '../../src/test-runner';
 import { selectCell, selectColumnHeaderByNameAndOpenMenu } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-test(__filename, async({ tablePage }) => {
+testE2E(__filename, async({ tablePage }) => {
   await tablePage.goto('/scenario-grid');
 
   const tableTop = tablePage.locator('#tableTop > .handsontable');
@@ -12,7 +12,7 @@ test(__filename, async({ tablePage }) => {
   tableTop.waitFor();
   tableBottom.waitFor();
 
-  await selectColumnHeaderByNameAndOpenMenu('System');
+  await selectColumnHeaderByNameAndOpenMenu('OS', tableTop);
   await tablePage.getByText('Read Only').click();
   await (await selectCell(2, 4, tableBottom)).click();
   await tablePage.keyboard.press(`${helpers.modifier}+c`);

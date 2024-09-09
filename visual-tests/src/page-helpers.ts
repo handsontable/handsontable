@@ -121,8 +121,11 @@ export async function setCellAlignment(alignment: string, cell: Locator) {
   await cell.waitFor(); // Ensure the cell is available
   await cell.click();
   await cell.click({ button: 'right' });
-  await getPageInstance().getByRole('menuitem', { name: 'Alignment' }).hover();
-  await getPageInstance().getByRole('menuitemcheckbox', { name: alignment }).click();
+  const menu = await getPageInstance().getByRole('menu');
+
+  await menu.waitFor();
+  await menu.getByRole('menuitem', { name: 'Alignment' }).hover();
+  await menu.getByRole('menuitemcheckbox', { name: alignment }).click();
 }
 
 /**
@@ -442,6 +445,8 @@ export async function collapseNestedColumn(columnName:string, table = getDefault
  */
 export async function collapseNestedRow(rowNumber:number, table = getDefaultTableInstance()) {
   await table.getByRole('rowheader', { name: rowNumber.toString() }).locator('div').nth(1).click();
+  await getPageInstance().waitForTimeout(500);
+
 }
 
 /**
