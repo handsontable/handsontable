@@ -68,6 +68,7 @@ export function initializeCellTypeDemo() {
     autoWrapCol: true,
     dropdownMenu: true,
     filters: true,
+    contextMenu: true,
     multiColumnSorting: true,
     hiddenColumns: {
       columns: [0, 2],

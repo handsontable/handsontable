@@ -80,12 +80,13 @@ export const helpers = {
     }`;
   },
 
-  screenshotE2ePath(testFileName: string, url: string) {
+  screenshotE2ePath(testFileName: string, url = '', suffix = '') {
+
     const safeUrl = url.replace(/[^\w]/g, '_');
     const screenshotPath = path.join(
       __dirname,
-      `../../screenshots/e2e/${this.browser}`,
-      `${testFileName}_${safeUrl}.png`
+      `../screenshots/e2e/${this.browser}`,
+      `${testFileName}_${safeUrl}${suffix}.png`
     );
 
     // eslint-disable-next-line max-len

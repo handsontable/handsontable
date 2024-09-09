@@ -262,9 +262,10 @@ export async function selectCo(option: string) {
 
 /**
  * @param {string} columnName Column name.
+ * @param table
  */
-export async function selectColumnHeaderByNameAndOpenMenu(columnName: string) {
-  await getPageInstance()
+export async function selectColumnHeaderByNameAndOpenMenu(columnName: string, table = getDefaultTableInstance()) {
+  await table
     .getByRole('columnheader', { name: columnName, exact: true })
     .click({
       button: 'right',
@@ -417,4 +418,30 @@ export async function collapseNestedColumn(columnName:string, table = getDefault
  */
 export async function collapseNestedRow(rowNumber:number, table = getDefaultTableInstance()) {
   await table.getByRole('rowheader', { name: rowNumber.toString() }).locator('div').nth(1).click();
+}
+
+/**
+ * Undo the last action.
+ */
+export async function undo() {
+  const isMac = process.platform === 'darwin';
+
+  if (isMac) {
+    await getPageInstance().keyboard.press('Meta+Z');
+  } else {
+    await getPageInstance().keyboard.press('Control+Z');
+  }
+}
+
+/**
+ * Redo the last action.
+ */
+export async function redo() {
+  const isMac = process.platform === 'darwin';
+  
+  if (isMac) {
+    await getPageInstance().keyboard.press('Meta+X');
+  } else {
+    await getPageInstance().keyboard.press('Control+X');
+  }
 }

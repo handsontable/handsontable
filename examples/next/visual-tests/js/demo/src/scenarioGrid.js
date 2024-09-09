@@ -144,11 +144,8 @@ export function initializeScenarioGrid() {
 
   new Handsontable(example2, {
     data: scenarioDataBottom,
-    layoutDirection: isArabicDemoEnabled() ? 'rtl' : 'ltr',
-    language: isArabicDemoEnabled() ? arAR.languageCode : 'en-US',
     height: 250,
     colHeaders: [
-      'Category',
       'Product ID',
       'Industry',
       'Business Scale',
@@ -159,29 +156,6 @@ export function initializeScenarioGrid() {
       'Mobile Apps',
       'Pricing',
       'Rating',
-    ],
-    columnSummary: [
-      {
-        sourceColumn: 10,
-        type: 'average',
-        destinationRow: 0,
-        destinationColumn: 10,
-        // force this column summary to treat non-numeric values as numeric values
-        forceNumeric: true
-      },
-    ],
-    columns: [
-      { data: 'category', type: 'text' },
-      { data: 'product_id', type: 'numeric' },
-      { data: 'industry', type: 'text' },
-      { data: 'business_scale', type: 'text' },
-      { data: 'user_type', type: 'text' },
-      { data: 'no_of_users', type: 'text' },
-      { data: 'deployment', type: 'text' },
-      { data: 'OS', type: 'text' },
-      { data: 'mobile_apps', type: 'text' },
-      { data: 'pricing', type: 'text' },
-      { data: 'rating', type: 'numeric' },
     ],
     mergeCells: true,
     dropdownMenu: true,
