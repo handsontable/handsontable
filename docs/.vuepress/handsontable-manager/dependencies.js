@@ -35,13 +35,13 @@ const getPackageUrls = (packageName, version, fileSelection) => {
 
   const urlSet = subDirs[packageName];
 
-  if (version === 'next' && isBrowser) {
-    return urlSet[fileSelection] ?
-      `/docs/${packageName}/${urlSet[fileSelection]}` :
-      `/docs/${packageName}/${fileSelection}`;
-  }
+  // if (version === 'next' && isBrowser) {
+  //   return urlSet[fileSelection] ?
+  //     `/docs/${packageName}/${urlSet[fileSelection]}` :
+  //     `/docs/${packageName}/${fileSelection}`;
+  // }
 
-  const mappedVersion = formatVersion(version);
+  // const mappedVersion = formatVersion(version);
 
   return urlSet[fileSelection] ?
     `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${urlSet.subDir || 'dist/'}${urlSet[fileSelection]}` :
