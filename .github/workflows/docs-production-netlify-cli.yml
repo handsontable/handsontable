@@ -10,7 +10,7 @@ on:
   push:
     branches:
       - feature/dev-issue-1790
-      - master
+      # - master
   workflow_dispatch:
 
 defaults:
