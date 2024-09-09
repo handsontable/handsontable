@@ -1,5 +1,4 @@
 @use "../../utils/mixins";
-@use "../../utils/icons";
 
 /*
   Handsontable DropdownMenu
@@ -40,7 +39,6 @@
         position: absolute;
         top: 0;
         left: 0;
-        @include icons.arrow-down;
       }
     }
 
@@ -61,7 +59,6 @@
         border-width: var(--hot-dropdown-border-width);
         box-shadow: var(--hot-base-shadow);
         border-radius: calc(2 * var(--hot-border-radius));
-        overflow: hidden !important;
       }
 
       &:not(.htGhostTable) {
@@ -130,7 +127,6 @@
             top: 50%;
             right: calc(4 * var(--hot-base-grid));
             transform: translateY(-50%);
-            @include icons.arrow-right;
           }
         }
 
@@ -179,7 +175,6 @@
               right: calc(4 * var(--hot-base-grid));
               color: var(--hot-accent-color);
               transform: translateY(-50%);
-              @include icons.check;
             }
 
             &::before {

@@ -1,5 +1,3 @@
-@use "../../utils/icons";
-
 /*
   Handsontable HiddenRows
 */
@@ -26,16 +24,14 @@
 
     th.beforeHiddenRow .relative::before {
       bottom: -6px;
-      @include icons.caret-up;
-      width: var(--hot-icon-size-sm);
-      height: var(--hot-icon-size-sm);
+      width: 10px !important;
+      height: 10px !important;
     }
 
-    th.afterHiddenRow .relative::after {
+    th.afterHiddenRow .relative::before {
       top: -6px;
-      @include icons.caret-down;
-      width: var(--hot-icon-size-sm);
-      height: var(--hot-icon-size-sm);
+      width: 10px !important;
+      height: 10px !important;
     }
 
     td,

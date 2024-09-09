@@ -1,5 +1,4 @@
 @use "../../utils/mixins";
-@use "../../utils/icons";
 
 /*
   Manual Column Sorting
@@ -24,13 +23,6 @@
         &:before {
           content: "";
           order: 1;
-        }
-
-        &.descending:before {
-          @include icons.arrow-narrow-down;
-        }
-        &.ascending:before {
-          @include icons.arrow-narrow-up;
         }
       }
     }

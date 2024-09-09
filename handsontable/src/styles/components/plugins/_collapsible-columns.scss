@@ -1,5 +1,4 @@
 @use "../../utils/mixins";
-@use "../../utils/icons";
 
 /*
   Helper element for plugins:
@@ -39,9 +38,8 @@
         position: absolute;
         top: 0;
         left: 0;
-        @include icons.minus;
-        width: 14px;
-        height: 14px;
+        width: 14px !important;
+        height: 14px !important;
         color: var(--hot-border-color);
       }
 
@@ -49,9 +47,8 @@
       &.collapsed,
       &.ht_nestingExpand {
         &:before {
-          @include icons.plus;
-          width: 14px;
-          height: 14px;
+          width: 14px !important;
+          height: 14px !important;
         }
       }
     }

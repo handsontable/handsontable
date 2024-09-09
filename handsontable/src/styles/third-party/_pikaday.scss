@@ -1,5 +1,4 @@
 @use "../utils/mixins";
-@use "../utils/icons";
 
 /*
   Pikaday
@@ -48,12 +47,10 @@
     .pika-prev {
       order: 1;
       margin-right: auto;
-      @include icons.arrow-left;
     }
     .pika-next {
       order: 3;
       margin-left: auto;
-      @include icons.arrow-right;
     }
     .pika-table {
       thead {

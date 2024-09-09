@@ -1,5 +1,4 @@
 @use "../../utils/mixins";
-@use "../../utils/icons";
 
 /*
   Autocomplete
@@ -25,7 +24,6 @@
         position: absolute;
         top: 0;
         left: 0;
-        @include icons.arrow-down;
       }
     }
   }

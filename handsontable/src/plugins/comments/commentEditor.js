@@ -11,7 +11,7 @@ import { EditorResizeObserver } from './editorResizeObserver';
  */
 class CommentEditor {
   static get CLASS_EDITOR_CONTAINER() {
-    return 'htCommentsContainer';
+    return 'ht-main-wrapper htCommentsContainer';
   }
 
   static get CLASS_EDITOR() {

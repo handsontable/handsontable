@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 29/08/2024 08:58:53)
+ * Release date: 30/07/2024 (built at 09/09/2024 11:48:42)
  */
 .handsontable{
 }
@@ -507,11 +507,6 @@
   position:absolute;
   top:0;
   left:0;
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 /%3E%3Cpath d=%27M6 9l6 6l6 -6%27/%3E%3C/svg%3E");
-  background-color:currentColor;
 }
 
 .handsontable .htCheckboxRendererInput{
@@ -547,11 +542,6 @@
   top:0;
   left:0;
   color:white;
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 fill=%27none%27/%3E%3Cpath d=%27M5 12l5 5l10 -10%27/%3E%3C/svg%3E");
-  background-color:currentColor;
   pointer-events:none;
 }
 .handsontable .htCheckboxRendererInput.noValue{
@@ -911,25 +901,15 @@
   position:absolute;
   top:0;
   left:0;
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 fill=%27none%27/%3E%3Cpath d=%27M5 12l14 0%27/%3E%3C/svg%3E");
-  background-color:currentColor;
-  width:14px;
-  height:14px;
+  width:14px !important;
+  height:14px !important;
   color:var(--hot-border-color);
 }
 .handsontable .collapsibleIndicator.collapsed:before, .handsontable .collapsibleIndicator.ht_nestingExpand:before,
 .handsontable .ht_nestingButton.collapsed:before,
 .handsontable .ht_nestingButton.ht_nestingExpand:before{
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 fill=%27none%27/%3E%3Cpath d=%27M12 5l0 14%27/%3E%3Cpath d=%27M5 12l14 0%27/%3E%3C/svg%3E");
-  background-color:currentColor;
-  width:14px;
-  height:14px;
+  width:14px !important;
+  height:14px !important;
 }
 
 [dir=rtl].handsontable .collapsibleIndicator{
@@ -1028,23 +1008,13 @@
 }
 .handsontable th.beforeHiddenColumn .relative::after{
   right:-2px;
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 fill=%27none%27/%3E%3Cpath d=%27M13.883 5.007l.058 -.005h.118l.058 .005l.06 .009l.052 .01l.108 .032l.067 .027l.132 .07l.09 .065l.081 .073l.083 .094l.054 .077l.054 .096l.017 .036l.027 .067l.032 .108l.01 .053l.01 .06l.004 .057l.002 .059v12c0 .852 -.986 1.297 -1.623 .783l-.084 -.076l-6 -6a1 1 0 0 1 -.083 -1.32l.083 -.094l6 -6l.094 -.083l.077 -.054l.096 -.054l.036 -.017l.067 -.027l.108 -.032l.053 -.01l.06 -.01z%27 stroke-width=%270%27 fill=%27currentColor%27/%3E%3C/svg%3E");
-  background-color:currentColor;
-  width:var(--hot-icon-size-sm);
-  height:var(--hot-icon-size-sm);
+  width:10px !important;
+  height:10px !important;
 }
 .handsontable th.afterHiddenColumn .relative::before{
   left:-2px;
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 fill=%27none%27/%3E%3Cpath d=%27M9 6c0 -.852 .986 -1.297 1.623 -.783l.084 .076l6 6a1 1 0 0 1 .083 1.32l-.083 .094l-6 6l-.094 .083l-.077 .054l-.096 .054l-.036 .017l-.067 .027l-.108 .032l-.053 .01l-.06 .01l-.057 .004l-.059 .002l-.059 -.002l-.058 -.005l-.06 -.009l-.052 -.01l-.108 -.032l-.067 -.027l-.132 -.07l-.09 -.065l-.081 -.073l-.083 -.094l-.054 -.077l-.054 -.096l-.017 -.036l-.027 -.067l-.032 -.108l-.01 -.053l-.01 -.06l-.004 -.057l-.002 -12.059z%27 stroke-width=%270%27 fill=%27currentColor%27/%3E%3C/svg%3E");
-  background-color:currentColor;
-  width:var(--hot-icon-size-sm);
-  height:var(--hot-icon-size-sm);
+  width:10px !important;
+  height:10px !important;
 }
 
 [dir=rtl].handsontable th.beforeHiddenColumn .relative::after{
@@ -1075,23 +1045,13 @@
 }
 .handsontable th.beforeHiddenRow .relative::before{
   bottom:-6px;
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 fill=%27none%27/%3E%3Cpath d=%27M11.293 7.293a1 1 0 0 1 1.32 -.083l.094 .083l6 6l.083 .094l.054 .077l.054 .096l.017 .036l.027 .067l.032 .108l.01 .053l.01 .06l.004 .057l.002 .059l-.002 .059l-.005 .058l-.009 .06l-.01 .052l-.032 .108l-.027 .067l-.07 .132l-.065 .09l-.073 .081l-.094 .083l-.077 .054l-.096 .054l-.036 .017l-.067 .027l-.108 .032l-.053 .01l-.06 .01l-.057 .004l-.059 .002h-12c-.852 0 -1.297 -.986 -.783 -1.623l.076 -.084l6 -6z%27 stroke-width=%270%27 fill=%27currentColor%27/%3E%3C/svg%3E");
-  background-color:currentColor;
-  width:var(--hot-icon-size-sm);
-  height:var(--hot-icon-size-sm);
+  width:10px !important;
+  height:10px !important;
 }
-.handsontable th.afterHiddenRow .relative::after{
+.handsontable th.afterHiddenRow .relative::before{
   top:-6px;
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 fill=%27none%27/%3E%3Cpath d=%27M18 9c.852 0 1.297 .986 .783 1.623l-.076 .084l-6 6a1 1 0 0 1 -1.32 .083l-.094 -.083l-6 -6l-.083 -.094l-.054 -.077l-.054 -.096l-.017 -.036l-.027 -.067l-.032 -.108l-.01 -.053l-.01 -.06l-.004 -.057v-.118l.005 -.058l.009 -.06l.01 -.052l.032 -.108l.027 -.067l.07 -.132l.065 -.09l.073 -.081l.094 -.083l.077 -.054l.096 -.054l.036 -.017l.067 -.027l.108 -.032l.053 -.01l.06 -.01l.057 -.004l12.059 -.002z%27 stroke-width=%270%27 fill=%27currentColor%27/%3E%3C/svg%3E");
-  background-color:currentColor;
-  width:var(--hot-icon-size-sm);
-  height:var(--hot-icon-size-sm);
+  width:10px !important;
+  height:10px !important;
 }
 .handsontable td.afterHiddenRow.firstVisibleRow,
 .handsontable th.afterHiddenRow.firstVisibleRow{
@@ -1129,11 +1089,6 @@
   position:absolute;
   top:0;
   left:0;
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 /%3E%3Cpath d=%27M6 9l6 6l6 -6%27/%3E%3C/svg%3E");
-  background-color:currentColor;
 }
 .handsontable .htFiltersActive .changeType{
   color:var(--hot-header-menu-button-background-active-color);
@@ -1146,7 +1101,6 @@
   border-width:var(--hot-dropdown-border-width);
   box-shadow:var(--hot-base-shadow);
   border-radius:calc(2 * var(--hot-border-radius));
-  overflow:hidden !important;
 }
 .handsontable.htDropdownMenu:not(.htGhostTable), .handsontable.htContextMenu:not(.htGhostTable), .handsontable.htFiltersConditionsMenu:not(.htGhostTable){
   display:none;
@@ -1211,11 +1165,6 @@
   top:50%;
   right:calc(4 * var(--hot-base-grid));
   transform:translateY(-50%);
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M0 0h24v24H0z%27 stroke=%27none%27/%3E%3Cpath d=%27m9 6 6 6-6 6%27/%3E%3C/svg%3E");
-  background-color:currentColor;
 }
 .handsontable.htDropdownMenu table tbody tr td.htSeparator, .handsontable.htContextMenu table tbody tr td.htSeparator, .handsontable.htFiltersConditionsMenu table tbody tr td.htSeparator{
   border-top:1px solid var(--hot-highlight-color);
@@ -1257,11 +1206,6 @@
   right:calc(4 * var(--hot-base-grid));
   color:var(--hot-accent-color);
   transform:translateY(-50%);
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 fill=%27none%27/%3E%3Cpath d=%27M5 12l5 5l10 -10%27/%3E%3C/svg%3E");
-  background-color:currentColor;
 }
 .handsontable.htDropdownMenu table tbody tr td .htItemWrapper span.selected::before, .handsontable.htContextMenu table tbody tr td .htItemWrapper span.selected::before, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::before{
   content:"";
@@ -1401,20 +1345,6 @@
 .handsontable .columnSorting.sortAction:before{
   content:"";
   order:1;
-}
-.handsontable .columnSorting.sortAction.descending:before{
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 fill=%27none%27/%3E%3Cpath d=%27M12 5l0 14%27/%3E%3Cpath d=%27M16 15l-4 4%27/%3E%3Cpath d=%27M8 15l4 4%27/%3E%3C/svg%3E");
-  background-color:currentColor;
-}
-.handsontable .columnSorting.sortAction.ascending:before{
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath stroke=%27none%27 d=%27M0 0h24v24H0z%27 fill=%27none%27/%3E%3Cpath d=%27M12 5l0 14%27/%3E%3Cpath d=%27M16 9l-4 -4%27/%3E%3Cpath d=%27M8 9l4 -4%27/%3E%3C/svg%3E");
-  background-color:currentColor;
 }
 
 .htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before{
@@ -1782,20 +1712,10 @@
 .pika-single .pika-prev{
   order:1;
   margin-right:auto;
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M0 0h24v24H0z%27 stroke=%27none%27/%3E%3Cpath d=%27m15 6-6 6 6 6%27/%3E%3C/svg%3E");
-  background-color:currentColor;
 }
 .pika-single .pika-next{
   order:3;
   margin-left:auto;
-  width:var(--hot-icon-size);
-  height:var(--hot-icon-size);
-  mask-size:contain;
-  mask-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 stroke-width=%271.5%27 stroke=%27currentColor%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M0 0h24v24H0z%27 stroke=%27none%27/%3E%3Cpath d=%27m9 6 6 6-6 6%27/%3E%3C/svg%3E");
-  background-color:currentColor;
 }
 .pika-single .pika-table thead{
   height:50px;
