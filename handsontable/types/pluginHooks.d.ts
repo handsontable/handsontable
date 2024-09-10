@@ -180,7 +180,7 @@ export interface Events {
   beforeDrawBorders?: (corners: number[], borderClassName: 'current' | 'area' | 'highlight' | undefined) => void;
   beforeDropdownMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
   beforeDropdownMenuShow?: (instance: DropdownMenu) => void;
-  beforeFilter?: (conditionsStack: FiltersColumnConditions[]) => void | boolean;
+  beforeFilter?: (conditionsStack: FiltersColumnConditions[], previousConditionsStack: FiltersColumnConditions[]) => void | boolean;
   beforeGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
