@@ -2641,7 +2641,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * by adding or removing rows and columns at specified positions.
    *
    * ::: tip
-   * If you use an array of objects in your [`data`](@/api/options.md#data), the column-related options won't work.
+   * If you use an array of objects in your [`data`](@/api/options.md#data), the column-related actions won't work.
    * :::
    *
    * ```js
