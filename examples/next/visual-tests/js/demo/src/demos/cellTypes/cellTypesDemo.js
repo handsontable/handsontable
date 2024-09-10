@@ -69,6 +69,11 @@ export function initializeCellTypeDemo() {
     dropdownMenu: true,
     filters: true,
     contextMenu: true,
+    manualColumnFreeze: true,
+    manualRowMove: true,
+    manualColumnMove: true,
+    manualColumnResize: true,
+    manualRowResize: true,
     multiColumnSorting: true,
     hiddenColumns: {
       columns: [0, 2],

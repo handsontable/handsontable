@@ -577,6 +577,9 @@ jobs:
       - name: Run tests
         run: npm run in visual-tests test
 
+      - name: Run visual e2e tests
+        run: npm run in visual-tests test:e2e
+
       - name: Upload the screenshot to Argos CI
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
