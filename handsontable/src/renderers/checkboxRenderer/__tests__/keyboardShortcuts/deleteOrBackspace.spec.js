@@ -108,6 +108,23 @@ describe('CheckboxRenderer', () => {
       expect(getData()).toEqual([[true], [false], [true]]);
     });
 
+    it('should change the checkbox state to unchecked and clear the non-checkbox cells\' content when both the' +
+      ' checkbox-typed and non-checkbox-typed cells are selected', () => {
+      handsontable({
+        data: [['foo', true], ['bar', true]],
+        columns: [
+          { type: 'text' },
+          { type: 'checkbox' }
+        ]
+      });
+
+      selectCells([[0, 0, 1, 1]]);
+
+      keyDownUp(key);
+
+      expect(getData()).toEqual([[null, false], [null, false]]);
+    });
+
     it('should not steal the event when the column header is selected', () => {
       handsontable({
         data: [[true], [true], [true]],
