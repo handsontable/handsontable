@@ -67,7 +67,7 @@ export class SelectionScanner {
     } else if (selectionType === 'focus') {
       this.scanColumnsInHeadersRange(element => elements.add(element));
       this.scanRowsInHeadersRange(element => elements.add(element));
-      this.scanViewportRange(element => elements.add(element));
+      this.scanCellsRange(element => elements.add(element));
 
     } else if (selectionType === 'fill') {
       this.scanCellsRange(element => elements.add(element));
@@ -192,33 +192,6 @@ export class SelectionScanner {
    *
    * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanViewportRange(callback) {
-    const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
-    const { wtTable } = this.#activeOverlaysWot;
-
-    this.#scanCellsRange((sourceRow, sourceColumn) => {
-      if (sourceRow >= topRow && sourceRow <= bottomRow && sourceColumn >= topColumn && sourceColumn <= bottomColumn) {
-        const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
-
-        // support for old API
-        // const additionalSelectionClass = this.#activeOverlaysWot
-        //   .getSetting('onAfterDrawSelection', sourceRow, sourceColumn, this.#selection.settings.layerLevel);
-
-        // if (typeof additionalSelectionClass === 'string') {
-        //   addClass(cell, additionalSelectionClass);
-        // }
-
-        callback(cell);
-      }
-    });
-  }
-
-  /**
-   * Scans the table (only rendered cells) and collect all cells (TR) that match
-   * the coordinates passed in the Selection instance.
-   *
-   * @param {function(HTMLTableElement): void} callback The callback function to trigger.
-   */
   scanCellsRange(callback) {
     const { wtTable } = this.#activeOverlaysWot;
 
@@ -282,8 +255,13 @@ export class SelectionScanner {
    * @param {function(number, number): void} callback The callback function to trigger.
    */
   #scanCellsRange(callback) {
-    const { wtTable } = this.#activeOverlaysWot;
     let [topRow, startColumn, bottomRow, endColumn] = this.#selection.getCorners();
+
+    if (topRow < 0 && bottomRow < 0 || startColumn < 0 && endColumn < 0) {
+      return;
+    }
+
+    const { wtTable } = this.#activeOverlaysWot;
     const isMultiple = (topRow !== bottomRow || startColumn !== endColumn);
 
     startColumn = Math.max(startColumn, 0);
@@ -317,7 +295,7 @@ export class SelectionScanner {
   }
 
   /**
-   * The method triggers a callback for each rendered cell.
+   * The method triggers a callback for each rendered cell including headers.
    *
    * @param {function(number, number): void} callback The callback function to trigger.
    */
