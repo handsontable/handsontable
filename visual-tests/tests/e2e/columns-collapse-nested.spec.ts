@@ -4,16 +4,16 @@ import { collapseNestedColumn } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-testE2E.skip('sdfsdf', async({ tablePage }) => {
-  await tablePage.goto('/scenario-grid');
+testE2E('Colapse nested headers', async({ tablePage }) => {
+  await tablePage.goto('/nested-headers-demo');
 
-  const tableTop = tablePage.locator('#tableTop > .handsontable');
+  const table = tablePage.locator(helpers.selectors.mainTable);
 
-  tableTop.waitFor();
+  table.waitFor();
 
-  collapseNestedColumn('Category', tableTop);
+  await collapseNestedColumn('Category');
 
-  collapseNestedColumn('System', tableTop);
+  await collapseNestedColumn('System');
 
   const testFileName = path.basename(__filename, '.spec.ts');
 

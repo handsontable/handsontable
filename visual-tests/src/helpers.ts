@@ -86,7 +86,7 @@ export const helpers = {
     const screenshotPath = path.join(
       __dirname,
       `../screenshots/e2e/${this.browser}`,
-      `${testFileName}_${safeUrl}${suffix}.png`
+      `${testFileName}${safeUrl}${suffix}.png`
     );
 
     // eslint-disable-next-line max-len

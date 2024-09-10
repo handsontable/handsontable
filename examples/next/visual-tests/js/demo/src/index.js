@@ -1,6 +1,6 @@
 import Navigo from 'navigo';
-import { initializeDataGrid } from './datagrid';
-import { initializeScenarioGrid } from './scenarioGrid';
+import { initializeTwoTablesDemo } from './datagrid';
+import { initializeScenarioGrid } from './demos/twoTables/twoTablesDemo';
 import { initializeCellTypeDemo } from './demos/cellTypes/cellTypesDemo';
 import { initializeArabicRtlDemo } from './demos/arabicRtl/arabicRtlDemo';
 import { initializeCustomStyleDemo } from './demos/customStyle/customStyleDemo';
@@ -13,9 +13,9 @@ const router = new Navigo('/');
 router
   .on({
     '/': function () {
-      initializeDataGrid();
+      initializeTwoTablesDemo();
     },
-    '/scenario-grid': function () {
+    '/two-tables-demo': function () {
       initializeScenarioGrid();
     },
     '/cell-types-demo': function () {

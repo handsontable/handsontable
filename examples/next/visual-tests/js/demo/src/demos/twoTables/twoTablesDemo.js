@@ -1,9 +1,9 @@
 import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.css';
 import '@handsontable/pikaday/css/pikaday.css';
-import { scenarioDataTop, scenarioDataBottom } from './constants';
+import { scenarioDataTop, scenarioDataBottom } from './twoTablesData';
 
-import { isArabicDemoEnabled } from './utils';
+import { isArabicDemoEnabled } from '../../utils';
 import './styles.css';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 
@@ -173,7 +173,6 @@ export function initializeScenarioGrid() {
     customBorders: true,
     autoWrapCol: true,
     autoWrapRow: true,
-    nestedRows: true,
     bindRowsWithHeaders: true,
     licenseKey: 'non-commercial-and-evaluation',
   });

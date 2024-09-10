@@ -14,10 +14,11 @@ const urls = [
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  test(`Test alignment for URL: ${url}`, async({ tablePage }) => {
+  test(`Test scroll for URL: ${url}`, async({ tablePage }) => {
     const testFileName = path.basename(__filename, '.spec.ts');
 
     await tablePage.goto(url);
+    await tablePage.waitForLoadState('domcontentloaded'); // Ensure the page is fully loaded
 
     const table = tablePage.locator(helpers.selectors.mainTable);
 
