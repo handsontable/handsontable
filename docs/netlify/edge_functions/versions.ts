@@ -5,6 +5,7 @@ export default async (request: Request, context: Context) => {
   const cookieValue = context.cookies.get("docs_fw");
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
+  console.log('url', request.url);
   const versionUrl = request.url.replace(/\/docs\/(\d.\d+|next)\//, `/docs/${framework}/`);
 
   return Response.redirect(versionUrl, 301);
