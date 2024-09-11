@@ -95,8 +95,8 @@ export default class Core {
   getLastPartiallyVisibleRow(): number | null;
   getLastRenderedVisibleColumn(): number | null;
   getLastRenderedVisibleRow(): number | null;
-  getPlugin(pluginName: string): Plugins['basePlugin'];
   getPlugin<T extends keyof Plugins>(pluginName: T): Plugins[T];
+  getPlugin(pluginName: string): Plugins['basePlugin'];
   getRowHeader(): Array<string | number>;
   getRowHeader(row: number): string | number;
   getRowHeight(row: number): number;
