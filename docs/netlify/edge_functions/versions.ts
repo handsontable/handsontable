@@ -1,6 +1,6 @@
 import type { Context, Config } from "@netlify/edge-functions";
 
-import { URLPattern } from 'urlpattern-polyfill';
+import { URLPattern } from "@netlify/urlpattern-polyfill"
 
 export default async (request: Request, context: Context) => {
 
