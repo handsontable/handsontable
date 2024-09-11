@@ -12,5 +12,5 @@ export default async (request: Request, context: Context) => {
 }
 
 export const config: Config = {
-  path: ["/docs/(\d.\d+|next)/?"],
+  path: ["/docs/:version(\\d+\\.\\d+|next)'"],
 }
