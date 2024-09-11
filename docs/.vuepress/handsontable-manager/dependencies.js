@@ -1,6 +1,8 @@
 // eslint-disable-next-line no-restricted-globals
 const isBrowser = (typeof window !== 'undefined');
 
+const isHOTExternal = process.env.IS_HOT_EXTERNAL === 'true';
+
 const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest');
 
 /**
@@ -35,11 +37,11 @@ const getPackageUrls = (packageName, version, fileSelection) => {
 
   const urlSet = subDirs[packageName];
 
-  // if (version === 'next' && isBrowser) {
-  //   return urlSet[fileSelection] ?
-  //     `/docs/${packageName}/${urlSet[fileSelection]}` :
-  //     `/docs/${packageName}/${fileSelection}`;
-  // }
+  if (version === 'next' && isBrowser || isHOTExternal === 'true') {
+    return urlSet[fileSelection] ?
+      `/docs/${packageName}/${urlSet[fileSelection]}` :
+      `/docs/${packageName}/${fileSelection}`;
+  }
 
   const mappedVersion = formatVersion(version);
 
