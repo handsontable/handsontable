@@ -1,4 +1,4 @@
-import { test, expect } from '../../src/test-runner';
+import { testE2E, expect } from '../../src/test-runner';
 
 import {
   rowsCount,
@@ -10,7 +10,7 @@ import {
 } from '../../src/page-helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-test(__filename, async({ tablePage }) => {
+testE2E(__filename, async({ tablePage }) => {
   expect(await rowsCount()).toBe(22);
   await openHeaderDropdownMenu(9);
   await filterByValue('India');

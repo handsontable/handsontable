@@ -1,5 +1,5 @@
 import path from 'path';
-import { test } from '../../src/test-runner';
+import { testE2E } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import { selectCell } from '../../src/page-helpers';
 
@@ -14,7 +14,7 @@ const urls = [
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  test(`Test scroll for URL: ${url}`, async({ tablePage }) => {
+  testE2E(`Test scroll for URL: ${url}`, async({ tablePage }) => {
     const testFileName = path.basename(__filename, '.spec.ts');
 
     await tablePage.goto(url);

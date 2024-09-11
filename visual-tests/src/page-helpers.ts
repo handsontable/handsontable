@@ -270,7 +270,6 @@ export async function selectCo(option: string) {
 
 /**
  * @param {string} columnName Column name.
- * @param {ModifierKey[]} modifiers Optional click modifiers.
  * @param {Locator} table The locator of the table.
  */
 export async function selectColumnHeaderByNameAndOpenMenu(

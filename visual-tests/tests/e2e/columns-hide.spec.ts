@@ -22,7 +22,7 @@ testE2E(__filename, async({ tablePage }) => {
   expect(await columnsCount()).toBe(7);
 
   await tablePage.getByRole('columnheader', { name: 'Company name' }).click();
-  await tablePage.getByRole('columnheader', { name: 'Progress' }).click({modifiers: ['Shift']});
+  await tablePage.getByRole('columnheader', { name: 'Progress' }).click({ modifiers: ['Shift'] });
 
   await selectColumnHeaderByNameAndOpenMenu('Progress');
 
