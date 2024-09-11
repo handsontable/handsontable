@@ -260,20 +260,21 @@ function getDocsBaseFullUrl() {
   return `${getDocsHostname()}${getDocsBase()}`;
 }
 
-/**
- * Gets docs hostname (eq: https://handsontable.com).
+/** .
+ * Gets NETLIFY env variable.
+ * *.
  *
- * @param {boolean} [allowLocalhost=true] Returns true if NETLIFY environment variable was set to true
- * @returns {boolean}
+ * @returns {string}
  */
 export function isNetlifyDeployment() {
   return process.env.NETLIFY === 'true';
 }
 
 /**
- * Gets NETLIFY env variable.
- * *
- * @returns {string}
+ * Gets docs hostname (eq: https://handsontable.com).
+ *
+ * @param {boolean} [allowLocalhost=true] Returns true if NETLIFY environment variable was set to true.
+ * @returns {boolean}
  */
 function getDocsHostname(allowLocalhost = true) {
   const buildMode = process.env.BUILD_MODE;

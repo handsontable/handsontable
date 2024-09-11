@@ -35,7 +35,10 @@ const getPackageUrls = (packageName, version, fileSelection) => {
 
   const urlSet = subDirs[packageName];
 
-  if (version === 'next' && isBrowser || isHOTExternal === isNetlifyDeployment() ) {
+  // eslint-disable-next-line global-require
+  const { isNetlifyDeployment } = require('../helpers');
+
+  if (version === 'next' && isBrowser || isNetlifyDeployment()) {
     return urlSet[fileSelection] ?
       `/docs/${packageName}/${urlSet[fileSelection]}` :
       `/docs/${packageName}/${fileSelection}`;
@@ -58,7 +61,7 @@ const getCommonScript = (scriptName, version) => {
   }
 
   // eslint-disable-next-line global-require
-  const { getDocsBaseFullUrl, isNetlifyDeployment } = require('../helpers');
+  const { getDocsBaseFullUrl } = require('../helpers');
 
   return [`${getDocsBaseFullUrl()}/scripts/${scriptName}.js`, ['require', 'exports']];
 };
