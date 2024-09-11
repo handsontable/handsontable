@@ -57,9 +57,12 @@ function getPrettyFrameworkName(framework) {
  */
 function getThisDocsVersion() {
   if (docsVersion === null) {
+
+    const branchDocsLatest = /^feature\/dev-issue-1790$/;
+
     const branchName = execa.sync('git rev-parse --abbrev-ref HEAD', { shell: true }).stdout;
 
-    if (versionFromBranchRegExp.test(branchName)) {
+    if (versionFromBranchRegExp.test(branchName) === true || branchDocsLatest.test(branchName) === true) {
       docsVersion = branchName.match(versionFromBranchRegExp)[1];
     } else {
       docsVersion = 'next';
@@ -260,16 +263,6 @@ function getDocsBaseFullUrl() {
   return `${getDocsHostname()}${getDocsBase()}`;
 }
 
-/** .
- * Gets NETLIFY env variable.
- * *.
- *
- * @returns {string}
- */
-function isNetlifyDeployment() {
-  return process.env.NETLIFY === 'true';
-}
-
 /**
  * Gets docs hostname (eq: https://handsontable.com).
  *
@@ -303,5 +296,4 @@ module.exports = {
   getDocsBase,
   getDocsBaseFullUrl,
   getDocsHostname,
-  isNetlifyDeployment,
 };

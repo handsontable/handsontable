@@ -5,7 +5,6 @@ env:
   NODE_VERSION: 20
   DOCSEARCH_API_KEY: ${{ secrets.DOCSEARCH_API_KEY }}
   DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
-  IS_HOT_EXTERNAL: true
 
 on:
   push:
