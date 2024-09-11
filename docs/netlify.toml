@@ -3,5 +3,5 @@
     command=""
 
 [[edge_functions]]
-  function = "redirect"
+  function = "versions"
   path = "/docs/*"
