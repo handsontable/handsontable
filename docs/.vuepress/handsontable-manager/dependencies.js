@@ -35,10 +35,7 @@ const getPackageUrls = (packageName, version, fileSelection) => {
 
   const urlSet = subDirs[packageName];
 
-  // eslint-disable-next-line global-require
-  const { isNetlifyDeployment } = require('../helpers');
-
-  if (version === 'next' && isBrowser || isNetlifyDeployment()) {
+  if (version === 'next' && isBrowser) {
     return urlSet[fileSelection] ?
       `/docs/${packageName}/${urlSet[fileSelection]}` :
       `/docs/${packageName}/${fileSelection}`;
