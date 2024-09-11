@@ -17,6 +17,8 @@ export default async (request: Request, context: Context) => {
     return Response.redirect(newUrl, 301);
   }
 
+  return fetch(request);
+
 }
 
 // export const config: Config = {
