@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  
+  <meta charset="utf-8">
+  <title>Row pre-populating - JavaScript Data Grid | Handsontable</title>
+  <meta name="generator" content="VuePress 1.9.10">
+  <link rel="icon" media="(prefers-color-scheme: light)" href="https://handsontable.com/docs/14.5/img/favicon.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="https://handsontable.com/docs/14.5/img/favicon-dark.png">
+    <link rel="preload" href="https://handsontable.com/docs/14.5/data/common.json" as="fetch" crossorigin="">
+    <script>
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          environment: 'production',
+          tracesSampleRate: 0,
+          profilesSampleRate: 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0.2,
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),   
+          ],
+        });
+      };
+    </script>
+    <script id="Sentry.io" src="https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js" crossorigin="anonymous" defer="true"></script>
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="ef171f1d-a288-433f-b680-3cdbdebd5646" defer="true"></script>
+    <script id="Headwayapp" src="https://cdn.headwayapp.co/widget.js" defer="true"></script>
+    <script>const DOCS_VERSION = '14.5';</script>
+    <script>
+      (function(w, d) {
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    </script>
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-55L5D3');
+    </script>
+    <script>
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      </script>
+  <meta name="description" content="Populate newly-added rows with predefined template values, using cell renderers.">
+    <meta name="og:url" content="https://handsontable.com/docs/14.5/javascript-data-grid/row-prepopulating/">
+    <meta name="og:type" content="website">
+    <meta name="og:title" content="Row pre-populating">
+    <meta name="og:description" content="Populate newly-added rows with predefined template values, using cell renderers.">
+    <meta name="og:image" content="https://handsontable.com/docs/14.5/img/handsontable-banner-og.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://handsontable.com/docs/14.5/javascript-data-grid/row-prepopulating/" rel="canonical" />
+  <link rel="preload" href="/docs/14.5/assets/css/0.styles.6874d814.css" as="style"><link rel="preload" href="/docs/14.5/assets/js/app.52624158.js" as="script"><link rel="preload" href="/docs/14.5/assets/js/4.a71c13f3.js" as="script"><link rel="preload" href="/docs/14.5/assets/js/3.341147d5.js" as="script"><link rel="preload" href="/docs/14.5/assets/js/2.b4335327.js" as="script"><link rel="preload" href="/docs/14.5/assets/js/197.9b0121d2.js" as="script"><link rel="preload" href="/docs/14.5/assets/js/37.ee2af185.js" as="script">
+  <link rel="stylesheet" href="/docs/14.5/assets/css/0.styles.6874d814.css">
+</head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="//www.googletagmanager.com/ns.html?id=GTM-55L5D3"
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<div id="app" data-server-rendered="true"><div class="layout-container"><script type="application/ld+json">{
+    "@context": "https://schema.org/",
+    "@type": "WebPage",
+    "name": "Row pre-populating - JavaScript Data Grid  Handsontable",
+    "headline": "Row pre-populating - JavaScript Data Grid  Handsontable",
+    "description": "Populate newly-added rows with predefined template values, using cell renderers.",
+    "url": "https://handsontable.com/docs/14.5/javascript-data-grid/row-prepopulating/",
+    "mainEntityOfPage": {
+        "@type": "TechArticle",
+        "@id": "https://handsontable.com/docs/14.5/javascript-data-grid/row-prepopulating/"
+    },
+    "keywords": [
+        "spare rows",
+        "extra rows",
+        "bottom rows",
+        "placeholder"
+    ],
+    "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/14.5/img/handsonable-docs-cover.png"
+    },
+    "image": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/14.5/img/handsonable-docs-cover.png"
+    },
+    "author": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable Team",
+        "url": "https://handsontable.com",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "alternateName": "Handsontable",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "dateModified": "2024-09-11T04:52:30.103Z",
+    "lastReviewed": "2024-09-11T04:52:30.103Z",
+    "copyrightHolder": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://handsontable.com/docs/14.5/img/handsonable-docs-cover.png"
+        }
+    },
+    "copyrightYear": "2024"
+}</script> <div class="theme-container"><header class="navbar"><div class="navbar-wrapper"><a href="/docs/14.5/javascript-data-grid/" aria-label="Docs Homepage Link" class="home-link router-link-active"><i class="Logo"></i></a> <div class="top-bar"><div class="top-bar_left"><div class="framework-and-version"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/14.5/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/14.5/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav></div></div> <div id="algolia-search"></div> <div class="menu"><nav class="nav-links"><div class="nav-item"><a href="/docs/14.5/javascript-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/14.5/javascript-data-grid/api/" class="nav-link">
+  API Reference
+</a></div> <div class="nav-item changelog"><a href="/docs/14.5/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav> <nav class="nav-links"><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Support" class="dropdown-title"><span class="title">Support</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="https://forum.handsontable.com" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Developers Forum
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://github.com/handsontable/handsontable/discussions" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    GitHub Discussions
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://stackoverflow.com/tags/handsontable" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    StackOverflow
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://handsontable.com/contact?category=technical_support" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Contact support
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div></nav> <nav class="icons-nav"><span class="news"><i class="ico i-bell"></i></span> <a href="https://github.com/handsontable/handsontable" target="_blank" class="github-stars"><i class="ico i-github"></i> <!----></a> <button id="mobileSearch" aria-label="Search" class="menuButton"><i class="ico i-search"></i></button> <button aria-label="Menu button" class="menuButton"><i class="ico i-menu"></i> <i class="ico i-close"></i></button></nav></div></div></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <div class="sidebar-nav"><div class="mobile-nav"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/14.5/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/14.5/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav> <nav class="nav-links"><div class="nav-item"><a href="/docs/14.5/javascript-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/14.5/javascript-data-grid/api/" class="nav-link">
+  API Reference
+</a></div> <div class="nav-item changelog"><a href="/docs/14.5/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav></div> <ul class="sidebar-links"><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-3d811caf"></i> <span>Getting started</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/" aria-current="page" class="sidebar-link">Introduction</a></li><li><a href="/docs/14.5/javascript-data-grid/demo/" class="sidebar-link">Demo</a></li><li><a href="/docs/14.5/javascript-data-grid/installation/" class="sidebar-link">Installation</a></li><li><a href="/docs/14.5/javascript-data-grid/binding-to-data/" class="sidebar-link">Binding to data</a></li><li><a href="/docs/14.5/javascript-data-grid/saving-data/" class="sidebar-link">Saving data</a></li><li><a href="/docs/14.5/javascript-data-grid/configuration-options/" class="sidebar-link">Configuration options</a></li><li><a href="/docs/14.5/javascript-data-grid/grid-size/" class="sidebar-link">Grid size</a></li><li><a href="/docs/14.5/javascript-data-grid/events-and-hooks/" class="sidebar-link">Events and hooks</a></li><li><a href="/docs/14.5/javascript-data-grid/license-key/" class="sidebar-link">License key</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5e6bf2de"></i> <span>Columns</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/column-header/" class="sidebar-link">Column headers</a></li><li><a href="/docs/14.5/javascript-data-grid/column-groups/" class="sidebar-link">Column groups</a></li><li><a href="/docs/14.5/javascript-data-grid/column-hiding/" class="sidebar-link">Column hiding</a></li><li><a href="/docs/14.5/javascript-data-grid/column-moving/" class="sidebar-link">Column moving</a></li><li><a href="/docs/14.5/javascript-data-grid/column-freezing/" class="sidebar-link">Column freezing</a></li><li><a href="/docs/14.5/javascript-data-grid/column-width/" class="sidebar-link">Column widths</a></li><li><a href="/docs/14.5/javascript-data-grid/column-summary/" class="sidebar-link">Column summary</a></li><li><a href="/docs/14.5/javascript-data-grid/column-virtualization/" class="sidebar-link">Column virtualization</a></li><li><a href="/docs/14.5/javascript-data-grid/column-menu/" class="sidebar-link">Column menu</a></li><li><a href="/docs/14.5/javascript-data-grid/column-filter/" class="sidebar-link">Column filter</a></li></ul></section></li><li><section class="sidebar-group collapsable open depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5c42e7f6"></i> <span>Rows</span> <i class="ico i-arrow down"></i></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/row-header/" class="sidebar-link">Row headers</a></li><li><a href="/docs/14.5/javascript-data-grid/row-parent-child/" class="sidebar-link">Row parent-child</a></li><li><a href="/docs/14.5/javascript-data-grid/row-hiding/" class="sidebar-link">Row hiding</a></li><li><a href="/docs/14.5/javascript-data-grid/row-moving/" class="sidebar-link">Row moving</a></li><li><a href="/docs/14.5/javascript-data-grid/row-freezing/" class="sidebar-link">Row freezing</a></li><li><a href="/docs/14.5/javascript-data-grid/row-height/" class="sidebar-link">Row heights</a></li><li><a href="/docs/14.5/javascript-data-grid/row-virtualization/" class="sidebar-link">Row virtualization</a></li><li><a href="/docs/14.5/javascript-data-grid/rows-sorting/" class="sidebar-link">Rows sorting</a></li><li><a href="/docs/14.5/javascript-data-grid/row-trimming/" class="sidebar-link">Row trimming</a></li><li><a href="/docs/14.5/javascript-data-grid/row-prepopulating/" aria-current="page" class="active sidebar-link">Row pre-populating</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-04fc4d33"></i> <span>Cell features</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/basic-clipboard/" class="sidebar-link">Clipboard</a></li><li><a href="/docs/14.5/javascript-data-grid/selection/" class="sidebar-link">Selection</a></li><li><a href="/docs/14.5/javascript-data-grid/merge-cells/" class="sidebar-link">Merge cells</a></li><li><a href="/docs/14.5/javascript-data-grid/conditional-formatting/" class="sidebar-link">Conditional formatting</a></li><li><a href="/docs/14.5/javascript-data-grid/text-alignment/" class="sidebar-link">Text alignment</a></li><li><a href="/docs/14.5/javascript-data-grid/disabled-cells/" class="sidebar-link">Disabled cells</a></li><li><a href="/docs/14.5/javascript-data-grid/comments/" class="sidebar-link">Comments</a></li><li><a href="/docs/14.5/javascript-data-grid/autofill-values/" class="sidebar-link">Autofill values</a></li><li><a href="/docs/14.5/javascript-data-grid/formatting-cells/" class="sidebar-link">Formatting cells</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-f7a21ab6"></i> <span>Cell functions</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/cell-function/" class="sidebar-link">Cell functions</a></li><li><a href="/docs/14.5/javascript-data-grid/cell-renderer/" class="sidebar-link">Cell renderer</a></li><li><a href="/docs/14.5/javascript-data-grid/cell-editor/" class="sidebar-link">Cell editor</a></li><li><a href="/docs/14.5/javascript-data-grid/cell-validator/" class="sidebar-link">Cell validator</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-12d75036"></i> <span>Cell types</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/cell-type/" class="sidebar-link">Cell type</a></li><li><a href="/docs/14.5/javascript-data-grid/numeric-cell-type/" class="sidebar-link">Numeric cell type</a></li><li><a href="/docs/14.5/javascript-data-grid/date-cell-type/" class="sidebar-link">Date cell type</a></li><li><a href="/docs/14.5/javascript-data-grid/time-cell-type/" class="sidebar-link">Time cell type</a></li><li><a href="/docs/14.5/javascript-data-grid/checkbox-cell-type/" class="sidebar-link">Checkbox cell type</a></li><li><a href="/docs/14.5/javascript-data-grid/select-cell-type/" class="sidebar-link">Select cell type</a></li><li><a href="/docs/14.5/javascript-data-grid/dropdown-cell-type/" class="sidebar-link">Dropdown cell type</a></li><li><a href="/docs/14.5/javascript-data-grid/autocomplete-cell-type/" class="sidebar-link">Autocomplete cell type</a></li><li><a href="/docs/14.5/javascript-data-grid/password-cell-type/" class="sidebar-link">Password cell type</a></li><li><a href="/docs/14.5/javascript-data-grid/handsontable-cell-type/" class="sidebar-link">Handsontable cell type</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-811e5476"></i> <span>Formulas</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/formula-calculation/" class="sidebar-link">Formula calculation</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5a6efe65"></i> <span>Navigation</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/keyboard-shortcuts/" class="sidebar-link">Keyboard shortcuts</a></li><li><a href="/docs/14.5/javascript-data-grid/custom-shortcuts/" class="sidebar-link">Custom shortcuts</a></li><li><a href="/docs/14.5/javascript-data-grid/searching-values/" class="sidebar-link">Searching values</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-1110acc7"></i> <span>Accessibility</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/accessibility/" class="sidebar-link">Accessibility</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-18763746"></i> <span>Accessories and menus</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/context-menu/" class="sidebar-link">Context menu</a></li><li><a href="/docs/14.5/javascript-data-grid/undo-redo/" class="sidebar-link">Undo and redo</a></li><li><a href="/docs/14.5/javascript-data-grid/icon-pack/" class="sidebar-link">Icon pack</a></li><li><a href="/docs/14.5/javascript-data-grid/export-to-csv/" class="sidebar-link">Export to CSV</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-69214965"></i> <span>Internationalization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/language/" class="sidebar-link">Language</a></li><li><a href="/docs/14.5/javascript-data-grid/locale/" class="sidebar-link">Locale</a></li><li><a href="/docs/14.5/javascript-data-grid/layout-direction/" class="sidebar-link">Layout direction</a></li><li><a href="/docs/14.5/javascript-data-grid/ime-support/" class="sidebar-link">IME support</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-8a776f76"></i> <span>Integrate with Angular</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/angular-installation/" class="sidebar-link">Installation in Angular</a></li><li><a href="/docs/14.5/javascript-data-grid/angular-basic-example/" class="sidebar-link">Basic example in Angular</a></li><li><a href="/docs/14.5/javascript-data-grid/angular-modules/" class="sidebar-link">Modules in Angular</a></li><li><a href="/docs/14.5/javascript-data-grid/angular-custom-id/" class="sidebar-link">Custom ID in Angular</a></li><li><a href="/docs/14.5/javascript-data-grid/angular-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Angular</a></li><li><a href="/docs/14.5/javascript-data-grid/angular-custom-context-menu-example/" class="sidebar-link">Custom context menu in Angular</a></li><li><a href="/docs/14.5/javascript-data-grid/angular-custom-editor-example/" class="sidebar-link">Custom editor in Angular</a></li><li><a href="/docs/14.5/javascript-data-grid/angular-custom-renderer-example/" class="sidebar-link">Custom renderer in Angular</a></li><li><a href="/docs/14.5/javascript-data-grid/angular-language-change-example/" class="sidebar-link">Language change in Angular</a></li><li><a href="/docs/14.5/javascript-data-grid/angular-hot-reference/" class="sidebar-link">Referencing a Handsontable instance in Angular</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-ed097276"></i> <span>Integrate with Vue 2</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/vue-installation/" class="sidebar-link">Installation in Vue 2</a></li><li><a href="/docs/14.5/javascript-data-grid/vue-basic-example/" class="sidebar-link">Basic example in Vue 2</a></li><li><a href="/docs/14.5/javascript-data-grid/vue-modules/" class="sidebar-link">Modules in Vue 2</a></li><li><a href="/docs/14.5/javascript-data-grid/vue-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 2</a></li><li><a href="/docs/14.5/javascript-data-grid/vue-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 2</a></li><li><a href="/docs/14.5/javascript-data-grid/vue-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 2</a></li><li><a href="/docs/14.5/javascript-data-grid/vue-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 2</a></li><li><a href="/docs/14.5/javascript-data-grid/vue-custom-editor-example/" class="sidebar-link">Custom editor in Vue 2</a></li><li><a href="/docs/14.5/javascript-data-grid/vue-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 2</a></li><li><a href="/docs/14.5/javascript-data-grid/vue-language-change-example/" class="sidebar-link">Language change in Vue 2</a></li><li><a href="/docs/14.5/javascript-data-grid/vue-vuex-example/" class="sidebar-link">Vuex example in Vue 2</a></li><li><a href="/docs/14.5/javascript-data-grid/vue-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 2</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-0cb42003"></i> <span>Integrate with Vue 3</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/vue3-installation/" class="sidebar-link">Installation in Vue 3</a></li><li><a href="/docs/14.5/javascript-data-grid/vue3-basic-example/" class="sidebar-link">Basic example in Vue 3</a></li><li><a href="/docs/14.5/javascript-data-grid/vue3-modules/" class="sidebar-link">Modules in Vue 3</a></li><li><a href="/docs/14.5/javascript-data-grid/vue3-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 3</a></li><li><a href="/docs/14.5/javascript-data-grid/vue3-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 3</a></li><li><a href="/docs/14.5/javascript-data-grid/vue3-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 3</a></li><li><a href="/docs/14.5/javascript-data-grid/vue3-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 3</a></li><li><a href="/docs/14.5/javascript-data-grid/vue3-custom-editor-example/" class="sidebar-link">Custom editor in Vue 3</a></li><li><a href="/docs/14.5/javascript-data-grid/vue3-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 3</a></li><li><a href="/docs/14.5/javascript-data-grid/vue3-language-change-example/" class="sidebar-link">Language change in Vue 3</a></li><li><a href="/docs/14.5/javascript-data-grid/vue3-vuex-example/" class="sidebar-link">Vuex in Vue 3</a></li><li><a href="/docs/14.5/javascript-data-grid/vue3-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 3</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-786864e5"></i> <span>Tools and building</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/packages/" class="sidebar-link">Packages</a></li><li><a href="/docs/14.5/javascript-data-grid/modules/" class="sidebar-link">Modules</a></li><li><a href="/docs/14.5/javascript-data-grid/custom-plugins/" class="sidebar-link">Custom plugins</a></li><li><a href="/docs/14.5/javascript-data-grid/custom-builds/" class="sidebar-link">Custom builds</a></li><li><a href="/docs/14.5/javascript-data-grid/testing/" class="sidebar-link">Testing</a></li><li><a href="/docs/14.5/javascript-data-grid/folder-structure/" class="sidebar-link">Folder structure</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-17c10e85"></i> <span>Optimization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/batch-operations/" class="sidebar-link">Batch operations</a></li><li><a href="/docs/14.5/javascript-data-grid/performance/" class="sidebar-link">Performance</a></li><li><a href="/docs/14.5/javascript-data-grid/bundle-size/" class="sidebar-link">Bundle size</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-6e40b0b6"></i> <span>Security</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/security/" class="sidebar-link">Security</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-23ef33b9"></i> <span>Technical specification</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/supported-browsers/" class="sidebar-link">Supported browsers</a></li><li><a href="/docs/14.5/javascript-data-grid/software-license/" class="sidebar-link">Software license</a></li><li><a href="/docs/14.5/javascript-data-grid/third-party-licenses/" class="sidebar-link">Third-party licenses</a></li><li><a href="/docs/14.5/javascript-data-grid/documentation-license/" class="sidebar-link">Documentation license</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-00e59586"></i> <span>Upgrade and migration</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/14.5/javascript-data-grid/changelog/" class="sidebar-link">Changelog</a></li><li><a href="/docs/14.5/javascript-data-grid/versioning-policy/" class="sidebar-link">Versioning policy</a></li><li><a href="/docs/14.5/javascript-data-grid/migration-from-7.4-to-8.0/" class="sidebar-link">Migrate from 7.4 to 8.0</a></li><li><a href="/docs/14.5/javascript-data-grid/migration-from-8.4-to-9.0/" class="sidebar-link">Migrating from 8.4 to 9.0</a></li><li><a href="/docs/14.5/javascript-data-grid/migration-from-9.0-to-10.0/" class="sidebar-link">Migrating from 9.0 to 10.0</a></li><li><a href="/docs/14.5/javascript-data-grid/migration-from-10.0-to-11.0/" class="sidebar-link">Migrating from 10.0 to 11.0</a></li><li><a href="/docs/14.5/javascript-data-grid/migration-from-11.1-to-12.0/" class="sidebar-link">Migrating from 11.1 to 12.0</a></li><li><a href="/docs/14.5/javascript-data-grid/migration-from-12.4-to-13.0/" class="sidebar-link">Migrating from 12.4 to 13.0</a></li><li><a href="/docs/14.5/javascript-data-grid/migration-from-13.1-to-14.0/" class="sidebar-link">Migrating from 13.1 to 14.0</a></li></ul></section></li></ul></div> </aside> <main class="page"><div class="breadcrumbs"><a href="https://handsontable.com/docs/14.5/javascript-data-grid/"><i class="ico i-home"></i> <span> <span></span>JavaScript Data Grid</span></a> <a href="https://handsontable.com/docs/14.5/javascript-data-grid/row-prepopulating"><span>Row pre-populating</span></a></div> <div class="theme-default-content content__default"><h1 id="row-pre-populating"><a href="#row-pre-populating" class="header-link"><span class="header-framework">JavaScript Data Grid</span>Row pre-populating</a></h1> <p>Populate newly-added rows with predefined template values, using cell renderers.</p> <p></p><div class="table-of-contents"><div class="toc-container-header"><i class="ico i-toc"></i>On this page</div><ul><li><a href="#example">Example</a></li><li><a href="#related-api-reference">Related API reference</a></li></ul></div><p></p> <h2 id="example"><a href="#example" class="header-link">Example</a></h2> <p>The example below shows how cell renderers can be used to populate the template values in empty rows. When a cell in the empty row is edited, the <a href="/docs/14.5/javascript-data-grid/api/hooks/#beforechange"><code>beforeChange</code></a> callback fills the row with the template values.</p> <p></p> <div class="example-container"><style></style> <div><div data-preset-type="hot" data-example-id="example1"><div id="example1" class="hot "></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+    &quot;name&quot;: &quot;handsontable&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;description&quot;: &quot;&quot;,
+    &quot;dependencies&quot;: {
+      &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+      &quot;handsontable&quot;: &quot;14.5&quot;
+    }
+  }</textarea> <textarea class="hidden" name="project[files][index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+  &lt;html&gt;
+    &lt;head&gt;
+      &lt;meta charset=&quot;utf-8&quot; /&gt;
+      &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+      &lt;title&gt;Handsontable&lt;/title&gt;
+    &lt;/head&gt;
+  
+    &lt;body&gt;
+      &lt;div id=&quot;example1&quot; class=&quot;hot &quot;&gt;&lt;/div&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;</textarea> <textarea class="hidden" name="project[files][styles.css]" readOnly=""></textarea> <textarea class="hidden" name="project[files][index.js]" readOnly="">import './styles.css'
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const templateValues = ['one', 'two', 'three'];
+const data = [
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+  ['2017', 10, 11, 12, 13],
+  ['2018', 20, 11, 14, 13],
+  ['2019', 30, 15, 12, 13],
+];
+
+function isEmptyRow(instance, row) {
+  const rowData = instance.getDataAtRow(row);
+
+  for (let i = 0, ilen = rowData.length; i &lt; ilen; i++) {
+    if (rowData[i] !== null) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+const defaultValueRenderer = (
+  instance,
+  td,
+  row,
+  col,
+  prop,
+  value,
+  cellProperties
+) =&gt; {
+  if (value === null &amp;&amp; isEmptyRow(instance, row)) {
+    value = templateValues[col];
+    td.style.color = '#999';
+  } else {
+    td.style.color = '';
+  }
+
+  Handsontable.renderers.TextRenderer(
+    instance,
+    td,
+    row,
+    col,
+    prop,
+    value,
+    cellProperties
+  );
+};
+
+const container = document.querySelector('#example1');
+const hot = new Handsontable(container, {
+  startRows: 8,
+  startCols: 5,
+  minSpareRows: 1,
+  contextMenu: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
+  cells() {
+    return { renderer: defaultValueRenderer };
+  },
+  beforeChange(changes) {
+    const instance = hot;
+    const columns = instance.countCols();
+    const rowColumnSeen = {};
+    const rowsToFill = {};
+    const ch = changes === null ? [] : changes;
+
+    for (let i = 0; i &lt; changes.length; i++) {
+      // if oldVal is empty
+      if (ch[i][2] === null &amp;&amp; ch[i][3] !== null) {
+        if (isEmptyRow(instance, ch[i][0])) {
+          // add this row/col combination to the cache so it will not be overwritten by the template
+          rowColumnSeen[`${ch[i][0]}/${ch[i][1]}`] = true;
+          rowsToFill[ch[i][0]] = true;
+        }
+      }
+    }
+
+    for (const r in rowsToFill) {
+      if (rowsToFill.hasOwnProperty(r)) {
+        for (let c = 0; c &lt; columns; c++) {
+          // if it is not provided by user in this change set, take the value from the template
+          if (!rowColumnSeen[`${r}/${c}`]) {
+            changes.push([Number(r), c, null, templateValues[c]]);
+          }
+        }
+      }
+    }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
+});
+
+// or, use `updateData()` to replace `data` without resetting states
+hot.loadData(data);
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="javascript"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const templateValues = ['one', 'two', 'three'];
+const data = [
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+  ['2017', 10, 11, 12, 13],
+  ['2018', 20, 11, 14, 13],
+  ['2019', 30, 15, 12, 13],
+];
+
+function isEmptyRow(instance, row) {
+  const rowData = instance.getDataAtRow(row);
+
+  for (let i = 0, ilen = rowData.length; i &lt; ilen; i++) {
+    if (rowData[i] !== null) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+const defaultValueRenderer = (
+  instance,
+  td,
+  row,
+  col,
+  prop,
+  value,
+  cellProperties
+) =&gt; {
+  if (value === null &amp;&amp; isEmptyRow(instance, row)) {
+    value = templateValues[col];
+    td.style.color = '#999';
+  } else {
+    td.style.color = '';
+  }
+
+  Handsontable.renderers.TextRenderer(
+    instance,
+    td,
+    row,
+    col,
+    prop,
+    value,
+    cellProperties
+  );
+};
+
+const container = document.querySelector('#example1');
+const hot = new Handsontable(container, {
+  startRows: 8,
+  startCols: 5,
+  minSpareRows: 1,
+  contextMenu: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
+  cells() {
+    return { renderer: defaultValueRenderer };
+  },
+  beforeChange(changes) {
+    const instance = hot;
+    const columns = instance.countCols();
+    const rowColumnSeen = {};
+    const rowsToFill = {};
+    const ch = changes === null ? [] : changes;
+
+    for (let i = 0; i &lt; changes.length; i++) {
+      // if oldVal is empty
+      if (ch[i][2] === null &amp;&amp; ch[i][3] !== null) {
+        if (isEmptyRow(instance, ch[i][0])) {
+          // add this row/col combination to the cache so it will not be overwritten by the template
+          rowColumnSeen[`${ch[i][0]}/${ch[i][1]}`] = true;
+          rowsToFill[ch[i][0]] = true;
+        }
+      }
+    }
+
+    for (const r in rowsToFill) {
+      if (rowsToFill.hasOwnProperty(r)) {
+        for (let c = 0; c &lt; columns; c++) {
+          // if it is not provided by user in this change set, take the value from the template
+          if (!rowColumnSeen[`${r}/${c}`]) {
+            changes.push([Number(r), c, null, templateValues[c]]);
+          }
+        }
+      }
+    }
+  },
+  autoWrapRow: true,
+  autoWrapCol: true,
+});
+
+// or, use `updateData()` to replace `data` without resetting states
+hot.loadData(data);
+</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@14.5/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@14.5/dist/handsontable.full.min.css&quot; /&gt; 
+&lt;script src=&quot;https://handsontable.com/docs/14.5/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div id=&quot;example1&quot; class=&quot;hot &quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly=""></textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button> <select value="ts" hidden="hidden" class="selected-lang"><option value="ts">ts</option> <option value="js">js</option></select></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example1" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> Handsontable <span class="token keyword">from</span> <span class="token string">'handsontable'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/dist/handsontable.full.min.css'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> templateValues <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">'one'</span><span class="token punctuation">,</span> <span class="token string">'two'</span><span class="token punctuation">,</span> <span class="token string">'three'</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">[</span><span class="token string">''</span><span class="token punctuation">,</span> <span class="token string">'Tesla'</span><span class="token punctuation">,</span> <span class="token string">'Nissan'</span><span class="token punctuation">,</span> <span class="token string">'Toyota'</span><span class="token punctuation">,</span> <span class="token string">'Honda'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'2017'</span><span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">11</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">,</span> <span class="token number">13</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'2018'</span><span class="token punctuation">,</span> <span class="token number">20</span><span class="token punctuation">,</span> <span class="token number">11</span><span class="token punctuation">,</span> <span class="token number">14</span><span class="token punctuation">,</span> <span class="token number">13</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'2019'</span><span class="token punctuation">,</span> <span class="token number">30</span><span class="token punctuation">,</span> <span class="token number">15</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">,</span> <span class="token number">13</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token keyword">function</span> <span class="token function">isEmptyRow</span><span class="token punctuation">(</span><span class="token parameter">instance<span class="token punctuation">,</span> row</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> rowData <span class="token operator">=</span> instance<span class="token punctuation">.</span><span class="token function">getDataAtRow</span><span class="token punctuation">(</span>row<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">let</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span> ilen <span class="token operator">=</span> rowData<span class="token punctuation">.</span>length<span class="token punctuation">;</span> i <span class="token operator">&lt;</span> ilen<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>rowData<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">!==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">const</span> <span class="token function-variable function">defaultValueRenderer</span> <span class="token operator">=</span> <span class="token punctuation">(</span>
+  <span class="token parameter">instance<span class="token punctuation">,</span>
+  td<span class="token punctuation">,</span>
+  row<span class="token punctuation">,</span>
+  col<span class="token punctuation">,</span>
+  prop<span class="token punctuation">,</span>
+  value<span class="token punctuation">,</span>
+  cellProperties</span>
+<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>value <span class="token operator">===</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> <span class="token function">isEmptyRow</span><span class="token punctuation">(</span>instance<span class="token punctuation">,</span> row<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    value <span class="token operator">=</span> templateValues<span class="token punctuation">[</span>col<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    td<span class="token punctuation">.</span>style<span class="token punctuation">.</span>color <span class="token operator">=</span> <span class="token string">'#999'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    td<span class="token punctuation">.</span>style<span class="token punctuation">.</span>color <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  Handsontable<span class="token punctuation">.</span>renderers<span class="token punctuation">.</span><span class="token function">TextRenderer</span><span class="token punctuation">(</span>
+    instance<span class="token punctuation">,</span>
+    td<span class="token punctuation">,</span>
+    row<span class="token punctuation">,</span>
+    col<span class="token punctuation">,</span>
+    prop<span class="token punctuation">,</span>
+    value<span class="token punctuation">,</span>
+    cellProperties
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> container <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#example1'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> hot <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>container<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">startRows</span><span class="token operator">:</span> <span class="token number">8</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">startCols</span><span class="token operator">:</span> <span class="token number">5</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">minSpareRows</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">contextMenu</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'auto'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'non-commercial-and-evaluation'</span><span class="token punctuation">,</span>
+  <span class="token function">cells</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span> <span class="token literal-property property">renderer</span><span class="token operator">:</span> defaultValueRenderer <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token function">beforeChange</span><span class="token punctuation">(</span><span class="token parameter">changes</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> instance <span class="token operator">=</span> hot<span class="token punctuation">;</span>
+    <span class="token keyword">const</span> columns <span class="token operator">=</span> instance<span class="token punctuation">.</span><span class="token function">countCols</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> rowColumnSeen <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> rowsToFill <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> ch <span class="token operator">=</span> changes <span class="token operator">===</span> <span class="token keyword">null</span> <span class="token operator">?</span> <span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token operator">:</span> changes<span class="token punctuation">;</span>
+
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">let</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> changes<span class="token punctuation">.</span>length<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token comment">// if oldVal is empty</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>ch<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">===</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> ch<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">]</span> <span class="token operator">!==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">isEmptyRow</span><span class="token punctuation">(</span>instance<span class="token punctuation">,</span> ch<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          <span class="token comment">// add this row/col combination to the cache so it will not be overwritten by the template</span>
+          rowColumnSeen<span class="token punctuation">[</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>ch<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>ch<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+          rowsToFill<span class="token punctuation">[</span>ch<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> r <span class="token keyword">in</span> rowsToFill<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>rowsToFill<span class="token punctuation">.</span><span class="token function">hasOwnProperty</span><span class="token punctuation">(</span>r<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">let</span> c <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> c <span class="token operator">&lt;</span> columns<span class="token punctuation">;</span> c<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          <span class="token comment">// if it is not provided by user in this change set, take the value from the template</span>
+          <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>rowColumnSeen<span class="token punctuation">[</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>r<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>c<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            changes<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token function">Number</span><span class="token punctuation">(</span>r<span class="token punctuation">)</span><span class="token punctuation">,</span> c<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">,</span> templateValues<span class="token punctuation">[</span>c<span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+          <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapRow</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapCol</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// or, use `updateData()` to replace `data` without resetting states</span>
+hot<span class="token punctuation">.</span><span class="token function">loadData</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section></div></div></div></div><p></p> <p></p> <h2 id="related-api-reference"><a href="#related-api-reference" class="header-link">Related API reference</a></h2> <ul><li>Hooks:
+<ul><li><a href="/docs/14.5/javascript-data-grid/api/hooks/#beforechange"><code>beforeChange</code></a></li></ul></li></ul></div> <div class="page-top" style="display:none;"><div class="custom-block tip version-alert"><p>There is a newer version of Handsontable available.
+            <a href="/docs/">Switch to the latest version ⟶</a></p></div></div> <footer class="footer"><a href="https://github.com/handsontable/handsontable/edit/develop/docs/content/guides/rows/row-prepopulating/row-prepopulating.md" target="_blank" rel="noopener noreferrer" class="edit-link">Edit on GitHub <i class="ico i-external"></i></a> <div class="footer-links"><div class="socail-links"><a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a> <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a> <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a></div> <div class="hot-links"><a href="https://handsontable.com/privacy">Privacy policy</a> <a href="https://handsontable.com/terms-of-use">Terms of use</a> <a href="https://handsontable.com/team">Team</a> <a href="https://handsontable.com/contact?category=technical_support">Contact</a> <a href="https://handsontable.com/blog/">Blog</a> <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a></div></div> <div class="copyright"><p>© 2012 - 2024 Handsoncode</p> <label id="switch" class="dark-mode"><span class="inner" style="display:none;"><input type="checkbox"> <span style="display:none;"><i class="ico i-dm-dark"></i>Light</span> <span style="display:;"><i class="ico i-dm-light"></i>Dark</span></span></label></div></footer> </main></div></div><div class="global-ui"></div></div>
+
+<script src="/docs/14.5/assets/js/app.52624158.js" defer></script><script src="/docs/14.5/assets/js/4.a71c13f3.js" defer></script><script src="/docs/14.5/assets/js/3.341147d5.js" defer></script><script src="/docs/14.5/assets/js/2.b4335327.js" defer></script><script src="/docs/14.5/assets/js/197.9b0121d2.js" defer></script><script src="/docs/14.5/assets/js/37.ee2af185.js" defer></script>
+</body>
+</html>
