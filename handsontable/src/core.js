@@ -4581,6 +4581,158 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * Returns the first rendered row in the DOM (usually is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstRenderedVisibleRow
+   * @returns {number | null}
+   */
+  this.getFirstRenderedVisibleRow = function() {
+    return instance.view.getFirstRenderedVisibleRow();
+  };
+
+  /**
+   * Returns the last rendered row in the DOM (usually is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastRenderedVisibleRow
+   * @returns {number | null}
+   */
+  this.getLastRenderedVisibleRow = function() {
+    return instance.view.getLastRenderedVisibleRow();
+  };
+
+  /**
+   * Returns the first rendered column in the DOM (usually is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstRenderedVisibleColumn
+   * @returns {number | null}
+   */
+  this.getFirstRenderedVisibleColumn = function() {
+    return instance.view.getFirstRenderedVisibleColumn();
+  };
+
+  /**
+   * Returns the last rendered column in the DOM (usually is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastRenderedVisibleColumn
+   * @returns {number | null}
+   */
+  this.getLastRenderedVisibleColumn = function() {
+    return instance.view.getLastRenderedVisibleColumn();
+  };
+
+  /**
+   * Returns the first fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstFullyVisibleRow
+   * @returns {number | null}
+   */
+  this.getFirstFullyVisibleRow = function() {
+    return instance.view.getFirstFullyVisibleRow();
+  };
+
+  /**
+   * Returns the last fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastFullyVisibleRow
+   * @returns {number | null}
+   */
+  this.getLastFullyVisibleRow = function() {
+    return instance.view.getLastFullyVisibleRow();
+  };
+
+  /**
+   * Returns the first fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstFullyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getFirstFullyVisibleColumn = function() {
+    return instance.view.getFirstFullyVisibleColumn();
+  };
+
+  /**
+   * Returns the last fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastFullyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getLastFullyVisibleColumn = function() {
+    return instance.view.getLastFullyVisibleColumn();
+  };
+
+  /**
+   * Returns the first partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstPartiallyVisibleRow
+   * @returns {number | null}
+   */
+  this.getFirstPartiallyVisibleRow = function() {
+    return instance.view.getFirstPartiallyVisibleRow();
+  };
+
+  /**
+   * Returns the last partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastPartiallyVisibleRow
+   * @returns {number | null}
+   */
+  this.getLastPartiallyVisibleRow = function() {
+    return instance.view.getLastPartiallyVisibleRow();
+  };
+
+  /**
+   * Returns the first partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstPartiallyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getFirstPartiallyVisibleColumn = function() {
+    return instance.view.getFirstPartiallyVisibleColumn();
+  };
+
+  /**
+   * Returns the last partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastPartiallyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getLastPartiallyVisibleColumn = function() {
+    return instance.view.getLastPartiallyVisibleColumn();
+  };
+
+  /**
    * Returns plugin instance by provided its name.
    *
    * @memberof Core#
