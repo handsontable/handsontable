@@ -52,7 +52,7 @@ registerCellType(NumericCellType);
 
 registerLanguageDictionary(arAR);
 
-export function initializeScenarioGrid() {
+export function initializeTwoTablesDemo() {
   const root = document.getElementById('root');
 
   const topTable = document.createElement('div');
