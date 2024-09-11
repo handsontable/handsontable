@@ -309,4 +309,76 @@ describe('MergeCells Selection', () => {
       |   ║   :   :   :   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
+
+  it('should keep the highlight (area selection) on the virtualized merged cell after horizontal scroll', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 30),
+      width: 200,
+      height: 200,
+      viewportColumnRenderingOffset: 0,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 0, 20);
+    selectCells([[1, 20, 0, 0]]);
+
+    expect(`
+      | 0             |
+      | 0 : 0 : 0 : 0 |
+      |   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
+    render();
+
+    expect(`
+      | 0     :   :   |
+      | 0 : A :   :   |
+      |   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should keep the highlight (area selection) on the virtualized merged cell after vertical scroll', () => {
+    handsontable({
+      data: createSpreadsheetData(100, 10),
+      width: 200,
+      height: 200,
+      viewportRowRenderingOffset: 0,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 20, 0);
+    selectCells([[20, 1, 0, 0]]);
+
+    expect(`
+      | 0 : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
+    render();
+
+    expect(`
+      | 0 : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : A :   :   :   :   |
+      |   :   :   :   :   :   |
+      |   :   :   :   :   :   |
+      |   :   :   :   :   :   |
+      |   :   :   :   :   :   |
+      |   :   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
 });

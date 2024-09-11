@@ -1963,7 +1963,7 @@ describe('MergeCells cooperation with hidden rows', () => {
         |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
         |   ║   :   :   :   :   |
-        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ A :   : 0 : 0 : 0 |
         | * ║ 0 :   : 0 : 0 : 0 |
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
@@ -2092,7 +2092,7 @@ describe('MergeCells cooperation with hidden rows', () => {
         |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
         |   ║   :   :   :   :   |
-        | * ║ A : 1 : 0 : 0 : 0 |
+        | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 :   : 0 : 0 : 0 |
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
@@ -2114,7 +2114,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
   });
 
-  it('should display properly wide merged cell containing hidden columns', () => {
+  it('should display properly high merged cell containing hidden columns', () => {
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
@@ -2209,7 +2209,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should display properly wide merged cell containing hidden columns (virtualized)', () => {
+  it('should display properly high merged cell containing hidden columns (virtualized)', () => {
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,

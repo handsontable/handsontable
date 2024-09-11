@@ -1,8 +1,6 @@
 describe('MergeCells', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -1735,5 +1733,251 @@ describe('MergeCells', () => {
     expect(getTopInlineStartClone().height()).toBe(111);
     expect(getTopClone().height()).toBe(111);
     expect(getInlineStartClone().height()).toBe(400);
+  });
+
+  it('should display properly wide merged cell', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 30),
+      width: 200,
+      height: 200,
+      viewportColumnRenderingOffset: 0,
+      mergeCells: true,
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 0, 20);
+    selectCell(0, 0);
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:first td:last').text()).toBe('A1');
+    expect(`
+      | #                                                                                 |
+      |   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:first td:last').text()).toBe('W1');
+    expect(`
+      | #                                                                                 :   :   |
+      |   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('W1');
+    expect(getHtCore().find('tr:first td:last').text()).toBe('Z1');
+    expect(`
+      |   :   :   :   |
+      |   :   :   :   |
+      |   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should display properly wide virtualized merged cell', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 30),
+      width: 200,
+      height: 200,
+      viewportColumnRenderingOffset: 0,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 0, 20);
+    selectCell(0, 0);
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:first td:last').text()).toBe('A1');
+    expect(`
+      | #             |
+      |   :   :   :   |
+      |   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:first td:last').text()).toBe('W1');
+    expect(`
+      | #     :   :   |
+      |   :   :   :   |
+      |   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('W1');
+    expect(getHtCore().find('tr:first td:last').text()).toBe('Z1');
+    expect(`
+      |   :   :   :   |
+      |   :   :   :   |
+      |   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should display properly high merged cell', () => {
+    handsontable({
+      data: createSpreadsheetData(50, 3),
+      width: 200,
+      height: 200,
+      viewportRowRenderingOffset: 0,
+      mergeCells: true,
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 20, 0);
+    selectCell(0, 0);
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
+    expect(`
+      | # :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is partially visible
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
+    expect(`
+      | # :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
+    expect(`
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should display properly high virtualized merged cell', () => {
+    handsontable({
+      data: createSpreadsheetData(50, 30),
+      width: 200,
+      height: 200,
+      viewportRowRenderingOffset: 0,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 20, 0);
+    selectCell(0, 0);
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
+    expect(`
+      | # :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 27, col: 0 }); // the merged cell is partially visible
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A29');
+    expect(`
+      | # :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
+    expect(`
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 });

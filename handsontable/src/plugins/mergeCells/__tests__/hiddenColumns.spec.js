@@ -1887,7 +1887,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       |   ║   : * : * :   |
       |===:===:===:===:===|
       | - ║   : A : 0 :   |
-      | - ║   : 0     :   |
+      | - ║   :       :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
@@ -2019,7 +2019,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       |   ║   : * : * :   |
       |===:===:===:===:===|
       | - ║   : A : 0 :   |
-      | - ║   : 1     :   |
+      | - ║   : 0     :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
       | - ║   : 0 : 0 :   |
