@@ -266,7 +266,7 @@ function getDocsBaseFullUrl() {
  *
  * @returns {string}
  */
-export function isNetlifyDeployment() {
+function isNetlifyDeployment() {
   return process.env.NETLIFY === 'true';
 }
 
@@ -303,4 +303,5 @@ module.exports = {
   getDocsBase,
   getDocsBaseFullUrl,
   getDocsHostname,
+  isNetlifyDeployment,
 };
