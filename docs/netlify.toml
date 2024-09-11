@@ -1,3 +1,7 @@
 [build]
     edge_functions="netlify/edge_functions"
     command=""
+
+[[edge_functions]]
+  function = "redirect"
+  path = "/docs/*"

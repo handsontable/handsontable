@@ -1,16 +1,26 @@
 import type { Context, Config } from "@netlify/edge-functions";
 
+import { URLPattern } from 'urlpattern-polyfill';
+
 export default async (request: Request, context: Context) => {
+
+  const url = new URL(request.url);
+  const pattern = new URLPattern({ pathname: '/docs/:version(\\d+\\.\\d+|next)' });
+  const match = pattern.exec(url.pathname);
 
   const cookieValue = context.cookies.get("docs_fw");
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
-  console.log('url', request.url);
-  const versionUrl = request.url.replace(/\/docs\/(\d.\d+|next)\//, `/docs/${framework}/`);
+  if (match) {
+    const version = match.pathname.groups.version;
+    const newUrl = `${url.origin}/docs/${version}/${framework}/`;
+    return Response.redirect(newUrl, 301);
+  }
 
-  return Response.redirect(versionUrl, 301);
 }
 
-export const config: Config = {
-  path: ["/docs/:version(\\d+\\.\\d+|next)'"],
-}
+// export const config: Config = {
+//   path: ["/docs/:version(\\d+\\.\\d+|next)'"],
+// }
+
+
