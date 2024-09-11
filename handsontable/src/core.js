@@ -4581,7 +4581,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the first rendered row in the DOM (usually is not visible in the table's viewport).
+   * Returns the first rendered row in the DOM (usually, it is not visible in the table's viewport).
    *
    * @since 14.6.0
    * @memberof Core#
@@ -4593,7 +4593,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the last rendered row in the DOM (usually is not visible in the table's viewport).
+   * Returns the last rendered row in the DOM (usually, it is not visible in the table's viewport).
    *
    * @since 14.6.0
    * @memberof Core#
@@ -4605,7 +4605,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the first rendered column in the DOM (usually is not visible in the table's viewport).
+   * Returns the first rendered column in the DOM (usually, it is not visible in the table's viewport).
    *
    * @since 14.6.0
    * @memberof Core#
@@ -4617,7 +4617,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the last rendered column in the DOM (usually is not visible in the table's viewport).
+   * Returns the last rendered column in the DOM (usually, it is not visible in the table's viewport).
    *
    * @since 14.6.0
    * @memberof Core#
