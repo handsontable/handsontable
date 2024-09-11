@@ -263,8 +263,16 @@ function getDocsBaseFullUrl() {
 /**
  * Gets docs hostname (eq: https://handsontable.com).
  *
- * @param {boolean} [allowLocalhost=true] Returns localhost URL for local testing or official Docs domains as
- *                                        a source of truth for further "fetch" requests.
+ * @param {boolean} [allowLocalhost=true] Returns true if NETLIFY environment variable was set to true
+ * @returns {boolean}
+ */
+export function isNetlifyDeployment() {
+  return process.env.NETLIFY === 'true';
+}
+
+/**
+ * Gets NETLIFY env variable.
+ * *
  * @returns {string}
  */
 function getDocsHostname(allowLocalhost = true) {

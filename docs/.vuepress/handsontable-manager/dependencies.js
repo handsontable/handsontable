@@ -1,8 +1,6 @@
 // eslint-disable-next-line no-restricted-globals
 const isBrowser = (typeof window !== 'undefined');
 
-const isHOTExternal = process.env.IS_HOT_EXTERNAL === 'true';
-
 const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest');
 
 /**
@@ -37,7 +35,7 @@ const getPackageUrls = (packageName, version, fileSelection) => {
 
   const urlSet = subDirs[packageName];
 
-  if (version === 'next' && isBrowser || isHOTExternal === 'true') {
+  if (version === 'next' && isBrowser || isHOTExternal === isNetlifyDeployment() ) {
     return urlSet[fileSelection] ?
       `/docs/${packageName}/${urlSet[fileSelection]}` :
       `/docs/${packageName}/${fileSelection}`;
@@ -60,7 +58,7 @@ const getCommonScript = (scriptName, version) => {
   }
 
   // eslint-disable-next-line global-require
-  const { getDocsBaseFullUrl } = require('../helpers');
+  const { getDocsBaseFullUrl, isNetlifyDeployment } = require('../helpers');
 
   return [`${getDocsBaseFullUrl()}/scripts/${scriptName}.js`, ['require', 'exports']];
 };
