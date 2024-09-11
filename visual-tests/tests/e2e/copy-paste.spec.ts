@@ -3,7 +3,9 @@ import { selectCell, selectColumnHeaderByNameAndOpenMenu } from '../../src/page-
 import { helpers } from '../../src/helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-testE2E(__filename, async({ tablePage }) => {
+testE2E(__filename, async({ tablePage, browserName }) => {
+  testE2E.skip(browserName !== 'chromium', 'This test runs only on Chrome');
+
   await tablePage.goto('/two-tables-demo');
 
   const tableTop = tablePage.locator('#tableTop > .handsontable');

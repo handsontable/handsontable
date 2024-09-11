@@ -270,14 +270,17 @@ export async function selectCo(option: string) {
 
 /**
  * @param {string} columnName Column name.
+ * @param {ModifierKey[]} modifiers Optional click modifiers.
  * @param {Locator} table The locator of the table.
  */
-export async function selectColumnHeaderByNameAndOpenMenu(columnName: string, table = getDefaultTableInstance()) {
+export async function selectColumnHeaderByNameAndOpenMenu(
+  columnName: string,
+  table = getDefaultTableInstance(),
+) {
   await table
     .getByRole('columnheader', { name: columnName, exact: true })
     .click({
       button: 'right',
-      modifiers: ['Shift'],
     });
 }
 

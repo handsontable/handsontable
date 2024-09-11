@@ -1,4 +1,4 @@
-import { test, expect } from '../../src/test-runner';
+import { testE2E, expect } from '../../src/test-runner';
 
 import {
   columnsCount,
@@ -6,7 +6,11 @@ import {
 
 } from '../../src/page-helpers';
 
-test(__filename, async({ tablePage }) => {
+const url = '/';
+
+testE2E(__filename, async({ tablePage }) => {
+  await tablePage.goto(url);
+
   expect(await columnsCount()).toBe(9);
 
   await selectColumnHeaderByNameAndOpenMenu('Name');
@@ -15,9 +19,11 @@ test(__filename, async({ tablePage }) => {
 
   await selectColumnHeaderByNameAndOpenMenu('In stock');
   await tablePage.getByText('Hide column').click();
-  expect(await columnsCount()).toBe(6);
+  expect(await columnsCount()).toBe(7);
 
   await tablePage.getByRole('columnheader', { name: 'Company name' }).click();
+  await tablePage.getByRole('columnheader', { name: 'Progress' }).click({modifiers: ['Shift']});
+
   await selectColumnHeaderByNameAndOpenMenu('Progress');
 
   await tablePage.getByText('Show columns').click();

@@ -8,6 +8,7 @@
     "lint": "eslint --ext .js,.mjs,.ts .",
     "build": "node ./scripts/build.mjs",
     "test": "node ./scripts/run-tests.mjs",
+    "test:e2e": "npx playwright test --config playwright-e2e.config.ts",
     "serve-example-e2e": "npm --prefix ../examples/next/visual-tests/js/demo run serve -- --port=8082",
     "upload": "node ./scripts/upload.mjs",
     "serve-example-preview": "npm --prefix ../examples/next/visual-tests/js/demo run serve -- --port=8085",

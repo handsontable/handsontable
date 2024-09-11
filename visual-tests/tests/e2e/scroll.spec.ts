@@ -26,6 +26,8 @@ urls.forEach((url) => {
     const cell = await selectCell(2, 2, table);
 
     await cell.click();
+    await tablePage.waitForTimeout(500);
+
     await tablePage.mouse.wheel(500, 1000);
     await tablePage.waitForTimeout(500);
     await tablePage.screenshot({ path: helpers.screenshotE2ePath(testFileName, url) });

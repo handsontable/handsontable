@@ -30,11 +30,12 @@ urls.forEach((url) => {
     const cellEditor = await selectEditor();
 
     await cellEditor.fill('1100');
-    await cellEditor.press('Enter');
-    await cellEditor.press('Enter');
+    await tablePage.keyboard.press('Enter');
+    await tablePage.waitForTimeout(500);
 
     cell = await selectCell(0, 2, table);
     await cell.click();
+    await tablePage.waitForTimeout(500);
 
     const cornerDiv = table.locator('div.wtBorder.current.corner').first();
 

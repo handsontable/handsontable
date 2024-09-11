@@ -14,9 +14,11 @@ testE2E(__filename, async({ tablePage }) => {
   tableBottom.waitFor();
 
   await selectColumnHeaderByNameAndOpenMenu('Industry', tableBottom);
+
   await tablePage.getByText('Insert column left').click();
 
   await selectColumnHeaderByNameAndOpenMenu('Industry', tableBottom);
+
   await tablePage.getByText('Insert column right').click();
 
   const testFileName = path.basename(__filename, '.spec.ts');
