@@ -2,13 +2,21 @@ import BaseRenderer from './_base';
 import { warn } from './../../../../helpers/console';
 import { toSingleLine } from './../../../../helpers/templateLiteralTag';
 import { OrderView } from './../utils/orderView';
-import { setAttribute } from '../../../../helpers/dom/element';
+import {
+  addClass,
+  removeClass,
+  setAttribute
+} from '../../../../helpers/dom/element';
 import {
   A11Y_ROW,
   A11Y_ROWGROUP,
   A11Y_ROWINDEX
 } from '../../../../helpers/a11y';
 
+const ROW_CLASSNAMES = {
+  rowEven: 'ht__row_even',
+  rowOdd: 'ht__row_odd',
+};
 let performanceWarningAppeared = false;
 
 /**
@@ -87,6 +95,15 @@ export default class RowsRenderer extends BaseRenderer {
           // `aria-rowindex` is incremented by both tbody and thead rows.
           A11Y_ROWINDEX(sourceRowIndex + (this.table.rowUtils?.dataAccessObject?.columnHeaders.length ?? 0) + 1),
         ]);
+      }
+
+      removeClass(TR, [ROW_CLASSNAMES.rowEven, ROW_CLASSNAMES.rowOdd]);
+
+      if ((sourceRowIndex + 1) % 2 === 0) {
+        addClass(TR, ROW_CLASSNAMES.rowEven);
+
+      } else {
+        addClass(TR, ROW_CLASSNAMES.rowOdd);
       }
     }
 
