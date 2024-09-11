@@ -1,7 +1,5 @@
 import type { Context, Config } from "@netlify/edge-functions";
 
-import { URLPattern } from "@netlify/urlpattern-polyfill"
-
 export default async (request: Request, context: Context) => {
 
   const url = new URL(request.url);
@@ -18,7 +16,6 @@ export default async (request: Request, context: Context) => {
   }
 
   return fetch(request);
-
 }
 
 // export const config: Config = {
