@@ -211,7 +211,7 @@ describe('CollapsibleColumns Hooks', () => {
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr class="ht__row_odd">
           <td class="">A1</td>
           <td class="">B1</td>
           <td class="">C1</td>
@@ -270,7 +270,7 @@ describe('CollapsibleColumns Hooks', () => {
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr class="ht__row_odd">
           <td class="">A1</td>
           <td class="">B1</td>
           <td class="">F1</td>
@@ -326,7 +326,7 @@ describe('CollapsibleColumns Hooks', () => {
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr class="ht__row_odd">
           <td class="">A1</td>
           <td class="">B1</td>
           <td class="">C1</td>
@@ -366,7 +366,7 @@ describe('CollapsibleColumns Hooks', () => {
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr class="ht__row_odd">
           <td class="">A1</td>
           <td class="">B1</td>
           <td class="">C1</td>
@@ -426,7 +426,7 @@ describe('CollapsibleColumns Hooks', () => {
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr class="ht__row_odd">
           <td class="">A1</td>
           <td class="">B1</td>
           <td class="">C1</td>
@@ -469,7 +469,7 @@ describe('CollapsibleColumns Hooks', () => {
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr class="ht__row_odd">
           <td class="">A1</td>
           <td class="">B1</td>
           <td class="">C1</td>
