@@ -1,6 +1,5 @@
 import Handsontable from 'handsontable';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
-import 'handsontable/dist/handsontable.full.min.css';
 
 registerLanguageDictionary(arAR);
 

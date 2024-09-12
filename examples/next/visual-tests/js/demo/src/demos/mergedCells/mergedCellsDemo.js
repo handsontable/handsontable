@@ -1,7 +1,4 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.min.css';
-import 'pikaday/css/pikaday.css';
-import './styles.css';
 
 import { data } from '././mergedCellsData';
 

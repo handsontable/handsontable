@@ -1,6 +1,4 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
-import './styles.css';
 
 import { scenarioDataBottom } from './nestedRowsData';
 

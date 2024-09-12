@@ -1,10 +1,8 @@
 import Handsontable from 'handsontable/base';
-import 'handsontable/dist/handsontable.css';
-import '@handsontable/pikaday/css/pikaday.css';
+
 import { scenarioDataTop, scenarioDataBottom } from './twoTablesData';
 
 import { isArabicDemoEnabled } from '../../utils';
-import './styles.css';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 
 // choose cell types you want to use and import them
