@@ -78,6 +78,18 @@ hot.getDataAtRow(123).forEach(v => v === '');
 hot.getDataAtRowProp(123, 'foo') === '';
 hot.getDataType(123, 123, 123, 123) === 'text';
 hot.getDirectionFactor() === 1;
+const firstFullyVisibleColumn: number | null = hot.getFirstFullyVisibleColumn();
+const firstFullyVisibleRow: number | null = hot.getFirstFullyVisibleRow();
+const firstPartiallyVisibleColumn: number | null = hot.getFirstPartiallyVisibleColumn();
+const firstPartiallyVisibleRow: number | null = hot.getFirstPartiallyVisibleRow();
+const firstRenderedVisibleColumn: number | null = hot.getFirstRenderedVisibleColumn();
+const firstRenderedVisibleRow: number | null = hot.getFirstRenderedVisibleRow();
+const lastFullyVisibleColumn: number | null = hot.getLastFullyVisibleColumn();
+const lastFullyVisibleRow: number | null = hot.getLastFullyVisibleRow();
+const lastPartiallyVisibleColumn: number | null = hot.getLastPartiallyVisibleColumn();
+const lastPartiallyVisibleRow: number | null = hot.getLastPartiallyVisibleRow();
+const lastRenderedVisibleColumn: number | null = hot.getLastRenderedVisibleColumn();
+const lastRenderedVisibleRow: number | null = hot.getLastRenderedVisibleRow();
 hot.getFocusManager();
 
 const _hot: Handsontable = hot.getInstance();
