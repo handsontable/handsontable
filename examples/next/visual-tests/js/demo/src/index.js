@@ -1,5 +1,5 @@
 import Navigo from 'navigo';
-import { initializeDataGrid } from './datagrid';
+
 import { initializeTwoTablesDemo } from './demos/twoTables/twoTablesDemo';
 import { initializeCellTypeDemo } from './demos/cellTypes/cellTypesDemo';
 import { initializeArabicRtlDemo } from './demos/arabicRtl/arabicRtlDemo';
@@ -7,6 +7,8 @@ import { initializeCustomStyleDemo } from './demos/customStyle/customStyleDemo';
 import { initializeMergedCellsDemo } from './demos/mergedCells/mergedCellsDemo';
 import { initializeNestedHeadersDemo } from './demos/nestedHeaders/nestedHeadersDemo';
 import { initializeNestedRowsDemo } from './demos/nestedRows/nestedRowsDemo';
+import { initializeDataGrid } from './datagrid';
+
 
 const router = new Navigo('/');
 
@@ -35,7 +37,7 @@ router
     },
     '/nested-rows-demo': function () {
       initializeNestedRowsDemo();
-    },
+    }
   })
   .resolve();
 

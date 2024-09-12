@@ -14,7 +14,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "serve": "vite preview",
-    "start": "vite",
+    "start": "vite preview",
     "build": "vite build",
     "test": "node spec/support/jasmine.config.js"
   },
