@@ -212,6 +212,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
   function changeSelectedCheckboxesState(uncheckCheckbox = false) {
     const selRange = hotInstance.getSelectedRange();
     const changesPerSubSelection = [];
+    const nonCheckboxChanges = new Map();
     let changes = [];
     let changeCounter = 0;
 
@@ -231,8 +232,23 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
             uncheckedTemplate: cachedCellProperties.uncheckedTemplate,
           };
 
+          // TODO: In the future it'd be better if non-checkbox changes were handled by the non-checkbox
+          //  `delete` keypress logic.
+          /* eslint-disable no-continue */
           if (cachedCellProperties.type !== 'checkbox') {
-            return;
+            if (uncheckCheckbox === true && !cachedCellProperties.readOnly) {
+              if (nonCheckboxChanges.has(changesPerSubSelection.length)) {
+                nonCheckboxChanges.set(changesPerSubSelection.length, [
+                  ...nonCheckboxChanges.get(changesPerSubSelection.length),
+                  [visualRow, visualColumn, null]
+                ]);
+
+              } else {
+                nonCheckboxChanges.set(changesPerSubSelection.length, [[visualRow, visualColumn, null]]);
+              }
+            }
+
+            continue;
           }
 
           /* eslint-disable no-continue */
@@ -280,8 +296,15 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
     if (changes.length > 0) {
       // TODO: This is workaround for handsontable/dev-handsontable#1747 not being a breaking change.
       // Technically, the changes don't need to be split into chunks when sent to `setDataAtCell`.
-      changesPerSubSelection.forEach((changesCount) => {
-        const changesChunk = changes.splice(0, changesCount);
+      changesPerSubSelection.forEach((changesCount, sectionCount) => {
+        let changesChunk = changes.splice(0, changesCount);
+
+        if (nonCheckboxChanges.size && nonCheckboxChanges.has(sectionCount)) {
+          changesChunk = [
+            ...changesChunk,
+            ...nonCheckboxChanges.get(sectionCount)
+          ];
+        }
 
         hotInstance.setDataAtCell(changesChunk);
       });
@@ -308,10 +331,6 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
           const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
-
-          if (cachedCellProperties.type !== 'checkbox') {
-            return false;
-          }
 
           const cell = hotInstance.getCell(visualRow, visualColumn);
 
