@@ -5,11 +5,10 @@ import { selectCell, selectColumnHeaderByIndex, selectRowHeaderByIndex } from '.
 
 const urls = [
   '/cell-types-demo',
-  // '/arabic-rtl-demo',
-  // '/custom-style-demo',
-  // '/merged-cells-demo',
-  // '/nested-headers-demo',
-  // '/nested-rows-demo',
+  '/arabic-rtl-demo',
+  '/merged-cells-demo',
+  '/nested-headers-demo',
+  '/nested-rows-demo',
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

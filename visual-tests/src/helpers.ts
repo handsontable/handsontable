@@ -85,7 +85,7 @@ export const helpers = {
     const safeUrl = url.replace(/[^\w]/g, '_');
     const screenshotPath = path.join(
       __dirname,
-      `../screenshots/e2e/${this.browser}`,
+      `../screenshots/cross-browser/${this.browser}`,
       `${testFileName}${safeUrl}${suffix}.png`
     );
 
