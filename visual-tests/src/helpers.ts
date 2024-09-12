@@ -80,7 +80,7 @@ export const helpers = {
     }`;
   },
 
-  screenshotE2ePath(testFileName: string, url = '', suffix = '') {
+  screenshotMultiUrlPath(testFileName: string, url = '', suffix = '') {
 
     const safeUrl = url.replace(/[^\w]/g, '_');
     const screenshotPath = path.join(

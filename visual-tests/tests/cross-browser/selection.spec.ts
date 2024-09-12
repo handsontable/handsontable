@@ -1,5 +1,5 @@
 import path from 'path';
-import { testE2E } from '../../src/test-runner';
+import { testCrossBrowser } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import { selectCell, selectColumnHeaderByIndex, selectRowHeaderByIndex } from '../../src/page-helpers';
 
@@ -14,7 +14,7 @@ const urls = [
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  testE2E(`Test alignment for URL: ${url}`, async({ tablePage }) => {
+  testCrossBrowser(`Test alignment for URL: ${url}`, async({ tablePage }) => {
     const testFileName = path.basename(__filename, '.spec.ts');
 
     await tablePage.goto(url);
@@ -25,17 +25,17 @@ urls.forEach((url) => {
     const cell = await selectCell(2, 2, table);
 
     await cell.click();
-    await tablePage.screenshot({ path: helpers.screenshotE2ePath(testFileName, url, 'select-cell') });
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, url, 'select-cell') });
 
     await selectColumnHeaderByIndex(2);
     await selectColumnHeaderByIndex(5, ['Shift']);
 
-    await tablePage.screenshot({ path: helpers.screenshotE2ePath(testFileName, url, 'select-column') });
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, url, 'select-column') });
 
     await selectRowHeaderByIndex(2);
     await selectRowHeaderByIndex(5, ['Shift']);
 
-    await tablePage.screenshot({ path: helpers.screenshotE2ePath(testFileName, url, 'select-row') });
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, url, 'select-row') });
 
   });
 });

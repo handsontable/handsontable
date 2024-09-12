@@ -1,5 +1,5 @@
 import path from 'path';
-import { testE2E } from '../../src/test-runner';
+import { testCrossBrowser } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 
 import {
@@ -21,7 +21,7 @@ const urls = [
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  testE2E(`Test undo/redo for URL: ${url}`, async({ tablePage }) => {
+  testCrossBrowser(`Test undo/redo for URL: ${url}`, async({ tablePage }) => {
     await tablePage.goto(url);
     await tablePage.waitForLoadState('load');
 
@@ -40,17 +40,17 @@ urls.forEach((url) => {
     const testFileName = path.basename(__filename, '.spec.ts');
 
     await tablePage.screenshot({
-      path: helpers.screenshotE2ePath(testFileName, url, '-typeText'),
+      path: helpers.screenshotMultiUrlPath(testFileName, url, '-typeText'),
     });
 
     await undo();
     await tablePage.screenshot({
-      path: helpers.screenshotE2ePath(testFileName, url, '-undo'),
+      path: helpers.screenshotMultiUrlPath(testFileName, url, '-undo'),
     });
 
     await redo();
     await tablePage.screenshot({
-      path: helpers.screenshotE2ePath(testFileName, url, '-redo'),
+      path: helpers.screenshotMultiUrlPath(testFileName, url, '-redo'),
     });
   });
 });

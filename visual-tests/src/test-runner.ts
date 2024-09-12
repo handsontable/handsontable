@@ -34,7 +34,7 @@ const test = baseTest.extend<{ tablePage: Page, customTitle: string }>({
 });
 
 // Define your custom fixture
-const testE2E = baseTest.extend<{ tablePage: Page, customTitle: string }>({
+const testCrossBrowser = baseTest.extend<{ tablePage: Page, customTitle: string }>({
   tablePage: async({ page }, use, workerInfo) => {
     helpers.init(workerInfo);
     PageHolder.getInstance().setPage(page);
@@ -50,4 +50,4 @@ const testE2E = baseTest.extend<{ tablePage: Page, customTitle: string }>({
 });
 
 // Export the custom fixture
-export { expect, test, testE2E };
+export { expect, test, testCrossBrowser };

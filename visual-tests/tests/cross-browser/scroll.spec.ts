@@ -1,5 +1,5 @@
 import path from 'path';
-import { testE2E } from '../../src/test-runner';
+import { testCrossBrowser } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import { selectCell } from '../../src/page-helpers';
 
@@ -14,7 +14,7 @@ const urls = [
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  testE2E(`Test scroll for URL: ${url}`, async({ tablePage }) => {
+  testCrossBrowser(`Test scroll for URL: ${url}`, async({ tablePage }) => {
     const testFileName = path.basename(__filename, '.spec.ts');
 
     await tablePage.goto(url);
@@ -30,6 +30,6 @@ urls.forEach((url) => {
 
     await tablePage.mouse.wheel(500, 1000);
     await tablePage.waitForTimeout(500);
-    await tablePage.screenshot({ path: helpers.screenshotE2ePath(testFileName, url) });
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, url) });
   });
 });

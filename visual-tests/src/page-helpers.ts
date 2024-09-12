@@ -125,7 +125,7 @@ export async function setCellAlignment(alignment: string, cell: Locator) {
 
   await menu.waitFor();
   await menu.getByRole('menuitem', { name: 'Alignment' }).hover();
-  await menu.getByRole('menuitemcheckbox', { name: alignment }).click();
+  await menu.getByText(alignment, { exact: true }).click();
 }
 
 /**

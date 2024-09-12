@@ -1,10 +1,10 @@
 import path from 'path';
-import { testE2E } from '../../src/test-runner';
+import { testCrossBrowser } from '../../src/test-runner';
 import { collapseNestedColumn } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-testE2E('Colapse nested headers', async({ tablePage }) => {
+testCrossBrowser('Colapse nested headers', async({ tablePage }) => {
   await tablePage.goto('/nested-headers-demo');
 
   const table = tablePage.locator(helpers.selectors.mainTable);
@@ -17,6 +17,6 @@ testE2E('Colapse nested headers', async({ tablePage }) => {
 
   const testFileName = path.basename(__filename, '.spec.ts');
 
-  await tablePage.screenshot({ path: helpers.screenshotE2ePath(testFileName) });
+  await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName) });
 
 });

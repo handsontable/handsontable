@@ -1,24 +1,22 @@
 import path from 'path';
-import { testE2E } from '../../src/test-runner';
+import { testCrossBrowser } from '../../src/test-runner';
 import { setCellAlignment, selectCell } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
 const urls = [
-  // '/cell-types-demo',
-  // '/arabic-rtl-demo',
   '/custom-style-demo',
-  // '/merged-cells-demo',
-  // '/nested-headers-demo',
-  // '/nested-rows-demo',
+  '/merged-cells-demo',
+  '/nested-headers-demo',
+  '/nested-rows-demo',
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  testE2E(`Test for URL: ${url}`, async({ tablePage }) => {
+  testCrossBrowser(`Test alignment for URL: ${url}`, async({ tablePage }) => {
     await tablePage.goto(url);
     await tablePage.waitForLoadState('load');
 
-    const table = tablePage.locator('#root > .handsontable');
+    const table = tablePage.locator(helpers.selectors.mainTable);
 
     await table.waitFor();
     const cell = await selectCell(2, 2, table);
@@ -27,6 +25,6 @@ urls.forEach((url) => {
 
     const testFileName = path.basename(__filename, '.spec.ts');
 
-    await tablePage.screenshot({ path: helpers.screenshotE2ePath(testFileName, url) });
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, url) });
   });
 });

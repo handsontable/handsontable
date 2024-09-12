@@ -574,11 +574,11 @@ jobs:
       - name: Build wrappers and test examples
         run: npm run build -- -e handsontable
 
-      - name: Run tests
+      - name: Run visual multi-framework tests
         run: npm run in visual-tests test
 
-      - name: Run visual e2e tests
-        run: npm run in visual-tests test:e2e
+      - name: Run visual cross-browser tests
+        run: npm run in visual-tests test:cross-browser
 
       - name: Upload the screenshot to Argos CI
         env:

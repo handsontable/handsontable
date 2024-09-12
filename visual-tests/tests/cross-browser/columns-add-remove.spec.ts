@@ -1,10 +1,10 @@
 import path from 'path';
-import { testE2E } from '../../src/test-runner';
+import { testCrossBrowser } from '../../src/test-runner';
 import { selectColumnHeaderByNameAndOpenMenu } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-testE2E(__filename, async({ tablePage }) => {
+testCrossBrowser(__filename, async({ tablePage }) => {
   await tablePage.goto('/two-tables-demo');
 
   const tableTop = tablePage.locator('#tableTop > .handsontable');
@@ -24,6 +24,6 @@ testE2E(__filename, async({ tablePage }) => {
   const testFileName = path.basename(__filename, '.spec.ts');
 
   await tablePage.screenshot({
-    path: helpers.screenshotE2ePath(testFileName),
+    path: helpers.screenshotMultiUrlPath(testFileName),
   });
 });
