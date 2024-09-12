@@ -1,0 +1,86 @@
+.bold-text {
+  font-weight: bold;
+}
+
+.italic-text {
+  font-style: italic;
+}
+.htMergedCell {
+  background-color: #ffd966 !important;
+  color: #000 !important;
+  font-weight: bold;
+  text-align: center;
+}
+/* General Handsontable container styling */
+.handsontable-container {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+/* Header styling */
+.handsontable-container .ht_clone_top th {
+  background-color: #1c1558;
+  color: white;
+  font-weight: bold;
+  border: 1px solid #ccc;
+}
+
+/* Row header styling */
+.handsontable-container .ht_clone_left th {
+  background-color: #3e8e41;
+  color: white;
+  font-weight: bold;
+  border: 1px solid #ccc;
+}
+
+/* Active column header styling */
+.handsontable .ht_master .ht_clone_top th.current {
+  background-color: #1976d2 !important; /* Darker blue for better contrast */
+  color: black !important; /* White text color */
+  font-weight: bold !important; /* Bold text for emphasis */
+  text-transform: uppercase !important; /* Uppercase text for readability */
+  border: 1px solid #004ba0 !important; /* Border to match header background */
+}
+
+/* Styling for the entire selected column */
+.handsontable .ht_clone_top th.ht__highlight {
+  background-color: #7bb9f7 !important; /* Darker blue for the entire column */
+  color: black !important; /* White text color */
+  font-weight: bold !important; /* Bold text for emphasis */
+  border: 1px solid #004ba0 !important; /* Border color to match background */
+}
+
+/* Cell styling */
+.handsontable-container td,
+.handsontable-container th {
+  color: #333;
+  border: 1px solid #ddd;
+  text-align: center;
+  padding: 8px;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Even row styling
+.handsontable-container tr:nth-child(even) td {
+  background-color: #f9f9f9;
+} */
+
+/* Hover effect */
+.handsontable-container td:hover {
+  background-color: #ffeb3b;
+}
+
+/* Selected cells styling */
+.handsontable-container td.current,
+.handsontable-container th.current {
+  background-color: #ffa726 !important;
+  color: white !important;
+}
+
+/* Custom cell style */
+.custom-cell {
+  background-color: #e1f5fe !important;
+  font-weight: bold;
+  color: #0277bd;
+}

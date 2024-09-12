@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem where the Context Menu container wasn't reflecting the size of its contents.",
+  "type": "fixed",
+  "issueOrPR": 11190,
+  "breaking": false,
+  "framework": "none"
+}
