@@ -89,7 +89,6 @@ export const helpers = {
       `${testFileName}${safeUrl}${suffix}.png`
     );
 
-    // eslint-disable-next-line max-len
     return screenshotPath;
   },
 };
