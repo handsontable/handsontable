@@ -165,6 +165,8 @@ export class BasePlugin {
           'You have to import and register them manually.',
         ].join('');
 
+        missingDepsMsgs.length = 0;
+
         throw new Error(errorMsg);
       }
 
