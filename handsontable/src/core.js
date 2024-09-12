@@ -41,6 +41,7 @@ import {
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
+import { MAIN_THEME_NAME } from './helpers/themes';
 
 let activeGuid = null;
 
@@ -1110,8 +1111,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       addClass(instance.rootElement, 'mobile');
     }
 
-    addClass(instance.rootElement, 'ht-main-wrapper');
-
     this.updateSettings(tableMeta, true);
 
     this.view = new TableView(this);
@@ -1122,6 +1121,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
+
+      const themeClassName = instance.getSettings().themeName;
+
+      addClass(instance.rootElement, themeClassName || MAIN_THEME_NAME);
     }
 
     instance.runHooks('init');

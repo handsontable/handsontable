@@ -1,5 +1,6 @@
 import { addClass, outerWidth, outerHeight } from '../../helpers/dom/element';
 import { mixin } from '../../helpers/object';
+import { MAIN_THEME_NAME } from '../../helpers/themes';
 import localHooks from '../../mixins/localHooks';
 import { EditorResizeObserver } from './editorResizeObserver';
 
@@ -11,7 +12,7 @@ import { EditorResizeObserver } from './editorResizeObserver';
  */
 class CommentEditor {
   static get CLASS_EDITOR_CONTAINER() {
-    return 'ht-main-wrapper htCommentsContainer';
+    return 'htCommentsContainer';
   }
 
   static get CLASS_EDITOR() {
@@ -55,9 +56,15 @@ class CommentEditor {
    */
   #resizeObserver = new EditorResizeObserver();
 
-  constructor(rootDocument, isRtl) {
+  /**
+   * @type {string}
+   */
+  #themeClassName;
+
+  constructor(rootDocument, isRtl, themeClassName) {
     this.#rootDocument = rootDocument;
     this.#isRtl = isRtl;
+    this.#themeClassName = themeClassName;
     this.#editor = this.createEditor();
     this.#editorStyle = this.#editor.style;
     this.#resizeObserver.setObservedElement(this.getInputElement());
@@ -213,6 +220,7 @@ class CommentEditor {
     this.#container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
     addClass(this.#container, CommentEditor.CLASS_EDITOR_CONTAINER);
+    addClass(this.#container, this.#themeClassName || MAIN_THEME_NAME);
 
     this.#rootDocument.body.appendChild(this.#container);
 

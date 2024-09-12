@@ -192,7 +192,7 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.#editor) {
-      this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl());
+      this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.getSettings().themeName);
       this.#editor.addLocalHook('resize', (...args) => this.#onEditorResize(...args));
     }
 
