@@ -1,5 +1,5 @@
 // Import global CSS files first
-import "handsontable/dist/handsontable.min.css";
+import "handsontable/dist/handsontable.full.css";
 
 import "./styles/styles.css";
 
