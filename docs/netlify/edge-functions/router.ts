@@ -7,7 +7,72 @@ const redirects = [
     from: /^\/docs\/hyperformula$/,
     to: "https://hyperformula.handsontable.com",
     status: STATUS_PERMANENT_REDIRECT,
-  }
+  },
+  {
+    from: /^\/docs\/react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
+    from: /^\/docs\/react-hot-column$/,
+    to: "/docs/react-data-grid/hot-column",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
 ]
 
 export default async function handler(request: Request, context: Context) {
