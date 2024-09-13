@@ -1,0 +1,4 @@
+#remove-height-btn, #switch-dimensions-btn {
+  padding: 10px 20px; /* Add padding to the buttons */
+  margin: 5px; /* Add margin between buttons */
+}

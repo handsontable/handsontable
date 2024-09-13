@@ -663,7 +663,11 @@ export class Filters extends BasePlugin {
    * After dropdown menu show listener.
    */
   #onAfterDropdownMenuShow() {
+    const menu = this.dropdownMenuPlugin.menu;
+
     this.restoreComponents(Array.from(this.components.values()));
+
+    menu.updateMenuDimensions();
   }
 
   /**
