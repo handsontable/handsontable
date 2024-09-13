@@ -1,4 +1,4 @@
-import type { Context } from "@netlify/edge-functions";
+import type { Context, Config } from "@netlify/edge-functions";
 
 const STATUS_PERMANENT_REDIRECT = 301;
 
@@ -95,4 +95,8 @@ export default async function handler(request: Request, context: Context) {
     // Handle any errors that occurred during fetch
     return new Response('Error fetching asset', { status: 500 });
   }
+}
+
+export const config: Config = {
+  path: ["/*"],
 }

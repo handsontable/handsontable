@@ -5,7 +5,3 @@
 [[redirects]]
     from = "/docs/*"
     to = "/docs/:splat"
-
-[[edge_functions]]
-    function = "router"
-    path = "/*"
