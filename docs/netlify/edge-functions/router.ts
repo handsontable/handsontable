@@ -4,6 +4,7 @@ const STATUS_PERMANENT_REDIRECT = 301;
 
 function prepareRedirects(framework){
   return [
+    // # --- HyperFormula -
     {
       from: /^\/docs\/hyperformula$/,
       to: "https://hyperformula.handsontable.com",
@@ -12,6 +13,13 @@ function prepareRedirects(framework){
     {
       from: /^\/docs\/hyperformula\/(.*)$/,
       to: "https://hyperformula.handsontable.com/$1",
+      status: STATUS_PERMANENT_REDIRECT,
+    },
+
+    // redirect /docs/ to /docs/javascript-data-grid/ ---
+    {
+      from: /^\/docs\/?$/,
+      to: `/docs/${framework}/`,
       status: STATUS_PERMANENT_REDIRECT,
     },
     {
