@@ -1,9 +1,7 @@
-[[redirects]]
-  from = "/docs/*"
-  to = "/docs/:splat"
 [build]
     edge_functions = "netlify/edge-functions"
     command = ""
-[[edge_functions]]
-    function = "router"
-    path = "/*"
+
+[[redirects]]
+    from = "/docs/*"
+    to = "/docs/:splat"
