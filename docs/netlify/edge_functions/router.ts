@@ -21,8 +21,3 @@ export default async (request: Request, context: Context) => {
 
   return fetch(request);
 }
-//tu wszystko wpada
-
-export const config: Config = {
-  path: ["disablethis/docs/:version(\\d+\\.\\d+|next)'"],
-}
