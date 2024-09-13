@@ -9,6 +9,11 @@ const redirects = [
     status: STATUS_PERMANENT_REDIRECT,
   },
   {
+    from: /^\/docs\/hyperformula\/(.*)$/,
+    to: "https://hyperformula.handsontable.com",
+    status: STATUS_PERMANENT_REDIRECT,
+  },
+  {
     from: /^\/docs\/react-hot-column$/,
     to: "/docs/react-data-grid/hot-column",
     status: STATUS_PERMANENT_REDIRECT,
