@@ -3,4 +3,4 @@
     command = ""
 [[edge_functions]]
     function = "router"
-    path = "*"
+    path = "/*"
