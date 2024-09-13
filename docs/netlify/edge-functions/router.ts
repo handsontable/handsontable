@@ -18,46 +18,46 @@ const redirects = [
     to: "/docs/react-data-grid/hot-column",
     status: STATUS_PERMANENT_REDIRECT,
   },
-  {
-    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/disablethis\/docs\/(.*)$/,
-    to: "/docs/$1",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/(\d+\.\d+|next)$/,
-    to: "/docs/$1/javascript-data-grid/",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/(\d+\.\d+|next)\/(react-data-grid|javascript-data-grid)\/(.*)$/,
-    to: "/docs/$1/$2/$3",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/react-data-grid$/,
-    to: "/docs/react-data-grid/getting-started",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/javascript-data-grid$/,
-    to: "/docs/javascript-data-grid/getting-started",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
+  // {
+  //   from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
+  //   to: "/docs/react-data-grid/hot-column",
+  //   status: STATUS_PERMANENT_REDIRECT,
+  // },
+  // {
+  //   from: /^\/docs\/disablethis\/docs\/(.*)$/,
+  //   to: "/docs/$1",
+  //   status: STATUS_PERMANENT_REDIRECT,
+  // },
+  // {
+  //   from: /^\/docs\/(\d+\.\d+|next)$/,
+  //   to: "/docs/$1/javascript-data-grid/",
+  //   status: STATUS_PERMANENT_REDIRECT,
+  // },
+  // {
+  //   from: /^\/docs\/(\d+\.\d+|next)\/(react-data-grid|javascript-data-grid)\/(.*)$/,
+  //   to: "/docs/$1/$2/$3",
+  //   status: STATUS_PERMANENT_REDIRECT,
+  // },
+  // {
+  //   from: /^\/docs\/react-hot-column$/,
+  //   to: "/docs/react-data-grid/hot-column",
+  //   status: STATUS_PERMANENT_REDIRECT,
+  // },
+  // {
+  //   from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
+  //   to: "/docs/react-data-grid/hot-column",
+  //   status: STATUS_PERMANENT_REDIRECT,
+  // },
+  // {
+  //   from: /^\/docs\/react-data-grid$/,
+  //   to: "/docs/react-data-grid/getting-started",
+  //   status: STATUS_PERMANENT_REDIRECT,
+  // },
+  // {
+  //   from: /^\/docs\/javascript-data-grid$/,
+  //   to: "/docs/javascript-data-grid/getting-started",
+  //   status: STATUS_PERMANENT_REDIRECT,
+  // },
 ]
 
 export default async function handler(request: Request, context: Context) {
