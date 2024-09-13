@@ -13,10 +13,6 @@ const redirects = [
     to: "https://hyperformula.handsontable.com/$1",
     status: STATUS_PERMANENT_REDIRECT,
   },
-  {
-    from: /\/*/,
-    to: "/docs/javascript-data-grid/"
-  }
 ]
 
 export default async function handler(request: Request, context: Context) {
@@ -35,6 +31,21 @@ export default async function handler(request: Request, context: Context) {
   }
 
   console.log('no match');
+  const path = url.pathname;
 
-  return fetch(request.url);
+  try {
+    // Fetch the static file from the Netlify-deployed assets
+    const assetResponse = await fetch(`${url.origin}${path}`);
+  
+    // If the asset exists, serve it back to the user
+    if (assetResponse.ok) {
+      return assetResponse;  // Return the fetched static file
+    }
+
+    // If the asset is not found, return a 404 response
+    return new Response('Asset not found', { status: 404 });
+  } catch (error) {
+    // Handle any errors that occurred during fetch
+    return new Response('Error fetching asset', { status: 500 });
+  }
 }
