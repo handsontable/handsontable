@@ -20,7 +20,7 @@
   "license": "CC BY 4.0",
   "devDependencies": {
     "@argos-ci/cli": "^1.0.3",
-    "@playwright/test": "1.47.x",
+    "@playwright/test": "~1.47.0",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",
     "chalk": "^4.1.0",
