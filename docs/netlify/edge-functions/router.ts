@@ -23,6 +23,40 @@ function prepareRedirects(framework){
       status: STATUS_PERMANENT_REDIRECT,
     },
     {
+      from: /^\/docs\/(\d+\.\d+|next)\/?$/,
+      to: `/docs/${framework}/`,
+      status: STATUS_PERMANENT_REDIRECT,
+    },
+    // documentation links that come up in Handsontable's console logs ---
+    {
+      from: /^\/docs\/i18n\/missing-language-code$/,
+      to: `/docs/${framework}/language/#loading-the-prepared-language-files`,
+      status: STATUS_PERMANENT_REDIRECT,
+    },
+
+    // framework shortcuts
+    {
+      from: /^\/docs\/react$/,
+      to: `/docs/react-data-grid/installation/`,
+      status: STATUS_PERMANENT_REDIRECT,
+    },
+    {
+      from: /^\/docs\/angular$/,
+      to: `/docs/javascript-data-grid/angular-installation/`,
+      status: STATUS_PERMANENT_REDIRECT,
+    },
+    {
+      from: /^\/docs\/vue$/,
+      to: `/docs/javascript-data-grid/vue-installation/`,
+      status: STATUS_PERMANENT_REDIRECT,
+    },
+    {
+      from: /^\/docs\/vue3$/,
+      to: `/docs/javascript-data-grid/vue3-installation/`,
+      status: STATUS_PERMANENT_REDIRECT,
+    },
+
+    {
       from: /^\/docs\/react-hot-column$/,
       to: "/docs/react-data-grid/hot-column",
       status: STATUS_PERMANENT_REDIRECT,
