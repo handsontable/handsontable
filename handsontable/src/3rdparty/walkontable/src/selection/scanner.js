@@ -200,7 +200,11 @@ export class SelectionScanner {
 
       // support for old API
       const additionalSelectionClass = this.#activeOverlaysWot
-        .getSetting('onAfterDrawSelection', sourceRow, sourceColumn, this.#selection.settings.layerLevel);
+        .getSetting('onAfterDrawSelection',
+          sourceRow,
+          sourceColumn,
+          this.#selection.settings.layerLevel,
+        );
 
       if (typeof additionalSelectionClass === 'string') {
         addClass(cell, additionalSelectionClass);

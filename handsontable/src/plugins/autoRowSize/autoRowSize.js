@@ -501,7 +501,7 @@ export class AutoRowSize extends BasePlugin {
    * @returns {number} Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.
    */
   getFirstVisibleRow() {
-    return this.hot.view.getFirstRenderedVisibleRow() ?? -1;
+    return this.hot.getFirstRenderedVisibleRow() ?? -1;
   }
 
   /**
@@ -510,7 +510,7 @@ export class AutoRowSize extends BasePlugin {
    * @returns {number} Returns row index or -1 if table is not rendered.
    */
   getLastVisibleRow() {
-    return this.hot.view.getLastRenderedVisibleRow() ?? -1;
+    return this.hot.getLastRenderedVisibleRow() ?? -1;
   }
 
   /**

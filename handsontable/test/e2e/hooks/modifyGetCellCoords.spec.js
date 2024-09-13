@@ -58,7 +58,7 @@ describe('Hook', () => {
       modifyGetCellCoords.calls.reset();
       getCell(1, 2);
 
-      expect(modifyGetCellCoords).toHaveBeenCalledWith(1, 2, undefined, 'render');
+      expect(modifyGetCellCoords).toHaveBeenCalledWith(1, 2, false, 'render');
       expect(modifyGetCellCoords).toHaveBeenCalledTimes(1);
     });
   });

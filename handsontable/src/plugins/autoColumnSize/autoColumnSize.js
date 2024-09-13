@@ -502,7 +502,7 @@ export class AutoColumnSize extends BasePlugin {
    * @returns {number} Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
-    return this.hot.view.getFirstRenderedVisibleColumn() ?? -1;
+    return this.hot.getFirstRenderedVisibleColumn() ?? -1;
   }
 
   /**
@@ -511,7 +511,7 @@ export class AutoColumnSize extends BasePlugin {
    * @returns {number} Returns visual column index or -1 if table is not rendered.
    */
   getLastVisibleColumn() {
-    return this.hot.view.getLastRenderedVisibleColumn() ?? -1;
+    return this.hot.getLastRenderedVisibleColumn() ?? -1;
   }
 
   /**

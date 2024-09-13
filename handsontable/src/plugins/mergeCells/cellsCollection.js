@@ -293,8 +293,12 @@ class MergedCellsCollection {
       rowspan,
       colspan,
     } = mergeParent;
-    const firstRenderedRow = this.hot.view.getFirstRenderedVisibleRow();
-    const firstRenderedColumn = this.hot.view.getFirstRenderedVisibleColumn();
+    const overlayName = this.hot.view.getActiveOverlayName();
+    const firstRenderedRow = ['top', 'top_inline_start_corner']
+      .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleRow();
+    const firstRenderedColumn = ['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner']
+      .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleColumn();
+
     const mergeCellsTopRow = clamp(firstRenderedRow, mergeRow, mergeRow + rowspan - 1);
     const mergeCellsStartColumn = clamp(firstRenderedColumn, mergeColumn, mergeColumn + colspan - 1);
 

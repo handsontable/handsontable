@@ -546,7 +546,7 @@ class Table {
   getCell(coords) {
     let row = coords.row;
     let column = coords.col;
-    const hookResult = this.wtSettings.getSetting('onModifyGetCellCoords', row, column);
+    const hookResult = this.wtSettings.getSetting('onModifyGetCellCoords', row, column, !this.isMaster);
 
     if (hookResult && Array.isArray(hookResult)) {
       [row, column] = hookResult;

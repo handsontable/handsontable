@@ -64,8 +64,14 @@ export function createMergeCellRenderer(plugin) {
     let notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
 
     if (isVirtualRenderingEnabled) {
-      notHiddenRow = Math.max(notHiddenRow, hot.view.getFirstRenderedVisibleRow());
-      notHiddenColumn = Math.max(notHiddenColumn, hot.view.getFirstRenderedVisibleColumn());
+      const overlayName = hot.view.getActiveOverlayName();
+
+      if (!['top', 'top_inline_start_corner'].includes(overlayName)) {
+        notHiddenRow = Math.max(notHiddenRow, hot.getFirstRenderedVisibleRow());
+      }
+      if (!['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner'].includes(overlayName)) {
+        notHiddenColumn = Math.max(notHiddenColumn, hot.getFirstRenderedVisibleColumn());
+      }
     }
 
     const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);

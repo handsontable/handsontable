@@ -1027,8 +1027,8 @@ class TableView {
           ];
         }
 
-        return this.hot
-          .runHooks('afterDrawSelection', visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
+        return this.hot.runHooks('afterDrawSelection',
+          visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
       },
       onBeforeDrawBorders: (corners, borderClassName) => {
         const [startRenderableRow, startRenderableColumn, endRenderableRow, endRenderableColumn] = corners;
@@ -1676,6 +1676,16 @@ class TableView {
    */
   getOverlayByName(overlayName) {
     return this._wt.getOverlayByName(overlayName);
+  }
+
+  /**
+   * Gets the name of the overlay that currently renders the table. If the method is called out of the render cycle
+   * the 'master' name is returned.
+   *
+   * @returns {string}
+   */
+  getActiveOverlayName() {
+    return this._wt.activeOverlayName;
   }
 
   /**

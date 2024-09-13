@@ -880,7 +880,7 @@ export class MergeCells extends BasePlugin {
    *
    * @param {number} row Row index.
    * @param {number} column Visual column index.
-   * @param {boolean} topmost Indicates if the hook request refers to overlay's element or the main table.
+   * @param {boolean} topmost Indicates if the requested element belongs to the topmost layer (any overlay).
    * @param {string} [source] String that identifies how this coords change will be processed.
    * @returns {Array|undefined} Visual coordinates of the merge.
    */
@@ -907,11 +907,17 @@ export class MergeCells extends BasePlugin {
     const bottomEndColumn = mergeColumn + colspan - 1;
 
     if (source === 'render' && this.getSetting('virtualized')) {
+      const overlayName = this.hot.view.getActiveOverlayName();
+      const firstRenderedRow = ['top', 'top_inline_start_corner']
+        .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleRow();
+      const firstRenderedColumn = ['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner']
+        .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleColumn();
+
       return [
-        clamp(this.hot.view.getFirstRenderedVisibleRow(), topStartRow, bottomEndRow),
-        clamp(this.hot.view.getFirstRenderedVisibleColumn(), topStartColumn, bottomEndColumn),
-        clamp(this.hot.view.getLastRenderedVisibleRow(), topStartRow, bottomEndRow),
-        clamp(this.hot.view.getLastRenderedVisibleColumn(), topStartColumn, bottomEndColumn),
+        clamp(firstRenderedRow, topStartRow, bottomEndRow),
+        clamp(firstRenderedColumn, topStartColumn, bottomEndColumn),
+        clamp(this.hot.getLastRenderedVisibleRow(), topStartRow, bottomEndRow),
+        clamp(this.hot.getLastRenderedVisibleColumn(), topStartColumn, bottomEndColumn),
       ];
     }
 
@@ -1465,8 +1471,8 @@ export class MergeCells extends BasePlugin {
     let lastColumn;
 
     if (overlayType === 'master') {
-      firstColumn = this.hot.view.getFirstRenderedVisibleColumn();
-      lastColumn = this.hot.view.getLastRenderedVisibleColumn();
+      firstColumn = this.hot.getFirstRenderedVisibleColumn();
+      lastColumn = this.hot.getLastRenderedVisibleColumn();
 
     } else {
       const activeOverlay = this.hot.view.getOverlayByName(overlayType);
@@ -1486,7 +1492,7 @@ export class MergeCells extends BasePlugin {
     const from = this.hot._createCellCoords(row, firstColumn);
     const to = this.hot._createCellCoords(row, lastColumn);
     const viewportRange = this.hot._createCellRange(from, from, to);
-    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(viewportRange);
+    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(viewportRange, true);
     const maxRowspan = mergedCellsWithinRange.reduce((acc, { rowspan }) => Math.max(acc, rowspan), 1);
     let rowspanCorrection = 0;
 

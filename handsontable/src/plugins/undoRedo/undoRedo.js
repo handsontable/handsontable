@@ -511,8 +511,8 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
   if (selectedLast !== undefined) {
     const [changedRow, changedColumn] = data[0];
     const [selectedRow, selectedColumn] = selectedLast;
-    const firstFullyVisibleRow = instance.view.getFirstFullyVisibleRow();
-    const firstFullyVisibleColumn = instance.view.getFirstFullyVisibleColumn();
+    const firstFullyVisibleRow = instance.getFirstFullyVisibleRow();
+    const firstFullyVisibleColumn = instance.getFirstFullyVisibleColumn();
     const isInVerticalViewPort = changedRow >= firstFullyVisibleRow;
     const isInHorizontalViewPort = changedColumn >= firstFullyVisibleColumn;
     const isInViewport = isInVerticalViewPort && isInHorizontalViewPort;

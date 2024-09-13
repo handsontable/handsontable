@@ -381,4 +381,177 @@ describe('MergeCells Selection', () => {
       |   :   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
+
+  it('should keep focus selection on the wide virtualized merged cell that intersects the left overlay', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 30),
+      width: 200,
+      height: 200,
+      viewportColumnRenderingOffset: 1,
+      fixedColumnsStart: 2,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 0, 20);
+    selectCell(0, 0);
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:first td:last').text()).toBe('A1');
+    expect(getInlineStartClone().find('tr:first td.current:first:visible').text()).toBe('A1');
+    expect(`
+      | #             |
+      |   :   |   :   |
+      |   :   |   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:first td:last').text()).toBe('X1');
+    expect(getInlineStartClone().find('tr:first td.current:first:visible').text()).toBe('A1');
+    expect(`
+      | # :   |   :   |
+      |   :   |   :   |
+      |   :   |   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('X1');
+    expect(getHtCore().find('tr:first td:last').text()).toBe('AA1');
+    expect(getInlineStartClone().find('tr:first td.current:first:visible').text()).toBe('A1');
+    expect(`
+      |   :   |   :   |
+      |   :   |   :   |
+      |   :   |   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should keep area selection on the wide virtualized merged cell that intersects the left overlay', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 30),
+      width: 200,
+      height: 200,
+      viewportColumnRenderingOffset: 1,
+      fixedColumnsStart: 2,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 0, 20);
+    selectCell(1, 0, 0, 0);
+
+    expect(getInlineStartClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
+
+    scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
+    render();
+
+    expect(getInlineStartClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
+
+    scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getInlineStartClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
+  });
+
+  it('should keep focus selection on the high virtualized merged cell that intersects the top overlay', () => {
+    handsontable({
+      data: createSpreadsheetData(30, 3),
+      width: 200,
+      height: 200,
+      viewportRowRenderingOffset: 1,
+      fixedRowsTop: 2,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 20, 0);
+    selectCell(0, 0);
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
+    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
+    expect(`
+      | # :   :   |
+      |   :   :   |
+      |---:---:---|
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A28');
+    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
+    expect(`
+      | # :   :   |
+      |   :   :   |
+      |---:---:---|
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A24');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
+    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
+    expect(`
+      |   :   :   |
+      |   :   :   |
+      |---:---:---|
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should keep area selection on the high virtualized merged cell that intersects the top overlay', () => {
+    handsontable({
+      data: createSpreadsheetData(30, 3),
+      width: 200,
+      height: 200,
+      viewportRowRenderingOffset: 1,
+      fixedRowsTop: 2,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 20, 0);
+    selectCell(0, 1, 0, 0);
+
+    expect(getTopClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
+
+    scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
+    render();
+
+    expect(getTopClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
+
+    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getTopClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
+  });
 });

@@ -405,8 +405,8 @@ export class ManualRowMove extends BasePlugin {
    */
   refreshPositions() {
     const coords = this.#target.coords;
-    const firstVisible = this.hot.view.getFirstFullyVisibleRow();
-    const lastVisible = this.hot.view.getLastFullyVisibleRow();
+    const firstVisible = this.hot.getFirstFullyVisibleRow();
+    const lastVisible = this.hot.getLastFullyVisibleRow();
     const countRows = this.hot.countRows();
 
     if (this.isFixedRowTop(coords.row) && firstVisible > 0) {
