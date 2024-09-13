@@ -1,3 +1,6 @@
 [build]
-    edge_functions="netlify/edge_functions"
-    command=""
+    edge_functions = "netlify/edge-functions"
+    command = ""
+[[edge_functions]]
+    function = "router"
+    path = "*"
