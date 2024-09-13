@@ -1,3 +1,6 @@
+[[redirects]]
+  from = "docs/*"
+  to = "docs/:splat"
 [build]
     edge_functions = "netlify/edge-functions"
     command = ""

@@ -81,7 +81,7 @@ export default async function handler(request: Request, context: Context) {
   try {
     // Fetch the static file from the Netlify-deployed assets
     console.log('Trying to fetch', `${url.origin}${path}`);
-    const assetResponse = await fetch(`${url.origin}${path}`);
+    const assetResponse = await fetch(`../.${path}`);  // Fetch the static file
   
     // If the asset exists, serve it back to the user
     if (assetResponse.ok) {
