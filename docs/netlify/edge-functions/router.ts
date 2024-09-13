@@ -13,6 +13,10 @@ const redirects = [
     to: "https://hyperformula.handsontable.com/$1",
     status: STATUS_PERMANENT_REDIRECT,
   },
+  {
+    from: /\/*/,
+    to: "/docs/javascript-data-grid/"
+  }
 ]
 
 export default async function handler(request: Request, context: Context) {
