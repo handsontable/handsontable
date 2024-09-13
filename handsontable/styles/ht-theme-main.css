@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 12/09/2024 08:21:29)
+ * Release date: 30/07/2024 (built at 13/09/2024 14:38:43)
  */
 .ht-theme-main,
 .ht-theme-main-dark,
@@ -104,17 +104,15 @@
   --hot-frozen-size: 2px;
   --hot-frozen-shadow: rgba(0, 0, 0, 0.2);
 }
-.ht-theme-main .handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after,
-.ht-theme-main .handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after,
-.ht-theme-main .handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after,
+.ht-theme-main.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after, .ht-theme-main.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after, .ht-theme-main.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after,
 .ht-theme-main .pika-single .pika-next,
-.ht-theme-main-dark .handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after,
-.ht-theme-main-dark .handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after,
-.ht-theme-main-dark .handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after,
+.ht-theme-main-dark.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after,
+.ht-theme-main-dark.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after,
+.ht-theme-main-dark.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after,
 .ht-theme-main-dark .pika-single .pika-next,
-.ht-theme-main-dark-auto .handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after,
-.ht-theme-main-dark-auto .handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after,
-.ht-theme-main-dark-auto .handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after,
+.ht-theme-main-dark-auto.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after,
+.ht-theme-main-dark-auto.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after,
+.ht-theme-main-dark-auto.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after,
 .ht-theme-main-dark-auto .pika-single .pika-next {
   width: var(--hot-icon-size);
   height: var(--hot-icon-size);
@@ -167,15 +165,13 @@
   mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width=%2716%27 height=%2716%27 viewBox=%270 0 16 16%27 fill=%27none%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cpath d=%27M8.00004 3.33331V12.6666M8.00004 12.6666L10.6667 9.99998M8.00004 12.6666L5.33337 9.99998%27 stroke=%27currentColor%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
-.ht-theme-main .handsontable.htDropdownMenu table tbody tr td .htItemWrapper span.selected:after,
-.ht-theme-main .handsontable.htContextMenu table tbody tr td .htItemWrapper span.selected:after,
-.ht-theme-main .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected:after,
-.ht-theme-main-dark .handsontable.htDropdownMenu table tbody tr td .htItemWrapper span.selected:after,
-.ht-theme-main-dark .handsontable.htContextMenu table tbody tr td .htItemWrapper span.selected:after,
-.ht-theme-main-dark .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected:after,
-.ht-theme-main-dark-auto .handsontable.htDropdownMenu table tbody tr td .htItemWrapper span.selected:after,
-.ht-theme-main-dark-auto .handsontable.htContextMenu table tbody tr td .htItemWrapper span.selected:after,
-.ht-theme-main-dark-auto .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected:after {
+.ht-theme-main.htDropdownMenu table tbody tr td .htItemWrapper span.selected:after, .ht-theme-main.htContextMenu table tbody tr td .htItemWrapper span.selected:after, .ht-theme-main.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected:after,
+.ht-theme-main-dark.htDropdownMenu table tbody tr td .htItemWrapper span.selected:after,
+.ht-theme-main-dark.htContextMenu table tbody tr td .htItemWrapper span.selected:after,
+.ht-theme-main-dark.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected:after,
+.ht-theme-main-dark-auto.htDropdownMenu table tbody tr td .htItemWrapper span.selected:after,
+.ht-theme-main-dark-auto.htContextMenu table tbody tr td .htItemWrapper span.selected:after,
+.ht-theme-main-dark-auto.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected:after {
   width: var(--hot-icon-size);
   height: var(--hot-icon-size);
   mask-size: contain;

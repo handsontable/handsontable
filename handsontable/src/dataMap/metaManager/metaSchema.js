@@ -4435,6 +4435,24 @@ export default () => {
      */
     tableClassName: undefined,
 
+    // TODO: add themeName description
+    /**
+     * The `themeName` option lets you add CSS class names
+     *
+     * @memberof Options#
+     * @type {string|string[]}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // add a `ht-theme-name` CSS class name
+     * // to every Handsontable instance inside the `container` element
+     * themeName: 'ht-theme-name',
+     * ```
+     */
+    themeName: undefined,
+
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
      *

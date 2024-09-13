@@ -41,7 +41,7 @@ import {
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
-import { MAIN_THEME_NAME } from './helpers/themes';
+import { getThemeClassName, MAIN_THEME_NAME } from './helpers/themes';
 
 let activeGuid = null;
 
@@ -239,6 +239,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   if (isRootInstance(this)) {
     _injectProductInfo(userSettings.licenseKey, rootElement);
+
+    const themeClassName = tableMeta.themeName;
+    const rootThemeClassName = getThemeClassName(rootElement.className);
+
+    if (rootThemeClassName && !themeClassName) {
+      tableMeta.themeName = rootThemeClassName;
+    } else {
+      addClass(rootElement, themeClassName || MAIN_THEME_NAME);
+    }
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
@@ -1121,10 +1130,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
-
-      const themeClassName = instance.getSettings().themeName;
-
-      addClass(instance.rootElement, themeClassName || MAIN_THEME_NAME);
     }
 
     instance.runHooks('init');

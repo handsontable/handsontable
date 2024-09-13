@@ -31,6 +31,7 @@
 @use "./editors/text-editor";
 @use "./editors/select-editor";
 @use "./editors/dropdown-editor";
+@use "./editors/date-editor";
 
 /* Form elements */
 @use "./form-elements/select"; // TODO  styling
@@ -52,6 +53,7 @@
   @include text-editor.output();
   @include select-editor.output();
   @include dropdown-editor.output();
+  @include date-editor.output();
   /* Form Elements*/
   @include select.output();
   @include input.output();

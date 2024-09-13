@@ -45,11 +45,3 @@
 @function get-opacity($index) {
   @return 0.1 + ($index * 0.07);
 }
-
-@mixin icon($url) {
-  width: var(--hot-icon-size);
-  height: var(--hot-icon-size);
-  mask-size: contain;
-  mask-image: url($url);
-  background-color: currentColor;
-}

@@ -1,0 +1,86 @@
+@mixin icon($icons, $name) {
+  width: var(--hot-icon-size);
+  height: var(--hot-icon-size);
+  mask-size: contain;
+  mask-image: url(map-get($icons, $name));
+  background-color: currentColor;
+}
+
+@mixin icons-map($icons) {
+  &.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after,
+  &.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after,
+  &.htFiltersConditionsMenu
+    table
+    tbody
+    tr
+    td.htSubmenu
+    .htItemWrapper:after,
+  .pika-single .pika-next {
+    @include icon($icons, "arrow-right");
+  }
+
+  .pika-single .pika-prev {
+    @include icon($icons, "arrow-left");
+  }
+
+  .handsontable .changeType:before {
+    @include icon($icons, "menu");
+  }
+
+  .handsontable .htAutocompleteArrow:after {
+    @include icon($icons, "select-arrow");
+  }
+
+  .handsontable .columnSorting.sortAction.ascending:before {
+    @include icon($icons, "arrow-narrow-up");
+  }
+
+  .handsontable .columnSorting.sortAction.descending:before {
+    @include icon($icons, "arrow-narrow-down");
+  }
+
+  &.htDropdownMenu table tbody tr td .htItemWrapper span.selected:after,
+  &.htContextMenu table tbody tr td .htItemWrapper span.selected:after,
+  &.htFiltersConditionsMenu
+    table
+    tbody
+    tr
+    td
+    .htItemWrapper
+    span.selected:after {
+    @include icon($icons, "check");
+  }
+
+  .handsontable .htCheckboxRendererInput::after {
+    @include icon($icons, "checkbox");
+  }
+
+  .handsontable th.beforeHiddenColumn .relative::after {
+    @include icon($icons, "caret-hidden-left");
+  }
+
+  .handsontable th.afterHiddenColumn .relative::before {
+    @include icon($icons, "caret-hidden-right");
+  }
+
+  .handsontable th.beforeHiddenRow .relative::before {
+    @include icon($icons, "caret-hidden-up");
+  }
+
+  .handsontable th.afterHiddenRow .relative::before {
+    @include icon($icons, "caret-hidden-down");
+  }
+
+  .handsontable .collapsibleIndicator,
+  .handsontable .ht_nestingButton {
+    &:before {
+      @include icon($icons, "collapse-off");
+    }
+    &.collapsed,
+    &.ht_nestingExpand {
+      &:before {
+        @include icon($icons, "collapse-on");
+      }
+    }
+  }
+}

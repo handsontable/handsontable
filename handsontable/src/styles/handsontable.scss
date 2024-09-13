@@ -2,9 +2,7 @@
 
 @use "base";
 @use "components";
-@use "third-party";
 
 @include base.base-styles();
 @include components.core-components-styles();
 @include components.plugins-components-styles();
-@include third-party.third-party-styles();

@@ -1,14 +1,12 @@
 @use "sass:color";
 
 @use "./base";
-@use "./z-order";
-@use "./display";
 @use "./mobile";
+@use "./z-index-map";
 
 /* Walkontable migration */
 @mixin base-styles() {
   @include base.output();
-  @include z-order.output();
-  @include display.output();
   @include mobile.output();
+  @include z-index-map.output();
 }

@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 12/09/2024 08:20:42)
+ * Release date: 30/07/2024 (built at 13/09/2024 14:37:58)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "12/09/2024 08:20:42";
+Handsontable.buildDate = "13/09/2024 14:37:58";
 Handsontable.version = "14.5.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -362,6 +362,13 @@ function Core(rootElement, userSettings) {
   rootElement.insertBefore(this.container, rootElement.firstChild);
   if ((0, _rootInstance.isRootInstance)(this)) {
     (0, _mixed._injectProductInfo)(userSettings.licenseKey, rootElement);
+    const themeClassName = tableMeta.themeName;
+    const rootThemeClassName = (0, _themes.getThemeClassName)(rootElement.className);
+    if (rootThemeClassName && !themeClassName) {
+      tableMeta.themeName = rootThemeClassName;
+    } else {
+      (0, _element.addClass)(rootElement, themeClassName || _themes.MAIN_THEME_NAME);
+    }
   }
   this.guid = `ht_${(0, _string.randomString)()}`; // this is the namespace for global events
 
@@ -1167,8 +1174,6 @@ function Core(rootElement, userSettings) {
     focusManager = new _focusManager.FocusManager(instance);
     if ((0, _rootInstance.isRootInstance)(this)) {
       (0, _index3.installFocusCatcher)(instance);
-      const themeClassName = instance.getSettings().themeName;
-      (0, _element.addClass)(instance.rootElement, themeClassName || _themes.MAIN_THEME_NAME);
     }
     instance.runHooks('init');
     this.forceFullRender = true; // used when data was changed
@@ -24266,6 +24271,10 @@ var _templateLiteralTag = __webpack_require__(140);
 var _orderView = __webpack_require__(210);
 var _element = __webpack_require__(135);
 var _a11y = __webpack_require__(142);
+const ROW_CLASSNAMES = {
+  rowEven: 'ht__row_even',
+  rowOdd: 'ht__row_odd'
+};
 let performanceWarningAppeared = false;
 
 /**
@@ -24328,6 +24337,12 @@ class RowsRenderer extends _base.default {
         (0, _element.setAttribute)(TR, [(0, _a11y.A11Y_ROW)(),
         // `aria-rowindex` is incremented by both tbody and thead rows.
         (0, _a11y.A11Y_ROWINDEX)(sourceRowIndex + ((_this$table$rowUtils$ = (_this$table$rowUtils = this.table.rowUtils) === null || _this$table$rowUtils === void 0 || (_this$table$rowUtils = _this$table$rowUtils.dataAccessObject) === null || _this$table$rowUtils === void 0 ? void 0 : _this$table$rowUtils.columnHeaders.length) !== null && _this$table$rowUtils$ !== void 0 ? _this$table$rowUtils$ : 0) + 1)]);
+      }
+      (0, _element.removeClass)(TR, [ROW_CLASSNAMES.rowEven, ROW_CLASSNAMES.rowOdd]);
+      if ((sourceRowIndex + 1) % 2 === 0) {
+        (0, _element.addClass)(TR, ROW_CLASSNAMES.rowEven);
+      } else {
+        (0, _element.addClass)(TR, ROW_CLASSNAMES.rowOdd);
       }
     }
     this.orderView.end();
@@ -42917,6 +42932,23 @@ var _default = () => {
      * ```
      */
     tableClassName: undefined,
+    // TODO: add themeName description
+    /**
+     * The `themeName` option lets you add CSS class names
+     *
+     * @memberof Options#
+     * @type {string|string[]}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // add a `ht-theme-name` CSS class name
+     * // to every Handsontable instance inside the `container` element
+     * themeName: 'ht-theme-name',
+     * ```
+     */
+    themeName: undefined,
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
      *
@@ -48006,7 +48038,22 @@ function createKeysObserver() {
 
 
 exports.__esModule = true;
+exports.getThemeClassName = getThemeClassName;
 const MAIN_THEME_NAME = exports.MAIN_THEME_NAME = 'ht-theme-main';
+
+/**
+ * Get theme class name from rootElement class.
+ *
+ * @param {string} className Class names.
+ * @returns {string}
+ */
+function getThemeClassName(className) {
+  if (!className || typeof className !== 'string') {
+    return false;
+  }
+  const [match] = className.match(/ht-theme-[a-zA-Z0-9_-]+/) || [];
+  return match;
+}
 
 /***/ }),
 /* 387 */
@@ -51120,6 +51167,7 @@ function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellProperties
     let uncheckCheckbox = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
     const selRange = hotInstance.getSelectedRange();
     const changesPerSubSelection = [];
+    const nonCheckboxChanges = new Map();
     let changes = [];
     let changeCounter = 0;
     if (!selRange) {
@@ -51141,8 +51189,19 @@ function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellProperties
             checkedTemplate: cachedCellProperties.checkedTemplate,
             uncheckedTemplate: cachedCellProperties.uncheckedTemplate
           };
+
+          // TODO: In the future it'd be better if non-checkbox changes were handled by the non-checkbox
+          //  `delete` keypress logic.
+          /* eslint-disable no-continue */
           if (cachedCellProperties.type !== 'checkbox') {
-            return;
+            if (uncheckCheckbox === true && !cachedCellProperties.readOnly) {
+              if (nonCheckboxChanges.has(changesPerSubSelection.length)) {
+                nonCheckboxChanges.set(changesPerSubSelection.length, [...nonCheckboxChanges.get(changesPerSubSelection.length), [visualRow, visualColumn, null]]);
+              } else {
+                nonCheckboxChanges.set(changesPerSubSelection.length, [[visualRow, visualColumn, null]]);
+              }
+            }
+            continue;
           }
 
           /* eslint-disable no-continue */
@@ -51190,8 +51249,11 @@ function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellProperties
     if (changes.length > 0) {
       // TODO: This is workaround for handsontable/dev-handsontable#1747 not being a breaking change.
       // Technically, the changes don't need to be split into chunks when sent to `setDataAtCell`.
-      changesPerSubSelection.forEach(changesCount => {
-        const changesChunk = changes.splice(0, changesCount);
+      changesPerSubSelection.forEach((changesCount, sectionCount) => {
+        let changesChunk = changes.splice(0, changesCount);
+        if (nonCheckboxChanges.size && nonCheckboxChanges.has(sectionCount)) {
+          changesChunk = [...changesChunk, ...nonCheckboxChanges.get(sectionCount)];
+        }
         hotInstance.setDataAtCell(changesChunk);
       });
     }
@@ -51214,9 +51276,6 @@ function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellProperties
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
           const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
-          if (cachedCellProperties.type !== 'checkbox') {
-            return false;
-          }
           const cell = hotInstance.getCell(visualRow, visualColumn);
           if (cell === null || cell === undefined) {
             return true;

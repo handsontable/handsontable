@@ -286,5 +286,26 @@
       scrollbar-color: var(--hot-border-color)
         var(--hot-header-background-color);
     }
+
+    .ht_master table.htCore > thead,
+    .ht_master table.htCore > tbody > tr > th,
+    .ht_clone_inline_start table.htCore > thead {
+      visibility: hidden;
+    }
+  }
+
+  .ht_master,
+  .ht_clone_inline_start,
+  .ht_clone_top,
+  .ht_clone_bottom {
+    overflow: hidden;
+
+    .wtHolder {
+      overflow: hidden;
+    }
+  }
+
+  .ht_master .wtHolder {
+    overflow: auto;
   }
 }
