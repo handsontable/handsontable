@@ -22,16 +22,15 @@ export default async function handler(request: Request, context: Context) {
   const cookieValue = context.cookies.get("docs_fw");
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
-  const match = redirects.find(redirect => redirect.from.test(url.pathname));
+  const matchFound = redirects.find(redirect => redirect.from.test(url.pathname));
 
-  if (match) {
-    console.log('match', match);
-    const newUrl = url.pathname.replace(match.from,match.to)
-    console.log('redirecting to', newUrl);
+  if (matchFound) {
+    const newUrl = url.pathname.replace(matchFound.from,matchFound.to)
+    console.log('Match found, redirecting to', newUrl);
     return Response.redirect(newUrl, 301);
   }
 
   console.log('no match');
 
-  return fetch(request);
+  return fetch(request.url);
 }
