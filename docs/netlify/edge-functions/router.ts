@@ -74,6 +74,8 @@ export default async function handler(request: Request, context: Context) {
     console.log('Match found, redirecting to', newUrl);
     return Response.redirect(newUrl, 301);
   }
+  
+  return context.next();
 
   console.log('no match');
   const path = url.pathname;
