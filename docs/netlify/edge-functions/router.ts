@@ -10,72 +10,7 @@ const redirects = [
   },
   {
     from: /^\/docs\/hyperformula\/(.*)$/,
-    to: "https://hyperformula.handsontable.com",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/frameworks-wrapper-for-react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
-    status: STATUS_PERMANENT_REDIRECT,
-  },
-  {
-    from: /^\/docs\/react-hot-column$/,
-    to: "/docs/react-data-grid/hot-column",
+    to: "https://hyperformula.handsontable.com/$1",
     status: STATUS_PERMANENT_REDIRECT,
   },
 ]
@@ -91,7 +26,9 @@ export default async function handler(request: Request, context: Context) {
 
   if (match) {
     console.log('match', match);
-    return Response.redirect(match.to, 301);
+    const newUrl = url.pathname.replace(match.from,match.to)
+    console.log('redirecting to', newUrl);
+    return Response.redirect(newUrl, 301);
   }
 
   console.log('no match');
