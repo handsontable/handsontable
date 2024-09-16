@@ -54,7 +54,7 @@ Visual tests are divided into:
 
 All the test examples are available at `examples/next/visual-tests` and configured to be served from `localhost:8082`
 
-There main demo available for all frameworks is served on `/`. There are   additional demos available only for vanilla JS (to be used with cross-browser tests):
+There main demo available for all frameworks is served on `/`. There are additional demos available only for vanilla JS (to be used with cross-browser tests):
 
 - `/cell-types-demo`,
 -  `/arabic-rtl-demo`,
