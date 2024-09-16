@@ -9,50 +9,8 @@ interface Redirect {
   status: number;
 }
 
-function prepareRedirects(framework: string): Redirect[] {
-  const redirectsArray = getRawRedirects();
-
-  // Convert "from" string into a RegExp and replace $framework in "to" property
-  const updatedRedirectsArray = redirectsArray.map((redirect: { from: string, to: string, status: number }) => {
-    const fromRegex = new RegExp(redirect.from); // Convert from string to RegExp
-    const updatedTo = redirect.to.replace('$framework', framework); // Replace $framework with provided framework
-
-    return {
-      from: fromRegex,
-      to: updatedTo,
-      status: redirect.status,
-    };
-  });
-
-  return updatedRedirectsArray;
-}
-
-export default async function handler(request: Request, context: Context) {
-  const url = new URL(request.url);
-  console.log('url', url);
-
-  const cookieValue = context.cookies.get("docs_fw");
-  const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
-
-  const redirects = prepareRedirects(framework);
-
-  const matchFound = redirects.find(redirect => redirect.from.test(url.pathname));
-
-  if (matchFound) {
-    const newUrl = url.pathname.replace(matchFound.from, matchFound.to)
-    console.log('Match found, redirecting to', newUrl);
-    return Response.redirect(newUrl, 301);
-  }
-  return context.next();
-}
-
-export const config: Config = {
-  path: ["/*"],
-}
-
-
 function getRawRedirects() {
-  [
+  return [
     {
       "from": "^/docs/hyperformula$",
       "to": "https://hyperformula.handsontable.com",
@@ -699,4 +657,46 @@ function getRawRedirects() {
       "status": 301
     }
   ];
+}
+
+
+function prepareRedirects(framework: string): Redirect[] {
+  const redirectsArray = getRawRedirects();
+
+  // Convert "from" string into a RegExp and replace $framework in "to" property
+  const updatedRedirectsArray = redirectsArray.map((redirect: { from: string, to: string, status: number }) => {
+    const fromRegex = new RegExp(redirect.from); // Convert from string to RegExp
+    const updatedTo = redirect.to.replace('$framework', framework); // Replace $framework with provided framework
+
+    return {
+      from: fromRegex,
+      to: updatedTo,
+      status: redirect.status,
+    };
+  });
+
+  return updatedRedirectsArray;
+}
+
+export default async function handler(request: Request, context: Context) {
+  const url = new URL(request.url);
+  console.log('url', url);
+
+  const cookieValue = context.cookies.get("docs_fw");
+  const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
+
+  const redirects = prepareRedirects(framework);
+
+  const matchFound = redirects.find(redirect => redirect.from.test(url.pathname));
+
+  if (matchFound) {
+    const newUrl = url.pathname.replace(matchFound.from, matchFound.to)
+    console.log('Match found, redirecting to', newUrl);
+    return Response.redirect(newUrl, 301);
+  }
+  return context.next();
+}
+
+export const config: Config = {
+  path: ["/*"],
 }
