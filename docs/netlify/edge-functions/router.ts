@@ -1,67 +1,33 @@
 import type { Context, Config } from "@netlify/edge-functions";
 
+import * as fs from 'fs';
+import * as path from 'path';
+
+interface Redirect {
+  from: string;
+  to: string;
+  status: string;
+}
+
 const STATUS_PERMANENT_REDIRECT = 301;
 
-function prepareRedirects(framework){
-  return [
-    // # --- HyperFormula -
-    {
-      from: /^\/docs\/hyperformula$/,
-      to: "https://hyperformula.handsontable.com",
-      status: STATUS_PERMANENT_REDIRECT,
-    },
-    {
-      from: /^\/docs\/hyperformula\/(.*)$/,
-      to: "https://hyperformula.handsontable.com/$1",
-      status: STATUS_PERMANENT_REDIRECT,
-    },
+function loadRedirectsArray(jsonFilePath: string, framework: string): Redirect[] {
+  const fileContent = fs.readFileSync(jsonFilePath, 'utf-8');
+  const redirectsArray = JSON.parse(fileContent);
 
-    // redirect /docs/ to /docs/javascript-data-grid/ ---
-    {
-      from: /^\/docs\/?$/,
-      to: `/docs/${framework}/`,
-      status: STATUS_PERMANENT_REDIRECT,
-    },
-    {
-      from: /^\/docs\/(\d+\.\d+|next)\/?$/,
-      to: `/docs/${framework}/`,
-      status: STATUS_PERMANENT_REDIRECT,
-    },
-    // documentation links that come up in Handsontable's console logs ---
-    {
-      from: /^\/docs\/i18n\/missing-language-code$/,
-      to: `/docs/${framework}/language/#loading-the-prepared-language-files`,
-      status: STATUS_PERMANENT_REDIRECT,
-    },
+  // Convert "from" string into a RegExp and replace $framework in "to" property
+  const updatedRedirectsArray = redirectsArray.map((redirect: { from: string, to: string, status: string }) => {
+    const fromRegex = new RegExp(redirect.from); // Convert from string to RegExp
+    const updatedTo = redirect.to.replace('$framework', framework); // Replace $framework with provided framework
 
-    // framework shortcuts
-    {
-      from: /^\/docs\/react$/,
-      to: `/docs/react-data-grid/installation/`,
-      status: STATUS_PERMANENT_REDIRECT,
-    },
-    {
-      from: /^\/docs\/angular$/,
-      to: `/docs/javascript-data-grid/angular-installation/`,
-      status: STATUS_PERMANENT_REDIRECT,
-    },
-    {
-      from: /^\/docs\/vue$/,
-      to: `/docs/javascript-data-grid/vue-installation/`,
-      status: STATUS_PERMANENT_REDIRECT,
-    },
-    {
-      from: /^\/docs\/vue3$/,
-      to: `/docs/javascript-data-grid/vue3-installation/`,
-      status: STATUS_PERMANENT_REDIRECT,
-    },
+    return {
+      from: fromRegex,
+      to: updatedTo,
+      status: redirect.status,
+    };
+  });
 
-    {
-      from: /^\/docs\/react-hot-column$/,
-      to: "/docs/react-data-grid/hot-column",
-      status: STATUS_PERMANENT_REDIRECT,
-    },
-  ]
+  return updatedRedirectsArray;
 }
 
 
@@ -72,7 +38,7 @@ export default async function handler(request: Request, context: Context) {
   const cookieValue = context.cookies.get("docs_fw");
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
-  const redirects = prepareRedirects(framework);
+  const redirects = loadRedirectsArray('./utils/redirects.json', framework);
 
   const matchFound = redirects.find(redirect => redirect.from.test(url.pathname));
 
