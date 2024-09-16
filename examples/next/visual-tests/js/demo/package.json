@@ -14,7 +14,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "serve": "vite preview",
-    "start": "http-server dist --proxy http://localhost:8082/",
+    "start": "vite preview",
     "build": "vite build",
     "test": "node spec/support/jasmine.config.js"
   },
@@ -24,12 +24,12 @@
   },
   "devDependencies": {
     "@ngneat/falso": "^7.2.0",
-    "http-server": "^14.1.1",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
     "navigo": "^8.11.1",
     "puppeteer": "14.3.0",
-    "vite": "4.4.3"
+    "rollup-plugin-copy": "^3.5.0",
+    "vite": "5.4.3"
   },
   "license": "SEE LICENSE IN LICENSE.txt"
 }
