@@ -57,11 +57,11 @@ All the test examples are available at `examples/next/visual-tests` and configur
 There main demo available for all frameworks is served on `/`. There are additional demos available only for vanilla JS (to be used with cross-browser tests):
 
 - `/cell-types-demo`,
--  `/arabic-rtl-demo`,
--  `/custom-style-demo`,
--  `/merged-cells-demo`,
--  `/nested-headers-demo`,
--  `/nested-rows-demo`,
+- `/arabic-rtl-demo`,
+- `/custom-style-demo`,
+- `/merged-cells-demo`,
+- `/nested-headers-demo`,
+- `/nested-rows-demo`,
 
 ## Run visual tests through GitHub Actions
 
