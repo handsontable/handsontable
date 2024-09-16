@@ -546,7 +546,8 @@ class Table {
   getCell(coords) {
     let row = coords.row;
     let column = coords.col;
-    const hookResult = this.wtSettings.getSetting('onModifyGetCellCoords', row, column, !this.isMaster);
+    const hookResult = this.wtSettings
+      .getSetting('onModifyGetCellCoords', row, column, !this.isMaster, 'render');
 
     if (hookResult && Array.isArray(hookResult)) {
       [row, column] = hookResult;
@@ -744,6 +745,13 @@ class Table {
 
     } else {
       col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
+    }
+
+    const hookResult = this.wtSettings
+      .getSetting('onModifyGetCoordsElement', row, col);
+
+    if (hookResult && Array.isArray(hookResult)) {
+      [row, col] = hookResult;
     }
 
     return this.wot.createCellCoords(row, col);

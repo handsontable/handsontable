@@ -164,6 +164,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterSelectionFocusSet', (...args) => this.#onAfterSelectionFocusSet(...args));
     this.addHook('afterSelectionEnd', (...args) => this.#onAfterSelectionEnd(...args));
     this.addHook('modifyGetCellCoords', (...args) => this.#onModifyGetCellCoords(...args));
+    this.addHook('modifyGetCoordsElement', (...args) => this.#onModifyGetCellCoords(...args));
     this.addHook('afterIsMultipleSelection', (...args) => this.#onAfterIsMultipleSelection(...args));
     this.addHook('afterRenderer', (...args) => this.#cellRenderer.after(...args));
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.#addMergeActionsToContextMenu(...args));

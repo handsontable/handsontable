@@ -1574,10 +1574,21 @@ const REGISTERED_HOOKS = [
    *                          from the `top` overlay.
    * @param {string} source String that identifies how this coords change will be processed. Possible values:
    *                        `meta` the change will affect the cell meta and data; `render` the change will affect the
-   *                        DOM element that will be returned by the `getCell` method
+   *                        DOM element that will be returned by the `getCell` method.
    * @returns {undefined|number[]}
    */
   'modifyGetCellCoords',
+
+  /**
+   * Used to modify the returned cell coordinates of clicked cells (TD or TH elements).
+   *
+   * @event Hooks#modifyGetCoordsElement
+   * @since 14.6.0
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {undefined|number[]}
+   */
+  'modifyGetCoordsElement',
 
   /**
    * Used to modify the cell coordinates when the table is activated (going into the listen mode).

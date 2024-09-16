@@ -516,7 +516,7 @@ class Border {
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ?
       cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
-    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn);
+    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn, false, 'render');
     let [checkRow, checkCol] = [toRow, toColumn];
 
     if (hookResult && Array.isArray(hookResult)) {

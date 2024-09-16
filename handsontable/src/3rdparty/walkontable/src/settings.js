@@ -59,6 +59,8 @@ import { objectEach } from '../../../helpers/object';
  * @property {?Option} onCellMouseUp Option `onCellMouseUp`.
  * @property {?Option} onDraw Option `onDraw`.
  * @property {?Option} onModifyGetCellCoords Option `onModifyGetCellCoords`.
+ * @property {?Option} onModifyGetCoordsElement Option `onModifyGetCoordsElement`.
+ * @property {?Option} onModifyGetCoords Option `onModifyGetCoords`.
  * @property {?Option} onModifyRowHeaderWidth Option `onModifyRowHeaderWidth`.
  * @property {?Option} onBeforeViewportScrollHorizontally Option `onBeforeViewportScrollHorizontally`.
  * @property {?Option} onBeforeViewportScrollVertically Option `onBeforeViewportScrollVertically`.
@@ -225,6 +227,8 @@ export default class Settings {
       onBeforeStretchingColumnWidth: width => width,
       onModifyRowHeaderWidth: null,
       onModifyGetCellCoords: null,
+      onModifyGetCoordsElement: null,
+      onModifyGetCoords: null,
       onBeforeHighlightingRowHeader: sourceRow => sourceRow,
       onBeforeHighlightingColumnHeader: sourceCol => sourceCol,
 

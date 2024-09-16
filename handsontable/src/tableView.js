@@ -1049,7 +1049,7 @@ class TableView {
         return this.hot.runHooks('beforeStretchingColumnWidth', stretchedWidth, visualColumnIndex);
       },
       onModifyRowHeaderWidth: rowHeaderWidth => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
-      onModifyGetCellCoords: (renderableRowIndex, renderableColumnIndex, topmost) => {
+      onModifyGetCellCoords: (renderableRowIndex, renderableColumnIndex, topmost, source) => {
         const rowMapper = this.hot.rowIndexMapper;
         const columnMapper = this.hot.columnIndexMapper;
 
@@ -1060,12 +1060,38 @@ class TableView {
           rowMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
 
         const visualIndexes = this.hot
-          .runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost, 'render');
+          .runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost, source);
 
         if (Array.isArray(visualIndexes)) {
           const [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = visualIndexes;
 
           // Result of the hook is handled by the Walkontable (renderable indexes).
+          return [
+            visualRowFrom >= 0 ? rowMapper.getRenderableFromVisualIndex(
+              rowMapper.getNearestNotHiddenIndex(visualRowFrom, 1)) : visualRowFrom,
+            visualColumnFrom >= 0 ? columnMapper.getRenderableFromVisualIndex(
+              columnMapper.getNearestNotHiddenIndex(visualColumnFrom, 1)) : visualColumnFrom,
+            visualRowTo >= 0 ? rowMapper.getRenderableFromVisualIndex(
+              rowMapper.getNearestNotHiddenIndex(visualRowTo, -1)) : visualRowTo,
+            visualColumnTo >= 0 ? columnMapper.getRenderableFromVisualIndex(
+              columnMapper.getNearestNotHiddenIndex(visualColumnTo, -1)) : visualColumnTo
+          ];
+        }
+      },
+      onModifyGetCoordsElement: (renderableRowIndex, renderableColumnIndex) => {
+        const rowMapper = this.hot.rowIndexMapper;
+        const columnMapper = this.hot.columnIndexMapper;
+
+        const visualColumnIndex = renderableColumnIndex >= 0 ?
+          columnMapper.getVisualFromRenderableIndex(renderableColumnIndex) : renderableColumnIndex;
+        const visualRowIndex = renderableRowIndex >= 0 ?
+          rowMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
+
+        const visualIndexes = this.hot.runHooks('modifyGetCoordsElement', visualRowIndex, visualColumnIndex);
+
+        if (Array.isArray(visualIndexes)) {
+          const [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = visualIndexes;
+
           return [
             visualRowFrom >= 0 ? rowMapper.getRenderableFromVisualIndex(
               rowMapper.getNearestNotHiddenIndex(visualRowFrom, 1)) : visualRowFrom,
