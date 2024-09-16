@@ -656,6 +656,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _column: number = column;
     const _topmost: boolean = topmost;
     const _source: string = source ?? '';
+
+    return [_row, _column, _row + 1, _column + 1];
+  },
+  modifyGetCoordsElement: (row, column) => {
+    const _row: number = row;
+    const _column: number = column;
+
+    return [_row, _column];
   },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},

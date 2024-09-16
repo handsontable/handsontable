@@ -877,7 +877,8 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `modifyGetCellCoords` hook callback. Swaps the `getCell` coords with the merged parent coords.
+   * The `modifyGetCellCoords` hook callback allows forwarding all `getCell` calls that point in-between the merged cells
+   * to the root element of the cell.
    *
    * @param {number} row Row index.
    * @param {number} column Visual column index.
