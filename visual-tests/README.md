@@ -39,7 +39,7 @@ the **Visual tests** check on on your pull request fails, and you can't merge yo
 Visual tests are divided into:
 
    - multi-frameworks: tests run on Chromium against Handsontable instance created in:
-      - vanilla JS
+      - Vanilla JS
       - Angular
       - React
       - Vue
