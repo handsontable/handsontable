@@ -6,7 +6,6 @@ import DemoOptions from "./DemoOptions";
 
 import "handsontable/dist/handsontable.full.min.css";
 
-import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
