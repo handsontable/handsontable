@@ -659,8 +659,7 @@ const raw_redirects = [
   }
 ];
 
-function loadRedirectsArray(jsonFilePath: string, framework: string): Redirect[] {
-  const fileContent = fs.readFileSync(jsonFilePath, 'utf-8');
+function loadRedirectsArray(framework: string): Redirect[] {
   const redirectsArray = raw_redirects
 
   // Convert "from" string into a RegExp and replace $framework in "to" property
@@ -686,7 +685,7 @@ export default async function handler(request: Request, context: Context) {
   const cookieValue = context.cookies.get("docs_fw");
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
-  const redirects = loadRedirectsArray('./utils/redirects.json', framework);
+  const redirects = loadRedirectsArray(framework);
 
   const matchFound = redirects.find(redirect => redirect.from.test(url.pathname));
 
