@@ -15,13 +15,6 @@ describe('TrimRows', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-
-    // Matchers configuration.
-    this.matchersConfig = {
-      toMatchHTML: {
-        keepAttributes: ['class']
-      }
-    };
   });
 
   afterEach(function() {
@@ -45,24 +38,24 @@ describe('TrimRows', () => {
       expect(extractDOMStructure(getBottomClone())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="">1</th>
-            <td class="">A4</td>
-            <td class="">B4</td>
+            <th>1</th>
+            <td>A4</td>
+            <td>B4</td>
           </tr>
           <tr>
-            <th class="">2</th>
-            <td class="">A5</td>
-            <td class="">B5</td>
+            <th>2</th>
+            <td>A5</td>
+            <td>B5</td>
           </tr>
         </tbody>
         `);
       expect(extractDOMStructure(getBottomInlineStartClone())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="">1</th>
+            <th>1</th>
           </tr>
           <tr>
-            <th class="">2</th>
+            <th>2</th>
           </tr>
         </tbody>
         `);
@@ -79,16 +72,16 @@ describe('TrimRows', () => {
       expect(extractDOMStructure(getBottomClone())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="">1</th>
-            <td class="">A5</td>
-            <td class="">B5</td>
+            <th>1</th>
+            <td>A5</td>
+            <td>B5</td>
           </tr>
         </tbody>
         `);
       expect(extractDOMStructure(getBottomInlineStartClone())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="">1</th>
+            <th>1</th>
           </tr>
         </tbody>
         `);

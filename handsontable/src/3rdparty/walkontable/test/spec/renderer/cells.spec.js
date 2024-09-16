@@ -38,7 +38,7 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     // Matchers configuration.
     this.matchersConfig = {
       toMatchHTML: {
-        keepAttributes: ['class', 'dir', 'style']
+        keepAttributes: ['dir', 'style']
       }
     };
   });
@@ -92,14 +92,14 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <th class=""></th>
-          <td class=""></td>
-          <td class=""></td>
+          <th></th>
+          <td></td>
+          <td></td>
         </tr>
         <tr>
-          <th class=""></th>
-          <td class=""></td>
-          <td class=""></td>
+          <th></th>
+          <td></td>
+          <td></td>
         </tr>
       </tbody>
       `);
@@ -132,14 +132,14 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <td class="" dir="rtl" style="width: 60px;"></td>
-          <td class="" dir="rtl" style="width: 60px;"></td>
-          <td class="" dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
         </tr>
         <tr>
-          <td class="" dir="rtl" style="width: 60px;"></td>
-          <td class="" dir="rtl" style="width: 60px;"></td>
-          <td class="" dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
+          <td dir="rtl" style="width: 60px;"></td>
         </tr>
       </tbody>
       `);
@@ -157,14 +157,14 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
       </tbody>
       `);
@@ -208,14 +208,14 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
       </tbody>
       `);
@@ -243,14 +243,14 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
         <tr>
-          <td class=""></td>
-          <td class=""></td>
-          <td class=""></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
       </tbody>
       `);
