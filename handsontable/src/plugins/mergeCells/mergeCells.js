@@ -882,7 +882,7 @@ export class MergeCells extends BasePlugin {
    *
    * @param {number} row Row index.
    * @param {number} column Visual column index.
-   * @param {boolean} topmost Indicates if the requested element belongs to the topmost layer (any overlay).
+   * @param {boolean} topmost Indicates if the requested element belongs to the topmost layer (any overlay) or not.
    * @param {string} [source] String that identifies how this coords change will be processed.
    * @returns {Array|undefined} Visual coordinates of the merge.
    */

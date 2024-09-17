@@ -174,7 +174,7 @@ class EditorManager {
       enableFullEditMode,
     );
 
-    // If the above hook does not return boolean apply default behavior which disallows opening
+    // If the above hook does not return boolean then the default behavior is applied which disallows opening
     // an editor after double mouse click for non-contiguous selection (while pressing Ctrl/Cmd) and
     // for multiple selected cells (while pressing SHIFT).
     if (event instanceof MouseEvent && typeof allowOpening !== 'boolean') {
