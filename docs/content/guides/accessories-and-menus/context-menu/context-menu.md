@@ -56,15 +56,11 @@ To see the context menu, right-click on a cell:
 :::
 
 
-## Context menu with specific options
+## Context menu with selected options
 
-You can define items in the menu by passing the [`contextMenu`](@/api/options.md#contextmenu) option as an array of keys which are strings.
+You can define the items in the menu by passing the [`contextMenu`](@/api/options.md#contextmenu) option as an array of keys:
 
-
-### Enable plugin
- Enable required plugins. Some plugins require additional setup.
-
-| Key                                                      | Action, required plugins, additional setup                                                                                                                                 |
+| Key                                                      | Action and required plugins                                                                                                                                  |
 | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`row_above`](@/api/contextMenu.md)                      | Insert a row above                                                                                                                                          |
 | [`row_below`](@/api/contextMenu.md)                      | Insert a row below                                                                                                                                          |
