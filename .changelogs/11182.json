@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem with deleting content from a selection when it contained both `checkbox` and non-`checkbox`-typed cells.",
+  "type": "fixed",
+  "issueOrPR": 11182,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Extended the `beforeFilter` hook with a second argument to allow correct Undo/Redo functionality.",
+  "type": "added",
+  "issueOrPR": 11170,
+  "breaking": false,
+  "framework": "none"
+}

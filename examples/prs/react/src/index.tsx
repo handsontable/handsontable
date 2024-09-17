@@ -94,11 +94,14 @@ const App = () => {
 };
 
 const container = document.getElementById('container');
-const root = createRoot(container);
+if (container) {
+  const root = createRoot(container);
 
-
-root.render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+  root.render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  );
+} else {
+  console.error('Failed to find the container element.');
+}

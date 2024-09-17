@@ -1,10 +1,7 @@
 import Handsontable from "handsontable/base";
-import "handsontable/dist/handsontable.css";
-import "@handsontable/pikaday/css/pikaday.css";
 
 import { generateExampleData, isArabicDemoEnabled } from "./utils";
 import { progressBarRenderer, starRenderer } from "./customRenderers";
-import "./styles.css";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
 
 // choose cell types you want to use and import them
