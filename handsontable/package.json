@@ -143,6 +143,7 @@
     "sass-loader": "^10.4.1",
     "string-replace-loader": "^3.1.0",
     "stylelint": "^16.3.1",
+    "tsd": "^0.31.2",
     "typescript": "3.8.2",
     "webpack": "^5.88.1",
     "webpack-cli": "^5.1.4"
@@ -151,7 +152,7 @@
   "resolutions": {
     "@babel/core": "^7.11.4"
   },
-  "typings": "./index.d.ts",
+  "types": "./types/index.d.ts",
   "handsontable": {
     "copy": [
       "dist/handsontable.css",
