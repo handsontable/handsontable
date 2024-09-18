@@ -1,4 +1,4 @@
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { arrayMap, arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { inherit, deepClone } from '../../helpers/object';
