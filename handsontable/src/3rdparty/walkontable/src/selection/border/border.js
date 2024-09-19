@@ -412,6 +412,12 @@ class Border {
       fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
 
     } else {
+      if (fromRow < 0 || fromColumn < 0) {
+        this.disappear();
+
+        return;
+      }
+
       fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
 
       if (!(fromTD instanceof HTMLElement)) {
