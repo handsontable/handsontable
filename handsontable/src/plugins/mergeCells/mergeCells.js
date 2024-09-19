@@ -156,7 +156,6 @@ export class MergeCells extends BasePlugin {
     this.addHook('modifyTransformFocus', (...args) => this.#onModifyTransformFocus(...args));
     this.addHook('modifyTransformStart', (...args) => this.#onModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.#onModifyTransformEnd(...args));
-    this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
     this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
     this.addHook('beforeSetRangeStart', (...args) => this.#onBeforeSetRangeStart(...args));
     this.addHook('beforeSetRangeStartOnly', (...args) => this.#onBeforeSetRangeStart(...args));
@@ -826,20 +825,6 @@ export class MergeCells extends BasePlugin {
       if (notHiddenRowIndex !== null) {
         delta.row = Math.max(this.hot.view.countRenderableRowsInRange(to.row, notHiddenRowIndex) - 1, 1);
       }
-    }
-  }
-
-  /**
-   * The hook corrects the clicked coords to correct ones if the clicked cell is a merged cell.
-   *
-   * @param {Event} event The mouse event object.
-   * @param {CellCoords} visualCoords The visual coordinates object.
-   */
-  #onBeforeOnCellMouseDown(event, visualCoords) {
-    const mergeParent = this.mergedCellsCollection.get(visualCoords.row, visualCoords.col);
-
-    if (mergeParent) {
-      // visualCoords.col = mergeParent.col;
     }
   }
 

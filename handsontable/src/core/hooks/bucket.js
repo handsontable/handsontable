@@ -1,20 +1,61 @@
 import { REGISTERED_HOOKS } from './constants';
 
+/**
+ * @typedef {object} HookEntry
+ * @property {Function} callback The callback function.
+ * @property {number} orderIndex The order index.
+ * @property {boolean} runOnce Indicates if the hook should run only once.
+ * @property {boolean} initialHook Indicates if it is an initial hook - which means that the hook
+ * always stays at the same index position even after update.
+ * @property {boolean} skip Indicates if the hook was removed.
+ */
+/**
+ * The maximum number of hooks that can be skipped before the bucket is cleaned up.
+ */
 const MAX_SKIPPED_HOOKS_COUNT = 100;
 
+/**
+ * The class represents a collection that allows to manage hooks (add, remove).
+ *
+ * @class HooksBucket
+ */
 export class HooksBucket {
+  /**
+   * A map that stores hooks.
+   *
+   * @type {Map<string, HookEntry>}
+   */
   #hooks = new Map();
+  /**
+   * A map that stores the number of skipped hooks.
+   */
   #skippedHooksCount = new Map();
+  /**
+   * A set that stores hook names that need to be re-sorted.
+   */
   #needsSort = new Set();
 
   constructor() {
     REGISTERED_HOOKS.forEach(hookName => this.#createHooksCollection(hookName));
   }
 
+  /**
+   * Gets all hooks for the provided hook name.
+   *
+   * @param {string} hookName The name of the hook.
+   * @returns {HookEntry[]}
+   */
   getHooks(hookName) {
     return this.#hooks.get(hookName) ?? [];
   }
 
+  /**
+   * Adds a new hook to the collection.
+   *
+   * @param {string} hookName The name of the hook.
+   * @param {Function} callback The callback function to add.
+   * @param {{ orderIndex?: number, runOnce?: boolean, initialHook?: boolean }} options The options object.
+   */
   add(hookName, callback, options = {}) {
     if (!this.#hooks.has(hookName)) {
       this.#createHooksCollection(hookName);
@@ -65,10 +106,24 @@ export class HooksBucket {
     }
   }
 
+  /**
+   * Checks if there are any hooks for the provided hook name.
+   *
+   * @param {string} hookName The name of the hook.
+   * @returns {boolean}
+   */
   has(hookName) {
     return this.#hooks.has(hookName) && this.#hooks.get(hookName).length > 0;
   }
 
+  /**
+   * Removes a hook from the collection. If the hook was found and removed,
+   * the method returns `true`, otherwise `false`.
+   *
+   * @param {string} hookName The name of the hook.
+   * @param {*} callback The callback function to remove.
+   * @returns {boolean}
+   */
   remove(hookName, callback) {
     if (!this.#hooks.has(hookName)) {
       return false;
@@ -96,6 +151,9 @@ export class HooksBucket {
     return false;
   }
 
+  /**
+   * Destroys the bucket.
+   */
   destroy() {
     this.#hooks.clear();
     this.#skippedHooksCount.clear();
@@ -103,6 +161,11 @@ export class HooksBucket {
     this.#skippedHooksCount = null;
   }
 
+  /**
+   * Creates a initial collection for the provided hook name.
+   *
+   * @param {string} hookName The name of the hook.
+   */
   #createHooksCollection(hookName) {
     this.#hooks.set(hookName, []);
     this.#skippedHooksCount.set(hookName, 0);

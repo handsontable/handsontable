@@ -387,8 +387,16 @@ class Border {
       return;
     }
 
-    const { wtTable, rootDocument, rootWindow } = this.wot;
     let [fromRow, fromColumn, toRow, toColumn] = corners;
+
+    // borders can not be rendered on headers so hide them
+    if (fromRow < 0 && toRow < 0 || fromColumn < 0 && toColumn < 0) {
+      this.disappear();
+
+      return;
+    }
+
+    const { wtTable, rootDocument, rootWindow } = this.wot;
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     const firstRenderedRow = wtTable.getFirstRenderedRow();
     const lastRenderedRow = wtTable.getLastRenderedRow();
@@ -410,13 +418,7 @@ class Border {
       }
 
       fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
-
     } else {
-      if (fromRow < 0 || fromColumn < 0) {
-        this.disappear();
-
-        return;
-      }
 
       fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
 

@@ -26,7 +26,7 @@ export class Hooks {
   globalBucket = new HooksBucket();
 
   /**
-   * Get hook bucket based on the context of the object or if argument is `undefined`, get the global hook bucket.
+   * Get hook bucket based on the context of the object or if argument is missing, get the global hook bucket.
    *
    * @param {object} [context=null] A Handsontable instance.
    * @returns {HooksBucket} Returns a global or Handsontable instance bucket.
@@ -120,7 +120,8 @@ export class Hooks {
   }
 
   /**
-   * Adds a listener to a specified hook. The added hook once added it stays in the bucket at specified index position and stays there after update.
+   * Adds a listener to a specified hook. The added hook stays in the bucket at specified index position even after
+   * adding another one with the same hook name.
    *
    * @param {string} key Hook/Event name.
    * @param {Function|Function[]} callback Callback function.
