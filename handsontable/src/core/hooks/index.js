@@ -102,6 +102,7 @@ export class Hooks {
    *                              If > 0, the callback will be added after the others, for example, with an index of 1, the callback will be added before the ones with an index of 2, 3, etc., but after the ones with an index of 0 and lower.
    *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
    *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
+   * @returns {Hooks} Instance of Hooks.
    *
    * @example
    * ```js
@@ -114,6 +115,8 @@ export class Hooks {
     } else {
       this.getBucket(context).add(key, callback, { orderIndex, runOnce: true });
     }
+
+    return this;
   }
 
   /**
@@ -122,6 +125,7 @@ export class Hooks {
    * @param {string} key Hook/Event name.
    * @param {Function|Function[]} callback Callback function.
    * @param {object} [context=null] A Handsontable instance.
+   * @returns {Hooks} Instance of Hooks.
    *
    * @example
    * ```js
@@ -134,6 +138,8 @@ export class Hooks {
     } else {
       this.getBucket(context).add(key, callback, { initialHook: true });
     }
+
+    return this;
   }
 
   /**
