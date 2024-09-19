@@ -13,6 +13,6 @@ const mergeCells = hot.getPlugin('mergeCells');
 
 mergeCells.clearCollections();
 mergeCells.mergeSelection(hot.getSelectedRangeLast());
-mergeCells.mergeSelection(hot.getSelectedRangeLast());
+mergeCells.unmergeSelection(hot.getSelectedRangeLast())
 mergeCells.merge(0, 0, 3, 3);
 mergeCells.unmerge(0, 0, 3, 3);
