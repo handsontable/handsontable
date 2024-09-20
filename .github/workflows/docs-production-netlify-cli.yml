@@ -24,6 +24,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: print the latest version of the documentation
+        run: |
+          git branch --all --list '*prod-docs/*' | grep -oP '(?<=prod-docs/)\d+\.\d+' | awk 'max=="" || $1 > max {max=$1} END{print max}'
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
         with:
           ref: prod-docs/latest-dev-issue-1790
