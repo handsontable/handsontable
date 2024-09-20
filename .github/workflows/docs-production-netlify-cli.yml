@@ -24,6 +24,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Ensure docs directory exists
+        run: mkdir -p ./docs/
+
       - name: print the latest version of the documentation
         run: |
           latest_version = git branch --all --list '*prod-docs/*' | grep -oP '(?<=prod-docs/)\d+\.\d+' | awk 'max=="" || $1 > max {max=$1} END{print max}'
