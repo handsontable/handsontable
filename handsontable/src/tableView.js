@@ -663,6 +663,8 @@ class TableView {
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
       stretchH: () => this.settings.stretchH,
+      viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
+      viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
       data: (renderableRow, renderableColumn) => {
         return this.hot
           .getDataAtCell(...this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn));
@@ -1117,7 +1119,7 @@ class TableView {
             calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
 
           } else if (viewportOffset === 'auto') {
-            const offset = Math.ceil(lastRenderedRow / renderableRows * 12);
+            const offset = Math.max(1, Math.ceil(lastRenderedRow / renderableRows * 12));
 
             calc.startRow = Math.max(firstRenderedRow - offset, 0);
             calc.endRow = Math.min(lastRenderedRow + offset, renderableRows - 1);
@@ -1142,7 +1144,7 @@ class TableView {
             calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
           }
           if (viewportOffset === 'auto') {
-            const offset = Math.ceil(lastRenderedColumn / renderableColumns * 6);
+            const offset = Math.max(1, Math.ceil(lastRenderedColumn / renderableColumns * 6));
 
             calc.startColumn = Math.max(firstRenderedColumn - offset, 0);
             calc.endColumn = Math.min(lastRenderedColumn + offset, renderableColumns - 1);

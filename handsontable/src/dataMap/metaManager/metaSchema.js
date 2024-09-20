@@ -4852,6 +4852,9 @@ export default () => {
      */
     viewportRowRenderingOffset: 'auto',
 
+    viewportColumnRenderingThreshold: 0,
+    viewportRowRenderingThreshold: 0,
+
     /**
      * The `visibleRows` option sets the height of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * and [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) lists.

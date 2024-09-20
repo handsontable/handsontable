@@ -71,6 +71,8 @@ import { objectEach } from '../../../helpers/object';
  * @property {?Option} selections Option `selections`.
  * @property {?Option} viewportColumnCalculatorOverride Option `viewportColumnCalculatorOverride`.
  * @property {?Option} viewportRowCalculatorOverride Option `viewportRowCalculatorOverride`.
+ * @property {?Option} viewportColumnRenderingThreshold Option `viewportColumnRenderingThreshold`.
+ * @property {?Option} viewportRowRenderingThreshold Option `viewportRowRenderingThreshold`.
  */
 
 /**
@@ -198,6 +200,8 @@ export default class Settings {
       hideBorderOnMouseDownOver: false,
       viewportRowCalculatorOverride: null,
       viewportColumnCalculatorOverride: null,
+      viewportRowRenderingThreshold: null,
+      viewportColumnRenderingThreshold: null,
 
       // callbacks
       onCellMouseDown: null,
