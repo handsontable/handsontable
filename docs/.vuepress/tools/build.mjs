@@ -33,14 +33,14 @@ async function buildVersion(version) {
 
   if (version !== 'next' || buildMode === 'staging') {
     await spawnProcess(
-      'node node_modules/vuepress/cli.js build -d .vuepress/dist/pre-' +
+      'node node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
         `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
       { cwd, env: { DOCS_BASE: version }, }
     );
   }
 
   await spawnProcess(
-    'node node_modules/vuepress/cli.js build -d .vuepress/dist/pre-latest-' +
+    'node node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
       `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
     { cwd, env: { DOCS_BASE: 'latest' }, }
   );

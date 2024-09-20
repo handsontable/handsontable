@@ -8,8 +8,8 @@ on:
   push:
     branches:
       - 'prod-docs/**'
-      - 'prod-docs/latest'
-      - 'prod-docs/latest-dev-issue-1790'
+      - '!prod-docs/latest'
+      - '!prod-docs/latest-dev-issue-1790'
   workflow_dispatch:
 
 defaults:
