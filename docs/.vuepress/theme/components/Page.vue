@@ -3,9 +3,22 @@
     <Breadcrumbs />
 
     <Content class="theme-default-content" />
+
+    <div class="theme-default-content">
+      <div class="promo-box">
+          <span><i class="ico i-info"></i></span>
+          <h3>Meet us <br>at React Summit US!</h3>
+          <p>Drop by our booth to chat about the futureof components (or just to grab some freebies).</p>
+          <p><i class="ico i-map"></i> Liberty Science Center,
+            <br>New York, Nov 19th.
+          </p>
+      </div>
+    </div>
+
     <slot name="top" />
     <PageEdit />
 
+    
     <slot name="bottom" />
   </main>
 </template>

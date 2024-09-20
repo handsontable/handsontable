@@ -1,0 +1,63 @@
+.page .theme-default-content .promo-box {
+
+    position fixed
+    right: 50%;
+    transform: translateX(860px);
+    margin-right: 52px
+    top: 360px
+    max-width: 260px
+
+
+    @media (max-width: $xLarge) {
+        display: none
+    }
+
+    @media (max-width: $xxxLarge) {
+        right:0
+        transform: none
+        margin-right: 72px
+    }
+
+    @media (max-width: $extraLarge) {
+        right:0
+        transform: none
+        margin-right: 24px
+    }
+
+    background: $bgColor
+    color: $textColor
+    box-sizing: border-box;
+    padding: 24px
+    display: flex
+    border-radius: 24px
+    flex-direction:column
+    gap:8px
+    
+    h3 { 
+        font-size: 18px
+        line-height: 28px
+    }
+
+    h3, p { 
+        padding: 0 !important
+        margin: 0 !important
+    }
+    p {  
+        font-size: 13px
+        line-height: 22px
+
+        i {   
+            float: left;
+            margin: 3px 4px 0px 0px;
+            opacity: 0.72;
+        }
+    }
+
+    > span {
+        margin-right: auto;
+        display: block; 
+        border-radius: 4px
+        padding: 11px
+        background: $accentColor
+    }
+}
