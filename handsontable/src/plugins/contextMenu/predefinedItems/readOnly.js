@@ -21,16 +21,7 @@ export default function readOnlyItem() {
     },
 
     ariaLabel() {
-      const rawName = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
-      const atLeastOneReadOnly = checkSelectionConsistency(
-        this.getSelectedRange(),
-        (row, col) => this.getCellMeta(row, col).readOnly
-      );
-      const checkboxState = atLeastOneReadOnly
-        ? this.getTranslatedPhrase(C.CHECKBOX_CHECKED)
-        : this.getTranslatedPhrase(C.CHECKBOX_UNCHECKED);
-
-      return `${rawName} ${checkboxState.toLowerCase()}`;
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
     },
 
     name() {

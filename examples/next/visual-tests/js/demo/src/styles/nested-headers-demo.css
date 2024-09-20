@@ -1,0 +1,28 @@
+/* Custom Styles */
+.custom-header {
+  background-color: #4caf50;
+  color: white;
+  text-align: center;
+}
+.ht_master .htCore td {
+  background-color: #f5f5f5;
+  color: #333;
+  border-color: #ccc;
+}
+.ht_master .htCore .currentRow {
+  background-color: #ffeb3b;
+}
+.ht_master .htCore .currentCol {
+  background-color: #ffeb3b;
+}
+.bold-text {
+  font-weight: bold;
+}
+
+.italic-text {
+  font-style: italic;
+}
+#remove-height-btn {
+  padding: 10px 20px;
+  margin-bottom: 10px;
+}

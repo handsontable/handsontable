@@ -32,15 +32,6 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     return { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode };
   }
 
-  beforeEach(function() {
-    // Matchers configuration.
-    this.matchersConfig = {
-      toMatchHTML: {
-        keepAttributes: ['class']
-      }
-    };
-  });
-
   it('should not generate any row headers', () => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
@@ -91,14 +82,14 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <th class=""></th>
-          <td class=""></td>
-          <td class=""></td>
+          <th></th>
+          <td></td>
+          <td></td>
         </tr>
         <tr>
-          <th class=""></th>
-          <td class=""></td>
-          <td class=""></td>
+          <th></th>
+          <td></td>
+          <td></td>
         </tr>
       </tbody>
       `);
@@ -150,14 +141,14 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <th class=""></th>
-          <td class=""></td>
-          <td class=""></td>
+          <th></th>
+          <td></td>
+          <td></td>
         </tr>
         <tr>
-          <th class=""></th>
-          <td class=""></td>
-          <td class=""></td>
+          <th></th>
+          <td></td>
+          <td></td>
         </tr>
       </tbody>
       `);
@@ -188,14 +179,14 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <tbody>
         <tr>
-          <th class=""></th>
-          <td class=""></td>
-          <td class=""></td>
+          <th></th>
+          <td></td>
+          <td></td>
         </tr>
         <tr>
-          <th class=""></th>
-          <td class=""></td>
-          <td class=""></td>
+          <th></th>
+          <td></td>
+          <td></td>
         </tr>
       </tbody>
       `);

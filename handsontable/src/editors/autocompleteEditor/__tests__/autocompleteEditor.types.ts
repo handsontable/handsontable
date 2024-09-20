@@ -12,6 +12,8 @@ editor.unflipDropdown();
 editor.updateDropdownDimensions();
 editor.setDropdownHeight(100);
 editor.highlightBestMatchingChoice(1);
+editor.stripValueIfNeeded('test');
+editor.stripValuesIfNeeded(['test1', 'test2']);
 
 const value: string = editor.getValue();
 const isFlipped: boolean = editor.flipDropdownIfNeeded();

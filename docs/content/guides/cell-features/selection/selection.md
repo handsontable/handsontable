@@ -154,7 +154,8 @@ To jump across a horizontal edge:
 
 | Windows                                                       | macOS                                                        | Action                                                                           |  Excel  | Sheets  |
 | ------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd>                        | <kbd>**Cmd**</kbd>+<kbd>**A**</kbd>                        | Select all cells and headers                                                     | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd>                        | <kbd>**Cmd**</kbd>+<kbd>**A**</kbd>                        | Select all cells | &check; | &check; |
+|<kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> |<kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> | Select all cells and headers                                                      | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                    | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                   | Select the entire column                                                         | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                   | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                  | Select the entire row                                                            | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd> | Extend the selection to the first cell of the current column<sup>**</sup>        | &check; | &check; |
