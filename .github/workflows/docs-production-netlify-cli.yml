@@ -52,10 +52,6 @@ jobs:
         run: |
           npm run docs:build:production:netlify
 
-      - name: Generate API references
-        run: |
-          npm run docs:api
-
       - name: Install Netlify CLI
         run: npm install netlify-cli -g
 
