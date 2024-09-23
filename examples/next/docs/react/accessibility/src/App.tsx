@@ -4,8 +4,11 @@ import { useState } from "react";
 import { countries, data } from "./data";
 import DemoOptions from "./DemoOptions";
 
-import "handsontable/dist/handsontable.min.css";
-import "@handsontable/pikaday/css/pikaday.css";
+import "handsontable/dist/handsontable.full.min.css";
+
+import { registerAllModules } from 'handsontable/registry';
+
+registerAllModules();
 
 // Handsontable options
 const hotOptions = {

@@ -10,20 +10,6 @@ import * as C from '../../../i18n/constants';
 export const KEY = 'alignment';
 
 /**
- * @param {object} hot The current Handsontable instance.
- * @param {string} rawName The raw name of the menu item.
- * @param {string} htClassName The class name to check.
- * @returns {string} The value of aria-label parameter.
- */
-function ariaLabel(hot, rawName, htClassName) {
-  const checkboxState = hasSelectionAClass(hot, htClassName)
-    ? hot.getTranslatedPhrase(C.CHECKBOX_CHECKED)
-    : hot.getTranslatedPhrase(C.CHECKBOX_UNCHECKED);
-
-  return `${rawName} ${checkboxState.toLowerCase()}`;
-}
-
-/**
  * @returns {object}
  */
 export default function alignmentItem() {
@@ -55,7 +41,7 @@ export default function alignmentItem() {
           key: `${KEY}:left`,
           checkable: true,
           ariaLabel() {
-            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT), 'htLeft');
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT);
           },
           ariaChecked() {
             return hasSelectionAClass(this, 'htLeft');
@@ -86,7 +72,7 @@ export default function alignmentItem() {
           key: `${KEY}:center`,
           checkable: true,
           ariaLabel() {
-            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER), 'htCenter');
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER);
           },
           ariaChecked() {
             return hasSelectionAClass(this, 'htCenter');
@@ -117,7 +103,7 @@ export default function alignmentItem() {
           key: `${KEY}:right`,
           checkable: true,
           ariaLabel() {
-            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT), 'htRight');
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT);
           },
           ariaChecked() {
             return hasSelectionAClass(this, 'htRight');
@@ -148,7 +134,7 @@ export default function alignmentItem() {
           key: `${KEY}:justify`,
           checkable: true,
           ariaLabel() {
-            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY), 'htJustify');
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY);
           },
           ariaChecked() {
             return hasSelectionAClass(this, 'htJustify');
@@ -182,7 +168,7 @@ export default function alignmentItem() {
           key: `${KEY}:top`,
           checkable: true,
           ariaLabel() {
-            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP), 'htTop');
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
           },
           ariaChecked() {
             return hasSelectionAClass(this, 'htTop');
@@ -213,7 +199,7 @@ export default function alignmentItem() {
           key: `${KEY}:middle`,
           checkable: true,
           ariaLabel() {
-            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE), 'htMiddle');
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE);
           },
           ariaChecked() {
             return hasSelectionAClass(this, 'htMiddle');
@@ -244,7 +230,7 @@ export default function alignmentItem() {
           key: `${KEY}:bottom`,
           checkable: true,
           ariaLabel() {
-            return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM), 'htBottom');
+            return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM);
           },
           ariaChecked() {
             return hasSelectionAClass(this, 'htBottom');

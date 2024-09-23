@@ -79,7 +79,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     );
 
     expect(menuItemCheckboxes.length).toEqual(1);
-    expect(menuItemCheckboxes[0].ariaLabel).toBe('Read only unchecked');
+    expect(menuItemCheckboxes[0].ariaLabel).toBe('Read only');
   });
 
   it('should assign the `aria-label` attribute to all the options of the dropdown menu', () => {

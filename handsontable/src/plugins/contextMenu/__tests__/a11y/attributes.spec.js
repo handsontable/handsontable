@@ -85,10 +85,10 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     );
 
     expect(menuItemCheckboxes.length).toEqual(1);
-    expect(menuItemCheckboxes[0].ariaLabel).toBe('Read only unchecked');
+    expect(menuItemCheckboxes[0].ariaLabel).toBe('Read only');
   });
 
-  it('selected alignment option should have `aria-checked=false` attribute and proper `aria-label=Left unchecked`', async() => {
+  it('selected alignment option should have `aria-checked=false` attribute and proper `aria-label=Left`', async() => {
     handsontable({
       contextMenu: ['alignment']
     });
@@ -99,7 +99,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     const leftAlignmentItems = getAlignmentMenuCheckboxes();
 
     expect(leftAlignmentItems[0].ariaChecked).toEqual('false');
-    expect(leftAlignmentItems[0].ariaLabel).toEqual('Left unchecked');
+    expect(leftAlignmentItems[0].ariaLabel).toEqual('Left');
   });
 
   it('selected and deselected menuitemcheckboxes change aria-label and aria-checked values accordingly', async() => {
@@ -118,7 +118,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     const selected = getAlignmentMenuCheckboxes()[0];
 
     expect(selected.ariaChecked).toEqual('true');
-    expect(selected.ariaLabel).toEqual('Left checked');
+    expect(selected.ariaLabel).toEqual('Left');
 
     contextMenu();
     await sleep(300);
@@ -131,7 +131,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     const deselected = getAlignmentMenuCheckboxes()[0];
 
     expect(deselected.ariaChecked).toEqual('false');
-    expect(deselected.ariaLabel).toEqual('Left unchecked');
+    expect(deselected.ariaLabel).toEqual('Left');
   });
 
   it('should assign the `role=menuitemcheckbox` attribute to the all alignment options', async() => {
@@ -163,8 +163,8 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     const ariaLabels = alignmentItems.map(el => el.getAttribute('aria-label'));
 
     expect(ariaLabels).toEqual([
-      'Left unchecked', 'Center unchecked', 'Right unchecked', 'Justify unchecked',
-      'Top unchecked', 'Middle unchecked', 'Bottom unchecked'
+      'Left', 'Center', 'Right', 'Justify',
+      'Top', 'Middle', 'Bottom'
     ]);
   });
 
