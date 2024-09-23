@@ -35,8 +35,8 @@ jobs:
           latest_version=`git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/' | grep -oP '(?<=prod-docs/)\d+\.\d+' | awk 'max=="" || $1 > max {max=$1} END{print max}'`
           echo "$latest_version"
           echo "LATEST_VERSION=$latest_version" >> $GITHUB_ENV
-      - name: print the latest version
-        run: echo "The value of LATEST_VERSION is $LATEST_VERSION"
+      - name: Validate Docs version
+        run: if [ -z "$LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
@@ -45,14 +45,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # https://github.com/actions/github-script/releases/tag/v6.3.3
-        id: get-docs-version
-        with:
-          script: return '14.5';
-          result-encoding: string
-
-      - name: Validate Docs version
-        run: if [ -z "${{steps.get-docs-version.outputs.result}}" ]; then echo "Docs version is empty"; exit 1; fi
 
       - name: Dependencies
         run: |
