@@ -40,11 +40,11 @@ jobs:
 
       - name: Remove local branch if it exists
         run: |
-          git branch -D prod-docs/latest || true
+          git branch -D prod-docs/latest
 
       - name: Recreate the latest branch baset on the latest version
         run: |
-          git checkout prod-docs/$LATEST_VERSON
+          git checkout prod-docs/$LATEST_VERSION
           git checkout -b prod-docs/latest
           git push --force origin prod-docs/latest
 
