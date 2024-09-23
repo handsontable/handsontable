@@ -27,6 +27,9 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
         with:
           ref: prod-docs/latest-dev-issue-1790
+      - name: fetch all branches
+        run: | 
+          git fetch --all
       - name: print list of branches
         run: git branch --all
       - name: print filtered list of branches
