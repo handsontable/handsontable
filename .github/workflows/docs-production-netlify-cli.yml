@@ -59,9 +59,9 @@ jobs:
         run: |
           npm ci
 
-      - name: Docs build
-        run: |
-          npm run docs:build:production:netlify
+      # - name: Docs build
+      #   run: |
+      #     npm run docs:build:production:netlify
 
       - name: Install Netlify CLI
         run: npm install netlify-cli -g
