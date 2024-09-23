@@ -28,12 +28,8 @@ jobs:
         with:
           ref: prod-docs/latest-dev-issue-1790
           fetch-depth: 0
-      - name: print list of remote branches
-        run: git branch -r
-      - name: print filtered list of remote branches
-        run: git branch -r --list '*prod-docs/*'
-      - name: print filtered list of remote branches without the beginning star
-        run: git branch -r --list '*prod-docs/*'
+      - name: print list of branches without fetching, use ls-remote
+        run: git ls-remote --heads origin
       - name: Set the latest version
         working-directory: ./  
         run: |
