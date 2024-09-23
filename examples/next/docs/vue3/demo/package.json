@@ -5,9 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "build": "run-p \"build-only {@}\" --",
     "preview": "vite preview",
-    "build-only": "vite build",
+    "build": "vite build",
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {

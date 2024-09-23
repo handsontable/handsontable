@@ -1,13 +1,12 @@
 {
-  "name": "vue3-ts-example",
+  "name": "vue3-basic-example",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "vite",
-    "build": "run-p \"build-only {@}\" --",
     "preview": "vite preview",
-    "build-only": "vite build",
+    "build": "vite build",
     "type-check": "vue-tsc --build --force",
     "test": "node spec/support/jasmine.config.js"
   },
