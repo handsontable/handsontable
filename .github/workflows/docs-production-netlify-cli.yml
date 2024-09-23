@@ -38,13 +38,27 @@ jobs:
       - name: Validate Docs version
         run: if [ -z "$LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
 
+      - name: Remove local branch if it exists
+        run: |
+          BRANCH_TO_REMOVE="prod-docs/latest # Replace with the branch name you want to delete
+
+          # Check if the branch exists locally
+          if git show-ref --quiet refs/heads/$BRANCH_TO_REMOVE; then
+            echo "Branch $BRANCH_TO_REMOVE exists, deleting..."
+            git branch -D $BRANCH_TO_REMOVE
+          else
+            echo "Branch $BRANCH_TO_REMOVE does not exist, nothing to delete."
+          fi
+      - name: Recreate the latest branch
+        run: |
+          git checkout -b prod-docs/latest origin/prod-docs/$LATEST_VERSION
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
           # cache-dependency-path: ./latest/package-lock.json
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
 
       - name: Dependencies
         run: |
