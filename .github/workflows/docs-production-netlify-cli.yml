@@ -44,7 +44,9 @@ jobs:
 
       - name: Recreate the latest branch baset on the latest version
         run: |
-          git checkout -b prod-docs/latest origin/prod-docs/$LATEST_VERSION
+          git checkout prod-docs/$LATEST_VERSON
+          git checkout -b prod-docs/latest
+          git push --force origin prod-docs/latest
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
