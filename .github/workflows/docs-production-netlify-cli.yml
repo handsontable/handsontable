@@ -25,7 +25,7 @@ jobs:
       contents: write
     steps:
       - name: print the latest version of the documentation
-        working_directory: ./  
+        working-directory: ./  
         run: |
           latest_version = git branch --all --list '*prod-docs/*' | grep -oP '(?<=prod-docs/)\d+\.\d+' | awk 'max=="" || $1 > max {max=$1} END{print max}'
           echo $latest_version
