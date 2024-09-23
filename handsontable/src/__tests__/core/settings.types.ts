@@ -356,6 +356,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ),
   viewportColumnRenderingOffset: oneOf(100, 'auto'),
   viewportRowRenderingOffset: oneOf(100, 'auto'),
+  viewportColumnRenderingThreshold: oneOf(100, 'auto'),
+  viewportRowRenderingThreshold: oneOf(100, 'auto'),
   visibleRows: 123,
   width: oneOf(500, () => 500),
   wordWrap: true,

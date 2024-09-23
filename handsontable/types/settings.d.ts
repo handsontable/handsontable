@@ -224,6 +224,8 @@ export interface GridSettings extends Events {
   validator?: BaseValidator | RegExp | ValidatorType | string;
   viewportColumnRenderingOffset?: number | 'auto';
   viewportRowRenderingOffset?: number | 'auto';
+  viewportColumnRenderingThreshold?: number | 'auto';
+  viewportRowRenderingThreshold?: number | 'auto';
   visibleRows?: number;
   width?: number | string | (() => number | string);
   wordWrap?: boolean;
