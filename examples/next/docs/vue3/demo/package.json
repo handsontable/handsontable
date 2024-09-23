@@ -10,7 +10,7 @@
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
-    "vue": "^3.4.21",
+    "vue": "^3.5.8",
     "@handsontable/vue3": "latest",
     "handsontable": "latest"
   },
