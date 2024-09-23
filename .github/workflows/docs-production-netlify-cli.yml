@@ -40,16 +40,9 @@ jobs:
 
       - name: Remove local branch if it exists
         run: |
-          BRANCH_TO_REMOVE="prod-docs/latest # Replace with the branch name you want to delete
+          git branch -D prod-docs/latest || true
 
-          # Check if the branch exists locally
-          if git show-ref --quiet refs/heads/$BRANCH_TO_REMOVE; then
-            echo "Branch $BRANCH_TO_REMOVE exists, deleting..."
-            git branch -D $BRANCH_TO_REMOVE
-          else
-            echo "Branch $BRANCH_TO_REMOVE does not exist, nothing to delete."
-          fi
-      - name: Recreate the latest branch
+      - name: Recreate the latest branch baset on the latest version
         run: |
           git checkout -b prod-docs/latest origin/prod-docs/$LATEST_VERSION
 
