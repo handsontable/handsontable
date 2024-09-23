@@ -24,16 +24,15 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+        with:
+          ref: prod-docs/latest-dev-issue-1790
       - name: print the latest version of the documentation
         working-directory: ./  
         run: |
           latest_version=`git branch --all --list '*prod-docs/*' | grep -oP '(?<=prod-docs/)\d+\.\d+' | awk 'max=="" || $1 > max {max=$1} END{print max}'`
           echo "$latest_version"
           echo "LATEST_VERSION=$latest_version" >> $GITHUB_ENV
-         
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-        with:
-          ref: prod-docs/latest-dev-issue-1790
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
