@@ -52,7 +52,7 @@ jobs:
         run: |
           git fetch origin feature/dev-issue-1790
           git checkout prod-docs/latest-dev-issue-1790 netlify
-          working-directory: ./
+        working-directory: ./
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
