@@ -24,6 +24,10 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+        with:
+          ref: feature/dev-issue-1790
+
       - name: print list of branches without fetching, use ls-remote
         run: git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/'
       - name: Set the latest version
@@ -44,12 +48,9 @@ jobs:
         run: |
           git fetch origin prod-docs/$LATEST_VERSION
           git checkout -b prod-docs/latest origin/prod-docs/$LATEST_VERSION
+          git branch --set-upstream-to=origin/prod-docs/$LATEST_VERSION prod-docs/latest
           git push --force origin prod-docs/latest
 
-      # - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-      #   with:
-      #     ref: prod-docs/latest
-      
       - name: list files in the root directory
         run: ls -la
         working-directory: ./
@@ -90,7 +91,6 @@ jobs:
         run:  |
           git branch
           git status
-          git branch --unset-upstream
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
