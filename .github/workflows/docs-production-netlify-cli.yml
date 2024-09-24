@@ -49,7 +49,7 @@ jobs:
           git fetch origin prod-docs/$LATEST_VERSION
           git checkout origin/prod-docs/$LATEST_VERSION
           git checkout -b prod-docs/latest
-          git push --set-upstream origin prod-docs/latest
+          git push --force --set-upstream origin prod-docs/latest
 
       - name: Feature Branch Patch
         run: |
