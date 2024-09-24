@@ -47,11 +47,15 @@ jobs:
           git fetch origin prod-docs/$LATEST_VERSION
           git checkout -b prod-docs/latest origin/prod-docs/$LATEST_VERSION
           git push --force origin prod-docs/latest
+      
+      - name: list files in the root directory
+        run: ls -la
+        working-directory: ./
 
       - name: Checkout the netlify directory from the dev-issue-1790 branch
         run: |
           git fetch origin feature/dev-issue-1790
-          git checkout prod-docs/latest-dev-issue-1790 netlify
+          git checkout prod-docs/latest-dev-issue-1790 ./docs/netlify
         working-directory: ./
 
       - name: Commit changes
