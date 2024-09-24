@@ -1,6 +1,6 @@
 [build]
     edge_functions = "netlify/edge-functions"
-    publish = "docs/.vuepress/dist"
+    command = "echo no build"
 
 [[redirects]]
     from = "/docs/*"
