@@ -72,6 +72,13 @@ jobs:
           npm run docs:build:production:netlify
         working-directory: ./docs/
 
+      - name: list files in the root directory
+        run: ls -la
+        working-directory: ./
+
+      - name: list npm scripts
+        run: npm run
+
       - name: Install Netlify CLI
         run: npm install netlify-cli -g
 
