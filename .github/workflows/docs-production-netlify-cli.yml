@@ -70,6 +70,7 @@ jobs:
       - name: Docs build
         run: |
           npm run docs:build:production:netlify
+        working-directory: ./docs/
 
       - name: Install Netlify CLI
         run: npm install netlify-cli -g
