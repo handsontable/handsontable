@@ -41,7 +41,7 @@ import {
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
-import { getThemeClassName, MAIN_THEME_NAME } from './helpers/themes';
+import { getThemeClassName } from './helpers/themes';
 
 let activeGuid = null;
 
@@ -240,13 +240,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   if (isRootInstance(this)) {
     _injectProductInfo(userSettings.licenseKey, rootElement);
 
-    const themeClassName = tableMeta.themeName;
     const rootThemeClassName = getThemeClassName(rootElement.className);
 
-    if (rootThemeClassName && !themeClassName) {
+    if (rootThemeClassName && !tableMeta.themeName) {
       tableMeta.themeName = rootThemeClassName;
-    } else {
-      addClass(rootElement, themeClassName || MAIN_THEME_NAME);
+    }
+
+    addClass(rootElement, tableMeta.themeName);
+
+    const licenseInfo = rootElement.parentNode.querySelector('.hot-display-license-info');
+
+    if (licenseInfo) {
+      addClass(licenseInfo, tableMeta.themeName);
     }
   }
 

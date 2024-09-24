@@ -10,7 +10,7 @@
       position: relative;
     }
 
-    .ht__manualRowMove {
+    &.ht__manualRowMove {
       &.after-selection--rows tbody th.ht__highlight {
         @include mixins.cursor-grab;
       }

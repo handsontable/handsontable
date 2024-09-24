@@ -1,5 +1,3 @@
-export const MAIN_THEME_NAME = 'ht-theme-main';
-
 /**
  * Get theme class name from rootElement class.
  *

@@ -1,3 +1,5 @@
+@use "../../utils/mixins";
+
 /*
   Comments
 */
@@ -13,10 +15,10 @@
         top: 0;
         inset-inline-end: 0;
         inset-inline-start: unset;
-        border-inline-start: var(--hot-comment-indicator-size) solid transparent;
+        border-inline-start: var(--ht-comments-indicator-size) solid transparent;
         border-inline-end: none;
-        border-top: var(--hot-comment-indicator-size) solid
-          var(--hot-comment-indicator-color);
+        border-top: var(--ht-comments-indicator-size) solid
+          var(--ht-comments-indicator-color);
       }
     }
   }
@@ -29,28 +31,31 @@
     }
 
     .htCommentTextArea {
-      width: var(--hot-comment-textarea-width);
-      height: var(--hot-comment-textarea-height);
+      width: 240px;
+      height: 88px;
       margin: 0 -1px;
-      padding: calc(3 * var(--hot-base-grid));
+      padding: var(--ht-comments-textarea-horizontal-padding)
+        var(--ht-comments-textarea-vertical-padding);
       box-sizing: border-box;
       border: 0;
-      border-inline-start: 1px solid var(--hot-accent-color);
+      border-inline-start: var(--ht-comments-textarea-focus-border-width) solid
+        var(--ht-comments-textarea-border-color);
       border-inline-end: none;
-      color: var(--hot-foreground-color);
-      background-color: var(--hot-background-color);
+      border-radius: 0 calc(2 * var(--ht-gap-size)) calc(2 * var(--ht-gap-size))
+        0;
       outline: 0px !important;
+      color: var(--ht-comments-textarea-foreground-color);
+      background-color: var(--ht-comments-textarea-background-color);
+      @include mixins.font-family;
+      font-size: var(--ht-comments-font-size);
+      line-height: var(--ht-comments-line-height);
+      font-weight: var(--ht-font-weight);
+      @include mixins.menu-box-shadow;
       -webkit-appearance: none;
-      box-shadow: var(--hot-base-shadow);
-      border-radius: 0 calc(2 * var(--hot-base-grid))
-        calc(2 * var(--hot-base-grid)) 0;
-      font-family: var(--hot-font-family);
-      font-size: var(--hot-base-font-size);
-      line-height: var(--hot-base-line-height);
 
       &:focus {
-        box-shadow: var(--hot-base-shadow);
-        border-inline-start: 1px solid var(--hot-accent-color);
+        border-inline-start: var(--ht-comments-textarea-focus-border-width)
+          solid var(--ht-comments-textarea-focus-border-color);
         border-inline-end: none;
       }
     }

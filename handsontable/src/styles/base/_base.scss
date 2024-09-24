@@ -1,10 +1,17 @@
+@use "../utils/mixins";
+
+/*
+  Handsontable Base Row and Col
+*/
+
 @mixin output {
   .handsontable {
     position: relative;
-    font-family: var(--hot-font-family);
-    font-size: var(--hot-base-font-size);
-    font-weight: normal;
-    color: var(--hot-foreground-color);
+    @include mixins.font-family;
+    font-size: var(--ht-font-size, 12px);
+    line-height: var(--ht-line-height, 20px);
+    font-weight: var(--ht-font-weight);
+    color: var(--ht-foreground-color);
     /* Miscellaneous */
     touch-action: manipulation;
 
@@ -12,26 +19,27 @@
     th,
     td {
       height: calc(
-        var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding))
+        var(--ht-line-height, 20px) + (2 * var(--ht-cell-horizontal-padding, 8px))
       );
-      padding: var(--hot-cell-vertical-padding)
-        var(--hot-cell-horizontal-padding);
+      padding: var(--ht-cell-horizontal-padding, 4px)
+        var(--ht-cell-vertical-padding, 8px);
       vertical-align: top;
       border-top-width: 0;
       border-inline-start-width: 0;
-      border-inline-end-width: var(--hot-border-vertical-size);
-      border-bottom-width: var(--hot-border-horizontal-size);
+      border-inline-end-width: var(--ht-cell-vertical-border-width, 1px);
+      border-bottom-width: var(--ht-cell-horizontal-border-width, 1px);
       border-style: solid;
-      border-color: var(--hot-border-color);
-      box-sizing: border-box;
-      color: var(--hot-foreground-color);
-      font-size: var(--hot-base-font-size);
-      line-height: var(--hot-base-line-height);
+      border-color: var(--ht-border-color);
+      font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height, 20px);
       white-space: pre-wrap;
       overflow: hidden;
       outline: none;
       outline-width: 0;
       empty-cells: show;
+      box-sizing: border-box;
+      color: var(--ht-foreground-color);
+      background-color: var(--ht-background-color, #ffffff);
 
       &.invisibleSelection {
         outline: none;
@@ -45,74 +53,72 @@
     // Cell
     td {
       &:first-of-type {
-        border-inline-start-width: var(--hot-border-vertical-size);
+        border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
       }
     }
 
     // Header
     th {
       position: relative;
-      border-style: solid;
-      border-color: var(--hot-border-color);
       overflow: visible;
       text-align: center;
-      font-weight: normal;
+      font-weight: var(--ht-header-font-weight);
       white-space: nowrap;
-      color: var(--hot-header-foreground-color);
-      background-color: var(--hot-header-background-color);
+      color: var(--ht-header-foreground-color);
+      background-color: var(--ht-header-background-color, #f7f7f9);
 
       &:last-child {
         /*Foundation framework fix*/
         border-inline-start-width: 0;
-        border-inline-end-width: var(--hot-border-vertical-size);
-        border-bottom-width: var(--hot-border-horizontal-size);
+        border-inline-end-width: var(--ht-cell-vertical-border-width, 1px);
+        border-bottom-width: var(--ht-cell-horizontal-border-width, 1px);
       }
 
       &:first-child,
       &:nth-child(2) {
-        border-inline-start-width: var(--hot-border-vertical-size);
-      }
-
-      &.active {
-        background-color: var(--hot-highlight-color);
-      }
-
-      &.current {
-        box-shadow: inset 0 0 0 calc(var(--hot-border-horizontal-size) * 1)
-          var(--hot-header-current-color);
-      }
-
-      &.ht__active_highlight {
-        border-color: var(--hot-header-highlight-active-border-color);
-        box-shadow: calc(var(--hot-border-vertical-size) * -1)
-            calc(var(--hot-border-horizontal-size) * -1) 0
-            var(--hot-header-highlight-active-border-color),
-          0 calc(var(--hot-border-horizontal-size) * -1) 0
-            var(--hot-header-highlight-active-border-color),
-          calc(var(--hot-border-vertical-size) * -1) 0 0
-            var(--hot-header-highlight-active-border-color);
-
-        &:before {
-          background: var(--hot-header-highlight-active-background-color);
-        }
+        border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
       }
 
       &.ht__highlight {
-        background-color: var(--hot-highlight-color);
+        color: var(--ht-header-highlighted-foreground-color);
+        background-color: var(--ht-header-highlighted-background-color);
 
         &:before {
           content: "";
           display: block;
           position: absolute;
           inset: auto -1px -1px -1px;
-          height: 1px;
-          background-color: var(--hot-accent-color);
+          height: var(--ht-header-highlighted-shadow-size);
+          background-color: var(--ht-accent-color);
         }
       }
 
       &.ht__active_highlight {
-        background-color: var(--hot-header-highlight-active-background-color);
-        color: var(--hot-header-active-text-color);
+        border-color: var(--ht-header-active-border-color);
+        color: var(--ht-header-active-foreground-color);
+        background-color: var(--ht-header-active-background-color);
+        box-shadow: calc(var(--ht-cell-vertical-border-width) * -1)
+            calc(var(--ht-cell-horizontal-border-width) * -1) 0
+            var(--ht-header-active-border-color),
+          0 calc(var(--ht-cell-horizontal-border-width) * -1) 0
+            var(--ht-header-active-border-color),
+          calc(var(--ht-cell-vertical-border-width) * -1) 0 0
+            var(--ht-header-active-border-color);
+
+        &:before {
+          background-color: var(--ht-header-active-background-color);
+        }
+      }
+
+      //TODO: (theme) check if class is in use
+      &.active {
+        color: var(--ht-header-active-foreground-color);
+        background-color: var(--ht-header-active-background-color);
+      }
+
+      &.current {
+        box-shadow: inset 0 0 0 calc(var(--ht-cell-vertical-border-width) * 1)
+          var(--ht-header-active-border-color);
       }
     }
 
@@ -124,13 +130,15 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: var(--hot-cell-vertical-padding)
-          var(--hot-cell-horizontal-padding);
+        padding: var(--ht-cell-horizontal-padding, 8px)
+          var(--ht-cell-vertical-padding, 4px);
         height: calc(
-          var(--hot-base-line-height) + (2 * var(--hot-cell-vertical-padding))
+          var(--ht-line-height, 20px) +
+            (2 * var(--ht-cell-horizontal-padding, 8px))
         );
       }
     }
+
     thead tr:not(:last-child) th {
       // Fix for - nested columns with hidden column
       overflow: hidden;
@@ -140,7 +148,7 @@
     tbody th {
       &.ht__highlight {
         &:before {
-          width: 1px;
+          width: var(--ht-header-highlighted-shadow-size);
           height: auto;
           inset: -1px -1px -1px auto;
         }
@@ -208,7 +216,7 @@
       outline-width: 0;
       table-layout: fixed;
       cursor: default;
-      background: var(--hot-background-color);
+      background-color: var(--ht-background-color);
     }
 
     col {
@@ -225,7 +233,7 @@
 
     span.colHeader {
       display: inline-block;
-      line-height: var(--hot-base-line-height);
+      line-height: var(--ht-line-height, 20px);
     }
 
     tr.hidden {
@@ -238,24 +246,24 @@
     }
 
     a {
-      color: var(--hot-accent-color);
+      color: var(--ht-accent-color);
     }
 
     // Visual fixes
     /* It removes double right border from first column header when row headers are disabled */
     .ht_clone_top th:nth-child(2) {
       border-inline-start-width: 0;
-      border-inline-end-width: var(--hot-border-vertical-size);
+      border-inline-end-width: var(--ht-cell-vertical-border-width, 1px);
     }
 
     &.htRowHeaders thead tr th:nth-child(2) {
-      border-inline-start-width: var(--hot-border-vertical-size);
+      border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
     }
 
     tr:first-child {
       th,
       td {
-        border-top-width: var(--hot-border-horizontal-size);
+        border-top-width: var(--ht-cell-horizontal-border-width, 1px);
       }
     }
 
@@ -263,7 +271,7 @@
       tbody tr th,
       &:not(.ht_clone_top) thead tr th:first-child {
         border-inline-end-width: 0;
-        border-inline-start-width: var(--hot-border-vertical-size);
+        border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
       }
     }
 
@@ -280,11 +288,14 @@
       }
     }
 
+    /* Scroll bar  */
     & {
-      /* Scroll bar  */
       scrollbar-width: thin;
-      scrollbar-color: var(--hot-border-color)
-        var(--hot-header-background-color);
+      scrollbar-color: var(--ht-scrollbar-thumb-color)
+        var(--ht-scrollbar-track-color);
+    }
+    &::-webkit-scrollbar-track {
+      border-radius: 30px;
     }
 
     .ht_master table.htCore > thead,

@@ -4,7 +4,7 @@
   Filters
   Base styling in Dropdown Menu Plugin
 */
-
+//TODO: (theme) style
 @mixin output {
   .handsontable.htFiltersConditionsMenu {
     &:not(.htGhostTable) {
@@ -13,12 +13,6 @@
   }
 
   .handsontable {
-    .htMenuFiltering {
-      height: var(--hot-filters-menu-filtering-height);
-      border-bottom: 1px solid var(--hot-border-color);
-      overflow: hidden;
-    }
-
     .ht_master table td.htCustomMenuRenderer {
       cursor: auto;
     }

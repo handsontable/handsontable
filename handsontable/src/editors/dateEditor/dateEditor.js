@@ -5,7 +5,6 @@ import { TextEditor } from '../textEditor';
 import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
-import { MAIN_THEME_NAME } from '../../helpers/themes';
 
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
@@ -66,7 +65,7 @@ export class DateEditor extends TextEditor {
     const themeClassName = this.hot.getSettings().themeName;
 
     addClass(this.datePicker, 'htDatepickerHolder');
-    addClass(this.datePicker, themeClassName || MAIN_THEME_NAME);
+    addClass(this.datePicker, themeClassName);
     this.hot.rootDocument.body.appendChild(this.datePicker);
 
     /**
@@ -203,7 +202,7 @@ export class DateEditor extends TextEditor {
       this.$datePicker.useMoment(moment);
     }
 
-    this.$datePicker._onInputFocus = function() {};
+    this.$datePicker._onInputFocus = function () { };
 
     if (this.originalValue) {
       dateStr = this.originalValue;

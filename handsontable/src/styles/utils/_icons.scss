@@ -1,6 +1,6 @@
 @mixin icon($icons, $name) {
-  width: var(--hot-icon-size);
-  height: var(--hot-icon-size);
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
   mask-size: contain;
   mask-image: url(map-get($icons, $name));
   background-color: currentColor;

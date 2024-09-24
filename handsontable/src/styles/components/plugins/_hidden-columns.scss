@@ -17,7 +17,7 @@
           width: 0;
           height: 0;
           transform: translateY(-50%);
-          color: var(--hot-border-color);
+          color: var(--ht-border-color);
         }
       }
     }
@@ -38,14 +38,14 @@
   [dir="rtl"].handsontable {
     th.beforeHiddenColumn .relative::after {
       right: initial;
-      left: 2px;
-      border-color: transparent transparent transparent var(--hot-border-color);
+      left: -2px;
+      transform: translateY(-50%) rotate(180deg);
     }
 
     th.afterHiddenColumn .relative::before {
-      right: 2px;
+      right: -2px;
       left: initial;
-      border-color: transparent var(--hot-border-color) transparent transparent;
+      transform: translateY(-50%) rotate(180deg);
     }
   }
 }

@@ -1,6 +1,5 @@
 import { addClass, outerWidth, outerHeight } from '../../helpers/dom/element';
 import { mixin } from '../../helpers/object';
-import { MAIN_THEME_NAME } from '../../helpers/themes';
 import localHooks from '../../mixins/localHooks';
 import { EditorResizeObserver } from './editorResizeObserver';
 
@@ -220,7 +219,7 @@ class CommentEditor {
     this.#container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
     addClass(this.#container, CommentEditor.CLASS_EDITOR_CONTAINER);
-    addClass(this.#container, this.#themeClassName || MAIN_THEME_NAME);
+    addClass(this.#container, this.#themeClassName);
 
     this.#rootDocument.body.appendChild(this.#container);
 

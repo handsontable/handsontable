@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 13/09/2024 14:37:58)
+ * Release date: 30/07/2024 (built at 24/09/2024 13:45:55)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "13/09/2024 14:37:58";
+Handsontable.buildDate = "24/09/2024 13:45:55";
 Handsontable.version = "14.5.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -362,12 +362,14 @@ function Core(rootElement, userSettings) {
   rootElement.insertBefore(this.container, rootElement.firstChild);
   if ((0, _rootInstance.isRootInstance)(this)) {
     (0, _mixed._injectProductInfo)(userSettings.licenseKey, rootElement);
-    const themeClassName = tableMeta.themeName;
     const rootThemeClassName = (0, _themes.getThemeClassName)(rootElement.className);
-    if (rootThemeClassName && !themeClassName) {
+    if (rootThemeClassName && !tableMeta.themeName) {
       tableMeta.themeName = rootThemeClassName;
-    } else {
-      (0, _element.addClass)(rootElement, themeClassName || _themes.MAIN_THEME_NAME);
+    }
+    (0, _element.addClass)(rootElement, tableMeta.themeName);
+    const licenseInfo = rootElement.parentNode.querySelector('.hot-display-license-info');
+    if (licenseInfo) {
+      (0, _element.addClass)(licenseInfo, tableMeta.themeName);
     }
   }
   this.guid = `ht_${(0, _string.randomString)()}`; // this is the namespace for global events
@@ -2584,8 +2586,7 @@ function Core(rootElement, userSettings) {
    * by adding or removing rows and columns at specified positions.
    *
    * ::: tip
-   * The `alter()` method works only when your [`data`](@/api/options.md#data)
-   * is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays).
+   * If you use an array of objects in your [`data`](@/api/options.md#data), the column-related actions won't work.
    * :::
    *
    * ```js
@@ -4378,6 +4379,158 @@ function Core(rootElement, userSettings) {
    */
   this.getActiveEditor = function () {
     return editorManager.getActiveEditor();
+  };
+
+  /**
+   * Returns the first rendered row in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstRenderedVisibleRow
+   * @returns {number | null}
+   */
+  this.getFirstRenderedVisibleRow = function () {
+    return instance.view.getFirstRenderedVisibleRow();
+  };
+
+  /**
+   * Returns the last rendered row in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastRenderedVisibleRow
+   * @returns {number | null}
+   */
+  this.getLastRenderedVisibleRow = function () {
+    return instance.view.getLastRenderedVisibleRow();
+  };
+
+  /**
+   * Returns the first rendered column in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstRenderedVisibleColumn
+   * @returns {number | null}
+   */
+  this.getFirstRenderedVisibleColumn = function () {
+    return instance.view.getFirstRenderedVisibleColumn();
+  };
+
+  /**
+   * Returns the last rendered column in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastRenderedVisibleColumn
+   * @returns {number | null}
+   */
+  this.getLastRenderedVisibleColumn = function () {
+    return instance.view.getLastRenderedVisibleColumn();
+  };
+
+  /**
+   * Returns the first fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstFullyVisibleRow
+   * @returns {number | null}
+   */
+  this.getFirstFullyVisibleRow = function () {
+    return instance.view.getFirstFullyVisibleRow();
+  };
+
+  /**
+   * Returns the last fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastFullyVisibleRow
+   * @returns {number | null}
+   */
+  this.getLastFullyVisibleRow = function () {
+    return instance.view.getLastFullyVisibleRow();
+  };
+
+  /**
+   * Returns the first fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstFullyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getFirstFullyVisibleColumn = function () {
+    return instance.view.getFirstFullyVisibleColumn();
+  };
+
+  /**
+   * Returns the last fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastFullyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getLastFullyVisibleColumn = function () {
+    return instance.view.getLastFullyVisibleColumn();
+  };
+
+  /**
+   * Returns the first partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstPartiallyVisibleRow
+   * @returns {number | null}
+   */
+  this.getFirstPartiallyVisibleRow = function () {
+    return instance.view.getFirstPartiallyVisibleRow();
+  };
+
+  /**
+   * Returns the last partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastPartiallyVisibleRow
+   * @returns {number | null}
+   */
+  this.getLastPartiallyVisibleRow = function () {
+    return instance.view.getLastPartiallyVisibleRow();
+  };
+
+  /**
+   * Returns the first partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstPartiallyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getFirstPartiallyVisibleColumn = function () {
+    return instance.view.getFirstPartiallyVisibleColumn();
+  };
+
+  /**
+   * Returns the last partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastPartiallyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getLastPartiallyVisibleColumn = function () {
+    return instance.view.getLastPartiallyVisibleColumn();
   };
 
   /**
@@ -42948,7 +43101,7 @@ var _default = () => {
      * themeName: 'ht-theme-name',
      * ```
      */
-    themeName: undefined,
+    themeName: 'ht-theme-main',
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
      *
@@ -46783,11 +46936,17 @@ function shortcutsGridContext(hot) {
   context.addShortcuts([{
     keys: [['Control/Meta', 'A']],
     callback: () => commandsPool.selectAllCells(),
-    runOnlyIf: () => !hot.getSelectedRangeLast().highlight.isHeader()
+    runOnlyIf: () => {
+      var _hot$getSelectedRange;
+      return !((_hot$getSelectedRange = hot.getSelectedRangeLast()) !== null && _hot$getSelectedRange !== void 0 && _hot$getSelectedRange.highlight.isHeader());
+    }
   }, {
     keys: [['Control/Meta', 'A']],
     callback: () => {},
-    runOnlyIf: () => hot.getSelectedRangeLast().highlight.isHeader(),
+    runOnlyIf: () => {
+      var _hot$getSelectedRange2;
+      return (_hot$getSelectedRange2 = hot.getSelectedRangeLast()) === null || _hot$getSelectedRange2 === void 0 ? void 0 : _hot$getSelectedRange2.highlight.isHeader();
+    },
     preventDefault: true
   }, {
     keys: [['Control/Meta', 'Shift', 'Space']],
@@ -46796,7 +46955,8 @@ function shortcutsGridContext(hot) {
     keys: [['Control/Meta', 'Enter']],
     callback: () => commandsPool.populateSelectedCellsData(),
     runOnlyIf: () => {
-      return !hot.getSelectedRangeLast().highlight.isHeader() && hot.getSelectedRangeLast().getCellsCount() > 1;
+      var _hot$getSelectedRange3, _hot$getSelectedRange4;
+      return !((_hot$getSelectedRange3 = hot.getSelectedRangeLast()) !== null && _hot$getSelectedRange3 !== void 0 && _hot$getSelectedRange3.highlight.isHeader()) && ((_hot$getSelectedRange4 = hot.getSelectedRangeLast()) === null || _hot$getSelectedRange4 === void 0 ? void 0 : _hot$getSelectedRange4.getCellsCount()) > 1;
     }
   }, {
     keys: [['Control', 'Space']],
@@ -48039,8 +48199,6 @@ function createKeysObserver() {
 
 exports.__esModule = true;
 exports.getThemeClassName = getThemeClassName;
-const MAIN_THEME_NAME = exports.MAIN_THEME_NAME = 'ht-theme-main';
-
 /**
  * Get theme class name from rootElement class.
  *
@@ -49961,7 +50119,6 @@ var _textEditor = __webpack_require__(389);
 var _element = __webpack_require__(135);
 var _object = __webpack_require__(145);
 var _unicode = __webpack_require__(154);
-var _themes = __webpack_require__(386);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
 
@@ -50017,7 +50174,7 @@ class DateEditor extends _textEditor.TextEditor {
     this.datePicker.setAttribute('dir', this.hot.isRtl() ? 'rtl' : 'ltr');
     const themeClassName = this.hot.getSettings().themeName;
     (0, _element.addClass)(this.datePicker, 'htDatepickerHolder');
-    (0, _element.addClass)(this.datePicker, themeClassName || _themes.MAIN_THEME_NAME);
+    (0, _element.addClass)(this.datePicker, themeClassName);
     this.hot.rootDocument.body.appendChild(this.datePicker);
 
     /**
@@ -60023,7 +60180,6 @@ exports.__esModule = true;
 __webpack_require__(5);
 var _element = __webpack_require__(135);
 var _object = __webpack_require__(145);
-var _themes = __webpack_require__(386);
 var _localHooks = _interopRequireDefault(__webpack_require__(241));
 var _editorResizeObserver = __webpack_require__(510);
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
@@ -60248,7 +60404,7 @@ class CommentEditor {
     _classPrivateFieldSet(_container, this, _classPrivateFieldGet(_rootDocument, this).createElement('div'));
     _classPrivateFieldGet(_container, this).setAttribute('dir', _classPrivateFieldGet(_isRtl, this) ? 'rtl' : 'ltr');
     (0, _element.addClass)(_classPrivateFieldGet(_container, this), CommentEditor.CLASS_EDITOR_CONTAINER);
-    (0, _element.addClass)(_classPrivateFieldGet(_container, this), _classPrivateFieldGet(_themeClassName, this) || _themes.MAIN_THEME_NAME);
+    (0, _element.addClass)(_classPrivateFieldGet(_container, this), _classPrivateFieldGet(_themeClassName, this));
     _classPrivateFieldGet(_rootDocument, this).body.appendChild(_classPrivateFieldGet(_container, this));
     (0, _element.addClass)(editor, CommentEditor.CLASS_EDITOR);
     (0, _element.addClass)(textarea, CommentEditor.CLASS_INPUT);
@@ -60589,17 +60745,6 @@ function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; 
 const KEY = exports.KEY = 'alignment';
 
 /**
- * @param {object} hot The current Handsontable instance.
- * @param {string} rawName The raw name of the menu item.
- * @param {string} htClassName The class name to check.
- * @returns {string} The value of aria-label parameter.
- */
-function ariaLabel(hot, rawName, htClassName) {
-  const checkboxState = (0, _utils.hasSelectionAClass)(hot, htClassName) ? hot.getTranslatedPhrase(C.CHECKBOX_CHECKED) : hot.getTranslatedPhrase(C.CHECKBOX_UNCHECKED);
-  return `${rawName} ${checkboxState.toLowerCase()}`;
-}
-
-/**
  * @returns {object}
  */
 function alignmentItem() {
@@ -60626,7 +60771,7 @@ function alignmentItem() {
         key: `${KEY}:left`,
         checkable: true,
         ariaLabel() {
-          return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT), 'htLeft');
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT);
         },
         ariaChecked() {
           return (0, _utils.hasSelectionAClass)(this, 'htLeft');
@@ -60652,7 +60797,7 @@ function alignmentItem() {
         key: `${KEY}:center`,
         checkable: true,
         ariaLabel() {
-          return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER), 'htCenter');
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER);
         },
         ariaChecked() {
           return (0, _utils.hasSelectionAClass)(this, 'htCenter');
@@ -60678,7 +60823,7 @@ function alignmentItem() {
         key: `${KEY}:right`,
         checkable: true,
         ariaLabel() {
-          return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT), 'htRight');
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT);
         },
         ariaChecked() {
           return (0, _utils.hasSelectionAClass)(this, 'htRight');
@@ -60704,7 +60849,7 @@ function alignmentItem() {
         key: `${KEY}:justify`,
         checkable: true,
         ariaLabel() {
-          return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY), 'htJustify');
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY);
         },
         ariaChecked() {
           return (0, _utils.hasSelectionAClass)(this, 'htJustify');
@@ -60732,7 +60877,7 @@ function alignmentItem() {
         key: `${KEY}:top`,
         checkable: true,
         ariaLabel() {
-          return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP), 'htTop');
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
         },
         ariaChecked() {
           return (0, _utils.hasSelectionAClass)(this, 'htTop');
@@ -60758,7 +60903,7 @@ function alignmentItem() {
         key: `${KEY}:middle`,
         checkable: true,
         ariaLabel() {
-          return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE), 'htMiddle');
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE);
         },
         ariaChecked() {
           return (0, _utils.hasSelectionAClass)(this, 'htMiddle');
@@ -60784,7 +60929,7 @@ function alignmentItem() {
         key: `${KEY}:bottom`,
         checkable: true,
         ariaLabel() {
-          return ariaLabel(this, this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM), 'htBottom');
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM);
         },
         ariaChecked() {
           return (0, _utils.hasSelectionAClass)(this, 'htBottom');
@@ -61192,10 +61337,7 @@ function readOnlyItem() {
       return atLeastOneReadOnly;
     },
     ariaLabel() {
-      const rawName = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
-      const atLeastOneReadOnly = (0, _utils.checkSelectionConsistency)(this.getSelectedRange(), (row, col) => this.getCellMeta(row, col).readOnly);
-      const checkboxState = atLeastOneReadOnly ? this.getTranslatedPhrase(C.CHECKBOX_CHECKED) : this.getTranslatedPhrase(C.CHECKBOX_UNCHECKED);
-      return `${rawName} ${checkboxState.toLowerCase()}`;
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
     },
     name() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
@@ -61946,6 +62088,13 @@ class ContextMenu extends _base.BasePlugin {
     }
     this.prepareMenuItems();
     this.menu.open();
+    const themeHasTableBorder = this.menu.tableBorderWidth > 0;
+    if (!themeHasTableBorder) {
+      offset.below += 1;
+      offset.right += 1;
+      offset.above -= 1;
+      offset.left -= 1;
+    }
     (0, _object.objectEach)(offset, (value, key) => {
       this.menu.setOffset(key, value);
     });
@@ -62458,7 +62607,6 @@ var _object = __webpack_require__(145);
 var _localHooks = _interopRequireDefault(__webpack_require__(241));
 var _menuItemRenderer = __webpack_require__(545);
 var _a11y = __webpack_require__(142);
-var _themes = __webpack_require__(386);
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
 function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
@@ -62483,7 +62631,21 @@ const MIN_WIDTH = 215;
  */
 var _navigator = /*#__PURE__*/new WeakMap();
 var _shortcutsCtrl = /*#__PURE__*/new WeakMap();
+var _tableBorderWidth = /*#__PURE__*/new WeakMap();
 class Menu {
+  /**
+   * Getter for the table border width.
+   * This getter retrieves the border width of the table used in the menu.
+   *
+   * @returns {number} The border width of the table in pixels.
+   */
+  get tableBorderWidth() {
+    if (_classPrivateFieldGet(_tableBorderWidth, this) === undefined && this.hotMenu) {
+      _classPrivateFieldSet(_tableBorderWidth, this, parseInt((0, _element.getComputedStyle)(this.hotMenu.view._wt.wtTable.TABLE).borderWidth, 10));
+    }
+    return _classPrivateFieldGet(_tableBorderWidth, this);
+  }
+
   /**
    * @param {Core} hotInstance Handsontable instance.
    * @param {MenuOptions} [options] Menu options.
@@ -62556,6 +62718,12 @@ class Menu {
      * @type {KeyboardShortcutsMenuController}
      */
     _classPrivateFieldInitSpec(this, _shortcutsCtrl, void 0);
+    /**
+     * The border width of the table used in the menu.
+     *
+     * @type {number}
+     */
+    _classPrivateFieldInitSpec(this, _tableBorderWidth, void 0);
     this.hot = hotInstance;
     this.options = options || {
       parent: null,
@@ -62712,7 +62880,7 @@ class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: row => filteredItems[row].name === _predefinedItems.SEPARATOR ? 1 : 23,
+      rowHeights: row => filteredItems[row].name === _predefinedItems.SEPARATOR ? 1 : undefined,
       afterOnCellContextMenu: event => {
         event.preventDefault();
 
@@ -62978,6 +63146,31 @@ class Menu {
   }
 
   /**
+   * Updates the dimensions of the menu based on its content.
+   * This method calculates the real height of the menu by summing up the heights of its items,
+   * and adjusts the width and height of the menu's holder and hider elements accordingly.
+   */
+  updateMenuDimensions() {
+    const {
+      wtTable
+    } = this.hotMenu.view._wt;
+    const data = this.hotMenu.getSettings().data;
+    const hiderStyle = wtTable.hider.style;
+    const holderStyle = wtTable.holder.style;
+    const currentHiderWidth = parseInt(hiderStyle.width, 10);
+    const realHeight = (0, _array.arrayReduce)(data, (accumulator, value, index) => {
+      const itemCell = this.hotMenu.getCell(index, 0);
+      const currentRowHeight = itemCell ? (0, _element.outerHeight)(this.hotMenu.getCell(index, 0)) : 0;
+      return accumulator + (value.name === _predefinedItems.SEPARATOR ? 1 : currentRowHeight);
+    }, 0);
+
+    // Additional 3px to menu's size because of additional border around its `table.htCore`.
+    holderStyle.width = `${currentHiderWidth + 3}px`;
+    holderStyle.height = `${realHeight + 3}px`;
+    hiderStyle.height = holderStyle.height;
+  }
+
+  /**
    * Create container/wrapper for handsontable.
    *
    * @private
@@ -63006,7 +63199,7 @@ class Menu {
       const themeClassName = this.hot.getSettings().themeName;
       container = doc.createElement('div');
       (0, _element.addClass)(container, `htMenu ${this.options.className}`);
-      (0, _element.addClass)(container, themeClassName || _themes.MAIN_THEME_NAME);
+      (0, _element.addClass)(container, themeClassName);
       if (className) {
         (0, _element.addClass)(container, className);
       }
@@ -63021,19 +63214,7 @@ class Menu {
    * @private
    */
   onAfterInit() {
-    const {
-      wtTable
-    } = this.hotMenu.view._wt;
-    const data = this.hotMenu.getSettings().data;
-    const hiderStyle = wtTable.hider.style;
-    const holderStyle = wtTable.holder.style;
-    const currentHiderWidth = parseInt(hiderStyle.width, 10);
-    const realHeight = (0, _array.arrayReduce)(data, (accumulator, value) => accumulator + (value.name === _predefinedItems.SEPARATOR ? 1 : 26), 0);
-
-    // Additional 3px to menu's size because of additional border around its `table.htCore`.
-    holderStyle.width = `${currentHiderWidth + 3}px`;
-    holderStyle.height = `${realHeight + 3}px`;
-    hiderStyle.height = holderStyle.height;
+    this.updateMenuDimensions();
 
     // Replace the default accessibility tags with the context menu's
     if (this.hot.getSettings().ariaTags) {
@@ -68915,7 +69096,9 @@ function _onAfterChange(changes) {
   }
 }
 function _onAfterDropdownMenuShow() {
+  const menu = this.dropdownMenuPlugin.menu;
   this.restoreComponents(Array.from(this.components.values()));
+  menu.updateMenuDimensions();
 }
 /**
  * After dropdown menu hide listener.

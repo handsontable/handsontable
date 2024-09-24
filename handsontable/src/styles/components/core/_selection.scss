@@ -40,12 +40,12 @@
       /* A layer order of the selection types */
       &.current {
         z-index: 10;
-        background-color: var(--hot-accent-color) !important;
+        background-color: var(--ht-cell-selection-border-color) !important;
       }
 
       &.area {
         z-index: 8;
-        background-color: var(--hot-accent-color) !important;
+        background-color: var(--ht-cell-selection-border-color) !important;
       }
 
       &.fill {
@@ -57,7 +57,7 @@
         background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
         background-size: 8px 2px, 0px 0px, 2px 8px, 0px 0px;
         animation: marching-ants 600ms infinite linear;
-        background-color: var(--hot-accent-color) !important;
+        background-color: var(--ht-cell-selection-border-color) !important;
       }
 
       /* fill handle */

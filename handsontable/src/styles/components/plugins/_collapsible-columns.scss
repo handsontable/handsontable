@@ -11,36 +11,63 @@
     .collapsibleIndicator,
     .ht_nestingButton {
       position: relative;
-      width: calc(4 * var(--hot-base-grid));
-      height: calc(4 * var(--hot-base-grid));
+      width: calc(4 * var(--ht-gap-size));
+      height: calc(4 * var(--ht-gap-size));
       box-sizing: border-box;
-      border-radius: var(--hot-border-radius);
-      box-shadow: 0 0 0 1px var(--hot-border-color);;
-      text-indent: -100px;
-      font-size: 0;
-      background-color: var(--hot-background-color);
+      border-radius: var(--ht-collapse-button-border-radius);
       overflow: hidden;
       cursor: pointer;
-
-      &:hover {
-        &::before {
-          color: var(--hot-foreground-color-active);
-        }
-      }
+      /* hide text */
+      text-indent: -100px;
+      font-size: 0;
 
       &:before {
         @include mixins.pseudo;
         position: absolute;
         top: 0;
         left: 0;
-        color: var(--hot-border-color);
         transition: var(--hot-transition-time) all ease-in-out;
       }
-    }
-  }
 
-  [dir="rtl"].handsontable .collapsibleIndicator {
-    right: unset;
-    left: var(--hot-base-grid);
+      &.expanded,
+      &.ht_nestingCollapse {
+        background-color: var(--ht-collapse-button-open-background);
+        box-shadow: 0 0 0 1px var(--ht-collapse-button-open-border-color); // border
+
+        &:before {
+          color: var(--ht-collapse-button-open-icon-color);
+        }
+
+        &:hover {
+          background-color: var(--ht-collapse-button-open-hover-background);
+          box-shadow: 0 0 0 1px
+            var(--ht-collapse-button-open-hover-border-color); // border
+
+          &:before {
+            color: var(--ht-collapse-button-open-hover-icon-color);
+          }
+        }
+      }
+
+      &.collapsed,
+      &.ht_nestingExpand {
+        background-color: var(--ht-collapse-button-close-background);
+        box-shadow: 0 0 0 1px var(--ht-collapse-button-close-border-color); // border
+
+        &:before {
+          color: var(--ht-collapse-button-close-icon-color);
+        }
+
+        &:hover {
+          background-color: var(--ht-collapse-button-close-hover-background);
+          box-shadow: 0 0 0 1px
+            var(--ht-collapse-button-close-hover-border-color); // border
+
+          &:before {
+            color: var(--ht-collapse-button-close-hover-icon-color);
+          }
+        }
+      }
+    }
   }
 }

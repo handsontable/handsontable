@@ -2,97 +2,229 @@
 @use "utils/main/icons";
 
 @mixin light {
-  /* Typography */
-  --hot-font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
-  --hot-base-font-size: 12px;
-  --hot-label-font-size: 10px;
-  --hot-base-line-height: 20px;
-  --hot-label-line-height: 18px;
+  --ht-font-size: 12px;
+  --ht-line-height: 20px;
+  --ht-font-weight: 400;
+  --ht-letter-spacing: 0px;
+  --ht-border-radius: 4px;
+  --ht-border-width: 1px;
+  --ht-gap-size: 4px;
+  --ht-icon-size: 16px;
+  --ht-background-color: #ffffff;
+  --ht-border-color: #e5e5e9;
+  --ht-accent-color: #1a42e8;
+  --ht-foreground-color: #222222;
+  --ht-placeholder-color: #999999;
+  --ht-read-only-color: #888888;
+  --ht-disabled-color: #999999;
+  --ht-table-transition: 0px;
 
-  /* Sizing */
-  --hot-border-horizontal-size: 1px;
-  --hot-border-vertical-size: 1px;
-  --hot-base-grid: 4px;
-  --hot-border-radius: 4px;
-  --hot-base-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.12);
-  --hot-control-size: 16px; // Radio & Checkbox
-  --hot-icon-size: 16px;
-  --hot-icon-size-sm: 12px;
+  --ht-cell-horizontal-border-width: 1px;
+  --ht-cell-vertical-border-width: 1px;
+  --ht-cell-vertical-padding: 8px;
+  --ht-cell-horizontal-padding: 4px;
+  --ht-cell-editor-foreground-color: #000000;
+  --ht-cell-editor-border-color: #1a42e8;
+  --ht-cell-editor-shadow-blur-radius: 8px;
+  --ht-cell-editor-shadow-color: rgba(17, 61, 201, 0.60);
+  --ht-cell-editor-shadow-border-width: 2px;
+  --ht-cell-search-background-color: rgba(251, 233, 82, 0.80);
+  --ht-cell-error-background-color: rgba(250, 77, 50, 0.20);
+  --ht-cell-success-background-color: rgba(55, 188, 108, 0.20);
+  --ht-cell-warning-background-color: rgba(251, 233, 82, 0.20);
+  --ht-cell-informational-background-color: rgba(39, 194, 255, 0.20);
+  --ht-cell-selection-border-color: #1a42e8;
+  --ht-cell-selection-background-color: #1a42e8;
+  --ht-cell-autofill-size: 6px;
+  --ht-cell-autofill-border-width: 1px;
+  --ht-cell-autofill-border-radius: 0px;
 
-  /* Core Colors */
-  --hot-background-color: white;
-  --hot-border-color: #d1d1d5;
-  --hot-off-background-color: #f7f7f9;
-  --hot-highlight-color: #efeff3;
+  --ht-checkbox-size: 16px;
+  --ht-checkbox-border-color: #e5e5e9;
+  --ht-checkbox-background-color: rgba(255, 255, 255, 0);
+  --ht-checkbox-icon-color: rgba(255, 255, 255, 0);
+  --ht-checkbox-focus-background-color: #ffffff;
+  --ht-checkbox-focus-border-color: #e5e5e9;
+  --ht-checkbox-focus-icon-color: rgba(255, 255, 255, 0);
+  --ht-checkbox-focus-ring-color: #1a42e8;
+  --ht-checkbox-disabled-background-color: #d1d1d5;
+  --ht-checkbox-disabled-border-color: #e5e5e9;
+  --ht-checkbox-disabled-icon-color: rgba(255, 255, 255, 0);
+  --ht-checkbox-hover-background-color: #ffffff;
+  --ht-checkbox-hover-border-color: #e5e5e9;
+  --ht-checkbox-hover-icon-color: rgba(34, 34, 34, 0.08);
+  --ht-checkbox-checked-background-color: #1a42e8;
+  --ht-checkbox-checked-border-color: #e5e5e9;
+  --ht-checkbox-checked-icon-color: #ffffff;
+  --ht-checkbox-checked-focus-background-color: #1a42e8;
+  --ht-checkbox-checked-focus-border-color: #ffffff;
+  --ht-checkbox-checked-focus-icon-color: #ffffff;
+  --ht-checkbox-checked-disabled-background-color: #d1d1d5;
+  --ht-checkbox-checked-disabled-border-color: #e5e5e9;
+  --ht-checkbox-checked-disabled-icon-color: #999999;
+  --ht-checkbox-checked-hover-background-color: #1a42e8;
+  --ht-checkbox-checked-hover-border-color: rgba(255, 255, 255, 0.24);
+  --ht-checkbox-checked-hover-icon-color: #ffffff;
+  --ht-checkbox-indeterminate-background-color: #1a42e8;
+  --ht-checkbox-indeterminate-border-color: #e5e5e9;
+  --ht-checkbox-indeterminate-icon-color: #ffffff;
+  --ht-checkbox-indeterminate-disabled-background-color: #d1d1d5;
+  --ht-checkbox-indeterminate-disabled-border-color: #e5e5e9;
+  --ht-checkbox-indeterminate-disabled-icon-color: #aeaeae;
+  --ht-checkbox-indeterminate-hover-background-color: #1a42e8;
+  --ht-checkbox-indeterminate-hover-border-color: rgba(255, 255, 255, 0.24);
+  --ht-checkbox-indeterminate-hover-icon-color: #ffffff;
+  --ht-checkbox-indeterminate-focus-background-color: #1a42e8;
+  --ht-checkbox-indeterminate-focus-border-color: #ffffff;
+  --ht-checkbox-indeterminate-focus-icon-color: #ffffff;
 
-  /* Text Colors */
-  --hot-foreground-color: #222222;
-  --hot-foreground-color-active: #000;
-  --hot-search-highlight-background-color: #fbe952;
-  --hot-invalid-background-color: rgba(250, 77, 50, 0.3);
-  --hot-read-only-text: color-mix(
-    in srgb,
-    var(--hot-background-color),
-    var(--hot-foreground-color) 37%
-  );
-  --hot-placeholder-text: var(--hot-read-only-tex);
+  --ht-header-active-background-color: #e1e5f7;
+  --ht-header-active-foreground-color: #222222;
+  --ht-header-active-border-color: #e5e5e9;
+  --ht-header-highlighted-foreground-color: #000000;
+  --ht-header-highlighted-background-color: #eeeef0;
+  --ht-header-highlighted-shadow-size: 0px;
+  --ht-header-background-color: #f7f7f9;
+  --ht-header-row-background-color: #f7f7f9;
+  --ht-header-font-weight: 400;
+  --ht-header-foreground-color: #222222;
 
-  /* Accents Colors */
-  --hot-accent-color: #1a42e8;
-  --hot-input-border-color: var(--hot-accent-color); // htInput
-  --hot-mobile-focus-color: var(--hot-input-border-color);
+  --ht-frozen-shadow-size: 2px;
+  --ht-frozen-shadow-color: #e5e5e9;
 
-  /* Global */
-  --hot-transition-time: 0.2s;
+  --ht-row-odd-background-color: #f7f7f9;
+  --ht-row-hover-background-color: rgba(34, 34, 34, 0.05);
+  --ht-row-collapse-indicator-border-color: #e5e5e9;
+  --ht-row-even-background-color: #ffffff;
 
-  /* Cell */
-  --hot-cell-horizontal-padding: 8px;
-  --hot-cell-vertical-padding: 4px;
+  --ht-resize-indicator-color: #999999;
 
-  /* Header Colors */
-  --hot-header-background-color: var(--hot-off-background-color);
-  --hot-header-highlight-active-background-color: var(--hot-accent-color);
-  --hot-header-foreground-color: color-mix(
-    in srgb,
-    var(--hot-background-color),
-    var(--hot-foreground-color) 64%
-  );
-  --hot-header-active-text-color: color-mix(
-    in srgb,
-    var(--hot-header-highlight-active-background-color),
-    var(--hot-background-color) 64%
-  );
-  --hot-header-current-color: var(--hot-accent-color);
-  --hot-header-highlight-active-border-color: color-mix(
-    in srgb,
-    var(--hot-border-color),
-    var(--hot-header-highlight-active-background-color) 82%
-  );
+  --ht-icon-button-background: rgba(255, 255, 255, 0);
+  --ht-icon-button-icon-color: rgba(34, 34, 34, 0.40);
+  --ht-icon-button-hover-background: rgba(34, 34, 34, 0.08);
+  --ht-icon-button-hover-icon-color: rgba(34, 34, 34, 0.40);
+  --ht-icon-button-focus-background: rgba(255, 255, 255, 0);
+  --ht-icon-button-focus-icon-color: #1a42e8;
+  --ht-icon-button-border-radius: 2px;
+  --ht-icon-button-disabled-background: rgba(153, 153, 153, 0.32);
+  --ht-icon-button-disabled-icon-color: #999999;
+  --ht-collapse-button-border-radius: 4px;
+  --ht-collapse-button-open-background: #ffffff;
+  --ht-collapse-button-open-border-color: #e5e5e9;
+  --ht-collapse-button-open-icon-color: #999999;
+  --ht-collapse-button-open-hover-background: #f7f7f9;
+  --ht-collapse-button-open-hover-border-color: #e5e5e9;
+  --ht-collapse-button-open-hover-icon-color: #1a42e8;
+  --ht-collapse-button-open-focus-background: #f7f7f9;
+  --ht-collapse-button-open-focus-border-color: #e5e5e9;
+  --ht-collapse-button-open-focus-icon-color: #1a42e8;
+  --ht-collapse-button-close-icon-color: #666666;
+  --ht-collapse-button-close-background: rgba(34, 34, 34, 0.08);
+  --ht-collapse-button-close-border-color: #e5e5e9;
+  --ht-collapse-button-close-hover-background: #666666;
+  --ht-collapse-button-close-hover-border-color: #666666;
+  --ht-collapse-button-close-hover-icon-color: #ffffff;
+  --ht-collapse-button-close-focus-background: rgba(34, 34, 34, 0.08);
+  --ht-collapse-button-close-focus-border-color: #e5e5e9;
+  --ht-collapse-button-close-focus-icon-color: #1a42e8;
 
-  /* Dropdown */
-  --hot-dropdown-background: var(--hot-background-color);
-  --hot-dropdown-border-color: var(--hot-border-color);
-  --hot-dropdown-border-width: 0;
+  --ht-primary-button-background: rgba(34, 34, 34, 0.40);
+  --ht-primary-button-border-color: rgba(34, 34, 34, 0.40);
+  --ht-primary-button-foreground-color: rgba(34, 34, 34, 0.40);
+  --ht-primary-button-disabled-background: rgba(34, 34, 34, 0.40);
+  --ht-primary-button-disabled-foreground-color: rgba(34, 34, 34, 0.40);
+  --ht-primary-button-disabled-border-color: rgba(34, 34, 34, 0.40);
+  --ht-primary-button-hover-background: rgba(34, 34, 34, 0.40);
+  --ht-primary-button-hover-foreground-color: rgba(34, 34, 34, 0.40);
+  --ht-primary-button-hover-border-color: rgba(34, 34, 34, 0.40);
+  --ht-primary-button-focus-background: rgba(34, 34, 34, 0.40);
+  --ht-primary-button-focus-foreground-color: rgba(34, 34, 34, 0.40);
+  --ht-primary-button-focus-border-color: rgba(34, 34, 34, 0.40);
 
-  /* Comments */
-  --hot-comment-indicator-size: 6px;
-  --hot-comment-indicator-color: var(--hot-accent-color);
+  --ht-secondary-button-background: rgba(34, 34, 34, 0.40);
+  --ht-secondary-button-foreground-color: rgba(34, 34, 34, 0.40);
+  --ht-secondary-button-border-color: rgba(34, 34, 34, 0.40);
+  --ht-secondary-button-disabled-background: rgba(34, 34, 34, 0.40);
+  --ht-secondary-button-disabled-foreground-color: rgba(34, 34, 34, 0.40);
+  --ht-secondary-button-disabled-border-color: rgba(34, 34, 34, 0.40);
+  --ht-secondary-button-hover-background: rgba(34, 34, 34, 0.40);
+  --ht-secondary-button-hover-foreground-color: rgba(34, 34, 34, 0.40);
+  --ht-secondary-button-hover-border-color: rgba(34, 34, 34, 0.40);
+  --ht-secondary-button-focus-background: rgba(34, 34, 34, 0.40);
+  --ht-secondary-button-focus-foreground-color: rgba(34, 34, 34, 0.40);
+  --ht-secondary-button-focus-border-color: rgba(34, 34, 34, 0.40);
 
-  --hot-comment-textarea-height: 88px;
-  --hot-comment-textarea-width: 240px;
+  --ht-button-vertical-padding: 6px;
+  --ht-button-horizontal-padding: 12px;
+  --ht-button-border-radius: 4px;
 
-  /* Frozen */
-  --hot-frozen-size: 2px;
-  --hot-frozen-shadow: rgba(0, 0, 0, 0.2);
+  --ht-move-backlight-color: rgba(34, 34, 34, 0.06);
+  --ht-move-indicator-color: #1a42e8;
+
+  --ht-comments-indicator-size: 6px;
+  --ht-comments-indicator-color: #1a42e8;
+  --ht-comments-textarea-horizontal-padding: 4px;
+  --ht-comments-textarea-background-color: #f7f7f9;
+  --ht-comments-textarea-border-width: 0px;
+  --ht-comments-textarea-border-color: #e5e5e9;
+  --ht-comments-textarea-foreground-color: #222222;
+  --ht-comments-textarea-focus-background-color: #ffffff;
+  --ht-comments-textarea-focus-border-color: #1a42e8;
+  --ht-comments-textarea-focus-border-width: 1px;
+  --ht-comments-textarea-focus-foreground-color: #222222;
+  --ht-comments-textarea-vertical-padding: 8px;
+  --ht-comments-font-size: 10px;
+  --ht-comments-line-height: 16px;
+
+  --ht-license-background-color: #f7f7f9;
+  --ht-license-font-size: 10px;
+  --ht-license-line-height: 18px;
+  --ht-license-vertical-padding: 16px;
+  --ht-license-horizontal-padding: 8px;
+  --ht-license-foreground-color: #222222;
+  
+  --ht-link-color: #1a42e8;
+  --ht-link-hover-color: #3e67ec;
+
+  --ht-input-background-color: #ffffff;
+  --ht-input-border-color: #ffffff;
+  --ht-input-foreground-color: #ffffff;
+  --ht-input-border-width: 1px;
+  --ht-input-disabled-background-color: #ffffff;
+  --ht-input-disabled-border-color: #ffffff;
+  --ht-input-disabled-foreground-color: #ffffff;
+  --ht-input-hover-background-color: #ffffff;
+  --ht-input-hover-border-color: #ffffff;
+  --ht-input-hover-foreground-color: #ffffff;
+  --ht-input-focus-background-color: #ffffff;
+  --ht-input-focus-border-color: #ffffff;
+  --ht-input-focus-foreground-color: #ffffff;
+
+  --ht-menu-shadow-blur: 16px;
+  --ht-menu-shadow-x: 0px;
+  --ht-menu-shadow-y: 8px;
+  --ht-menu-shadow-color: rgba(0, 0, 0, 0.08);
+  --ht-menu-border-color: #e5e5e9;
+  --ht-menu-border-width: 0px;
+  --ht-menu-border-radius: 8px;
+  --ht-menu-vertical-padding: 8px;
+  --ht-menu-horizontal-padding: 0px;
+  --ht-menu-item-horizontal-padding: 8px;
+  --ht-menu-item-vertical-padding: 12px;
+  --ht-menu-item-hover-color: rgba(34, 34, 34, 0.05);
+  --ht-menu-item-active-color: rgba(26, 66, 232, 0.08);
+
+  --ht-hidden-indicator-color: #999999;
+
+  --ht-wrapper-border-width: 1px;
+  --ht-wrapper-border-radius: 0px;
+  
+  --ht-scrollbar-thumb-color: #999999;
+  --ht-scrollbar-track-color: #f7f7f9;
+  --ht-scrollbar-border-radius: 8px;
 }
 
 @mixin dark {
-  /* Core Colors */
-  --hot-background-color: #222222;
-  --hot-border-color: #333;
-  --hot-off-background-color: #121212;
-  --hot-highlight-color: #000;
 }
 
 .ht-theme-main,

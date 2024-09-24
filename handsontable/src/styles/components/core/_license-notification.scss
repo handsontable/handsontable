@@ -1,18 +1,28 @@
+@use "../../utils/mixins";
+
 /*
   Handsontable License info
 */
 
 @mixin output {
   .hot-display-license-info {
-    padding: var(--hot-base-padding) 0;
-    font-family: var(--hot-font-family);
-    font-size: calc(var(--hot-base-font-size) - 4px);
-    font-weight: normal;
-    color: var(--hot-foreground-color);
+    padding: var(--ht-license-horizontal-padding, 16px)
+      var(--ht-license-vertical-padding);
+    @include mixins.font-family;
+    font-size: var(--ht-license-font-size);
+    line-height: var(--ht-license-line-height);
+    color: var(--ht-license-foreground-color);
+    background-color: var(--ht-license-background-color);
     text-align: left;
-    
+    border-color: var(--ht-border-color);
+    border-style: solid;
+    border-top-width: 0;
+    border-left-width: var(--ht-border-width);
+    border-right-width: var(--ht-border-width);
+    border-bottom-width: var(--ht-border-width);
+
     a {
-      color: var(--hot-accent-color);
+      color: var(--ht-accent-color);
       font-size: 10px;
     }
   }

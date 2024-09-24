@@ -1,93 +1,93 @@
+@use "../../utils/mixins";
+
 /*
   Dropdown Editor [Listbox]
 */
 
 @mixin output {
-  .handsontable.listbox {
-    margin: 0;
-    box-shadow: var(--hot-base-shadow);
+  .handsontable {
+    &.listbox {
+      margin: 0;
+      @include mixins.menu-box-shadow;
 
-    .ht_master {
-      overflow: hidden;
-   
-      .wtHolder {
-        overflow: auto;
-      }
-
-      table {
+      .ht_master {
         overflow: hidden;
 
-        th,
-        tr:first-child th,
-        tr:last-child th,
-        tr:first-child td,
-        td {
-          border-color: transparent !important;
+        .wtHolder {
+          overflow: auto;
         }
 
-        th,
-        td {
-          white-space: nowrap;
-          text-overflow: ellipsis;
-        }
+        table {
+          overflow: hidden;
 
-        td.htDimmed {
-          cursor: default;
-          color: inherit;
-          font-style: inherit;
-        }
-
-        .wtBorder {
-          visibility: hidden;
-        }
-
-        strong {
-          font-weight: 400;
-        }
-
-        tr td.current {
-          background: color-mix(
-            in srgb,
-            var(--hot-accent-color),
-            var(--hot-background-color) 88%
-          );
-        }
-
-        tr:hover td {
-          background: var(--hot-off-background-color);
-          cursor: pointer;
-        }
-
-        thead th {
-          height: auto !important;
-          text-align: left;
-          border-width: 0px 1px 1px;
-
-          > div {
-            padding-top: 8px;
-            padding-bottom: 8px;
+          th,
+          tr:first-child th,
+          tr:last-child th,
+          tr:first-child td,
+          td {
+            border-color: transparent !important;
           }
 
-          &:first-child {
-            padding-left: 8px;
+          th,
+          td {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+          }
+
+          td.htDimmed {
+            cursor: default;
+            color: inherit;
+            font-style: inherit;
+          }
+
+          .wtBorder {
+            visibility: hidden;
+          }
+
+          strong {
+            font-weight: var(--ht-font-weight);
+          }
+
+          tr:hover td {
+            background: var(--ht-menu-item-hover-color);
+            cursor: pointer;
+          }
+
+          tr td.current {
+            background: var(--ht-menu-item-active-color);
+          }
+
+          thead th {
+            height: auto !important;
+            text-align: left;
+            border-width: 0px 1px 1px;
+
+            > div {
+              padding-top: 8px;
+              padding-bottom: 8px;
+            }
+
+            &:first-child {
+              padding-left: 8px;
+            }
           }
         }
       }
-    }
 
-    .ht_clone_top {
-      .wtHider {
-        overflow: hidden;
+      .ht_clone_top {
+        .wtHider {
+          overflow: hidden;
+        }
+
+        table {
+          border-radius: 0;
+        }
       }
 
-      table {
-        border-radius: 0;
-      }
-    }
-
-    .htBorders {
-      div {
-        background: none !important;
+      .htBorders {
+        div {
+          background: none !important;
+        }
       }
     }
   }

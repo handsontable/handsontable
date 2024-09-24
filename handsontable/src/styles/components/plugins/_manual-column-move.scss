@@ -10,7 +10,7 @@
       position: relative;
     }
 
-    .ht__manualColumnMove {
+    &.ht__manualColumnMove {
       &.after-selection--columns thead th.ht__highlight {
         @include mixins.cursor-grab;
       }

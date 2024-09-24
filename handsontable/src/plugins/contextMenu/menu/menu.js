@@ -34,7 +34,6 @@ import {
   A11Y_MENU,
   A11Y_TABINDEX,
 } from '../../../helpers/a11y';
-import { MAIN_THEME_NAME } from '../../../helpers/themes';
 
 const MIN_WIDTH = 215;
 
@@ -676,7 +675,7 @@ export class Menu {
       container = doc.createElement('div');
 
       addClass(container, `htMenu ${this.options.className}`);
-      addClass(container, themeClassName || MAIN_THEME_NAME);
+      addClass(container, themeClassName);
 
       if (className) {
         addClass(container, className);

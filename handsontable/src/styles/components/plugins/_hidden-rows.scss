@@ -17,7 +17,7 @@
           width: 0;
           height: 0;
           transform: translateX(-50%);
-          color: var(--hot-border-color);
+          color: var(--ht-border-color);
         }
       }
     }
@@ -37,8 +37,7 @@
     td,
     th {
       &.afterHiddenRow.firstVisibleRow {
-        border-top: var(--hot-border-horizontal-size) solid
-          var(--hot-border-color);
+        border-top: var(--ht-border-width) solid var(--ht-border-color);
       }
     }
   }

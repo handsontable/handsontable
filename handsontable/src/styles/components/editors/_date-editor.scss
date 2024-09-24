@@ -6,29 +6,33 @@
 
 @mixin output {
   .pika-single {
-    font-family: var(--hot-font-family);
-    font-size: var(--hot-base-font-size);
-    font-weight: normal;
-    z-index: 9999;
-    display: block;
     position: relative;
-    color: var(--hot-foreground-color);
-    background: var(--hot-background-color);
+    display: block;
     padding: 10px;
-    box-shadow: var(--hot-base-shadow);
+    @include mixins.font-family;
+    font-size: var(--ht-font-size);
+    font-weight: var(--ht-font-weight);
+    color: var(--ht-foreground-color);
+    background: var(--ht-background-color);
+    @include mixins.menu-box-shadow;
+    z-index: 9999;
+
     &.is-hidden {
       display: none;
     }
+
     .pika-title {
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
     .pika-label {
       position: relative;
       order: 2;
       padding: 5px;
-      color: var(--hot-accent-color);
+      color: var(--ht-accent-color);
+
       .pika-select {
         position: absolute;
         inset: 0;
@@ -36,6 +40,7 @@
         cursor: pointer;
       }
     }
+
     .pika-prev,
     .pika-next {
       width: 20px;
@@ -44,62 +49,71 @@
       text-indent: -9999px;
       cursor: pointer;
     }
+
     .pika-prev {
       order: 1;
       margin-right: auto;
     }
+
     .pika-next {
       order: 3;
       margin-left: auto;
     }
+
     .pika-table {
       thead {
         height: 50px;
       }
+
       th {
         abbr {
           text-decoration: none;
           font-weight: normal;
         }
       }
+
       td {
         padding: 1px;
+
         &.is-disabled {
           .pika-button {
             pointer-events: none;
             opacity: 0.5;
           }
         }
+
         &.is-today {
           .pika-button {
-            background: var(--hot-highlight-color);
-            color: var(--hot-foreground-color-active);
+            background: var(--ht-menu-item-hover-color);
           }
         }
+
         &.is-selected {
           .pika-button {
-            background: var(--hot-accent-color);
-            color: white;
+            background: var(--ht-accent-color);
+            color: var(--ht-background-color);
           }
         }
+
         &.pika-week {
           width: calc(100% / 8);
           text-align: center;
         }
       }
+
       .pika-button {
         width: 100%;
         aspect-ratio: 1 / 1;
         background: transparent;
-        color: var(--hot-foreground-color);
+        color: var(--ht-foreground-color);
         border: none;
-        border-radius: 4px;
+        border-radius: var(--ht-button-border-radius);
         margin: 0;
         padding: 10px;
         cursor: pointer;
+
         &:hover {
-          background: var(--hot-highlight-color);
-          color: var(--hot-foreground-color-active);
+          background: var(--ht-menu-item-hover-color);
         }
       }
     }
