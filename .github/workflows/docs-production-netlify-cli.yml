@@ -53,16 +53,11 @@ jobs:
           git push --force origin prod-docs/latest
           git remote -v
 
-      - name: list files in the root directory
-        run: ls -la
-        working-directory: ./
-
       - name: Checkout the netlify directory from the dev-issue-1790 branch
         run: |
           git fetch origin feature/dev-issue-1790
           # restore files from the dev-issue-1790 branch - required until the branch is merged to the prod-docs/*
           git checkout prod-docs/latest ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js
-
         working-directory: ./
       
       - name : Print the current branch
@@ -78,13 +73,6 @@ jobs:
         run: |
           npm run docs:build:production:netlify
         working-directory: ./docs/
-
-      - name: list files in the root directory
-        run: ls -la
-        working-directory: ./
-
-      - name: list npm scripts
-        run: npm run
 
       - name: Install Netlify CLI
         run: npm install netlify-cli -g
