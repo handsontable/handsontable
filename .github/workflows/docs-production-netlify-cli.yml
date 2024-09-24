@@ -55,7 +55,7 @@ jobs:
       - name: Checkout the netlify directory from the dev-issue-1790 branch
         run: |
           git fetch origin feature/dev-issue-1790
-          git checkout prod-docs/latest-dev-issue-1790 ./docs/netlify
+          git checkout prod-docs/latest-dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json
         working-directory: ./
       
       - name : Print the current branch
