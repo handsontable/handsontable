@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed merged cells that break after adding a new row.",
-  "type": "fixed",
-  "issueOrPR": 11145,
-  "breaking": false,
-  "framework": "none"
-}
