@@ -59,14 +59,32 @@ jobs:
         working-directory: ./
       
       - name : Print the current branch
-        run: git branch
+        run:  |
+          git branch
+          git status
 
-      # - name: Commit changes
-      #   uses: stefanzweifel/git-auto-commit-action@v5
-      #   with:
-      #     commit_message: "Docs: build production"
-      #     commit_user_name: "Docs Deployment"
-      #     commit_user_email: "docs-deployment@handsontable.com"
+      - name: Dependencies
+        run: |
+          npm ci
+
+      - name: Docs build
+        run: |
+          npm run docs:build:production:netlify
+
+      - name: Install Netlify CLI
+        run: npm install netlify-cli -g
+
+      - name : Print the current branch
+        run:  |
+          git branch
+          git status
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Docs: build production"
+          commit_user_name: "Docs Deployment"
+          commit_user_email: "docs-deployment@handsontable.com"
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
@@ -74,17 +92,6 @@ jobs:
           # cache-dependency-path: ./latest/package-lock.json
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
-      - name: Dependencies
-        run: |
-          npm ci
-
-      # - name: Docs build
-      #   run: |
-      #     npm run docs:build:production:netlify
-
-      - name: Install Netlify CLI
-        run: npm install netlify-cli -g
 
       - name: Deploy to Netlify
         run: netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
