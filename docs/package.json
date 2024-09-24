@@ -8,7 +8,7 @@
   "repository": {
     "url": "https://github.com/handsontable/handsontable",
     "directory": "docs"
-  },
+  }, 
   "scripts": {
     "docs:lint": "eslint --ext .js,.vue,.mjs .vuepress content",
     "docs:lint:fix": "eslint --ext .js,.vue,.mjs .vuepress content --fix",
@@ -17,8 +17,8 @@
     "docs:code-examples:generate-js": "bash .vuepress/tools/code-examples-generator.sh",
     "docs:code-examples:generate-all-js": "bash .vuepress/tools/code-examples-generator.sh --generateAll",
     "docs:code-examples:format-all-ts": "bash .vuepress/tools/code-examples-generator.sh --formatAllTsExamples",
-    "docs:start": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/vuepress/cli.js dev ./",
-    "docs:start:no-cache": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/vuepress/cli.js dev --no-cache ./",
+    "docs:start": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev ./",
+    "docs:start:no-cache": "npm run docs:scripts:link-assets && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev --no-cache ./",
     "docs:serve": "http-server -c-1 .vuepress/dist/",
     "docs:build": "cross-env NODE_OPTIONS=--openssl-legacy-provider node .vuepress/tools/build.mjs -- --no-cache",
     "docs:docker:build": "npm run docs:docker:build:testing",

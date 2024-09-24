@@ -48,6 +48,11 @@ jobs:
           git checkout -b prod-docs/latest origin/prod-docs/$LATEST_VERSION
           git push --force origin prod-docs/latest
 
+      - name: Checkout the netlify directory from the dev-issue-1790 branch
+        run: |
+          git fetch origin feature/dev-issue-1790
+          git checkout prod-docs/latest-dev-issue-1790 docs/netlify
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
