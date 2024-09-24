@@ -55,7 +55,9 @@ jobs:
       - name: Checkout the netlify directory from the dev-issue-1790 branch
         run: |
           git fetch origin feature/dev-issue-1790
-          git checkout prod-docs/latest-dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json
+          # restore files from the dev-issue-1790 branch - required until the branch is merged to the prod-docs/*
+          git checkout prod-docs/latest-dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js
+
         working-directory: ./
       
       - name : Print the current branch
@@ -86,6 +88,7 @@ jobs:
         run:  |
           git branch
           git status
+          git branch --unset-upstream
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
