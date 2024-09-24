@@ -54,7 +54,7 @@ jobs:
       - name: Feature Branch Patch
         run: |
           git fetch origin feature/dev-issue-1790
-          git checkout feature/dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js
+          git checkout feature/dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js docs/.gitignore
         working-directory: ./
       
       - name : Print the current branch
