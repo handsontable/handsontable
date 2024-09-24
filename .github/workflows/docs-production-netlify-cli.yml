@@ -57,13 +57,16 @@ jobs:
           git fetch origin feature/dev-issue-1790
           git checkout prod-docs/latest-dev-issue-1790 ./docs/netlify
         working-directory: ./
+      
+      - name : Print the current branch
+        run: git branch
 
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Docs: build production"
-          commit_user_name: "Docs Deployment"
-          commit_user_email: "docs-deployment@handsontable.com"
+      # - name: Commit changes
+      #   uses: stefanzweifel/git-auto-commit-action@v5
+      #   with:
+      #     commit_message: "Docs: build production"
+      #     commit_user_name: "Docs Deployment"
+      #     commit_user_email: "docs-deployment@handsontable.com"
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
