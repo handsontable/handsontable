@@ -2,6 +2,8 @@ const path = require('path');
 const fsExtra = require('fs-extra');
 const execa = require('execa');
 const { log } = require('console');
+const { split } = require('core-js/fn/symbol');
+const { only } = require('node:test');
 
 const MULTI_FRAMEWORKED_CONTENT_DIR = '.build-tmp';
 const FRAMEWORK_SUFFIX = '-data-grid';
@@ -75,12 +77,19 @@ function getThisDocsVersion() {
       docsVersion = 'next';
     }
     log(`The current branch is ${branchName}. The docs version is ${docsVersion}.`);
-    const allRemote = execa.sync('git ls-remote --heads origin ', { shell: true });
+    const allRemote = execa.sync('git ls-remote --heads origin ', { shell: true }).stdout;
+    const arr = allRemote.split('\n')
+      .filter((item) => item.includes('prod-docs'))
+      .map((item) => item.match(/\d+\.\d+/)[0]);
+
+    const max = Math.max(...arr);
+
+    console.log('maximum version', max);
+
+
     log('All remote branches:', allRemote.stdout);
     const allRemoteProdDocs = execa.sync('git ls-remote --heads origin | grep prod-docs/', { shell: true });
-    log(allRemoteProdDocs.stdout);
-    const allParsed = execa.sync(`git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/'`)
-    log('All parsed:', allParsed.stdout);
+    log('all remote prod docs only: ', allRemoteProdDocs.stdout);
   }
 
   return docsVersion;
