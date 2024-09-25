@@ -67,12 +67,18 @@ function getThisDocsVersion() {
       docsVersion = branchName.match(versionFromBranchRegExp)[1];
     } else if (branchDev.test(branchName) || branchProdDocsLatestRegexp.test(branchName) === true) {
       log(`The current branch is ${branchName}. The docs version is ${docsVersion}.`);
-      const allRemote = execa.sync('git ls-remote --heads origin ', { shell: true }).stdout;
+
       const arr = allRemote.split('\n')
-        .filter(item => item.includes('prod-docs'))
-        .map(item => item.match(/\d+\.\d+/)[0]);
-  
+        .filter(item => item.includes('prod-docs'));
+
+        console.log('arr', arr);
+
+      
+      const filtered = arr.map(item => item.match(/\d+\.\d+/)[0]);
+      console.log('filtered', filtered);
+
       const max = Math.max(...arr);
+
       docsVersion = max;
       log(`Maximum version: ${max}`);
 
@@ -80,6 +86,7 @@ function getThisDocsVersion() {
       docsVersion = 'next';
     }
 
+    const allRemote = execa.sync('git ls-remote --heads origin ', { shell: true }).stdout;
 
     log('All remote branches:', allRemote.stdout);
     const allRemoteProdDocs = execa.sync('git ls-remote --heads origin | grep prod-docs/', { shell: true });
