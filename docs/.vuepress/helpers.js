@@ -2,8 +2,6 @@ const path = require('path');
 const fsExtra = require('fs-extra');
 const execa = require('execa');
 const { log } = require('console');
-const { split } = require('core-js/fn/symbol');
-const { only } = require('node:test');
 
 const MULTI_FRAMEWORKED_CONTENT_DIR = '.build-tmp';
 const FRAMEWORK_SUFFIX = '-data-grid';
@@ -68,27 +66,24 @@ function getThisDocsVersion() {
     if (versionFromBranchRegExp.test(branchName) === true) {
       docsVersion = branchName.match(versionFromBranchRegExp)[1];
     } else if (branchDev.test(branchName) || branchProdDocsLatestRegexp.test(branchName) === true) {
-
-      const command = `git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/' | grep -oP '(?<=prod-docs/)\d+\.\d+' | awk 'max=="" || $1 > max {max=$1} END{print max}'`
-      docsVersion = execa.sync(command, { shell: true }).stdout;
-      log(`command: ${command}`);
+      log(`The current branch is ${branchName}. The docs version is ${docsVersion}.`);
+      const allRemote = execa.sync('git ls-remote --heads origin ', { shell: true }).stdout;
+      const arr = allRemote.split('\n')
+        .filter(item => item.includes('prod-docs'))
+        .map(item => item.match(/\d+\.\d+/)[0]);
+  
+      const max = Math.max(...arr);
+      docsVersion = max;
+      log(`Maximum version: ${max}`);
 
     } else {
       docsVersion = 'next';
     }
-    log(`The current branch is ${branchName}. The docs version is ${docsVersion}.`);
-    const allRemote = execa.sync('git ls-remote --heads origin ', { shell: true }).stdout;
-    const arr = allRemote.split('\n')
-      .filter((item) => item.includes('prod-docs'))
-      .map((item) => item.match(/\d+\.\d+/)[0]);
-
-    const max = Math.max(...arr);
-
-    console.log('maximum version', max);
 
 
     log('All remote branches:', allRemote.stdout);
     const allRemoteProdDocs = execa.sync('git ls-remote --heads origin | grep prod-docs/', { shell: true });
+
     log('all remote prod docs only: ', allRemoteProdDocs.stdout);
   }
 
