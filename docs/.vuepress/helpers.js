@@ -2,6 +2,7 @@ const path = require('path');
 const fsExtra = require('fs-extra');
 const execa = require('execa');
 const { fetchDocsVersions } = require('./plugins/dump-docs-data/docs-versions');
+const { log } = require('console');
 
 const MULTI_FRAMEWORKED_CONTENT_DIR = '.build-tmp';
 const FRAMEWORK_SUFFIX = '-data-grid';
@@ -68,10 +69,12 @@ function getThisDocsVersion() {
     } else if (branchDev.test(branchName) || branchProdDocsLatestRegexp.test(branchName) === true) {
       command = `git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/' | grep -oP '(?<=prod-docs/)\d+\.\d+' | awk 'max=="" || $1 > max {max=$1} END{print max}'`
       docsVersion = execa.sync(command, { shell: true }).stdout;
+
     } else {
       docsVersion = 'next';
     }
   }
+  log(`The current branch is ${branchName}. The docs version is ${docsVersion}.`);
 
   return docsVersion;
 }
