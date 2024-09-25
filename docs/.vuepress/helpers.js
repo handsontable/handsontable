@@ -1,11 +1,13 @@
 const path = require('path');
 const fsExtra = require('fs-extra');
 const execa = require('execa');
+const { fetchDocsVersions } = require('./plugins/dump-docs-data/docs-versions');
 
 const MULTI_FRAMEWORKED_CONTENT_DIR = '.build-tmp';
 const FRAMEWORK_SUFFIX = '-data-grid';
 const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
-const branchDocsLatestRegexp = /^feature\/dev-issue-1790$/;
+const branchDev = /^feature\/dev-issue-1790$/;
+const branchProdDocsLatestRegexp = /^prod-docs\/latest$/;
 let docsVersion = null;
 let docsSHA = null;
 
@@ -51,6 +53,14 @@ function getPrettyFrameworkName(framework) {
   return frameworkToPrettyName.get(framework);
 }
 
+async function getLatestVersion() {
+
+  const docsVersions = await fetchDocsVersions();
+  const latestVersion = docsVersions.latestVersion;
+
+  return latestVersion
+}
+
 /**
  * Gets the current (this) version of docs.
  *
@@ -63,8 +73,8 @@ function getThisDocsVersion() {
 
     if (versionFromBranchRegExp.test(branchName) === true) {
       docsVersion = branchName.match(versionFromBranchRegExp)[1];
-    } else if (branchDocsLatestRegexp.test(branchName) === true) {
-      docsVersion = '14.5';
+    } else if (branchDev.test(branchName) || branchProdDocsLatestRegexp.test(branchName) === true) {
+      docsVersion = getLatestVersion();
     } else {
       docsVersion = 'next';
     }
