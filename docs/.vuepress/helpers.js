@@ -72,24 +72,20 @@ function getThisDocsVersion() {
     const allRemote = execa.sync('git ls-remote --heads origin ', { shell: true }).stdout;
     log('All remote branches:', allRemote.stdout);
 
-    //grep should match only prod-docs branches with version number
-
     const allRemoteProdDocs = execa.sync('git ls-remote --heads origin | grep prod-docs/', { shell: true });
-
     log('all remote prod docs only: ', allRemoteProdDocs.stdout);
 
-      const arr = allRemote.split('\n')
-        .filter(item => item.includes('prod-docs'));
+    const arr = allRemote.split('\n')
+      .filter(item => item.includes('prod-docs'));
 
-     const filterOnlyExactVersion = arr.filter(item => item.match(/\d+\.\d+/));
-     console.log('extracted', filterOnlyExactVersion);
+    const filterOnlyExactVersion = arr.filter(item => item.match(/\d+\.\d+/));
+    console.log('extracted', filterOnlyExactVersion);
 
     const mapToVersion = filterOnlyExactVersion.map(item => item.match(/\d+\.\d+/)[0]);
     console.log('mapToVersion', mapToVersion);
 
     const max = Math.max(...mapToVersion);
-
-      docsVersion = max;
+      docsVersion = max.toString();
       log(`Maximum version: ${max}`);
 
     } else {
