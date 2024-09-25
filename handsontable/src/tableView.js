@@ -1674,6 +1674,24 @@ class TableView {
   }
 
   /**
+   * Checks if the table has a horizontal scrollbar.
+   *
+   * @returns {boolean}
+   */
+  hasVerticalScroll() {
+    return this._wt.wtViewport.hasVerticalScroll();
+  }
+
+  /**
+   * Checks if the table has a vertical scrollbar.
+   *
+   * @returns {boolean}
+   */
+  hasHorizontalScroll() {
+    return this._wt.wtViewport.hasHorizontalScroll();
+  }
+
+  /**
    * Return the value of the `aria-colcount` attribute.
    *
    * @returns {number} The value of the `aria-colcount` attribute.

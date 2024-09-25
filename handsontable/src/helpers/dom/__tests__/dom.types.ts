@@ -18,8 +18,6 @@ Handsontable.dom.empty(domElement);
 Handsontable.dom.fastInnerHTML(domElement, 'foo');
 Handsontable.dom.fastInnerText(domElement, 'foo');
 Handsontable.dom.getCaretPosition(domElement);
-Handsontable.dom.getComputedStyle(domElement);
-Handsontable.dom.getComputedStyle(domElement, window);
 Handsontable.dom.getCssTransform(domElement);
 Handsontable.dom.getFrameElement(window);
 Handsontable.dom.getParent(domElement, 1);
