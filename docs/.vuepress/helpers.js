@@ -72,7 +72,7 @@ function getThisDocsVersion() {
     const allRemote = execa.sync('git ls-remote --heads origin ', { shell: true }).stdout;
     log('All remote branches:', allRemote.stdout);
 
-    const allRemoteProdDocs = execa.sync('git ls-remote --heads origin | grep prod-docs/', { shell: true });
+    const allRemoteProdDocs = execa.sync("git ls-remote --heads origin | grep -oP '(?<=prod-docs/)\d+\.\d+", { shell: true });
     log('all remote prod docs only: ', allRemoteProdDocs.stdout);
 
       const arr = allRemote.split('\n')
