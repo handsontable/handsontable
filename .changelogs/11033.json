@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a bug where the `afterSetCellMeta` was unnecessarily triggered after clicking on the comments textarea element.",
-  "type": "fixed",
-  "issueOrPR": 11033,
-  "breaking": false,
-  "framework": "none"
-}

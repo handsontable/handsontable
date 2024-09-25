@@ -4,8 +4,6 @@ env:
   GHA_DOCKER_TAG_NEXT: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:next
   GHA_DOCKER_TAG_SHA: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:${{ github.sha }}
   NODE_VERSION: 20
-  DOCSEARCH_API_KEY: ${{ secrets.DOCSEARCH_API_KEY }}
-  DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
 
 on:
   push:

@@ -1,7 +1,7 @@
 import { Component, ViewEncapsulation } from "@angular/core";
 import { getData } from "./utils/constants";
 
-import { alignHeaders, addClassesToRows } from "./utils/hooks-callbacks";
+import { addClassesToRows } from "./utils/hooks-callbacks";
 
 @Component({
   encapsulation: ViewEncapsulation.None,
@@ -11,7 +11,6 @@ import { alignHeaders, addClassesToRows } from "./utils/hooks-callbacks";
 })
 export class DataGridComponent {
   dataset = getData();
-  alignHeaders = alignHeaders;
   addClassesToRows = addClassesToRows;
   colHeaders = [
     "Company name",

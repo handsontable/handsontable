@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added new API to retrieve visible, partially visible and rendered row and columns indexes.",
+  "type": "added",
+  "issueOrPR": 11189,
+  "breaking": false,
+  "framework": "none"
+}

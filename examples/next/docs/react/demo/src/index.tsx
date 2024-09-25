@@ -5,12 +5,7 @@ import "./styles.css";
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react";
 import { data } from "./constants";
-
-import {
-  addClassesToRows,
-  alignHeaders
-} from "./hooksCallbacks";
-
+import { addClassesToRows } from "./hooksCallbacks";
 import "handsontable/dist/handsontable.min.css";
 
 const App = () => {
@@ -36,7 +31,7 @@ const App = () => {
       multiColumnSorting={true}
       filters={true}
       rowHeaders={true}
-      afterGetColHeader={alignHeaders}
+      headerClassName="htLeft"
       beforeRenderer={addClassesToRows}
       manualRowMove={true}
       autoWrapRow={true}
@@ -46,8 +41,8 @@ const App = () => {
       <HotColumn data={1} />
       <HotColumn data={3} />
       <HotColumn data={4} type="date" allowInvalid={false} />
-      <HotColumn data={6} type="checkbox" className="htCenter" />
-      <HotColumn data={7} type="numeric" />
+      <HotColumn data={6} type="checkbox" className="htCenter" headerClassName="htCenter" />
+      <HotColumn data={7} type="numeric" headerClassName="htRight" />
       <HotColumn data={5} />
       <HotColumn data={2} />
     </HotTable>

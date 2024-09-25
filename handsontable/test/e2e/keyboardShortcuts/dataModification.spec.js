@@ -12,7 +12,7 @@ describe('Core data modification keyboard shortcuts', () => {
     }
   });
 
-  describe('"Enter + Ctrl/Cmd"', () => {
+  describe('"Ctrl/Cmd + Enter"', () => {
     it('should not populate the cell value when the selection range includes less than 2 cells', () => {
       const afterChange = jasmine.createSpy('afterChange');
 
@@ -356,6 +356,31 @@ describe('Core data modification keyboard shortcuts', () => {
         [4, 2, 'C5', 'F5'],
         [4, 4, 'E5', 'F5'],
       ], 'edit');
+    });
+
+    it('should not throw an error when there is no selection', () => {
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = function() {
+        spy.test();
+
+        return true;
+      };
+
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      listen();
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(spy.test).not.toHaveBeenCalled();
+
+      window.onerror = prevError;
     });
   });
 

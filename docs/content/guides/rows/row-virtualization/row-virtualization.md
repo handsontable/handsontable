@@ -77,7 +77,7 @@ Using row virtualization has the following side effects:
 
 ### Related guides
 
-- [Column virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
+- [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
 - [Performance](@/guides/optimization/performance/performance.md)
 
 ### Related API reference

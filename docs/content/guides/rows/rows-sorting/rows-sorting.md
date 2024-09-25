@@ -346,7 +346,7 @@ const configurationOptions = {
 
 :::
 
-The [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options are mutually exclusive, so don't enable them together. If you do so, [`columnSorting`](@/api/options.md#columnsorting) will be automatically disabled, as it's being overridden by [`multiColumnSorting`](@/api/options.md#multicolumnsorting).
+The [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options are mutually exclusive; do not enable them together. If you do, [`columnSorting`](@/api/options.md#columnsorting) will be automatically disabled as it is overridden by [`multiColumnSorting`](@/api/options.md#multicolumnsorting).
 
 ## Set an initial sort order
 

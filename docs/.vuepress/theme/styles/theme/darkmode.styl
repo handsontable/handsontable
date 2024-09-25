@@ -151,12 +151,13 @@ html.theme-dark {
                 }
             }
             > .sidebar-group {
-                p, a { 
-                    color:  $textColor 
-
-                    &.open { 
+                &.open {
+                    p, a {
                         color: $textColor
                     }
+                }
+                p, a { 
+                    color:  $textColor
 
                     @media (hover: hover) {
                         &:hover { 
@@ -715,7 +716,6 @@ html.theme-dark {
         }
         
         .footer {
-            border-top: 1px solid $borderColor   
             color: $text2Color
 
             .copyright {
@@ -723,6 +723,7 @@ html.theme-dark {
             }
 
             .footer-links { 
+                border-top: 1px solid $borderColor   
                 color: $text2Color
 
                 div { 
@@ -1389,6 +1390,11 @@ html.theme-dark {
         }
     }
     
+    .page-404 {
+        h1 {
+            color: $textColor
+        }
+    }
 }
 
 

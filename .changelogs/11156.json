@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed context/dropdown menu column width calculations depending on the content.",
+  "type": "fixed",
+  "issueOrPR": 11156,
+  "breaking": false,
+  "framework": "none"
+}

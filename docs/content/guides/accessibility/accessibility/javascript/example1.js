@@ -503,8 +503,13 @@ const hotOptions = {
       data: 'inStock',
       type: 'checkbox',
       className: 'htCenter',
+      headerClassName: 'htCenter',
     },
-    { data: 'qty', type: 'numeric' },
+    {
+      data: 'qty',
+      type: 'numeric',
+      headerClassName: 'htRight',
+    },
     {
       data: 'orderId',
       type: 'text',
@@ -528,6 +533,7 @@ const hotOptions = {
   filters: true,
   rowHeaders: true,
   manualRowMove: true,
+  headerClassName: 'htLeft',
   licenseKey: 'non-commercial-and-evaluation',
 };
 
