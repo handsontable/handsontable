@@ -53,14 +53,6 @@ function getPrettyFrameworkName(framework) {
   return frameworkToPrettyName.get(framework);
 }
 
-async function getLatestVersion() {
-
-  const docsVersions = await fetchDocsVersions();
-  const latestVersion = docsVersions.latestVersion;
-
-  return latestVersion
-}
-
 /**
  * Gets the current (this) version of docs.
  *
@@ -74,7 +66,8 @@ function getThisDocsVersion() {
     if (versionFromBranchRegExp.test(branchName) === true) {
       docsVersion = branchName.match(versionFromBranchRegExp)[1];
     } else if (branchDev.test(branchName) || branchProdDocsLatestRegexp.test(branchName) === true) {
-      docsVersion = getLatestVersion();
+      command = `git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/' | grep -oP '(?<=prod-docs/)\d+\.\d+' | awk 'max=="" || $1 > max {max=$1} END{print max}'`
+      docsVersion = execa.sync(command, { shell: true }).stdout;
     } else {
       docsVersion = 'next';
     }
