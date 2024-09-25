@@ -416,4 +416,26 @@ describe('TableView', () => {
       expect(hot.view._wt.wtViewport.getWorkspaceHeight).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('hasVerticalScroll()', () => {
+    it('should internally call `hasVerticalScroll` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'hasVerticalScroll').and.returnValue(100);
+
+      expect(hot.view.hasVerticalScroll()).toBe(100);
+      expect(hot.view._wt.wtViewport.hasVerticalScroll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('hasHorizontalScroll()', () => {
+    it('should internally call `hasHorizontalScroll` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'hasHorizontalScroll').and.returnValue(100);
+
+      expect(hot.view.hasHorizontalScroll()).toBe(100);
+      expect(hot.view._wt.wtViewport.hasHorizontalScroll).toHaveBeenCalledTimes(1);
+    });
+  });
 });
