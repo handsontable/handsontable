@@ -147,8 +147,6 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.htEditor.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : undefined,
-      width: this.getDropdownWidth(),
-      height: this.getDropdownHeight(),
       autoColumnSize: true,
       autoRowSize: true,
       renderer: (hotInstance, TD, row, col, prop, value, cellProperties) => {
@@ -356,7 +354,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     const textareaOffset = offset(this.TEXTAREA);
     const textareaHeight = outerHeight(this.TEXTAREA);
-    const dropdownHeight = this.getDropdownHeight();
+    const dropdownHeight = this.getHeight();
     const trimmingContainerScrollTop = trimmingContainer.scrollTop;
     const headersHeight = outerHeight(this.hot.view._wt.wtTable.THEAD);
     const containerOffset = offset(trimmingContainer);
@@ -442,8 +440,8 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   updateDropdownDimensions() {
     const trimDropdown = this.cellProperties.trimDropdown;
-    const width = trimDropdown ? this.getDropdownWidth() : undefined;
-    const height = this.getDropdownHeight();
+    const width = trimDropdown ? this.getWidth() : undefined;
+    const height = this.getHeight();
 
     this.htEditor.updateSettings({
       width,
@@ -491,7 +489,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @private
    * @returns {number}
    */
-  getDropdownHeight() {
+  getHeight() {
     const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
     const borderVerticalCompensation = parseInt(containerStyle.borderTopWidth, 10) +
       parseInt(containerStyle.borderBottomWidth, 10);
@@ -508,7 +506,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @private
    * @returns {number}
    */
-  getDropdownWidth() {
+  getWidth() {
     const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
     const borderHorizontalCompensation = parseInt(containerStyle.borderInlineStartWidth, 10) +
       parseInt(containerStyle.borderInlineEndWidth, 10);

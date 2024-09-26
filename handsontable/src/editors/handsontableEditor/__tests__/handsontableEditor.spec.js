@@ -1,8 +1,6 @@
 describe('HandsontableEditor', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -831,5 +829,31 @@ describe('HandsontableEditor', () => {
     keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+  });
+
+  it('should open editor with the correct size', async() => {
+    handsontable({
+      colWidths: 120,
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData(),
+            autoColumnSize: true,
+          }
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    await sleep(100);
+
+    const container = getActiveEditor().htContainer;
+
+    expect(container.clientWidth).toBe(290);
+    expect(container.clientHeight).toBe(167);
   });
 });

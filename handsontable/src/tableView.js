@@ -1692,6 +1692,24 @@ class TableView {
   }
 
   /**
+   * Gets the table's width.
+   *
+   * @returns {boolean}
+   */
+  getTableWidth() {
+    return this._wt.wtTable.getWidth();
+  }
+
+  /**
+   * Gets the table's height.
+   *
+   * @returns {boolean}
+   */
+  getTableHeight() {
+    return this._wt.wtTable.getHeight();
+  }
+
+  /**
    * Return the value of the `aria-colcount` attribute.
    *
    * @returns {number} The value of the `aria-colcount` attribute.
