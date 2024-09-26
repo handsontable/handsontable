@@ -66,27 +66,21 @@ function getThisDocsVersion() {
     if (versionFromBranchRegExp.test(branchName) === true) {
       docsVersion = branchName.match(versionFromBranchRegExp)[1];
     } else if (branchDev.test(branchName) || branchProdDocsLatestRegexp.test(branchName) === true) {
-    
-    log(`The current branch is ${branchName}. The docs version is ${docsVersion}.`);
 
-    const allRemote = execa.sync('git ls-remote --heads origin ', { shell: true }).stdout;
-    log('All remote branches:', allRemote.stdout);
+      log(`The current branch is ${branchName}. The docs version is ${docsVersion}.`);
 
-    const allRemoteProdDocs = execa.sync('git ls-remote --heads origin | grep prod-docs/', { shell: true });
-    log('all remote prod docs only: ', allRemoteProdDocs.stdout);
+      const allRemote = execa.sync('git ls-remote --heads origin ', { shell: true }).stdout;
+      log('All remote branches:', allRemote.stdout);
 
-    const arr = allRemote.split('\n')
-      .filter(item => item.includes('prod-docs'));
+      const versionsFound = allRemote.split('\n')
+        .filter(item => item.includes('prod-docs'))
+        .filter(item => item.match(/\d+\.\d+/))
+        .map(item => item.match(/\d+\.\d+/)[0]);
+      log('Versions available', versionsFound);
+      const max = Math.max(...versionsFound);
 
-    const filterOnlyExactVersion = arr.filter(item => item.match(/\d+\.\d+/));
-    console.log('extracted', filterOnlyExactVersion);
-
-    const mapToVersion = filterOnlyExactVersion.map(item => item.match(/\d+\.\d+/)[0]);
-    console.log('mapToVersion', mapToVersion);
-
-    const max = Math.max(...mapToVersion);
       docsVersion = max.toString();
-      log(`Maximum version: ${max}`);
+      log(`The latest version found: ${max}`);
 
     } else {
       docsVersion = 'next';
