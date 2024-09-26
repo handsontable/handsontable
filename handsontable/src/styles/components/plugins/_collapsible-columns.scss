@@ -1,10 +1,8 @@
 @use "../../utils/mixins";
 
-/*
-  Helper element for plugins:
-    - Nested Headers
-    - Nested Rows
-*/
+// Helper element for plugins:
+//  - Nested Headers
+//  - Nested Rows
 
 @mixin output {
   .handsontable {
@@ -26,12 +24,12 @@
         position: absolute;
         top: 0;
         left: 0;
-        transition: var(--hot-transition-time) all ease-in-out;
+        transition: var(--ht-table-transition) all ease-in-out;
       }
 
       &.expanded,
       &.ht_nestingCollapse {
-        background-color: var(--ht-collapse-button-open-background);
+        background-color: var(--ht-collapse-button-open-background-color);
         box-shadow: 0 0 0 1px var(--ht-collapse-button-open-border-color); // border
 
         &:before {
@@ -39,7 +37,9 @@
         }
 
         &:hover {
-          background-color: var(--ht-collapse-button-open-hover-background);
+          background-color: var(
+            --ht-collapse-button-open-hover-background-color
+          );
           box-shadow: 0 0 0 1px
             var(--ht-collapse-button-open-hover-border-color); // border
 
@@ -51,7 +51,7 @@
 
       &.collapsed,
       &.ht_nestingExpand {
-        background-color: var(--ht-collapse-button-close-background);
+        background-color: var(--ht-collapse-button-close-background-color);
         box-shadow: 0 0 0 1px var(--ht-collapse-button-close-border-color); // border
 
         &:before {
@@ -59,7 +59,9 @@
         }
 
         &:hover {
-          background-color: var(--ht-collapse-button-close-hover-background);
+          background-color: var(
+            --ht-collapse-button-close-hover-background-color
+          );
           box-shadow: 0 0 0 1px
             var(--ht-collapse-button-close-hover-border-color); // border
 

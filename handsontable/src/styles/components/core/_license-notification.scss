@@ -1,8 +1,6 @@
 @use "../../utils/mixins";
 
-/*
-  Handsontable License info
-*/
+// Handsontable License info
 
 @mixin output {
   .hot-display-license-info {
@@ -22,8 +20,12 @@
     border-bottom-width: var(--ht-border-width);
 
     a {
-      color: var(--ht-accent-color);
-      font-size: 10px;
+      font-size: var(--ht-license-font-size);
+      color: var(--ht-link-color);
+
+      &:hover {
+        color: var(--ht-link-hover-color);
+      }
     }
   }
 }

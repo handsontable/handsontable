@@ -1,20 +1,18 @@
-/*
-  Text - Cell Renderer
-*/
+// Text - Cell Renderer
 
 @mixin output {
   .handsontable {
-    /* TextRenderer placeholder value */
+    // TextRenderer placeholder value
     .htPlaceholder {
-      color: var(--hot-placeholder-text);
+      color: var(--ht-placeholder-color);
     }
 
-    /* TextRenderer placeholder value */
+    // TextRenderer placeholder value
     .htDimmed {
-      color: var(--hot-read-only-text);
+      color: var(--ht-read-only-color);
     }
 
-    /* TextRenderer horizontal alignment */
+    // TextRenderer horizontal alignment
     .htLeft {
       text-align: left;
     }
@@ -28,7 +26,7 @@
       text-align: justify;
     }
 
-    /* TextRenderer placeholder value */
+    // TextRenderer placeholder value
     .htTop {
       vertical-align: top;
     }
@@ -39,10 +37,10 @@
       vertical-align: bottom;
     }
 
-    /* TextRenderer others */
+    // TextRenderer others
     .htInvalid {
-      /*gives priority over td.area selection background*/
-      background-color: var(--hot-invalid-background-color) !important;
+      /* gives priority over td.area selection background */
+      background-color: var(--ht-cell-error-background-color) !important;
     }
 
     .htNoWrap {
@@ -50,7 +48,7 @@
     }
 
     .htSearchResult {
-      background: var(--hot-search-highlight-background-color);
+      background: var(--ht-cell-success-background-color);
     }
   }
 }

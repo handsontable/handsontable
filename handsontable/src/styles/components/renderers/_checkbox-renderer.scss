@@ -1,44 +1,124 @@
-/*
-  Checkbox
-*/
+@use "../../utils/mixins";
+
+// Checkbox
 
 @mixin output {
   .handsontable {
     .htCheckboxRendererInput {
       position: relative;
       display: inline-block;
-      width: var(--hot-control-size);
-      height: var(--hot-control-size);
+      width: var(--ht-checkbox-size);
+      height: var(--ht-checkbox-size);
       margin: 0;
-      margin-inline-end: calc(2 * var(--hot-base-grid));
       vertical-align: middle;
       cursor: pointer;
       appearance: none;
 
-      &:checked::before {
-        background-color: var(--hot-accent-color);
-        border-color: var(--hot-accent-color);
-      }
-
-      &::before {
+      // Box
+      &:before {
         content: "";
         display: inline-block;
-        width: var(--hot-control-size);
-        height: var(--hot-control-size);
-        border: 1px solid var(--hot-border-color);
-        border-radius: var(--hot-border-radius);
+        width: var(--ht-checkbox-size);
+        height: var(--ht-checkbox-size);
+        border-radius: var(--ht-border-radius);
+        border: 1px solid var(--ht-checkbox-border-color);
+        background-color: var(--ht-checkbox-background-color);
         box-sizing: border-box;
-        background-color: var(--hot-background-color);
-        transition: all 0.5s ease-in-out;
         pointer-events: none;
+        transition: all var(--ht-table-transition) ease-in-out;
       }
-      &::after {
-        content: "";
+
+      // Icon
+      &:after {
+        @include mixins.pseudo;
         position: absolute;
         top: 0;
         left: 0;
-        color: white; //TODO: replace with var
+        color: var(--ht-checkbox-icon-color);
         pointer-events: none;
+      }
+
+      &:hover {
+        // Box
+        &:before {
+          border-color: var(--ht-checkbox-hover-border-color);
+          background-color: var(--ht-checkbox-hover-background-color);
+        }
+
+        // Icon
+        &:after {
+          color: var(--ht-checkbox-hover-icon-color);
+        }
+      }
+
+      &:checked {
+        // Box
+        &:before {
+          border-color: var(--ht-checkbox-checked-border-color);
+          background-color: var(--ht-checkbox-checked-background-color);
+        }
+
+        // Icon
+        &:after {
+          color: var(--ht-checkbox-checked-icon-color);
+        }
+
+        &:hover {
+          // Box
+          &:before {
+            border-color: var(--ht-checkbox-checked-hover-border-color);
+            background-color: var(--ht-checkbox-checked-hover-background-color);
+          }
+
+          // Icon
+          &:after {
+            color: var(--ht-checkbox-checked-hover-icon-color);
+          }
+        }
+
+        &:disabled {
+          // Box
+          &:before {
+            border-color: var(--ht-checkbox-checked-disabled-border-color);
+            background-color: var(
+              --ht-checkbox-checked-disabled-background-color
+            );
+          }
+
+          // Icon
+          &:after {
+            color: var(--ht-checkbox-checked-disabled-icon-color);
+          }
+        }
+      }
+
+      &:focus {
+        // Box
+        &:before {
+          border-color: var(--ht-checkbox-checked-focus-border-color);
+          background-color: var(--ht-checkbox-checked-focus-background-color);
+          outline: 1px solid var(--ht-checkbox-focus-ring-color);
+        }
+
+        // Icon
+        &:after {
+          color: var(--ht-checkbox-checked-focus-icon-color);
+        }
+      }
+
+      &:disabled {
+        cursor: initial;
+
+        // Box
+        &:before {
+          border-color: var(--ht-checkbox-disabled-border-color);
+          background-color: var(--ht-checkbox-disabled-background-color);
+        }
+
+        // Icon
+        &:after {
+          color: var(--ht-checkbox-disabled-icon-color);
+        }
       }
 
       &.noValue {
@@ -51,7 +131,7 @@
       vertical-align: middle;
       display: flex;
       align-items: center;
-      gap: var(--hot-base-grid);
+      gap: var(--ht-gap-size);
       position: relative;
       cursor: pointer;
 

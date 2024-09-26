@@ -4,7 +4,7 @@
 @use "./mobile";
 @use "./z-index-map";
 
-/* Walkontable migration */
+// Walkontable migration
 @mixin base-styles() {
   @include base.output();
   @include mobile.output();

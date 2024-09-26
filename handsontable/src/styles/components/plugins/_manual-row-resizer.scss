@@ -1,8 +1,6 @@
 @use "../../utils/mixins";
 
-/*
-  Handsontable Row Resizer
-*/
+// Handsontable Row Resizer
 
 @mixin output {
   .handsontable {
@@ -26,7 +24,7 @@
         width: calc(100% - 8px);
         height: 2px;
         margin: 0 4px;
-        background: var(--hot-read-only-text);
+        background: var(--ht-resize-indicator-color);
         border-radius: 2px;
       }
 
@@ -48,7 +46,7 @@
       height: 0;
       margin-top: 4px;
       display: none;
-      border-bottom: 1px solid var(--hot-accent-color);
+      border-bottom: 1px solid var(--ht-accent-color);
       border-top: none;
     }
 

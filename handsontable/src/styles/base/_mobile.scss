@@ -1,8 +1,6 @@
 @use "../utils/mixins";
 
-/*
-  Handsontable Mobile Text Editor stylesheets
-*/
+// Handsontable Mobile Text Editor stylesheets
 
 @mixin output {
   .handsontable {
@@ -19,7 +17,7 @@
       }
     }
 
-    /* Initial left/top coordinates - overwritten when actual position is set */
+    // Initial left/top coordinates - overwritten when actual position is set
     .topSelectionHandle,
     .topSelectionHandle-HitArea,
     .bottomSelectionHandle,
@@ -30,7 +28,7 @@
       z-index: 9999;
     }
 
-    /* There is no css animations - classes to verify */
+    // There is no css animations - classes to verify
     &.hide-tween {
       -webkit-animation: opacity-hide 0.2s;
       animation: opacity-hide 0.2s;

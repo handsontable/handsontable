@@ -1,8 +1,6 @@
 @use "../../utils/mixins";
 
-/*
-  Handsontable Column Move
-*/
+// Handsontable Column Move
 
 @mixin output {
   .handsontable {
@@ -10,6 +8,7 @@
       position: relative;
     }
 
+    .ht__manualColumnMove,
     &.ht__manualColumnMove {
       &.after-selection--columns thead th.ht__highlight {
         @include mixins.cursor-grab;
@@ -30,7 +29,6 @@
         position: absolute;
         height: 100%;
         display: none;
-        background: var(--hot-accent-color);
       }
 
       &--guideline {
@@ -39,16 +37,18 @@
         margin-inline-start: -0.5px;
         margin-inline-end: 0;
         z-index: 205;
+        background: var(--ht-move-indicator-color);
       }
 
       &--backlight {
         display: none;
         z-index: 205;
         pointer-events: none;
-        opacity: 0.1;
+        background: var(--ht-move-backlight-color);
       }
     }
 
+    .on-moving--columns,
     &.on-moving--columns {
       &.show-ui .ht__manualColumnMove--guideline,
       .ht__manualColumnMove--backlight {

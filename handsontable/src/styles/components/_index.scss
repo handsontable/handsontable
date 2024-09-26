@@ -1,16 +1,16 @@
 @use "sass:color";
 
-/* Core */
+// Core
 @use "./core/selection";
 @use "./core/license-notification";
 
-/* Plugins */
+// Plugins
 @use "./plugins/collapsible-columns";
 @use "./plugins/nested-headers";
 @use "./plugins/nested-rows";
 @use "./plugins/hidden-columns";
 @use "./plugins/hidden-rows";
-@use "./plugins/dropdown-menu"; // TODO  check submenu RTL
+@use "./plugins/dropdown-menu";
 @use "./plugins/filters";
 @use "./plugins/comments";
 @use "./plugins/manual-column-sorting";
@@ -22,46 +22,46 @@
 @use "./plugins/manual-column-move";
 @use "./plugins/manual-row-move";
 
-/* Renderers */
+// Renderers
 @use "./renderers/text-renderer";
 @use "./renderers/autocomplete-renderer";
 @use "./renderers/checkbox-renderer";
 
-/* Editors */
+// Editors
 @use "./editors/text-editor";
 @use "./editors/select-editor";
 @use "./editors/dropdown-editor";
 @use "./editors/date-editor";
 
-/* Form elements */
-@use "./form-elements/select"; // TODO  styling
-@use "./form-elements/input"; // TODO  styling
-@use "./form-elements/button"; // TODO  styling
+// Form elements
+@use "./form-elements/select";
+@use "./form-elements/input";
+@use "./form-elements/button";
 @use "./form-elements/radio";
 
-/* Components */
+// Components
 
-/* Core */
+// Core
 @mixin core-components-styles() {
   @include selection.output();
   @include license-notification.output();
-  /* Renderers */
+  // Renderers
   @include autocomplete-renderer.output();
   @include checkbox-renderer.output();
   @include text-renderer.output();
-  /* Editor */
+  // Editor
   @include text-editor.output();
   @include select-editor.output();
   @include dropdown-editor.output();
   @include date-editor.output();
-  /* Form Elements*/
+  // Form Elements*/
   @include select.output();
   @include input.output();
   @include button.output();
   @include radio.output();
 }
 
-/* Plugins */
+// Plugins
 @mixin plugins-components-styles() {
   @include collapsible-columns.output();
   @include nested-headers.output();

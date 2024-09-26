@@ -1,8 +1,6 @@
 @use "../../utils/mixins";
 
-/*
-  Manual Column Sorting
-*/
+// Manual Column Sorting
 
 @mixin output {
   .handsontable {
@@ -21,7 +19,7 @@
         }
 
         &:before {
-          content: "";
+          @include mixins.pseudo;
           order: 1;
         }
       }

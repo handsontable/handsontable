@@ -1,28 +1,44 @@
-/*
-  Handsontable Select
-  Used in Dropdown Menu
-*/
+// Handsontable Select
+//  Used in Dropdown Menu
 
 @mixin output {
   .handsontable {
     .htUISelectCaption {
       width: 100%;
-      padding: calc(var(--hot-base-grid) + 1px) calc(2 * var(--hot-base-grid));
-      border: 1px solid var(--hot-border-color);
-      border-radius: var(--hot-border-radius);
-      box-sizing: border-box;
+      padding: 10px 10px; //TODO: (theme) add padding
       font-family: inherit;
-      line-height: var(--hot-line-height);
-      font-size: var(--hot-font-size);
-      background-color: var(--hot-background-color);
+      font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height);
+      font-weight: var(--ht-font-weight);
+      border-radius: var(--ht-border-radius);
+      box-sizing: border-box;
+      cursor: pointer;
+      outline: none !important;
+      border-width: 1px;
+      border-style: solid;
+      border-color: var(--ht-input-border-color);
+      color: var(--ht-input-foreground-color);
+      background-color: var(--ht-input-background-color);
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
-      outline: none !important;
 
-      &:hover,
+      &:hover {
+        border-color: var(--ht-input-hover-border-color);
+        color: var(--ht-input-hover-foreground-color);
+        background-color: var(--ht-input-hover-background-color);
+      }
+
+      &:disabled {
+        border-color: var(--ht-input-disabled-border-color);
+        color: var(--ht-input-disabled-foreground-color);
+        background-color: var(--ht-input-disabled-background-color);
+      }
+
       &:focus {
-        border-color: var(--hot-accent-color);
+        border-color: var(--ht-input-focus-border-color);
+        color: var(--ht-input-focus-foreground-color);
+        background-color: var(--ht-input-focus-background-color);
       }
     }
 

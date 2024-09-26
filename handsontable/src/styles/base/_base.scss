@@ -1,8 +1,6 @@
 @use "../utils/mixins";
 
-/*
-  Handsontable Base Row and Col
-*/
+// Handsontable Base Row and Col
 
 @mixin output {
   .handsontable {
@@ -19,7 +17,11 @@
     th,
     td {
       height: calc(
-        var(--ht-line-height, 20px) + (2 * var(--ht-cell-horizontal-padding, 8px))
+        var(--ht-line-height, 20px) +
+          (
+            2 * var(--ht-cell-horizontal-padding, 8px) +
+              var(--ht-cell-horizontal-border-width, 1px)
+          )
       );
       padding: var(--ht-cell-horizontal-padding, 4px)
         var(--ht-cell-vertical-padding, 8px);
@@ -68,7 +70,7 @@
       background-color: var(--ht-header-background-color, #f7f7f9);
 
       &:last-child {
-        /*Foundation framework fix*/
+        /* Foundation framework fix */
         border-inline-start-width: 0;
         border-inline-end-width: var(--ht-cell-vertical-border-width, 1px);
         border-bottom-width: var(--ht-cell-horizontal-border-width, 1px);
@@ -84,8 +86,7 @@
         background-color: var(--ht-header-highlighted-background-color);
 
         &:before {
-          content: "";
-          display: block;
+          @include mixins.pseudo;
           position: absolute;
           inset: auto -1px -1px -1px;
           height: var(--ht-header-highlighted-shadow-size);
@@ -134,13 +135,16 @@
           var(--ht-cell-vertical-padding, 4px);
         height: calc(
           var(--ht-line-height, 20px) +
-            (2 * var(--ht-cell-horizontal-padding, 8px))
+            (
+              2 * var(--ht-cell-horizontal-padding, 8px) +
+                var(--ht-cell-horizontal-border-width, 1px)
+            )
         );
       }
     }
 
     thead tr:not(:last-child) th {
-      // Fix for - nested columns with hidden column
+      /* Fix for - nested columns with hidden column  */
       overflow: hidden;
     }
 
@@ -171,7 +175,7 @@
 
     .wtSpreader {
       position: relative;
-      /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
+      /* must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
       width: 0;
       height: auto;
     }
@@ -216,7 +220,6 @@
       outline-width: 0;
       table-layout: fixed;
       cursor: default;
-      background-color: var(--ht-background-color);
     }
 
     col {
@@ -245,8 +248,13 @@
       }
     }
 
+  
     a {
-      color: var(--ht-accent-color);
+      color: var(--ht-link-color);
+
+      &:hover {
+        color: var(--ht-link-hover-color);
+      }
     }
 
     // Visual fixes
@@ -288,7 +296,7 @@
       }
     }
 
-    /* Scroll bar  */
+    // Scroll bar
     & {
       scrollbar-width: thin;
       scrollbar-color: var(--ht-scrollbar-thumb-color)
@@ -318,5 +326,19 @@
 
   .ht_master .wtHolder {
     overflow: auto;
+  }
+
+  // Row even & odd
+  tr {
+    &.ht__row_even {
+      background-color: var(--ht-row-even-background-color);
+    }
+
+    &.ht__row_odd {
+      th,
+      td {
+        background-color: var(--ht-row-odd-background-color);
+      }
+    }
   }
 }

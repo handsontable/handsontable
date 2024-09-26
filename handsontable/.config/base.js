@@ -3,7 +3,6 @@ const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
 const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
-const { option } = require('yargs');
 
 let licenseBody = fs.readFileSync(path.resolve(__dirname, '../../LICENSE.txt'), 'utf8');
 
@@ -37,18 +36,6 @@ module.exports.create = function create(envArgs) {
           use: [
             { loader: MiniCssExtractPlugin.loader },
             { loader: 'css-loader', options: { sourceMap: false } },
-            {
-              loader: 'postcss-loader',
-              options: {
-                postcssOptions: {
-                  plugins: [
-                    require('postcss-discard-comments')({
-                      removeAll: true, // Removes all comments
-                    }),
-                  ],
-                },
-              },
-            },
             { loader: 'sass-loader' },
           ],
         },

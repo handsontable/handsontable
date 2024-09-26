@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 24/09/2024 13:45:55)
+ * Release date: 30/07/2024 (built at 26/09/2024 13:10:17)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "24/09/2024 13:45:55";
+Handsontable.buildDate = "26/09/2024 13:10:17";
 Handsontable.version = "14.5.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -7851,7 +7851,6 @@ exports.empty = empty;
 exports.fastInnerHTML = fastInnerHTML;
 exports.fastInnerText = fastInnerText;
 exports.getCaretPosition = getCaretPosition;
-exports.getComputedStyle = getComputedStyle;
 exports.getCssTransform = getCssTransform;
 exports.getFrameElement = getFrameElement;
 exports.getMaximumScrollLeft = getMaximumScrollLeft;
@@ -8329,6 +8328,7 @@ function fastInnerText(element, content) {
  */
 function isVisible(element) {
   const documentElement = element.ownerDocument.documentElement;
+  const windowElement = element.ownerDocument.defaultView;
   let next = element;
   while (next !== documentElement) {
     // until <html> reached
@@ -8351,7 +8351,7 @@ function isVisible(element) {
       } else {
         return false; // this is a node detached from document in IE8
       }
-    } else if (getComputedStyle(next).display === 'none') {
+    } else if (windowElement.getComputedStyle(next).display === 'none') {
       return false;
     }
     next = next.parentNode;
@@ -8541,7 +8541,7 @@ function getTrimmingContainer(base) {
     if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
       return el;
     }
-    const computedStyle = getComputedStyle(el, rootWindow);
+    const computedStyle = rootWindow.getComputedStyle(el);
     const allowedProperties = ['scroll', 'hidden', 'auto'];
     const property = computedStyle.getPropertyValue('overflow');
     const propertyY = computedStyle.getPropertyValue('overflow-y');
@@ -8579,7 +8579,7 @@ function getStyle(element, prop) {
   if (styleProp !== '' && styleProp !== undefined) {
     return styleProp;
   }
-  const computedStyle = getComputedStyle(element, rootWindow);
+  const computedStyle = rootWindow.getComputedStyle(element);
   if (computedStyle[prop] !== '' && computedStyle[prop] !== undefined) {
     return computedStyle[prop];
   }
@@ -8605,19 +8605,6 @@ function matchesCSSRules(element, rule) {
     }
   }
   return result;
-}
-
-/**
- * Returns a computed style object for the provided element. (Needed if style is declared in external stylesheet).
- *
- * @param {HTMLElement} element An element to get style from.
- * @param {Window} [rootWindow] The document window owner.
- * @returns {IEElementStyle|CssStyle} Elements computed style object.
- */
-// eslint-disable-next-line no-restricted-globals
-function getComputedStyle(element) {
-  let rootWindow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : window;
-  return element.currentStyle || rootWindow.getComputedStyle(element);
 }
 
 /**
@@ -18223,6 +18210,42 @@ class TableView {
    */
   isVisible() {
     return this._wt.wtTable.isVisible();
+  }
+
+  /**
+   * Checks if the table has a horizontal scrollbar.
+   *
+   * @returns {boolean}
+   */
+  hasVerticalScroll() {
+    return this._wt.wtViewport.hasVerticalScroll();
+  }
+
+  /**
+   * Checks if the table has a vertical scrollbar.
+   *
+   * @returns {boolean}
+   */
+  hasHorizontalScroll() {
+    return this._wt.wtViewport.hasHorizontalScroll();
+  }
+
+  /**
+   * Gets the table's width.
+   *
+   * @returns {boolean}
+   */
+  getTableWidth() {
+    return this._wt.wtTable.getWidth();
+  }
+
+  /**
+   * Gets the table's height.
+   *
+   * @returns {boolean}
+   */
+  getTableHeight() {
+    return this._wt.wtTable.getHeight();
   }
   /**
    * Destroys internal WalkOnTable's instance. Detaches all of the bonded listeners.
@@ -29002,7 +29025,7 @@ class Border {
         fromTD = fromTH;
       }
     }
-    const style = (0, _element.getComputedStyle)(fromTD, rootWindow);
+    const style = rootWindow.getComputedStyle(fromTD);
     if (parseInt(style.borderTopWidth, 10) > 0) {
       top += 1;
       height = height > 0 ? height - 1 : 0;
@@ -30301,7 +30324,7 @@ class MasterTable extends _table.default {
         } else {
           trimmingElementParent.appendChild(cloneNode);
         }
-        const cloneHeight = parseInt((0, _element.getComputedStyle)(cloneNode, rootWindow).height, 10);
+        const cloneHeight = parseInt(rootWindow.getComputedStyle(cloneNode).height, 10);
         trimmingElementParent.removeChild(cloneNode);
         if (cloneHeight === 0) {
           height = 0;
@@ -45693,7 +45716,7 @@ class BaseEditor {
     } else if (['top', 'master', 'bottom'].includes(overlayName)) {
       cellStartOffset += firstColumnOffset - horizontalScrollPosition;
     }
-    const cellComputedStyle = (0, _element.getComputedStyle)(this.TD, this.hot.rootWindow);
+    const cellComputedStyle = rootWindow.getComputedStyle(this.TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
     const inlineStartBorderCompensation = parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
     const topBorderCompensation = parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
@@ -48566,23 +48589,16 @@ class TextEditor extends _baseEditor.BaseEditor {
     this.textareaParentStyle.top = `${top}px`;
     this.textareaParentStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
     this.showEditableElement();
-    const cellComputedStyle = (0, _element.getComputedStyle)(this.TD, this.hot.rootWindow);
+    const cellComputedStyle = this.hot.rootWindow.getComputedStyle(this.TD);
     this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
     this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
     this.TEXTAREA.style.backgroundColor = this.TD.style.backgroundColor;
-    const textareaComputedStyle = (0, _element.getComputedStyle)(this.TEXTAREA);
-    const horizontalPadding = parseInt(textareaComputedStyle.paddingLeft, 10) + parseInt(textareaComputedStyle.paddingRight, 10);
-    const verticalPadding = parseInt(textareaComputedStyle.paddingTop, 10) + parseInt(textareaComputedStyle.paddingBottom, 10);
-    const finalWidth = width - horizontalPadding;
-    const finalHeight = height - verticalPadding;
-    const finalMaxWidth = maxWidth - horizontalPadding;
-    const finalMaxHeight = maxHeight - verticalPadding;
     this.autoResize.init(this.TEXTAREA, {
-      minWidth: Math.min(finalWidth, finalMaxWidth),
-      minHeight: Math.min(finalHeight, finalMaxHeight),
+      minWidth: Math.min(width, maxWidth),
+      minHeight: Math.min(height, maxHeight),
       // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
-      maxWidth: finalMaxWidth,
-      maxHeight: finalMaxHeight
+      maxWidth,
+      maxHeight
     }, true);
   }
 
@@ -49229,7 +49245,6 @@ var _element = __webpack_require__(135);
 var _mixed = __webpack_require__(138);
 var _string = __webpack_require__(136);
 var _unicode = __webpack_require__(154);
-var _browser = __webpack_require__(144);
 var _textRenderer = __webpack_require__(393);
 var _a11y = __webpack_require__(142);
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
@@ -49400,15 +49415,11 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
     } = this;
     this.showEditableElement();
     this.focus();
-    let scrollbarWidth = (0, _element.getScrollbarWidth)();
-    if (scrollbarWidth === 0 && (0, _browser.isMacOS)()) {
-      scrollbarWidth += 15; // default scroll bar width if scroll bars are visible only when scrolling
-    }
     this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
     this.htEditor.updateSettings({
       colWidths: trimDropdown ? [(0, _element.outerWidth)(this.TEXTAREA) - 2] : undefined,
-      width: trimDropdown ? (0, _element.outerWidth)(this.TEXTAREA) + scrollbarWidth : undefined,
       autoColumnSize: true,
+      autoRowSize: true,
       renderer: (hotInstance, TD, row, col, prop, value, cellProperties) => {
         (0, _textRenderer.textRenderer)(hotInstance, TD, row, col, prop, value, cellProperties);
         const {
@@ -49567,7 +49578,7 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
     }
     const textareaOffset = (0, _element.offset)(this.TEXTAREA);
     const textareaHeight = (0, _element.outerHeight)(this.TEXTAREA);
-    const dropdownHeight = this.getDropdownHeight();
+    const dropdownHeight = this.getHeight();
     const trimmingContainerScrollTop = trimmingContainer.scrollTop;
     const headersHeight = (0, _element.outerHeight)(this.hot.view._wt.wtTable.THEAD);
     const containerOffset = (0, _element.offset)(trimmingContainer);
@@ -49640,12 +49651,18 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
    * @private
    */
   updateDropdownDimensions() {
-    const currentDropdownWidth = this.htEditor.getColWidth(0) + (0, _element.getScrollbarWidth)(this.hot.rootDocument) + 2;
     const trimDropdown = this.cellProperties.trimDropdown;
+    const width = trimDropdown ? this.getWidth() : undefined;
+    const height = this.getHeight();
     this.htEditor.updateSettings({
-      height: this.getDropdownHeight(),
-      width: trimDropdown ? undefined : currentDropdownWidth
+      width,
+      height
     });
+    if (trimDropdown && this.htEditor.view.hasVerticalScroll()) {
+      this.htEditor.updateSettings({
+        width: width + (0, _element.getScrollbarWidth)(this.hot.rootDocument)
+      });
+    }
     this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
   }
 
@@ -49681,10 +49698,26 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
    * @private
    * @returns {number}
    */
-  getDropdownHeight() {
-    const firstRowHeight = this.htEditor.getRowHeight(0) || 23;
-    const visibleRows = this.cellProperties.visibleRows;
-    return this.strippedChoices.length >= visibleRows ? visibleRows * firstRowHeight : this.strippedChoices.length * firstRowHeight + 8; // eslint-disable-line max-len
+  getHeight() {
+    const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
+    const borderVerticalCompensation = parseInt(containerStyle.borderTopWidth, 10) + parseInt(containerStyle.borderBottomWidth, 10);
+    const maxItems = Math.min(this.cellProperties.visibleRows, this.strippedChoices.length);
+    const height = Array.from({
+      length: maxItems
+    }, (_, i) => i).reduce((h, index) => h + this.htEditor.getRowHeight(index), 0);
+    return height + borderVerticalCompensation + 1;
+  }
+
+  /**
+   * Calculates and return the internal Handsontable's width.
+   *
+   * @private
+   * @returns {number}
+   */
+  getWidth() {
+    const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
+    const borderHorizontalCompensation = parseInt(containerStyle.borderInlineStartWidth, 10) + parseInt(containerStyle.borderInlineEndWidth, 10);
+    return this.htEditor.getColWidth(0) + borderHorizontalCompensation;
   }
 
   /**
@@ -49827,6 +49860,10 @@ class HandsontableEditor extends _textEditor.TextEditor {
     }
     (0, _element.setCaretPosition)(this.TEXTAREA, 0, this.TEXTAREA.value.length);
     this.refreshDimensions();
+    this.htEditor.updateSettings({
+      width: this.getWidth(),
+      height: this.getHeight()
+    });
   }
 
   /**
@@ -49931,6 +49968,26 @@ class HandsontableEditor extends _textEditor.TextEditor {
       }
     }
     super.finishEditing(restoreOriginalValue, ctrlDown, callback);
+  }
+
+  /**
+   * Calculates and return the internal Handsontable's height.
+   *
+   * @private
+   * @returns {number}
+   */
+  getHeight() {
+    return this.htEditor.view.getTableHeight();
+  }
+
+  /**
+   * Calculates and return the internal Handsontable's width.
+   *
+   * @private
+   * @returns {number}
+   */
+  getWidth() {
+    return this.htEditor.view.getTableWidth();
   }
 
   /**
@@ -62641,7 +62698,7 @@ class Menu {
    */
   get tableBorderWidth() {
     if (_classPrivateFieldGet(_tableBorderWidth, this) === undefined && this.hotMenu) {
-      _classPrivateFieldSet(_tableBorderWidth, this, parseInt((0, _element.getComputedStyle)(this.hotMenu.view._wt.wtTable.TABLE).borderWidth, 10));
+      _classPrivateFieldSet(_tableBorderWidth, this, parseInt(this.hotMenu.rootWindow.getComputedStyle(this.hotMenu.view._wt.wtTable.TABLE).borderWidth, 10));
     }
     return _classPrivateFieldGet(_tableBorderWidth, this);
   }
@@ -63433,7 +63490,8 @@ class Positioner {
   setPositionOnRightOfCursor() {
     let left = _classPrivateFieldGet(_cursor, this).left;
     if (_classPrivateFieldGet(_parentContainer, this)) {
-      const borderRightWidth = Number.parseInt(getComputedStyle(_classPrivateFieldGet(_parentContainer, this).querySelector('.htCore')).borderRightWidth, 10);
+      const rootWindow = _classPrivateFieldGet(_parentContainer, this).ownerDocument.defaultView;
+      const borderRightWidth = Number.parseInt(rootWindow.getComputedStyle(_classPrivateFieldGet(_parentContainer, this).querySelector('.htCore')).borderRightWidth, 10);
       left += _classPrivateFieldGet(_cursor, this).cellWidth + borderRightWidth;
     } else {
       left += _classPrivateFieldGet(_offset, this).right;
@@ -63447,7 +63505,8 @@ class Positioner {
   setPositionOnLeftOfCursor() {
     let left = _classPrivateFieldGet(_offset, this).left + _classPrivateFieldGet(_cursor, this).left - _classPrivateFieldGet(_container, this).offsetWidth;
     if (_classPrivateFieldGet(_parentContainer, this)) {
-      const borderLeftWidth = Number.parseInt(getComputedStyle(_classPrivateFieldGet(_parentContainer, this).querySelector('.htCore')).borderLeftWidth, 10);
+      const rootWindow = _classPrivateFieldGet(_parentContainer, this).ownerDocument.defaultView;
+      const borderLeftWidth = Number.parseInt(rootWindow.getComputedStyle(_classPrivateFieldGet(_parentContainer, this).querySelector('.htCore')).borderLeftWidth, 10);
       left -= borderLeftWidth;
     }
     _classPrivateFieldGet(_container, this).style.left = `${left}px`;

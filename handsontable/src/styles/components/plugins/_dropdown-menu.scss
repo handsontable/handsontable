@@ -76,6 +76,7 @@
 
       table.htCore {
         overflow: hidden;
+        background-color: var(--ht-background-color);
       }
 
       .htCustomMenuRenderer .table.htCore {
@@ -92,7 +93,8 @@
 
       table tbody tr td {
         position: relative;
-        padding: var(--ht-menu-item-horizontal-padding) var(--ht-menu-item-vertical-padding);
+        padding: var(--ht-menu-item-horizontal-padding)
+          var(--ht-menu-item-vertical-padding);
         border-width: 0;
         overflow: hidden;
         white-space: nowrap;
@@ -195,7 +197,7 @@
 }
 
 .handsontable {
-  /* filter */
+  // filter
   .htUIClearAll a,
   .htUISelectAll a {
     padding: 8px;

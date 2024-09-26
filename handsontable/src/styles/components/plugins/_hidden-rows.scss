@@ -1,6 +1,6 @@
-/*
-  Handsontable HiddenRows
-*/
+@use "../../utils/mixins";
+
+// Handsontable HiddenRows
 
 @mixin output {
   .handsontable {
@@ -11,7 +11,7 @@
       .relative {
         &:before,
         &:after {
-          content: "";
+          @include mixins.pseudo;
           position: absolute;
           left: 50%;
           width: 0;

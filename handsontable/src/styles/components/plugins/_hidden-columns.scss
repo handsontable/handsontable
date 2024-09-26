@@ -1,6 +1,6 @@
-/*
-  Handsontable HiddenColumns
-*/
+@use "../../utils/mixins";
+
+// Handsontable HiddenColumns
 
 @mixin output {
   .handsontable {
@@ -11,7 +11,7 @@
       .relative {
         &:after,
         &:before {
-          content: "";
+          @include mixins.pseudo;
           position: absolute;
           top: 50%;
           width: 0;

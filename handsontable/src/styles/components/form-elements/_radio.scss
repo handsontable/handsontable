@@ -1,7 +1,7 @@
-/*
-  Handsontable Input
-  Used in Dropdown Menu
-*/
+@use "../../utils/mixins";
+
+// Handsontable Input
+//  Used in Dropdown Menu
 
 @mixin output {
   .handsontable {
@@ -9,9 +9,9 @@
       position: relative;
       display: inline-flex;
       margin: 0;
-      padding: var(--hot-base-grid) calc(2 * var(--hot-base-grid));
+      padding: var(--ht-gap-size) calc(2 * var(--ht-gap-size));
       align-items: center;
-      gap: calc(2 * var(--hot-base-grid));
+      gap: calc(2 * var(--ht-gap-size));
       cursor: pointer;
 
       &:first-child {
@@ -20,35 +20,118 @@
 
       > input[type="radio"] {
         position: relative;
-        width: var(--hot-control-size);
-        height: var(--hot-control-size);
+        width: var(--ht-checkbox-size);
+        height: var(--ht-checkbox-size);
         margin: 0;
         appearance: none;
         cursor: pointer;
 
+        // Circle overlay
         &:before {
-          content: "";
-          display: block;
-          border-radius: 8px;
+          @include mixins.pseudo;
           position: absolute;
           inset: 0;
-          background: var(--hot-off-background-color);
-          border: 1px solid var(--hot-border-color);
+          border-radius: calc(0.5 * var(--ht-checkbox-size));
+          border: 1px solid var(--ht-checkbox-border-color);
+          background-color: var(--ht-checkbox-background-color);
         }
 
+        // Circle
         &:after {
-          content: "";
+          @include mixins.pseudo;
           position: absolute;
-          display: block;
-          border-radius: calc(0.5 * var(--hot-control-size));
           inset: 2px;
-          border: 2px solid var(--hot-background-color);
+          border-radius: calc(0.5 * var(--ht-checkbox-size));
+          background-color: var(--ht-checkbox-background-color);
+        }
+
+        &:hover {
+          // Circle overlay
+          &:before {
+            border-color: var(--ht-checkbox-hover-border-color);
+          }
+
+          // Circle
+          &:after {
+            background-color: var(--ht-checkbox-hover-background-color);
+          }
         }
 
         &:checked {
+          // Circle overlay
           &:before {
-            background: var(--hot-accent-color);
-            border: 2px solid var(--hot-accent-color);
+            border-color: var(--ht-checkbox-checked-border-color);
+          }
+
+          // Circle
+          &:after {
+            background: var(--ht-checkbox-checked-background-color);
+          }
+
+          &:hover {
+            // Circle overlay
+            &:before {
+              border-color: var(--ht-checkbox-checked-hover-border-color);
+            }
+
+            // Circle
+            &:after {
+              background-color: var(
+                --ht-checkbox-checked-hover-background-color
+              );
+            }
+          }
+
+          &:disabled {
+            cursor: initial;
+
+            // Circle overlay
+            &:before {
+              border-color: var(--ht-checkbox-checked-disabled-border-color);
+            }
+
+            // Circle
+            &:after {
+              background-color: var(--ht-checkbox-checked-disabled-icon-color);
+            }
+          }
+        }
+
+        &:disabled {
+          // Circle overlay
+          &:before {
+            border-color: var(--ht-checkbox-disabled-border-color);
+          }
+
+          // Circle
+          &:after {
+            background-color: var(--ht-checkbox-disabled-background-color);
+          }
+        }
+
+        &:focus {
+          // Circle overlay
+          &:before {
+            border-color: var(--ht-checkbox-checked-focus-border-color);
+          }
+
+          // Circle
+          &:after {
+            background-color: var(--ht-checkbox-checked-focus-icon-color);
+          }
+        }
+
+        &:disabled {
+          cursor: initial;
+
+          // Circle overlay
+          &:before {
+            border-color: var(--ht-checkbox-disabled-border-color);
+          }
+
+          // Circle
+          &:after {
+            background-color: var(--ht-checkbox-disabled-icon-color);
           }
         }
       }
@@ -58,10 +141,9 @@
         cursor: pointer;
 
         &:before {
+          @include mixins.pseudo;
           position: absolute;
           inset: 0;
-          content: "";
-          display: block;
         }
       }
     }

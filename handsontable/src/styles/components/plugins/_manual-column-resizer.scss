@@ -1,8 +1,6 @@
 @use "../../utils/mixins";
 
-/*
-  Handsontable Column Resizer
-*/
+// Handsontable Column Resizer
 
 @mixin output {
   .handsontable {
@@ -15,7 +13,7 @@
       background: none;
       opacity: 0;
       z-index: 210;
-      transition: opacity var(--hot-transition-time) ease-in-out;
+      transition: opacity var(--ht-table-transition) ease-in-out;
 
       &::before,
       &::after {
@@ -26,7 +24,7 @@
         width: 2px;
         height: calc(100% - 8px);
         margin: 4px 0;
-        background: var(--hot-read-only-text);
+        background: var(--ht-read-only-color);
         border-radius: 2px;
       }
 
@@ -49,7 +47,7 @@
       margin-inline-start: 4px;
       margin-inline-end: unset;
       display: none;
-      border-inline-end: 1px solid var(--hot-accent-color);
+      border-inline-end: 1px solid var(--ht-accent-color);
       border-inline-start: none;
     }
 

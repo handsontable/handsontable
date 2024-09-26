@@ -1,8 +1,6 @@
 @use "../../utils/mixins";
 
-/*
-  Selection
-*/
+// Selection
 
 @mixin output {
   @keyframes marching-ants {
@@ -15,7 +13,7 @@
   }
 
   .handsontable {
-    /* Fill */
+    // Fill
     @for $i from 0 through 7 {
       td.area#{if($i == 0, "", "-#{$i}")} {
         @include mixins.area-styles;
@@ -28,7 +26,7 @@
       }
     }
 
-    /* Borders */
+    // Borders
     .wtBorder {
       position: absolute;
       font-size: 0;
@@ -37,7 +35,7 @@
         display: none !important;
       }
 
-      /* A layer order of the selection types */
+      // A layer order of the selection types
       &.current {
         z-index: 10;
         background-color: var(--ht-cell-selection-border-color) !important;
@@ -60,8 +58,18 @@
         background-color: var(--ht-cell-selection-border-color) !important;
       }
 
-      /* fill handle */
+      // fill handle
       &.corner {
+        width: var(--ht-cell-autofill-size) !important;
+        height: var(--ht-cell-autofill-size) !important;
+        border-width: var(--ht-cell-autofill-border-width) !important;
+        border-style: solid;
+        border-color: var(--ht-cell-autofill-border-color) !important;
+        border-radius: var(--ht-cell-autofill-border-radius) !important;
+        background-color: var(--ht-cell-autofill-background-color) !important;
+        margin-top: calc(var(--ht-cell-editor-border-width) + 1px);
+        margin-left: calc(var(--ht-cell-editor-border-width) + 1px);
+        transform: translate(-50%, -50%);
         font-size: 0;
         cursor: crosshair;
         z-index: 10;

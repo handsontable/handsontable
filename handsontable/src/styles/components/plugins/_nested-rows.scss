@@ -1,94 +1,38 @@
-/*
-  Handsontable Nested Rows
-*/
+// Handsontable Nested Rows
 
 @mixin output {
   .handsontable {
     th {
       &.ht_nestingLevels {
-        text-align: inline-start;
-        padding-inline-start: calc(2 * var(--hot-base-grid));
-
         > .relative {
           display: flex;
-          align-items: flex-start;
-          justify-content: center;
-          gap: calc(0.5 * var(--hot-base-grid));
-          height: 100%;
+          align-items: center;
+          gap: var(--ht-gap-size);
         }
       }
 
-      div.ht_nestingLevels {
-        display: inline-block;
-        position: absolute;
-        inset-inline-start: calc(3 * var(--hot-base-grid));
-        inset-inline-end: unset;
-      }
-
       span {
+        &:last-child {
+          padding-left: calc(var(--ht-icon-size) + var(--ht-gap-size));
+        }
+
         &.ht_nestingLevel {
           display: inline-block;
 
           &_empty {
-            display: inline-block;
-            float: inline-start;
-            width: calc(2 * var(--hot-base-grid));
-            height: calc(var(--hot-base-line-height) / 2);
             position: relative;
-            align-self: start;
-            border-bottom: 1px solid var(--hot-border-color);
-
-            &:first-child {
-              margin-left: -2px;
-              width: var(--hot-base-grid);
-
-              &:before {
-                content: "";
-                display: block;
-                border-left: 1px solid var(--hot-border-color);
-                height: calc(var(--hot-base-line-height) * 0.5 + 3px);
-                position: absolute;
-                bottom: 0;
-                left: 0;
-              }
-            }
-            + .rowHeader {
-              margin-left: 6px;
-            }
-
-            + .ht_nestingLevel_empty {
-              border-left: 0;
-              border-bottom: 1px solid var(--hot-border-color);
-            }
+            display: inline-block;
+            width: var(--ht-gap-size);
+            height: var(--ht-gap-size);
+            order: -2;
           }
         }
       }
 
-      div.ht_nestingButton {
-        display: inline-block;
-        position: absolute;
-        inset-inline-end: -2px;
-        inset-inline-start: unset;
-        cursor: pointer;
+      .ht_nestingButton {
         position: relative;
+        cursor: pointer;
         order: -1;
-        transform: none;
-        top: 2px;
-        margin-right: var(--hot-base-grid);
-      }
-    }
-
-    &.innerBorderInlineStart {
-      th div.ht_nestingLevels,
-      & ~ .handsontable th div.ht_nestingLevels {
-        inset-inline-end: calc(4 * var(--hot-base-grid));
-        inset-inline-start: unset;
-      }
-
-      th div.ht_nestingButton,
-      & ~ .handsontable th div.ht_nestingButton {
-        inset-inline-end: 0;
-        inset-inline-start: unset;
       }
     }
   }

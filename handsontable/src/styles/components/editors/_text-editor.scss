@@ -1,6 +1,4 @@
-/*
-  Handsontable Input Editor
-*/
+// Handsontable Input Editor
 
 @mixin output {
   .handsontableInputHolder {
@@ -11,26 +9,28 @@
     .handsontableInput {
       display: block;
       margin: 0;
-      padding: var(--ht-cell-vertical-border-width) !important;
-      padding-bottom: 0 !important;
-      padding-left: calc(
-        var(--ht-cell-vertical-padding) + var(--ht-cell-vertical-border-width)
-      ) !important;
-      padding-right: calc(
-        var(--ht-cell-vertical-padding) + var(--ht-cell-vertical-border-width)
-      ) !important;
-      border: none;
-      border-radius: 0;
-      resize: none;
-      box-shadow: 0 0 0 calc(var(--ht-cell-horizontal-border-width) * 2)
-        var(--ht-cell-editor-shadow-color) inset;
-      font-family: inherit;
-      font-size: inherit;
-      line-height: calc(
-        var(--ht-line-height) + (var(--ht-cell-horizontal-padding) * 2)
-      );
+      padding: calc(
+          var(--ht-cell-horizontal-padding, 4px) +
+            var(--ht-cell-horizontal-border-width, 1px)
+        )
+        calc(
+          var(--ht-cell-vertical-padding, 8px) +
+            var(--ht-cell-vertical-border-width, 1px)
+        );
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
       color: var(--ht-cell-editor-foreground-color);
       background-color: var(--ht-background-color);
+      box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width)
+          var(--ht-cell-editor-border-color),
+        0 0 var(--ht-cell-editor-shadow-blur-radius)
+          var(--ht-cell-editor-shadow-color);
+      border: none;
+      -webkit-appearance: none !important;
+      overflow: hidden !important;
+      resize: none !important;
+      box-sizing: border-box;
 
       /* Miscellaneous */
       outline-width: 0;

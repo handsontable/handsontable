@@ -1,12 +1,15 @@
 @use "../../utils/mixins";
 
-/*
-  Filters
-  Base styling in Dropdown Menu Plugin
-*/
+// Filters
+//  Base styling in Dropdown Menu Plugin
+
 //TODO: (theme) style
 @mixin output {
   .handsontable.htFiltersConditionsMenu {
+    .htCore {
+      background-color: var(--ht-background-color);
+    }
+    
     &:not(.htGhostTable) {
       z-index: 1070;
     }
@@ -17,7 +20,7 @@
       cursor: auto;
     }
 
-    /* Menu label */
+    // Menu label
     .htFiltersMenuLabel {
       font-size: var(--hot-label-font-size);
       line-height: var(--hot-label-line-height);
@@ -28,7 +31,7 @@
       }
     }
 
-    /* Component filter by conditional */
+    // Component filter by conditional
     .htFiltersMenuCondition.border {
       border-bottom: 1px solid var(--hot-highlight-color) !important;
       padding-bottom: calc(4 * var(--hot-base-grid));
@@ -48,7 +51,7 @@
       }
     }
 
-    /* Filter Links */
+    // Filter Links
     .htUIClearAll,
     .htUISelectAll {
       display: inline-block;
@@ -63,7 +66,7 @@
       margin-inline-end: calc(2 * var(--hot-base-grid));
     }
 
-    /* SelectMultiple */
+    // SelectMultiple
     .htUIMultipleSelect .ht_master .wtHolder {
       overflow-y: auto;
 

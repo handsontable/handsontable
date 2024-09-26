@@ -1,8 +1,6 @@
 @use "../../utils/mixins";
 
-/*
-  Comments
-*/
+// Comments
 
 @mixin output {
   .handsontable {
@@ -10,7 +8,7 @@
       position: relative;
 
       &:after {
-        content: "";
+        @include mixins.pseudo;
         position: absolute;
         top: 0;
         inset-inline-end: 0;

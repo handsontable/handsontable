@@ -1,20 +1,18 @@
-/*
-  Multi Column Sorting
-    Helper element for:
-      - Manual Column Sorting
-*/
+// Multi Column Sorting
+//  Helper element for:
+//   - Manual Column Sorting
 
 @mixin output {
   .handsontable {
-    /* Column's number position */
+    // Column's number position
     span.colHeader.columnSorting {
       &:after {
         position: relative;
         order: 2;
-        margin-left: calc(var(--hot-base-grid) * -1);
+        margin-left: calc(var(--ht-gap-size) * -1);
         padding-inline-start: 1px;
         padding-inline-end: 1px;
-        top: var(--hot-base-grid);
+        top: var(--ht-gap-size);
         font-size: 7px;
       }
 
@@ -24,7 +22,7 @@
         content: "+";
       }
 
-      /* Numeric indicators */
+      // Numeric indicators
       @for $i from 1 through 7 {
         &.sort-#{$i}::after {
           content: "#{$i}";
@@ -33,12 +31,12 @@
     }
   }
 
-  /* Drop-down menu */
+  // Drop-down menu
   .htGhostTable
     th
     div
     button.changeType
     + span.colHeader.columnSorting:not(.indicatorDisabled) {
-    padding-right: var(--hot-base-grid);
+    padding-right: var(--ht-gap-size);
   }
 }

@@ -1,8 +1,6 @@
 @use "../../utils/mixins";
 
-/*
-  Dropdown Editor [Listbox]
-*/
+// Dropdown Editor [Listbox]
 
 @mixin output {
   .handsontable {
@@ -10,66 +8,69 @@
       margin: 0;
       @include mixins.menu-box-shadow;
 
+      .htCore {
+        background-color: var(--ht-background-color);
+      }
+
       .ht_master {
         overflow: hidden;
+      }
+      .wtHolder {
+        overflow: auto;
+      }
 
-        .wtHolder {
-          overflow: auto;
+      table {
+        overflow: hidden;
+
+        th,
+        tr:first-child th,
+        tr:last-child th,
+        tr:first-child td,
+        td {
+          border-color: transparent !important;
         }
 
-        table {
-          overflow: hidden;
+        th,
+        td {
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
 
-          th,
-          tr:first-child th,
-          tr:last-child th,
-          tr:first-child td,
-          td {
-            border-color: transparent !important;
+        td.htDimmed {
+          cursor: default;
+          color: inherit;
+          font-style: inherit;
+        }
+
+        .wtBorder {
+          visibility: hidden;
+        }
+
+        strong {
+          font-weight: var(--ht-font-weight);
+        }
+
+        tr:hover td {
+          background: var(--ht-menu-item-hover-color);
+          cursor: pointer;
+        }
+
+        tr td.current {
+          background: var(--ht-menu-item-active-color);
+        }
+
+        thead th {
+          height: auto !important;
+          text-align: left;
+          border-width: 0px 1px 1px;
+
+          > div {
+            padding-top: 8px;
+            padding-bottom: 8px;
           }
 
-          th,
-          td {
-            white-space: nowrap;
-            text-overflow: ellipsis;
-          }
-
-          td.htDimmed {
-            cursor: default;
-            color: inherit;
-            font-style: inherit;
-          }
-
-          .wtBorder {
-            visibility: hidden;
-          }
-
-          strong {
-            font-weight: var(--ht-font-weight);
-          }
-
-          tr:hover td {
-            background: var(--ht-menu-item-hover-color);
-            cursor: pointer;
-          }
-
-          tr td.current {
-            background: var(--ht-menu-item-active-color);
-          }
-
-          thead th {
-            height: auto !important;
-            text-align: left;
-            border-width: 0px 1px 1px;
-
-            > div {
-              padding-top: 8px;
-              padding-bottom: 8px;
-            }
-
-            &:first-child {
-              padding-left: 8px;
-            }
+          &:first-child {
+            padding-left: 8px;
           }
         }
       }
