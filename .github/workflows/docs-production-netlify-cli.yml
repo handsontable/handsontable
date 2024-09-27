@@ -1,7 +1,6 @@
 name: Docs Production Deployment - Netlify CLI
 
 env:
-  GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation
   NODE_VERSION: 20
   DOCSEARCH_API_KEY: ${{ secrets.DOCSEARCH_API_KEY }}
   DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
@@ -19,7 +18,7 @@ defaults:
     working-directory: ./docs/
 
 jobs:
-  docker:
+  netlify-deploy:
     name: Build Docs
     runs-on: ubuntu-latest
     permissions:
@@ -101,15 +100,17 @@ jobs:
           netlify env:set LATEST_VERSION=$LATEST_VERSION --context production
           netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
           netlify env:list
-          curl -X PUT "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/env/LATEST_VERSION" \
-            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{
-                "context": "production",
-                "key": "LATEST_VERSION",
-                "scopes": ["runtime", "functions", "builds", "post-processing"],
-                "value": "'"$LATEST_VERSION"'"
-            }'
+          curl -X PUT "https://api.netlify.com/api/v1/sites/${SITE_ID}/env/LATEST_VERSION" \
+          -H "Authorization: Bearer ${NETLIFY_API_TOKEN}" \
+          -H "Content-Type: application/json" \
+          -d '{
+                "values": [
+                  {
+                    "envVarValue": "'"${LATEST_VERSION}"'"
+                  }
+                ],
+                "context": "production"  # Specify the context if needed
+              }'
         env:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
