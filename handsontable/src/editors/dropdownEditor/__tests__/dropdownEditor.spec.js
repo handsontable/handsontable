@@ -356,6 +356,52 @@ describe('DropdownEditor', () => {
 
       window.onerror = prevError;
     });
+
+    it('should open editor with the correct size when there is no scrollbar on the list', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'dropdown',
+            source: choices.slice(0, 5),
+            visibleRows: 5,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).toBe(120);
+      expect(container.clientHeight).toBe(118);
+    });
+
+    it('should open editor with the correct size when there is scrollbar on the list', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'dropdown',
+            source: choices,
+            visibleRows: 3,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).toBe(120 + Handsontable.dom.getScrollbarWidth());
+      expect(container.clientHeight).toBe(72);
+    });
   });
 
   describe('closing the editor', () => {
