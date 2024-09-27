@@ -9,8 +9,9 @@ env:
 on:
   push:
     branches:
+      #!TODO remove feature branch after the merge
       - feature/dev-issue-1790
-      # - master
+      - prod-docs/latest
   workflow_dispatch:
 
 defaults:
@@ -99,4 +100,4 @@ jobs:
         env:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-            LATEST_VERSION: ${{ env.LATEST_VERSION }}
+            LATEST_DOCS_VERSION: ${{ env.LATEST_DOCS_VERSION }}

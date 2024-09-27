@@ -1,5 +1,11 @@
 import type { Context, Config } from "@netlify/edge-functions";
 
+declare var Netlify: {
+  env: {
+    get: (key: string) => string;
+  }
+}
+
 declare var process: {
   env: {
     LATEST_DOCS_VERSION: string;
@@ -672,7 +678,7 @@ function prepareRedirects(framework: string): Redirect[] {
   const redirectsArray = getRawRedirects();
   const redirectOlderVersionsToOvh = {
     //except of the latest version, all other versions should be redirected to the latest version
-    from: getVersionRegexString(process.env.LATEST_DOCS_VERSION),
+    from: getVersionRegexString(Netlify.env.get('LATEST_DOCS_VERSION')),
     to: `https://_docs.handsontable.com/docs/$1$2`,
     status: 301,
     rewrite: true,
@@ -700,7 +706,7 @@ function prepareRedirects(framework: string): Redirect[] {
 
 export default async function handler(request: Request, context: Context) {
   const url = new URL(request.url);
-  console.log('Detected Dpcs Version', process.env.LATEST_DOCS_VERSION);
+  console.log('Detected Docs Version', Netlify.env.get('LATEST_DOCS_VERSION'));
   console.log('Request url', url);
 
   const cookieValue = context.cookies.get("docs_fw");
