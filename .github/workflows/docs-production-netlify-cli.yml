@@ -57,6 +57,13 @@ jobs:
           git checkout feature/dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js docs/.gitignore docs/netlify.toml
         working-directory: ./
 
+      # Dynamically update netlify.toml with LATEST_VERSION
+      - name: Update netlify.toml with LATEST_VERSION
+        run: |
+          echo '[context.production.environment]' >> netlify.toml
+          echo 'LATEST_VERSION="${{ env.LATEST_VERSION }}"' >> netlify.toml
+          cat netlify.toml
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
@@ -76,13 +83,6 @@ jobs:
       - name: Install Netlify CLI
         run: npm install netlify-cli -g
 
-      # Dynamically update netlify.toml with LATEST_VERSION
-      - name: Update netlify.toml with LATEST_VERSION
-        run: |
-          echo '[context.production.environment]' >> netlify.toml
-          echo 'LATEST_VERSION="${{ env.LATEST_VERSION }}"' >> netlify.toml
-          cat netlify.toml
-
       - name : Add changes to the commit
         run:  |
           git add .
@@ -99,6 +99,13 @@ jobs:
           netlify env:set LATEST_VERSION=$LATEST_VERSION
           netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
           netlify env:list
+          curl -X POST "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/env" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+                "key": "LATEST_VERSION",
+                "value": "'"$LATEST_VERSION"'"
+            }'
         env:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
