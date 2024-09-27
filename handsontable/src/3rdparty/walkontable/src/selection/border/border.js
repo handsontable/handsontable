@@ -2,7 +2,6 @@ import {
   addClass,
   hasClass,
   removeClass,
-  getComputedStyle,
   getTrimmingContainer,
   innerWidth,
   innerHeight,
@@ -497,7 +496,7 @@ class Border {
       }
     }
 
-    const style = getComputedStyle(fromTD, rootWindow);
+    const style = rootWindow.getComputedStyle(fromTD);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
       top += 1;

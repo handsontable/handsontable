@@ -17,7 +17,6 @@ import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../../helpers/browser
 import {
   addClass,
   isChildOf,
-  getComputedStyle,
   getParentWindow,
   hasClass,
   setAttribute,
@@ -134,7 +133,8 @@ export class Menu {
    */
   get tableBorderWidth() {
     if (this.#tableBorderWidth === undefined && this.hotMenu) {
-      this.#tableBorderWidth = parseInt(getComputedStyle(this.hotMenu.view._wt.wtTable.TABLE).borderWidth, 10);
+      this.#tableBorderWidth = parseInt(this.hotMenu.rootWindow
+        .getComputedStyle(this.hotMenu.view._wt.wtTable.TABLE).borderWidth, 10);
     }
 
     return this.#tableBorderWidth;

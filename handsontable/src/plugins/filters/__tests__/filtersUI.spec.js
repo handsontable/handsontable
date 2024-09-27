@@ -4026,13 +4026,13 @@ describe('Filters UI', () => {
     dropdownMenu(0);
 
     const htItemWrapper = document.querySelector('.htItemWrapper');
-    const compStyleHtItemWrapper = Handsontable.dom.getComputedStyle(htItemWrapper);
+    const compStyleHtItemWrapper = getComputedStyle(htItemWrapper);
 
     const htFiltersMenuLabel = document.querySelector('.htFiltersMenuLabel');
-    const compStyleHtFiltersMenuLabel = Handsontable.dom.getComputedStyle(htFiltersMenuLabel);
+    const compStyleHtFiltersMenuLabel = getComputedStyle(htFiltersMenuLabel);
 
     const htUISelectCaption = document.querySelector('.htUISelectCaption');
-    const compStyleHtUISelectCaption = Handsontable.dom.getComputedStyle(htUISelectCaption);
+    const compStyleHtUISelectCaption = getComputedStyle(htUISelectCaption);
 
     expect(compStyleHtItemWrapper.fontFamily).not.toBe('Helvetica');
     expect(compStyleHtFiltersMenuLabel.fontFamily).not.toBe('Helvetica');
