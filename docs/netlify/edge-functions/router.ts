@@ -7,6 +7,7 @@ interface Redirect {
   from: RegExp;
   to: string;
   status: number;
+  rewrite?: boolean;
 }
 
 function getRawRedirects() {
@@ -659,12 +660,11 @@ function getRawRedirects() {
   ];
 }
 
-
-
 function getVersionRegexString(latestVersion: number | string) {
   const escapedVersion = latestVersion.toString().replace('.', '\\.');
   return `^\\/docs\\/(?!${escapedVersion})(\\d+\\.\\d+)(\\/.*)?$`;
 }
+
 function prepareRedirects(framework: string): Redirect[] {
   const redirectsArray = getRawRedirects();
   const redirectOlderVersionsToOvh = {
@@ -672,6 +672,7 @@ function prepareRedirects(framework: string): Redirect[] {
     from: getVersionRegexString(14.5),
     to: `https://_docs.handsontable.com/docs/$1`,
     status: 301,
+    rewrite: true,
   };
 
 
@@ -679,7 +680,7 @@ function prepareRedirects(framework: string): Redirect[] {
   const updatedRedirectsArray = [
     redirectOlderVersionsToOvh,
     ...redirectsArray
-  ].map((redirect: { from: string, to: string, status: number }) => {
+  ].map((redirect: { from: string, to: string, status: number, rewrite?: boolean }) => {
     const fromRegex = new RegExp(redirect.from); // Convert from string to RegExp
     const updatedTo = redirect.to.replace('$framework', framework); // Replace $framework with provided framework
 
@@ -687,6 +688,7 @@ function prepareRedirects(framework: string): Redirect[] {
       from: fromRegex,
       to: updatedTo,
       status: redirect.status,
+      rewrite: redirect.rewrite,
     };
   });
 
@@ -706,6 +708,10 @@ export default async function handler(request: Request, context: Context) {
 
   if (matchFound) {
     const newUrl = url.pathname.replace(matchFound.from, matchFound.to)
+    if (matchFound.rewrite === true) {
+      console.log('Match found, rewriting to', newUrl);
+      return context.rewrite(matchFound.to);
+    }
     console.log('Match found, redirecting to', newUrl);
     return Response.redirect(newUrl, 301);
   }

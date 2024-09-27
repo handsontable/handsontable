@@ -74,6 +74,7 @@ function getThisDocsVersion() {
         .map(item => item.match(/\d+\.\d+/)[0]);
 
       const maximumVersionFound = Math.max(...versionsFound);
+
       docsVersion = maximumVersionFound.toString();
     } else {
       docsVersion = 'next';
