@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Autocomplete and Dropdown editor's container size counting",
+  "type": "fixed",
+  "issueOrPR": 11201,
+  "breaking": false,
+  "framework": "none"
+}
