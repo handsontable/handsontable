@@ -17,7 +17,7 @@ function getRawRedirects() {
     },
     {
       "from": "^/docs/hyperformula/(.*)$",
-      "to": "https://hyperformula.handsontable.com/$1",
+      "to": "https://hyperformula.handsontable.com/$1$2",
       "status": 301
     },
     {
@@ -668,7 +668,7 @@ function prepareRedirects(framework: string): Redirect[] {
   const redirectOlderVersionsToOvh = {
     //except of the latest version, all other versions should be redirected to the latest version
     from: getVersionRegexString(14.5),
-    to: `https://_docs.handsontable.com/docs/$1`,
+    to: `https://_docs.handsontable.com/docs/$1$2`,
     status: 301,
     rewrite: true,
   };
@@ -695,7 +695,7 @@ function prepareRedirects(framework: string): Redirect[] {
 
 export default async function handler(request: Request, context: Context) {
   const url = new URL(request.url);
-  console.log('url', url);
+  console.log('Request url', url);
 
   const cookieValue = context.cookies.get("docs_fw");
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
@@ -706,6 +706,7 @@ export default async function handler(request: Request, context: Context) {
 
   if (matchFound) {
     const newUrl = url.pathname.replace(matchFound.from, matchFound.to)
+
     if (matchFound.rewrite === true) {
       console.log('Match found, proxying to', newUrl);
 
