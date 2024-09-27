@@ -76,6 +76,13 @@ jobs:
       - name: Install Netlify CLI
         run: npm install netlify-cli -g
 
+      # Dynamically update netlify.toml with LATEST_VERSION
+      - name: Update netlify.toml with LATEST_VERSION
+        run: |
+          echo '[context.production.environment]' >> netlify.toml
+          echo 'LATEST_VERSION="${{ env.LATEST_VERSION }}"' >> netlify.toml
+          cat netlify.toml
+
       - name : Add changes to the commit
         run:  |
           git add .
@@ -89,10 +96,10 @@ jobs:
 
       - name: Deploy to Netlify
         run: |
-          netlify env:set LATEST_DOCS_VERSION=$LATEST_VERSION
+          netlify env:set LATEST_VERSION=$LATEST_VERSION
           netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
           netlify env:list
         env:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-            LATEST_DOCS_VERSION: ${{ env.LATEST_DOCS_VERSION }}
+            LATEST_VERSION: ${{ env.LATEST_VERSION }}

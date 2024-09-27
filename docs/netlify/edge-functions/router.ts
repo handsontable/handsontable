@@ -6,7 +6,6 @@ declare var Netlify: {
   }
 }
 
-
 interface Redirect {
   from: RegExp;
   to: string;
