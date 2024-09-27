@@ -173,7 +173,7 @@ export class HandsontableEditor extends TextEditor {
    * @returns {number}
    */
   getHeight() {
-    return this.htEditor.view.getTableHeight();
+    return this.htEditor.view.getTableHeight() + 1;
   }
 
   /**

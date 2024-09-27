@@ -26,13 +26,8 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 26/09/2024 13:10:17)
+ * Release date: 30/07/2024 (built at 27/09/2024 13:46:43)
  */
-/*
-  Handsontable DropdownMenu
-    - Button
-    - Dropdown Menu and Context Menu and Filters
-*/
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
   padding: 8px;
@@ -56,11 +51,6 @@
   color: var(--ht-foreground-color);
   /* Miscellaneous */
   touch-action: manipulation;
-  /* It removes double right border from first column header when row headers are disabled */
-  /*
-    innerBorderTop - Property controlled by top overlay
-    innerBorderBottom - Property controlled by bottom overlay
-  */
 }
 .handsontable th,
 .handsontable td {
@@ -121,7 +111,7 @@
   content: "";
   display: block;
   position: absolute;
-  inset: auto -1px -1px -1px;
+  inset: auto 0 0 0;
   height: var(--ht-header-highlighted-shadow-size);
   background-color: var(--ht-accent-color);
 }
@@ -158,7 +148,7 @@
 .handsontable tbody th.ht__highlight:before {
   width: var(--ht-header-highlighted-shadow-size);
   height: auto;
-  inset: -1px -1px -1px auto;
+  inset: 0 0 0 auto;
 }
 .handsontable .hide {
   display: none;
@@ -289,12 +279,13 @@
   overflow: auto;
 }
 
-tr.ht__row_even {
-  background-color: var(--ht-row-even-background-color);
+tr.ht__row_even th,
+tr.ht__row_even td {
+  background-color: var(--ht-row-even-background-color, #ffffff);
 }
 tr.ht__row_odd th,
 tr.ht__row_odd td {
-  background-color: var(--ht-row-odd-background-color);
+  background-color: var(--ht-row-odd-background-color, #ffffff);
 }
 
 .handsontable.mobile {
@@ -473,6 +464,18 @@ tr.ht__row_odd td {
   position: absolute;
   font-size: 0;
 }
+.handsontable .wtBorder:nth-child(1) {
+  height: var(--ht-cell-editor-border-width) !important;
+}
+.handsontable .wtBorder:nth-child(2) {
+  width: var(--ht-cell-editor-border-width) !important;
+}
+.handsontable .wtBorder:nth-child(3) {
+  height: var(--ht-cell-editor-border-width) !important;
+}
+.handsontable .wtBorder:nth-child(4) {
+  width: var(--ht-cell-editor-border-width) !important;
+}
 .handsontable .wtBorder.hidden {
   display: none !important;
 }
@@ -500,8 +503,8 @@ tr.ht__row_odd td {
   border-color: var(--ht-cell-autofill-border-color) !important;
   border-radius: var(--ht-cell-autofill-border-radius) !important;
   background-color: var(--ht-cell-autofill-background-color) !important;
-  margin-top: calc(var(--ht-cell-editor-border-width) + 1px);
-  margin-left: calc(var(--ht-cell-editor-border-width) + 1px);
+  margin-top: 3px;
+  margin-left: 3px;
   transform: translate(-50%, -50%);
   font-size: 0;
   cursor: crosshair;
@@ -547,6 +550,7 @@ tr.ht__row_odd td {
   position: absolute;
   top: 0;
   left: 0;
+  opacity: 0.6;
 }
 
 .handsontable .htCheckboxRendererInput {
@@ -693,7 +697,7 @@ tr.ht__row_odd td {
   font-size: inherit !important;
   line-height: inherit !important;
   color: var(--ht-cell-editor-foreground-color);
-  background-color: var(--ht-background-color);
+  background-color: var(--ht-background-color, #ffffff);
   box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width) var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
   border: none;
   -webkit-appearance: none !important;
@@ -722,12 +726,10 @@ tr.ht__row_odd td {
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--ht-cell-editor-foreground-color);
-  background: var(--ht-background-color);
+  background-color: var(--ht-background-color, #ffffff);
   font-family: inherit !important;
   font-size: inherit !important;
   line-height: inherit !important;
-  color: var(--ht-cell-editor-foreground-color);
-  background-color: var(--ht-background-color);
   box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width) var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
   border: none;
   -webkit-appearance: none !important;
@@ -744,10 +746,8 @@ tr.ht__row_odd td {
 
 .handsontable.listbox {
   margin: 0;
+  background-color: var(--ht-background-color, #ffffff);
   box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) var(--ht-menu-shadow-color);
-}
-.handsontable.listbox .htCore {
-  background-color: var(--ht-background-color);
 }
 .handsontable.listbox .ht_master {
   overflow: hidden;
@@ -809,6 +809,14 @@ tr.ht__row_odd td {
 .handsontable.listbox .htBorders div {
   background: none !important;
 }
+.handsontable.autocompleteEditor tr.ht__row_even th,
+.handsontable.autocompleteEditor tr.ht__row_even td {
+  background-color: var(--ht-background-color, #ffffff);
+}
+.handsontable.autocompleteEditor tr.ht__row_odd th,
+.handsontable.autocompleteEditor tr.ht__row_odd td {
+  background-color: var(--ht-background-color, #ffffff);
+}
 
 .pika-single {
   position: relative;
@@ -818,7 +826,7 @@ tr.ht__row_odd td {
   font-size: var(--ht-font-size);
   font-weight: var(--ht-font-weight);
   color: var(--ht-foreground-color);
-  background: var(--ht-background-color);
+  background: var(--ht-background-color, #ffffff);
   box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) var(--ht-menu-shadow-color);
   z-index: 9999;
 }
@@ -900,7 +908,7 @@ tr.ht__row_odd td {
 
 .handsontable .htUISelectCaption {
   width: 100%;
-  padding: 10px 10px;
+  padding: var(--ht-input-horizontal-padding) var(--ht-input-vertical-padding);
   font-family: inherit;
   font-size: var(--ht-font-size);
   line-height: var(--ht-line-height);
@@ -942,7 +950,7 @@ tr.ht__row_odd td {
 .handsontable .htFiltersMenuCondition .htUIInput input,
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
   width: 100%;
-  padding: 10px 10px;
+  padding: var(--ht-input-horizontal-padding) var(--ht-input-vertical-padding);
   font-family: inherit;
   font-size: var(--ht-font-size);
   line-height: var(--ht-line-height);
@@ -1002,48 +1010,48 @@ tr.ht__row_odd td {
   outline: none !important;
   border-width: 1px;
   border-style: solid;
-  border-color: var(--ht-primary-button-border-color);
-  color: var(--ht-primary-button-foreground-color);
-  background-color: var(--ht-primary-button-background-color);
+  border-color: var(--ht-secondary-button-border-color);
+  background-color: var(--ht-secondary-button-background-color);
+  color: var(--ht-secondary-button-foreground-color);
 }
 .handsontable .htUIInput.htUIButton input:hover {
-  border-color: var(--ht-primary-button-hover-border-color);
-  color: var(--ht-primary-button-hover-foreground-color);
-  background-color: var(--ht-primary-button-hover-background-color);
+  border-color: var(--ht-secondary-button-hover-border-color);
+  background-color: var(--ht-secondary-button-hover-background-color);
+  color: var(--ht-secondary-button-hover-foreground-color);
 }
 .handsontable .htUIInput.htUIButton input:disabled {
-  border-color: var(--ht-primary-button-disabled-border-color);
-  color: var(--ht-primary-button-disabled-foreground-color);
-  background-color: var(--ht-primary-button-disabled-background-color);
+  border-color: var(--ht-secondary-button-disabled-border-color);
+  background-color: var(--ht-secondary-button-disabled-background-color);
+  color: var(--ht-secondary-button-disabled-foreground-color);
 }
 .handsontable .htUIInput.htUIButton input:focus {
-  border-color: var(--ht-primary-button-focus-border-color);
-  color: var(--ht-primary-button-focus-foreground-color);
-  background-color: var(--ht-primary-button-focus-background-color);
+  border-color: var(--ht-secondary-button-focus-border-color);
+  background-color: var(--ht-secondary-button-focus-background-color);
+  color: var(--ht-secondary-button-focus-foreground-color);
 }
 .handsontable .htUIInput.htUIButtonOK {
   margin-inline-start: 0;
   margin-inline-end: calc(2 * var(--ht-gap-size));
 }
 .handsontable .htUIInput.htUIButtonOK input {
-  border-color: var(--ht-secondary-button-background-color);
-  background-color: var(--ht-secondary-button-border-color);
-  color: var(--ht-secondary-button-foreground-color);
+  border-color: var(--ht-primary-button-border-color);
+  background-color: var(--ht-primary-button-background-color);
+  color: var(--ht-primary-button-foreground-color);
 }
 .handsontable .htUIInput.htUIButtonOK input:hover {
-  border-color: var(--ht-secondary-button-hover-background-color);
-  background-color: var(--ht-secondary-button-hover-background-color);
-  color: var(--ht-secondary-button-hover-foreground-color);
+  border-color: var(--ht-primary-button-hover-border-color);
+  background-color: var(--ht-primary-button-hover-background-color);
+  color: var(--ht-primary-button-hover-foreground-color);
 }
 .handsontable .htUIInput.htUIButtonOK input:disabled {
-  border-color: var(--ht-secondary-button-disabled-border-color);
-  color: var(--ht-secondary-button-disabled-foreground-color);
-  background-color: var(--ht-secondary-button-disabled-background-color);
+  border-color: var(--ht-primary-button-disabled-border-color);
+  background-color: var(--ht-primary-button-disabled-background-color);
+  color: var(--ht-primary-button-disabled-foreground-color);
 }
 .handsontable .htUIInput.htUIButtonOK input:focus {
-  border-color: var(--ht-secondary-button-focus-border-color);
-  color: var(--ht-secondary-button-focus-foreground-color);
-  background-color: var(--ht-secondary-button-focus-background-color);
+  border-color: var(--ht-primary-button-focus-border-color);
+  background-color: var(--ht-primary-button-focus-background-color);
+  color: var(--ht-primary-button-focus-foreground-color);
 }
 
 .handsontable .htUIRadio {
@@ -1079,27 +1087,25 @@ tr.ht__row_odd td {
   content: "";
   display: block;
   position: absolute;
-  inset: 2px;
-  border-radius: calc(0.5 * var(--ht-checkbox-size));
-  background-color: var(--ht-checkbox-background-color);
+  color: var(--ht-checkbox-background-color);
 }
 .handsontable .htUIRadio > input[type=radio]:hover:before {
   border-color: var(--ht-checkbox-hover-border-color);
 }
 .handsontable .htUIRadio > input[type=radio]:hover:after {
-  background-color: var(--ht-checkbox-hover-background-color);
+  color: var(--ht-checkbox-hover-background-color);
 }
 .handsontable .htUIRadio > input[type=radio]:checked:before {
   border-color: var(--ht-checkbox-checked-border-color);
 }
 .handsontable .htUIRadio > input[type=radio]:checked:after {
-  background: var(--ht-checkbox-checked-background-color);
+  color: var(--ht-checkbox-checked-background-color);
 }
 .handsontable .htUIRadio > input[type=radio]:checked:hover:before {
   border-color: var(--ht-checkbox-checked-hover-border-color);
 }
 .handsontable .htUIRadio > input[type=radio]:checked:hover:after {
-  background-color: var(--ht-checkbox-checked-hover-background-color);
+  color: var(--ht-checkbox-checked-hover-background-color);
 }
 .handsontable .htUIRadio > input[type=radio]:checked:disabled {
   cursor: initial;
@@ -1108,19 +1114,19 @@ tr.ht__row_odd td {
   border-color: var(--ht-checkbox-checked-disabled-border-color);
 }
 .handsontable .htUIRadio > input[type=radio]:checked:disabled:after {
-  background-color: var(--ht-checkbox-checked-disabled-icon-color);
+  color: var(--ht-checkbox-checked-disabled-icon-color);
 }
 .handsontable .htUIRadio > input[type=radio]:disabled:before {
   border-color: var(--ht-checkbox-disabled-border-color);
 }
 .handsontable .htUIRadio > input[type=radio]:disabled:after {
-  background-color: var(--ht-checkbox-disabled-background-color);
+  color: var(--ht-checkbox-disabled-background-color);
 }
 .handsontable .htUIRadio > input[type=radio]:focus:before {
   border-color: var(--ht-checkbox-checked-focus-border-color);
 }
 .handsontable .htUIRadio > input[type=radio]:focus:after {
-  background-color: var(--ht-checkbox-checked-focus-icon-color);
+  color: var(--ht-checkbox-checked-focus-icon-color);
 }
 .handsontable .htUIRadio > input[type=radio]:disabled {
   cursor: initial;
@@ -1129,7 +1135,7 @@ tr.ht__row_odd td {
   border-color: var(--ht-checkbox-disabled-border-color);
 }
 .handsontable .htUIRadio > input[type=radio]:disabled:after {
-  background-color: var(--ht-checkbox-disabled-icon-color);
+  color: var(--ht-checkbox-disabled-icon-color);
 }
 .handsontable .htUIRadio label {
   vertical-align: middle;
@@ -1145,8 +1151,8 @@ tr.ht__row_odd td {
 .handsontable .collapsibleIndicator,
 .handsontable .ht_nestingButton {
   position: relative;
-  width: calc(4 * var(--ht-gap-size));
-  height: calc(4 * var(--ht-gap-size));
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
   box-sizing: border-box;
   border-radius: var(--ht-collapse-button-border-radius);
   overflow: hidden;
@@ -1306,16 +1312,11 @@ tr.ht__row_odd td {
   border-top: var(--ht-border-width) solid var(--ht-border-color);
 }
 
-.handsontable {
-  /* Menu Button */
-  /* Menu */
-}
 .handsontable .changeType {
   position: relative;
   box-sizing: border-box;
-  width: calc(4 * var(--ht-gap-size));
-  height: calc(4 * var(--ht-gap-size));
-  padding: calc(2 * var(--ht-gap-size));
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
   border-radius: var(--ht-icon-button-border-radius);
   border: none;
   color: var(--ht-icon-button-icon-color);
@@ -1349,7 +1350,10 @@ tr.ht__row_odd td {
   border-style: solid;
   border-width: var(--ht-menu-border-width);
   border-radius: var(--ht-menu-border-radius);
+  background-color: var(--ht-background-color, #ffffff);
   box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) var(--ht-menu-shadow-color);
+  overflow: hidden;
+  padding: var(--ht-menu-vertical-padding) var(--ht-menu-horizontal-padding);
 }
 .handsontable.htDropdownMenu:not(.htGhostTable), .handsontable.htContextMenu:not(.htGhostTable), .handsontable.htFiltersConditionsMenu:not(.htGhostTable) {
   display: none;
@@ -1374,7 +1378,6 @@ tr.ht__row_odd td {
 }
 .handsontable.htDropdownMenu table.htCore, .handsontable.htContextMenu table.htCore, .handsontable.htFiltersConditionsMenu table.htCore {
   overflow: hidden;
-  background-color: var(--ht-background-color);
 }
 .handsontable.htDropdownMenu .htCustomMenuRenderer .table.htCore, .handsontable.htContextMenu .htCustomMenuRenderer .table.htCore, .handsontable.htFiltersConditionsMenu .htCustomMenuRenderer .table.htCore {
   box-shadow: none;
@@ -1472,37 +1475,67 @@ tr.ht__row_odd td {
 }
 
 .handsontable.htFiltersConditionsMenu .htCore {
-  background-color: var(--ht-background-color);
+  background-color: var(--ht-background-color, #ffffff);
 }
 .handsontable.htFiltersConditionsMenu:not(.htGhostTable) {
   z-index: 1070;
 }
-
 .handsontable .ht_master table td.htCustomMenuRenderer {
   cursor: auto;
 }
 .handsontable .htFiltersMenuLabel {
-  font-size: var(--hot-label-font-size);
-  line-height: var(--hot-label-line-height);
-  padding: calc(2 * var(--hot-base-grid)) 0 calc(0.5 * var(--hot-base-grid));
+  font-size: var(--ht-label-font-size);
+  line-height: var(--ht-label-line-height);
+  margin-bottom: calc(var(--ht-gap-size) * 2);
 }
 .handsontable .htFiltersMenuLabel:empty {
   display: none;
 }
-.handsontable .htFiltersMenuCondition.border {
-  border-bottom: 1px solid var(--hot-highlight-color) !important;
-  padding-bottom: calc(4 * var(--hot-base-grid));
-}
-.handsontable .htFiltersMenuValue {
-  border-bottom: 1px solid var(--hot-highlight-color) !important;
+.handsontable .htFiltersMenuCondition {
+  padding-top: calc(var(--ht-gap-size) * 4) !important;
   padding-bottom: 0 !important;
 }
-.handsontable .htUIMultipleSelectHot {
-  border-top: 1px solid var(--hot-highlight-color);
-  margin: 0 calc(-4 * var(--hot-base-grid));
+.handsontable .htFiltersMenuCondition .border {
+  border-bottom: 1px solid var(--ht-border-color) !important;
 }
-.handsontable .htUIMultipleSelectHot td {
-  padding: calc(2 * var(--hot-base-grid)) calc(4 * var(--hot-base-grid)) !important;
+.handsontable .htFiltersMenuCondition .htUIInput {
+  margin-top: calc(var(--ht-gap-size) * 2);
+}
+.handsontable .htFiltersMenuValue {
+  padding-top: calc(var(--ht-gap-size) * 4) !important;
+  padding-bottom: 0 !important;
+  border-bottom: 1px solid var(--ht-border-color) !important;
+}
+.handsontable .htFiltersMenuOperators,
+.handsontable .htUISelectionControls {
+  padding-top: calc(var(--ht-gap-size) * 2) !important;
+  padding-bottom: 0 !important;
+  margin: 0 -8px;
+}
+.handsontable .htUIMultipleSelectHot {
+  overflow: initial !important;
+  width: calc(100% + var(--ht-menu-item-vertical-padding) * 2 + var(--ht-gap-size) * 4);
+  margin: 0 calc((var(--ht-menu-item-vertical-padding) + var(--ht-gap-size) * 2) * -1);
+}
+.handsontable .htUIMultipleSelectHot::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--ht-border-color);
+}
+.handsontable .htUIMultipleSelectHot .wtHolder {
+  padding: calc(var(--ht-gap-size) * 4) 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+.handsontable .htUIMultipleSelectHot .wtHolder td {
+  height: auto;
+  padding: 0;
+  padding: 0 calc(var(--ht-menu-item-vertical-padding) + var(--ht-gap-size) * 2);
 }
 .handsontable .htUIClearAll,
 .handsontable .htUISelectAll {
@@ -1510,11 +1543,11 @@ tr.ht__row_odd td {
 }
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
-  font-size: var(--hot-font-size);
+  color: var(--ht-link-color);
 }
-.handsontable .htUISelectAll {
-  margin-inline-start: 0;
-  margin-inline-end: calc(2 * var(--hot-base-grid));
+.handsontable .htUIClearAll a:hover,
+.handsontable .htUISelectAll a:hover {
+  color: var(--ht-link-hover-color);
 }
 .handsontable .htUIMultipleSelect .ht_master .wtHolder {
   overflow-y: auto;
@@ -1524,12 +1557,6 @@ tr.ht__row_odd td {
 .handsontable .htUIMultipleSelect .ht_master .wtHolder tr,
 .handsontable .htUIMultipleSelect .ht_master .wtHolder td {
   background: none;
-}
-.handsontable .htUIMultipleSelect .handsontable .htCore td:hover {
-  background-color: var(---hot-off-background-color);
-}
-.handsontable .htUIMultipleSelect .handsontable .htCore td.current {
-  background: var(---hot-background-color);
 }
 
 .handsontable .htCommentCell {

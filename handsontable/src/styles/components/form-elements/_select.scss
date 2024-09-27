@@ -5,7 +5,8 @@
   .handsontable {
     .htUISelectCaption {
       width: 100%;
-      padding: 10px 10px; //TODO: (theme) add padding
+      padding: var(--ht-input-horizontal-padding)
+        var(--ht-input-vertical-padding);
       font-family: inherit;
       font-size: var(--ht-font-size);
       line-height: var(--ht-line-height);

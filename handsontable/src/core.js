@@ -242,7 +242,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const rootThemeClassName = getThemeClassName(rootElement.className);
 
-    if (rootThemeClassName && !tableMeta.themeName) {
+    if (rootThemeClassName) {
       tableMeta.themeName = rootThemeClassName;
     }
 

@@ -6,11 +6,8 @@
   .handsontable {
     &.listbox {
       margin: 0;
+      background-color: var(--ht-background-color, #ffffff);
       @include mixins.menu-box-shadow;
-
-      .htCore {
-        background-color: var(--ht-background-color);
-      }
 
       .ht_master {
         overflow: hidden;
@@ -88,6 +85,24 @@
       .htBorders {
         div {
           background: none !important;
+        }
+      }
+    }
+
+    &.autocompleteEditor {
+      tr {
+        &.ht__row_even {
+          th,
+          td {
+            background-color: var(--ht-background-color, #ffffff);
+          }
+        }
+
+        &.ht__row_odd {
+          th,
+          td {
+            background-color: var(--ht-background-color, #ffffff);
+          }
         }
       }
     }

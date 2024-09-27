@@ -9,8 +9,8 @@
     .collapsibleIndicator,
     .ht_nestingButton {
       position: relative;
-      width: calc(4 * var(--ht-gap-size));
-      height: calc(4 * var(--ht-gap-size));
+      width: var(--ht-icon-size);
+      height: var(--ht-icon-size);
       box-sizing: border-box;
       border-radius: var(--ht-collapse-button-border-radius);
       overflow: hidden;

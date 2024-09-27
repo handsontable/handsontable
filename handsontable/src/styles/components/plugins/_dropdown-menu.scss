@@ -1,20 +1,17 @@
 @use "../../utils/mixins";
 
-/*
-  Handsontable DropdownMenu
-    - Button
-    - Dropdown Menu and Context Menu and Filters
-*/
+// Handsontable DropdownMenu
+//  - Button
+//  - Dropdown Menu and Context Menu and Filters
 
 @mixin output {
   .handsontable {
-    /* Menu Button */
+    // Menu Button
     .changeType {
       position: relative;
       box-sizing: border-box;
-      width: calc(4 * var(--ht-gap-size));
-      height: calc(4 * var(--ht-gap-size));
-      padding: calc(2 * var(--ht-gap-size));
+      width: var(--ht-icon-size);
+      height: var(--ht-icon-size);
       border-radius: var(--ht-icon-button-border-radius);
       border: none;
       color: var(--ht-icon-button-icon-color);
@@ -47,7 +44,7 @@
       background-color: var(--ht-icon-button-focus-background);
     }
 
-    /* Menu */
+    // Menu 
     &.htDropdownMenu,
     &.htContextMenu,
     &.htFiltersConditionsMenu {
@@ -56,7 +53,11 @@
         border-style: solid;
         border-width: var(--ht-menu-border-width);
         border-radius: var(--ht-menu-border-radius);
+        background-color: var(--ht-background-color, #ffffff);
         @include mixins.menu-box-shadow;
+        overflow: hidden;
+        padding: var(--ht-menu-vertical-padding)
+          var(--ht-menu-horizontal-padding);
       }
 
       &:not(.htGhostTable) {
@@ -76,7 +77,6 @@
 
       table.htCore {
         overflow: hidden;
-        background-color: var(--ht-background-color);
       }
 
       .htCustomMenuRenderer .table.htCore {
@@ -197,7 +197,7 @@
 }
 
 .handsontable {
-  // filter
+  // Filter
   .htUIClearAll a,
   .htUISelectAll a {
     padding: 8px;

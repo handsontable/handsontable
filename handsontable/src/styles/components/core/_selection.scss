@@ -31,6 +31,23 @@
       position: absolute;
       font-size: 0;
 
+      //Sizes
+      &:nth-child(1) {
+        height: var(--ht-cell-editor-border-width) !important;
+      }
+
+      &:nth-child(2) {
+        width: var(--ht-cell-editor-border-width) !important;
+      }
+
+      &:nth-child(3) {
+        height: var(--ht-cell-editor-border-width) !important;
+      }
+
+      &:nth-child(4) {
+        width: var(--ht-cell-editor-border-width) !important;
+      }
+
       &.hidden {
         display: none !important;
       }
@@ -58,7 +75,7 @@
         background-color: var(--ht-cell-selection-border-color) !important;
       }
 
-      // fill handle
+      // Fill handle
       &.corner {
         width: var(--ht-cell-autofill-size) !important;
         height: var(--ht-cell-autofill-size) !important;
@@ -67,8 +84,8 @@
         border-color: var(--ht-cell-autofill-border-color) !important;
         border-radius: var(--ht-cell-autofill-border-radius) !important;
         background-color: var(--ht-cell-autofill-background-color) !important;
-        margin-top: calc(var(--ht-cell-editor-border-width) + 1px);
-        margin-left: calc(var(--ht-cell-editor-border-width) + 1px);
+        margin-top: 3px;
+        margin-left: 3px;
         transform: translate(-50%, -50%);
         font-size: 0;
         cursor: crosshair;

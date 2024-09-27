@@ -11,7 +11,7 @@
     font-size: var(--ht-font-size);
     font-weight: var(--ht-font-weight);
     color: var(--ht-foreground-color);
-    background: var(--ht-background-color);
+    background: var(--ht-background-color, #ffffff);
     @include mixins.menu-box-shadow;
     z-index: 9999;
 

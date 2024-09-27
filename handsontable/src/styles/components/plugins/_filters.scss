@@ -3,28 +3,33 @@
 // Filters
 //  Base styling in Dropdown Menu Plugin
 
-//TODO: (theme) style
 @mixin output {
-  .handsontable.htFiltersConditionsMenu {
-    .htCore {
-      background-color: var(--ht-background-color);
-    }
-    
-    &:not(.htGhostTable) {
-      z-index: 1070;
-    }
-  }
-
   .handsontable {
-    .ht_master table td.htCustomMenuRenderer {
-      cursor: auto;
+    &.htFiltersConditionsMenu {
+      .htCore {
+        background-color: var(--ht-background-color, #ffffff);
+      }
+
+      &:not(.htGhostTable) {
+        z-index: 1070;
+      }
+    }
+
+    .ht_master {
+      table {
+        td {
+          &.htCustomMenuRenderer {
+            cursor: auto;
+          }
+        }
+      }
     }
 
     // Menu label
     .htFiltersMenuLabel {
-      font-size: var(--hot-label-font-size);
-      line-height: var(--hot-label-line-height);
-      padding: calc(2 * var(--hot-base-grid)) 0 calc(0.5 * var(--hot-base-grid));
+      font-size: var(--ht-label-font-size);
+      line-height: var(--ht-label-line-height);
+      margin-bottom: calc(var(--ht-gap-size) * 2);
 
       &:empty {
         display: none;
@@ -32,22 +37,63 @@
     }
 
     // Component filter by conditional
-    .htFiltersMenuCondition.border {
-      border-bottom: 1px solid var(--hot-highlight-color) !important;
-      padding-bottom: calc(4 * var(--hot-base-grid));
+    .htFiltersMenuCondition {
+      padding-top: calc(var(--ht-gap-size) * 4) !important;
+      padding-bottom: 0 !important;
+
+      .border {
+        border-bottom: 1px solid var(--ht-border-color) !important;
+      }
+
+      .htUIInput {
+        margin-top: calc(var(--ht-gap-size) * 2);
+      }
     }
 
     .htFiltersMenuValue {
-      border-bottom: 1px solid var(--hot-highlight-color) !important;
+      padding-top: calc(var(--ht-gap-size) * 4) !important;
       padding-bottom: 0 !important;
+      border-bottom: 1px solid var(--ht-border-color) !important;
+    }
+
+    .htFiltersMenuOperators,
+    .htUISelectionControls {
+      padding-top: calc(var(--ht-gap-size) * 2) !important;
+      padding-bottom: 0 !important;
+      margin: 0 -8px;
     }
 
     .htUIMultipleSelectHot {
-      border-top: 1px solid var(--hot-highlight-color);
-      margin: 0 calc(-4 * var(--hot-base-grid));
+      overflow: initial !important;
+      width: calc(
+        100% + var(--ht-menu-item-vertical-padding) * 2 + var(--ht-gap-size) * 4
+      );
+      margin: 0
+        calc(
+          (var(--ht-menu-item-vertical-padding) + var(--ht-gap-size) * 2) * -1
+        );
 
-      td {
-        padding: calc(2 * var(--hot-base-grid)) calc(4 * var(--hot-base-grid)) !important;
+      &::before {
+        @include mixins.pseudo;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background-color: var(--ht-border-color);
+      }
+
+      .wtHolder {
+        padding: calc(var(--ht-gap-size) * 4) 0;
+        overflow-x: hidden;
+        box-sizing: border-box;
+
+        td {
+          height: auto;
+          padding: 0;
+          padding: 0
+            calc(var(--ht-menu-item-vertical-padding) + var(--ht-gap-size) * 2);
+        }
       }
     }
 
@@ -57,13 +103,12 @@
       display: inline-block;
 
       a {
-        font-size: var(--hot-font-size);
-      }
-    }
+        color: var(--ht-link-color);
 
-    .htUISelectAll {
-      margin-inline-start: 0;
-      margin-inline-end: calc(2 * var(--hot-base-grid));
+        &:hover {
+          color: var(--ht-link-hover-color);
+        }
+      }
     }
 
     // SelectMultiple
@@ -75,15 +120,6 @@
       tr,
       td {
         background: none;
-      }
-    }
-
-    .htUIMultipleSelect .handsontable .htCore {
-      td:hover {
-        background-color: var(---hot-off-background-color);
-      }
-      td.current {
-        background: var(---hot-background-color);
       }
     }
   }

@@ -83,4 +83,8 @@
       }
     }
   }
+
+  .handsontable .htUIRadio > input[type=radio]:after {
+    @include icon($icons, "radio");
+  }
 }

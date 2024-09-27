@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 26/09/2024 13:10:17)
+ * Release date: 30/07/2024 (built at 27/09/2024 13:46:43)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "26/09/2024 13:10:17";
+Handsontable.buildDate = "27/09/2024 13:46:43";
 Handsontable.version = "14.5.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -363,7 +363,7 @@ function Core(rootElement, userSettings) {
   if ((0, _rootInstance.isRootInstance)(this)) {
     (0, _mixed._injectProductInfo)(userSettings.licenseKey, rootElement);
     const rootThemeClassName = (0, _themes.getThemeClassName)(rootElement.className);
-    if (rootThemeClassName && !tableMeta.themeName) {
+    if (rootThemeClassName) {
       tableMeta.themeName = rootThemeClassName;
     }
     (0, _element.addClass)(rootElement, tableMeta.themeName);
@@ -49977,7 +49977,7 @@ class HandsontableEditor extends _textEditor.TextEditor {
    * @returns {number}
    */
   getHeight() {
-    return this.htEditor.view.getTableHeight();
+    return this.htEditor.view.getTableHeight() + 1;
   }
 
   /**
@@ -63220,10 +63220,8 @@ class Menu {
       const currentRowHeight = itemCell ? (0, _element.outerHeight)(this.hotMenu.getCell(index, 0)) : 0;
       return accumulator + (value.name === _predefinedItems.SEPARATOR ? 1 : currentRowHeight);
     }, 0);
-
-    // Additional 3px to menu's size because of additional border around its `table.htCore`.
-    holderStyle.width = `${currentHiderWidth + 3}px`;
-    holderStyle.height = `${realHeight + 3}px`;
+    holderStyle.width = `${currentHiderWidth}px`;
+    holderStyle.height = `${realHeight}px`;
     hiderStyle.height = holderStyle.height;
   }
 

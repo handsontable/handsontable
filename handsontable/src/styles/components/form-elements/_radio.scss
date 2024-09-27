@@ -40,9 +40,7 @@
         &:after {
           @include mixins.pseudo;
           position: absolute;
-          inset: 2px;
-          border-radius: calc(0.5 * var(--ht-checkbox-size));
-          background-color: var(--ht-checkbox-background-color);
+          color: var(--ht-checkbox-background-color);
         }
 
         &:hover {
@@ -53,7 +51,7 @@
 
           // Circle
           &:after {
-            background-color: var(--ht-checkbox-hover-background-color);
+            color: var(--ht-checkbox-hover-background-color);
           }
         }
 
@@ -65,7 +63,7 @@
 
           // Circle
           &:after {
-            background: var(--ht-checkbox-checked-background-color);
+            color: var(--ht-checkbox-checked-background-color);
           }
 
           &:hover {
@@ -76,9 +74,7 @@
 
             // Circle
             &:after {
-              background-color: var(
-                --ht-checkbox-checked-hover-background-color
-              );
+              color: var(--ht-checkbox-checked-hover-background-color);
             }
           }
 
@@ -92,7 +88,7 @@
 
             // Circle
             &:after {
-              background-color: var(--ht-checkbox-checked-disabled-icon-color);
+              color: var(--ht-checkbox-checked-disabled-icon-color);
             }
           }
         }
@@ -105,7 +101,7 @@
 
           // Circle
           &:after {
-            background-color: var(--ht-checkbox-disabled-background-color);
+            color: var(--ht-checkbox-disabled-background-color);
           }
         }
 
@@ -117,7 +113,7 @@
 
           // Circle
           &:after {
-            background-color: var(--ht-checkbox-checked-focus-icon-color);
+            color: var(--ht-checkbox-checked-focus-icon-color);
           }
         }
 
@@ -131,7 +127,7 @@
 
           // Circle
           &:after {
-            background-color: var(--ht-checkbox-disabled-icon-color);
+            color: var(--ht-checkbox-disabled-icon-color);
           }
         }
       }

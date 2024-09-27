@@ -23,28 +23,28 @@
           outline: none !important;
           border-width: 1px;
           border-style: solid;
-          border-color: var(--ht-primary-button-border-color);
-          color: var(--ht-primary-button-foreground-color);
-          background-color: var(--ht-primary-button-background-color);
+          border-color: var(--ht-secondary-button-border-color);
+          background-color: var(--ht-secondary-button-background-color);
+          color: var(--ht-secondary-button-foreground-color);
 
           &:hover {
-            border-color: var(--ht-primary-button-hover-border-color);
-            color: var(--ht-primary-button-hover-foreground-color);
-            background-color: var(--ht-primary-button-hover-background-color);
+            border-color: var(--ht-secondary-button-hover-border-color);
+            background-color: var(--ht-secondary-button-hover-background-color);
+            color: var(--ht-secondary-button-hover-foreground-color);
           }
 
           &:disabled {
-            border-color: var(--ht-primary-button-disabled-border-color);
-            color: var(--ht-primary-button-disabled-foreground-color);
+            border-color: var(--ht-secondary-button-disabled-border-color);
             background-color: var(
-              --ht-primary-button-disabled-background-color
+              --ht-secondary-button-disabled-background-color
             );
+            color: var(--ht-secondary-button-disabled-foreground-color);
           }
 
           &:focus {
-            border-color: var(--ht-primary-button-focus-border-color);
-            color: var(--ht-primary-button-focus-foreground-color);
-            background-color: var(--ht-primary-button-focus-background-color);
+            border-color: var(--ht-secondary-button-focus-border-color);
+            background-color: var(--ht-secondary-button-focus-background-color);
+            color: var(--ht-secondary-button-focus-foreground-color);
           }
         }
       }
@@ -54,28 +54,28 @@
         margin-inline-end: calc(2 * var(--ht-gap-size));
 
         input {
-          border-color: var(--ht-secondary-button-background-color);
-          background-color: var(--ht-secondary-button-border-color);
-          color: var(--ht-secondary-button-foreground-color);
+          border-color: var(--ht-primary-button-border-color);
+          background-color: var(--ht-primary-button-background-color);
+          color: var(--ht-primary-button-foreground-color);
 
           &:hover {
-            border-color: var(--ht-secondary-button-hover-background-color);
-            background-color: var(--ht-secondary-button-hover-background-color);
-            color: var(--ht-secondary-button-hover-foreground-color);
+            border-color: var(--ht-primary-button-hover-border-color);
+            background-color: var(--ht-primary-button-hover-background-color);
+            color: var(--ht-primary-button-hover-foreground-color);
           }
 
           &:disabled {
-            border-color: var(--ht-secondary-button-disabled-border-color);
-            color: var(--ht-secondary-button-disabled-foreground-color);
+            border-color: var(--ht-primary-button-disabled-border-color);
             background-color: var(
-              --ht-secondary-button-disabled-background-color
+              --ht-primary-button-disabled-background-color
             );
+            color: var(--ht-primary-button-disabled-foreground-color);
           }
 
           &:focus {
-            border-color: var(--ht-secondary-button-focus-border-color);
-            color: var(--ht-secondary-button-focus-foreground-color);
-            background-color: var(--ht-secondary-button-focus-background-color);
+            border-color: var(--ht-primary-button-focus-border-color);
+            background-color: var(--ht-primary-button-focus-background-color);
+            color: var(--ht-primary-button-focus-foreground-color);
           }
         }
       }

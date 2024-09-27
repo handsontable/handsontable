@@ -88,7 +88,7 @@
         &:before {
           @include mixins.pseudo;
           position: absolute;
-          inset: auto -1px -1px -1px;
+          inset: auto 0 0 0;
           height: var(--ht-header-highlighted-shadow-size);
           background-color: var(--ht-accent-color);
         }
@@ -111,7 +111,6 @@
         }
       }
 
-      //TODO: (theme) check if class is in use
       &.active {
         color: var(--ht-header-active-foreground-color);
         background-color: var(--ht-header-active-background-color);
@@ -154,7 +153,7 @@
         &:before {
           width: var(--ht-header-highlighted-shadow-size);
           height: auto;
-          inset: -1px -1px -1px auto;
+          inset: 0 0 0 auto;
         }
       }
     }
@@ -248,7 +247,6 @@
       }
     }
 
-  
     a {
       color: var(--ht-link-color);
 
@@ -258,7 +256,7 @@
     }
 
     // Visual fixes
-    /* It removes double right border from first column header when row headers are disabled */
+    // It removes double right border from first column header when row headers are disabled 
     .ht_clone_top th:nth-child(2) {
       border-inline-start-width: 0;
       border-inline-end-width: var(--ht-cell-vertical-border-width, 1px);
@@ -283,10 +281,8 @@
       }
     }
 
-    /*
-      innerBorderTop - Property controlled by top overlay
-      innerBorderBottom - Property controlled by bottom overlay
-    */
+    //  innerBorderTop - Property controlled by top overlay
+    //  innerBorderBottom - Property controlled by bottom overlay
     .ht_master:not(.innerBorderTop):not(.innerBorderBottom) {
       thead tr:last-child th,
       & ~ .handsontable thead tr:last-child th,
@@ -331,13 +327,16 @@
   // Row even & odd
   tr {
     &.ht__row_even {
-      background-color: var(--ht-row-even-background-color);
+      th,
+      td {
+        background-color: var(--ht-row-even-background-color, #ffffff);
+      }
     }
 
     &.ht__row_odd {
       th,
       td {
-        background-color: var(--ht-row-odd-background-color);
+        background-color: var(--ht-row-odd-background-color, #ffffff);
       }
     }
   }
