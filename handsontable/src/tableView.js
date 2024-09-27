@@ -1674,6 +1674,42 @@ class TableView {
   }
 
   /**
+   * Checks if the table has a horizontal scrollbar.
+   *
+   * @returns {boolean}
+   */
+  hasVerticalScroll() {
+    return this._wt.wtViewport.hasVerticalScroll();
+  }
+
+  /**
+   * Checks if the table has a vertical scrollbar.
+   *
+   * @returns {boolean}
+   */
+  hasHorizontalScroll() {
+    return this._wt.wtViewport.hasHorizontalScroll();
+  }
+
+  /**
+   * Gets the table's width.
+   *
+   * @returns {boolean}
+   */
+  getTableWidth() {
+    return this._wt.wtTable.getWidth();
+  }
+
+  /**
+   * Gets the table's height.
+   *
+   * @returns {boolean}
+   */
+  getTableHeight() {
+    return this._wt.wtTable.getHeight();
+  }
+
+  /**
    * Return the value of the `aria-colcount` attribute.
    *
    * @returns {number} The value of the `aria-colcount` attribute.

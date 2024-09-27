@@ -166,7 +166,8 @@ export class Positioner {
     let left = this.#cursor.left;
 
     if (this.#parentContainer) {
-      const borderRightWidth = Number.parseInt(getComputedStyle(this.#parentContainer
+      const rootWindow = this.#parentContainer.ownerDocument.defaultView;
+      const borderRightWidth = Number.parseInt(rootWindow.getComputedStyle(this.#parentContainer
         .querySelector('.htCore')).borderRightWidth, 10);
 
       left += this.#cursor.cellWidth + borderRightWidth;
@@ -184,7 +185,8 @@ export class Positioner {
     let left = this.#offset.left + this.#cursor.left - this.#container.offsetWidth;
 
     if (this.#parentContainer) {
-      const borderLeftWidth = Number.parseInt(getComputedStyle(this.#parentContainer
+      const rootWindow = this.#parentContainer.ownerDocument.defaultView;
+      const borderLeftWidth = Number.parseInt(rootWindow.getComputedStyle(this.#parentContainer
         .querySelector('.htCore')).borderLeftWidth, 10);
 
       left -= borderLeftWidth;
