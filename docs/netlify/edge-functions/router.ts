@@ -1,7 +1,5 @@
 import type { Context, Config } from "@netlify/edge-functions";
 
-import * as fs from 'fs';
-import * as path from 'path';
 
 interface Redirect {
   from: RegExp;
@@ -709,8 +707,15 @@ export default async function handler(request: Request, context: Context) {
   if (matchFound) {
     const newUrl = url.pathname.replace(matchFound.from, matchFound.to)
     if (matchFound.rewrite === true) {
-      console.log('Match found, rewriting to', newUrl);
-      return context.rewrite(matchFound.to);
+      console.log('Match found, proxying to', newUrl);
+
+      const response = await fetch(newUrl);
+
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
     }
     console.log('Match found, redirecting to', newUrl);
     return Response.redirect(newUrl, 301);
