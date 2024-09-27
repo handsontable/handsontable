@@ -3,6 +3,7 @@ import type { Context, Config } from "@netlify/edge-functions";
 declare var Netlify: {
   env: {
     get: (key: string) => string;
+    context: string;
   }
 }
 
@@ -671,7 +672,8 @@ function getVersionRegexString(latestVersion: string) {
 function prepareRedirects(framework: string): Redirect[] {
   const redirectsArray = getRawRedirects();
   const redirectOlderVersionsToOvh = {
-    //except of the latest version, all other versions should be redirected to the latest version
+    // Except of the latest version, all other versions should be redirected to the latest version
+    // Fallback to ensure the value is not undefined
     from: getVersionRegexString(Netlify.env.get('LATEST_VERSION') || '14.5'),
     to: `https://_docs.handsontable.com/docs/$1$2`,
     status: 301,
@@ -700,6 +702,7 @@ function prepareRedirects(framework: string): Redirect[] {
 
 export default async function handler(request: Request, context: Context) {
   const url = new URL(request.url);
+  console.log('Current Netlify context', Netlify.env.context)
   console.log('Detected Docs Version', Netlify.env.get('LATEST_VERSION'));
   console.log('Request url', url);
 

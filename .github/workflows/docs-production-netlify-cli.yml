@@ -98,14 +98,14 @@ jobs:
 
       - name: Deploy to Netlify
         run: |
-          netlify env:set LATEST_VERSION=$LATEST_VERSION
+          netlify env:set LATEST_VERSION=$LATEST_VERSION --context production
           netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
           netlify env:list
           curl -X PUT "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/env/LATEST_VERSION" \
             -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{
-                "context_name": "all",
+                "context": "production",
                 "key": "LATEST_VERSION",
                 "scopes": ["runtime", "functions", "builds", "post-processing"],
                 "value": "'"$LATEST_VERSION"'"

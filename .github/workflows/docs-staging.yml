@@ -10,7 +10,6 @@ on:
     branches-ignore:
       - 'prod-docs/**'
       - '!prod-docs/latest'
-      - '!prod-docs/latest-dev-issue-1790'
       - 'master'
     paths:
       - 'docs/**'
