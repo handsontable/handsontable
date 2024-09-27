@@ -41,6 +41,10 @@ jobs:
       - name: Validate Docs version
         run: if [ -z "$LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
 
+      - name: Remove local branch if it exists
+        run: |
+          git branch -D prod-docs/latest || true
+
       - name: Recreate the latest branch
         run: |
           git fetch origin prod-docs/$LATEST_VERSION
