@@ -25,6 +25,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+        with:
+          ref: prod-docs/latest
       - name: Print the list of prod-docs branches without fetching
         run: git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/'
 
