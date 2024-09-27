@@ -660,11 +660,26 @@ function getRawRedirects() {
 }
 
 
+
+function getVersionRegexString(latestVersion: number | string) {
+  const escapedVersion = latestVersion.toString().replace('.', '\\.');
+  return `^\\/docs\\/(?!${escapedVersion})(\\d+\\.\\d+)(\\/.*)?$`;
+}
 function prepareRedirects(framework: string): Redirect[] {
   const redirectsArray = getRawRedirects();
+  const redirectOlderVersionsToOvh = {
+    //except of the latest version, all other versions should be redirected to the latest version
+    from: getVersionRegexString(14.5),
+    to: `https://_docs.handsontable.com/docs/$1`,
+    status: 301,
+  };
+
 
   // Convert "from" string into a RegExp and replace $framework in "to" property
-  const updatedRedirectsArray = redirectsArray.map((redirect: { from: string, to: string, status: number }) => {
+  const updatedRedirectsArray = [
+    redirectOlderVersionsToOvh,
+    ...redirectsArray
+  ].map((redirect: { from: string, to: string, status: number }) => {
     const fromRegex = new RegExp(redirect.from); // Convert from string to RegExp
     const updatedTo = redirect.to.replace('$framework', framework); // Replace $framework with provided framework
 

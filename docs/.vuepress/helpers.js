@@ -69,6 +69,7 @@ function getThisDocsVersion() {
       const allRemoteBranches = execa.sync('git ls-remote --heads origin ', { shell: true }).stdout;
       const versionsFound = allRemoteBranches.split('\n')
         .filter(item => item.includes('prod-docs'))
+        // avoids the case when the branch is named `prod-docs/latest`
         .filter(item => item.match(/\d+\.\d+/))
         .map(item => item.match(/\d+\.\d+/)[0]);
 
