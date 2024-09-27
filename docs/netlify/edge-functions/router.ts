@@ -6,12 +6,6 @@ declare var Netlify: {
   }
 }
 
-declare var process: {
-  env: {
-    LATEST_DOCS_VERSION: string;
-  }
-}
-
 interface Redirect {
   from: RegExp;
   to: string;

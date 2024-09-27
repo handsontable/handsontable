@@ -25,9 +25,6 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-        with:
-          ref: feature/dev-issue-1790
       - name: Print the list of prod-docs branches without fetching
         run: git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/'
 
@@ -41,10 +38,6 @@ jobs:
       - name: Validate Docs version
         run: if [ -z "$LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
 
-      - name: Remove local branch if it exists
-        run: |
-          git branch -D prod-docs/latest || true
-
       - name: Recreate the latest branch
         run: |
           git fetch origin prod-docs/$LATEST_VERSION
@@ -52,17 +45,20 @@ jobs:
           git checkout -b prod-docs/latest
           git push --force --set-upstream origin prod-docs/latest
 
-      - name: Feature Branch Patch
+      # this step includes source files, so it can be build even if the feature branch is not merged yet
+      - name: Branch Patch
         run: |
           git fetch origin feature/dev-issue-1790
           git checkout feature/dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js docs/.gitignore docs/netlify.toml
         working-directory: ./
-      
-      - name : Print the current branch
-        run:  |
-          git branch
-          git status
 
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          # cache-dependency-path: ./latest/package-lock.json
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
       - name: Dependencies
         run: |
           npm ci
@@ -75,10 +71,8 @@ jobs:
       - name: Install Netlify CLI
         run: npm install netlify-cli -g
 
-      - name : Print the current branch
+      - name : Add changes to the commit
         run:  |
-          git branch
-          git status
           git add .
 
       - name: Commit changes
@@ -88,15 +82,11 @@ jobs:
           commit_user_name: "Docs Deployment"
           commit_user_email: "docs-deployment@handsontable.com"
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
-        with:
-          # cache-dependency-path: ./latest/package-lock.json
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
       - name: Deploy to Netlify
-        run: netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
+        run: |
+          netlify env:set LATEST_DOCS_VERSION=$LATEST_VERSION
+          netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
+          netlify env:list
         env:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
