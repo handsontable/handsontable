@@ -62,6 +62,8 @@ jobs:
         run: |
           echo '[context.production.environment]' >> netlify.toml
           echo 'LATEST_VERSION="${{ env.LATEST_VERSION }}"' >> netlify.toml
+          echo '[context.dev.environment]' >> netlify.toml
+          echo 'LATEST_VERSION="${{ env.LATEST_VERSION }}"' >> netlify.toml
           cat netlify.toml
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
@@ -110,3 +112,4 @@ jobs:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
             LATEST_VERSION: ${{ env.LATEST_VERSION }}
+            NETLIFY_CONTEXT: production
