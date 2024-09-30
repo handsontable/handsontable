@@ -202,7 +202,7 @@ export class DateEditor extends TextEditor {
       this.$datePicker.useMoment(moment);
     }
 
-    this.$datePicker._onInputFocus = function () { };
+    this.$datePicker._onInputFocus = function() {};
 
     if (this.originalValue) {
       dateStr = this.originalValue;

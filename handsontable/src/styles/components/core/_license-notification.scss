@@ -15,9 +15,9 @@
     border-color: var(--ht-border-color);
     border-style: solid;
     border-top-width: 0;
-    border-left-width: var(--ht-border-width);
-    border-right-width: var(--ht-border-width);
-    border-bottom-width: var(--ht-border-width);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
 
     a {
       font-size: var(--ht-license-font-size);

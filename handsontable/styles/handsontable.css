@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 27/09/2024 13:46:43)
+ * Release date: 30/07/2024 (built at 30/09/2024 13:48:44)
  */
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
@@ -52,17 +52,23 @@
   /* Miscellaneous */
   touch-action: manipulation;
 }
+.handsontable .ht_master {
+  background-color: var(--ht-background-color, #ffffff);
+}
 .handsontable th,
 .handsontable td {
-  height: calc(var(--ht-line-height, 20px) + 2 * var(--ht-cell-horizontal-padding, 8px) + var(--ht-cell-horizontal-border-width, 1px));
+  height: calc(var(--ht-line-height, 20px) + 2 * var(--ht-cell-horizontal-padding, 8px) + 1px);
   padding: var(--ht-cell-horizontal-padding, 4px) var(--ht-cell-vertical-padding, 8px);
   vertical-align: top;
   border-top-width: 0;
   border-inline-start-width: 0;
-  border-inline-end-width: var(--ht-cell-vertical-border-width, 1px);
-  border-bottom-width: var(--ht-cell-horizontal-border-width, 1px);
+  border-inline-end-width: 1px;
+  border-bottom-width: 1px;
   border-style: solid;
-  border-color: var(--ht-border-color);
+  border-top-color: var(--ht-cell-horizontal-border-color);
+  border-bottom-color: var(--ht-cell-horizontal-border-color);
+  border-inline-start-color: var(--ht-cell-vertical-border-color);
+  border-inline-end-color: var(--ht-cell-vertical-border-color);
   font-size: var(--ht-font-size);
   line-height: var(--ht-line-height, 20px);
   white-space: pre-wrap;
@@ -83,7 +89,7 @@
   background: transparent;
 }
 .handsontable td:first-of-type {
-  border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
+  border-inline-start-width: 1px;
 }
 .handsontable th {
   position: relative;
@@ -97,11 +103,11 @@
 .handsontable th:last-child {
   /* Foundation framework fix */
   border-inline-start-width: 0;
-  border-inline-end-width: var(--ht-cell-vertical-border-width, 1px);
-  border-bottom-width: var(--ht-cell-horizontal-border-width, 1px);
+  border-inline-end-width: 1px;
+  border-bottom-width: 1px;
 }
 .handsontable th:first-child, .handsontable th:nth-child(2) {
-  border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
+  border-inline-start-width: 1px;
 }
 .handsontable th.ht__highlight {
   color: var(--ht-header-highlighted-foreground-color);
@@ -119,7 +125,7 @@
   border-color: var(--ht-header-active-border-color);
   color: var(--ht-header-active-foreground-color);
   background-color: var(--ht-header-active-background-color);
-  box-shadow: calc(var(--ht-cell-vertical-border-width) * -1) calc(var(--ht-cell-horizontal-border-width) * -1) 0 var(--ht-header-active-border-color), 0 calc(var(--ht-cell-horizontal-border-width) * -1) 0 var(--ht-header-active-border-color), calc(var(--ht-cell-vertical-border-width) * -1) 0 0 var(--ht-header-active-border-color);
+  box-shadow: -1px -1px 0 var(--ht-header-active-border-color), 0 -1px 0 var(--ht-header-active-border-color), -1px 0 0 var(--ht-header-active-border-color);
 }
 .handsontable th.ht__active_highlight:before {
   background-color: var(--ht-header-active-background-color);
@@ -127,9 +133,6 @@
 .handsontable th.active {
   color: var(--ht-header-active-foreground-color);
   background-color: var(--ht-header-active-background-color);
-}
-.handsontable th.current {
-  box-shadow: inset 0 0 0 calc(var(--ht-cell-vertical-border-width) * 1) var(--ht-header-active-border-color);
 }
 .handsontable thead th {
   padding: 0;
@@ -139,7 +142,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--ht-cell-horizontal-padding, 8px) var(--ht-cell-vertical-padding, 4px);
-  height: calc(var(--ht-line-height, 20px) + 2 * var(--ht-cell-horizontal-padding, 8px) + var(--ht-cell-horizontal-border-width, 1px));
+  height: calc(var(--ht-line-height, 20px) + 2 * var(--ht-cell-horizontal-padding, 8px) + 1px);
 }
 .handsontable thead tr:not(:last-child) th {
   /* Fix for - nested columns with hidden column  */
@@ -232,18 +235,18 @@
 }
 .handsontable .ht_clone_top th:nth-child(2) {
   border-inline-start-width: 0;
-  border-inline-end-width: var(--ht-cell-vertical-border-width, 1px);
+  border-inline-end-width: 1px;
 }
 .handsontable.htRowHeaders thead tr th:nth-child(2) {
-  border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
+  border-inline-start-width: 1px;
 }
 .handsontable tr:first-child th,
 .handsontable tr:first-child td {
-  border-top-width: var(--ht-cell-horizontal-border-width, 1px);
+  border-top-width: 1px;
 }
 .handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable tbody tr th, .handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
   border-inline-end-width: 0;
-  border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
+  border-inline-start-width: 1px;
 }
 .handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th, .handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
 .handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th, .handsontable .ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
@@ -464,18 +467,6 @@ tr.ht__row_odd td {
   position: absolute;
   font-size: 0;
 }
-.handsontable .wtBorder:nth-child(1) {
-  height: var(--ht-cell-editor-border-width) !important;
-}
-.handsontable .wtBorder:nth-child(2) {
-  width: var(--ht-cell-editor-border-width) !important;
-}
-.handsontable .wtBorder:nth-child(3) {
-  height: var(--ht-cell-editor-border-width) !important;
-}
-.handsontable .wtBorder:nth-child(4) {
-  width: var(--ht-cell-editor-border-width) !important;
-}
 .handsontable .wtBorder.hidden {
   display: none !important;
 }
@@ -522,9 +513,9 @@ tr.ht__row_odd td {
   border-color: var(--ht-border-color);
   border-style: solid;
   border-top-width: 0;
-  border-left-width: var(--ht-border-width);
-  border-right-width: var(--ht-border-width);
-  border-bottom-width: var(--ht-border-width);
+  border-left-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
 }
 .hot-display-license-info a {
   font-size: var(--ht-license-font-size);
@@ -692,13 +683,13 @@ tr.ht__row_odd td {
 .handsontableInputHolder .handsontableInput {
   display: block;
   margin: 0;
-  padding: calc(var(--ht-cell-horizontal-padding, 4px) + var(--ht-cell-horizontal-border-width, 1px)) calc(var(--ht-cell-vertical-padding, 8px) + var(--ht-cell-vertical-border-width, 1px));
+  padding: calc(var(--ht-cell-horizontal-padding, 4px) + 1px) calc(var(--ht-cell-vertical-padding, 8px) + 1px);
   font-family: inherit !important;
   font-size: inherit !important;
   line-height: inherit !important;
   color: var(--ht-cell-editor-foreground-color);
   background-color: var(--ht-background-color, #ffffff);
-  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width) var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
+  box-shadow: inset 0px 0px 0px 1px var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
   border: none;
   -webkit-appearance: none !important;
   overflow: hidden !important;
@@ -720,7 +711,7 @@ tr.ht__row_odd td {
   inset: 0;
   width: 100%;
   height: 100%;
-  padding: calc(var(--ht-cell-horizontal-padding, 4px) + var(--ht-cell-horizontal-border-width, 1px)) calc(var(--ht-cell-vertical-padding, 8px) + var(--ht-cell-vertical-border-width, 1px));
+  padding: calc(var(--ht-cell-horizontal-padding, 4px) + 1px) calc(var(--ht-cell-vertical-padding, 8px) + 1px);
   padding-right: 26px;
   white-space: nowrap;
   overflow: hidden;
@@ -730,7 +721,7 @@ tr.ht__row_odd td {
   font-family: inherit !important;
   font-size: inherit !important;
   line-height: inherit !important;
-  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width) var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
+  box-shadow: inset 0px 0px 0px 1px var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
   border: none;
   -webkit-appearance: none !important;
 }
@@ -746,7 +737,6 @@ tr.ht__row_odd td {
 
 .handsontable.listbox {
   margin: 0;
-  background-color: var(--ht-background-color, #ffffff);
   box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) var(--ht-menu-shadow-color);
 }
 .handsontable.listbox .ht_master {
@@ -1247,35 +1237,30 @@ tr.ht__row_odd td {
 .handsontable th.afterHiddenColumn {
   position: relative;
 }
-.handsontable th.beforeHiddenColumn .relative:after, .handsontable th.beforeHiddenColumn .relative:before,
-.handsontable th.afterHiddenColumn .relative:after,
-.handsontable th.afterHiddenColumn .relative:before {
+.handsontable th.beforeHiddenColumn:after,
+.handsontable th.afterHiddenColumn:after {
   content: "";
   display: block;
   position: absolute;
   top: 50%;
-  width: 0;
-  height: 0;
+  width: 10px !important;
+  height: 10px !important;
   transform: translateY(-50%);
   color: var(--ht-border-color);
 }
-.handsontable th.beforeHiddenColumn .relative::after {
+.handsontable th.beforeHiddenColumn:after {
   right: -2px;
-  width: 10px !important;
-  height: 10px !important;
 }
-.handsontable th.afterHiddenColumn .relative::before {
+.handsontable th.afterHiddenColumn:after {
   left: -2px;
-  width: 10px !important;
-  height: 10px !important;
 }
 
-[dir=rtl].handsontable th.beforeHiddenColumn .relative::after {
+[dir=rtl].handsontable th.beforeHiddenColumn:after {
   right: initial;
   left: -2px;
   transform: translateY(-50%) rotate(180deg);
 }
-[dir=rtl].handsontable th.afterHiddenColumn .relative::before {
+[dir=rtl].handsontable th.afterHiddenColumn:after {
   right: -2px;
   left: initial;
   transform: translateY(-50%) rotate(180deg);
@@ -1285,31 +1270,22 @@ tr.ht__row_odd td {
 .handsontable th.afterHiddenRow {
   position: relative;
 }
-.handsontable th.beforeHiddenRow .relative:before, .handsontable th.beforeHiddenRow .relative:after,
-.handsontable th.afterHiddenRow .relative:before,
-.handsontable th.afterHiddenRow .relative:after {
+.handsontable th.beforeHiddenRow:after,
+.handsontable th.afterHiddenRow:after {
   content: "";
   display: block;
   position: absolute;
   left: 50%;
-  width: 0;
-  height: 0;
+  width: 10px !important;
+  height: 10px !important;
   transform: translateX(-50%);
   color: var(--ht-border-color);
 }
-.handsontable th.beforeHiddenRow .relative::before {
-  bottom: -6px;
-  width: 10px !important;
-  height: 10px !important;
+.handsontable th.beforeHiddenRow:after {
+  bottom: -2px;
 }
-.handsontable th.afterHiddenRow .relative::before {
-  top: -6px;
-  width: 10px !important;
-  height: 10px !important;
-}
-.handsontable td.afterHiddenRow.firstVisibleRow,
-.handsontable th.afterHiddenRow.firstVisibleRow {
-  border-top: var(--ht-border-width) solid var(--ht-border-color);
+.handsontable th.afterHiddenRow:after {
+  top: -2px;
 }
 
 .handsontable .changeType {
@@ -1350,7 +1326,6 @@ tr.ht__row_odd td {
   border-style: solid;
   border-width: var(--ht-menu-border-width);
   border-radius: var(--ht-menu-border-radius);
-  background-color: var(--ht-background-color, #ffffff);
   box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) var(--ht-menu-shadow-color);
   overflow: hidden;
   padding: var(--ht-menu-vertical-padding) var(--ht-menu-horizontal-padding);
@@ -1474,9 +1449,6 @@ tr.ht__row_odd td {
   inset-inline-end: 0;
 }
 
-.handsontable.htFiltersConditionsMenu .htCore {
-  background-color: var(--ht-background-color, #ffffff);
-}
 .handsontable.htFiltersConditionsMenu:not(.htGhostTable) {
   z-index: 1070;
 }
@@ -1632,9 +1604,6 @@ tr.ht__row_odd td {
   padding-right: 20px;
 }
 
-.handsontable span.colHeader.columnSorting {
-  /* We support up to 7 numeric indicators, describing order of column in sorted columns queue */
-}
 .handsontable span.colHeader.columnSorting:after {
   position: relative;
   order: 2;
@@ -1677,13 +1646,43 @@ tr.ht__row_odd td {
   border-left: 0 none;
 }
 
+.ht_clone_top_left_corner tbody tr:last-child td:last-child {
+  box-shadow: calc((var(--ht-frozen-shadow-size) - 1px) * -1) calc((var(--ht-frozen-shadow-size) - 1px) * -1) 0 0 inset var(--ht-frozen-shadow-color);
+}
+
+.ht_clone_bottom tbody tr:first-child td,
+.ht_clone_bottom tbody tr:first-child th,
+.ht_clone_bottom_left_corner tbody tr:first-child td,
+.ht_clone_bottom_left_corner tbody tr:first-child th {
+  box-shadow: 0 var(--ht-frozen-shadow-size)-1px 0 0 inset var(--ht-frozen-shadow-color);
+}
+.ht_clone_bottom tbody tr:first-child td.current,
+.ht_clone_bottom tbody tr:first-child th.current,
+.ht_clone_bottom_left_corner tbody tr:first-child td.current,
+.ht_clone_bottom_left_corner tbody tr:first-child th.current {
+  box-shadow: 0 var(--ht-frozen-shadow-size)-1px 0 0 inset var(--ht-frozen-shadow-color), 0 0 0 1px inset var(--ht-cell-selection-background-color);
+}
+
+.ht_clone_top tbody tr:last-child td,
+.ht_clone_top tbody tr:last-child th,
+.ht_clone_top_left_corner tbody tr:last-child td,
+.ht_clone_top_left_corner tbody tr:last-child th {
+  box-shadow: 0 calc((var(--ht-frozen-shadow-size) - 1px) * -1) 0 0 inset var(--ht-frozen-shadow-color);
+}
+.ht_clone_top tbody tr:last-child td.current,
+.ht_clone_top tbody tr:last-child th.current,
+.ht_clone_top_left_corner tbody tr:last-child td.current,
+.ht_clone_top_left_corner tbody tr:last-child th.current {
+  box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 inset var(--ht-frozen-shadow-color), 0 0 0 calc((var(--ht-frozen-shadow-size) - 1px) * -1) inset var(--ht-cell-selection-background-color);
+}
+
 .ht_clone_inline_start.ht_clone_left tbody tr td:last-child,
 .ht_clone_inline_start.ht_clone_left thead tr th:not(:first-child):last-child,
 .ht_clone_bottom_left_corner tbody tr td:last-child,
 .ht_clone_bottom_left_corner thead tr th:not(:first-child):last-child,
 .ht_clone_top_left_corner tbody tr td:last-child,
 .ht_clone_top_left_corner thead tr th:not(:first-child):last-child {
-  box-shadow: calc(-1 * var(--ht-frozen-shadow-size)) 0 0 0 inset var(--ht-frozen-shadow-color);
+  box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset var(--ht-frozen-shadow-color);
 }
 .ht_clone_inline_start.ht_clone_left tbody tr td:last-child.current,
 .ht_clone_inline_start.ht_clone_left thead tr th:not(:first-child):last-child.current,
@@ -1691,49 +1690,18 @@ tr.ht__row_odd td {
 .ht_clone_bottom_left_corner thead tr th:not(:first-child):last-child.current,
 .ht_clone_top_left_corner tbody tr td:last-child.current,
 .ht_clone_top_left_corner thead tr th:not(:first-child):last-child.current {
-  box-shadow: calc(var(--ht-frozen-shadow-size) * -1) 0 0 0 inset var(--ht-frozen-shadow-color), 0 0 0 1px inset var(--ht-cell-selection-background-color);
+  box-shadow: calc((var(--ht-frozen-shadow-size) - 1px) * -1) 0 0 0 inset var(--ht-frozen-shadow-color), 0 0 0 calc((var(--ht-frozen-shadow-size) - 1px) * -1) inset var(--ht-cell-selection-background-color);
 }
+.ht_clone_inline_start.ht_clone_left tbody tr td.highlight:last-child,
 .ht_clone_inline_start.ht_clone_left tbody tr td.ht__highlight:last-child,
 .ht_clone_inline_start.ht_clone_left thead tr th.ht__active_highlight:not(:first-child):last-child,
+.ht_clone_bottom_left_corner tbody tr td.highlight:last-child,
 .ht_clone_bottom_left_corner tbody tr td.ht__highlight:last-child,
 .ht_clone_bottom_left_corner thead tr th.ht__active_highlight:not(:first-child):last-child,
+.ht_clone_top_left_corner tbody tr td.highlight:last-child,
 .ht_clone_top_left_corner tbody tr td.ht__highlight:last-child,
 .ht_clone_top_left_corner thead tr th.ht__active_highlight:not(:first-child):last-child {
-  box-shadow: calc(var(--ht-frozen-shadow-size) * -1) 0 0 0 inset var(--ht-cell-selection-background-color);
-}
-
-.ht_clone_top_left_corner tbody tr:last-child td:last-child {
-  box-shadow: calc(var(--ht-frozen-shadow-size) * -1) calc(var(--ht-frozen-shadow-size) * -1) 0 0 inset var(--ht-frozen-shadow-color);
-}
-
-.ht_clone_bottom tbody tr:first-child td,
-.ht_clone_bottom tbody tr:first-child th,
-.ht_clone_bottom_left_corner tbody tr:first-child td,
-.ht_clone_bottom_left_corner tbody tr:first-child th {
-  box-shadow: 0 var(--ht-frozen-shadow-size) 0 0 inset var(--ht-frozen-shadow-color);
-}
-.ht_clone_bottom tbody tr:first-child td.current,
-.ht_clone_bottom tbody tr:first-child th.current,
-.ht_clone_bottom_left_corner tbody tr:first-child td.current,
-.ht_clone_bottom_left_corner tbody tr:first-child th.current {
-  box-shadow: 0 var(--ht-frozen-shadow-size) 0 0 inset var(--ht-frozen-shadow-color), 0 0 0 1px inset var(--ht-cell-selection-background-color);
-}
-
-.ht_clone_bottom_left_corner tbody tr:first-child td:last-child {
-  box-shadow: calc(var(--ht-frozen-shadow-size) * -1) var(--ht-frozen-shadow-size) 0 0 inset var(--ht-frozen-shadow-color);
-}
-
-.ht_clone_top tbody tr:last-child td,
-.ht_clone_top tbody tr:last-child th,
-.ht_clone_top_left_corner tbody tr:last-child td,
-.ht_clone_top_left_corner tbody tr:last-child th {
-  box-shadow: 0 calc(var(--ht-frozen-shadow-size) * -1) 0 0 inset var(--ht-frozen-shadow-color);
-}
-.ht_clone_top tbody tr:last-child td.current,
-.ht_clone_top tbody tr:last-child th.current,
-.ht_clone_top_left_corner tbody tr:last-child td.current,
-.ht_clone_top_left_corner tbody tr:last-child th.current {
-  box-shadow: calc(-1 * var(--ht-frozen-shadow-size)) 0 0 inset var(--ht-frozen-shadow-color), 0 0 0 1px inset var(--ht-cell-selection-background-color);
+  box-shadow: calc((var(--ht-frozen-shadow-size) - 1px) * -1) 0 0 0 inset var(--ht-cell-selection-background-color);
 }
 
 .ht_clone_top_inline_start_corner thead tr th:first-child {

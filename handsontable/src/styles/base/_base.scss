@@ -13,25 +13,29 @@
     /* Miscellaneous */
     touch-action: manipulation;
 
+    .ht_master {
+      background-color: var(--ht-background-color, #ffffff);
+    }
+
     // Cell and Header
     th,
     td {
       height: calc(
         var(--ht-line-height, 20px) +
-          (
-            2 * var(--ht-cell-horizontal-padding, 8px) +
-              var(--ht-cell-horizontal-border-width, 1px)
-          )
+          (2 * var(--ht-cell-horizontal-padding, 8px) + 1px)
       );
       padding: var(--ht-cell-horizontal-padding, 4px)
         var(--ht-cell-vertical-padding, 8px);
       vertical-align: top;
       border-top-width: 0;
       border-inline-start-width: 0;
-      border-inline-end-width: var(--ht-cell-vertical-border-width, 1px);
-      border-bottom-width: var(--ht-cell-horizontal-border-width, 1px);
+      border-inline-end-width: 1px;
+      border-bottom-width: 1px;
       border-style: solid;
-      border-color: var(--ht-border-color);
+      border-top-color: var(--ht-cell-horizontal-border-color);
+      border-bottom-color: var(--ht-cell-horizontal-border-color);
+      border-inline-start-color: var(--ht-cell-vertical-border-color);
+      border-inline-end-color: var(--ht-cell-vertical-border-color);
       font-size: var(--ht-font-size);
       line-height: var(--ht-line-height, 20px);
       white-space: pre-wrap;
@@ -55,7 +59,7 @@
     // Cell
     td {
       &:first-of-type {
-        border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
+        border-inline-start-width: 1px;
       }
     }
 
@@ -72,13 +76,13 @@
       &:last-child {
         /* Foundation framework fix */
         border-inline-start-width: 0;
-        border-inline-end-width: var(--ht-cell-vertical-border-width, 1px);
-        border-bottom-width: var(--ht-cell-horizontal-border-width, 1px);
+        border-inline-end-width: 1px;
+        border-bottom-width: 1px;
       }
 
       &:first-child,
       &:nth-child(2) {
-        border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
+        border-inline-start-width: 1px;
       }
 
       &.ht__highlight {
@@ -98,13 +102,9 @@
         border-color: var(--ht-header-active-border-color);
         color: var(--ht-header-active-foreground-color);
         background-color: var(--ht-header-active-background-color);
-        box-shadow: calc(var(--ht-cell-vertical-border-width) * -1)
-            calc(var(--ht-cell-horizontal-border-width) * -1) 0
-            var(--ht-header-active-border-color),
-          0 calc(var(--ht-cell-horizontal-border-width) * -1) 0
-            var(--ht-header-active-border-color),
-          calc(var(--ht-cell-vertical-border-width) * -1) 0 0
-            var(--ht-header-active-border-color);
+        box-shadow: -1px -1px 0 var(--ht-header-active-border-color),
+          0 -1px 0 var(--ht-header-active-border-color),
+          -1px 0 0 var(--ht-header-active-border-color);
 
         &:before {
           background-color: var(--ht-header-active-background-color);
@@ -114,11 +114,6 @@
       &.active {
         color: var(--ht-header-active-foreground-color);
         background-color: var(--ht-header-active-background-color);
-      }
-
-      &.current {
-        box-shadow: inset 0 0 0 calc(var(--ht-cell-vertical-border-width) * 1)
-          var(--ht-header-active-border-color);
       }
     }
 
@@ -134,10 +129,7 @@
           var(--ht-cell-vertical-padding, 4px);
         height: calc(
           var(--ht-line-height, 20px) +
-            (
-              2 * var(--ht-cell-horizontal-padding, 8px) +
-                var(--ht-cell-horizontal-border-width, 1px)
-            )
+            (2 * var(--ht-cell-horizontal-padding, 8px) + 1px)
         );
       }
     }
@@ -256,20 +248,20 @@
     }
 
     // Visual fixes
-    // It removes double right border from first column header when row headers are disabled 
+    // It removes double right border from first column header when row headers are disabled
     .ht_clone_top th:nth-child(2) {
       border-inline-start-width: 0;
-      border-inline-end-width: var(--ht-cell-vertical-border-width, 1px);
+      border-inline-end-width: 1px;
     }
 
     &.htRowHeaders thead tr th:nth-child(2) {
-      border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
+      border-inline-start-width: 1px;
     }
 
     tr:first-child {
       th,
       td {
-        border-top-width: var(--ht-cell-horizontal-border-width, 1px);
+        border-top-width: 1px;
       }
     }
 
@@ -277,7 +269,7 @@
       tbody tr th,
       &:not(.ht_clone_top) thead tr th:first-child {
         border-inline-end-width: 0;
-        border-inline-start-width: var(--ht-cell-vertical-border-width, 1px);
+        border-inline-start-width: 1px;
       }
     }
 

@@ -6,10 +6,6 @@
 @mixin output {
   .handsontable {
     &.htFiltersConditionsMenu {
-      .htCore {
-        background-color: var(--ht-background-color, #ffffff);
-      }
-
       &:not(.htGhostTable) {
         z-index: 1070;
       }

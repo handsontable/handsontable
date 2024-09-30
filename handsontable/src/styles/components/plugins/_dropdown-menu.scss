@@ -53,7 +53,6 @@
         border-style: solid;
         border-width: var(--ht-menu-border-width);
         border-radius: var(--ht-menu-border-radius);
-        background-color: var(--ht-background-color, #ffffff);
         @include mixins.menu-box-shadow;
         overflow: hidden;
         padding: var(--ht-menu-vertical-padding)

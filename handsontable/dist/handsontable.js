@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 27/09/2024 13:46:43)
+ * Release date: 30/07/2024 (built at 30/09/2024 13:48:44)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "27/09/2024 13:46:43";
+Handsontable.buildDate = "30/09/2024 13:48:44";
 Handsontable.version = "14.5.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -361,13 +361,14 @@ function Core(rootElement, userSettings) {
   this.renderCall = false;
   rootElement.insertBefore(this.container, rootElement.firstChild);
   if ((0, _rootInstance.isRootInstance)(this)) {
+    var _rootElement$parentNo;
     (0, _mixed._injectProductInfo)(userSettings.licenseKey, rootElement);
     const rootThemeClassName = (0, _themes.getThemeClassName)(rootElement.className);
     if (rootThemeClassName) {
       tableMeta.themeName = rootThemeClassName;
     }
     (0, _element.addClass)(rootElement, tableMeta.themeName);
-    const licenseInfo = rootElement.parentNode.querySelector('.hot-display-license-info');
+    const licenseInfo = (_rootElement$parentNo = rootElement.parentNode) === null || _rootElement$parentNo === void 0 ? void 0 : _rootElement$parentNo.querySelector('.hot-display-license-info');
     if (licenseInfo) {
       (0, _element.addClass)(licenseInfo, tableMeta.themeName);
     }

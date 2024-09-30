@@ -16,7 +16,7 @@
         font-size: 7px;
       }
 
-      /* We support up to 7 numeric indicators, describing order of column in sorted columns queue */
+      // We support up to 7 numeric indicators, describing order of column in sorted columns queue
       &[class^="sort-"]::after,
       &[class*=" sort-"]::after {
         content: "+";

@@ -9,21 +9,14 @@
     .handsontableInput {
       display: block;
       margin: 0;
-      padding: calc(
-          var(--ht-cell-horizontal-padding, 4px) +
-            var(--ht-cell-horizontal-border-width, 1px)
-        )
-        calc(
-          var(--ht-cell-vertical-padding, 8px) +
-            var(--ht-cell-vertical-border-width, 1px)
-        );
+      padding: calc(var(--ht-cell-horizontal-padding, 4px) + 1px)
+        calc(var(--ht-cell-vertical-padding, 8px) + 1px);
       font-family: inherit !important;
       font-size: inherit !important;
       line-height: inherit !important;
       color: var(--ht-cell-editor-foreground-color);
       background-color: var(--ht-background-color, #ffffff);
-      box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width)
-          var(--ht-cell-editor-border-color),
+      box-shadow: inset 0px 0px 0px 1px var(--ht-cell-editor-border-color),
         0 0 var(--ht-cell-editor-shadow-blur-radius)
           var(--ht-cell-editor-shadow-color);
       border: none;

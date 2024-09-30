@@ -9,12 +9,7 @@
 @mixin icons-map($icons) {
   &.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after,
   &.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after,
-  &.htFiltersConditionsMenu
-    table
-    tbody
-    tr
-    td.htSubmenu
-    .htItemWrapper:after,
+  &.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after,
   .pika-single .pika-next {
     @include icon($icons, "arrow-right");
   }
@@ -51,23 +46,23 @@
     @include icon($icons, "check");
   }
 
-  .handsontable .htCheckboxRendererInput::after {
+  .handsontable .htCheckboxRendererInput:after {
     @include icon($icons, "checkbox");
   }
 
-  .handsontable th.beforeHiddenColumn .relative::after {
+  .handsontable th.beforeHiddenColumn:after {
     @include icon($icons, "caret-hidden-left");
   }
 
-  .handsontable th.afterHiddenColumn .relative::before {
+  .handsontable th.afterHiddenColumn:after {
     @include icon($icons, "caret-hidden-right");
   }
 
-  .handsontable th.beforeHiddenRow .relative::before {
+  .handsontable th.beforeHiddenRow:after {
     @include icon($icons, "caret-hidden-up");
   }
 
-  .handsontable th.afterHiddenRow .relative::before {
+  .handsontable th.afterHiddenRow:after {
     @include icon($icons, "caret-hidden-down");
   }
 
@@ -84,7 +79,7 @@
     }
   }
 
-  .handsontable .htUIRadio > input[type=radio]:after {
+  .handsontable .htUIRadio > input[type="radio"]:after {
     @include icon($icons, "radio");
   }
 }

@@ -8,37 +8,23 @@
     th.afterHiddenRow {
       position: relative;
 
-      .relative {
-        &:before,
-        &:after {
-          @include mixins.pseudo;
-          position: absolute;
-          left: 50%;
-          width: 0;
-          height: 0;
-          transform: translateX(-50%);
-          color: var(--ht-border-color);
-        }
+      &:after {
+        @include mixins.pseudo;
+        position: absolute;
+        left: 50%;
+        width: 10px !important;
+        height: 10px !important;
+        transform: translateX(-50%);
+        color: var(--ht-border-color);
       }
     }
 
-    th.beforeHiddenRow .relative::before {
-      bottom: -6px;
-      width: 10px !important;
-      height: 10px !important;
+    th.beforeHiddenRow:after {
+      bottom: -2px;
     }
 
-    th.afterHiddenRow .relative::before {
-      top: -6px;
-      width: 10px !important;
-      height: 10px !important;
-    }
-
-    td,
-    th {
-      &.afterHiddenRow.firstVisibleRow {
-        border-top: var(--ht-border-width) solid var(--ht-border-color);
-      }
+    th.afterHiddenRow:after {
+      top: -2px;
     }
   }
 }

@@ -6,7 +6,6 @@
   .handsontable {
     &.listbox {
       margin: 0;
-      background-color: var(--ht-background-color, #ffffff);
       @include mixins.menu-box-shadow;
 
       .ht_master {

@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 27/09/2024 13:45:14)
+ * Release date: 30/07/2024 (built at 30/09/2024 13:48:09)
  */
 .ht-theme-gemini,
 .ht-theme-gemini-dark,
@@ -47,6 +47,8 @@
   --ht-read-only-color: #868686;
   --ht-disabled-color: #aeaeae;
   --ht-table-transition: 0.2s;
+  --ht-cell-horizontal-border-color: #e5e5e9;
+  --ht-cell-vertical-border-color: transparent;
   --ht-cell-horizontal-border-width: 1px;
   --ht-cell-vertical-border-width: 0px;
   --ht-cell-vertical-padding: 12px;
@@ -315,45 +317,45 @@
   mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width=%2716%27 height=%2716%27 viewBox=%270 0 16 16%27 fill=%27none%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cpath d=%27M3.3335 8.00002L6.66683 11.3334L13.3335 4.66669%27 stroke=%27currentColor%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
-.ht-theme-gemini .handsontable .htCheckboxRendererInput::after,
-.ht-theme-gemini-dark .handsontable .htCheckboxRendererInput::after,
-.ht-theme-gemini-dark-auto .handsontable .htCheckboxRendererInput::after {
+.ht-theme-gemini .handsontable .htCheckboxRendererInput:after,
+.ht-theme-gemini-dark .handsontable .htCheckboxRendererInput:after,
+.ht-theme-gemini-dark-auto .handsontable .htCheckboxRendererInput:after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   mask-size: contain;
   mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width=%2716%27 height=%2716%27 viewBox=%270 0 16 16%27 fill=%27none%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cpath d=%27M5 8L7 10L11 6%27 stroke=%27currentColor%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
-.ht-theme-gemini .handsontable th.beforeHiddenColumn .relative::after,
-.ht-theme-gemini-dark .handsontable th.beforeHiddenColumn .relative::after,
-.ht-theme-gemini-dark-auto .handsontable th.beforeHiddenColumn .relative::after {
+.ht-theme-gemini .handsontable th.beforeHiddenColumn:after,
+.ht-theme-gemini-dark .handsontable th.beforeHiddenColumn:after,
+.ht-theme-gemini-dark-auto .handsontable th.beforeHiddenColumn:after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   mask-size: contain;
   mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width=%278%27 height=%278%27 viewBox=%270 0 8 8%27 fill=%27none%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cpath d=%27M4.62778 1.66903L4.64712 1.66736H4.68645L4.70578 1.66903L4.72578 1.67203L4.74312 1.67536L4.77912 1.68603L4.80145 1.69503L4.84545 1.71836L4.87545 1.74003L4.90245 1.76436L4.93012 1.79569L4.94812 1.82136L4.96612 1.85336L4.97178 1.86536L4.98078 1.88769L4.99145 1.92369L4.99478 1.94136L4.99812 1.96136L4.99945 1.98036L5.00012 2.00003V6.00003C5.00012 6.28403 4.67145 6.43236 4.45912 6.26103L4.43112 6.23569L2.43112 4.23569C2.37372 4.17829 2.33925 4.10193 2.33415 4.02092C2.32906 3.93991 2.3537 3.85983 2.40345 3.79569L2.43112 3.76436L4.43112 1.76436L4.46245 1.73669L4.48812 1.71869L4.52012 1.70069L4.53212 1.69503L4.55445 1.68603L4.59045 1.67536L4.60812 1.67203L4.62778 1.66903Z%27 stroke=%27currentColor%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
-.ht-theme-gemini .handsontable th.afterHiddenColumn .relative::before,
-.ht-theme-gemini-dark .handsontable th.afterHiddenColumn .relative::before,
-.ht-theme-gemini-dark-auto .handsontable th.afterHiddenColumn .relative::before {
+.ht-theme-gemini .handsontable th.afterHiddenColumn:after,
+.ht-theme-gemini-dark .handsontable th.afterHiddenColumn:after,
+.ht-theme-gemini-dark-auto .handsontable th.afterHiddenColumn:after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   mask-size: contain;
   mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width=%278%27 height=%278%27 viewBox=%270 0 8 8%27 fill=%27none%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cpath d=%27M3 1.99998C3 1.71598 3.32867 1.56764 3.541 1.73898L3.569 1.76431L5.569 3.76431C5.62639 3.82171 5.66087 3.89808 5.66596 3.97908C5.67106 4.06009 5.64642 4.14018 5.59667 4.20431L5.569 4.23564L3.569 6.23564L3.53767 6.26331L3.512 6.28131L3.48 6.29931L3.468 6.30498L3.44567 6.31398L3.40967 6.32464L3.392 6.32798L3.372 6.33131L3.353 6.33264L3.33333 6.33331L3.31367 6.33264L3.29433 6.33098L3.27433 6.32798L3.257 6.32464L3.221 6.31398L3.19867 6.30498L3.15467 6.28164L3.12467 6.25998L3.09767 6.23564L3.07 6.20431L3.052 6.17864L3.034 6.14664L3.02833 6.13464L3.01933 6.11231L3.00867 6.07631L3.00533 6.05864L3.002 6.03864L3.00067 6.01964L3 1.99998Z%27 stroke=%27currentColor%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
-.ht-theme-gemini .handsontable th.beforeHiddenRow .relative::before,
-.ht-theme-gemini-dark .handsontable th.beforeHiddenRow .relative::before,
-.ht-theme-gemini-dark-auto .handsontable th.beforeHiddenRow .relative::before {
+.ht-theme-gemini .handsontable th.beforeHiddenRow:after,
+.ht-theme-gemini-dark .handsontable th.beforeHiddenRow:after,
+.ht-theme-gemini-dark-auto .handsontable th.beforeHiddenRow:after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   mask-size: contain;
   mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width=%278%27 height=%278%27 viewBox=%270 0 8 8%27 fill=%27none%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cpath d=%27M3.76425 2.43099C3.82165 2.3736 3.89801 2.33913 3.97902 2.33403C4.06003 2.32894 4.14012 2.35358 4.20425 2.40333L4.23558 2.43099L6.23558 4.43099L6.26325 4.46233L6.28125 4.48799L6.29925 4.51999L6.30492 4.53199L6.31392 4.55433L6.32458 4.59033L6.32792 4.60799L6.33125 4.62799L6.33258 4.64699L6.33325 4.66666L6.33258 4.68633L6.33092 4.70566L6.32792 4.72566L6.32458 4.74299L6.31392 4.77899L6.30492 4.80133L6.28158 4.84533L6.25992 4.87533L6.23558 4.90233L6.20425 4.92999L6.17858 4.94799L6.14658 4.96599L6.13458 4.97166L6.11225 4.98066L6.07625 4.99133L6.05858 4.99466L6.03858 4.99799L6.01958 4.99933L5.99992 4.99999H1.99992C1.71592 4.99999 1.56758 4.67133 1.73892 4.45899L1.76425 4.43099L3.76425 2.43099Z%27 stroke=%27currentColor%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
-.ht-theme-gemini .handsontable th.afterHiddenRow .relative::before,
-.ht-theme-gemini-dark .handsontable th.afterHiddenRow .relative::before,
-.ht-theme-gemini-dark-auto .handsontable th.afterHiddenRow .relative::before {
+.ht-theme-gemini .handsontable th.afterHiddenRow:after,
+.ht-theme-gemini-dark .handsontable th.afterHiddenRow:after,
+.ht-theme-gemini-dark-auto .handsontable th.afterHiddenRow:after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   mask-size: contain;
