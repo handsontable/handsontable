@@ -722,6 +722,11 @@ export default async function handler(request: Request, context: Context) {
 
       const response = await fetch(newUrl);
 
+      if(response.status === 404) {
+        console.log('Match found, but the page does not exist, redirecting to the default 404 page');
+        return Response.redirect('/docs/404.html', 302);
+      }
+
       return new Response(response.body, {
         status: response.status,
         statusText: response.statusText,
