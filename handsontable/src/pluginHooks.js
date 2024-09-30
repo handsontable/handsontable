@@ -2088,7 +2088,9 @@ const REGISTERED_HOOKS = [
    * Fired by the [`Filters`](@/api/filters.md) plugin,
    * before a [column filter](@/guides/columns/column-filter/column-filter.md) gets applied.
    *
-   * [`beforeFilter`](#beforefilter) takes one argument (`conditionsStack`), which is an array of objects.
+   * [`beforeFilter`](#beforefilter) takes two arguments: `conditionsStack` and `previousConditionsStack`, both are
+   * arrays of objects.
+   *
    * Each object represents one of your [column filters](@/api/filters.md#addcondition),
    * and consists of the following properties:
    *
