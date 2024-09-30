@@ -84,6 +84,10 @@ jobs:
       - name: Install Netlify CLI
         run: npm install netlify-cli -g
 
+      - name: Publish _redirects file
+        run: |
+          cp ./docs/netlify/_redirects .vuepress/dist/docs/_redirects
+
       - name : Add changes to the commit
         run:  |
           git add .
