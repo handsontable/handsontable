@@ -1,10 +1,8 @@
 import HyperFormula from 'hyperformula';
 
-describe('Filters with formulas', () => {
-  const id = 'testContainer';
-
+describe('Filters UI cooperation with Formulas', () => {
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
