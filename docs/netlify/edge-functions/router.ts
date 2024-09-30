@@ -707,7 +707,7 @@ export default async function handler(request: Request, context: Context) {
   console.log('Detected Docs Version', Netlify.env.get('LATEST_VERSION'));
   console.log('Request url', url);
 
-  const cookieValue = context.cookies.get("docs_fw");
+  const cookieValue = context.cookies.get('docs_fw');
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
   const redirects = prepareRedirects(framework);
