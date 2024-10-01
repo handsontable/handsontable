@@ -7,8 +7,8 @@
 Handsontable's wrapper for React combines data grid features with spreadsheet-like UX. <br>
 It provides data binding, data validation, filtering, sorting, and CRUD operations.
 
-[![npm](https://img.shields.io/npm/dt/@handsontable/react.svg)](https://npmjs.com/package/@handsontable/react)
-[![npm](https://img.shields.io/npm/dm/@handsontable/react.svg)](https://npmjs.com/package/@handsontable/react)
+[![npm](https://img.shields.io/npm/dt/@handsontable/react-wrapper.svg)](https://npmjs.com/package/@handsontable/react-wrapper)
+[![npm](https://img.shields.io/npm/dm/@handsontable/react-wrapper.svg)](https://npmjs.com/package/@handsontable/react-wrapper)
 [![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
@@ -50,10 +50,10 @@ The most popular features of Handsontable for React:
 
 ### 1. Install Handsontable
 
-Get Handsontable from [npm](https://www.npmjs.com/package/@handsontable/react) or [Yarn](https://yarnpkg.com/package/@handsontable/react).
+Get Handsontable from [npm](https://www.npmjs.com/package/@handsontable/react-wrapper) or [Yarn](https://yarnpkg.com/package/@handsontable/react-wrapper).
 
 ```bash
-npm install handsontable @handsontable/react
+npm install handsontable @handsontable/react-wrapper
 ```
 
 Import Handsontable's CSS:
@@ -75,13 +75,13 @@ registerAllModules();
 The main Handsontable component is called `HotTable`.
 
 ```jsx
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 ```
 
 To set Handsontable's [configuration options](https://handsontable.com/docs/react-data-grid/configuration-options), use `HotTable`'s props. For example:
 
 ```jsx
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
