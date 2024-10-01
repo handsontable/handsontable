@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed rows misalign for cells that content produce heights with fractions.",
-  "type": "fixed",
-  "issueOrPR": 11110,
-  "breaking": false,
-  "framework": "none"
-}

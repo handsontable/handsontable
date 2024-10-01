@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added even and odd class names to the TR elements.",
-  "type": "added",
-  "issueOrPR": 11183,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue connected with throwing an error triggered by some keyboard shortcuts when there was no selection",
-  "type": "fixed",
-  "issueOrPR": 11195,
-  "breaking": false,
-  "framework": "none"
-}
