@@ -59,22 +59,22 @@ describe('HiddenRows', () => {
       expect(getPlugin('hiddenRows').isHidden(3)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="">1</th>
             <td class="">A3</td>
             <td class="">B3</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="">2</th>
             <td class="">A4</td>
             <td class="">B4</td>
           </tr>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">3</th>
             <td class="">A5</td>
             <td class="">B5</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">5</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A2</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B2</td>
@@ -108,22 +108,22 @@ describe('HiddenRows', () => {
       expect(getPlugin('hiddenRows').isHidden(1)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">1</th>
             <td class="">A4</td>
             <td class="">B4</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">3</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A1</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B1</td>
           </tr>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="">4</th>
             <td class="">A2</td>
             <td class="">B2</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="">5</th>
             <td class="">A3</td>
             <td class="">B3</td>
@@ -157,22 +157,22 @@ describe('HiddenRows', () => {
       expect(getPlugin('hiddenRows').isHidden(1)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">1</th>
             <td class="">A1</td>
             <td class="">B1</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">3</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A2</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B2</td>
           </tr>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="">4</th>
             <td class="">A3</td>
             <td class="">B3</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="">5</th>
             <td class="">A4</td>
             <td class="">B4</td>
@@ -206,22 +206,22 @@ describe('HiddenRows', () => {
       expect(getPlugin('hiddenRows').isHidden(2)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="">1</th>
             <td class="">A1</td>
             <td class="">B1</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">2</th>
             <td class="">A3</td>
             <td class="">B3</td>
           </tr>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">4</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A5</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B5</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="">5</th>
             <td class="">A2</td>
             <td class="">B2</td>
@@ -259,12 +259,12 @@ describe('HiddenRows', () => {
       expect(getPlugin('hiddenRows').isHidden(3)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">1</th>
             <td class="">A1</td>
             <td class="">B1</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">5</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A5</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B5</td>
@@ -302,12 +302,12 @@ describe('HiddenRows', () => {
       expect(getPlugin('hiddenRows').isHidden(3)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW} ${CSS_CLASS_BEFORE_HIDDEN_ROW}">3</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A1</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B1</td>
           </tr>
-          <tr>
+          <tr class="ht__row_even">
             <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">5</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A3</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B3</td>

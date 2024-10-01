@@ -78,13 +78,6 @@ export default {
         button.classList.remove('check');
       }, 2000);
     },
-    reportCode() {
-      window.open(
-        // eslint-disable-next-line max-len
-        `https://github.com/handsontable/handsontable/issues/new?link=${window.location}&template=improve_docs.yaml`,
-        '_blank'
-      );
-    },
     toggleDropdown(e) {
       const buttonDropdown = e.target;
 
@@ -182,14 +175,25 @@ export default {
         '_blank'
       );
     },
+    detectClickOutsideButton(e) {
+      const buttons = document.querySelectorAll('.select-type-button');
+
+      buttons.forEach((button) => {
+        if (!button.contains(e.target)) {
+          button.classList.remove('active');
+        }
+      });
+    }
   },
   mounted() {
     this.selectedLang = localStorage?.getItem('selected_lang') ?? 'JavaScript';
     this.checkSectionInView();
+    window.addEventListener('click', this.detectClickOutsideButton);
     window.addEventListener('scroll', this.checkSectionInView);
   },
   unmounted() {
     window.removeEventListener('scroll', this.checkSectionInView);
+    window.removeEventListener('click', this.detectClickOutsideButton);
   },
 };
 </script>

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Improved the precision of calculating the height and width of columns and rows.",
-  "type": "changed",
-  "issueOrPR": 11049,
-  "breaking": false,
-  "framework": "none"
-}

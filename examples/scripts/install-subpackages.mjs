@@ -2,7 +2,7 @@
  * Run the npm install command for the examples monorepo and all of the framework mini-monorepos.
  */
 import execa from 'execa';
-import thisPackageJson from '../package.json' assert { type: 'json' };
+import thisPackageJson from '../package.json' with { type: 'json' };
 import glob from 'glob';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -51,7 +51,7 @@ for (const frameworkPackage of thisPackageJson.internal.framework_dirs) {
   // examples).
   await spawnProcess([
     'node ./scripts/link-packages.mjs',
-    '--f js ts angular angular-12 angular-13 angular-14 angular-15 angular-16 angular-17 react vue',
+    '--f js ts angular angular-12 angular-13 angular-14 angular-15 angular-16 angular-17 react vue vue3',
     `--examples-version ${version}`,
   ].join(' '));
 }

@@ -8,13 +8,14 @@ import { StarsRenderer } from "./renderers/Stars";
 import {
   drawCheckboxInRowHeaders,
   addClassesToRows,
-  changeCheckboxCell,
-  alignHeaders
+  changeCheckboxCell
 } from "./hooksCallbacks";
 
 import "handsontable/dist/handsontable.css";
 
 const DataGrid = () => {
+  const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
+
   return (
     <HotTable
       data={data}
@@ -39,7 +40,7 @@ const DataGrid = () => {
       multiColumnSorting={true}
       filters={true}
       rowHeaders={true}
-      afterGetColHeader={alignHeaders}
+      headerClassName={isRtl ? "htRight" : "htLeft"}
       beforeRenderer={addClassesToRows}
       afterGetRowHeader={drawCheckboxInRowHeaders}
       afterOnCellMouseDown={changeCheckboxCell}

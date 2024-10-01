@@ -7,7 +7,6 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 const Token = require('markdown-it/lib/token');
 const { buildCode } = require('./code-builder');
 const { addCodeForPreset } = require('./add-code-for-preset');
-const { codesandbox } = require('./codesandbox');
 const { jsfiddle } = require('./jsfiddle');
 const { stackblitz } = require('./stackblitz');
 
@@ -27,11 +26,10 @@ const tab = (tabName, token, id) => {
   ];
 };
 
-const parsePreview = (content, base) => {
+const parsePreview = (content) => {
   if (!content) return '';
 
   return content
-    .replaceAll('{{$basePath}}', base)
     // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
     .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '')
     // Remove the code between "/* start:skip-in-preview */" and "/* end:skip-in-preview */" expressions
@@ -128,12 +126,14 @@ module.exports = function(docsVersion, base) {
         const tsToken = tsPos ? tokens[tsIndex] : undefined;
 
         // Parse code
-        const codeToCompile = parseCode(jsToken.content);
-        const tsCodeToCompile = parseCode(tsToken?.content);
-        const codeToCompileSandbox = parseCodeSandbox(jsToken.content);
-        const tsCodeToCompileSandbox = parseCodeSandbox(tsToken?.content);
-        const codeToPreview = parsePreview(jsToken.content, base);
-        const tsCodeToPreview = parsePreview(tsToken?.content, base);
+        const jsTokenWithBasePath = jsToken?.content?.replaceAll('{{$basePath}}', base);
+        const tsTokenWithBasePath = tsToken?.content?.replaceAll('{{$basePath}}', base);
+        const codeToCompile = parseCode(jsTokenWithBasePath);
+        const tsCodeToCompile = parseCode(tsTokenWithBasePath);
+        const codeToCompileSandbox = parseCodeSandbox(jsTokenWithBasePath);
+        const tsCodeToCompileSandbox = parseCodeSandbox(tsTokenWithBasePath);
+        const codeToPreview = parsePreview(jsTokenWithBasePath);
+        const tsCodeToPreview = parsePreview(tsTokenWithBasePath);
 
         // Replace token content
         if (jsToken) jsToken.content = codeToPreview;
@@ -167,9 +167,9 @@ module.exports = function(docsVersion, base) {
         const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
         const selectedLang = '$parent.$parent.selectedLang';
+        const isJavaScript = preset.includes('hot');
         const isReact = preset.includes('react');
-        const isAngular = preset.includes('angular');
-        const isReactOrJavaScript = preset.includes('hot') || preset.includes('react');
+        const isReactOrJavaScript = isJavaScript || isReact;
 
         return `
           <div class="example-container">
@@ -197,17 +197,6 @@ module.exports = function(docsVersion, base) {
       'JavaScript'
     )
     : ''}
-                  ${!noEdit && !isAngular
-    ? codesandbox(
-      id,
-      htmlContent,
-      codeToCompileSandbox,
-      cssContent,
-      docsVersion,
-      preset,
-      'JavaScript'
-    )
-    : ''}
                   ${!noEdit
     ? jsfiddle(
       id,
@@ -223,17 +212,6 @@ module.exports = function(docsVersion, base) {
                 <div class="examples-buttons" v-if="${selectedLang} === 'TypeScript' && ${isReactOrJavaScript}">
                   ${!noEdit
     ? stackblitz(
-      id,
-      htmlContent,
-      tsCodeToCompileSandbox,
-      cssContent,
-      docsVersion,
-      preset,
-      'TypeScript'
-    )
-    : ''}
-                  ${!noEdit
-    ? codesandbox(
       id,
       htmlContent,
       tsCodeToCompileSandbox,

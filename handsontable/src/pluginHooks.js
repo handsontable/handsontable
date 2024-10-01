@@ -647,7 +647,6 @@ const REGISTERED_HOOKS = [
    * @param {object} preventScrolling A reference to the observable object with the `value` property.
    *                                  Property `preventScrolling.value` expects a boolean value that
    *                                  Handsontable uses to control scroll behavior after selection.
-   * @param {object} preventScrolling Object with `value` property where its value change will be observed.
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    * @example
    * ::: only-for javascript
@@ -2089,7 +2088,9 @@ const REGISTERED_HOOKS = [
    * Fired by the [`Filters`](@/api/filters.md) plugin,
    * before a [column filter](@/guides/columns/column-filter/column-filter.md) gets applied.
    *
-   * [`beforeFilter`](#beforefilter) takes one argument (`conditionsStack`), which is an array of objects.
+   * [`beforeFilter`](#beforefilter) takes two arguments: `conditionsStack` and `previousConditionsStack`, both are
+   * arrays of objects.
+   *
    * Each object represents one of your [column filters](@/api/filters.md#addcondition),
    * and consists of the following properties:
    *
@@ -2140,6 +2141,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeFilter
    * @param {object[]} conditionsStack An array of objects with your [column filters](@/api/filters.md#addcondition).
+   * @param {object[]|null} previousConditionsStack An array of objects with your previous [column filters](@/api/filters.md#addcondition). It can also be `null` if there was no previous filters applied or the conditions did not change between performing the `filter` action.
    * @returns {boolean} To perform server-side filtering (i.e., to not apply filtering to Handsontable's UI), return `false`.
    */
   'beforeFilter',

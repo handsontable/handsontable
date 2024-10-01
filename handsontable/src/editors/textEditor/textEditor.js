@@ -3,7 +3,6 @@ import EventManager from '../../eventManager';
 import { isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
-  getComputedStyle,
   isThisHotChild,
   setCaretPosition,
   hasClass,
@@ -353,13 +352,13 @@ export class TextEditor extends BaseEditor {
     this.textareaParentStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
     this.showEditableElement();
 
-    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
+    const cellComputedStyle = this.hot.rootWindow.getComputedStyle(this.TD);
 
     this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
     this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
     this.TEXTAREA.style.backgroundColor = this.TD.style.backgroundColor;
 
-    const textareaComputedStyle = getComputedStyle(this.TEXTAREA);
+    const textareaComputedStyle = this.hot.rootWindow.getComputedStyle(this.TEXTAREA);
 
     const horizontalPadding = parseInt(textareaComputedStyle.paddingLeft, 10) +
       parseInt(textareaComputedStyle.paddingRight, 10);

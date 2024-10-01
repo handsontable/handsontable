@@ -50,8 +50,10 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getWidth(sourceIndex) {
-    return this.wtSettings.getSetting('columnWidth', sourceIndex)
+    const width = this.wtSettings.getSetting('columnWidth', sourceIndex)
       || this.wtSettings.getSetting('defaultColumnWidth');
+
+    return width;
   }
 
   /**

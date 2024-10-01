@@ -618,17 +618,21 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCopy(event) {
-    if ((!this.hot.isListening() && !this.#isTriggeredByCopy) || this.isEditorOpened()) {
-      return;
-    }
+    const focusedElement = this.hot.getFocusManager().getRefocusElement();
+    const isHotInput = event.target?.hasAttribute('data-hot-input');
 
     if (
-      !this.hot.getSettings().outsideClickDeselects &&
-      (event.target !== this.hot.rootDocument.body)
+      !this.hot.isListening() && !this.#isTriggeredByCopy ||
+      this.isEditorOpened() ||
+      event.target instanceof HTMLElement && (
+        isHotInput && event.target !== focusedElement ||
+        !isHotInput && event.target !== this.hot.rootDocument.body
+      )
     ) {
       return;
     }
 
+    event.preventDefault();
     this.setCopyableText();
     this.#isTriggeredByCopy = false;
 
@@ -653,7 +657,6 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.#copyMode = 'cells-only';
-    event.preventDefault();
   }
 
   /**
@@ -663,17 +666,21 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCut(event) {
-    if ((!this.hot.isListening() && !this.#isTriggeredByCut) || this.isEditorOpened()) {
-      return;
-    }
+    const focusedElement = this.hot.getFocusManager().getRefocusElement();
+    const isHotInput = event.target?.hasAttribute('data-hot-input');
 
     if (
-      !this.hot.getSettings().outsideClickDeselects &&
-      (event.target !== this.hot.rootDocument.body)
+      !this.hot.isListening() && !this.#isTriggeredByCut ||
+      this.isEditorOpened() ||
+      event.target instanceof HTMLElement && (
+        isHotInput && event.target !== focusedElement ||
+        !isHotInput && event.target !== this.hot.rootDocument.body
+      )
     ) {
       return;
     }
 
+    event.preventDefault();
     this.setCopyableText();
     this.#isTriggeredByCut = false;
 
@@ -696,8 +703,6 @@ export class CopyPaste extends BasePlugin {
       this.hot.emptySelectedCells('CopyPaste.cut');
       this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
     }
-
-    event.preventDefault();
   }
 
   /**
@@ -707,13 +712,17 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onPaste(event) {
-    if (!this.hot.isListening() || this.isEditorOpened() || !this.hot.getSelected()) {
-      return;
-    }
+    const focusedElement = this.hot.getFocusManager().getRefocusElement();
+    const isHotInput = event.target?.hasAttribute('data-hot-input');
 
     if (
-      !this.hot.getSettings().outsideClickDeselects &&
-      (event.target !== this.hot.rootDocument.body)
+      !this.hot.isListening() ||
+      this.isEditorOpened() ||
+      !this.hot.getSelected() ||
+      event.target instanceof HTMLElement && (
+        isHotInput && event.target !== focusedElement ||
+        !isHotInput && event.target !== this.hot.rootDocument.body
+      )
     ) {
       return;
     }

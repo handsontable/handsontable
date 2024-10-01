@@ -1,0 +1,51 @@
+/*
+  A stylesheet customizing app (custom renderers)
+*/
+table.htCore tr.odd td {
+  background: #fafbff;
+}
+
+/*
+  A stylesheet customizing Handsontable style
+*/
+
+.collapsibleIndicator {
+  text-align: center;
+}
+
+.handsontable .htRight .changeType {
+  margin: 3px 1px 0 13px;
+}
+.handsontable .green {
+  background: #37bc6c;
+  font-weight: bold;
+}
+
+.handsontable .orange {
+  background: #fcb515;
+  font-weight: bold;
+}
+
+.btn {
+  padding: 20px;
+  font: 1.4em sans-serif;
+}
+[data-color='green'] {
+  background: #37bc6c;
+}
+[data-color='orange'] {
+  background: #fcb515;
+}
+.bold-text {
+  font-weight: bold;
+}
+
+.italic-text {
+  font-style: italic;
+}
+.htMergedCell {
+  background-color: #ffd966 !important;
+  color: #000 !important;
+  font-weight: bold;
+  text-align: center;
+}

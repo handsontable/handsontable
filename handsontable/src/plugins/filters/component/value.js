@@ -209,7 +209,11 @@ export class ValueComponent extends BaseComponent {
 
         wrapper.appendChild(label);
 
-        arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
+        // The MultipleSelectUI should not extend the menu width (it should adjust to the menu item width only).
+        // That's why it's skipped from rendering when the GhostTable tries to render it.
+        if (!wrapper.parentElement.hasAttribute('ghost-table')) {
+          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
+        }
 
         return wrapper;
       }
