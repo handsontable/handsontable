@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 30/09/2024 13:48:09)
+ * Release date: 30/07/2024 (built at 01/10/2024 12:24:36)
  */
 .ht-theme-main,
 .ht-theme-main-dark,
@@ -111,7 +111,7 @@
   --ht-checkbox-indeterminate-focus-icon-color: #ffffff;
   --ht-header-active-background-color: #e1e5f7;
   --ht-header-active-foreground-color: #222222;
-  --ht-header-active-border-color: #1a42e8;
+  --ht-header-active-border-color: #e5e5e9;
   --ht-header-highlighted-foreground-color: #000000;
   --ht-header-highlighted-background-color: #eeeef0;
   --ht-header-highlighted-shadow-size: 0px;

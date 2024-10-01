@@ -16,6 +16,10 @@
         td {
           &.htCustomMenuRenderer {
             cursor: auto;
+
+            &.htFiltersMenuActionBar {
+              padding-top: calc(var(--ht-menu-item-horizontal-padding) * 2);
+            }
           }
         }
       }

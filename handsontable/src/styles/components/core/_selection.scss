@@ -31,23 +31,6 @@
       position: absolute;
       font-size: 0;
 
-      // //Sizes
-      // &:nth-child(1) {
-      //   height: var(--ht-cell-editor-border-width) !important;
-      // }
-
-      // &:nth-child(2) {
-      //   width: var(--ht-cell-editor-border-width) !important;
-      // }
-
-      // &:nth-child(3) {
-      //   height: var(--ht-cell-editor-border-width) !important;
-      // }
-
-      // &:nth-child(4) {
-      //   width: var(--ht-cell-editor-border-width) !important;
-      // }
-
       &.hidden {
         display: none !important;
       }

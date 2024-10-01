@@ -20,10 +20,11 @@
     // Cell and Header
     th,
     td {
-      height: calc(
-        var(--ht-line-height, 20px) +
-          (2 * var(--ht-cell-horizontal-padding, 8px) + 1px)
-      );
+      //TODO: check if is needed
+      // height: calc(
+      //   var(--ht-line-height, 20px) +
+      //     (2 * var(--ht-cell-horizontal-padding, 8px))
+      // );
       padding: var(--ht-cell-horizontal-padding, 4px)
         var(--ht-cell-vertical-padding, 8px);
       vertical-align: top;
@@ -92,7 +93,7 @@
         &:before {
           @include mixins.pseudo;
           position: absolute;
-          inset: auto 0 0 0;
+          inset: auto -1px 0 -1px;
           height: var(--ht-header-highlighted-shadow-size);
           background-color: var(--ht-accent-color);
         }
@@ -145,7 +146,7 @@
         &:before {
           width: var(--ht-header-highlighted-shadow-size);
           height: auto;
-          inset: 0 0 0 auto;
+          inset: 0 -1px -1px auto;
         }
       }
     }

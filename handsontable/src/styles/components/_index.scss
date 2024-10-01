@@ -15,7 +15,7 @@
 @use "./plugins/comments";
 @use "./plugins/manual-column-sorting";
 @use "./plugins/multi-column-sorting";
-@use "./plugins/manual-column-freeze";
+// @use "./plugins/manual-column-freeze"; //TODO: check if is needed
 @use "./plugins/manual-column-resizer";
 @use "./plugins/manual-row-resizer";
 @use "./plugins/merge-cells";
@@ -73,7 +73,7 @@
   @include comments.output();
   @include manual-column-sorting.output();
   @include multi-column-sorting.output();
-  @include manual-column-freeze.output();
+  // @include manual-column-freeze.output(); //TODO: check if is needed
   @include manual-column-resizer.output();
   @include manual-row-resizer.output();
   @include merge-cells.output();
