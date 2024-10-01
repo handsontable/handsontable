@@ -74,13 +74,6 @@
             var(--ht-cell-selection-background-color);
       }
     }
-
-    tbody tr td.highlight:last-child,
-    tbody tr td.ht__highlight:last-child,
-    thead tr th.ht__active_highlight:not(:first-child):last-child {
-      box-shadow: calc((var(--ht-frozen-shadow-size) - 1px) * -1) 0 0 0 inset
-        var(--ht-cell-selection-background-color);
-    }
   }
 
   // One Cell
