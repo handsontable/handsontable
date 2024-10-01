@@ -14,7 +14,7 @@
       height: var(--ht-icon-size);
       border-radius: var(--ht-icon-button-border-radius);
       border: none;
-      color: var(--ht-icon-button-icon-color);
+      color: inherit;
       background-color: var(--ht-icon-button-background);
       transition: var(--ht-table-transition) all ease-in-out;
       order: 1;

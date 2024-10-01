@@ -9,30 +9,30 @@
           align-items: center;
           gap: var(--ht-gap-size);
         }
-      }
 
-      span {
-        &:last-child {
-          padding-left: calc(var(--ht-icon-size) + var(--ht-gap-size));
-        }
+        span {
+          &:last-child {
+            padding-left: calc(var(--ht-icon-size) + var(--ht-gap-size));
+          }
 
-        &.ht_nestingLevel {
-          display: inline-block;
-
-          &_empty {
-            position: relative;
+          &.ht_nestingLevel {
             display: inline-block;
-            width: var(--ht-gap-size);
-            height: var(--ht-gap-size);
-            order: -2;
+
+            &_empty {
+              position: relative;
+              display: inline-block;
+              width: var(--ht-gap-size);
+              height: var(--ht-gap-size);
+              order: -2;
+            }
           }
         }
-      }
 
-      .ht_nestingButton {
-        position: relative;
-        cursor: pointer;
-        order: -1;
+        .ht_nestingButton {
+          position: relative;
+          cursor: pointer;
+          order: -1;
+        }
       }
     }
   }

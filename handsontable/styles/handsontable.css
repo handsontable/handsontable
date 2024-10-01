@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 30/09/2024 13:48:44)
+ * Release date: 30/07/2024 (built at 01/10/2024 07:19:15)
  */
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
@@ -1214,20 +1214,20 @@ tr.ht__row_odd td {
   align-items: center;
   gap: var(--ht-gap-size);
 }
-.handsontable th span:last-child {
+.handsontable th.ht_nestingLevels span:last-child {
   padding-left: calc(var(--ht-icon-size) + var(--ht-gap-size));
 }
-.handsontable th span.ht_nestingLevel {
+.handsontable th.ht_nestingLevels span.ht_nestingLevel {
   display: inline-block;
 }
-.handsontable th span.ht_nestingLevel_empty {
+.handsontable th.ht_nestingLevels span.ht_nestingLevel_empty {
   position: relative;
   display: inline-block;
   width: var(--ht-gap-size);
   height: var(--ht-gap-size);
   order: -2;
 }
-.handsontable th .ht_nestingButton {
+.handsontable th.ht_nestingLevels .ht_nestingButton {
   position: relative;
   cursor: pointer;
   order: -1;
@@ -1295,7 +1295,7 @@ tr.ht__row_odd td {
   height: var(--ht-icon-size);
   border-radius: var(--ht-icon-button-border-radius);
   border: none;
-  color: var(--ht-icon-button-icon-color);
+  color: inherit;
   background-color: var(--ht-icon-button-background);
   transition: var(--ht-table-transition) all ease-in-out;
   order: 1;

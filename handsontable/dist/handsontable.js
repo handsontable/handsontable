@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 30/09/2024 13:48:44)
+ * Release date: 30/07/2024 (built at 01/10/2024 07:19:15)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "30/09/2024 13:48:44";
+Handsontable.buildDate = "01/10/2024 07:19:15";
 Handsontable.version = "14.5.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -64158,7 +64158,7 @@ function createKeyboardShortcutsCtrl(menu) {
   /**
    * Makes the specified context active.
    *
-   * @param {string} contextName The context name.
+   * @param {string} [contextName] The context name.
    */
   function listen(contextName) {
     menu.hotMenu.getShortcutManager().setActiveContextName(_getContextName(contextName));
@@ -68427,6 +68427,7 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * :::
  */
 var _menuFocusNavigator = /*#__PURE__*/new WeakMap();
+var _dropdownMenuTraces = /*#__PURE__*/new WeakMap();
 var _Filters_brand = /*#__PURE__*/new WeakSet();
 class Filters extends _base.BasePlugin {
   static get PLUGIN_KEY() {
@@ -68490,6 +68491,12 @@ class Filters extends _base.BasePlugin {
      * @type {MenuFocusNavigator|undefined}
      */
     _classPrivateFieldInitSpec(this, _menuFocusNavigator, void 0);
+    /**
+     * Traces the new menu instances to apply the focus navigation to the latest one.
+     *
+     * @type {WeakSet<Menu>}
+     */
+    _classPrivateFieldInitSpec(this, _dropdownMenuTraces, new WeakSet());
     this.hot.addHook('afterGetColHeader', (col, TH) => _assertClassBrand(_Filters_brand, this, _onAfterGetColHeader).call(this, col, TH));
   }
 
@@ -68508,6 +68515,7 @@ class Filters extends _base.BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
+    var _this = this;
     if (this.enabled) {
       return;
     }
@@ -68569,7 +68577,13 @@ class Filters extends _base.BasePlugin {
       this.conditionUpdateObserver.addLocalHook('update', conditionState => _assertClassBrand(_Filters_brand, this, _updateComponents).call(this, conditionState));
     }
     this.components.forEach(component => component.show());
-    this.addHook('afterDropdownMenuDefaultOptions', defaultOptions => _assertClassBrand(_Filters_brand, this, _onAfterDropdownMenuDefaultOptions).call(this, defaultOptions));
+    this.addHook('afterDropdownMenuDefaultOptions', function () {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      return _assertClassBrand(_Filters_brand, _this, _onAfterDropdownMenuDefaultOptions).call(_this, ...args);
+    });
+    this.addHook('beforeDropdownMenuShow', () => _assertClassBrand(_Filters_brand, this, _onBeforeDropdownMenuShow).call(this));
     this.addHook('afterDropdownMenuShow', () => _assertClassBrand(_Filters_brand, this, _onAfterDropdownMenuShow).call(this));
     this.addHook('afterDropdownMenuHide', () => _assertClassBrand(_Filters_brand, this, _onAfterDropdownMenuHide).call(this));
     this.addHook('afterChange', changes => _assertClassBrand(_Filters_brand, this, _onAfterChange).call(this, changes));
@@ -68580,15 +68594,15 @@ class Filters extends _base.BasePlugin {
       this.dropdownMenuPlugin.enablePlugin();
     }
     if (!_classPrivateFieldGet(_menuFocusNavigator, this) && this.dropdownMenuPlugin.enabled) {
-      const mainMenu = this.dropdownMenuPlugin.menu;
       const focusableItems = [
       // A fake menu item that once focused allows escaping from the focus navigation (using Tab keys)
       // to the menu navigation using arrow keys.
       {
         focus: () => {
-          const menuNavigator = mainMenu.getNavigator();
+          const menu = _classPrivateFieldGet(_menuFocusNavigator, this).getMenu();
+          const menuNavigator = menu.getNavigator();
           const lastSelectedMenuItem = _classPrivateFieldGet(_menuFocusNavigator, this).getLastMenuPage();
-          mainMenu.focus();
+          menu.focus();
           if (lastSelectedMenuItem > 0) {
             menuNavigator.setCurrentPage(lastSelectedMenuItem);
           } else {
@@ -68599,7 +68613,7 @@ class Filters extends _base.BasePlugin {
         let [, component] = _ref;
         return component.getElements();
       }).flat()];
-      _classPrivateFieldSet(_menuFocusNavigator, this, (0, _focusController.createMenuFocusController)(mainMenu, focusableItems));
+      _classPrivateFieldSet(_menuFocusNavigator, this, (0, _focusController.createMenuFocusController)(this.dropdownMenuPlugin.menu, focusableItems));
       const forwardToFocusNavigation = event => {
         _classPrivateFieldGet(_menuFocusNavigator, this).listen();
         event.preventDefault();
@@ -69057,8 +69071,8 @@ class Filters extends _base.BasePlugin {
       return indexes;
     }
     const menu = this.dropdownMenuPlugin.menu;
-    for (var _len = arguments.length, components = new Array(_len), _key = 0; _key < _len; _key++) {
-      components[_key] = arguments[_key];
+    for (var _len2 = arguments.length, components = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      components[_key2] = arguments[_key2];
     }
     (0, _array.arrayEach)(components, component => {
       (0, _array.arrayEach)(menu.menuItems, (item, index) => {
@@ -69085,8 +69099,8 @@ class Filters extends _base.BasePlugin {
     const menu = this.dropdownMenuPlugin.menu;
     const hotMenu = menu.hotMenu;
     const hiddenRows = hotMenu.getPlugin('hiddenRows');
-    for (var _len2 = arguments.length, components = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-      components[_key2 - 1] = arguments[_key2];
+    for (var _len3 = arguments.length, components = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+      components[_key3 - 1] = arguments[_key3];
     }
     const indexes = this.getIndexesOfComponents(...components);
     if (visible) {
@@ -69104,8 +69118,8 @@ class Filters extends _base.BasePlugin {
    * @param {...BaseComponent} components List of components.
    */
   hideComponents() {
-    for (var _len3 = arguments.length, components = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-      components[_key3] = arguments[_key3];
+    for (var _len4 = arguments.length, components = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+      components[_key4] = arguments[_key4];
     }
     this.changeComponentsVisibility(false, ...components);
   }
@@ -69117,8 +69131,8 @@ class Filters extends _base.BasePlugin {
    * @param {...BaseComponent} components List of components.
    */
   showComponents() {
-    for (var _len4 = arguments.length, components = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-      components[_key4] = arguments[_key4];
+    for (var _len5 = arguments.length, components = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+      components[_key5] = arguments[_key5];
     }
     this.changeComponentsVisibility(true, ...components);
   }
@@ -69164,6 +69178,16 @@ function _onAfterDropdownMenuShow() {
 function _onAfterDropdownMenuHide() {
   this.components.get('filter_by_condition').getSelectElement().closeOptions();
   this.components.get('filter_by_condition2').getSelectElement().closeOptions();
+}
+/**
+ * Hooks applies the new dropdown menu instance to the focus navigator.
+ */
+function _onBeforeDropdownMenuShow() {
+  const mainMenu = this.dropdownMenuPlugin.menu;
+  if (!_classPrivateFieldGet(_dropdownMenuTraces, this).has(mainMenu)) {
+    _classPrivateFieldGet(_menuFocusNavigator, this).setMenu(mainMenu);
+  }
+  _classPrivateFieldGet(_dropdownMenuTraces, this).add(mainMenu);
 }
 /**
  * After dropdown menu default options listener.
@@ -73298,10 +73322,11 @@ function createMenuFocusController(mainMenu, menuItems) {
    * into the focus mode triggered by the TAB or SHIFT+TAB keys).
    */
   let lastSelectedMenuItem = -1;
+  let menuInstance;
   const focusNavigator = (0, _focusNavigator.createFocusNavigator)(menuItems);
   const updateNavigatorPosition = element => () => {
-    if (mainMenu.isOpened()) {
-      mainMenu.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
+    if (menuInstance.isOpened()) {
+      menuInstance.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
     }
     focusNavigator.setCurrentPage(menuItems.indexOf(element));
   };
@@ -73314,11 +73339,7 @@ function createMenuFocusController(mainMenu, menuItems) {
       element.addLocalHook('afterClose', updateNavigatorPosition(element));
     }
   });
-  mainMenu.addLocalHook('afterSelectionChange', selectedItem => {
-    if (!selectedItem.key.startsWith('filter_')) {
-      focusNavigator.clear();
-    }
-  });
+  setMenu(mainMenu);
 
   /**
    * Extends the menu and submenus with new keyboard shortcuts.
@@ -73326,7 +73347,7 @@ function createMenuFocusController(mainMenu, menuItems) {
    * @param {*} menu The menu (as main menu or submenu) instance.
    */
   function addKeyboardShortcuts(menu) {
-    const mainMenuShortcutsCtrl = mainMenu.getKeyboardShortcutsCtrl();
+    const mainMenuShortcutsCtrl = menuInstance.getKeyboardShortcutsCtrl();
     const currentMenuShortcutsCtrl = menu.getKeyboardShortcutsCtrl();
     focusNavigator.clear();
     currentMenuShortcutsCtrl.addCustomShortcuts([{
@@ -73345,7 +73366,7 @@ function createMenuFocusController(mainMenu, menuItems) {
     mainMenuShortcutsCtrl.addCustomShortcuts([{
       keys: [['Tab'], ['Shift', 'Tab']],
       callback: event => {
-        const menuNavigator = mainMenu.getNavigator();
+        const menuNavigator = menuInstance.getNavigator();
         if (menuNavigator.getCurrentPage() > -1) {
           lastSelectedMenuItem = menuNavigator.getCurrentPage();
         }
@@ -73359,7 +73380,7 @@ function createMenuFocusController(mainMenu, menuItems) {
     }, {
       keys: [['Escape']],
       callback: () => {
-        mainMenu.close();
+        menuInstance.close();
       }
     }, {
       keys: [['Enter'], ['Space']],
@@ -73380,16 +73401,39 @@ function createMenuFocusController(mainMenu, menuItems) {
       }
     }], SHORTCUTS_MENU_CONTEXT);
   }
-  mainMenu.addLocalHook('afterSubmenuOpen', addKeyboardShortcuts);
-  mainMenu.addLocalHook('afterOpen', addKeyboardShortcuts);
 
   /**
    * Focuses the menu and switches its shortcut context to that one which controls
    * the focus navigation.
    */
   function listen() {
-    mainMenu.focus();
-    mainMenu.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
+    menuInstance.focus();
+    menuInstance.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
+  }
+
+  /**
+   * Applies the focus controller to the new menu instance.
+   *
+   * @param {Menu} menu The new menu instance.
+   */
+  function setMenu(menu) {
+    menu.addLocalHook('afterSelectionChange', selectedItem => {
+      if (!selectedItem.key.startsWith('filter_')) {
+        focusNavigator.clear();
+      }
+    });
+    menu.addLocalHook('afterSubmenuOpen', addKeyboardShortcuts);
+    menu.addLocalHook('afterOpen', addKeyboardShortcuts);
+    menuInstance = menu;
+  }
+
+  /**
+   * Retrieves the current menu instance.
+   *
+   * @returns {Menu} The current menu instance.
+   */
+  function getMenu() {
+    return menuInstance;
   }
 
   /**
@@ -73403,6 +73447,8 @@ function createMenuFocusController(mainMenu, menuItems) {
   return {
     ...focusNavigator,
     listen,
+    setMenu,
+    getMenu,
     getLastMenuPage
   };
 }
