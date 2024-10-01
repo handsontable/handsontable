@@ -55,5 +55,30 @@ describe('Selection extending', () => {
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
     });
+
+    it('should not throw an error when there is no selection', () => {
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = function() {
+        spy.test();
+
+        return true;
+      };
+
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      listen();
+      keyDownUp(['control/meta', 'a']);
+
+      expect(spy.test).not.toHaveBeenCalled();
+
+      window.onerror = prevError;
+    });
   });
 });

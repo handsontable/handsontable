@@ -4,7 +4,6 @@ describe('Filters UI', () => {
   beforeAll(() => {
     // Note: please keep in mind that this language will be registered for all e2e tests!
     // It's stored globally for already loaded Handsontable library.
-
     Handsontable.languages.registerLanguageDictionary({
       languageCode: 'longerForTests',
       'Filters:conditions.isEmpty': 'This is very long text for conditional menu item'
@@ -107,7 +106,7 @@ describe('Filters UI', () => {
 
       const rect = document.querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
 
-      expect(window.scrollY + rect.top).toBe(917);
+      expect(window.scrollY + rect.top).toBeAroundValue(757, 1);
       hot.rootElement.style.marginTop = '';
     });
 

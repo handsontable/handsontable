@@ -6,6 +6,7 @@
     border: 1px solid $lightBorderColor
 
     .select-type-button {
+        z-index: 1;
         font-size: $font-size-xs
 
         @media (max-width: $small) {
@@ -75,6 +76,19 @@
         display: flex
         gap: 8px
 
+        &:has(li:first-child:last-child ) {
+            @media (max-width: $small) {
+                display: none;
+            }
+            li {
+                opacity: 0;
+                pointer-events: none;
+            }
+            + .tabs-component-panels {
+                border-radius: $radius !important
+            }
+        }
+
         li.tabs-component-tab  {
             &:first-child:last-child {
             //    visibility: hidden
@@ -118,22 +132,37 @@
         }
     }
 
-    @media (max-width: $medium) {
+    @media (max-width: $small) {
         margin: 0 -0
 
         ul.tabs-component-tabs  {
+            &:has(li:first-child:last-child ) {
+                + .tabs-component-panels {
+                    .codeControls { 
+                        top: -40px
+                    }
+                }
+            }
         }
 
         .tabs-component-panels {
-
             .tabs-component-panel {
                 padding: 16px 16px
             }
         }
+        
     }
 }
 
 .example-container {
+    > .handsontable {
+        display: flex;
+        flex-direction: column;
+    }
+    div > .handsontable {
+        display: flex;
+        flex-direction: column;
+    }
     .controls {
         padding-bottom: 16px
 
