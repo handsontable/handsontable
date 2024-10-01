@@ -20,24 +20,6 @@
     }
   }
 
-  // Bottom
-  .ht_clone_bottom,
-  .ht_clone_bottom_left_corner {
-    tbody tr:first-child {
-      td,
-      th {
-        box-shadow: 0 (var(--ht-frozen-shadow-size) - 1px) 0 0 inset
-          var(--ht-frozen-shadow-color);
-
-        &.current {
-          box-shadow: 0 (var(--ht-frozen-shadow-size) - 1px) 0 0 inset
-              var(--ht-frozen-shadow-color),
-            0 0 0 1px inset var(--ht-cell-selection-background-color);
-        }
-      }
-    }
-  }
-  
   // Top
   .ht_clone_top,
   .ht_clone_top_left_corner {
@@ -50,7 +32,8 @@
         &.current {
           box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 inset
               var(--ht-frozen-shadow-color),
-            0 0 0 calc((var(--ht-frozen-shadow-size) - 1px) * -1) inset var(--ht-cell-selection-background-color);
+            0 0 0 calc((var(--ht-frozen-shadow-size) - 1px) * -1) inset
+              var(--ht-cell-selection-background-color);
         }
       }
     }
@@ -61,7 +44,7 @@
   .ht_clone_bottom_left_corner,
   .ht_clone_top_left_corner {
     background-color: var(--ht-background-color);
-    
+
     tbody tr td:last-child,
     thead tr th:not(:first-child):last-child {
       box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset
@@ -72,6 +55,42 @@
             var(--ht-frozen-shadow-color),
           0 0 0 calc((var(--ht-frozen-shadow-size) - 1px) * -1) inset
             var(--ht-cell-selection-background-color);
+      }
+    }
+  }
+
+  // Bottom
+  .ht_clone_bottom,
+  .ht_clone_bottom_left_corner {
+    tbody tr:first-child {
+      td,
+      th {
+        box-shadow: 0 calc(var(--ht-frozen-shadow-size) - 1px) 0 0 inset
+          var(--ht-frozen-shadow-color);
+
+        &.current {
+          box-shadow: 0 calc(var(--ht-frozen-shadow-size) - 1px) 0 0 inset
+              var(--ht-frozen-shadow-color),
+            0 0 0 1px inset var(--ht-cell-selection-background-color);
+        }
+      }
+    }
+  }
+
+  .ht_clone_bottom_left_corner {
+    tbody tr {
+      td:last-child,
+      th:last-child {
+        box-shadow: 0 calc(var(--ht-frozen-shadow-size) - 1px) 0 0 inset
+          var(--ht-frozen-shadow-color),
+          calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset
+          var(--ht-frozen-shadow-color);
+
+        &.current {
+          box-shadow: 0 calc(var(--ht-frozen-shadow-size) - 1px) 0 0 inset
+              var(--ht-frozen-shadow-color),
+            0 0 0 1px inset var(--ht-cell-selection-background-color);
+        }
       }
     }
   }
