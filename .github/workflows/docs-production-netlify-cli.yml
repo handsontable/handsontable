@@ -38,14 +38,6 @@ jobs:
       - name: Validate Docs version
         run: if [ -z "$LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
 
-      - name: List Netlify Accounts
-        run: |
-          curl -X GET "https://api.netlify.com/api/v1/accounts/handsonable-team" \
-          -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
-          -H "Content-Type: application/json"
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-
       - name: List Environment Variables on Netlify
         run: |
           curl -X GET "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/env" \
@@ -57,21 +49,16 @@ jobs:
 
       - name: Update Environment Variables on Netlify
         run: |
-          curl -X PATCH "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/env" \
+          curl -X PATCH "https://api.netlify.com/api/v1/accounts/handsonable-team/env/LATEST_VERSION" \
           -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
-            "values": [
-              {
-                "key": "LATEST_VERSION",
-                "value": "'"$LATEST_VERSION"'"
-              }
-            ]
+            "context": "all",
+            "value": "$LATEST_VERSION"
           }'
         env:
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
             LATEST_VERSION: ${{ env.LATEST_VERSION }}
-            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
       - name: Remove local branch if it exists
         run: |
