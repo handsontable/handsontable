@@ -723,7 +723,7 @@ export default async function handler(request: Request, context: Context) {
       const response = await fetch(newUrl);
 
       if(response.status === 404) {
-        console.log('Match found, but the page does not exist, redirecting to the default 404 page');
+        console.log('Match found, rewrite true, but the page does not exist, redirecting to the default 404 page');
         return Response.redirect('/docs/404.html', 302);
       }
 
@@ -734,6 +734,14 @@ export default async function handler(request: Request, context: Context) {
       });
     }
     console.log('Match found, redirecting to', newUrl);
+
+    const response = await fetch(newUrl);
+
+    if(response.status === 404) {
+      console.log('Match found, but the page does not exist, redirecting to the default 404 page');
+      return Response.redirect('/docs/404.html', 302);
+    }
+
     return Response.redirect(newUrl, 301);
   }
   return context.next();
