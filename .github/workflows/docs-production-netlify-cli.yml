@@ -38,6 +38,14 @@ jobs:
       - name: Validate Docs version
         run: if [ -z "$LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
 
+      - name: Find team account ID
+        run: |
+          curl -X GET "https://api.netlify.com/api/v1/accounts/handsontable-team" \
+          -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+          -H "Content-Type: application/json"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
       - name: Set Environment Variables on Netlify
         run: |
           curl -X GET "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/env" \
@@ -49,7 +57,6 @@ jobs:
 
       - name: Update Environment Variables on Netlify
         run: |
-
           curl -X PATCH "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/env" \
           -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
