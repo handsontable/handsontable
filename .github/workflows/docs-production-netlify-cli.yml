@@ -31,7 +31,7 @@ jobs:
       - name: Obtain the docs latest version
         working-directory: ./  
         run: |
-          docs_latest_version=`git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/' | grep -oP '(?<=prod-docs/)\d+\.\d+' | awk 'max=="" || $1 > max {max=$1} END{print max}'`
+          docs_latest_version=`git ls-remote --heads origin | grep 'prod-docs/[0-9]\+\.[0-9]\+' | sed 's|.*/prod-docs/||' | sort -V | tail -n 1`
           echo "The docs latest version: $docs_latest_version"
           echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV
 
