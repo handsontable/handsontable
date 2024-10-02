@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a bug where the data was saved in a wrong cell, when sorting a column with an open editor.",
-  "type": "fixed",
-  "issueOrPR": 11129,
-  "breaking": false,
-  "framework": "none"
-}

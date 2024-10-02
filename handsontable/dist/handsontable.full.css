@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 14.5.0
- * Release date: 30/07/2024 (built at 30/07/2024 09:19:38)
+ * Version: 14.6.0
+ * Release date: 01/10/2024 (built at 30/09/2024 12:33:19)
  */
 /**
  * Fix for bootstrap styles
@@ -523,24 +523,9 @@ innerBorderBottom - Property controlled by bottom overlay
   left: 0;
   right: 0;
   bottom: 0;
-  /* Fix for IE9 to spread the ":before" pseudo element to 100% height of the parent element */
-  bottom: -100% \9 ;
   background: #005eff;
 }
 
-/* Fix for IE10 and IE11 to spread the ":before" pseudo element to 100% height of the parent element */
-@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
-  .handsontable td.area:before,
-  .handsontable td.area-1:before,
-  .handsontable td.area-2:before,
-  .handsontable td.area-3:before,
-  .handsontable td.area-4:before,
-  .handsontable td.area-5:before,
-  .handsontable td.area-6:before,
-  .handsontable td.area-7:before {
-    bottom: -100%;
-  }
-}
 .handsontable td.area:before {
   opacity: 0.1;
 }
@@ -621,6 +606,7 @@ innerBorderBottom - Property controlled by bottom overlay
   -webkit-appearance: menulist-button !important;
   position: absolute;
   width: auto;
+  border: 2px solid #4b89ff;
 }
 
 .htSelectEditor:focus {
