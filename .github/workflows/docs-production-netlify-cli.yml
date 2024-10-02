@@ -58,7 +58,7 @@ jobs:
 
       - name: Preserve the dist directory
         run: |
-          echo "vuepress/dist" >> docs/.gitignore
+          echo ".vuepress/dist" >> .gitignore
 
       - name: Update netlify.toml with DOCS_LATEST_VERSION
         run: |
