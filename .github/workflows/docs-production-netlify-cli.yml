@@ -54,7 +54,7 @@ jobs:
           -H "Content-Type: application/json" \
           -d '{
             "context": "production",
-            "value": "$LATEST_VERSION"
+            "value": "${LATEST_VERSION}"
           }'
         env:
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
