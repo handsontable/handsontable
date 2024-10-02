@@ -40,13 +40,11 @@ jobs:
 
       - name: Set Environment Variables on Netlify
         run: |
-          curl -X GET "https://api.netlify.com/api/v1/users" \
-          -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}"
           curl -X GET "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/env" \
           -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
           -H "Content-Type: application/json"
 
-          curl -X PATCH "https://api.netlify.com/api/v1/accounts/$NETLIFY_ACCOUNT_ID/env" \
+          curl -X PATCH "https://api.netlify.com/api/v1/accounts/$NETLIFY_ACCOUNT_ID/env/LATEST_VERSION" \
           -H "Authorization: Bearer $NETLIFY_ACCESS_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
