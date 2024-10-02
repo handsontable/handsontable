@@ -104,17 +104,23 @@ jobs:
           netlify env:set LATEST_VERSION=$LATEST_VERSION --context production
           netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
           netlify env:list
-          curl -X PUT "https://api.netlify.com/api/v1/sites/${SITE_ID}/env/LATEST_VERSION" \
-          -H "Authorization: Bearer ${NETLIFY_API_TOKEN}" \
-          -H "Content-Type: application/json" \
-          -d '{
-                "values": [
-                  {
-                    "envVarValue": "'"${LATEST_VERSION}"'"
-                  }
-                ],
-                "context": "production"  # Specify the context if needed
-              }'
+      - name: Set Environment Variables on Netlify
+        run: |
+          curl -X GET "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/env" \
+          -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+          -H "Content-Type: application/json"
+
+          curl -X PUT "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/env/LATEST_VERSION" \
+            -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{
+                  "values": [
+                    {
+                      "envVarValue": "'"${LATEST_VERSION}"'"
+                    }
+                  ],
+                  "context": "production"  # Specify the context if needed
+                }'
         env:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}

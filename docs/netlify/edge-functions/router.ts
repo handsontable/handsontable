@@ -685,14 +685,12 @@ function getVersionRegexString(latestVersion: string) {
 function prepareRedirects(framework: string): Redirect[] {
   const redirectsArray = getRawRedirects();
   const redirectOlderVersionsToOvh = {
-    // Except of the latest version, all other versions should be redirected to the latest version
-    // Fallback to ensure the value is not undefined
-    from: getVersionRegexString(Netlify.env.get('LATEST_VERSION') || '14.5'),
+    // Except of the latest version, all other versions should be redirected to the OVH
+    from: getVersionRegexString(Netlify.env.get('LATEST_VERSION')),
     to: `https://_docs.handsontable.com/docs/$1$2`,
     status: 301,
     rewrite: true,
   };
-
 
   // Convert "from" string into a RegExp and replace $framework in "to" property
   const updatedRedirectsArray = [
@@ -764,7 +762,13 @@ export default async function handler(request: Request, context: Context) {
       return Response.redirect('/docs/404.html', 302);
     }
   }
-  return context.next();
+  console.log('No match found, continuing to the next handler');
+  const responseNext = await context.next();
+  if(responseNext.status === 404) {
+    console.log('No match found, but the page does not exist, redirecting to the default 404 page');
+    return Response.redirect('/docs/404.html', 302);
+  }
+  return responseNext;
 }
 
 export const config: Config = {
