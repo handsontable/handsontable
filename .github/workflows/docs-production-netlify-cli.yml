@@ -40,7 +40,7 @@ jobs:
 
       - name: Find team account ID
         run: |
-          curl -X GET "https://api.netlify.com/api/v1/accounts/handsontable-team" \
+          curl -X GET "https://api.netlify.com/api/v1/accounts/" \
           -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
           -H "Content-Type: application/json"
         env:
