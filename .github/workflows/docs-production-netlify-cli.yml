@@ -28,38 +28,38 @@ jobs:
       - name: Print the list of prod-docs branches without fetching
         run: git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/'
 
-      - name: Set the latest version
+      - name: Obtain the docs latest version
         working-directory: ./  
         run: |
-          latest_version=`git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/' | grep -oP '(?<=prod-docs/)\d+\.\d+' | awk 'max=="" || $1 > max {max=$1} END{print max}'`
-          echo "$latest_version"
-          echo "LATEST_VERSION=$latest_version" >> $GITHUB_ENV
+          docs_latest_version=`git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/' | grep -oP '(?<=prod-docs/)\d+\.\d+' | awk 'max=="" || $1 > max {max=$1} END{print max}'`
+          echo "The docs latest version: $docs_latest_version"
+          echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV
 
       - name: Validate Docs version
-        run: if [ -z "$LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
+        run: if [ -z "$DOCS_LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
 
       - name: Update Environment Variables on Netlify
         run: |
-          curl -X PATCH "https://api.netlify.com/api/v1/accounts/handsonable-team/env/LATEST_VERSION?site_id=${NETLIFY_SITE_ID}" \
+          curl -X PATCH "https://api.netlify.com/api/v1/accounts/handsonable-team/env/DOCS_LATEST_VERSION?site_id=${NETLIFY_SITE_ID}" \
           -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
             "context": "production",
-            "value": "'"${LATEST_VERSION}"'"
+            "value": "'"${DOCS_LATEST_VERSION}"'"
           }'
         env:
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-            LATEST_VERSION: ${{ env.LATEST_VERSION }}
+            DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
       - name: Remove local branch if it exists
         run: |
           git branch -D prod-docs/latest || true
 
-      - name: Recreate the latest branch
+      - name: Recreate the docs latest branch
         run: |
-          git fetch origin prod-docs/$LATEST_VERSION
-          git checkout origin/prod-docs/$LATEST_VERSION
+          git fetch origin prod-docs/$DOCS_LATEST_VERSION
+          git checkout origin/prod-docs/$DOCS_LATEST_VERSION
           git checkout -b prod-docs/latest
           git push --force --set-upstream origin prod-docs/latest
 
@@ -70,13 +70,13 @@ jobs:
           git checkout feature/dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js docs/.gitignore docs/netlify.toml
         working-directory: ./
 
-      # Dynamically update netlify.toml with LATEST_VERSION
-      - name: Update netlify.toml with LATEST_VERSION
+      # Dynamically update netlify.toml with DOCS_LATEST_VERSION
+      - name: Update netlify.toml with DOCS_LATEST_VERSION
         run: |
           echo '[context.production.environment]' >> netlify.toml
-          echo 'LATEST_VERSION="${{ env.LATEST_VERSION }}"' >> netlify.toml
+          echo 'DOCS_LATEST_VERSION="${{ env.DOCS_LATEST_VERSION }}"' >> netlify.toml
           echo '[context.dev.environment]' >> netlify.toml
-          echo 'LATEST_VERSION="${{ env.LATEST_VERSION }}"' >> netlify.toml
+          echo 'DOCS_LATEST_VERSION="${{ env.DOCS_LATEST_VERSION }}"' >> netlify.toml
           cat netlify.toml
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
@@ -115,11 +115,11 @@ jobs:
 
       - name: Deploy to Netlify
         run: |
-          netlify env:set LATEST_VERSION=$LATEST_VERSION --context production
+          netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
           netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
           netlify env:list
         env:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-            LATEST_VERSION: ${{ env.LATEST_VERSION }}
+            DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
             NETLIFY_CONTEXT: production

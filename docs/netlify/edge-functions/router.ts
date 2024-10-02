@@ -677,16 +677,16 @@ const addBaseUrlToRelativePaths = (redirects: Redirect [], baseUrl: string) => {
   });
 };
 
-function getVersionRegexString(latestVersion: string) {
-  const escapedVersion = latestVersion.replace('.', '\\.');
+function getVersionRegexString(docsLatestVersion: string) {
+  const escapedVersion = docsLatestVersion.replace('.', '\\.');
   return `^\\/docs\\/(?!${escapedVersion})(\\d+\\.\\d+)(\\/.*)?$`;
 }
 
 function prepareRedirects(framework: string): Redirect[] {
   const redirectsArray = getRawRedirects();
   const redirectOlderVersionsToOvh = {
-    // Except of the latest version, all other versions should be redirected to the OVH
-    from: getVersionRegexString(Netlify.env.get('LATEST_VERSION')),
+    // Except of the docs latest version, all other versions should be redirected to the OVH
+    from: getVersionRegexString(Netlify.env.get('DOCS_LATEST_VERSION')),
     to: `https://_docs.handsontable.com/docs/$1$2`,
     status: 301,
     rewrite: true,
@@ -713,9 +713,7 @@ function prepareRedirects(framework: string): Redirect[] {
 
 export default async function handler(request: Request, context: Context) {
   const url = new URL(request.url);
-  console.log('Netlify env', Netlify.env);
-  console.log('Current Netlify context', Netlify.env.context)
-  console.log('Detected Docs Version', Netlify.env.get('LATEST_VERSION'));
+  console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION'));
   console.log('Request url', url);
 
   const cookieValue = context.cookies.get('docs_fw');
