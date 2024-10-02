@@ -38,9 +38,9 @@ jobs:
       - name: Validate Docs version
         run: if [ -z "$LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
 
-      - name: Find team account ID
+      - name: List Netlify Accounts
         run: |
-          curl -X GET "https://api.netlify.com/api/v1/accounts/" \
+          curl -X GET "https://api.netlify.com/api/v1/accounts/handsonable-team" \
           -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
           -H "Content-Type: application/json"
         env:
