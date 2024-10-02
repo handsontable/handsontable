@@ -664,6 +664,19 @@ function getRawRedirects() {
   ];
 }
 
+const addBaseUrlToRelativePaths = (redirects: Redirect [], baseUrl: string) => {
+  return redirects.map(redirect => {
+    if (redirect.to.startsWith('/')) {
+      // Prepend base URL if 'to' field starts with '/'
+      return {
+        ...redirect,
+        to: `${baseUrl}${redirect.to}`
+      };
+    }
+    return redirect; // Leave unchanged if it's already a full URL
+  });
+};
+
 function getVersionRegexString(latestVersion: string) {
   const escapedVersion = latestVersion.replace('.', '\\.');
   return `^\\/docs\\/(?!${escapedVersion})(\\d+\\.\\d+)(\\/.*)?$`;
@@ -710,7 +723,10 @@ export default async function handler(request: Request, context: Context) {
   const cookieValue = context.cookies.get('docs_fw');
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
-  const redirects = prepareRedirects(framework);
+  const currentUrl = new URL(request.url);
+  const baseUrl = currentUrl.origin;
+
+  const redirects = addBaseUrlToRelativePaths(prepareRedirects(framework), baseUrl);
 
   const matchFound = redirects.find(redirect => redirect.from.test(url.pathname));
 
@@ -735,14 +751,18 @@ export default async function handler(request: Request, context: Context) {
     }
     console.log('Match found, redirecting to', newUrl);
 
-    const response = await fetch(newUrl);
+    try {
+      const response = await fetch(newUrl);
+      if(response.status === 404) {
+        console.log('Match found, but the page does not exist, redirecting to the default 404 page');
+        return Response.redirect('/docs/404.html', 302);
+      }
 
-    if(response.status === 404) {
-      console.log('Match found, but the page does not exist, redirecting to the default 404 page');
+      return Response.redirect(newUrl, 301);
+    } catch (error) {
+      console.error('Error while fetching the new URL', error);
       return Response.redirect('/docs/404.html', 302);
     }
-
-    return Response.redirect(newUrl, 301);
   }
   return context.next();
 }
