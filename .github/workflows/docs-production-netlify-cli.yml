@@ -38,15 +38,6 @@ jobs:
       - name: Validate Docs version
         run: if [ -z "$LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
 
-      - name: List Environment Variables on Netlify
-        run: |
-          curl -X GET "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/env" \
-          -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
-          -H "Content-Type: application/json"
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-
       - name: Update Environment Variables on Netlify
         run: |
           curl -X PATCH "https://api.netlify.com/api/v1/accounts/handsonable-team/env/LATEST_VERSION?site_id=${NETLIFY_SITE_ID}" \
@@ -54,7 +45,7 @@ jobs:
           -H "Content-Type: application/json" \
           -d '{
             "context": "production",
-            "value": "${LATEST_VERSION}"
+            "value": "'"${LATEST_VERSION}"'"
           }'
         env:
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
