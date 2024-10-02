@@ -322,7 +322,7 @@ export class ManualColumnMove extends BasePlugin {
         columnsWidth += this.hot.view._wt.wtViewport.getRowHeaderWidth() || 0;
 
       } else if (renderableIndex !== null) {
-        columnsWidth += this.hot.view._wt.wtTable.getStretchedColumnWidth(renderableIndex) || 0;
+        columnsWidth += this.hot.view._wt.wtTable.getColumnWidth(renderableIndex) || 0;
       }
     }
 

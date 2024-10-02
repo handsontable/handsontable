@@ -662,7 +662,6 @@ class TableView {
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
-      stretchH: () => this.settings.stretchH,
       data: (renderableRow, renderableColumn) => {
         return this.hot
           .getDataAtCell(...this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn));

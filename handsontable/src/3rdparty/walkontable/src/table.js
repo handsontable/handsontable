@@ -1045,14 +1045,6 @@ class Table {
   }
 
   /**
-   * @param {number} sourceColumn The physical column index.
-   * @returns {number}
-   */
-  getStretchedColumnWidth(sourceColumn) {
-    return this.columnUtils.getStretchedColumnWidth(sourceColumn);
-  }
-
-  /**
    * Checks if the table has defined size. It returns `true` when the table has width and height
    * set bigger than `0px`.
    *

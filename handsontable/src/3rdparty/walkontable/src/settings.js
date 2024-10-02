@@ -26,7 +26,6 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} onBeforeHighlightingColumnHeader Option `onBeforeHighlightingColumnHeader`.
  * @property {Option} onBeforeHighlightingRowHeader Option `onBeforeHighlightingRowHeader`.
  * @property {Option} onBeforeRemoveCellClassNames Option `onBeforeRemoveCellClassNames`.
- * @property {Option} onBeforeStretchingColumnWidth Option `onBeforeStretchingColumnWidth`.
  * @property {Option} preventOverflow Option `preventOverflow`.
  * @property {Option} preventWheel Option `preventWheel`.
  * @property {Option} renderAllColumns Option `renderAllColumns`.
@@ -37,7 +36,6 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
  * @property {Option} shouldRenderInlineStartOverlay Option `shouldRenderInlineStartOverlay`.
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
- * @property {Option} stretchH Option `stretchH`.
  * @property {Option} table Option `table`.
  * @property {Option} totalColumns Option `totalColumns`.
  * @property {Option} totalRows Option `totalRows`.
@@ -132,7 +130,6 @@ export default class Settings {
       isDataViewInstance: true,
       // presentation mode
       externalRowCalculator: false,
-      stretchH: 'none', // values: all, last, none
       currentRowClassName: null,
       currentColumnClassName: null,
       preventOverflow() {
@@ -222,7 +219,6 @@ export default class Settings {
       //
       onBeforeTouchScroll: null,
       onAfterMomentumScroll: null,
-      onBeforeStretchingColumnWidth: width => width,
       onModifyRowHeaderWidth: null,
       onModifyGetCellCoords: null,
       onBeforeHighlightingRowHeader: sourceRow => sourceRow,

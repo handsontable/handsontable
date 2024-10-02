@@ -131,7 +131,7 @@ export class InlineStartOverlay extends Overlay {
     let sum = 0;
 
     while (column < to) {
-      sum += this.wot.wtTable.getStretchedColumnWidth(column) || defaultColumnWidth;
+      sum += this.wot.wtTable.getColumnWidth(column) || defaultColumnWidth;
       column += 1;
     }
 

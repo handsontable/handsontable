@@ -3799,10 +3799,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Column width.
    * @fires Hooks#modifyColWidth
    */
-  this.getColWidth = function(column) {
+  this.getColWidth = function(column, source) {
     let width = instance._getColWidthFromSettings(column);
 
-    width = instance.runHooks('modifyColWidth', width, column);
+    width = instance.runHooks('modifyColWidth', width, column, source);
 
     if (width === undefined) {
       width = DEFAULT_COLUMN_WIDTH;

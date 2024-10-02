@@ -128,15 +128,7 @@ class Viewport {
       }
     }
 
-    const stretchSetting = wtSettings.getSetting('stretchH');
-
-    if (stretchSetting === 'none' || !stretchSetting) {
-      // if no stretching is used, return the maximum used workspace width
-      return Math.max(width, outerWidth(this.wtTable.TABLE));
-    }
-
-    // if stretching is used, return the actual container width, so the columns can fit inside it
-    return width;
+    return Math.max(width, outerWidth(this.wtTable.TABLE));
   }
 
   /**
