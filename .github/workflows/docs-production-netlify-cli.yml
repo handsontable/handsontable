@@ -46,7 +46,7 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
-      - name: Set Environment Variables on Netlify
+      - name: List Environment Variables on Netlify
         run: |
           curl -X GET "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/env" \
           -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
