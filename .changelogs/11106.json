@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed submenu misalignment after horizontal scroll.",
-  "type": "fixed",
-  "issueOrPR": 11106,
-  "breaking": false,
-  "framework": "none"
-}
