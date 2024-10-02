@@ -46,21 +46,22 @@ jobs:
           -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
           -H "Content-Type: application/json"
 
-          curl -X PUT "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/env/LATEST_VERSION" \
-            -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d '{
-                  "values": [
-                    {
-                      "envVarValue": "'"${LATEST_VERSION}"'"
-                    }
-                  ],
-                  "context": "production"  # Specify the context if needed
-                }'
+          curl -X PATCH "https://api.netlify.com/api/v1/accounts/$NETLIFY_ACCOUNT_ID/env" \
+          -H "Authorization: Bearer $NETLIFY_ACCESS_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "values": [
+              {
+                "key": "LATEST_VERSION",
+                "value": "'"$LATEST_VERSION"'"
+              }
+            ]
+          }'
         env:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
             LATEST_VERSION: ${{ env.LATEST_VERSION }}
+            NETLIFY_ACCOUNT_ID: 66b477ea9d0accb661205fc9
 
       - name: Remove local branch if it exists
         run: |
