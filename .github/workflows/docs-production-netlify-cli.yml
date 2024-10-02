@@ -49,7 +49,7 @@ jobs:
 
       - name: Update Environment Variables on Netlify
         run: |
-          curl -X PATCH "https://api.netlify.com/api/v1/accounts/handsonable-team/env/LATEST_VERSION" \
+          curl -X PATCH "https://api.netlify.com/api/v1/accounts/handsonable-team/env/LATEST_VERSION?site_id=${SITE_ID}" \
           -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
@@ -59,6 +59,7 @@ jobs:
         env:
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
             LATEST_VERSION: ${{ env.LATEST_VERSION }}
+            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
       - name: Remove local branch if it exists
         run: |
