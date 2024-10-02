@@ -60,7 +60,6 @@
     .htUISelectionControls {
       padding-top: calc(var(--ht-gap-size) * 2) !important;
       padding-bottom: 0 !important;
-      margin: 0 -8px;
     }
 
     .htUIMultipleSelectHot {
@@ -101,12 +100,19 @@
     .htUIClearAll,
     .htUISelectAll {
       display: inline-block;
+      margin-right: var(--ht-gap-size);
+      margin-bottom: var(--ht-gap-size);
 
       a {
         color: var(--ht-link-color);
+        border-radius: var(--ht-border-radius);
 
         &:hover {
           color: var(--ht-link-hover-color);
+        }
+
+        &:focus {
+          outline: 1px solid var(--ht-link-hover-color);
         }
       }
     }

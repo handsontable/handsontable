@@ -45,6 +45,7 @@
             border-color: var(--ht-secondary-button-focus-border-color);
             background-color: var(--ht-secondary-button-focus-background-color);
             color: var(--ht-secondary-button-focus-foreground-color);
+            box-shadow: 0 0 0 1px var(--ht-accent-color);
           }
         }
       }
@@ -76,6 +77,7 @@
             border-color: var(--ht-primary-button-focus-border-color);
             background-color: var(--ht-primary-button-focus-background-color);
             color: var(--ht-primary-button-focus-foreground-color);
+            box-shadow: 0 0 0 1px var(--ht-accent-color);
           }
         }
       }

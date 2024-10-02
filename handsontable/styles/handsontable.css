@@ -26,11 +26,11 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 01/10/2024 12:26:05)
+ * Release date: 30/07/2024 (built at 02/10/2024 12:16:51)
  */
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
-  padding: 8px;
+  padding: var(--ht-gap-size);
   display: inline-block;
   text-decoration: none;
 }
@@ -116,7 +116,7 @@
   content: "";
   display: block;
   position: absolute;
-  inset: auto -1px 0 -1px;
+  inset: auto -1px -1px -1px;
   height: var(--ht-header-highlighted-shadow-size);
   background-color: var(--ht-accent-color);
 }
@@ -131,6 +131,9 @@
 }
 .handsontable th.active {
   color: var(--ht-header-active-foreground-color);
+  background-color: var(--ht-header-active-background-color);
+}
+.handsontable th.current {
   background-color: var(--ht-header-active-background-color);
 }
 .handsontable thead th {
@@ -688,7 +691,7 @@ tr.ht__row_odd td {
   line-height: inherit !important;
   color: var(--ht-cell-editor-foreground-color);
   background-color: var(--ht-background-color, #ffffff);
-  box-shadow: inset 0px 0px 0px 1px var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
+  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width) var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
   border: none;
   -webkit-appearance: none !important;
   overflow: hidden !important;
@@ -720,7 +723,7 @@ tr.ht__row_odd td {
   font-family: inherit !important;
   font-size: inherit !important;
   line-height: inherit !important;
-  box-shadow: inset 0px 0px 0px 1px var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
+  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width) var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
   border: none;
   -webkit-appearance: none !important;
 }
@@ -1017,6 +1020,7 @@ tr.ht__row_odd td {
   border-color: var(--ht-secondary-button-focus-border-color);
   background-color: var(--ht-secondary-button-focus-background-color);
   color: var(--ht-secondary-button-focus-foreground-color);
+  box-shadow: 0 0 0 1px var(--ht-accent-color);
 }
 .handsontable .htUIInput.htUIButtonOK {
   margin-inline-start: 0;
@@ -1041,6 +1045,7 @@ tr.ht__row_odd td {
   border-color: var(--ht-primary-button-focus-border-color);
   background-color: var(--ht-primary-button-focus-background-color);
   color: var(--ht-primary-button-focus-foreground-color);
+  box-shadow: 0 0 0 1px var(--ht-accent-color);
 }
 
 .handsontable .htUIRadio {
@@ -1202,6 +1207,26 @@ tr.ht__row_odd td {
 .handsontable .ht_nestingButton.collapsed:hover:before,
 .handsontable .ht_nestingButton.ht_nestingExpand:hover:before {
   color: var(--ht-collapse-button-close-hover-icon-color);
+}
+.handsontable th.ht__active_highlight .collapsibleIndicator.collapsed:before, .handsontable th.ht__active_highlight .collapsibleIndicator.ht_nestingExpand:before,
+.handsontable th.ht__active_highlight .ht_nestingButton.collapsed:before,
+.handsontable th.ht__active_highlight .ht_nestingButton.ht_nestingExpand:before {
+  color: var(--ht-collapse-button-close-icon-active-color);
+}
+.handsontable th.ht__active_highlight .collapsibleIndicator.collapsed:hover:before, .handsontable th.ht__active_highlight .collapsibleIndicator.ht_nestingExpand:hover:before,
+.handsontable th.ht__active_highlight .ht_nestingButton.collapsed:hover:before,
+.handsontable th.ht__active_highlight .ht_nestingButton.ht_nestingExpand:hover:before {
+  color: var(--ht-collapse-button-close-hover-icon-active-color);
+}
+.handsontable th.ht__active_highlight .collapsibleIndicator.expanded:before, .handsontable th.ht__active_highlight .collapsibleIndicator.ht_nestingCollapse:before,
+.handsontable th.ht__active_highlight .ht_nestingButton.expanded:before,
+.handsontable th.ht__active_highlight .ht_nestingButton.ht_nestingCollapse:before {
+  color: var(--ht-collapse-button-open-icon-active-color);
+}
+.handsontable th.ht__active_highlight .collapsibleIndicator.expanded:hover:before, .handsontable th.ht__active_highlight .collapsibleIndicator.ht_nestingCollapse:hover:before,
+.handsontable th.ht__active_highlight .ht_nestingButton.expanded:hover:before,
+.handsontable th.ht__active_highlight .ht_nestingButton.ht_nestingCollapse:hover:before {
+  color: var(--ht-collapse-button-open-hover-icon-active-color);
 }
 
 .handsontable thead th.hiddenHeader:not(:first-of-type) {
@@ -1485,7 +1510,6 @@ tr.ht__row_odd td {
 .handsontable .htUISelectionControls {
   padding-top: calc(var(--ht-gap-size) * 2) !important;
   padding-bottom: 0 !important;
-  margin: 0 -8px;
 }
 .handsontable .htUIMultipleSelectHot {
   overflow: initial !important;
@@ -1515,14 +1539,21 @@ tr.ht__row_odd td {
 .handsontable .htUIClearAll,
 .handsontable .htUISelectAll {
   display: inline-block;
+  margin-right: var(--ht-gap-size);
+  margin-bottom: var(--ht-gap-size);
 }
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
   color: var(--ht-link-color);
+  border-radius: var(--ht-border-radius);
 }
 .handsontable .htUIClearAll a:hover,
 .handsontable .htUISelectAll a:hover {
   color: var(--ht-link-hover-color);
+}
+.handsontable .htUIClearAll a:focus,
+.handsontable .htUISelectAll a:focus {
+  outline: 1px solid var(--ht-link-hover-color);
 }
 .handsontable .htUIMultipleSelect .ht_master .wtHolder {
   overflow-y: auto;

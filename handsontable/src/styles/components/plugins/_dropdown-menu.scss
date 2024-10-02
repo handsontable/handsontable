@@ -200,7 +200,7 @@
   // Filter
   .htUIClearAll a,
   .htUISelectAll a {
-    padding: 8px;
+    padding: var(--ht-gap-size);
     display: inline-block;
     text-decoration: none;
   }

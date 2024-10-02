@@ -71,5 +71,36 @@
         }
       }
     }
+
+    th.ht__active_highlight {
+      .collapsibleIndicator,
+      .ht_nestingButton {
+        &.collapsed,
+        &.ht_nestingExpand {
+          &:before {
+            color: var(--ht-collapse-button-close-icon-active-color);
+          }
+
+          &:hover {
+            &:before {
+              color: var(--ht-collapse-button-close-hover-icon-active-color);
+            }
+          }
+        }
+
+        &.expanded,
+        &.ht_nestingCollapse {
+          &:before {
+            color: var(--ht-collapse-button-open-icon-active-color);
+          }
+
+          &:hover {
+            &:before {
+              color: var(--ht-collapse-button-open-hover-icon-active-color);
+            }
+          }
+        }
+      }
+    }
   }
 }

@@ -93,7 +93,7 @@
         &:before {
           @include mixins.pseudo;
           position: absolute;
-          inset: auto -1px 0 -1px;
+          inset: auto -1px -1px -1px;
           height: var(--ht-header-highlighted-shadow-size);
           background-color: var(--ht-accent-color);
         }
@@ -114,6 +114,10 @@
 
       &.active {
         color: var(--ht-header-active-foreground-color);
+        background-color: var(--ht-header-active-background-color);
+      }
+
+      &.current {
         background-color: var(--ht-header-active-background-color);
       }
     }
