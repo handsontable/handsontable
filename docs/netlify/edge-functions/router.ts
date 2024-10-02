@@ -711,10 +711,18 @@ function prepareRedirects(framework: string): Redirect[] {
   return updatedRedirectsArray;
 }
 
+async function handle404(baseUrl: string) {
+  const response = await fetch(`${baseUrl}/docs/404.html`);
+  return new Response(response.body, {
+    status: 404,
+    headers: response.headers
+  });
+}
+
 export default async function handler(request: Request, context: Context) {
   const url = new URL(request.url);
   console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION'));
-  console.log('Request url', url);
+  console.log('Request URL', url);
 
   const cookieValue = context.cookies.get('docs_fw');
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
@@ -733,10 +741,9 @@ export default async function handler(request: Request, context: Context) {
       console.log('Match found, proxying to', newUrl);
 
       const response = await fetch(newUrl);
-
       if(response.status === 404) {
         console.log('Match found, rewrite true, but the page does not exist, redirecting to the default 404 page');
-        return Response.redirect('/docs/404.html', 302);
+        return handle404(baseUrl);
       }
 
       return new Response(response.body, {
@@ -750,22 +757,25 @@ export default async function handler(request: Request, context: Context) {
     try {
       const response = await fetch(newUrl);
       if(response.status === 404) {
-        console.log('Match found, but the page does not exist, redirecting to the default 404 page');
-        return Response.redirect('/docs/404.html', 302);
+        console.error('Match found, but the page does not exist, redirecting to the default 404 page');
+        return handle404(baseUrl);
       }
-
       return Response.redirect(newUrl, 301);
     } catch (error) {
       console.error('Error while fetching the new URL', error);
-      return Response.redirect('/docs/404.html', 302);
+      return handle404(baseUrl);
     }
   }
+
   console.log('No match found, continuing to the next handler');
   const responseNext = await context.next();
+
   if(responseNext.status === 404) {
-    console.log('No match found, but the page does not exist, redirecting to the default 404 page');
-    return Response.redirect('/docs/404.html', 302);
+    console.error('No match found, but the page does not exist, redirecting to the default 404 page');
+    return handle404(baseUrl);
   }
+
+  // Return the response from the next handler if no match was found - this will allow to serve static files
   return responseNext;
 }
 
