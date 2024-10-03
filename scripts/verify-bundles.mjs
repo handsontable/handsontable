@@ -33,6 +33,9 @@ const packagesInfo = {
   '@handsontable/react': {
     className: 'HotTable'
   },
+  '@handsontable/react-wrapper': {
+    className: 'HotTable'
+  },
   '@handsontable/vue': {
     className: 'HotTable'
   },
