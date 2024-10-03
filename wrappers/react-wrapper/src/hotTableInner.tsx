@@ -1,4 +1,6 @@
 import React, {
+  Children,
+  Fragment,
   useEffect,
   useCallback,
   useImperativeHandle,
@@ -26,9 +28,12 @@ import { getRenderer } from 'handsontable/renderers/registry';
 import { getEditor } from 'handsontable/editors/registry';
 import { useHotTableContext } from './hotTableContext'
 import { HotColumnContextProvider } from './hotColumnContext'
-import { EditorContextProvider, makeEditorClass } from "./hotEditor";
+import { EditorContextProvider, makeEditorClass } from './hotEditor';
 
-const HotTableInner = forwardRef<HotTableRef, HotTableProps>((props, ref) => {
+const HotTableInner = forwardRef<
+  HotTableRef,
+  HotTableProps
+>((props, ref) => {
 
   /**
    * Reference to the Handsontable instance.
@@ -230,7 +235,7 @@ const HotTableInner = forwardRef<HotTableRef, HotTableProps>((props, ref) => {
   /**
    * Render the component.
    */
-  const hotColumnWrapped = React.Children.toArray(props.children)
+  const hotColumnWrapped = Children.toArray(props.children)
     .filter(isHotColumn)
     .map((childNode, columnIndex) => (
       <HotColumnContextProvider columnIndex={columnIndex}
@@ -244,7 +249,7 @@ const HotTableInner = forwardRef<HotTableRef, HotTableProps>((props, ref) => {
   const editorPortal = createEditorPortal(getOwnerDocument(), props.editor);
 
   return (
-    <React.Fragment>
+    <Fragment>
       <div ref={hotElementRef} {...containerProps}>
         {hotColumnWrapped}
       </div>
@@ -253,7 +258,7 @@ const HotTableInner = forwardRef<HotTableRef, HotTableProps>((props, ref) => {
                              hotCustomEditorInstanceRef={globalEditorClassInstance}>
         {editorPortal}
       </EditorContextProvider>
-    </React.Fragment>
+    </Fragment>
   );
 });
 

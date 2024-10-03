@@ -1,4 +1,10 @@
-import React from 'react';
+import React, {
+  FC,
+  PropsWithChildren,
+  createContext,
+  useContext,
+  useMemo,
+} from 'react';
 
 export interface HotColumnContextImpl {
   /**
@@ -14,11 +20,11 @@ export interface HotColumnContextImpl {
   readonly getOwnerDocument: () => Document | null;
 }
 
-const HotColumnContext = React.createContext<HotColumnContextImpl | undefined>(undefined);
+const HotColumnContext = createContext<HotColumnContextImpl | undefined>(undefined);
 
-const HotColumnContextProvider: React.FC<React.PropsWithChildren<HotColumnContextImpl>> = ({ columnIndex, getOwnerDocument, children }) => {
+const HotColumnContextProvider: FC<PropsWithChildren<HotColumnContextImpl>> = ({ columnIndex, getOwnerDocument, children }) => {
 
-  const contextImpl: HotColumnContextImpl = React.useMemo(() => ({
+  const contextImpl: HotColumnContextImpl = useMemo(() => ({
     columnIndex,
     getOwnerDocument
   }), [columnIndex, getOwnerDocument]);
@@ -28,6 +34,6 @@ const HotColumnContextProvider: React.FC<React.PropsWithChildren<HotColumnContex
   );
 };
 
-const useHotColumnContext = () => React.useContext(HotColumnContext)!;
+const useHotColumnContext = () => useContext(HotColumnContext)!;
 
 export { useHotColumnContext, HotColumnContextProvider };

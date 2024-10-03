@@ -1,4 +1,9 @@
-import React, { ForwardRefExoticComponent, RefAttributes } from 'react';
+import React, {
+  ForwardRefExoticComponent,
+  RefAttributes,
+  useId,
+  forwardRef,
+} from 'react';
 import * as packageJson from '../package.json';
 import { HotTableInner } from './hotTableInner';
 import { HotTableProps, HotTableRef } from './types';
@@ -30,8 +35,8 @@ type HotTable = ForwardRefExoticComponent<HotTableProps & RefAttributes<HotTable
  *
  * ```
  */
-const HotTable: HotTable = React.forwardRef<HotTableRef, HotTableProps>(({ children, ...props }, ref) => {
-  const generatedId = typeof React.useId === 'function' ? React.useId() : undefined;
+const HotTable: HotTable = forwardRef<HotTableRef, HotTableProps>(({ children, ...props }, ref) => {
+  const generatedId = typeof useId === 'function' ? useId() : undefined;
   const componentId = props.id ?? generatedId;
 
   return (

@@ -1,5 +1,11 @@
 import Handsontable from 'handsontable/base';
-import React from 'react';
+import React, {
+  ComponentType,
+  CSSProperties,
+  Dispatch,
+  DispatchWithoutAction,
+  ReactNode,
+} from 'react';
 
 /**
  * Type of the identifier under which the cached components are stored.
@@ -34,9 +40,9 @@ export interface HotEditorHooks {
  */
 export interface UseHotEditorImpl<T> {
   value?: T
-  setValue: React.Dispatch<T>
+  setValue: Dispatch<T>
   isOpen: boolean
-  finishEditing: React.DispatchWithoutAction
+  finishEditing: DispatchWithoutAction
   row?: number
   col?: number
 }
@@ -47,9 +53,9 @@ export interface UseHotEditorImpl<T> {
  */
 type ReplaceRenderersEditors<T extends Pick<Handsontable.GridSettings, 'renderer' | 'editor'>> = Omit<T, 'renderer' | 'editor'> & {
   hotRenderer?: T['renderer'],
-  renderer?: React.ComponentType<HotRendererProps>,
+  renderer?: ComponentType<HotRendererProps>,
   hotEditor?: T['editor'],
-  editor?: React.ComponentType,
+  editor?: ComponentType,
 }
 
 /**
@@ -59,15 +65,15 @@ type ReplaceRenderersEditors<T extends Pick<Handsontable.GridSettings, 'renderer
 export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.GridSettings> {
   id?: string,
   className?: string,
-  style?: React.CSSProperties,
-  children?: React.ReactNode
+  style?: CSSProperties,
+  children?: ReactNode
 }
 
 /**
  * Properties related to the HotColumn architecture.
  */
 export interface HotColumnProps extends ReplaceRenderersEditors<Handsontable.ColumnSettings> {
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 

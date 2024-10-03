@@ -1,4 +1,9 @@
-import React from 'react';
+import React, {
+  FC,
+  ReactElement,
+  useEffect,
+  useRef,
+} from 'react';
 import { HotTableProps, HotColumnProps, HotEditorHooks } from './types';
 import {
   createEditorPortal,
@@ -9,30 +14,30 @@ import { SettingsMapper } from './settingsMapper';
 import Handsontable from 'handsontable/base';
 import { useHotTableContext } from './hotTableContext'
 import { useHotColumnContext } from './hotColumnContext'
-import { EditorContextProvider, makeEditorClass } from "./hotEditor";
+import { EditorContextProvider, makeEditorClass } from './hotEditor';
 
-const isHotColumn = (childNode: any): childNode is React.ReactElement => childNode.type === HotColumn;
+const isHotColumn = (childNode: any): childNode is ReactElement => childNode.type === HotColumn;
 
 const internalProps = ['_columnIndex', '_getOwnerDocument', 'children'];
 
-const HotColumn: React.FC<HotColumnProps> = (props) => {
+const HotColumn: FC<HotColumnProps> = (props) => {
   const { componentRendererColumns, emitColumnSettings, getRendererWrapper } = useHotTableContext();
   const { columnIndex, getOwnerDocument } = useHotColumnContext();
 
   /**
    * Reference to component-based editor overridden hooks object.
    */
-  const localEditorHooksRef = React.useRef<HotEditorHooks | null>(null);
+  const localEditorHooksRef = useRef<HotEditorHooks | null>(null);
 
   /**
    * Reference to HOT-native custom editor class instance.
    */
-  const localEditorClassInstance = React.useRef<Handsontable.editors.BaseEditor | null>(null);
+  const localEditorClassInstance = useRef<Handsontable.editors.BaseEditor | null>(null);
 
   /**
    * Logic performed after mounting & updating of the HotColumn component.
    */
-  React.useEffect(() => {
+  useEffect(() => {
 
     /**
      * Filter out all the internal properties and return an object with just the Handsontable-related props.
@@ -83,7 +88,7 @@ const HotColumn: React.FC<HotColumnProps> = (props) => {
   /**
    * Render the portals of the editors, if there are any.
    *
-   * @returns {React.ReactElement}
+   * @returns {ReactElement}
    */
   return (
     <EditorContextProvider hooksRef={localEditorHooksRef}

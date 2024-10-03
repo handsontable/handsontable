@@ -1,38 +1,51 @@
-import React, { useDeferredValue } from "react";
-import Handsontable from "handsontable/base";
-import { HotEditorHooks, UseHotEditorImpl } from "./types";
+import React, {
+  DependencyList,
+  FC,
+  MutableRefObject,
+  ReactNode,
+  Ref,
+  RefObject,
+  createContext,
+  useContext,
+  useDeferredValue,
+  useImperativeHandle,
+  useMemo,
+  useState,
+} from 'react';
+import Handsontable from 'handsontable/base';
+import { HotEditorHooks, UseHotEditorImpl } from './types';
 
-type HookPropName = keyof Handsontable.editors.BaseEditor | "constructor";
+type HookPropName = keyof Handsontable.editors.BaseEditor | 'constructor';
 
 const AbstractMethods: (keyof Handsontable.editors.BaseEditor)[] = [
-  "close",
-  "focus",
-  "open",
+  'close',
+  'focus',
+  'open',
 ];
 const ExcludedMethods: (keyof Handsontable.editors.BaseEditor)[] = [
-  "getValue",
-  "setValue",
+  'getValue',
+  'setValue',
 ];
 
 const MethodsMap: Partial<
   Record<keyof Handsontable.editors.BaseEditor, keyof HotEditorHooks>
 > = {
-  open: "onOpen",
-  close: "onClose",
-  prepare: "onPrepare",
-  focus: "onFocus",
+  open: 'onOpen',
+  close: 'onClose',
+  prepare: 'onPrepare',
+  focus: 'onFocus',
 };
 
 /**
  * Create a class to be passed to the Handsontable's settings.
  *
- * @param {React.RefObject<HotEditorHooks>} hooksRef Reference to component-based editor overridden hooks object.
- * @param {React.RefObject} instanceRef Reference to Handsontable-native custom editor class instance.
+ * @param {RefObject<HotEditorHooks>} hooksRef Reference to component-based editor overridden hooks object.
+ * @param {RefObject} instanceRef Reference to Handsontable-native custom editor class instance.
  * @returns {Function} A class to be passed to the Handsontable editor settings.
  */
 export function makeEditorClass(
-  hooksRef: React.MutableRefObject<HotEditorHooks | null>,
-  instanceRef: React.MutableRefObject<Handsontable.editors.BaseEditor | null>
+  hooksRef: MutableRefObject<HotEditorHooks | null>,
+  instanceRef: MutableRefObject<Handsontable.editors.BaseEditor | null>
 ): typeof Handsontable.editors.BaseEditor {
   return class CustomEditor
     extends Handsontable.editors.BaseEditor
@@ -49,7 +62,7 @@ export function makeEditorClass(
           Handsontable.editors.BaseEditor.prototype
         ) as HookPropName[]
       ).forEach((propName) => {
-        if (propName === "constructor" || ExcludedMethods.includes(propName)) {
+        if (propName === 'constructor' || ExcludedMethods.includes(propName)) {
           return;
         }
 
@@ -96,31 +109,31 @@ export function makeEditorClass(
 }
 
 interface EditorContextType {
-  hooksRef: React.Ref<HotEditorHooks>;
-  hotCustomEditorInstanceRef: React.RefObject<Handsontable.editors.BaseEditor>;
+  hooksRef: Ref<HotEditorHooks>;
+  hotCustomEditorInstanceRef: RefObject<Handsontable.editors.BaseEditor>;
 }
 
 /**
  * Context to provide Handsontable-native custom editor class instance to overridden hooks object.
  */
-const EditorContext = React.createContext<EditorContextType | undefined>(
+const EditorContext = createContext<EditorContextType | undefined>(
   undefined
 );
 
 interface EditorContextProviderProps {
-  hooksRef: React.Ref<HotEditorHooks>;
-  hotCustomEditorInstanceRef: React.RefObject<Handsontable.editors.BaseEditor>;
-  children: React.ReactNode;
+  hooksRef: Ref<HotEditorHooks>;
+  hotCustomEditorInstanceRef: RefObject<Handsontable.editors.BaseEditor>;
+  children: ReactNode;
 }
 
 /**
  * Provider of the context that exposes Handsontable-native editor instance and passes hooks object
  * for custom editor components.
  *
- * @param {React.Ref} hooksRef Reference for component-based editor overridden hooks object.
- * @param {React.RefObject} hotCustomEditorInstanceRef  Reference to Handsontable-native editor instance.
+ * @param {Ref} hooksRef Reference for component-based editor overridden hooks object.
+ * @param {RefObject} hotCustomEditorInstanceRef  Reference to Handsontable-native editor instance.
  */
-export const EditorContextProvider: React.FC<EditorContextProviderProps> = ({
+export const EditorContextProvider: FC<EditorContextProviderProps> = ({
   hooksRef,
   hotCustomEditorInstanceRef,
   children,
@@ -136,22 +149,22 @@ export const EditorContextProvider: React.FC<EditorContextProviderProps> = ({
  * Hook that allows encapsulating custom behaviours of component-based editor by customizing passed ref with overridden hooks object.
  *
  * @param {HotEditorHooks} overriddenHooks Overrides specific for the custom editor.
- * @param {React.DependencyList} deps Overridden hooks object React dependency list.
+ * @param {DependencyList} deps Overridden hooks object React dependency list.
  * @returns {UseHotEditorImpl} Editor API methods
  */
 export function useHotEditor<T>(
   overriddenHooks?: HotEditorHooks,
-  deps?: React.DependencyList
+  deps?: DependencyList
 ): UseHotEditorImpl<T> {
   const { hooksRef, hotCustomEditorInstanceRef } =
-    React.useContext(EditorContext)!;
-  const [rerenderTrigger, setRerenderTrigger] = React.useState(0);
-  const [editorValue, setEditorValue] = React.useState<T>();
+    useContext(EditorContext)!;
+  const [rerenderTrigger, setRerenderTrigger] = useState(0);
+  const [editorValue, setEditorValue] = useState<T>();
 
   // return a deferred value that allows for optimizing performance by delaying the update of a value until the next render.
   const deferredValue = useDeferredValue(editorValue);
 
-  React.useImperativeHandle(
+  useImperativeHandle(
     hooksRef,
     () => ({
       ...overriddenHooks,
@@ -164,7 +177,7 @@ export function useHotEditor<T>(
     deps
   );
 
-  return React.useMemo(
+  return useMemo(
     () => ({
       get value(): T | undefined {
         return deferredValue;

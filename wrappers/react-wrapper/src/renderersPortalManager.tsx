@@ -1,17 +1,24 @@
-import React from 'react';
+import React, {
+  Dispatch,
+  ReactPortal,
+  forwardRef,
+  Fragment,
+  useImperativeHandle,
+  useState,
+} from 'react';
 
-export type RenderersPortalManagerRef = React.Dispatch<React.ReactPortal[]>;
+export type RenderersPortalManagerRef = Dispatch<ReactPortal[]>;
 
 /**
  * Component used to manage the renderer component portals.
  */
-export const RenderersPortalManager = React.forwardRef<RenderersPortalManagerRef, {}>((_, ref) => {
-  const [portals, setPortals] = React.useState<React.ReactPortal[]>([]);
-  React.useImperativeHandle(ref, () => setPortals);
+export const RenderersPortalManager = forwardRef<RenderersPortalManagerRef, {}>((_, ref) => {
+  const [portals, setPortals] = useState<ReactPortal[]>([]);
+  useImperativeHandle(ref, () => setPortals);
 
   return (
-      <React.Fragment>
+      <Fragment>
         {portals}
-      </React.Fragment>
+      </Fragment>
   );
 });

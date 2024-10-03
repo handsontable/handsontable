@@ -1,5 +1,15 @@
 import Handsontable from 'handsontable/base';
-import React from 'react';
+import React, {
+  ComponentType,
+  FC,
+  PropsWithChildren,
+  ReactPortal,
+  createContext,
+  useCallback,
+  useRef,
+  useMemo,
+  useContext,
+} from 'react';
 import { ScopeIdentifier, HotRendererProps } from './types'
 import { createPortal } from './helpers'
 import { RenderersPortalManagerRef } from './renderersPortalManager'
@@ -27,10 +37,10 @@ export interface HotTableContextImpl {
   /**
    * Return a renderer wrapper function for the provided renderer component.
    *
-   * @param {React.ComponentType<HotRendererProps>} Renderer React renderer component.
+   * @param {ComponentType<HotRendererProps>} Renderer React renderer component.
    * @returns {Handsontable.renderers.BaseRenderer} The Handsontable rendering function.
    */
-  readonly getRendererWrapper: (Renderer: React.ComponentType<HotRendererProps>) => typeof Handsontable.renderers.BaseRenderer;
+  readonly getRendererWrapper: (Renderer: ComponentType<HotRendererProps>) => typeof Handsontable.renderers.BaseRenderer;
 
   /**
    * Clears portals cache.
@@ -55,23 +65,23 @@ export interface HotTableContextImpl {
   readonly pushCellPortalsIntoPortalManager: () => void;
 }
 
-const HotTableContext = React.createContext<HotTableContextImpl | undefined>(undefined);
+const HotTableContext = createContext<HotTableContextImpl | undefined>(undefined);
 
-const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const columnsSettings = React.useRef<Handsontable.ColumnSettings[]>([]);
+const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
+  const columnsSettings = useRef<Handsontable.ColumnSettings[]>([]);
 
-  const setHotColumnSettings = React.useCallback((columnSettings: Handsontable.ColumnSettings, columnIndex: number) => {
+  const setHotColumnSettings = useCallback((columnSettings: Handsontable.ColumnSettings, columnIndex: number) => {
     columnsSettings.current[columnIndex] = columnSettings;
   }, [])
 
-  const componentRendererColumns = React.useRef<Map<number | 'global', boolean>>(new Map());
-  const renderedCellCache = React.useRef<Map<string, HTMLTableCellElement>>(new Map());
-  const clearRenderedCellCache = React.useCallback(() => renderedCellCache.current.clear(), []);
-  const portalCache = React.useRef<Map<string, React.ReactPortal>>(new Map());
-  const clearPortalCache = React.useCallback(() => portalCache.current.clear(), []);
-  const portalContainerCache = React.useRef<Map<string, HTMLElement>>(new Map());
+  const componentRendererColumns = useRef<Map<number | 'global', boolean>>(new Map());
+  const renderedCellCache = useRef<Map<string, HTMLTableCellElement>>(new Map());
+  const clearRenderedCellCache = useCallback(() => renderedCellCache.current.clear(), []);
+  const portalCache = useRef<Map<string, ReactPortal>>(new Map());
+  const clearPortalCache = useCallback(() => portalCache.current.clear(), []);
+  const portalContainerCache = useRef<Map<string, HTMLElement>>(new Map());
 
-  const getRendererWrapper = React.useCallback((Renderer: React.ComponentType<HotRendererProps>): typeof Handsontable.renderers.BaseRenderer => {
+  const getRendererWrapper = useCallback((Renderer: ComponentType<HotRendererProps>): typeof Handsontable.renderers.BaseRenderer => {
     return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const key = `${row}-${col}`;
 
@@ -121,17 +131,17 @@ const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }
     };
   }, []);
 
-  const renderersPortalManager = React.useRef<RenderersPortalManagerRef>(() => undefined);
+  const renderersPortalManager = useRef<RenderersPortalManagerRef>(() => undefined);
 
-  const setRenderersPortalManagerRef = React.useCallback((pmComponent: RenderersPortalManagerRef) => {
+  const setRenderersPortalManagerRef = useCallback((pmComponent: RenderersPortalManagerRef) => {
     renderersPortalManager.current = pmComponent;
   }, []);
 
-  const pushCellPortalsIntoPortalManager = React.useCallback(() => {
+  const pushCellPortalsIntoPortalManager = useCallback(() => {
     renderersPortalManager.current!([...portalCache.current.values()]);
   }, []);
 
-  const contextImpl: HotTableContextImpl = React.useMemo(() => ({
+  const contextImpl: HotTableContextImpl = useMemo(() => ({
     componentRendererColumns: componentRendererColumns.current,
     columnsSettings: columnsSettings.current,
     emitColumnSettings: setHotColumnSettings,
@@ -153,7 +163,7 @@ const HotTableContextProvider: React.FC<React.PropsWithChildren> = ({ children }
  * @returns HotTableContext
  */
 function useHotTableContext(): HotTableContextImpl {
-  return React.useContext(HotTableContext)!;
+  return useContext(HotTableContext)!;
 }
 
 export { HotTableContextProvider, useHotTableContext };
