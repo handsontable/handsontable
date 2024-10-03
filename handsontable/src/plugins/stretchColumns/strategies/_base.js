@@ -1,5 +1,8 @@
 /**
  * The base strategy stretching strategy to extend from.
+ *
+ * @private
+ * @class StretchStrategy
  */
 export class StretchStrategy {
   /**

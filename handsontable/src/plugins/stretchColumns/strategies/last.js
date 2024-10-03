@@ -2,6 +2,9 @@ import { StretchStrategy } from './_base';
 
 /**
  * The strategy calculates only the last column widths to fill the viewport.
+ *
+ * @private
+ * @class StretchLastStrategy
  */
 export class StretchLastStrategy extends StretchStrategy {
   /**

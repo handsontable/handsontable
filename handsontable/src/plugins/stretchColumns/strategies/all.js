@@ -3,6 +3,9 @@ import { StretchStrategy } from './_base';
 
 /**
  * The strategy calculates the column widths by stretching all columns evenly.
+ *
+ * @private
+ * @class StretchAllStrategy
  */
 export class StretchAllStrategy extends StretchStrategy {
   /**

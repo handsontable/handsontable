@@ -6,6 +6,9 @@ const STRETCH_WIDTH_MAP_NAME = 'stretchColumns';
 
 /**
  * The class responsible for calculating the column widths based on the specified column stretching strategy.
+ *
+ * @private
+ * @class StretchCalculator
  */
 export class StretchCalculator {
   /**
