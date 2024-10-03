@@ -7,7 +7,7 @@ export const command = {
 
     if (row !== null) {
       const coords = hot._createCellCoords(row, to.col);
-      const scrollPadding = to.row - hot.view.getFirstFullyVisibleRow();
+      const scrollPadding = to.row - hot.getFirstFullyVisibleRow();
       const nextVerticalScroll = Math.max(coords.row - scrollPadding, 0);
 
       hot.selection.setRangeEnd(coords);

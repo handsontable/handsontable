@@ -78,7 +78,7 @@ import * as dom from './helpers/dom';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
 import EventManager from './eventManager';
-import { Hooks } from './pluginHooks';
+import { Hooks, Events } from './core/hooks';
 // plugins
 import {
   AutoColumnSize as _AutoColumnSize,
@@ -547,5 +547,6 @@ declare class Handsontable extends Core {
 export {
   CellCoords,
   CellRange,
+  Events,
 };
 export default Handsontable;

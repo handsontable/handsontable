@@ -356,6 +356,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ),
   viewportColumnRenderingOffset: oneOf(100, 'auto'),
   viewportRowRenderingOffset: oneOf(100, 'auto'),
+  viewportColumnRenderingThreshold: oneOf(100, 'auto'),
+  viewportRowRenderingThreshold: oneOf(100, 'auto'),
   visibleRows: 123,
   width: oneOf(500, () => 500),
   wordWrap: true,
@@ -412,7 +414,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterContextMenuHide: (context) => {},
   afterContextMenuShow: (context) => {},
   afterCopy: (data, coords) => {},
-  afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
+  afterCopyLimit: (selectedRows, selectedColumns, copyRowsLimit, copyColumnsLimit) => {},
   afterCreateCol: (index, amount, source) => {},
   afterCreateRow: (index, amount, source) => {},
   afterCut: (data, coords) => {},
@@ -420,7 +422,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterDestroy: () => {},
   afterDetachChild: (parent, element) => {},
   afterDocumentKeyDown: (event) => {},
-  afterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {},
+  afterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {
+    const _currentRow: number = currentRow;
+    const _currentColumn: number = currentColumn;
+    const _cornersOfSelection: number[] = cornersOfSelection;
+    const _layerLevel: number | undefined = layerLevel;
+  },
   afterDropdownMenuDefaultOptions: (predefinedItems) => {},
   afterDropdownMenuHide: (instance) => {},
   afterDropdownMenuShow: (instance) => {},
@@ -646,7 +653,20 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
   modifyData: () => {},
   modifyFocusOnTabNavigation: (tabActivationDir, visualCoords) => {},
-  modifyGetCellCoords: (row, column, topmost) => {},
+  modifyGetCellCoords: (row, column, topmost, source) => {
+    const _row: number = row;
+    const _column: number = column;
+    const _topmost: boolean = topmost;
+    const _source: string = source ?? '';
+
+    return [_row, _column, _row + 1, _column + 1];
+  },
+  modifyGetCoordsElement: (row, column) => {
+    const _row: number = row;
+    const _column: number = column;
+
+    return [_row, _column];
+  },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},

@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
@@ -405,8 +405,8 @@ export class ManualRowMove extends BasePlugin {
    */
   refreshPositions() {
     const coords = this.#target.coords;
-    const firstVisible = this.hot.view.getFirstFullyVisibleRow();
-    const lastVisible = this.hot.view.getLastFullyVisibleRow();
+    const firstVisible = this.hot.getFirstFullyVisibleRow();
+    const lastVisible = this.hot.getLastFullyVisibleRow();
     const countRows = this.hot.countRows();
 
     if (this.isFixedRowTop(coords.row) && firstVisible > 0) {

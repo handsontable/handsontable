@@ -636,7 +636,7 @@ export class NestedHeaders extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   #onBeforeOnCellMouseOver(event, coords, TD, controller) {
-    if (!this.hot.view.isMouseDown()) {
+    if (!this.hot.view.isMouseDown() || controller.column) {
       return;
     }
 

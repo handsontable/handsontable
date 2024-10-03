@@ -348,7 +348,7 @@ describe('TextEditor (RTL mode)', () => {
       expect(isEditorVisible()).toBe(false);
     });
 
-    it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', () => {
+    it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', async() => {
       const hot = handsontable({
         layoutDirection,
         data: Handsontable.helper.createSpreadsheetData(20, 20),
@@ -368,6 +368,7 @@ describe('TextEditor (RTL mode)', () => {
       expect(getCell(19, 19)).not.toBeNull();
 
       keyDown('enter');
+      await sleep(50);
 
       expect(getCell(0, 0)).not.toBeNull();
       expect(getCell(19, 19)).toBeNull();
