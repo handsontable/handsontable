@@ -1,10 +1,10 @@
 describe('AutocompleteEditor', () => {
-  const id = 'testContainer';
   const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black',
     'white', 'purple', 'lime', 'olive', 'cyan'];
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer" style="width: 300px; height: 200px; overflow: auto"></div>')
+      .appendTo('body');
   });
 
   afterEach(function() {
@@ -394,6 +394,30 @@ describe('AutocompleteEditor', () => {
       expect(container.clientHeight).toBe(118);
     });
 
+    it('should open editor with the correct size when there is no scrollbar on the list (trimDropdown: false)', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices.slice(0, 5),
+            visibleRows: 5,
+            trimDropdown: false,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).toBe(52);
+      expect(container.clientHeight).toBe(118);
+    });
+
     it('should open editor with the correct size when there is scrollbar on the list', async() => {
       handsontable({
         colWidths: 120,
@@ -414,6 +438,30 @@ describe('AutocompleteEditor', () => {
       const container = getActiveEditor().htContainer;
 
       expect(container.clientWidth).toBe(120 + Handsontable.dom.getScrollbarWidth());
+      expect(container.clientHeight).toBe(72);
+    });
+
+    it('should open editor with the correct size when there is scrollbar on the list (trimDropdown: false)', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            visibleRows: 3,
+            trimDropdown: false,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).toBe(52 + Handsontable.dom.getScrollbarWidth());
       expect(container.clientHeight).toBe(72);
     });
   });

@@ -439,18 +439,14 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @private
    */
   updateDropdownDimensions() {
-    const trimDropdown = this.cellProperties.trimDropdown;
-    const width = trimDropdown ? this.getWidth() : undefined;
-    const height = this.getHeight();
-
     this.htEditor.updateSettings({
-      width,
-      height,
+      width: this.getWidth(),
+      height: this.getHeight(),
     });
 
-    if (trimDropdown && this.htEditor.view.hasVerticalScroll()) {
+    if (this.htEditor.view.hasVerticalScroll()) {
       this.htEditor.updateSettings({
-        width: width + getScrollbarWidth(this.hot.rootDocument),
+        width: this.htEditor.getSettings().width + getScrollbarWidth(this.hot.rootDocument),
       });
     }
 
