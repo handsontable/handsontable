@@ -10,6 +10,7 @@ import {
   sleep,
   simulateKeyboardEvent,
   simulateMouseEvent,
+  mountComponent,
   mountComponentWithRef,
   customNativeRenderer,
   CustomNativeEditor,
