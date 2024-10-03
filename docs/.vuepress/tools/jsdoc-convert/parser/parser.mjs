@@ -18,7 +18,7 @@ export const buildParser = ({ logger, parseJsdoc }) => function* () {
     'shortcuts/context.js',
     'utils/ghostTable.js',
     'utils/samplesGenerator.js',
-    'pluginHooks.js',
+    'core/hooks/constants.js',
     'core.js',
     'eventManager.js',
     'editors/!(__tests__)/!(index).js',

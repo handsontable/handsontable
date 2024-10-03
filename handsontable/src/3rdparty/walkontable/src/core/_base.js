@@ -29,6 +29,14 @@ export default class CoreAbstract {
   drawn = false;
 
   /**
+   * The name of the overlay that currently renders the table.
+   *
+   * @public
+   * @type {string}
+   */
+  activeOverlayName = 'master';
+
+  /**
    * The DOM bindings.
    *
    * @public

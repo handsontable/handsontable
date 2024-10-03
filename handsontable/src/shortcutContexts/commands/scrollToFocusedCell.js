@@ -2,10 +2,10 @@ export const command = {
   name: 'scrollToFocusedCell',
   callback(hot) {
     const { highlight } = hot.getSelectedRangeLast();
-    const firstVisibleRow = hot.view.getFirstFullyVisibleRow() - 1;
-    const firstVisibleColumn = hot.view.getFirstFullyVisibleColumn() - 1;
-    const lastVisibleRow = hot.view.getLastFullyVisibleRow() + 1;
-    const lastVisibleColumn = hot.view.getLastFullyVisibleColumn() + 1;
+    const firstVisibleRow = hot.getFirstFullyVisibleRow() - 1;
+    const firstVisibleColumn = hot.getFirstFullyVisibleColumn() - 1;
+    const lastVisibleRow = hot.getLastFullyVisibleRow() + 1;
+    const lastVisibleColumn = hot.getLastFullyVisibleColumn() + 1;
 
     const visibleCoordsFrom = hot._createCellCoords(firstVisibleRow, firstVisibleColumn);
     const visibleCoordsTo = hot._createCellCoords(lastVisibleRow, lastVisibleColumn);

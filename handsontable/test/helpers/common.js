@@ -75,6 +75,7 @@ export function handsontableMethodFactory(method) {
 
 export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthFromSettings');
 export const addHook = handsontableMethodFactory('addHook');
+export const addHookOnce = handsontableMethodFactory('addHookOnce');
 export const alter = handsontableMethodFactory('alter');
 export const clear = handsontableMethodFactory('clear');
 export const colToProp = handsontableMethodFactory('colToProp');
@@ -144,6 +145,7 @@ export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCel
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
 export const getValue = handsontableMethodFactory('getValue');
+export const hasHook = handsontableMethodFactory('hasHook');
 export const isListening = handsontableMethodFactory('isListening');
 export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
@@ -152,7 +154,9 @@ export const propToCol = handsontableMethodFactory('propToCol');
 export const redo = handsontableMethodFactory('redo');
 export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
+export const removeHook = handsontableMethodFactory('removeHook');
 export const render = handsontableMethodFactory('render');
+export const runHooks = handsontableMethodFactory('runHooks');
 export const scrollToFocusedCell = handsontableMethodFactory('scrollToFocusedCell');
 export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
 export const selectAll = handsontableMethodFactory('selectAll');
