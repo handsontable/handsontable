@@ -1,5 +1,5 @@
 import { AutocompleteEditor } from '../autocompleteEditor';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 
 export const EDITOR_TYPE = 'dropdown';
 

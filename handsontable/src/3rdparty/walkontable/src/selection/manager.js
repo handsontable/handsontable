@@ -242,7 +242,6 @@ export class SelectionManager {
 
       if (element.nodeName === 'TD' && Array.isArray(this.#selections.options?.cellAttributes)) {
         setAttribute(element, this.#selections.options.cellAttributes);
-
       }
     });
 

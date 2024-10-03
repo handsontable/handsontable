@@ -98,8 +98,11 @@ describe('Updating the Handsontable settings', () => {
     expect(hotTableComponent.hotInstance.getSettings().rowHeaders).toEqual(true);
     expect(hotTableComponent.hotInstance.getSettings().colHeaders).toEqual(true);
     expect(hotTableComponent.hotInstance.getSettings().readOnly).toEqual(true);
-    expect(hotTableComponent.hotInstance.pluginHookBucket.afterChange.includes(initialAfterChangeHook)).toBe(true);
-    expect(hotTableComponent.hotInstance.pluginHookBucket.afterChange.includes(modifiedAfterChangeHook)).toBe(false);
+
+    const hooks = hotTableComponent.hotInstance.pluginHookBucket.getHooks('afterChange');
+
+    expect(hooks.filter(hookEntry => hookEntry.callback === initialAfterChangeHook).length).toBe(1);
+    expect(hooks.filter(hookEntry => hookEntry.callback === modifiedAfterChangeHook).length).toBe(0);
 
     testWrapper.vm.updateData();
 
@@ -108,8 +111,8 @@ describe('Updating the Handsontable settings', () => {
     expect(hotTableComponent.hotInstance.getSettings().rowHeaders).toEqual(false);
     expect(hotTableComponent.hotInstance.getSettings().colHeaders).toEqual(false);
     expect(hotTableComponent.hotInstance.getSettings().readOnly).toEqual(false);
-    expect(hotTableComponent.hotInstance.pluginHookBucket.afterChange.includes(initialAfterChangeHook)).toBe(false);
-    expect(hotTableComponent.hotInstance.pluginHookBucket.afterChange.includes(modifiedAfterChangeHook)).toBe(true);
+    expect(hooks.filter(hookEntry => hookEntry.callback === initialAfterChangeHook).length).toBe(0);
+    expect(hooks.filter(hookEntry => hookEntry.callback === modifiedAfterChangeHook).length).toBe(1);
   });
 
   it('should update the previously initialized Handsontable instance with only the options that are passed to the' +

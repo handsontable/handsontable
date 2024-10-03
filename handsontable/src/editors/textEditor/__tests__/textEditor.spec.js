@@ -1,8 +1,6 @@
 describe('TextEditor', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`)
+    this.$container = $('<div id="testContainer" style="width: 300px; height: 200px; overflow: hidden;"></div>')
       .appendTo('body');
   });
 
@@ -1249,8 +1247,8 @@ describe('TextEditor', () => {
       .not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
   });
 
-  it('should open editor after selecting cell in another table and hitting enter', function() {
-    spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
+  it('should open editor after selecting cell in another table and hitting enter', () => {
+    spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
 
     const hot1 = handsontable();
     const hot2 = handsontable2.call(this);
@@ -1350,11 +1348,11 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toBe(true);
   });
 
-  it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', () => {
+  it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(20, 20),
       width: 100,
-      height: 50
+      height: 50,
     });
 
     selectCell(0, 0);
@@ -1363,12 +1361,13 @@ describe('TextEditor', () => {
     expect(getCell(19, 19)).toBeNull();
 
     hot.view.scrollViewport({ row: 19, col: 19 });
-    hot.render();
+    render();
 
     expect(getCell(0, 0)).toBeNull();
     expect(getCell(19, 19)).not.toBeNull();
 
     keyDownUp('enter');
+    await sleep(50);
 
     expect(getCell(0, 0)).not.toBeNull();
     expect(getCell(19, 19)).toBeNull();

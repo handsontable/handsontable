@@ -193,23 +193,24 @@ export class SelectionScanner {
    * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
   scanCellsRange(callback) {
-    const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
 
     this.#scanCellsRange((sourceRow, sourceColumn) => {
-      if (sourceRow >= topRow && sourceRow <= bottomRow && sourceColumn >= topColumn && sourceColumn <= bottomColumn) {
-        const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
+      const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
 
-        // support for old API
-        const additionalSelectionClass = this.#activeOverlaysWot
-          .getSetting('onAfterDrawSelection', sourceRow, sourceColumn, this.#selection.settings.layerLevel);
+      // support for old API
+      const additionalSelectionClass = this.#activeOverlaysWot
+        .getSetting('onAfterDrawSelection',
+          sourceRow,
+          sourceColumn,
+          this.#selection.settings.layerLevel,
+        );
 
-        if (typeof additionalSelectionClass === 'string') {
-          addClass(cell, additionalSelectionClass);
-        }
-
-        callback(cell);
+      if (typeof additionalSelectionClass === 'string') {
+        addClass(cell, additionalSelectionClass);
       }
+
+      callback(cell);
     });
   }
 
@@ -224,7 +225,7 @@ export class SelectionScanner {
     const [topRow,, bottomRow,] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
 
-    this.#scanCellsRange((sourceRow, sourceColumn) => {
+    this.#scanViewportRange((sourceRow, sourceColumn) => {
       if (sourceRow >= topRow && sourceRow <= bottomRow) {
         const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
 
@@ -243,7 +244,7 @@ export class SelectionScanner {
     const [, topColumn,, bottomColumn] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
 
-    this.#scanCellsRange((sourceRow, sourceColumn) => {
+    this.#scanViewportRange((sourceRow, sourceColumn) => {
       if (sourceColumn >= topColumn && sourceColumn <= bottomColumn) {
         const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
 
@@ -258,6 +259,51 @@ export class SelectionScanner {
    * @param {function(number, number): void} callback The callback function to trigger.
    */
   #scanCellsRange(callback) {
+    let [topRow, startColumn, bottomRow, endColumn] = this.#selection.getCorners();
+
+    if (topRow < 0 && bottomRow < 0 || startColumn < 0 && endColumn < 0) {
+      return;
+    }
+
+    const { wtTable } = this.#activeOverlaysWot;
+    const isMultiple = (topRow !== bottomRow || startColumn !== endColumn);
+
+    startColumn = Math.max(startColumn, 0);
+    endColumn = Math.max(endColumn, 0);
+    topRow = Math.max(topRow, 0);
+    bottomRow = Math.max(bottomRow, 0);
+
+    if (isMultiple) {
+      startColumn = Math.max(startColumn, wtTable.getFirstRenderedColumn());
+      endColumn = Math.min(endColumn, wtTable.getLastRenderedColumn());
+      topRow = Math.max(topRow, wtTable.getFirstRenderedRow());
+      bottomRow = Math.min(bottomRow, wtTable.getLastRenderedRow());
+
+      if (endColumn < startColumn || bottomRow < topRow) {
+        return;
+      }
+
+    } else {
+      const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(topRow, startColumn));
+
+      if (!(cell instanceof HTMLElement)) {
+        return;
+      }
+    }
+
+    for (let row = topRow; row <= bottomRow; row += 1) {
+      for (let column = startColumn; column <= endColumn; column += 1) {
+        callback(row, column);
+      }
+    }
+  }
+
+  /**
+   * The method triggers a callback for each rendered cell including headers.
+   *
+   * @param {function(number, number): void} callback The callback function to trigger.
+   */
+  #scanViewportRange(callback) {
     const { wtTable } = this.#activeOverlaysWot;
     const renderedRowsCount = wtTable.getRenderedRowsCount();
     const renderedColumnsCount = wtTable.getRenderedColumnsCount();

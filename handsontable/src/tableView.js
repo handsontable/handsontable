@@ -662,6 +662,8 @@ class TableView {
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
+      viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
+      viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
       data: (renderableRow, renderableColumn) => {
         return this.hot
           .getDataAtCell(...this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn));
@@ -760,7 +762,8 @@ class TableView {
           .translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
 
         // Coords may be modified. For example, by the `MergeCells` plugin. It should affect cell value and cell meta.
-        const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex);
+        const modifiedCellCoords = this.hot
+          .runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, false, 'meta');
 
         let visualRowToCheck = visualRowIndex;
         let visualColumnToCheck = visualColumnIndex;
@@ -1025,8 +1028,8 @@ class TableView {
           ];
         }
 
-        return this.hot
-          .runHooks('afterDrawSelection', visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
+        return this.hot.runHooks('afterDrawSelection',
+          visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
       },
       onBeforeDrawBorders: (corners, borderClassName) => {
         const [startRenderableRow, startRenderableColumn, endRenderableRow, endRenderableColumn] = corners;
@@ -1047,7 +1050,7 @@ class TableView {
         return this.hot.runHooks('beforeStretchingColumnWidth', stretchedWidth, visualColumnIndex);
       },
       onModifyRowHeaderWidth: rowHeaderWidth => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
-      onModifyGetCellCoords: (renderableRowIndex, renderableColumnIndex, topmost) => {
+      onModifyGetCellCoords: (renderableRowIndex, renderableColumnIndex, topmost, source) => {
         const rowMapper = this.hot.rowIndexMapper;
         const columnMapper = this.hot.columnIndexMapper;
 
@@ -1057,7 +1060,8 @@ class TableView {
         const visualRowIndex = renderableRowIndex >= 0 ?
           rowMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
 
-        const visualIndexes = this.hot.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost);
+        const visualIndexes = this.hot
+          .runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost, source);
 
         if (Array.isArray(visualIndexes)) {
           const [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = visualIndexes;
@@ -1072,6 +1076,28 @@ class TableView {
               rowMapper.getNearestNotHiddenIndex(visualRowTo, -1)) : visualRowTo,
             visualColumnTo >= 0 ? columnMapper.getRenderableFromVisualIndex(
               columnMapper.getNearestNotHiddenIndex(visualColumnTo, -1)) : visualColumnTo
+          ];
+        }
+      },
+      onModifyGetCoordsElement: (renderableRowIndex, renderableColumnIndex) => {
+        const rowMapper = this.hot.rowIndexMapper;
+        const columnMapper = this.hot.columnIndexMapper;
+
+        const visualColumnIndex = renderableColumnIndex >= 0 ?
+          columnMapper.getVisualFromRenderableIndex(renderableColumnIndex) : renderableColumnIndex;
+        const visualRowIndex = renderableRowIndex >= 0 ?
+          rowMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
+
+        const visualIndexes = this.hot.runHooks('modifyGetCoordsElement', visualRowIndex, visualColumnIndex);
+
+        if (Array.isArray(visualIndexes)) {
+          const [visualRow, visualColumn] = visualIndexes;
+
+          return [
+            visualRow >= 0 ? rowMapper.getRenderableFromVisualIndex(
+              rowMapper.getNearestNotHiddenIndex(visualRow, 1)) : visualRow,
+            visualColumn >= 0 ? columnMapper.getRenderableFromVisualIndex(
+              columnMapper.getNearestNotHiddenIndex(visualColumn, 1)) : visualColumn,
           ];
         }
       },
@@ -1092,7 +1118,7 @@ class TableView {
             calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
 
           } else if (viewportOffset === 'auto') {
-            const offset = Math.ceil(lastRenderedRow / renderableRows * 12);
+            const offset = Math.max(1, Math.ceil(lastRenderedRow / renderableRows * 12));
 
             calc.startRow = Math.max(firstRenderedRow - offset, 0);
             calc.endRow = Math.min(lastRenderedRow + offset, renderableRows - 1);
@@ -1117,7 +1143,7 @@ class TableView {
             calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
           }
           if (viewportOffset === 'auto') {
-            const offset = Math.ceil(lastRenderedColumn / renderableColumns * 6);
+            const offset = Math.max(1, Math.ceil(lastRenderedColumn / renderableColumns * 6));
 
             calc.startColumn = Math.max(firstRenderedColumn - offset, 0);
             calc.endColumn = Math.min(lastRenderedColumn + offset, renderableColumns - 1);
@@ -1451,8 +1477,11 @@ class TableView {
       return null;
     }
 
-    return this.hot.rowIndexMapper
-      .getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedRow(), 1);
+    const indexMapper = this.hot.rowIndexMapper;
+    const visualRowIndex = indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedRow());
+
+    return indexMapper.getNearestNotHiddenIndex(visualRowIndex ?? 0, 1);
   }
 
   /**
@@ -1465,8 +1494,11 @@ class TableView {
       return null;
     }
 
-    return this.hot.rowIndexMapper
-      .getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedRow(), -1);
+    const indexMapper = this.hot.rowIndexMapper;
+    const visualRowIndex = indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedRow());
+
+    return indexMapper.getNearestNotHiddenIndex(visualRowIndex ?? this.hot.countRows() - 1, -1);
   }
 
   /**
@@ -1479,8 +1511,11 @@ class TableView {
       return null;
     }
 
-    return this.hot.columnIndexMapper
-      .getNearestNotHiddenIndex(this._wt.wtTable.getFirstRenderedColumn(), 1);
+    const indexMapper = this.hot.columnIndexMapper;
+    const visualColumnIndex = indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getFirstRenderedColumn());
+
+    return indexMapper.getNearestNotHiddenIndex(visualColumnIndex ?? 0, 1);
   }
 
   /**
@@ -1493,8 +1528,11 @@ class TableView {
       return null;
     }
 
-    return this.hot.columnIndexMapper
-      .getNearestNotHiddenIndex(this._wt.wtTable.getLastRenderedColumn(), -1);
+    const indexMapper = this.hot.columnIndexMapper;
+    const visualColumnIndex = indexMapper
+      .getVisualFromRenderableIndex(this._wt.wtTable.getLastRenderedColumn());
+
+    return indexMapper.getNearestNotHiddenIndex(visualColumnIndex ?? this.hot.countCols() - 1, -1);
   }
 
   /**
@@ -1661,6 +1699,16 @@ class TableView {
    */
   getOverlayByName(overlayName) {
     return this._wt.getOverlayByName(overlayName);
+  }
+
+  /**
+   * Gets the name of the overlay that currently renders the table. If the method is called out of the render cycle
+   * the 'master' name is returned.
+   *
+   * @returns {string}
+   */
+  getActiveOverlayName() {
+    return this._wt.activeOverlayName;
   }
 
   /**

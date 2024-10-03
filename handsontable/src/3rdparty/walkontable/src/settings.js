@@ -57,6 +57,8 @@ import { objectEach } from '../../../helpers/object';
  * @property {?Option} onCellMouseUp Option `onCellMouseUp`.
  * @property {?Option} onDraw Option `onDraw`.
  * @property {?Option} onModifyGetCellCoords Option `onModifyGetCellCoords`.
+ * @property {?Option} onModifyGetCoordsElement Option `onModifyGetCoordsElement`.
+ * @property {?Option} onModifyGetCoords Option `onModifyGetCoords`.
  * @property {?Option} onModifyRowHeaderWidth Option `onModifyRowHeaderWidth`.
  * @property {?Option} onBeforeViewportScrollHorizontally Option `onBeforeViewportScrollHorizontally`.
  * @property {?Option} onBeforeViewportScrollVertically Option `onBeforeViewportScrollVertically`.
@@ -67,6 +69,8 @@ import { objectEach } from '../../../helpers/object';
  * @property {?Option} selections Option `selections`.
  * @property {?Option} viewportColumnCalculatorOverride Option `viewportColumnCalculatorOverride`.
  * @property {?Option} viewportRowCalculatorOverride Option `viewportRowCalculatorOverride`.
+ * @property {?Option} viewportColumnRenderingThreshold Option `viewportColumnRenderingThreshold`.
+ * @property {?Option} viewportRowRenderingThreshold Option `viewportRowRenderingThreshold`.
  */
 
 /**
@@ -193,6 +197,8 @@ export default class Settings {
       hideBorderOnMouseDownOver: false,
       viewportRowCalculatorOverride: null,
       viewportColumnCalculatorOverride: null,
+      viewportRowRenderingThreshold: null,
+      viewportColumnRenderingThreshold: null,
 
       // callbacks
       onCellMouseDown: null,
@@ -221,6 +227,8 @@ export default class Settings {
       onAfterMomentumScroll: null,
       onModifyRowHeaderWidth: null,
       onModifyGetCellCoords: null,
+      onModifyGetCoordsElement: null,
+      onModifyGetCoords: null,
       onBeforeHighlightingRowHeader: sourceRow => sourceRow,
       onBeforeHighlightingColumnHeader: sourceCol => sourceCol,
 

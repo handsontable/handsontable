@@ -463,13 +463,29 @@ class Viewport {
       endRow = this.rowsPartiallyVisibleCalculator.endRow;
     }
 
-    const { startRow: renderedStartRow, endRow: renderedEndRow } = this.rowsRenderCalculator;
+    const {
+      startRow: renderedStartRow,
+      endRow: renderedEndRow,
+      rowStartOffset,
+      rowEndOffset,
+    } = this.rowsRenderCalculator;
+
+    const totalRows = this.wtSettings.getSetting('totalRows') - 1;
+    const renderingThreshold = this.wtSettings.getSetting('viewportRowRenderingThreshold');
+
+    if (Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
+      startRow = Math.max(0, startRow - Math.min(rowStartOffset, renderingThreshold));
+      endRow = Math.min(totalRows, endRow + Math.min(rowEndOffset, renderingThreshold));
+
+    } else if (renderingThreshold === 'auto') {
+      startRow = Math.max(0, startRow - Math.ceil(rowStartOffset / 2));
+      endRow = Math.min(totalRows, endRow + Math.ceil(rowEndOffset / 2));
+    }
 
     if (startRow < renderedStartRow || (startRow === renderedStartRow && startRow > 0)) {
       return false;
 
-    } else if (endRow > renderedEndRow ||
-              (endRow === renderedEndRow && endRow < this.wtSettings.getSetting('totalRows') - 1)) {
+    } else if (endRow > renderedEndRow || (endRow === renderedEndRow && endRow < totalRows)) {
       return false;
     }
 
@@ -501,14 +517,29 @@ class Viewport {
       endColumn = this.columnsPartiallyVisibleCalculator.endColumn;
     }
 
-    const { startColumn: renderedStartColumn, endColumn: renderedEndColumn } = this.columnsRenderCalculator;
+    const {
+      startColumn: renderedStartColumn,
+      endColumn: renderedEndColumn,
+      columnStartOffset,
+      columnEndOffset,
+    } = this.columnsRenderCalculator;
+
+    const totalColumns = this.wtSettings.getSetting('totalColumns') - 1;
+    const renderingThreshold = this.wtSettings.getSetting('viewportColumnRenderingThreshold');
+
+    if (Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
+      startColumn = Math.max(0, startColumn - Math.min(columnStartOffset, renderingThreshold));
+      endColumn = Math.min(totalColumns, endColumn + Math.min(columnEndOffset, renderingThreshold));
+
+    } else if (renderingThreshold === 'auto') {
+      startColumn = Math.max(0, startColumn - Math.ceil(columnStartOffset / 2));
+      endColumn = Math.min(totalColumns, endColumn + Math.ceil(columnEndOffset / 2));
+    }
 
     if (startColumn < renderedStartColumn || (startColumn === renderedStartColumn && startColumn > 0)) {
       return false;
 
-    } else if (endColumn > renderedEndColumn ||
-              (endColumn === renderedEndColumn && endColumn < this.wtSettings.getSetting('totalColumns') - 1)) {
-
+    } else if (endColumn > renderedEndColumn || (endColumn === renderedEndColumn && endColumn < totalColumns)) {
       return false;
     }
 

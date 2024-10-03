@@ -3,9 +3,9 @@ import {
   SELECTED_CLASS,
   ODD_ROW_CLASS
 } from "./constants";
-import { Events } from "handsontable/pluginHooks";
+import { Events } from "handsontable";
 
-export const addClassesToRows: Events["beforeRenderer"] = (
+export const addClassesToRows: Events['beforeRenderer'] = (
   TD,
   row,
   column,

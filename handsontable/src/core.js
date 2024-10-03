@@ -29,7 +29,7 @@ import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { DEFAULT_COLUMN_WIDTH } from './3rdparty/walkontable/src';
-import Hooks from './pluginHooks';
+import { Hooks } from './core/hooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
@@ -2462,9 +2462,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
 
-        if (isFunction(settings[i]) || Array.isArray(settings[i])) {
-          settings[i].initialHook = true;
-          instance.addHook(i, settings[i]);
+        if (isFunction(settings[i])) {
+          Hooks.getSingleton().addAsFixed(i, settings[i], instance);
+
+        } else if (Array.isArray(settings[i])) {
+          Hooks.getSingleton().add(i, settings[i], instance);
         }
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings

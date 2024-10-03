@@ -386,68 +386,52 @@ class Border {
       return;
     }
 
-    const { wtTable, rootDocument, rootWindow } = this.wot; // todo refactoring: consider about using internal facade (it is given by external code)
-    let fromRow;
-    let toRow;
-    let fromColumn;
-    let toColumn;
-    let rowHeader;
-    let columnHeader;
+    let [fromRow, fromColumn, toRow, toColumn] = corners;
 
-    const rowsCount = wtTable.getRenderedRowsCount();
-
-    for (let i = 0; i < rowsCount; i += 1) {
-      const s = wtTable.rowFilter.renderedToSource(i);
-
-      if (s >= corners[0] && s <= corners[2]) {
-        fromRow = s;
-        rowHeader = corners[0];
-        break;
-      }
-    }
-
-    for (let i = rowsCount - 1; i >= 0; i -= 1) {
-      const s = wtTable.rowFilter.renderedToSource(i);
-
-      if (s >= corners[0] && s <= corners[2]) {
-        toRow = s;
-        break;
-      }
-    }
-
-    const columnsCount = wtTable.getRenderedColumnsCount();
-
-    for (let i = 0; i < columnsCount; i += 1) {
-      const s = wtTable.columnFilter.renderedToSource(i);
-
-      if (s >= corners[1] && s <= corners[3]) {
-        fromColumn = s;
-        columnHeader = corners[1];
-        break;
-      }
-    }
-
-    for (let i = columnsCount - 1; i >= 0; i -= 1) {
-      const s = wtTable.columnFilter.renderedToSource(i);
-
-      if (s >= corners[1] && s <= corners[3]) {
-        toColumn = s;
-        break;
-      }
-    }
-    if (fromRow === undefined || fromColumn === undefined) {
+    // borders can not be rendered on headers so hide them
+    if (fromRow < 0 && toRow < 0 || fromColumn < 0 && toColumn < 0) {
       this.disappear();
 
       return;
     }
 
-    let fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
+    const { wtTable, rootDocument, rootWindow } = this.wot;
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
+    const firstRenderedRow = wtTable.getFirstRenderedRow();
+    const lastRenderedRow = wtTable.getLastRenderedRow();
+    const firstRenderedColumn = wtTable.getFirstRenderedColumn();
+    const lastRenderedColumn = wtTable.getLastRenderedColumn();
+
+    let fromTD;
+
+    if (isMultiple) {
+      fromColumn = Math.max(fromColumn, firstRenderedColumn);
+      toColumn = Math.min(toColumn, lastRenderedColumn);
+      fromRow = Math.max(fromRow, firstRenderedRow);
+      toRow = Math.min(toRow, lastRenderedRow);
+
+      if (toColumn < fromColumn || toRow < fromRow) {
+        this.disappear();
+
+        return;
+      }
+
+      fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
+    } else {
+
+      fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
+
+      if (!(fromTD instanceof HTMLElement)) {
+        this.disappear();
+
+        return;
+      }
+    }
+
     const toTD = isMultiple ? wtTable.getCell(this.wot.createCellCoords(toRow, toColumn)) : fromTD;
     const fromOffset = offset(fromTD);
     const toOffset = isMultiple ? offset(toTD) : fromOffset;
     const containerOffset = offset(wtTable.TABLE);
-    const containerWidth = outerWidth(wtTable.TABLE);
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
@@ -456,6 +440,7 @@ class Border {
     let width = 0;
 
     if (isRtl) {
+      const containerWidth = outerWidth(wtTable.TABLE);
       const fromWidth = outerWidth(fromTD);
       const gridRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
 
@@ -468,6 +453,7 @@ class Border {
     }
 
     if (this.isEntireColumnSelected(fromRow, toRow)) {
+      const rowHeader = fromRow;
       const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, rowHeader, containerOffset);
       let fromTH = null;
 
@@ -484,6 +470,7 @@ class Border {
     let height = toOffset.top + outerHeight(toTD) - minTop;
 
     if (this.isEntireRowSelected(fromColumn, toColumn)) {
+      const columnHeader = fromColumn;
       const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, columnHeader, containerOffset);
       let fromTH = null;
 
@@ -536,7 +523,7 @@ class Border {
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ?
       cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
-    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn);
+    const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn, false, 'render');
     let [checkRow, checkCol] = [toRow, toColumn];
 
     if (hookResult && Array.isArray(hookResult)) {
