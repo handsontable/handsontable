@@ -32,7 +32,11 @@ export class SettingsMapper {
     let newSettings: Handsontable.GridSettings = {};
 
     for (const key in properties) {
-      if (key !== 'children' && properties.hasOwnProperty(key)) {
+      if (
+        key !== 'children' &&
+        !shouldSkipProp(key as keyof Handsontable.GridSettings) &&
+        properties.hasOwnProperty(key)
+      ) {
         (newSettings as any)[key] = properties[key as keyof HotTableProps];
       }
     }

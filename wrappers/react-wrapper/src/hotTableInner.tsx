@@ -1,4 +1,10 @@
-import React from 'react';
+import React, {
+  useEffect,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  forwardRef
+} from 'react';
 import Handsontable from 'handsontable/base';
 import { SettingsMapper } from './settingsMapper';
 import { RenderersPortalManager } from './renderersPortalManager';
@@ -22,27 +28,32 @@ import { useHotTableContext } from './hotTableContext'
 import { HotColumnContextProvider } from './hotColumnContext'
 import { EditorContextProvider, makeEditorClass } from "./hotEditor";
 
-const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) => {
+const HotTableInner = forwardRef<HotTableRef, HotTableProps>((props, ref) => {
 
   /**
    * Reference to the Handsontable instance.
    */
-  const __hotInstance = React.useRef<Handsontable | null>(null);
+  const __hotInstance = useRef<Handsontable | null>(null);
 
   /**
    * Reference to the main Handsontable DOM element.
    */
-  const hotElementRef = React.useRef<HTMLDivElement>(null);
+  const hotElementRef = useRef<HTMLDivElement>(null);
 
   /**
    * Reference to component-based editor overridden hooks object.
    */
-  const globalEditorHooksRef = React.useRef<HotEditorHooks | null>(null);
+  const globalEditorHooksRef = useRef<HotEditorHooks | null>(null);
 
   /**
    * Reference to HOT-native custom editor class instance.
    */
-  const globalEditorClassInstance = React.useRef<Handsontable.editors.BaseEditor | null>(null);
+  const globalEditorClassInstance = useRef<Handsontable.editors.BaseEditor | null>(null);
+
+  /**
+   * Reference to the previous props object.
+   */
+  const prevProps = useRef<HotTableProps>();
 
   /**
    * HotTable context exposing helper functions.
@@ -52,7 +63,7 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
   /**
    * Getter for the property storing the Handsontable instance.
    */
-  const getHotInstance = React.useCallback((): Handsontable | null => {
+  const getHotInstance = useCallback((): Handsontable | null => {
     if (!__hotInstance.current || !__hotInstance.current.isDestroyed) {
 
       // Will return the Handsontable instance or `null` if it's not yet been created.
@@ -65,10 +76,14 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
     }
   }, [__hotInstance]);
 
+  const isHotInstanceDestroyed = useCallback((): boolean => {
+    return !__hotInstance.current || __hotInstance.current.isDestroyed;
+  }, [__hotInstance]);
+
   /**
    * Clear both the editor and the renderer cache.
    */
-  const clearCache = React.useCallback((): void => {
+  const clearCache = useCallback((): void => {
     context.clearRenderedCellCache();
     context.componentRendererColumns.clear();
   }, [context]);
@@ -78,7 +93,7 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
    *
    * @returns The `Document` object used by the component.
    */
-  const getOwnerDocument = React.useCallback((): Document | null => {
+  const getOwnerDocument = useCallback((): Document | null => {
     if (isCSR()) {
       return hotElementRef.current ? hotElementRef.current.ownerDocument : document;
     }
@@ -91,8 +106,17 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
    *
    * @returns {Handsontable.GridSettings} New global set of settings for Handsontable.
    */
-  const createNewGlobalSettings = (): Handsontable.GridSettings => {
-    const newSettings = SettingsMapper.getSettings(props);
+  const createNewGlobalSettings = (init: boolean = false, prevProps: HotTableProps = {}): Handsontable.GridSettings => {
+    const initOnlySettingKeys = !isHotInstanceDestroyed() ? // Needed for React's double-rendering.
+      ((getHotInstance()?.getSettings() as any)?._initOnlySettings || []) :
+      [];
+    const newSettings = SettingsMapper.getSettings(
+      props, {
+        prevProps,
+        isInit: init,
+        initOnlySettingKeys
+      }
+    );
 
     newSettings.columns = context.columnsSettings.length ? context.columnsSettings : newSettings.columns;
 
@@ -132,8 +156,11 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
   /**
    * Initialize Handsontable after the component has mounted.
    */
-  React.useEffect(() => {
-    const newGlobalSettings = createNewGlobalSettings();
+  useEffect(() => {
+    const newGlobalSettings = createNewGlobalSettings(true);
+
+    // Update prevProps with the current props
+    prevProps.current = props;
 
     __hotInstance.current = new Handsontable.Core(hotElementRef.current!, newGlobalSettings);
 
@@ -177,7 +204,11 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
 
     const hotInstance = getHotInstance();
 
-    const newGlobalSettings = createNewGlobalSettings();
+    const newGlobalSettings = createNewGlobalSettings(false, prevProps.current);
+
+    // Update prevProps with the current props
+    prevProps.current = props;
+
     hotInstance?.updateSettings(newGlobalSettings, false);
 
     displayAutoSizeWarning(hotInstance);
@@ -187,7 +218,7 @@ const HotTableInner = React.forwardRef<HotTableRef, HotTableProps>((props, ref) 
   /**
    * Interface exposed to parent components by HotTable instance via React ref
    */
-  React.useImperativeHandle(ref, () => ({
+  useImperativeHandle(ref, () => ({
     get hotElementRef() {
       return hotElementRef.current!;
     },
