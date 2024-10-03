@@ -29,7 +29,7 @@ import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
 import { PersistentState } from './persistentState';
 import { Search } from './search';
-import { StretchColumn } from './stretchColumn';
+import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
 import { UndoRedo } from './undoRedo';
@@ -71,7 +71,7 @@ export function registerAllPlugins() {
   registerPlugin(NestedRows);
   registerPlugin(PersistentState);
   registerPlugin(Search);
-  registerPlugin(StretchColumn);
+  registerPlugin(StretchColumns);
   registerPlugin(TouchScroll);
   registerPlugin(TrimRows);
   registerPlugin(UndoRedo);
@@ -109,7 +109,7 @@ export {
   NestedRows,
   PersistentState,
   Search,
-  StretchColumn,
+  StretchColumns,
   TouchScroll,
   TrimRows,
   UndoRedo,

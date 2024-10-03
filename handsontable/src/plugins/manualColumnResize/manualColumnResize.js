@@ -473,12 +473,7 @@ export class ManualColumnResize extends BasePlugin {
         this.#newSize = hookNewSize;
       }
 
-      if (this.hot.getSettings().stretchH === 'all') {
-        this.clearManualSize(column);
-      } else {
-        this.setManualSize(column, this.#newSize); // double click sets by auto row size plugin
-      }
-
+      this.setManualSize(column, this.#newSize); // double click sets by auto row size plugin
       this.saveManualColumnWidths();
 
       this.hot.runHooks('afterColumnResize', this.#newSize, column, true);

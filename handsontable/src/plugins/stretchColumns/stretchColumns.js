@@ -1,15 +1,13 @@
 import { BasePlugin } from '../base';
-import Hooks from '../../pluginHooks';
-import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
 import { StretchCalculator } from './calculator';
 
-export const PLUGIN_KEY = 'stretchColumn';
+export const PLUGIN_KEY = 'stretchColumns';
 export const PLUGIN_PRIORITY = 155;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
- * @plugin StretchColumn
- * @class StretchColumn
+ * @plugin StretchColumns
+ * @class StretchColumns
  *
  * @description
  * This plugin allows to set column widths based on their widest cells.
@@ -55,7 +53,7 @@ export const PLUGIN_PRIORITY = 155;
  * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-export class StretchColumn extends BasePlugin {
+export class StretchColumns extends BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
@@ -68,6 +66,11 @@ export class StretchColumn extends BasePlugin {
     return true;
   }
 
+  /**
+   * The stretch calculator.
+   *
+   * @type {StretchCalculator}
+   */
   #stretchCalculator = new StretchCalculator(this.hot);
 
   /**
@@ -88,12 +91,10 @@ export class StretchColumn extends BasePlugin {
       return;
     }
 
-    // this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
-    // this.addHook('beforeChangeRender', (...args) => this.#onBeforeChange(...args));
-    // this.addHook('afterFormulasValuesUpdate', (...args) => this.#onAfterFormulasValuesUpdate(...args));
+    this.#stretchCalculator.useStrategy(this.hot.getSettings().stretchH);
+
     this.addHook('beforeRender', () => this.#onBeforeRender());
-    this.addHook('modifyColWidth', (...args) => this.#onModifyColWidth(...args));
-    // this.addHook('init', () => this.#onInit());
+    this.addHook('modifyColWidth', (...args) => this.#onModifyColWidth(...args), 10);
 
     super.enablePlugin();
   }
@@ -102,6 +103,7 @@ export class StretchColumn extends BasePlugin {
    * Updates the plugin's state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
+    this.#stretchCalculator.useStrategy(this.hot.getSettings().stretchH);
     super.updatePlugin();
   }
 
@@ -113,17 +115,29 @@ export class StretchColumn extends BasePlugin {
   }
 
   /**
-   * Recalculate columns stretching.
+   * Gets the calculated column width based on the stretching
+   * strategy defined by {@link Options#stretchH} option.
+   *
+   * @param {number} columnVisualIndex The visual index of the column.
+   * @returns {number | null}
    */
-  refreshStretching() {
-    this.#stretchCalculator.refreshStretching();
-  }
-
   getColumnWidth(columnVisualIndex) {
-    return this.#stretchCalculator.getColumnWidth(columnVisualIndex);
+    return this.#stretchCalculator.getCalculatedColumnWidth(columnVisualIndex);
   }
 
-  #onModifyColWidth(width, column) {
+  /**
+   * Hook that modifies the column width - applies by the stretching logic.
+   *
+   * @param {number} width The column width.
+   * @param {number} column The visual column index.
+   * @param {string} source The source of the modification.
+   * @returns {number}
+   */
+  #onModifyColWidth(width, column, source) {
+    if (source === this.pluginName) {
+      return;
+    }
+
     const newWidth = this.getColumnWidth(column);
 
     if (typeof newWidth === 'number') {
@@ -134,33 +148,18 @@ export class StretchColumn extends BasePlugin {
   }
 
   /**
-   * On before view render listener.
+   * On each before render the plugin recalculates the column widths
+   * based on the active stretching strategy.
    */
   #onBeforeRender() {
     this.#stretchCalculator.refreshStretching();
   }
 
   /**
-   * On after load data listener.
-   *
-   * @param {Array} sourceData Source data.
-   * @param {boolean} isFirstLoad `true` if this is the first load.
-   */
-  #onAfterLoadData(sourceData, isFirstLoad) {
-
-  }
-
-  /**
-   * On after Handsontable init fill plugin with all necessary values.
-   */
-  #onInit() {
-
-  }
-
-  /**
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#stretchCalculator = null;
     super.destroy();
   }
 }
