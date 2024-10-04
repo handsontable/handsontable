@@ -712,6 +712,7 @@ function prepareRedirects(framework: string): Redirect[] {
 }
 
 function isAuthenticated(request: Request): boolean {
+  console.log('Checking if the user is authenticated');
   const cookies = request.headers.get('cookie') || '';
   const jwtCookie = cookies.split(';').find(cookie => cookie.trim().startsWith('nf_jwt='));
   return !!jwtCookie;
@@ -727,6 +728,8 @@ export default async function handler(request: Request, context: Context) {
 
   // Check if the request is a POST request for the Netlify password submission
   const { method } = request;
+  console.log('Method:', method);
+  console.log('Is Authenticated:', isAuthenticated(request));
   if(method === 'POST') {
     console.log('POST request', request.url);
     return context.next();
@@ -736,6 +739,9 @@ export default async function handler(request: Request, context: Context) {
     console.log('User is not authenticated, redirecting to the password prompt');
     return context.next();
   }
+
+  console.log('User is authenticated, processing the request');
+  
 
   const currentUrl = new URL(request.url);
   const baseUrl = currentUrl.origin;
