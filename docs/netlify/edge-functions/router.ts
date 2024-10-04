@@ -735,13 +735,13 @@ export default async function handler(request: Request, context: Context) {
     return context.next();
   }
 
+  const netlifyDefaultResponse = await context.next();
+
   if(!isAuthenticated(request)) {
     console.log('User is not authenticated, redirecting to the password prompt');
-    return context.next();
+    return netlifyDefaultResponse;
   }
-
   console.log('User is authenticated, processing the request');
-  
 
   const currentUrl = new URL(request.url);
   const baseUrl = currentUrl.origin;
@@ -752,7 +752,6 @@ export default async function handler(request: Request, context: Context) {
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
   const redirects = addBaseUrlToRelativePaths(prepareRedirects(framework), baseUrl);
-
   const matchFound = redirects.find(redirect => redirect.from.test(currentUrl.pathname));
 
   if (matchFound) {
