@@ -46,7 +46,11 @@ export class StretchLastStrategy extends StretchStrategy {
    * Finishes the calculation.
    */
   finish() {
-    const lastColumnWidth = (this.viewportWidth - this.allColumnsWidth) + this.#lastColumnWidth;
+    if (this.#lastColumnIndex === -1) {
+      return;
+    }
+
+    const lastColumnWidth = Math.max(this.viewportWidth - this.allColumnsWidth + this.#lastColumnWidth, 0);
 
     this.widths.set(this.#lastColumnIndex, lastColumnWidth);
   }

@@ -647,7 +647,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyColHeader: (column) => {},
   modifyColumnHeaderHeight: () => {},
   modifyColumnHeaderValue: (headerValue, visualColumnIndex, headerLevel) => {},
-  modifyColWidth: (width) => {},
+  modifyColWidth: (width, column, source) => {
+    const _width: number = width;
+    const _column: number = column;
+    const _source: string | undefined = source;
+  },
   modifyCopyableRange: (copyableRanges) => {},
   modifyFiltersMultiSelectValue: (value, meta) => '123',
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
@@ -670,9 +674,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},
-  modifyRowHeight: (height, row) => {
+  modifyRowHeight: (height, row, source) => {
     const _height: number = height;
     const _row: number = row;
+    const _source: string | undefined = source;
   },
   modifyRowHeightByOverlayName: (height, row, overlayType) => {
     const _height: number = height;

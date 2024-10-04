@@ -64,15 +64,17 @@ export class StretchCalculator {
       return;
     }
 
-    // const scrollbarCompensation = this.#hot.view.hasHorizontalScroll() ? getScrollbarWidth() : 0;
-    const scrollbarCompensation = 0;
-
+    let viewportWidth = this.#hot.view.getViewportWidth();
     let allColumnsWidth = 0;
-    let viewportWidth = this.#hot.view.getViewportWidth() + scrollbarCompensation;
     const nonFixedColumns = [];
 
     for (let columnIndex = 0; columnIndex < this.#hot.countCols(); columnIndex++) {
-      const columnWidth = this.#getColumnWidthPure(columnIndex);
+      if (this.#hot.columnIndexMapper.isHidden(this.#hot.toPhysicalColumn(columnIndex))) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+
+      const columnWidth = this.#getWidthWithoutStretching(columnIndex);
       const fixedWidth = this.#hot.runHooks('beforeStretchingColumnWidth', undefined, columnIndex);
 
       if (typeof fixedWidth === 'number') {
@@ -97,12 +99,13 @@ export class StretchCalculator {
       const stretchStrategy = this.#stretchStrategies.get(this.#activeStrategy);
 
       stretchStrategy.prepare({
+        overwriteColumnWidthFn: (...args) => this.#hot.runHooks('beforeStretchingColumnWidth', ...args),
         allColumnsWidth,
         viewportWidth,
       });
 
       nonFixedColumns.forEach((columnIndex) => {
-        stretchStrategy.calculate(columnIndex, this.#getColumnWidthPure(columnIndex));
+        stretchStrategy.calculate(columnIndex, this.#getWidthWithoutStretching(columnIndex));
       });
 
       stretchStrategy.finish();
@@ -119,7 +122,7 @@ export class StretchCalculator {
    * @param {number} columnVisualIndex Column visual index.
    * @returns {number | null}
    */
-  getCalculatedColumnWidth(columnVisualIndex) {
+  getStretchedWidth(columnVisualIndex) {
     return this.#widthsMap.getValueAtIndex(this.#hot.toPhysicalColumn(columnVisualIndex));
   }
 
@@ -129,7 +132,7 @@ export class StretchCalculator {
    * @param {number} columnVisualIndex Column visual index.
    * @returns {number}
    */
-  #getColumnWidthPure(columnVisualIndex) {
+  #getWidthWithoutStretching(columnVisualIndex) {
     return this.#hot.getColWidth(columnVisualIndex, 'StretchColumns') ?? DEFAULT_COLUMN_WIDTH;
   }
 }

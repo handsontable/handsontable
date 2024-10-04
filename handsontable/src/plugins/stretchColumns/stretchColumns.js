@@ -122,7 +122,7 @@ export class StretchColumns extends BasePlugin {
    * @returns {number | null}
    */
   getColumnWidth(columnVisualIndex) {
-    return this.#stretchCalculator.getCalculatedColumnWidth(columnVisualIndex);
+    return this.#stretchCalculator.getStretchedWidth(columnVisualIndex);
   }
 
   /**
@@ -149,7 +149,7 @@ export class StretchColumns extends BasePlugin {
 
   /**
    * On each before render the plugin recalculates the column widths
-   * based on the active stretching strategy.
+   * based on the chosen stretching strategy.
    */
   #onBeforeRender() {
     this.#stretchCalculator.refreshStretching();

@@ -372,12 +372,14 @@ class Table {
           const hiderWidth = outerWidth(this.hider);
           const tableWidth = outerWidth(this.TABLE);
 
+          // TODO: Check if this is still needed
           if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
             // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
             this.columnUtils.calculateWidths();
             this.tableRenderer.renderer.colGroup.render();
           }
 
+          // TODO: Check if this is still needed
           if (workspaceWidth !== wtViewport.getWorkspaceWidth()) {
             // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
             wtViewport.containerWidth = null;

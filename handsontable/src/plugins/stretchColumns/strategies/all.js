@@ -34,9 +34,10 @@ export class StretchAllStrategy extends StretchStrategy {
   calculate(columnVisualIndex, columnWidth) {
     const stretchRatio = this.viewportWidth / this.allColumnsWidth;
     const stretchedWidth = Math.round(columnWidth * stretchRatio);
+    const finalWidth = this.overwriteColumnWidthFn(stretchedWidth, columnVisualIndex);
 
-    if (stretchedWidth >= DEFAULT_COLUMN_WIDTH) {
-      this.widths.set(columnVisualIndex, stretchedWidth);
+    if (finalWidth >= DEFAULT_COLUMN_WIDTH) {
+      this.widths.set(columnVisualIndex, finalWidth);
       this.#lastColumnIndex = columnVisualIndex;
     }
   }
