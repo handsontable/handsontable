@@ -727,21 +727,21 @@ async function handleCustom404(baseUrl:string) {
 export default async function handler(request: Request, context: Context) {
 
   // Check if the request is a POST request for the Netlify password submission
-  const { method } = request;
-  console.log('Method:', method);
-  console.log('Is Authenticated:', isAuthenticated(request));
-  if(method === 'POST') {
-    console.log('POST request', request.url);
-    return context.next();
-  }
+  // const { method } = request;
+  // console.log('Method:', method);
+  // console.log('Is Authenticated:', isAuthenticated(request));
+  // if(method === 'POST') {
+  //   console.log('POST request', request.url);
+  //   return context.next();
+  // }
 
-  const netlifyDefaultResponse = await context.next();
+  // const netlifyDefaultResponse = await context.next();
 
-  if(!isAuthenticated(request)) {
-    console.log('User is not authenticated, redirecting to the password prompt');
-    return netlifyDefaultResponse;
-  }
-  console.log('User is authenticated, processing the request');
+  // if(!isAuthenticated(request)) {
+  //   console.log('User is not authenticated, redirecting to the password prompt');
+  //   return netlifyDefaultResponse;
+  // }
+  //console.log('User is authenticated, processing the request');
 
   const currentUrl = new URL(request.url);
   const baseUrl = currentUrl.origin;
@@ -797,7 +797,6 @@ export default async function handler(request: Request, context: Context) {
     return handleCustom404(baseUrl)
   }
   // Return the original response if no match was found
-
   return response;
 }
 
