@@ -4,7 +4,7 @@ describe('StretchLastStrategy', () => {
   function createStretchStrategy(calcArgs = {
     viewportWidth: 300,
     allColumnsWidth: 300,
-    overwriteColumnWidthFn: (width) => width,
+    overwriteColumnWidthFn: width => width,
   }) {
     const strategy = new StretchLastStrategy();
 
@@ -36,7 +36,7 @@ describe('StretchLastStrategy', () => {
     const strategy = createStretchStrategy({
       viewportWidth: 1000,
       allColumnsWidth: 700,
-      overwriteColumnWidthFn: (width) => width,
+      overwriteColumnWidthFn: width => width,
     });
 
     strategy.calculate(0, 100);
@@ -50,7 +50,7 @@ describe('StretchLastStrategy', () => {
     const strategy = createStretchStrategy({
       viewportWidth: 1000,
       allColumnsWidth: 1700,
-      overwriteColumnWidthFn: (width) => width,
+      overwriteColumnWidthFn: width => width,
     });
 
     strategy.calculate(0, 100);

@@ -4,7 +4,7 @@ describe('StretchAllStrategy', () => {
   function createStretchStrategy(calcArgs = {
     viewportWidth: 300,
     allColumnsWidth: 300,
-    overwriteColumnWidthFn: (width) => width,
+    overwriteColumnWidthFn: width => width,
   }) {
     const strategy = new StretchAllStrategy();
 
@@ -36,7 +36,7 @@ describe('StretchAllStrategy', () => {
     const strategy = createStretchStrategy({
       viewportWidth: 1000,
       allColumnsWidth: 700,
-      overwriteColumnWidthFn: (width) => width,
+      overwriteColumnWidthFn: width => width,
     });
 
     strategy.calculate(0, 50);
