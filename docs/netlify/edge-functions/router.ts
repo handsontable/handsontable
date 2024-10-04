@@ -717,14 +717,26 @@ function isAuthenticated(request: Request): boolean {
   return !!jwtCookie;
 }
 
-async function handle404(baseUrl:string) {
+async function handleCustom404(baseUrl:string) {
   return fetch(`${baseUrl}/docs/404.html`, {
     headers: { 'Content-Type': 'text/html' },
   });
 }
 
-
 export default async function handler(request: Request, context: Context) {
+
+  // Check if the request is a POST request for the Netlify password submission
+  const { method } = request;
+  if(method === 'POST') {
+    console.log('POST request', request.url);
+    return context.next();
+  }
+
+  if(!isAuthenticated(request)) {
+    console.log('User is not authenticated, redirecting to the password prompt');
+    return context.next();
+  }
+
   const currentUrl = new URL(request.url);
   const baseUrl = currentUrl.origin;
   console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION'));
@@ -771,35 +783,17 @@ export default async function handler(request: Request, context: Context) {
       return Response.redirect('/docs/404.html', 302);
     }
   }
- //Bypass password protection for 404 route
-  const response = await context.next();
-  if(response.status === 404) {
-    console.log('handle404',baseUrl);
-    return handle404(baseUrl)
-  }
-  
-  if(!isAuthenticated(request)) {
-    console.log('isAuthenticated',isAuthenticated(request));
-    return new Response('Unauthorized - Please enter password', { status: 401 });
-  }
-  return response;
- 
-  // const { headers } = request;
-  // const authHeader = headers.get('authorization');
-  // if(!authHeader) {
-  //   console.log('Authorization header is missing',request.url);
-  //   const url = new URL(request.url);
-  //   if(url.pathname === '/docs/404.html') {
-  //     console.log('Bypassing password protection for 404 route');
-  //     const custom404Page = await fetch(`${baseUrl}/docs/404.html`);
-  //     return new Response(custom404Page.body, {
-  //       status: 404,
-  //       statusText: 'Not Found',
-  //       headers: custom404Page.headers,
-  //     });
-  //   }
-  // }
 
+  const response = await context.next();
+
+  // If the page is not found, serve the custom 404 page
+  if(response.status === 404) {
+    console.log('handle404', baseUrl);
+    return handleCustom404(baseUrl)
+  }
+  // Return the original response if no match was found
+
+  return response;
 }
 
 export const config: Config = {
