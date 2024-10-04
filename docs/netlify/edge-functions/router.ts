@@ -711,7 +711,21 @@ function prepareRedirects(framework: string): Redirect[] {
   return updatedRedirectsArray;
 }
 
+
+
 export default async function handler(request: Request, context: Context) {
+  const { headers } = request;
+  const authHeader = headers.get('authorization');
+  if(!authHeader) {
+    console.log('Authorization header is missing',request.url);
+    const custom404Page = await fetch('/docs/404.html');
+    return new Response(custom404Page.body, {
+      status: 404,
+      statusText: 'Not Found',
+      headers: custom404Page.headers,
+    });
+  }
+
   const url = new URL(request.url);
   console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION'));
   console.log('Request URL', url);
