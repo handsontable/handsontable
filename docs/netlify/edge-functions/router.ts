@@ -714,34 +714,37 @@ function prepareRedirects(framework: string): Redirect[] {
 
 
 export default async function handler(request: Request, context: Context) {
+  const currentUrl = new URL(request.url);
+  const baseUrl = currentUrl.origin;
+  console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION'));
+  console.log('Request URL', currentUrl);
+
+  //Bypass password protection for 404 route
   const { headers } = request;
   const authHeader = headers.get('authorization');
   if(!authHeader) {
     console.log('Authorization header is missing',request.url);
-    const custom404Page = await fetch('/docs/404.html');
-    return new Response(custom404Page.body, {
-      status: 404,
-      statusText: 'Not Found',
-      headers: custom404Page.headers,
-    });
+    const url = new URL(request.url);
+    if(url.pathname === '/docs/404.html') {
+      console.log('Bypassing password protection for 404 route');
+      const custom404Page = await fetch(`${baseUrl}/docs/404.html`);
+      return new Response(custom404Page.body, {
+        status: 404,
+        statusText: 'Not Found',
+        headers: custom404Page.headers,
+      });
+    }
   }
-
-  const url = new URL(request.url);
-  console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION'));
-  console.log('Request URL', url);
 
   const cookieValue = context.cookies.get('docs_fw');
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
-  const currentUrl = new URL(request.url);
-  const baseUrl = currentUrl.origin;
-
   const redirects = addBaseUrlToRelativePaths(prepareRedirects(framework), baseUrl);
 
-  const matchFound = redirects.find(redirect => redirect.from.test(url.pathname));
+  const matchFound = redirects.find(redirect => redirect.from.test(currentUrl.pathname));
 
   if (matchFound) {
-    const newUrl = url.pathname.replace(matchFound.from, matchFound.to)
+    const newUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to)
 
     if (matchFound.rewrite === true) {
       console.log('Match found, proxying to', newUrl);
