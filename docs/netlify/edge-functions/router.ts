@@ -711,6 +711,17 @@ function prepareRedirects(framework: string): Redirect[] {
   return updatedRedirectsArray;
 }
 
+function isAuthenticated(request: Request): boolean {
+  const cookies = request.headers.get('cookie') || '';
+  const jwtCookie = cookies.split(';').find(cookie => cookie.trim().startsWith('nf_jwt='));
+  return !!jwtCookie;
+}
+
+async function handle404(baseUrl:string) {
+  return fetch(`${baseUrl}/docs/404.html`, {
+    headers: { 'Content-Type': 'text/html' },
+  });
+}
 
 
 export default async function handler(request: Request, context: Context) {
@@ -718,23 +729,6 @@ export default async function handler(request: Request, context: Context) {
   const baseUrl = currentUrl.origin;
   console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION'));
   console.log('Request URL', currentUrl);
-
-  //Bypass password protection for 404 route
-  const { headers } = request;
-  const authHeader = headers.get('authorization');
-  if(!authHeader) {
-    console.log('Authorization header is missing',request.url);
-    const url = new URL(request.url);
-    if(url.pathname === '/docs/404.html') {
-      console.log('Bypassing password protection for 404 route');
-      const custom404Page = await fetch(`${baseUrl}/docs/404.html`);
-      return new Response(custom404Page.body, {
-        status: 404,
-        statusText: 'Not Found',
-        headers: custom404Page.headers,
-      });
-    }
-  }
 
   const cookieValue = context.cookies.get('docs_fw');
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
@@ -777,13 +771,35 @@ export default async function handler(request: Request, context: Context) {
       return Response.redirect('/docs/404.html', 302);
     }
   }
-  console.log('No match found, continuing to the next handler');
-  const responseNext = await context.next();
-  if(responseNext.status === 404) {
-    console.log('No match found, but the page does not exist, redirecting to the default 404 page');
-    return Response.redirect('/docs/404.html', 302);
+ //Bypass password protection for 404 route
+  const response = await context.next();
+  if(response.status === 404) {
+    console.log('handle404',baseUrl);
+    return handle404(baseUrl)
   }
-  return responseNext;
+  
+  if(!isAuthenticated(request)) {
+    console.log('isAuthenticated',isAuthenticated(request));
+    return new Response('Unauthorized - Please enter password', { status: 401 });
+  }
+  return response;
+ 
+  // const { headers } = request;
+  // const authHeader = headers.get('authorization');
+  // if(!authHeader) {
+  //   console.log('Authorization header is missing',request.url);
+  //   const url = new URL(request.url);
+  //   if(url.pathname === '/docs/404.html') {
+  //     console.log('Bypassing password protection for 404 route');
+  //     const custom404Page = await fetch(`${baseUrl}/docs/404.html`);
+  //     return new Response(custom404Page.body, {
+  //       status: 404,
+  //       statusText: 'Not Found',
+  //       headers: custom404Page.headers,
+  //     });
+  //   }
+  // }
+
 }
 
 export const config: Config = {
