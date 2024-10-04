@@ -719,21 +719,23 @@ function isAuthenticated(request: Request): boolean {
 }
 
 async function handleCustom404(baseUrl:string) {
-  return fetch(`${baseUrl}/docs/404.html`, {
+  console.log('handleCustom404', baseUrl);
+  const response = fetch(`${baseUrl}/docs/404.html`, {
     headers: { 'Content-Type': 'text/html' },
   });
+
+  return response;
 }
 
 export default async function handler(request: Request, context: Context) {
 
   // Check if the request is a POST request for the Netlify password submission
-  // const { method } = request;
+  const { method } = request;
   // console.log('Method:', method);
   // console.log('Is Authenticated:', isAuthenticated(request));
-  // if(method === 'POST') {
-  //   console.log('POST request', request.url);
-  //   return context.next();
-  // }
+  if(method === 'POST') {
+    console.log('POST request', request.url);
+  }
 
   // const netlifyDefaultResponse = await context.next();
 
@@ -794,7 +796,7 @@ export default async function handler(request: Request, context: Context) {
   // If the page is not found, serve the custom 404 page
   if(response.status === 404) {
     console.log('handle404', baseUrl);
-    return handleCustom404(baseUrl)
+    return await handleCustom404(baseUrl)
   }
   // Return the original response if no match was found
   return response;
