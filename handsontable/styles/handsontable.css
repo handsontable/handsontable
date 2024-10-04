@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 02/10/2024 12:16:51)
+ * Release date: 30/07/2024 (built at 04/10/2024 13:14:33)
  */
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
@@ -134,7 +134,16 @@
   background-color: var(--ht-header-active-background-color);
 }
 .handsontable th.current {
+  color: var(--ht-header-active-foreground-color);
   background-color: var(--ht-header-active-background-color);
+}
+.handsontable th.current:after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--ht-cell-selection-border-color);
+  z-index: 1;
+  pointer-events: none;
 }
 .handsontable thead th {
   padding: 0;
@@ -144,11 +153,14 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--ht-cell-horizontal-padding, 8px) var(--ht-cell-vertical-padding, 4px);
-  height: calc(var(--ht-line-height, 20px) + 2 * var(--ht-cell-horizontal-padding, 8px) + 1px);
+  overflow: hidden;
 }
 .handsontable thead tr:not(:last-child) th {
   /* Fix for - nested columns with hidden column  */
   overflow: hidden;
+}
+.handsontable thead tr:not(:last-child) th:after {
+  inset: 0;
 }
 .handsontable tbody th.ht__highlight:before {
   width: var(--ht-header-highlighted-shadow-size);
@@ -849,6 +861,7 @@ tr.ht__row_odd td {
   white-space: nowrap;
   text-indent: -9999px;
   cursor: pointer;
+  color: var(--ht-accent-color);
 }
 .pika-single .pika-prev {
   order: 1;
@@ -1236,10 +1249,10 @@ tr.ht__row_odd td {
 .handsontable th.ht_nestingLevels > .relative {
   display: flex;
   align-items: center;
-  gap: var(--ht-gap-size);
+  gap: 5px;
 }
 .handsontable th.ht_nestingLevels span:last-child {
-  padding-left: calc(var(--ht-icon-size) + var(--ht-gap-size));
+  padding-left: calc(var(--ht-icon-size) + 5px);
 }
 .handsontable th.ht_nestingLevels span.ht_nestingLevel {
   display: inline-block;
@@ -1247,8 +1260,8 @@ tr.ht__row_odd td {
 .handsontable th.ht_nestingLevels span.ht_nestingLevel_empty {
   position: relative;
   display: inline-block;
-  width: var(--ht-gap-size);
-  height: var(--ht-gap-size);
+  width: 5px;
+  height: 1px;
   order: -2;
 }
 .handsontable th.ht_nestingLevels .ht_nestingButton {
@@ -1627,6 +1640,8 @@ tr.ht__row_odd td {
   content: "";
   display: block;
   order: 1;
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
 }
 
 .htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
@@ -1639,13 +1654,15 @@ tr.ht__row_odd td {
 }
 
 .handsontable span.colHeader.columnSorting:after {
+  content: "";
   position: relative;
   order: 2;
   margin-left: calc(var(--ht-gap-size) * -1);
   padding-inline-start: 1px;
   padding-inline-end: 1px;
   top: var(--ht-gap-size);
-  font-size: 7px;
+  font-size: 8px;
+  width: 8px;
 }
 .handsontable span.colHeader.columnSorting[class^=sort-]::after, .handsontable span.colHeader.columnSorting[class*=" sort-"]::after {
   content: "+";
@@ -1684,6 +1701,10 @@ tr.ht__row_odd td {
   box-shadow: calc((var(--ht-frozen-shadow-size) - 1px) * -1) calc((var(--ht-frozen-shadow-size) - 1px) * -1) 0 0 inset var(--ht-frozen-shadow-color);
 }
 
+.ht_clone_top,
+.ht_clone_top_left_corner {
+  background-color: var(--ht-background-color);
+}
 .ht_clone_top tbody tr:last-child td,
 .ht_clone_top tbody tr:last-child th,
 .ht_clone_top_left_corner tbody tr:last-child td,

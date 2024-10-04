@@ -118,7 +118,17 @@
       }
 
       &.current {
+        color: var(--ht-header-active-foreground-color);
         background-color: var(--ht-header-active-background-color);
+
+        &:after {
+          content: "";
+          position: absolute;
+          inset: -1px;
+          border: 1px solid var(--ht-cell-selection-border-color);
+          z-index: 1;
+          pointer-events: none;
+        }
       }
     }
 
@@ -132,16 +142,17 @@
         justify-content: space-between;
         padding: var(--ht-cell-horizontal-padding, 8px)
           var(--ht-cell-vertical-padding, 4px);
-        height: calc(
-          var(--ht-line-height, 20px) +
-            (2 * var(--ht-cell-horizontal-padding, 8px) + 1px)
-        );
+        overflow: hidden;
       }
     }
 
     thead tr:not(:last-child) th {
       /* Fix for - nested columns with hidden column  */
       overflow: hidden;
+      
+      &:after {
+        inset: 0;
+      }
     }
 
     // Header in Row

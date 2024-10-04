@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 02/10/2024 12:15:45)
+ * Release date: 30/07/2024 (built at 04/10/2024 11:51:53)
  */
 .ht-theme-main,
 .ht-theme-main-dark,
@@ -54,14 +54,14 @@
   --ht-cell-editor-foreground-color: #000000;
   --ht-cell-editor-border-color: #1a42e8;
   --ht-cell-editor-shadow-blur-radius: 8px;
-  --ht-cell-editor-shadow-color: rgba(17, 61, 201, 0.6);
+  --ht-cell-editor-shadow-color: rgba(17, 61, 201, 0.60);
   --ht-cell-editor-border-width: 2px;
   --ht-cell-editor-background-color: #ffffff;
-  --ht-cell-search-background-color: rgba(251, 233, 82, 0.8);
-  --ht-cell-error-background-color: rgba(250, 77, 50, 0.2);
-  --ht-cell-success-background-color: rgba(55, 188, 108, 0.2);
-  --ht-cell-warning-background-color: rgba(251, 233, 82, 0.2);
-  --ht-cell-informational-background-color: rgba(39, 194, 255, 0.2);
+  --ht-cell-search-background-color: rgba(251, 233, 82, 0.80);
+  --ht-cell-error-background-color: rgba(250, 77, 50, 0.20);
+  --ht-cell-success-background-color: rgba(55, 188, 108, 0.20);
+  --ht-cell-warning-background-color: rgba(251, 233, 82, 0.20);
+  --ht-cell-informational-background-color: rgba(39, 194, 255, 0.20);
   --ht-cell-selection-border-color: #1a42e8;
   --ht-cell-selection-background-color: #1a42e8;
   --ht-cell-autofill-size: 6px;
@@ -127,10 +127,10 @@
   --ht-row-even-background-color: #ffffff;
   --ht-resize-indicator-color: #999999;
   --ht-icon-button-background-color: rgba(255, 255, 255, 0);
-  --ht-icon-button-icon-color: rgba(34, 34, 34, 0.4);
-  --ht-icon-active-button-icon-color: rgba(34, 34, 34, 0.4);
+  --ht-icon-button-icon-color: rgba(34, 34, 34, 0.40);
+  --ht-icon-active-button-icon-color: rgba(34, 34, 34, 0.40);
   --ht-icon-button-hover-background-color: rgba(34, 34, 34, 0.08);
-  --ht-icon-button-hover-icon-color: rgba(34, 34, 34, 0.4);
+  --ht-icon-button-hover-icon-color: rgba(34, 34, 34, 0.40);
   --ht-icon-button-focus-background-color: rgba(255, 255, 255, 0);
   --ht-icon-button-focus-icon-color: #1a42e8;
   --ht-icon-button-border-radius: 2px;
@@ -416,10 +416,10 @@
   --ht-disabled-color: #68696c;
   --ht-cell-editor-foreground-color: #ffffff;
   --ht-cell-editor-border-color: #6d9af1;
-  --ht-cell-editor-shadow-color: rgba(109, 154, 241, 0.5);
+  --ht-cell-editor-shadow-color: rgba(109, 154, 241, 0.50);
   --ht-cell-editor-background-color: #121316;
-  --ht-cell-search-background-color: rgba(251, 233, 82, 0.4);
-  --ht-cell-informational-background-color: rgba(69, 114, 201, 0.2);
+  --ht-cell-search-background-color: rgba(251, 233, 82, 0.40);
+  --ht-cell-informational-background-color: rgba(69, 114, 201, 0.20);
   --ht-cell-selection-border-color: #6d9af1;
   --ht-cell-selection-background-color: #6d9af1;
   --ht-cell-autofill-background-color: #6d9af1;
@@ -474,10 +474,10 @@
   --ht-row-even-background-color: #121316;
   --ht-resize-indicator-color: #68696c;
   --ht-icon-button-background-color: rgba(0, 0, 0, 0);
-  --ht-icon-button-icon-color: rgba(255, 255, 255, 0.4);
-  --ht-icon-active-button-icon-color: rgba(255, 255, 255, 0.4);
+  --ht-icon-button-icon-color: rgba(255, 255, 255, 0.40);
+  --ht-icon-active-button-icon-color: rgba(255, 255, 255, 0.40);
   --ht-icon-button-hover-background-color: rgba(255, 255, 255, 0.08);
-  --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.4);
+  --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.40);
   --ht-icon-button-focus-background-color: rgba(0, 0, 0, 0);
   --ht-icon-button-focus-icon-color: #27c2ff;
   --ht-icon-button-disabled-background-color: rgba(104, 105, 108, 0.32);
@@ -550,7 +550,7 @@
   --ht-input-focus-background-color: #121316;
   --ht-input-focus-border-color: #6d9af1;
   --ht-input-focus-foreground-color: #acadae;
-  --ht-menu-shadow-color: rgba(0, 0, 0, 0.8);
+  --ht-menu-shadow-color: rgba(0, 0, 0, 0.80);
   --ht-menu-border-color: #222326;
   --ht-menu-item-hover-color: rgba(239, 239, 243, 0.05);
   --ht-menu-item-active-color: rgba(109, 154, 241, 0.08);
@@ -571,10 +571,10 @@
     --ht-disabled-color: #68696c;
     --ht-cell-editor-foreground-color: #ffffff;
     --ht-cell-editor-border-color: #6d9af1;
-    --ht-cell-editor-shadow-color: rgba(109, 154, 241, 0.5);
+    --ht-cell-editor-shadow-color: rgba(109, 154, 241, 0.50);
     --ht-cell-editor-background-color: #121316;
-    --ht-cell-search-background-color: rgba(251, 233, 82, 0.4);
-    --ht-cell-informational-background-color: rgba(69, 114, 201, 0.2);
+    --ht-cell-search-background-color: rgba(251, 233, 82, 0.40);
+    --ht-cell-informational-background-color: rgba(69, 114, 201, 0.20);
     --ht-cell-selection-border-color: #6d9af1;
     --ht-cell-selection-background-color: #6d9af1;
     --ht-cell-autofill-background-color: #6d9af1;
@@ -629,10 +629,10 @@
     --ht-row-even-background-color: #121316;
     --ht-resize-indicator-color: #68696c;
     --ht-icon-button-background-color: rgba(0, 0, 0, 0);
-    --ht-icon-button-icon-color: rgba(255, 255, 255, 0.4);
-    --ht-icon-active-button-icon-color: rgba(255, 255, 255, 0.4);
+    --ht-icon-button-icon-color: rgba(255, 255, 255, 0.40);
+    --ht-icon-active-button-icon-color: rgba(255, 255, 255, 0.40);
     --ht-icon-button-hover-background-color: rgba(255, 255, 255, 0.08);
-    --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.4);
+    --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.40);
     --ht-icon-button-focus-background-color: rgba(0, 0, 0, 0);
     --ht-icon-button-focus-icon-color: #27c2ff;
     --ht-icon-button-disabled-background-color: rgba(104, 105, 108, 0.32);
@@ -705,7 +705,7 @@
     --ht-input-focus-background-color: #121316;
     --ht-input-focus-border-color: #6d9af1;
     --ht-input-focus-foreground-color: #acadae;
-    --ht-menu-shadow-color: rgba(0, 0, 0, 0.8);
+    --ht-menu-shadow-color: rgba(0, 0, 0, 0.80);
     --ht-menu-border-color: #222326;
     --ht-menu-item-hover-color: rgba(239, 239, 243, 0.05);
     --ht-menu-item-active-color: rgba(109, 154, 241, 0.08);

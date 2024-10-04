@@ -7,13 +7,15 @@
     // Column's number position
     span.colHeader.columnSorting {
       &:after {
+        content: "";
         position: relative;
         order: 2;
         margin-left: calc(var(--ht-gap-size) * -1);
         padding-inline-start: 1px;
         padding-inline-end: 1px;
         top: var(--ht-gap-size);
-        font-size: 7px;
+        font-size: 8px;
+        width: 8px;
       }
 
       // We support up to 7 numeric indicators, describing order of column in sorted columns queue

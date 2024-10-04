@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 02/10/2024 12:15:45)
+ * Release date: 30/07/2024 (built at 04/10/2024 11:51:53)
  */
 .ht-theme-gemini,
 .ht-theme-gemini-dark,
@@ -128,7 +128,7 @@
   --ht-resize-indicator-color: #868686;
   --ht-icon-button-background-color: rgba(247, 247, 249, 0.16);
   --ht-icon-button-icon-color: rgba(34, 34, 34, 0.60);
-  --ht-icon-active-button-icon-color: {mode.light.gemini.common.background};
+  --ht-icon-active-button-icon-color: #ffffff;
   --ht-icon-button-hover-background-color: rgba(34, 34, 34, 0.08);
   --ht-icon-button-hover-icon-color: rgba(34, 34, 34, 0.40);
   --ht-icon-button-focus-background-color: rgba(255, 255, 255, 0);
@@ -474,7 +474,7 @@
   --ht-row-even-background-color: #070604;
   --ht-icon-button-background-color: rgba(0, 0, 0, 0);
   --ht-icon-button-icon-color: rgba(255, 255, 255, 0.50);
-  --ht-icon-active-button-icon-color: {mode.dark.gemini.common.foreground};
+  --ht-icon-active-button-icon-color: #b5b5b9;
   --ht-icon-button-hover-background-color: rgba(255, 255, 255, 0.08);
   --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.40);
   --ht-icon-button-focus-background-color: rgba(0, 0, 0, 0);
@@ -622,7 +622,7 @@
     --ht-row-even-background-color: #070604;
     --ht-icon-button-background-color: rgba(0, 0, 0, 0);
     --ht-icon-button-icon-color: rgba(255, 255, 255, 0.50);
-    --ht-icon-active-button-icon-color: {mode.dark.gemini.common.foreground};
+    --ht-icon-active-button-icon-color: #b5b5b9;
     --ht-icon-button-hover-background-color: rgba(255, 255, 255, 0.08);
     --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.40);
     --ht-icon-button-focus-background-color: rgba(0, 0, 0, 0);

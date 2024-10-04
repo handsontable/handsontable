@@ -7,12 +7,12 @@
         > .relative {
           display: flex;
           align-items: center;
-          gap: var(--ht-gap-size);
+          gap: 5px;
         }
 
         span {
           &:last-child {
-            padding-left: calc(var(--ht-icon-size) + var(--ht-gap-size));
+            padding-left: calc(var(--ht-icon-size) + 5px);
           }
 
           &.ht_nestingLevel {
@@ -21,8 +21,8 @@
             &_empty {
               position: relative;
               display: inline-block;
-              width: var(--ht-gap-size);
-              height: var(--ht-gap-size);
+              width: 5px;
+              height: 1px;
               order: -2;
             }
           }

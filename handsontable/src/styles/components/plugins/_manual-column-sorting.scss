@@ -21,6 +21,8 @@
         &:before {
           @include mixins.pseudo;
           order: 1;
+          width: var(--ht-icon-size);
+          height: var(--ht-icon-size);
         }
       }
     }
