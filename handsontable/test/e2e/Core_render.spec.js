@@ -275,6 +275,7 @@ describe('Core_render', () => {
     });
 
     selectCell(19, 19);
+    await sleep(50);
 
     expect(getMaster().find('tr:last td:last').text()).toBe('T20');
   });

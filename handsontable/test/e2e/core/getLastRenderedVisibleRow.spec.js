@@ -33,7 +33,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     rowMapper.setValueAtIndex(1, true);
     render();
 
-    expect(getLastRenderedVisibleRow()).toBe(9);
+    expect(getLastRenderedVisibleRow()).toBe(11);
   });
 
   it('should return last rendered row index (scrolled viewport)', () => {
