@@ -29,8 +29,8 @@ export class StretchCalculator {
    * @type {Map<string, StretchAllStrategy | StretchLastStrategy>}
    */
   #stretchStrategies = new Map([
-    ['all', new StretchAllStrategy()],
-    ['last', new StretchLastStrategy()],
+    ['all', new StretchAllStrategy(this.#overwriteColumnWidthFn.bind(this))],
+    ['last', new StretchLastStrategy(this.#overwriteColumnWidthFn.bind(this))],
   ]);
   /**
    * The active stretch mode.
@@ -64,51 +64,22 @@ export class StretchCalculator {
       return;
     }
 
-    let viewportWidth = this.#hot.view.getViewportWidth();
-    let allColumnsWidth = 0;
-    const nonFixedColumns = [];
-
-    for (let columnIndex = 0; columnIndex < this.#hot.countCols(); columnIndex++) {
-      if (this.#hot.columnIndexMapper.isHidden(this.#hot.toPhysicalColumn(columnIndex))) {
-        // eslint-disable-next-line no-continue
-        continue;
-      }
-
-      const columnWidth = this.#getWidthWithoutStretching(columnIndex);
-      const fixedWidth = this.#hot.runHooks('beforeStretchingColumnWidth', undefined, columnIndex);
-
-      if (typeof fixedWidth === 'number') {
-        viewportWidth -= fixedWidth;
-
-      } else {
-        allColumnsWidth += columnWidth;
-
-        if (this.#activeStrategy === 'all') {
-          nonFixedColumns.push(columnIndex);
-        }
-      }
-
-      if (this.#activeStrategy === 'last') {
-        nonFixedColumns.push(columnIndex);
-      }
-    }
-
     this.#hot.batchExecution(() => {
       this.#widthsMap.clear();
 
       const stretchStrategy = this.#stretchStrategies.get(this.#activeStrategy);
 
       stretchStrategy.prepare({
-        overwriteColumnWidthFn: (...args) => this.#hot.runHooks('beforeStretchingColumnWidth', ...args),
-        allColumnsWidth,
-        viewportWidth,
+        viewportWidth: this.#hot.view.getWorkspaceWidth() - 50, // TODO
       });
 
-      nonFixedColumns.forEach((columnIndex) => {
-        stretchStrategy.calculate(columnIndex, this.#getWidthWithoutStretching(columnIndex));
-      });
+      for (let columnIndex = 0; columnIndex < this.#hot.countCols(); columnIndex++) {
+        if (!this.#hot.columnIndexMapper.isHidden(this.#hot.toPhysicalColumn(columnIndex))) {
+          stretchStrategy.setColumnWidthBase(columnIndex, this.#getWidthWithoutStretching(columnIndex));
+        }
+      }
 
-      stretchStrategy.finish();
+      stretchStrategy.calculate();
 
       stretchStrategy.getWidths().forEach(([columnIndex, width]) => {
         this.#widthsMap.setValueAtIndex(this.#hot.toPhysicalColumn(columnIndex), width);
@@ -134,5 +105,9 @@ export class StretchCalculator {
    */
   #getWidthWithoutStretching(columnVisualIndex) {
     return this.#hot.getColWidth(columnVisualIndex, 'StretchColumns') ?? DEFAULT_COLUMN_WIDTH;
+  }
+
+  #overwriteColumnWidthFn(columnWidth, columnVisualIndex) {
+    return this.#hot.runHooks('beforeStretchingColumnWidth', columnWidth, columnVisualIndex);
   }
 }

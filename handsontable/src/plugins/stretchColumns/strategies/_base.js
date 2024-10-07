@@ -1,8 +1,6 @@
 /**
  * @typedef StretchStrategyCalcArgs
  * @property {number} viewportWidth The width of the viewport.
- * @property {number} allColumnsWidth The sum of all columns' widths.
- * @property {function(number, number): number | undefined} overwriteColumnWidthFn The function to overwrite the column width.
  */
 /**
  * The base strategy stretching strategy to extend from.
@@ -18,12 +16,6 @@ export class StretchStrategy {
    */
   viewportWidth;
   /**
-   * The sum of all columns' widths.
-   *
-   * @type {number}
-   */
-  allColumnsWidth;
-  /**
    * The function to overwrite the column width.
    *
    * @type {function(number, number): number | undefined}
@@ -36,27 +28,34 @@ export class StretchStrategy {
    */
   widths = new Map();
 
+  constructor(overwriteColumnWidthFn) {
+    this.overwriteColumnWidthFn = overwriteColumnWidthFn;
+  }
+
   /**
    * Prepares the strategy for the calculation.
    *
    * @param {StretchStrategyCalcArgs} calcArgs The calculation arguments.
    */
-  prepare({ viewportWidth, allColumnsWidth, overwriteColumnWidthFn }) {
+  prepare({ viewportWidth }) {
     this.viewportWidth = viewportWidth;
-    this.allColumnsWidth = allColumnsWidth;
-    this.overwriteColumnWidthFn = overwriteColumnWidthFn;
     this.widths.clear();
+  }
+
+  /**
+   * Sets the widths of the columns with which the strategy will work.
+   *
+   * @param {number} columnVisualIndex The visual index of the column.
+   * @param {number} columnWidth The width of the column.
+   */
+  setColumnWidthBase(columnVisualIndex, columnWidth) {
+    this.widths.set(columnVisualIndex, columnWidth);
   }
 
   /**
    * Calculates the width of the column.
    */
   calculate() {}
-
-  /**
-   * Finishes the calculation.
-   */
-  finish() {}
 
   /**
    * Gets the calculated column widths.

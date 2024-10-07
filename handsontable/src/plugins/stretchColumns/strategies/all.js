@@ -9,52 +9,54 @@ import { StretchStrategy } from './_base';
  */
 export class StretchAllStrategy extends StretchStrategy {
   /**
-   * The index of the last calculated column.
-   *
-   * @type {number}
+   * Calculates the columns widths.
    */
-  #lastColumnIndex = -1;
+  calculate() {
+    const allColumnsWidth = Array.from(this.widths).reduce((sum, [, width]) => sum + width, 0);
+    const initialStretchRatio = this.viewportWidth / allColumnsWidth;
+    const stretchedWidths = [];
+    const fixedColumns = [];
+    let viewportWidth = this.viewportWidth;
+    let allStretchedColumnsWidth = 0;
 
-  /**
-   * Prepares the strategy for the calculation.
-   *
-   * @param {{ viewportWidth: number, allColumnsWidth: number }} calcArgs The calculation arguments.
-   */
-  prepare(calcArgs) {
-    super.prepare(calcArgs);
-    this.lastColumnIndex = -1;
-  }
+    this.widths.forEach((columnWidth, columnVisualIndex) => {
+      const stretchedWidth = Math.round(columnWidth * initialStretchRatio);
+      const finalWidth = this.overwriteColumnWidthFn(stretchedWidth, columnVisualIndex);
 
-  /**
-   * Calculates the width of the column.
-   *
-   * @param {number} columnVisualIndex The column visual index to calculate.
-   * @param {number} columnWidth The current column width.
-   */
-  calculate(columnVisualIndex, columnWidth) {
-    const stretchRatio = this.viewportWidth / this.allColumnsWidth;
-    const stretchedWidth = Math.round(columnWidth * stretchRatio);
-    const finalWidth = this.overwriteColumnWidthFn(stretchedWidth, columnVisualIndex);
+      if (stretchedWidth === finalWidth && stretchedWidth >= DEFAULT_COLUMN_WIDTH) {
+        stretchedWidths.push([columnVisualIndex, finalWidth]);
+        allStretchedColumnsWidth += finalWidth;
 
-    if (finalWidth >= DEFAULT_COLUMN_WIDTH) {
-      this.widths.set(columnVisualIndex, finalWidth);
-      this.#lastColumnIndex = columnVisualIndex;
-    }
-  }
+      } else if (stretchedWidth !== finalWidth) {
+        stretchedWidths.push([columnVisualIndex, finalWidth]);
+        fixedColumns.push(columnVisualIndex);
+        viewportWidth -= finalWidth;
+      }
+    });
 
-  /**
-   * Finishes the calculation.
-   */
-  finish() {
-    const size = this.widths.size;
+    const finalStretchRatio = viewportWidth / allStretchedColumnsWidth;
+    let lastColumnIndex = -1;
+    let sumColumnsWithoutLastOne = 0;
 
-    if (size > 1) {
-      const sumColumns = Array.from(this.widths)
-        .reduce((sumWidth, [, width], currentIndex) => {
-          return sumWidth + (currentIndex === size - 1 ? 0 : width);
-        }, 0);
+    this.widths.clear();
 
-      this.widths.set(this.#lastColumnIndex, Math.round(this.viewportWidth - sumColumns));
+    stretchedWidths.forEach(([columnVisualIndex, columnWidth], index) => {
+      let newWidth = columnWidth;
+
+      if (!fixedColumns.includes(columnVisualIndex)) {
+        newWidth = Math.round(columnWidth * finalStretchRatio);
+      }
+
+      this.widths.set(columnVisualIndex, newWidth);
+      lastColumnIndex = columnVisualIndex;
+
+      if (index < stretchedWidths.length - 1) {
+        sumColumnsWithoutLastOne += newWidth;
+      }
+    });
+
+    if (this.widths.size > 1) {
+      this.widths.set(lastColumnIndex, Math.round(this.viewportWidth - sumColumnsWithoutLastOne));
     }
   }
 }
