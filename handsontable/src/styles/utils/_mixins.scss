@@ -26,7 +26,8 @@
     position: absolute;
     inset: 0;
     background: var(
-      --ht-cell-selection-background-color
+      --ht-cell-selection-background-color,
+      #1a42e8 
     );
   }
 }

@@ -18,7 +18,7 @@
             cursor: auto;
 
             &.htFiltersMenuActionBar {
-              padding-top: calc(var(--ht-menu-item-horizontal-padding) * 2);
+              padding-top: calc(var(--ht-menu-item-horizontal-padding, 2px) * 2);
             }
           }
         }
@@ -29,7 +29,7 @@
     .htFiltersMenuLabel {
       font-size: var(--ht-label-font-size);
       line-height: var(--ht-label-line-height);
-      margin-bottom: calc(var(--ht-gap-size) * 2);
+      margin-bottom: calc(var(--ht-gap-size, 2px) * 2);
 
       &:empty {
         display: none;
@@ -38,7 +38,7 @@
 
     // Component filter by conditional
     .htFiltersMenuCondition {
-      padding-top: calc(var(--ht-gap-size) * 4) !important;
+      padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
       padding-bottom: 0 !important;
 
       .border {
@@ -46,30 +46,30 @@
       }
 
       .htUIInput {
-        margin-top: calc(var(--ht-gap-size) * 2);
+        margin-top: calc(var(--ht-gap-size, 2px) * 2);
       }
     }
 
     .htFiltersMenuValue {
-      padding-top: calc(var(--ht-gap-size) * 4) !important;
+      padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
       padding-bottom: 0 !important;
       border-bottom: 1px solid var(--ht-border-color) !important;
     }
 
     .htFiltersMenuOperators,
     .htUISelectionControls {
-      padding-top: calc(var(--ht-gap-size) * 2) !important;
+      padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
       padding-bottom: 0 !important;
     }
 
     .htUIMultipleSelectHot {
       overflow: initial !important;
       width: calc(
-        100% + var(--ht-menu-item-vertical-padding) * 2 + var(--ht-gap-size) * 4
+        100% + var(--ht-menu-item-vertical-padding, 2px) * 2 + var(--ht-gap-size, 2px) * 4
       );
       margin: 0
         calc(
-          (var(--ht-menu-item-vertical-padding) + var(--ht-gap-size) * 2) * -1
+          (var(--ht-menu-item-vertical-padding, 2px) + var(--ht-gap-size, 2px) * 2) * -1
         );
 
       &::before {
@@ -83,7 +83,7 @@
       }
 
       .wtHolder {
-        padding: calc(var(--ht-gap-size) * 4) 0;
+        padding: calc(var(--ht-gap-size, 2px) * 4) 0;
         overflow-x: hidden;
         box-sizing: border-box;
 
@@ -91,7 +91,7 @@
           height: auto;
           padding: 0;
           padding: 0
-            calc(var(--ht-menu-item-vertical-padding) + var(--ht-gap-size) * 2);
+            calc(var(--ht-menu-item-vertical-padding, 2px) + var(--ht-gap-size, 2px) * 2);
         }
       }
     }
@@ -100,8 +100,8 @@
     .htUIClearAll,
     .htUISelectAll {
       display: inline-block;
-      margin-right: var(--ht-gap-size);
-      margin-bottom: var(--ht-gap-size);
+      margin-right: var(--ht-gap-size, 4px);
+      margin-bottom: var(--ht-gap-size, 4px);
 
       a {
         color: var(--ht-link-color);

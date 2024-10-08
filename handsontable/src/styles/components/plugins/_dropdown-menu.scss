@@ -50,14 +50,14 @@
     &.htContextMenu,
     &.htFiltersConditionsMenu {
       & > .ht_master {
-        border-color: var(--ht-menu-border-color);
+        border-color: var(--ht-menu-border-color, #e5e5e9);
         border-style: solid;
-        border-width: var(--ht-menu-border-width);
+        border-width: var(--ht-menu-border-width, 1px);
         border-radius: var(--ht-menu-border-radius);
         @include mixins.menu-box-shadow;
         overflow: hidden;
-        padding: var(--ht-menu-vertical-padding)
-          var(--ht-menu-horizontal-padding);
+        padding: var(--ht-menu-vertical-padding, 8px)
+          var(--ht-menu-horizontal-padding, 0);
       }
 
       &:not(.htGhostTable) {
@@ -93,13 +93,13 @@
 
       table tbody tr td {
         position: relative;
-        padding: var(--ht-menu-item-horizontal-padding)
-          var(--ht-menu-item-vertical-padding);
+        padding: var(--ht-menu-item-horizontal-padding, 2px)
+          var(--ht-menu-item-vertical-padding, 4px);
         border-width: 0;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
-        background: var(--ht-background-color);
+        background: var(--ht-background-color, #ffffff);
         cursor: pointer;
         transition: background calc(0.5 * var(--ht-table-transition))
           ease-in-out;
@@ -117,7 +117,7 @@
         }
 
         &.current:not(.htSelectionDisabled) {
-          background: var(--ht-menu-item-active-color);
+          background: var(--ht-menu-item-active-color, #e5e5e9);
         }
 
         &.htSubmenu {
@@ -152,7 +152,7 @@
         }
 
         .htItemWrapper {
-          margin-inline: calc(2 * var(--ht-gap-size));
+          margin-inline: calc(2 * var(--ht-gap-size, 4px));
 
           i {
             font-size: 18px;

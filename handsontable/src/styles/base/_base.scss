@@ -6,8 +6,8 @@
   .handsontable {
     position: relative;
     @include mixins.font-family;
-    font-size: var(--ht-font-size, 12px);
-    line-height: var(--ht-line-height, 20px);
+    font-size: var(--ht-font-size, 14px);
+    line-height: var(--ht-line-height, 18px);
     font-weight: var(--ht-font-weight);
     color: var(--ht-foreground-color);
     /* Miscellaneous */
@@ -20,11 +20,6 @@
     // Cell and Header
     th,
     td {
-      //TODO: check if is needed
-      // height: calc(
-      //   var(--ht-line-height, 20px) +
-      //     (2 * var(--ht-cell-horizontal-padding, 8px))
-      // );
       padding: var(--ht-cell-horizontal-padding, 4px)
         var(--ht-cell-vertical-padding, 8px);
       vertical-align: top;
@@ -33,12 +28,12 @@
       border-inline-end-width: 1px;
       border-bottom-width: 1px;
       border-style: solid;
-      border-top-color: var(--ht-cell-horizontal-border-color);
-      border-bottom-color: var(--ht-cell-horizontal-border-color);
-      border-inline-start-color: var(--ht-cell-vertical-border-color);
-      border-inline-end-color: var(--ht-cell-vertical-border-color);
-      font-size: var(--ht-font-size);
-      line-height: var(--ht-line-height, 20px);
+      border-top-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
+      border-bottom-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
+      border-inline-start-color: var(--ht-cell-vertical-border-color, #e5e5e9);
+      border-inline-end-color: var(--ht-cell-vertical-border-color, #e5e5e9);
+      font-size: var(--ht-font-size, 14px);
+      line-height: var(--ht-line-height, 18px);
       white-space: pre-wrap;
       overflow: hidden;
       outline: none;
@@ -100,7 +95,7 @@
       }
 
       &.ht__active_highlight {
-        border-color: var(--ht-header-active-border-color);
+        border-color: var(--ht-header-active-border-color, #e5e5e9);
         color: var(--ht-header-active-foreground-color);
         background-color: var(--ht-header-active-background-color);
         box-shadow: -1px -1px 0 var(--ht-header-active-border-color),
@@ -114,7 +109,7 @@
 
       &.active {
         color: var(--ht-header-active-foreground-color);
-        background-color: var(--ht-header-active-background-color);
+        background-color: var(--ht-header-active-background-color, #1a42e8);
       }
 
       &.current {
@@ -125,7 +120,7 @@
           content: "";
           position: absolute;
           inset: -1px;
-          border: 1px solid var(--ht-cell-selection-border-color);
+          border: 1px solid var(--ht-cell-selection-border-color, #1a42e8);
           z-index: 1;
           pointer-events: none;
         }
@@ -140,8 +135,8 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: var(--ht-cell-horizontal-padding, 8px)
-          var(--ht-cell-vertical-padding, 4px);
+        padding: var(--ht-cell-horizontal-padding, 4px)
+          var(--ht-cell-vertical-padding, 8px);
         overflow: hidden;
       }
     }
@@ -149,7 +144,7 @@
     thead tr:not(:last-child) th {
       /* Fix for - nested columns with hidden column  */
       overflow: hidden;
-      
+
       &:after {
         inset: 0;
       }

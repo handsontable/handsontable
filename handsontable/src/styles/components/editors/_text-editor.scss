@@ -16,9 +16,7 @@
       line-height: inherit !important;
       color: var(--ht-cell-editor-foreground-color);
       background-color: var(--ht-background-color, #ffffff);
-      box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width) var(--ht-cell-editor-border-color),
-        0 0 var(--ht-cell-editor-shadow-blur-radius)
-          var(--ht-cell-editor-shadow-color);
+      box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8);
       border: none;
       -webkit-appearance: none !important;
       overflow: hidden !important;

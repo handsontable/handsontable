@@ -47,12 +47,12 @@
         }
 
         tr:hover td {
-          background: var(--ht-menu-item-hover-color);
+          background: var(--ht-menu-item-hover-color, #e5e5e9);
           cursor: pointer;
         }
 
         tr td.current {
-          background: var(--ht-menu-item-active-color);
+          background: var(--ht-menu-item-active-color, #e5e5e9);
         }
 
         thead th {

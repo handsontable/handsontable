@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 04/10/2024 13:14:33)
+ * Release date: 30/07/2024 (built at 08/10/2024 07:19:53)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "04/10/2024 13:14:33";
+Handsontable.buildDate = "08/10/2024 07:19:53";
 Handsontable.version = "14.5.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -22847,6 +22847,7 @@ class Table {
       } else {
         rowInnerHeight = (0, _element.innerHeight)(currentTr) - 1;
       }
+      console.log(this.wtSettings.getSetting('defaultRowHeight'), rowInnerHeight);
       if (!previousRowHeight && this.wtSettings.getSetting('defaultRowHeight') < rowInnerHeight || previousRowHeight < rowInnerHeight) {
         rowInnerHeight += 1;
         this.dataAccessObject.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
@@ -24973,7 +24974,7 @@ class TableRenderer {
         const rowHeight = this.rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
         if (rowHeight) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
-          TR.firstChild.style.height = `${rowHeight - 1}px`;
+          TR.firstChild.style.height = `${rowHeight + (sourceRowIndex === 0 ? 1 : 0)}px`;
         } else {
           TR.firstChild.style.height = '';
         }
@@ -25380,6 +25381,9 @@ class RowUtils {
   getHeightByOverlayName(sourceIndex, overlayName) {
     let height = this.wtSettings.getSetting('rowHeightByOverlayName', sourceIndex, overlayName);
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
+
+    // console.log(oversizedHeight);
+
     if (oversizedHeight !== undefined) {
       height = height === undefined ? oversizedHeight : Math.max(height, oversizedHeight);
     }

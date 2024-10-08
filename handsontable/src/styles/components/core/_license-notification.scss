@@ -5,19 +5,15 @@
 @mixin output {
   .hot-display-license-info {
     padding: var(--ht-license-horizontal-padding, 16px)
-      var(--ht-license-vertical-padding);
+      var(--ht-license-vertical-padding, 12px);
     @include mixins.font-family;
     font-size: var(--ht-license-font-size);
     line-height: var(--ht-license-line-height);
     color: var(--ht-license-foreground-color);
-    background-color: var(--ht-license-background-color);
+    background-color: var(--ht-license-background-color, #f7f7f9);
     text-align: left;
-    border-color: var(--ht-border-color);
-    border-style: solid;
+    border: 1px solid var(--ht-border-color, #f7f7f9);
     border-top-width: 0;
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-bottom-width: 1px;
 
     a {
       font-size: var(--ht-license-font-size);

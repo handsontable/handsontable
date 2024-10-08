@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 04/10/2024 13:14:33)
+ * Release date: 30/07/2024 (built at 08/10/2024 07:19:53)
  */
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
@@ -45,8 +45,8 @@
 .handsontable {
   position: relative;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
-  font-size: var(--ht-font-size, 12px);
-  line-height: var(--ht-line-height, 20px);
+  font-size: var(--ht-font-size, 14px);
+  line-height: var(--ht-line-height, 18px);
   font-weight: var(--ht-font-weight);
   color: var(--ht-foreground-color);
   /* Miscellaneous */
@@ -64,12 +64,12 @@
   border-inline-end-width: 1px;
   border-bottom-width: 1px;
   border-style: solid;
-  border-top-color: var(--ht-cell-horizontal-border-color);
-  border-bottom-color: var(--ht-cell-horizontal-border-color);
-  border-inline-start-color: var(--ht-cell-vertical-border-color);
-  border-inline-end-color: var(--ht-cell-vertical-border-color);
-  font-size: var(--ht-font-size);
-  line-height: var(--ht-line-height, 20px);
+  border-top-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
+  border-bottom-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
+  border-inline-start-color: var(--ht-cell-vertical-border-color, #e5e5e9);
+  border-inline-end-color: var(--ht-cell-vertical-border-color, #e5e5e9);
+  font-size: var(--ht-font-size, 14px);
+  line-height: var(--ht-line-height, 18px);
   white-space: pre-wrap;
   overflow: hidden;
   outline: none;
@@ -121,7 +121,7 @@
   background-color: var(--ht-accent-color);
 }
 .handsontable th.ht__active_highlight {
-  border-color: var(--ht-header-active-border-color);
+  border-color: var(--ht-header-active-border-color, #e5e5e9);
   color: var(--ht-header-active-foreground-color);
   background-color: var(--ht-header-active-background-color);
   box-shadow: -1px -1px 0 var(--ht-header-active-border-color), 0 -1px 0 var(--ht-header-active-border-color), -1px 0 0 var(--ht-header-active-border-color);
@@ -131,7 +131,7 @@
 }
 .handsontable th.active {
   color: var(--ht-header-active-foreground-color);
-  background-color: var(--ht-header-active-background-color);
+  background-color: var(--ht-header-active-background-color, #1a42e8);
 }
 .handsontable th.current {
   color: var(--ht-header-active-foreground-color);
@@ -141,7 +141,7 @@
   content: "";
   position: absolute;
   inset: -1px;
-  border: 1px solid var(--ht-cell-selection-border-color);
+  border: 1px solid var(--ht-cell-selection-border-color, #1a42e8);
   z-index: 1;
   pointer-events: none;
 }
@@ -152,7 +152,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--ht-cell-horizontal-padding, 8px) var(--ht-cell-vertical-padding, 4px);
+  padding: var(--ht-cell-horizontal-padding, 4px) var(--ht-cell-vertical-padding, 8px);
   overflow: hidden;
 }
 .handsontable thead tr:not(:last-child) th {
@@ -373,14 +373,6 @@ tr.ht__row_odd td {
   z-index: 200;
 }
 
-@keyframes marching-ants {
-  0% {
-    background-position: 0 0, 8px 100%, 0 8px, 100% 0;
-  }
-  100% {
-    background-position: 8px 0, 0 100%, 0 0, 100% 8px;
-  }
-}
 .handsontable td.area {
   position: relative;
 }
@@ -388,7 +380,7 @@ tr.ht__row_odd td {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--ht-cell-selection-background-color);
+  background: var(--ht-cell-selection-background-color, #1a42e8);
 }
 .handsontable td.area-1 {
   position: relative;
@@ -397,7 +389,7 @@ tr.ht__row_odd td {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--ht-cell-selection-background-color);
+  background: var(--ht-cell-selection-background-color, #1a42e8);
 }
 .handsontable td.area-2 {
   position: relative;
@@ -406,7 +398,7 @@ tr.ht__row_odd td {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--ht-cell-selection-background-color);
+  background: var(--ht-cell-selection-background-color, #1a42e8);
 }
 .handsontable td.area-3 {
   position: relative;
@@ -415,7 +407,7 @@ tr.ht__row_odd td {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--ht-cell-selection-background-color);
+  background: var(--ht-cell-selection-background-color, #1a42e8);
 }
 .handsontable td.area-4 {
   position: relative;
@@ -424,7 +416,7 @@ tr.ht__row_odd td {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--ht-cell-selection-background-color);
+  background: var(--ht-cell-selection-background-color, #1a42e8);
 }
 .handsontable td.area-5 {
   position: relative;
@@ -433,7 +425,7 @@ tr.ht__row_odd td {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--ht-cell-selection-background-color);
+  background: var(--ht-cell-selection-background-color, #1a42e8);
 }
 .handsontable td.area-6 {
   position: relative;
@@ -442,7 +434,7 @@ tr.ht__row_odd td {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--ht-cell-selection-background-color);
+  background: var(--ht-cell-selection-background-color, #1a42e8);
 }
 .handsontable td.area-7 {
   position: relative;
@@ -451,7 +443,7 @@ tr.ht__row_odd td {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--ht-cell-selection-background-color);
+  background: var(--ht-cell-selection-background-color, #1a42e8);
 }
 .handsontable td.area:before {
   opacity: 0.1;
@@ -486,30 +478,26 @@ tr.ht__row_odd td {
 }
 .handsontable .wtBorder.current {
   z-index: 10;
-  background-color: var(--ht-cell-selection-border-color) !important;
+  background-color: var(--ht-cell-selection-border-color, #1a42e8) !important;
 }
 .handsontable .wtBorder.area {
   z-index: 8;
-  background-color: var(--ht-cell-selection-border-color) !important;
+  background-color: var(--ht-cell-selection-border-color, #1a42e8) !important;
 }
 .handsontable .wtBorder.fill {
   z-index: 6;
-  background-image: linear-gradient(90deg, white 50%, transparent 50%), linear-gradient(90deg, white 50%, transparent 50%), linear-gradient(0, white 50%, transparent 50%), linear-gradient(0, white 50%, transparent 50%);
-  background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
-  background-size: 8px 2px, 0px 0px, 2px 8px, 0px 0px;
-  animation: marching-ants 600ms infinite linear;
-  background-color: var(--ht-cell-selection-border-color) !important;
+  background-color: var(--ht-cell-selection-border-color, #1a42e8) !important;
 }
 .handsontable .wtBorder.corner {
-  width: var(--ht-cell-autofill-size) !important;
-  height: var(--ht-cell-autofill-size) !important;
-  border-width: var(--ht-cell-autofill-border-width) !important;
+  width: var(--ht-cell-autofill-size, 4px) !important;
+  height: var(--ht-cell-autofill-size, 4px) !important;
+  border-width: var(--ht-cell-autofill-border-width, 1px) !important;
   border-style: solid;
-  border-color: var(--ht-cell-autofill-border-color) !important;
+  border-color: var(--ht-cell-autofill-border-color, #000) !important;
   border-radius: var(--ht-cell-autofill-border-radius) !important;
-  background-color: var(--ht-cell-autofill-background-color) !important;
-  margin-top: 3px;
-  margin-left: 3px;
+  background-color: var(--ht-cell-autofill-background-color, #1a42e8) !important;
+  margin-top: 4px;
+  margin-left: 4px;
   transform: translate(-50%, -50%);
   font-size: 0;
   cursor: crosshair;
@@ -517,19 +505,15 @@ tr.ht__row_odd td {
 }
 
 .hot-display-license-info {
-  padding: var(--ht-license-horizontal-padding, 16px) var(--ht-license-vertical-padding);
+  padding: var(--ht-license-horizontal-padding, 16px) var(--ht-license-vertical-padding, 12px);
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
   font-size: var(--ht-license-font-size);
   line-height: var(--ht-license-line-height);
   color: var(--ht-license-foreground-color);
-  background-color: var(--ht-license-background-color);
+  background-color: var(--ht-license-background-color, #f7f7f9);
   text-align: left;
-  border-color: var(--ht-border-color);
-  border-style: solid;
+  border: 1px solid var(--ht-border-color, #f7f7f9);
   border-top-width: 0;
-  border-left-width: 1px;
-  border-right-width: 1px;
-  border-bottom-width: 1px;
 }
 .hot-display-license-info a {
   font-size: var(--ht-license-font-size);
@@ -703,7 +687,7 @@ tr.ht__row_odd td {
   line-height: inherit !important;
   color: var(--ht-cell-editor-foreground-color);
   background-color: var(--ht-background-color, #ffffff);
-  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width) var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
+  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8);
   border: none;
   -webkit-appearance: none !important;
   overflow: hidden !important;
@@ -735,7 +719,7 @@ tr.ht__row_odd td {
   font-family: inherit !important;
   font-size: inherit !important;
   line-height: inherit !important;
-  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width) var(--ht-cell-editor-border-color), 0 0 var(--ht-cell-editor-shadow-blur-radius) var(--ht-cell-editor-shadow-color);
+  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8);
   border: none;
   -webkit-appearance: none !important;
 }
@@ -786,11 +770,11 @@ tr.ht__row_odd td {
   font-weight: var(--ht-font-weight);
 }
 .handsontable.listbox table tr:hover td {
-  background: var(--ht-menu-item-hover-color);
+  background: var(--ht-menu-item-hover-color, #e5e5e9);
   cursor: pointer;
 }
 .handsontable.listbox table tr td.current {
-  background: var(--ht-menu-item-active-color);
+  background: var(--ht-menu-item-active-color, #e5e5e9);
 }
 .handsontable.listbox table thead th {
   height: auto !important;
@@ -862,6 +846,8 @@ tr.ht__row_odd td {
   text-indent: -9999px;
   cursor: pointer;
   color: var(--ht-accent-color);
+  background: none;
+  border: none;
 }
 .pika-single .pika-prev {
   order: 1;
@@ -889,8 +875,8 @@ tr.ht__row_odd td {
   background: var(--ht-menu-item-hover-color);
 }
 .pika-single .pika-table td.is-selected .pika-button {
-  background: var(--ht-accent-color);
-  color: var(--ht-background-color);
+  background: var(--ht-accent-color, #1a42e8);
+  color: var(--ht-background-color, #ffffff);
 }
 .pika-single .pika-table td.pika-week {
   width: 12.5%;
@@ -1037,7 +1023,7 @@ tr.ht__row_odd td {
 }
 .handsontable .htUIInput.htUIButtonOK {
   margin-inline-start: 0;
-  margin-inline-end: calc(2 * var(--ht-gap-size));
+  margin-inline-end: calc(2 * var(--ht-gap-size, 2px));
 }
 .handsontable .htUIInput.htUIButtonOK input {
   border-color: var(--ht-primary-button-border-color);
@@ -1360,13 +1346,13 @@ tr.ht__row_odd td {
   background-color: var(--ht-icon-button-focus-background);
 }
 .handsontable.htDropdownMenu > .ht_master, .handsontable.htContextMenu > .ht_master, .handsontable.htFiltersConditionsMenu > .ht_master {
-  border-color: var(--ht-menu-border-color);
+  border-color: var(--ht-menu-border-color, #e5e5e9);
   border-style: solid;
-  border-width: var(--ht-menu-border-width);
+  border-width: var(--ht-menu-border-width, 1px);
   border-radius: var(--ht-menu-border-radius);
   box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) var(--ht-menu-shadow-color);
   overflow: hidden;
-  padding: var(--ht-menu-vertical-padding) var(--ht-menu-horizontal-padding);
+  padding: var(--ht-menu-vertical-padding, 8px) var(--ht-menu-horizontal-padding, 0);
 }
 .handsontable.htDropdownMenu:not(.htGhostTable), .handsontable.htContextMenu:not(.htGhostTable), .handsontable.htFiltersConditionsMenu:not(.htGhostTable) {
   display: none;
@@ -1403,12 +1389,12 @@ tr.ht__row_odd td {
 }
 .handsontable.htDropdownMenu table tbody tr td, .handsontable.htContextMenu table tbody tr td, .handsontable.htFiltersConditionsMenu table tbody tr td {
   position: relative;
-  padding: var(--ht-menu-item-horizontal-padding) var(--ht-menu-item-vertical-padding);
+  padding: var(--ht-menu-item-horizontal-padding, 2px) var(--ht-menu-item-vertical-padding, 4px);
   border-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  background: var(--ht-background-color);
+  background: var(--ht-background-color, #ffffff);
   cursor: pointer;
   transition: background calc(0.5 * var(--ht-table-transition)) ease-in-out;
 }
@@ -1423,7 +1409,7 @@ tr.ht__row_odd td {
   color: var(--ht-foreground-color);
 }
 .handsontable.htDropdownMenu table tbody tr td.current:not(.htSelectionDisabled), .handsontable.htContextMenu table tbody tr td.current:not(.htSelectionDisabled), .handsontable.htFiltersConditionsMenu table tbody tr td.current:not(.htSelectionDisabled) {
-  background: var(--ht-menu-item-active-color);
+  background: var(--ht-menu-item-active-color, #e5e5e9);
 }
 .handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after, .handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after, .handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after {
   content: "";
@@ -1451,7 +1437,7 @@ tr.ht__row_odd td {
   display: none;
 }
 .handsontable.htDropdownMenu table tbody tr td .htItemWrapper, .handsontable.htContextMenu table tbody tr td .htItemWrapper, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper {
-  margin-inline: calc(2 * var(--ht-gap-size));
+  margin-inline: calc(2 * var(--ht-gap-size, 4px));
 }
 .handsontable.htDropdownMenu table tbody tr td .htItemWrapper i, .handsontable.htContextMenu table tbody tr td .htItemWrapper i, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper i {
   font-size: 18px;
@@ -1494,40 +1480,40 @@ tr.ht__row_odd td {
   cursor: auto;
 }
 .handsontable .ht_master table td.htCustomMenuRenderer.htFiltersMenuActionBar {
-  padding-top: calc(var(--ht-menu-item-horizontal-padding) * 2);
+  padding-top: calc(var(--ht-menu-item-horizontal-padding, 2px) * 2);
 }
 .handsontable .htFiltersMenuLabel {
   font-size: var(--ht-label-font-size);
   line-height: var(--ht-label-line-height);
-  margin-bottom: calc(var(--ht-gap-size) * 2);
+  margin-bottom: calc(var(--ht-gap-size, 2px) * 2);
 }
 .handsontable .htFiltersMenuLabel:empty {
   display: none;
 }
 .handsontable .htFiltersMenuCondition {
-  padding-top: calc(var(--ht-gap-size) * 4) !important;
+  padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
   padding-bottom: 0 !important;
 }
 .handsontable .htFiltersMenuCondition .border {
   border-bottom: 1px solid var(--ht-border-color) !important;
 }
 .handsontable .htFiltersMenuCondition .htUIInput {
-  margin-top: calc(var(--ht-gap-size) * 2);
+  margin-top: calc(var(--ht-gap-size, 2px) * 2);
 }
 .handsontable .htFiltersMenuValue {
-  padding-top: calc(var(--ht-gap-size) * 4) !important;
+  padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
   padding-bottom: 0 !important;
   border-bottom: 1px solid var(--ht-border-color) !important;
 }
 .handsontable .htFiltersMenuOperators,
 .handsontable .htUISelectionControls {
-  padding-top: calc(var(--ht-gap-size) * 2) !important;
+  padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
   padding-bottom: 0 !important;
 }
 .handsontable .htUIMultipleSelectHot {
   overflow: initial !important;
-  width: calc(100% + var(--ht-menu-item-vertical-padding) * 2 + var(--ht-gap-size) * 4);
-  margin: 0 calc((var(--ht-menu-item-vertical-padding) + var(--ht-gap-size) * 2) * -1);
+  width: calc(100% + var(--ht-menu-item-vertical-padding, 2px) * 2 + var(--ht-gap-size, 2px) * 4);
+  margin: 0 calc((var(--ht-menu-item-vertical-padding, 2px) + var(--ht-gap-size, 2px) * 2) * -1);
 }
 .handsontable .htUIMultipleSelectHot::before {
   content: "";
@@ -1540,20 +1526,20 @@ tr.ht__row_odd td {
   background-color: var(--ht-border-color);
 }
 .handsontable .htUIMultipleSelectHot .wtHolder {
-  padding: calc(var(--ht-gap-size) * 4) 0;
+  padding: calc(var(--ht-gap-size, 2px) * 4) 0;
   overflow-x: hidden;
   box-sizing: border-box;
 }
 .handsontable .htUIMultipleSelectHot .wtHolder td {
   height: auto;
   padding: 0;
-  padding: 0 calc(var(--ht-menu-item-vertical-padding) + var(--ht-gap-size) * 2);
+  padding: 0 calc(var(--ht-menu-item-vertical-padding, 2px) + var(--ht-gap-size, 2px) * 2);
 }
 .handsontable .htUIClearAll,
 .handsontable .htUISelectAll {
   display: inline-block;
-  margin-right: var(--ht-gap-size);
-  margin-bottom: var(--ht-gap-size);
+  margin-right: var(--ht-gap-size, 4px);
+  margin-bottom: var(--ht-gap-size, 4px);
 }
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
@@ -1703,7 +1689,7 @@ tr.ht__row_odd td {
 
 .ht_clone_top,
 .ht_clone_top_left_corner {
-  background-color: var(--ht-background-color);
+  background-color: var(--ht-background-color, #ffffff);
 }
 .ht_clone_top tbody tr:last-child td,
 .ht_clone_top tbody tr:last-child th,
@@ -1721,7 +1707,7 @@ tr.ht__row_odd td {
 .ht_clone_inline_start.ht_clone_left,
 .ht_clone_bottom_left_corner,
 .ht_clone_top_left_corner {
-  background-color: var(--ht-background-color);
+  background-color: var(--ht-background-color, #ffffff);
 }
 .ht_clone_inline_start.ht_clone_left tbody tr td:last-child,
 .ht_clone_inline_start.ht_clone_left thead tr th:not(:first-child):last-child,
@@ -1801,7 +1787,7 @@ tr.ht__row_odd td {
   inset-inline-end: unset;
   top: 0;
   width: 0;
-  margin-inline-start: 4px;
+  margin-inline-start: 5px;
   margin-inline-end: unset;
   display: none;
   border-inline-end: 1px solid var(--ht-accent-color);

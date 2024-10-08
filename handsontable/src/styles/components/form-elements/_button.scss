@@ -52,7 +52,7 @@
 
       &.htUIButtonOK {
         margin-inline-start: 0;
-        margin-inline-end: calc(2 * var(--ht-gap-size));
+        margin-inline-end: calc(2 * var(--ht-gap-size, 2px));
 
         input {
           border-color: var(--ht-primary-button-border-color);

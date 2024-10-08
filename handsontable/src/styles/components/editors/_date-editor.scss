@@ -47,6 +47,8 @@
       text-indent: -9999px;
       cursor: pointer;
       color: var(--ht-accent-color);
+      background: none;
+      border: none;
     }
 
     .pika-prev {
@@ -89,8 +91,8 @@
 
         &.is-selected {
           .pika-button {
-            background: var(--ht-accent-color);
-            color: var(--ht-background-color);
+            background: var(--ht-accent-color, #1a42e8);
+            color: var(--ht-background-color, #ffffff);
           }
         }
 
