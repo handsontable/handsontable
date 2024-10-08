@@ -49,7 +49,7 @@ function isAuthenticated(request: Request): boolean {
   console.log('Checking if the user is authenticated');
   const cookies = request.headers.get('cookie') || '';
   const jwtCookie = cookies.split(';').find(cookie => cookie.trim().startsWith('nf_jwt='));
-  return !!jwtCookie;
+  return !!jwtCookie; 
 }
 
 async function handleCustom404(baseUrl: string) {
@@ -128,8 +128,6 @@ export default async function handler(request: Request, context: Context) {
 export const config: Config = {
   path: ["/*"],
 };
-
-
 
 function getRawRedirects() {
   return [
@@ -777,6 +775,11 @@ function getRawRedirects() {
       "from": "^/docs/(?!\\d+\\.\\d+|next\\/)(?!(?:javascript|react)-data-grid|redirect|assets/|data/|handsontable/|@handsontable/|img/|scripts/|404\\.html|sitemap\\.xml|securitum-certificate\\.pdf|seqred-certificate\\.pdf|testarmy-certificate\\.pdf|testarmy-certificate-2024\\.pdf)(.+)$",
       "to": "/docs/$framework/$1",
       "status": 301
+    },
+    {
+      "from": "^/docs/.*$",
+      "to": "/404.html",
+      "status": 404
     }
   ];
 }
