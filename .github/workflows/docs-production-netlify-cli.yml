@@ -23,106 +23,116 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-      - name: Print the list of prod-docs branches without fetching
-        run: git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/'
-
-      - name: Obtain the docs latest version
-        working-directory: ./  
-        run: |
-          docs_latest_version=`git ls-remote --heads origin | grep 'prod-docs/[0-9]\+\.[0-9]\+' | sed 's|.*/prod-docs/||' | sort -V | tail -n 1`
-          echo "The docs latest version: $docs_latest_version"
-          echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV
-
-      - name: Validate Docs version
-        run: if [ -z "$DOCS_LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
-
-      - name: Remove local branch if it exists
-        run: |
-          git branch -D prod-docs/latest || true
-
-      - name: Recreate the docs latest branch
-        run: |
-          git fetch origin prod-docs/$DOCS_LATEST_VERSION
-          git checkout origin/prod-docs/$DOCS_LATEST_VERSION
-          git checkout -b prod-docs/latest
-          git push --force --set-upstream origin prod-docs/latest
-
-      # this step includes source files, so it can be build even if the feature branch is not merged yet
-      - name: Branch Patch
-        run: |
-          git fetch origin feature/dev-issue-1790
-          git checkout feature/dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js docs/netlify.toml
-        working-directory: ./
-
-      - name: Preserve the dist directory
-        run: |
-          echo "!/.vuepress/dist" >> .gitignore
-
-      - name: Update netlify.toml with DOCS_LATEST_VERSION
-        run: |
-          echo '[context.production.environment]' >> netlify.toml
-          echo 'DOCS_LATEST_VERSION="${{ env.DOCS_LATEST_VERSION }}"' >> netlify.toml
-          echo '[context.dev.environment]' >> netlify.toml
-          echo 'DOCS_LATEST_VERSION="${{ env.DOCS_LATEST_VERSION }}"' >> netlify.toml
-          cat netlify.toml
-
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
-        with:
-          # cache-dependency-path: ./latest/package-lock.json
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Dependencies
-        run: |
-          npm ci
-
-      - name: Docs build
-        run: |
-          npm run docs:build:production:netlify
-        working-directory: ./docs/
-
-      - name: Copy _redirects file
-        run: |
-          cp ./netlify/_redirects ./.vuepress/dist/docs/_redirects
-
-      - name : Add changes to the commit
-        run:  |
-          git add .
-
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Docs: build production"
-          commit_user_name: "Docs Deployment"
-          commit_user_email: "docs-deployment@handsontable.com"
-
-      - name: Deploy to Netlify
-        run: |
-          npx netlify env:set NETLIFY_AUTH_TOKEN=$NETLIFY_AUTH_TOKEN
-          npx netlify env:set NETLIFY_SITE_ID=$NETLIFY_SITE_ID
-          npx netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
-          npx netlify env:list
-          npx netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/ --site $NETLIFY_SITE_ID
-
+      - name: debug
+        run: | 
+          curl -X GET "https://api.netlify.com/api/v1/accounts" \
+          -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+          -H "Content-Type: application/json" | jq '.'
         env:
-            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-            NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-            DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
-            NETLIFY_CONTEXT: production
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      # - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Update Environment Variables on Netlify
-        run: |
-          curl -X PATCH "https://api.netlify.com/api/v1/accounts/${NETLIFY_ACCOUNT_ID}/env/DOCS_LATEST_VERSION?site_id=${NETLIFY_SITE_ID}" \
-            -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "context": "production",
-              "value": "'"${DOCS_LATEST_VERSION}"'"
-            }'
-        env:
-            NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-            DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
-            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-            NETLIFY_ACCOUNT_ID: handsonable-team
+      # - name: Print the list of prod-docs branches without fetching
+      #   run: git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/'
+
+      # - name: Obtain the docs latest version
+      #   working-directory: ./  
+      #   run: |
+      #     docs_latest_version=`git ls-remote --heads origin | grep 'prod-docs/[0-9]\+\.[0-9]\+' | sed 's|.*/prod-docs/||' | sort -V | tail -n 1`
+      #     echo "The docs latest version: $docs_latest_version"
+      #     echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV
+
+      # - name: Validate Docs version
+      #   run: if [ -z "$DOCS_LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
+
+      # - name: Remove local branch if it exists
+      #   run: |
+      #     git branch -D prod-docs/latest || true
+
+      # - name: Recreate the docs latest branch
+      #   run: |
+      #     git fetch origin prod-docs/$DOCS_LATEST_VERSION
+      #     git checkout origin/prod-docs/$DOCS_LATEST_VERSION
+      #     git checkout -b prod-docs/latest
+      #     git push --force --set-upstream origin prod-docs/latest
+
+      # # this step includes source files, so it can be build even if the feature branch is not merged yet
+      # - name: Branch Patch
+      #   run: |
+      #     git fetch origin feature/dev-issue-1790
+      #     git checkout feature/dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js docs/netlify.toml
+      #   working-directory: ./
+
+      # - name: Preserve the dist directory
+      #   run: |
+      #     echo "!/.vuepress/dist" >> .gitignore
+
+      # - name: Update netlify.toml with DOCS_LATEST_VERSION
+      #   run: |
+      #     echo '[context.production.environment]' >> netlify.toml
+      #     echo 'DOCS_LATEST_VERSION="${{ env.DOCS_LATEST_VERSION }}"' >> netlify.toml
+      #     echo '[context.dev.environment]' >> netlify.toml
+      #     echo 'DOCS_LATEST_VERSION="${{ env.DOCS_LATEST_VERSION }}"' >> netlify.toml
+      #     cat netlify.toml
+
+      # - name: Use Node.js ${{ env.NODE_VERSION }}
+      #   uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+      #   with:
+      #     # cache-dependency-path: ./latest/package-lock.json
+      #     node-version: ${{ env.NODE_VERSION }}
+      #     cache: 'npm'
+
+      # - name: Dependencies
+      #   run: |
+      #     npm ci
+
+      # - name: Docs build
+      #   run: |
+      #     npm run docs:build:production:netlify
+      #   working-directory: ./docs/
+
+      # - name: Copy _redirects file
+      #   run: |
+      #     cp ./netlify/_redirects ./.vuepress/dist/docs/_redirects
+
+      # - name : Add changes to the commit
+      #   run:  |
+      #     git add .
+
+      # - name: Commit changes
+      #   uses: stefanzweifel/git-auto-commit-action@v5
+      #   with:
+      #     commit_message: "Docs: build production"
+      #     commit_user_name: "Docs Deployment"
+      #     commit_user_email: "docs-deployment@handsontable.com"
+
+      # - name: Deploy to Netlify
+      #   run: |
+      #     npx netlify env:set NETLIFY_AUTH_TOKEN=$NETLIFY_AUTH_TOKEN --context production
+      #     npx netlify env:set AUTH_TOKEN=$NETLIFY_AUTH_TOKEN --context production
+      #     npx netlify env:set NETLIFY_SITE_ID=$NETLIFY_SITE_ID --context production
+      #     npx netlify env:set SITE_ID=$NETLIFY_SITE_ID --context production
+      #     npx netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
+      #     npx netlify env:list
+      #     npx netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/ --site $NETLIFY_SITE_ID
+
+      #   env:
+      #       NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      #       NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      #       DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+      #       NETLIFY_CONTEXT: production
+
+      # - name: Update Environment Variables on Netlify
+      #   run: |
+      #     curl -X PATCH "https://api.netlify.com/api/v1/accounts/${NETLIFY_ACCOUNT_ID}/env/DOCS_LATEST_VERSION?site_id=${NETLIFY_SITE_ID}" \
+      #       -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+      #       -H "Content-Type: application/json" \
+      #       -d '{
+      #         "context": "production",
+      #         "value": "'"${DOCS_LATEST_VERSION}"'"
+      #       }'
+      #   env:
+      #       NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      #       DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+      #       NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      #       NETLIFY_ACCOUNT_ID: handsonable-team
