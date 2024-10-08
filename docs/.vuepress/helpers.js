@@ -58,6 +58,7 @@ function getPrettyFrameworkName(framework) {
  * @returns {string}
  */
 function getThisDocsVersion() {
+  console.log('env variable helpers', process.env.DOCS_LATEST_VERSION, process.env);
   if (docsVersion === null) {
 
     const branchName = execa.sync('git rev-parse --abbrev-ref HEAD', { shell: true }).stdout;
