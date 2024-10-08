@@ -10,7 +10,6 @@ on:
     branches:
       #!TODO remove feature branch after the merge
       - feature/dev-issue-1790
-      - prod-docs/latest
   workflow_dispatch:
 
 defaults:
@@ -104,9 +103,8 @@ jobs:
 
       - name: Deploy to Netlify
         run: |
-          netlify env:set NETLIFY_SITE_ID=$NETLIFY_SITE_ID
           netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
-          netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/ --site $NETLIFY_SITE_ID
+          netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
           netlify env:list
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
