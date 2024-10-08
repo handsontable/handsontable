@@ -43,7 +43,7 @@ jobs:
           curl -X GET "https://api.netlify.com/api/v1/accounts" \
           -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
           -H "Content-Type: application/json"
-
+        env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
       - name: Update Environment Variables on Netlify - try
