@@ -101,38 +101,20 @@ jobs:
           commit_message: "Docs: build production"
           commit_user_name: "Docs Deployment"
           commit_user_email: "docs-deployment@handsontable.com"
-  
-      - name: Echo debug 1
-        run: echo "debugging 1"
-      - name: Update Environment Variables on Netlify 1
-        run: |
-          curl -X PATCH "https://api.netlify.com/api/v1/accounts/${NETLIFY_ACCOUNT_ID}/env/DOCS_LATEST_VERSION?site_id=${NETLIFY_SITE_ID}" \
-            -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "context": "production",
-              "value": "'"${DOCS_LATEST_VERSION}"'"
-            }'
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_ACCOUNT_ID: handsonable-team
-
 
       - name: Deploy to Netlify
         run: |
+          netlify env:set NETLIFY_SITE_ID
           netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
-          netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
+          netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/ --site $NETLIFY_SITE_ID
           netlify env:list
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
           NETLIFY_CONTEXT: production
-      - name: Echo debug 2
-        run: echo "debugging 2"
-      - name: Update Environment Variables on Netlify 2
+
+      - name: Update Environment Variables on Netlify
         run: |
           curl -X PATCH "https://api.netlify.com/api/v1/accounts/${NETLIFY_ACCOUNT_ID}/env/DOCS_LATEST_VERSION?site_id=${NETLIFY_SITE_ID}" \
             -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \

@@ -57,9 +57,8 @@ function getPrettyFrameworkName(framework) {
  */
 function getThisDocsVersion() {
   const { DOCS_LATEST_VERSION } = process.env;
-
   if (DOCS_LATEST_VERSION) {
-    console.log('The latest docs version was found:', DOCS_LATEST_VERSION);
+    docsVersion = DOCS_LATEST_VERSION
     return DOCS_LATEST_VERSION;
   }
 
