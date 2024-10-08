@@ -29,7 +29,7 @@ jobs:
         working-directory: ./
         run: |
           # Send GET request and capture the output and HTTP status
-          response=$(curl -s -w "\nHTTP_STATUS_CODE:%{http_code}" -X GET "https://api.netlify.com/api/v1/accounts" \
+          response=$(curl -s -w "\nHTTP_STATUS_CODE:%{http_code}" -X GET "https://api.netlify.com/api/v1/accounts/handsonable-team" \
             -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
             -H "Content-Type: application/json")
           
