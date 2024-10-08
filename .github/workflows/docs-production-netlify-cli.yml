@@ -24,6 +24,7 @@ jobs:
       contents: write
     steps:
       - name: debug
+        working-directory: ./
         run: | 
           curl -X GET "https://api.netlify.com/api/v1/accounts" \
           -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
