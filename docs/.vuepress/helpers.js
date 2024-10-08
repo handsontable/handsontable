@@ -5,8 +5,6 @@ const execa = require('execa');
 const MULTI_FRAMEWORKED_CONTENT_DIR = '.build-tmp';
 const FRAMEWORK_SUFFIX = '-data-grid';
 const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
-const branchDev = /^feature\/dev-issue-1790$/;
-const branchProdDocsLatestRegexp = /^prod-docs\/latest$/;
 let docsVersion = null;
 let docsSHA = null;
 
@@ -58,11 +56,13 @@ function getPrettyFrameworkName(framework) {
  * @returns {string}
  */
 function getThisDocsVersion() {
+  const { DOCS_LATEST_VERSION } = process.env;
 
-  if(process.env.DOCS_LATEST_VERSION)
-    return process.env.DOCS_LATEST_VERSION;
+  if (DOCS_LATEST_VERSION) {
+    console.log('The latest docs version was found:', DOCS_LATEST_VERSION);
+    return DOCS_LATEST_VERSION;
+  }
 
-  console.log('env variable helpers', process.env.DOCS_LATEST_VERSION, process.env);
   if (docsVersion === null) {
 
     const branchName = execa.sync('git rev-parse --abbrev-ref HEAD', { shell: true }).stdout;
