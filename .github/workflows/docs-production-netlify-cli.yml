@@ -42,6 +42,12 @@ jobs:
         run: |
           git branch -D prod-docs/latest || true
 
+      - name: Check the Netlify user accounts
+        run: |
+          curl -X GET "https://api.netlify.com/api/v1/accounts" \
+          -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+          -H "Content-Type: application/json"
+
       - name: Recreate the docs latest branch
         run: |
           git fetch origin prod-docs/$DOCS_LATEST_VERSION
@@ -111,7 +117,7 @@ jobs:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
             DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
-            NETLIFY_CONTEXT: production
+            NETLIFY_CONTEXT: production 
 
       - name: Update Environment Variables on Netlify
         run: |
@@ -124,5 +130,5 @@ jobs:
           }'
         env:
             NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-            DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+              : ${{ env.DOCS_LATEST_VERSION }}
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

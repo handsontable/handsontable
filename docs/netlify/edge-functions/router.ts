@@ -103,6 +103,7 @@ export default async function handler(request: Request, context: Context) {
   console.log('Request URL', currentUrl);
 
   if (!isAuthenticated(request)) {
+    console.log('User is not authenticated');
     return context.next();
   }
 
