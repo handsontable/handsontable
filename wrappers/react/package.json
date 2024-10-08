@@ -54,7 +54,6 @@
   "devDependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.9.0",
-    "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/plugin-transform-runtime": "^7.9.0",
     "@babel/polyfill": "^7.8.7",
     "@babel/preset-env": "^7.9.0",
@@ -90,11 +89,12 @@
     "handsontable": ">=14.0.0"
   },
   "scripts": {
-    "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",
+    "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min && npm run prepare:types",
     "build:commonjs": "cross-env NODE_ENV=cjs rollup -c --bundleConfigAsCjs",
     "build:umd": "cross-env NODE_ENV=umd rollup -c --bundleConfigAsCjs",
     "build:es": "cross-env NODE_ENV=es rollup -c --bundleConfigAsCjs",
     "build:min": "cross-env NODE_ENV=min rollup -c --bundleConfigAsCjs",
+    "prepare:types": "mv types/src/* ./ && rimraf ./types",
     "clean": "rimraf ./es/ && rimraf ./commonjs/ && rimraf ./dist/ && rimraf ./*.d.ts",
     "publish-package": "npm publish",
     "test": "jest",

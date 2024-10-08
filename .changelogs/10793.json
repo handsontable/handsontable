@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Change the way editor might be passed to HotColumn and HotTable to use render props approach",
+  "type": "changed",
+  "issueOrPR": 10793,
+  "breaking": true,
+  "framework": "react"
+}

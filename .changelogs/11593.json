@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "React wrapper: Drop settings prop from HotTable",
+  "type": "removed",
+  "issueOrPR": 11593,
+  "breaking": true,
+  "framework": "react"
+}
