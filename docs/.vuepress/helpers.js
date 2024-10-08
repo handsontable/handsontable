@@ -58,6 +58,10 @@ function getPrettyFrameworkName(framework) {
  * @returns {string}
  */
 function getThisDocsVersion() {
+
+  if(process.env.DOCS_LATEST_VERSION)
+    return process.env.DOCS_LATEST_VERSION;
+
   console.log('env variable helpers', process.env.DOCS_LATEST_VERSION, process.env);
   if (docsVersion === null) {
 
@@ -65,18 +69,6 @@ function getThisDocsVersion() {
 
     if (versionFromBranchRegExp.test(branchName) === true) {
       docsVersion = branchName.match(versionFromBranchRegExp)[1];
-    } else if (branchDev.test(branchName) || branchProdDocsLatestRegexp.test(branchName) === true) {
-
-      const allRemoteBranches = execa.sync('git ls-remote --heads origin ', { shell: true }).stdout;
-      const versionsFound = allRemoteBranches.split('\n')
-        .filter(item => item.includes('prod-docs'))
-        // avoids the case when the branch is named `prod-docs/latest`
-        .filter(item => item.match(/\d+\.\d+/))
-        .map(item => item.match(/\d+\.\d+/)[0]);
-
-      const maximumVersionFound = Math.max(...versionsFound);
-
-      docsVersion = maximumVersionFound.toString();
     } else {
       docsVersion = 'next';
     }

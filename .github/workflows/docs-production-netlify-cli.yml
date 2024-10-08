@@ -115,14 +115,23 @@ jobs:
 
       - name: Update Environment Variables on Netlify
         run: |
-          curl -X PATCH "https://api.netlify.com/api/v1/accounts/handsontable-team/env/DOCS_LATEST_VERSION?site_id=${NETLIFY_SITE_ID}" \
-          -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "context": "production",
-            "value": "'"${DOCS_LATEST_VERSION}"'"
-          }'
+          # Get the account_id from the API without jq
+          response=$(curl -s -X GET "https://api.netlify.com/api/v1/accounts" \
+            -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}")
+
+          account_id=$(echo $response | grep -o '"id":"[^"]*' | grep -o '[^"]*$')
+          echo $account_id
+
+          # Now use the account_id to update the environment variable
+          curl -X PATCH "https://api.netlify.com/api/v1/accounts/${NETLIFY_ACCOUNT_ID}/env/DOCS_LATEST_VERSION?site_id=${NETLIFY_SITE_ID}" \
+            -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "context": "production",
+              "value": "'"${DOCS_LATEST_VERSION}"'"
+            }'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_ACCOUNT_ID: handsonable-team
