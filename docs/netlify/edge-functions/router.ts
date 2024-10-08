@@ -5,7 +5,7 @@ declare var Netlify: {
     get: (key: string) => string;
     context: string;
   }
-}
+};
 
 interface Redirect {
   from: RegExp;
@@ -13,6 +13,123 @@ interface Redirect {
   status: number;
   rewrite?: boolean;
 }
+
+const addBaseUrlToRelativePaths = (redirects: Redirect[], baseUrl: string) => 
+  redirects.map(redirect => redirect.to.startsWith('/')
+    ? { ...redirect, to: `${baseUrl}${redirect.to}` }
+    : redirect
+  );
+
+function getVersionRegexString(docsLatestVersion: string) {
+  const escapedVersion = docsLatestVersion.replace('.', '\\.');
+  return `^\\/docs\\/(?!${escapedVersion})(\\d+\\.\\d+)(\\/.*)?$`;
+}
+
+function prepareRedirects(framework: string): Redirect[] {
+  const redirectsArray = getRawRedirects();
+  const redirectOlderVersionsToOvh = {
+    from: getVersionRegexString(Netlify.env.get('DOCS_LATEST_VERSION')),
+    to: `https://_docs.handsontable.com/docs/$1$2`,
+    status: 301,
+    rewrite: true,
+  };
+
+  return [
+    redirectOlderVersionsToOvh,
+    ...redirectsArray
+  ].map((redirect: { from: string, to: string, status: number, rewrite?: boolean }) => ({
+    from: new RegExp(redirect.from), // Convert "from" string to RegExp
+    to: redirect.to.replace('$framework', framework), // Replace $framework with the provided framework
+    status: redirect.status,
+    rewrite: redirect.rewrite,
+  }));
+}
+
+function isAuthenticated(request: Request): boolean {
+  console.log('Checking if the user is authenticated');
+  const cookies = request.headers.get('cookie') || '';
+  const jwtCookie = cookies.split(';').find(cookie => cookie.trim().startsWith('nf_jwt='));
+  return !!jwtCookie;
+}
+
+async function handleCustom404(baseUrl: string) {
+  console.log('handleCustom404', baseUrl);
+  return fetch(`${baseUrl}/docs/404.html`, {
+    headers: { 'Content-Type': 'text/html' },
+  });
+}
+
+async function handleMatchFound(
+  currentUrl: URL,
+  matchFound: Redirect,
+  baseUrl: string
+): Promise<Response> {
+  const newUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to);
+  console.log('Match found, proxying or redirecting to', newUrl);
+
+  try {
+    const response = await fetch(newUrl);
+    if (response.status === 404) {
+      console.log('Page not found at new URL, redirecting to 404 page');
+      return Response.redirect('/docs/404.html', 302);
+    }
+
+    if (matchFound.rewrite) {
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
+    }
+
+    return Response.redirect(newUrl, 301);
+  } catch (error) {
+    console.error('Error while fetching the new URL', error);
+    return Response.redirect('/docs/404.html', 302);
+  }
+}
+
+export default async function handler(request: Request, context: Context) {
+  const { method } = request;
+  console.log('Method:', method);
+
+  if (method === 'POST') {
+    console.log('POST request', request.url);
+  }
+
+  const currentUrl = new URL(request.url);
+  const baseUrl = currentUrl.origin;
+  console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION'));
+  console.log('Request URL', currentUrl);
+
+  if (!isAuthenticated(request)) {
+    return context.next();
+  }
+
+  const cookieValue = context.cookies.get('docs_fw');
+  const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
+
+  const redirects = addBaseUrlToRelativePaths(prepareRedirects(framework), baseUrl);
+  const matchFound = redirects.find(redirect => redirect.from.test(currentUrl.pathname));
+
+  if (matchFound) {
+    return handleMatchFound(currentUrl, matchFound, baseUrl);
+  }
+
+  const response = await context.next();
+
+  if (response.status === 404) {
+    return handleCustom404(baseUrl);
+  }
+
+  return response;
+}
+
+export const config: Config = {
+  path: ["/*"],
+};
+
+
 
 function getRawRedirects() {
   return [
@@ -662,146 +779,4 @@ function getRawRedirects() {
       "status": 301
     }
   ];
-}
-
-const addBaseUrlToRelativePaths = (redirects: Redirect [], baseUrl: string) => {
-  return redirects.map(redirect => {
-    if (redirect.to.startsWith('/')) {
-      // Prepend base URL if 'to' field starts with '/'
-      return {
-        ...redirect,
-        to: `${baseUrl}${redirect.to}`
-      };
-    }
-    return redirect; // Leave unchanged if it's already a full URL
-  });
-};
-
-function getVersionRegexString(docsLatestVersion: string) {
-  const escapedVersion = docsLatestVersion.replace('.', '\\.');
-  return `^\\/docs\\/(?!${escapedVersion})(\\d+\\.\\d+)(\\/.*)?$`;
-}
-
-function prepareRedirects(framework: string): Redirect[] {
-  const redirectsArray = getRawRedirects();
-  const redirectOlderVersionsToOvh = {
-    // Except of the docs latest version, all other versions should be redirected to the OVH
-    from: getVersionRegexString(Netlify.env.get('DOCS_LATEST_VERSION')),
-    to: `https://_docs.handsontable.com/docs/$1$2`,
-    status: 301,
-    rewrite: true,
-  };
-
-  // Convert "from" string into a RegExp and replace $framework in "to" property
-  const updatedRedirectsArray = [
-    redirectOlderVersionsToOvh,
-    ...redirectsArray
-  ].map((redirect: { from: string, to: string, status: number, rewrite?: boolean }) => {
-    const fromRegex = new RegExp(redirect.from); // Convert from string to RegExp
-    const updatedTo = redirect.to.replace('$framework', framework); // Replace $framework with provided framework
-
-    return {
-      from: fromRegex,
-      to: updatedTo,
-      status: redirect.status,
-      rewrite: redirect.rewrite,
-    };
-  });
-
-  return updatedRedirectsArray;
-}
-
-function isAuthenticated(request: Request): boolean {
-  console.log('Checking if the user is authenticated');
-  const cookies = request.headers.get('cookie') || '';
-  const jwtCookie = cookies.split(';').find(cookie => cookie.trim().startsWith('nf_jwt='));
-  return !!jwtCookie;
-}
-
-async function handleCustom404(baseUrl:string) {
-  console.log('handleCustom404', baseUrl);
-  const response = fetch(`${baseUrl}/docs/404.html`, {
-    headers: { 'Content-Type': 'text/html' },
-  });
-
-  return response;
-}
-
-export default async function handler(request: Request, context: Context) {
-
-  // Check if the request is a POST request for the Netlify password submission
-  const { method } = request;
-  // console.log('Method:', method);
-  // console.log('Is Authenticated:', isAuthenticated(request));
-  if(method === 'POST') {
-    console.log('POST request', request.url);
-  }
-
-  // const netlifyDefaultResponse = await context.next();
-
-  // if(!isAuthenticated(request)) {
-  //   console.log('User is not authenticated, redirecting to the password prompt');
-  //   return netlifyDefaultResponse;
-  // }
-  //console.log('User is authenticated, processing the request');
-
-  const currentUrl = new URL(request.url);
-  const baseUrl = currentUrl.origin;
-  console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION'));
-  console.log('Request URL', currentUrl);
-
-  const cookieValue = context.cookies.get('docs_fw');
-  const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
-
-  const redirects = addBaseUrlToRelativePaths(prepareRedirects(framework), baseUrl);
-  const matchFound = redirects.find(redirect => redirect.from.test(currentUrl.pathname));
-
-  if (matchFound) {
-    const newUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to)
-
-    if (matchFound.rewrite === true) {
-      console.log('Match found, proxying to', newUrl);
-
-      const response = await fetch(newUrl);
-
-      if(response.status === 404) {
-        console.log('Match found, rewrite true, but the page does not exist, redirecting to the default 404 page');
-        return Response.redirect('/docs/404.html', 302);
-      }
-
-      return new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-      });
-    }
-    console.log('Match found, redirecting to', newUrl);
-
-    try {
-      const response = await fetch(newUrl);
-      if(response.status === 404) {
-        console.log('Match found, but the page does not exist, redirecting to the default 404 page');
-        return Response.redirect('/docs/404.html', 302);
-      }
-
-      return Response.redirect(newUrl, 301);
-    } catch (error) {
-      console.error('Error while fetching the new URL', error);
-      return Response.redirect('/docs/404.html', 302);
-    }
-  }
-
-  const response = await context.next();
-
-  // If the page is not found, serve the custom 404 page
-  if(response.status === 404) {
-    console.log('handle404', baseUrl);
-    return await handleCustom404(baseUrl)
-  }
-  // Return the original response if no match was found
-  return response;
-}
-
-export const config: Config = {
-  path: ["/*"],
 }
