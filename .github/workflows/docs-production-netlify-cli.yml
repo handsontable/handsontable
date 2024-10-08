@@ -104,7 +104,7 @@ jobs:
           npx netlify env:set NETLIFY_SITE_ID=$NETLIFY_SITE_ID
           npx netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
           npx netlify env:list
-          npx netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/ --site NETLIFY_SITE_ID
+          npx netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/ --site $NETLIFY_SITE_ID
 
         env:
             NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
