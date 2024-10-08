@@ -1,10 +1,10 @@
 describe('AutocompleteEditor', () => {
-  const id = 'testContainer';
   const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black',
     'white', 'purple', 'lime', 'olive', 'cyan'];
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer" style="width: 300px; height: 200px; overflow: auto"></div>')
+      .appendTo('body');
   });
 
   afterEach(function() {
@@ -371,29 +371,98 @@ describe('AutocompleteEditor', () => {
       window.onerror = prevError;
     });
 
-    it('should open editor with the proper width of the autocomplete list', async() => {
+    it('should open editor with the correct size when there is no scrollbar on the list', async() => {
       handsontable({
-        colWidths: 50,
+        colWidths: 120,
         columns: [
           {
             editor: 'autocomplete',
-            source: choices,
-            visibleRows: 2,
+            source: choices.slice(0, 5),
+            visibleRows: 5,
           }
         ]
       });
-      const scrollbarWidth = Handsontable.dom.getScrollbarWidth();
-      const expectedWidth = 50 + (scrollbarWidth === 0 ? 15 : scrollbarWidth);
 
       selectCell(0, 0);
-
-      const editor = $('.autocompleteEditor');
-
       keyDownUp('enter');
 
       await sleep(100);
 
-      expect(editor.find('.ht_master .wtHolder').width()).toBe(expectedWidth);
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).toBe(120);
+      expect(container.clientHeight).toBe(118);
+    });
+
+    it('should open editor with the correct size when there is no scrollbar on the list (trimDropdown: false)', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices.slice(0, 5),
+            visibleRows: 5,
+            trimDropdown: false,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).toBe(52);
+      expect(container.clientHeight).toBe(118);
+    });
+
+    it('should open editor with the correct size when there is scrollbar on the list', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            visibleRows: 3,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).toBe(120 + Handsontable.dom.getScrollbarWidth());
+      expect(container.clientHeight).toBe(72);
+    });
+
+    it('should open editor with the correct size when there is scrollbar on the list (trimDropdown: false)', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            visibleRows: 3,
+            trimDropdown: false,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).toBe(52 + Handsontable.dom.getScrollbarWidth());
+      expect(container.clientHeight).toBe(72);
     });
   });
 

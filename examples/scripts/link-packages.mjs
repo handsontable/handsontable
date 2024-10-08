@@ -12,8 +12,8 @@ import {
   displayErrorMessage,
   displayWarningMessage
 } from '../../scripts/utils/index.mjs';
-import examplesPackageJson from '../package.json' assert { type: 'json' };
-import mainPackageJson from '../../package.json' assert { type: 'json' };
+import examplesPackageJson from '../package.json' with { type: 'json' };
+import mainPackageJson from '../../package.json' with { type: 'json' };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const exampleFrameworkSubdirs = examplesPackageJson.internal.framework_dirs;
@@ -77,7 +77,7 @@ for (const hotPackageGlob of hotWorkspaces) {
   const mainPackages = glob.sync(`../${hotPackageGlob}`);
 
   for (const mainPackageUrl of mainPackages) {
-    const { default: packagePackageJson } = await import(`../${mainPackageUrl}/package.json`, { assert: { type: 'json' } });
+    const { default: packagePackageJson } = await import(`../${mainPackageUrl}/package.json`, { with: { type: 'json' } });
     const packageName = packagePackageJson.name;
     packagesToLink.push(packageName);
   }

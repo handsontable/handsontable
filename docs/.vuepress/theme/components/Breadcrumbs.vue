@@ -2,10 +2,9 @@
   <div class="breadcrumbs">
     <a :href="getBaseFrameworkUrl">
       <i class="ico i-home"></i>
-      <span v-if="Boolean(getVersion)">{{ getVersion }} / {{$page.frameworkName}} Data Grid</span>
+      <span v-if="Boolean(getVersion)">{{ getVersion }}<span></span>{{$page.frameworkName}} Data Grid</span>
     </a>
     <a :href="getPageUrl">
-      <span v-if="$page.frontmatter.category">{{$page.frontmatter.category}}</span>
       <span>{{$page.frontmatter.title}}</span>
     </a>
   </div>

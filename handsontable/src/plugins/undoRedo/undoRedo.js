@@ -1,4 +1,4 @@
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { arrayMap, arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { inherit, deepClone } from '../../helpers/object';
@@ -171,8 +171,8 @@ function UndoRedo(instance) {
     plugin.done(() => new UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment));
   });
 
-  instance.addHook('beforeFilter', (conditionsStack) => {
-    plugin.done(() => new UndoRedo.FiltersAction(conditionsStack));
+  instance.addHook('beforeFilter', (conditionsStack, previousConditionsStack) => {
+    plugin.done(() => new UndoRedo.FiltersAction(conditionsStack, previousConditionsStack));
   });
 
   instance.addHook('beforeRowMove', (rows, finalIndex) => {
@@ -511,8 +511,8 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
   if (selectedLast !== undefined) {
     const [changedRow, changedColumn] = data[0];
     const [selectedRow, selectedColumn] = selectedLast;
-    const firstFullyVisibleRow = instance.view.getFirstFullyVisibleRow();
-    const firstFullyVisibleColumn = instance.view.getFirstFullyVisibleColumn();
+    const firstFullyVisibleRow = instance.getFirstFullyVisibleRow();
+    const firstFullyVisibleColumn = instance.getFirstFullyVisibleColumn();
     const isInVerticalViewPort = changedRow >= firstFullyVisibleRow;
     const isInHorizontalViewPort = changedColumn >= firstFullyVisibleColumn;
     const isInViewport = isInVerticalViewPort && isInHorizontalViewPort;
@@ -789,9 +789,11 @@ UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback)
  * Filters action.
  *
  * @private
- * @param {Array} conditionsStack An array of the filter condition.
+ * @param {Array} conditionsStack An array of the filter conditions.
+ * @param {Array} previousConditionsStack An array of the previous filter conditions.
  */
-UndoRedo.FiltersAction = function(conditionsStack) {
+UndoRedo.FiltersAction = function(conditionsStack, previousConditionsStack) {
+  this.previousConditionsStack = previousConditionsStack;
   this.conditionsStack = conditionsStack;
   this.actionType = 'filter';
 };
@@ -802,7 +804,10 @@ UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
 
   instance.addHookOnce('afterViewRender', undoneCallback);
 
-  filters.conditionCollection.importAllConditions(this.conditionsStack.slice(0, this.conditionsStack.length - 1));
+  if (this.previousConditionsStack) {
+    filters.conditionCollection.importAllConditions(this.previousConditionsStack);
+  }
+
   filters.filter();
 };
 UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {

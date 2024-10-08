@@ -352,7 +352,11 @@ export class Overlay {
    */
   refresh(fastDraw = false) {
     if (this.needFullRender) {
+      const cloneSource = this.clone.cloneSource;
+
+      cloneSource.activeOverlayName = this.clone.wtTable.name;
       this.clone.draw(fastDraw);
+      cloneSource.activeOverlayName = 'master';
     }
   }
 

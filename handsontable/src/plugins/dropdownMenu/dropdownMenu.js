@@ -6,7 +6,7 @@ import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import { hasClass, setAttribute } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import {
   COLUMN_LEFT,
   COLUMN_RIGHT,
@@ -261,7 +261,7 @@ export class DropdownMenu extends BasePlugin {
 
         const { from } = this.hot.getSelectedRangeLast();
         const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
-        const target = this.hot.getCell(-1, from.col, true);
+        const target = this.hot.getCell(-1, from.col, true).querySelector(`.${BUTTON_CLASS_NAME}`);
         const rect = target.getBoundingClientRect();
 
         this.open({
@@ -269,6 +269,9 @@ export class DropdownMenu extends BasePlugin {
           top: rect.top + target.offsetHeight + offset.top,
         }, {
           left: rect.width,
+          right: 0,
+          above: 0,
+          below: 3,
         });
         // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
         // will block the Esc key for the whole menu.
@@ -429,9 +432,12 @@ export class DropdownMenu extends BasePlugin {
 
       this.open({
         left: rect.left + offset.left,
-        top: rect.top + event.target.offsetHeight + 3 + offset.top,
+        top: rect.top + event.target.offsetHeight + offset.top,
       }, {
         left: rect.width,
+        right: 0,
+        above: 0,
+        below: 3,
       });
     }
   }

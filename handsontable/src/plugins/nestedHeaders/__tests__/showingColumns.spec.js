@@ -38,7 +38,7 @@ describe('NestedHeaders', () => {
         <thead>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">B1</td>
             <td class="">E1</td>
             <td class="">I1</td>
@@ -73,7 +73,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">B1</td>
             <td class="">E1</td>
             <td class="">I1</td>
@@ -105,7 +105,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">C1</td>
             <td class="">G1</td>
           </tr>
@@ -126,7 +126,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">C1</td>
             <td class="">E1</td>
             <td class="">F1</td>
@@ -153,7 +153,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">C1</td>
             <td class="">D1</td>
@@ -186,7 +186,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -227,7 +227,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">C1</td>
             <td class="">D1</td>
             <td class="">G1</td>
@@ -246,7 +246,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">C1</td>
             <td class="">D1</td>
             <td class="">G1</td>
@@ -293,7 +293,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">D1</td>
             <td class="">H1</td>
           </tr>
@@ -337,7 +337,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">C1</td>
             <td class="">D1</td>
             <td class="">H1</td>
@@ -391,7 +391,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">C1</td>
             <td class="">D1</td>
@@ -460,7 +460,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -520,7 +520,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">J1</td>
             <td class="">K1</td>
@@ -569,7 +569,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">E1</td>
             <td class="">G1</td>
@@ -633,7 +633,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">C1</td>
             <td class="">E1</td>
@@ -707,7 +707,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -791,7 +791,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
@@ -846,7 +846,7 @@ describe('NestedHeaders', () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="ht__row_odd">
               <td class="">E1</td>
             </tr>
           </tbody>
@@ -885,7 +885,7 @@ describe('NestedHeaders', () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="ht__row_odd">
               <td class="">C1</td>
               <td class="">D1</td>
               <td class="">E1</td>
@@ -929,7 +929,7 @@ describe('NestedHeaders', () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="ht__row_odd">
               <td class="">A1</td>
               <td class="">C1</td>
               <td class="">D1</td>
@@ -983,7 +983,7 @@ describe('NestedHeaders', () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="ht__row_odd">
               <td class="">A1</td>
               <td class="">B1</td>
               <td class="">C1</td>
@@ -1042,8 +1042,6 @@ describe('NestedHeaders', () => {
             <th class="">AK1</th>
             <th class="" colspan="4">AL1</th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
             <th class="" colspan="2">K2</th>
@@ -1061,8 +1059,6 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="">AK2</th>
             <th class="" colspan="2">AL2</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AP2</th>
             <th class="hiddenHeader"></th>
           </tr>
           <tr>
@@ -1082,8 +1078,6 @@ describe('NestedHeaders', () => {
             <th class="">AK3</th>
             <th class="">AL3</th>
             <th class="">AN3</th>
-            <th class="">AP3</th>
-            <th class="">AR3</th>
           </tr>
           <tr>
             <th class="">K4</th>
@@ -1102,12 +1096,10 @@ describe('NestedHeaders', () => {
             <th class="">AK4</th>
             <th class="">AM4</th>
             <th class="">AO4</th>
-            <th class="">AQ4</th>
-            <th class="">AS4</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">K1</td>
             <td class="">M1</td>
             <td class="">O1</td>
@@ -1124,8 +1116,6 @@ describe('NestedHeaders', () => {
             <td class="">AK1</td>
             <td class="">AM1</td>
             <td class="">AO1</td>
-            <td class="">AQ1</td>
-            <td class="">AS1</td>
           </tr>
         </tbody>
         `);
@@ -1243,7 +1233,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">U1</td>
             <td class="">W1</td>
             <td class="">Y1</td>
@@ -1322,7 +1312,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">D1</td>
             <td class="">G1</td>
             <td class="">J1</td>
@@ -1389,7 +1379,7 @@ describe('NestedHeaders', () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="ht__row_odd">
             <td class="">C1</td>
             <td class="">D1</td>
             <td class="">F1</td>
@@ -1419,7 +1409,7 @@ describe('NestedHeaders', () => {
             <tr></tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="ht__row_odd">
             </tr>
           </tbody>
           `);
@@ -1440,7 +1430,7 @@ describe('NestedHeaders', () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="ht__row_odd">
               <td class="">A1</td>
               <td class="">B1</td>
               <td class="afterHiddenColumn">E1</td>
@@ -1469,7 +1459,7 @@ describe('NestedHeaders', () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="ht__row_odd">
               <td class="">A1</td>
               <td class="">B1</td>
               <td class="afterHiddenColumn">D1</td>
@@ -1498,7 +1488,7 @@ describe('NestedHeaders', () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="ht__row_odd">
               <td class="">A1</td>
               <td class="">B1</td>
               <td class="afterHiddenColumn">D1</td>

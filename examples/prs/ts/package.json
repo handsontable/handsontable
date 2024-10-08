@@ -1,0 +1,19 @@
+{
+  "name": "handsontable-ts-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel --no-source-maps index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "hyperformula": "^2.4.0",
+    "handsontable": "latest"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "parcel-bundler": "^1.6.1"
+  },
+  "keywords": []
+}

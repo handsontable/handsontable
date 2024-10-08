@@ -1,27 +1,33 @@
 import { useState, useRef, MouseEvent } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+const ExampleComponent: React.FC = () => {
   const hotRef = useRef<HotTableRef>(null);
-  const [output, setOutput] = useState('Click "Load" to load data from server');
-  const [isAutosave, setIsAutosave] = useState(false);
+  const [output, setOutput] = useState<string>(
+    'Click "Load" to load data from server'
+  );
 
-  const autosaveClickCallback = (event: MouseEvent) => {
-    setIsAutosave((event.target as HTMLInputElement).checked);
+  const [isAutosave, setIsAutosave] = useState<boolean>(false);
 
-    if ((event.target as HTMLInputElement).checked) {
+  const autosaveClickCallback = (event: MouseEvent<HTMLInputElement>) => {
+    const target = event.target as HTMLInputElement;
+
+    setIsAutosave(target.checked);
+
+    if (target.checked) {
       setOutput('Changes will be autosaved');
     } else {
       setOutput('Changes will not be autosaved');
     }
   };
 
-  const loadClickCallback = (event: MouseEvent) => {
+  const loadClickCallback = (event: MouseEvent<HTMLButtonElement>) => {
     const hot = hotRef.current?.hotInstance;
 
     fetch('{{$basePath}}/scripts/json/load.json').then((response) => {
@@ -33,7 +39,7 @@ const ExampleComponent = () => {
     });
   };
 
-  const saveClickCallback = (event: MouseEvent) => {
+  const saveClickCallback = (event: MouseEvent<HTMLButtonElement>) => {
     const hot = hotRef.current?.hotInstance;
 
     // save all cell's data
@@ -44,7 +50,7 @@ const ExampleComponent = () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ data: hot?.getData() }),
-    }).then((response) => {
+    }).then(() => {
       setOutput('Data saved');
       console.log('The POST request is only used here for the demo purposes');
     });
@@ -57,7 +63,7 @@ const ExampleComponent = () => {
           <button
             id="load"
             className="button button--primary button--blue"
-            onClick={(...args) => loadClickCallback(...args)}
+            onClick={loadClickCallback}
           >
             Load data
           </button>
@@ -65,7 +71,7 @@ const ExampleComponent = () => {
           <button
             id="save"
             className="button button--primary button--blue"
-            onClick={(...args) => saveClickCallback(...args)}
+            onClick={saveClickCallback}
           >
             Save data
           </button>
@@ -75,7 +81,7 @@ const ExampleComponent = () => {
               name="autosave"
               id="autosave"
               checked={isAutosave}
-              onClick={(...args) => autosaveClickCallback(...args)}
+              onClick={autosaveClickCallback}
             />
             Autosave
           </label>
@@ -94,7 +100,10 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
-        afterChange={function (change, source) {
+        afterChange={function (
+          change: Handsontable.CellChange[] | null,
+          source: Handsontable.ChangeSource
+        ) {
           if (source === 'loadData') {
             return; // don't save this change
           }
@@ -110,7 +119,7 @@ const ExampleComponent = () => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ data: change }),
-          }).then((response) => {
+          }).then(() => {
             setOutput(
               `Autosaved (${change?.length} cell${
                 (change?.length || 0) > 1 ? 's' : ''

@@ -28,7 +28,7 @@ export function createMergeCellRenderer(plugin) {
    *
    * @private
    * @param {HTMLElement} TD The cell to be modified.
-   * @param {number} row Row index.
+   * @param {number} row Visual row index.
    * @param {number} col Visual column index.
    */
   function after(TD, row, col) {
@@ -52,6 +52,7 @@ export function createMergeCellRenderer(plugin) {
       lastMergedRowIndex,
       lastMergedColumnIndex,
     ] = plugin.translateMergedCellToRenderable(origRow, origRowspan, origColumn, origColspan);
+    const isVirtualRenderingEnabled = plugin.getSetting('virtualized');
 
     const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
     const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
@@ -59,8 +60,20 @@ export function createMergeCellRenderer(plugin) {
     const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
     const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
 
-    const notHiddenRow = rowMapper.getNearestNotHiddenIndex(origRow, 1);
-    const notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
+    let notHiddenRow = rowMapper.getNearestNotHiddenIndex(origRow, 1);
+    let notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
+
+    if (isVirtualRenderingEnabled) {
+      const overlayName = hot.view.getActiveOverlayName();
+
+      if (!['top', 'top_inline_start_corner'].includes(overlayName)) {
+        notHiddenRow = Math.max(notHiddenRow, hot.getFirstRenderedVisibleRow());
+      }
+      if (!['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner'].includes(overlayName)) {
+        notHiddenColumn = Math.max(notHiddenColumn, hot.getFirstRenderedVisibleColumn());
+      }
+    }
+
     const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);
     const notHiddenColspan = Math.min(origColspan, maxColSpan);
 

@@ -1,7 +1,6 @@
 .footer { 
     margin: 24px auto 0
     padding: 24px 0 16px
-    border-top: 1px solid $borderColor    
     box-sizing: border-box;
     color: $text2Color
 
@@ -16,32 +15,41 @@
         margin-top: 16px
     }
 
-    .hot-feedback {
-        display: none
-        margin: 0 auto
-
-        ._hj_feedback_container ._hj-zRk2h__Feedback__feedback, 
-        ._hj_feedback_container ._hj-zRk2h__Feedback__feedback * {
-            font-family: $font
+    .edit-link  { 
+        display: flex
+        gap: 8px
+        font-weight: 300
+        align-items: center
+        margin-left: auto
+        color: $text2Color
+        font-size: $font-size-xs
+        line-height: $line-height-xs
+        font-weight: 400
+        
+        i { 
+            opacity: .6
         }
-        ._hj-Z5Onj__Title__Title._hj-9ZlKs__Title__compact._hj-8VPIr__Title__isEmbedded {
-            font-size: 14px
-            font-weight: normal
-        }
+        
+        @media (hover: hover) {
+            &:hover {  
+                color: $textColor
 
-        button:not(.theme-code-group__nav-tab) { border:none !important }
-
-        ._hj_feedback_container ._hj-ivniz__ExpandedWidget__inline ._hj--NfhW__ExpandedWidget__innerContainer { 
-            display: none
+                i { 
+                    opacity: .8
+                }
+            }
         }
     }
+    
 
-    .footer-links { 
+    .footer-links {
+        border-top: 1px solid $borderColor    
         display: flex
         color: $text2Color
         align-items: center;
         gap: 24px;
-        padding-top: 40px
+        padding-top: 16px
+        margin-top: 16px
 
         p,a { 
             font-size: $font-size-xs
@@ -102,6 +110,7 @@
             }
             
         }
+        
     }
 
     .footer-support { 
@@ -197,6 +206,25 @@
         }
     }
 
+    @media (max-width: $large) {
+        background: $borderColor
+        margin: 80px -32px -24px
+        padding: 32px 32px 32px
+        border-radius: 0
+        position: relative
+
+        .edit-link { 
+            position absolute
+            top:-48px
+        }
+
+        .footer-links {
+            margin-top: 0
+            padding-top: 0
+            border: 0
+        }
+    }
+
     @media (max-width: $medium) {
         background: $borderColor
         margin: 80px -32px -24px
@@ -209,6 +237,11 @@
 
             .hot-links {
                 flex-direction: column
+            }
+
+            .edit-link  { 
+                order: -1
+                margin-left: 0
             }
         }
     }

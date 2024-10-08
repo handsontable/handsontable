@@ -125,10 +125,11 @@ The first argument may be modified and passed on through the Handsontable hooks 
 
 ## External control
 
-::: example #example3 :react --js 1 --ts 2
+::: example #example3 :react --js 1 --ts 2 --css 3
 
 @[code](@/content/guides/getting-started/events-and-hooks/react/example3.jsx)
 @[code](@/content/guides/getting-started/events-and-hooks/react/example3.tsx)
+@[code](@/content/guides/getting-started/events-and-hooks/react/example3.css)
 
 :::
 
@@ -156,7 +157,8 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `auto`                                             | Action triggered by Handsontable, and the reason for it is related directly to the settings applied to Handsontable. For example, [`afterCreateRow`](@/api/hooks.md#aftercreaterow) will be fired with this when [`minSpareRows`](@/api/options.md#minsparerows) will be greater than 0. |
 | `edit`                                             | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using `setData*` methods.                                                                                                     |
-| `loadData`                                         | Action triggered by Handsontable after the [`loadData`](@/api/core.md#loaddata) or [`updateSettings({data: myData})`](@/api/core.md#updatesettings) with the [`data`](@/api/options.md#data) property method has been called.                                                                             |
+| `loadData`                                         | Action triggered by Handsontable after the [`loadData`](@/api/core.md#loaddata) method has been called with the [`data`](@/api/options.md#data) property.
+| `updateData`                                         | Action triggered by Handsontable after the [`updateData`](@/api/core.md#updatedata) method has been called; e.g., before or after a data change.                                                                                                     |
 | `populateFromArray`                                | Action triggered by Handsontable after requesting for populating data.                                                                                                                                                 |
 | `spliceCol`                                        | Action triggered by Handsontable after the column data splicing has been done.                                                                                                                                         |
 | `spliceRow`                                        | Action triggered by Handsontable after the row data splicing has been done.                                                                                                                                            |

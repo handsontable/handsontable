@@ -87,8 +87,13 @@ export default async({ router, siteData, isServer }) => {
 
     if (savedPosition) {
       scrollPosition = savedPosition; // page from the browser navigation (back/forward)
+    }
 
-    } else if (to.hash) {
+    if (from.hash) {
+      scrollPosition = { x: 0, y: 0 };
+    }
+
+    if (to.hash) {
       scrollPosition = {
         selector: to.hash,
         // top offset that matches to the "scroll-padding-top" (.vuepress/theme/styles/index.styl@34)

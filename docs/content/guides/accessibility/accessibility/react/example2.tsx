@@ -537,6 +537,7 @@ const ExampleComponent = () => {
     enterBeginsEditing: true,
     autoWrapRow: true,
     autoWrapCol: true,
+    headerClassName: 'htLeft',
     enterMoves: { col: 0, row: 1 },
   });
 
@@ -573,8 +574,13 @@ const ExampleComponent = () => {
           type="date"
           allowInvalid={false}
         />
-        <HotColumn data="inStock" type="checkbox" className="htCenter" />
-        <HotColumn data="qty" type="numeric" />
+        <HotColumn
+          data="inStock"
+          type="checkbox"
+          className="htCenter"
+          headerClassName="htCenter"
+        />
+        <HotColumn data="qty" type="numeric" headerClassName="htRight" />
         <HotColumn data="orderId" type="text" />
         <HotColumn data="country" type="dropdown" source={countries} />
       </HotTable>

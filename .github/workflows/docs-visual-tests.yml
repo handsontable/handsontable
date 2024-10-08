@@ -1,9 +1,5 @@
 name: Docs Visual Tests
 
-env:
-  DOCSEARCH_API_KEY: ${{ secrets.DOCSEARCH_API_KEY }}
-  DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
-
 on:
   workflow_dispatch:
     inputs:
@@ -24,10 +20,11 @@ defaults:
     working-directory: ./docs/
 jobs:
   run-tests:
+    name: Visual tests for ${{ github.event.inputs.test_env }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    env: # Or as an environment variable
-      PASS_COOKIE: ${{ secrets.PassCookie }}
+    env: 
+      PASS_COOKIE: ${{ secrets.PASS_COOKIE }}
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
@@ -80,11 +77,11 @@ jobs:
 
       - name: Initialize snapshots
         if: ${{env.cache-restored != 'true' || github.event.inputs.update-snapshots == 'true'}}
-        run: BASE_URL=${{ inputs.test_env }} npx playwright test --update-snapshots
+        run: BASE_URL=${{ github.event.inputs.test_env }} npx playwright test --update-snapshots
 
       - name: Test
-        if: ${{env.cache-restored == 'true' || github.event.inputs.update-snapshots != 'true'}}
-        run: BASE_URL=${{ inputs.test_env }} npx playwright test
+        if: ${{env.cache-restored == 'true' && github.event.inputs.update-snapshots != 'true'}}
+        run: BASE_URL=${{ github.event.inputs.test_env }} npx playwright test
 
       - name: Upload test report
         if: always()

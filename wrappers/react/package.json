@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/react",
-  "version": "14.4.0",
+  "version": "14.6.0",
   "description": "Best Data Grid for React with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -71,7 +71,6 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/react-redux": "^7.1.7",
-    "babel-core": "^7.0.0-bridge.0",
     "cross-env": "^7.0.3",
     "handsontable": "^14.0.0",
     "jest": "^29.7.0",

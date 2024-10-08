@@ -1,8 +1,7 @@
 describe('MergeCells open editor', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer" style="width: 300px; height: 200px; overflow: auto"></div>')
+      .appendTo('body');
   });
 
   afterEach(function() {
@@ -113,5 +112,51 @@ describe('MergeCells open editor', () => {
 
     expect(isEditorVisible()).toBe(false);
     expect(getActiveEditor()).toBeDefined();
+  });
+
+  using('DOM virtualization as', [false, true], (virtualized) => {
+    it('should render the editor correctly after scroll for very wide merged cell', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 100),
+        rowHeaders: true,
+        colHeaders: true,
+        mergeCells: {
+          virtualized,
+          cells: [
+            { row: 1, col: 1, rowspan: 2, colspan: 90 }
+          ]
+        }
+      });
+
+      selectCell(1, 90);
+      keyDownUp('enter');
+
+      await sleep(50);
+
+      expect(isEditorVisible()).toBe(true);
+      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).toEqual({ top: 49, left: 50 });
+    });
+
+    it('should render the editor correctly after scroll for very high merged cell', async() => {
+      handsontable({
+        data: createSpreadsheetData(100, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        mergeCells: {
+          virtualized,
+          cells: [
+            { row: 1, col: 1, rowspan: 90, colspan: 2 }
+          ]
+        }
+      });
+
+      selectCell(90, 1);
+      keyDownUp('enter');
+
+      await sleep(50);
+
+      expect(isEditorVisible()).toBe(true);
+      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).toEqual({ top: 27, left: 99 });
+    });
   });
 });

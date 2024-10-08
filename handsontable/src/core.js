@@ -28,8 +28,8 @@ import DataSource from './dataMap/dataSource';
 import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
-import { ViewportColumnsCalculator } from './3rdparty/walkontable/src';
-import Hooks from './pluginHooks';
+import { DEFAULT_COLUMN_WIDTH } from './3rdparty/walkontable/src';
+import { Hooks } from './core/hooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
@@ -2462,9 +2462,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
 
-        if (isFunction(settings[i]) || Array.isArray(settings[i])) {
-          settings[i].initialHook = true;
-          instance.addHook(i, settings[i]);
+        if (isFunction(settings[i])) {
+          Hooks.getSingleton().addAsFixed(i, settings[i], instance);
+
+        } else if (Array.isArray(settings[i])) {
+          Hooks.getSingleton().add(i, settings[i], instance);
         }
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
@@ -2641,8 +2643,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * by adding or removing rows and columns at specified positions.
    *
    * ::: tip
-   * The `alter()` method works only when your [`data`](@/api/options.md#data)
-   * is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays).
+   * If you use an array of objects in your [`data`](@/api/options.md#data), the column-related actions won't work.
    * :::
    *
    * ```js
@@ -3326,6 +3327,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * Returns the meta information for the provided column.
+   *
+   * @since 14.5.0
+   * @memberof Core#
+   * @function getColumnMeta
+   * @param {number} column Visual column index.
+   * @returns {object}
+   */
+  this.getColumnMeta = function(column) {
+    return metaManager.getColumnMeta(this.toPhysicalColumn(column));
+  };
+
+  /**
    * Returns an array of cell meta objects for specified physical row index.
    *
    * @memberof Core#
@@ -3793,7 +3807,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     width = instance.runHooks('modifyColWidth', width, column);
 
     if (width === undefined) {
-      width = ViewportColumnsCalculator.DEFAULT_WIDTH;
+      width = DEFAULT_COLUMN_WIDTH;
     }
 
     return width;
@@ -4565,6 +4579,158 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getActiveEditor = function() {
     return editorManager.getActiveEditor();
+  };
+
+  /**
+   * Returns the first rendered row in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstRenderedVisibleRow
+   * @returns {number | null}
+   */
+  this.getFirstRenderedVisibleRow = function() {
+    return instance.view.getFirstRenderedVisibleRow();
+  };
+
+  /**
+   * Returns the last rendered row in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastRenderedVisibleRow
+   * @returns {number | null}
+   */
+  this.getLastRenderedVisibleRow = function() {
+    return instance.view.getLastRenderedVisibleRow();
+  };
+
+  /**
+   * Returns the first rendered column in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstRenderedVisibleColumn
+   * @returns {number | null}
+   */
+  this.getFirstRenderedVisibleColumn = function() {
+    return instance.view.getFirstRenderedVisibleColumn();
+  };
+
+  /**
+   * Returns the last rendered column in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastRenderedVisibleColumn
+   * @returns {number | null}
+   */
+  this.getLastRenderedVisibleColumn = function() {
+    return instance.view.getLastRenderedVisibleColumn();
+  };
+
+  /**
+   * Returns the first fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstFullyVisibleRow
+   * @returns {number | null}
+   */
+  this.getFirstFullyVisibleRow = function() {
+    return instance.view.getFirstFullyVisibleRow();
+  };
+
+  /**
+   * Returns the last fully visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastFullyVisibleRow
+   * @returns {number | null}
+   */
+  this.getLastFullyVisibleRow = function() {
+    return instance.view.getLastFullyVisibleRow();
+  };
+
+  /**
+   * Returns the first fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstFullyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getFirstFullyVisibleColumn = function() {
+    return instance.view.getFirstFullyVisibleColumn();
+  };
+
+  /**
+   * Returns the last fully visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastFullyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getLastFullyVisibleColumn = function() {
+    return instance.view.getLastFullyVisibleColumn();
+  };
+
+  /**
+   * Returns the first partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstPartiallyVisibleRow
+   * @returns {number | null}
+   */
+  this.getFirstPartiallyVisibleRow = function() {
+    return instance.view.getFirstPartiallyVisibleRow();
+  };
+
+  /**
+   * Returns the last partially visible row in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastPartiallyVisibleRow
+   * @returns {number | null}
+   */
+  this.getLastPartiallyVisibleRow = function() {
+    return instance.view.getLastPartiallyVisibleRow();
+  };
+
+  /**
+   * Returns the first partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getFirstPartiallyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getFirstPartiallyVisibleColumn = function() {
+    return instance.view.getFirstPartiallyVisibleColumn();
+  };
+
+  /**
+   * Returns the last partially visible column in the table viewport. When the table has overlays the method returns
+   * the first row of the main table that is not overlapped by overlay.
+   *
+   * @since 14.6.0
+   * @memberof Core#
+   * @function getLastPartiallyVisibleColumn
+   * @returns {number | null}
+   */
+  this.getLastPartiallyVisibleColumn = function() {
+    return instance.view.getLastPartiallyVisibleColumn();
   };
 
   /**

@@ -46,6 +46,11 @@ export class HandsontableEditor extends TextEditor {
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
     this.refreshDimensions();
+
+    this.htEditor.updateSettings({
+      width: this.getWidth(),
+      height: this.getHeight(),
+    });
   }
 
   /**
@@ -159,6 +164,26 @@ export class HandsontableEditor extends TextEditor {
     }
 
     super.finishEditing(restoreOriginalValue, ctrlDown, callback);
+  }
+
+  /**
+   * Calculates and return the internal Handsontable's height.
+   *
+   * @private
+   * @returns {number}
+   */
+  getHeight() {
+    return this.htEditor.view.getTableHeight();
+  }
+
+  /**
+   * Calculates and return the internal Handsontable's width.
+   *
+   * @private
+   * @returns {number}
+   */
+  getWidth() {
+    return this.htEditor.view.getTableWidth();
   }
 
   /**

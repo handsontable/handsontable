@@ -4,7 +4,6 @@
     [data]="dataset"
     height="450"
     [colWidths]="[170, 222, 130, 120, 120, 130, 156]"
-    [afterGetColHeader]="alignHeaders"
     [colHeaders]="colHeaders"
     [rowHeaders]="true"
     [dropdownMenu]="true"
@@ -12,7 +11,7 @@
     [contextMenu]="true"
     [multiColumnSorting]="true"
     [filters]="true"
-    [afterGetColHeader]="alignHeaders"
+    headerClassName="htLeft"
     [beforeRenderer]="addClassesToRows"
     [manualRowMove]="true"
     [autoWrapRow]="true"
@@ -22,8 +21,8 @@
     <hot-column data="1"></hot-column>
     <hot-column data="3"></hot-column>
     <hot-column data="4" type="date" [allowInvalid]="false"></hot-column>
-    <hot-column data="6" type="checkbox" className="htCenter"></hot-column>
-    <hot-column data="7" type="numeric"></hot-column>
+    <hot-column data="6" type="checkbox" className="htCenter" headerClassName="htCenter"></hot-column>
+    <hot-column data="7" type="numeric" headerClassName="htRight"></hot-column>
     <hot-column data="5"></hot-column>
     <hot-column data="2"></hot-column>
   </hot-table>
