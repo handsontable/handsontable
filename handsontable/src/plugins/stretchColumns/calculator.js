@@ -70,12 +70,12 @@ export class StretchCalculator {
       const stretchStrategy = this.#stretchStrategies.get(this.#activeStrategy);
 
       stretchStrategy.prepare({
-        viewportWidth: this.#hot.view.getWorkspaceWidth() - 50, // TODO
+        viewportWidth: this.#hot.view.getWorkspaceWidth() - this.#hot.view.getRowHeaderWidth(),
       });
 
       for (let columnIndex = 0; columnIndex < this.#hot.countCols(); columnIndex++) {
         if (!this.#hot.columnIndexMapper.isHidden(this.#hot.toPhysicalColumn(columnIndex))) {
-          stretchStrategy.setColumnWidthBase(columnIndex, this.#getWidthWithoutStretching(columnIndex));
+          stretchStrategy.setColumnBaseWidth(columnIndex, this.#getWidthWithoutStretching(columnIndex));
         }
       }
 
@@ -107,6 +107,13 @@ export class StretchCalculator {
     return this.#hot.getColWidth(columnVisualIndex, 'StretchColumns') ?? DEFAULT_COLUMN_WIDTH;
   }
 
+  /**
+   * Executes the hook that allows to overwrite the column width.
+   *
+   * @param {number} columnWidth The column width.
+   * @param {number} columnVisualIndex Column visual index.
+   * @returns {number}
+   */
   #overwriteColumnWidthFn(columnWidth, columnVisualIndex) {
     return this.#hot.runHooks('beforeStretchingColumnWidth', columnWidth, columnVisualIndex);
   }

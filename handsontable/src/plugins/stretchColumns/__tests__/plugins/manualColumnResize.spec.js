@@ -10,7 +10,7 @@ describe('StretchColumns cooperation with ManualColumnResize', () => {
     }
   });
 
-  it('should be possible to skip stretching for columns that have defined size', () => {
+  it('should skip columns stretching for columns that have defined size', () => {
     handsontable({
       data: createSpreadsheetData(5, 9),
       colHeaders: true,
@@ -26,9 +26,9 @@ describe('StretchColumns cooperation with ManualColumnResize', () => {
     expect(getColWidth(2)).toBe(12);
     expect(getColWidth(3)).toBe(13);
     expect(getColWidth(4)).toBe(14);
-    expect(getColWidth(5)).toBe(98);
-    expect(getColWidth(6)).toBe(98);
-    expect(getColWidth(7)).toBe(98);
-    expect(getColWidth(8)).toBe(96);
+    expect(getColWidth(5)).toBe(97);
+    expect(getColWidth(6)).toBe(97);
+    expect(getColWidth(7)).toBe(97);
+    expect(getColWidth(8)).toBe(99);
   });
 });

@@ -1,6 +1,10 @@
 import { StretchStrategy } from './_base';
 
 /**
+ * @typedef StretchStrategyCalcArgs
+ * @property {number} viewportWidth The width of the viewport.
+ */
+/**
  * The strategy calculates only the last column widths to fill the viewport.
  *
  * @private
@@ -23,7 +27,7 @@ export class StretchLastStrategy extends StretchStrategy {
   /**
    * Prepares the strategy for the calculation.
    *
-   * @param {{ viewportWidth: number, allColumnsWidth: number }} calcArgs The calculation arguments.
+   * @param {StretchStrategyCalcArgs} calcArgs The calculation arguments.
    */
   prepare(calcArgs) {
     super.prepare(calcArgs);
@@ -32,26 +36,28 @@ export class StretchLastStrategy extends StretchStrategy {
   }
 
   /**
-   * Calculates the width of the column.
+   * Sets the base widths of the columns with which the strategy will work with.
    *
-   * @param {number} columnVisualIndex The column visual index to calculate.
-   * @param {number} columnWidth The current column width.
+   * @param {number} columnVisualIndex The visual index of the column.
+   * @param {number} columnWidth The width of the column.
    */
-  calculate(columnVisualIndex, columnWidth) {
-    this.#lastColumnWidth = columnWidth;
+  setColumnBaseWidth(columnVisualIndex, columnWidth) {
+    super.setColumnBaseWidth(columnVisualIndex, columnWidth);
     this.#lastColumnIndex = columnVisualIndex;
+    this.#lastColumnWidth = columnWidth;
   }
 
   /**
-   * Finishes the calculation.
+   * Calculates the columns widths.
    */
-  finish() {
+  calculate() {
     if (this.#lastColumnIndex === -1) {
       return;
     }
 
-    const lastColumnWidth = Math.max(this.viewportWidth - this.allColumnsWidth + this.#lastColumnWidth, 0);
+    const allColumnsWidth = Array.from(this.baseWidths).reduce((sum, [, width]) => sum + width, 0);
+    const lastColumnWidth = Math.max(this.viewportWidth - allColumnsWidth + this.#lastColumnWidth, 0);
 
-    this.widths.set(this.#lastColumnIndex, lastColumnWidth);
+    this.stretchedWidths.set(this.#lastColumnIndex, lastColumnWidth);
   }
 }

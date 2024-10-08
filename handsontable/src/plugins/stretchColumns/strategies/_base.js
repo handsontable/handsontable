@@ -22,11 +22,17 @@ export class StretchStrategy {
    */
   overwriteColumnWidthFn;
   /**
-   * The map that stores the calculated column widths.
+   * The map that stores the base column widths.
    *
    * @type {Map<number, number>}
    */
-  widths = new Map();
+  baseWidths = new Map();
+  /**
+   * The map that stores the calculated, stretched column widths.
+   *
+   * @type {Map<number, number>}
+   */
+  stretchedWidths = new Map();
 
   constructor(overwriteColumnWidthFn) {
     this.overwriteColumnWidthFn = overwriteColumnWidthFn;
@@ -39,17 +45,18 @@ export class StretchStrategy {
    */
   prepare({ viewportWidth }) {
     this.viewportWidth = viewportWidth;
-    this.widths.clear();
+    this.baseWidths.clear();
+    this.stretchedWidths.clear();
   }
 
   /**
-   * Sets the widths of the columns with which the strategy will work.
+   * Sets the base widths of the columns with which the strategy will work with.
    *
    * @param {number} columnVisualIndex The visual index of the column.
    * @param {number} columnWidth The width of the column.
    */
-  setColumnWidthBase(columnVisualIndex, columnWidth) {
-    this.widths.set(columnVisualIndex, columnWidth);
+  setColumnBaseWidth(columnVisualIndex, columnWidth) {
+    this.baseWidths.set(columnVisualIndex, columnWidth);
   }
 
   /**
@@ -58,11 +65,11 @@ export class StretchStrategy {
   calculate() {}
 
   /**
-   * Gets the calculated column widths.
+   * Gets the calculated stretched column widths.
    *
    * @returns {Array<number[]>}
    */
   getWidths() {
-    return Array.from(this.widths);
+    return Array.from(this.stretchedWidths);
   }
 }

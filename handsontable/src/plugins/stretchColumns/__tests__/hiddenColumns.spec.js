@@ -1,4 +1,4 @@
-describe('StretchColumns cooperation with HiddenColumns', () => {
+describe('StretchColumns cooperation with hidden columns', () => {
   beforeEach(function() {
     this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });

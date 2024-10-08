@@ -157,4 +157,27 @@ describe('StretchColumns', () => {
     expect(getColWidth(3)).toBe(50);
     expect(getColWidth(4)).toBe(50);
   });
+
+  it('should correctly stretch the column after changing the cell value (#dev-1727)', () => {
+    const data = createSpreadsheetData(1, 5);
+
+    data[0][4] = 'very long text is here to make the column wider';
+
+    handsontable({
+      data,
+      width: 400,
+      height: 300,
+      stretchH: 'all',
+    });
+
+    expect(getColWidth(4)).toBe(259);
+
+    setDataAtCell(0, 4, 'text');
+
+    expect(getColWidth(4)).toBe(80);
+
+    setDataAtCell(0, 4, 'very long text is here to make the column wider');
+
+    expect(getColWidth(4)).toBe(259);
+  });
 });

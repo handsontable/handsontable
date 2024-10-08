@@ -12,14 +12,22 @@ export class StretchAllStrategy extends StretchStrategy {
    * Calculates the columns widths.
    */
   calculate() {
-    const allColumnsWidth = Array.from(this.widths).reduce((sum, [, width]) => sum + width, 0);
+    const allColumnsWidth = Array.from(this.baseWidths).reduce((sum, [, width]) => sum + width, 0);
+    const remainingViewportWidth = this.viewportWidth - allColumnsWidth;
+
+    if (remainingViewportWidth < 0) {
+      this.stretchedWidths.clear();
+
+      return;
+    }
+
     const initialStretchRatio = this.viewportWidth / allColumnsWidth;
     const stretchedWidths = [];
     const fixedColumns = [];
     let viewportWidth = this.viewportWidth;
     let allStretchedColumnsWidth = 0;
 
-    this.widths.forEach((columnWidth, columnVisualIndex) => {
+    this.baseWidths.forEach((columnWidth, columnVisualIndex) => {
       const stretchedWidth = Math.round(columnWidth * initialStretchRatio);
       const finalWidth = this.overwriteColumnWidthFn(stretchedWidth, columnVisualIndex);
 
@@ -34,11 +42,15 @@ export class StretchAllStrategy extends StretchStrategy {
       }
     });
 
+    if (viewportWidth <= DEFAULT_COLUMN_WIDTH) {
+      this.stretchedWidths.clear();
+
+      return;
+    }
+
     const finalStretchRatio = viewportWidth / allStretchedColumnsWidth;
     let lastColumnIndex = -1;
     let sumColumnsWithoutLastOne = 0;
-
-    this.widths.clear();
 
     stretchedWidths.forEach(([columnVisualIndex, columnWidth], index) => {
       let newWidth = columnWidth;
@@ -47,7 +59,8 @@ export class StretchAllStrategy extends StretchStrategy {
         newWidth = Math.round(columnWidth * finalStretchRatio);
       }
 
-      this.widths.set(columnVisualIndex, newWidth);
+      this.stretchedWidths.set(columnVisualIndex, newWidth);
+
       lastColumnIndex = columnVisualIndex;
 
       if (index < stretchedWidths.length - 1) {
@@ -55,8 +68,8 @@ export class StretchAllStrategy extends StretchStrategy {
       }
     });
 
-    if (this.widths.size > 1) {
-      this.widths.set(lastColumnIndex, Math.round(this.viewportWidth - sumColumnsWithoutLastOne));
+    if (this.stretchedWidths.size > 1) {
+      this.stretchedWidths.set(lastColumnIndex, Math.round(this.viewportWidth - sumColumnsWithoutLastOne));
     }
   }
 }

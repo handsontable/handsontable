@@ -620,7 +620,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeSetRangeEnd: (coords) => {},
   beforeSetRangeStart: (coords) => {},
   beforeSetRangeStartOnly: (coords) => {},
-  beforeStretchingColumnWidth: (stretchedWidth, column) => {},
+  beforeStretchingColumnWidth: (stretchedWidth, column) => {
+    const _stretchedWidth: number = stretchedWidth;
+    const _column: number = column;
+  },
   beforeTouchScroll: () => {},
   beforeTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
   beforeUndo: (action) => {},
