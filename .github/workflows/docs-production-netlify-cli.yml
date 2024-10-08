@@ -23,16 +23,40 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: debug
+
+
+      - name: Get Account ID and Print Curl Output
         working-directory: ./
-        run: | 
-          response=$(curl -X GET "https://api.netlify.com/api/v1/accounts" \
+        run: |
+          # Send GET request and capture the output and HTTP status
+          response=$(curl -s -w "\nHTTP_STATUS_CODE:%{http_code}" -X GET "https://api.netlify.com/api/v1/accounts" \
             -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
             -H "Content-Type: application/json")
-          echo "Response: $response"  # Print the output of the curl command
           
-          account_id=$(echo "$response" | jq -r '.[0].id')
-          echo $account_id
+          # Extract the HTTP status code
+          http_status=$(echo "$response" | grep "HTTP_STATUS_CODE" | awk -F':' '{print $2}')
+          response_body=$(echo "$response" | sed '/HTTP_STATUS_CODE/d')
+
+          # Print the response body and HTTP status
+          echo "HTTP Status Code: $http_status"
+          echo "Response Body: $response_body"
+
+          # If the response is not successful, exit with an error
+          if [ "$http_status" -ne 200 ]; then
+            echo "Error: API request failed with status $http_status"
+            exit 1
+          fi
+
+          # Extract the account_id using jq (ensure jq is installed)
+          account_id=$(echo "$response_body" | jq -r '.[0].id')
+
+          if [ -z "$account_id" ]; then
+            echo "Error: account_id not found in the response."
+            exit 1
+          fi
+
+          # Set account_id in environment for later use
+          echo "ACCOUNT_ID=$account_id" >> $GITHUB_ENV
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       # - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
