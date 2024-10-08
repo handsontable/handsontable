@@ -57,8 +57,10 @@ function getPrettyFrameworkName(framework) {
  */
 function getThisDocsVersion() {
   const { DOCS_LATEST_VERSION } = process.env;
+
   if (DOCS_LATEST_VERSION) {
-    docsVersion = DOCS_LATEST_VERSION
+    docsVersion = DOCS_LATEST_VERSION;
+
     return DOCS_LATEST_VERSION;
   }
 
@@ -270,8 +272,9 @@ function getDocsBaseFullUrl() {
 /**
  * Gets docs hostname (eq: https://handsontable.com).
  *
- * @param {boolean} [allowLocalhost=true] Returns true if NETLIFY environment variable was set to true.
- * @returns {boolean}
+ * @param {boolean} [allowLocalhost=true] Returns localhost URL for local testing or official Docs domains as
+ *                                        a source of truth for further "fetch" requests.
+ * @returns {string}
  */
 function getDocsHostname(allowLocalhost = true) {
   const buildMode = process.env.BUILD_MODE;
