@@ -73,12 +73,7 @@ jobs:
           # cache-dependency-path: ./latest/package-lock.json
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
- 
-      - name: Install Netlify CLI
-        run: |
-          npm install netlify-cli -g
-          netlify
-      
+
       - name: Dependencies
         run: |
           npm ci
