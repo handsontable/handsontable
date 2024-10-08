@@ -104,7 +104,7 @@ jobs:
 
       - name: Deploy to Netlify
         run: |
-          netlify env:set NETLIFY_SITE_ID
+          netlify env:set NETLIFY_SITE_ID=$NETLIFY_SITE_ID
           netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
           netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/ --site $NETLIFY_SITE_ID
           netlify env:list
