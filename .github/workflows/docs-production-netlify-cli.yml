@@ -83,9 +83,6 @@ jobs:
           npm run docs:build:production:netlify
         working-directory: ./docs/
 
-      - name: Install Netlify CLI
-        run: npm install netlify-cli -g
-
       - name: Copy _redirects file
         run: |
           cp ./netlify/_redirects ./.vuepress/dist/docs/_redirects
@@ -101,16 +98,16 @@ jobs:
           commit_user_name: "Docs Deployment"
           commit_user_email: "docs-deployment@handsontable.com"
 
-      - name: Deploy to Netlify
+     - name: Deploy to Netlify
         run: |
-          netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
-          netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
-          netlify env:list
+          npx netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
+          npx netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
+          npx netlify env:list
         env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
-          NETLIFY_CONTEXT: production
+            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+            NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+            DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+            NETLIFY_CONTEXT: production
 
       - name: Update Environment Variables on Netlify
         run: |
@@ -122,7 +119,7 @@ jobs:
               "value": "'"${DOCS_LATEST_VERSION}"'"
             }'
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_ACCOUNT_ID: handsonable-team
+            NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+            DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+            NETLIFY_ACCOUNT_ID: handsonable-team
