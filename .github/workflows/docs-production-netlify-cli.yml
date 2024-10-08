@@ -37,16 +37,18 @@ jobs:
 
       - name: Validate Docs version
         run: if [ -z "$DOCS_LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
-
-      - name: Remove local branch if it exists
-        run: |
-          git branch -D prod-docs/latest || true
-
-      - name: Check the Netlify user accounts
+      
+      - name: Update Environment Variables on Netlify
         run: |
           curl -X GET "https://api.netlify.com/api/v1/accounts" \
           -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
           -H "Content-Type: application/json"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+      - name: Remove local branch if it exists
+        run: |
+          git branch -D prod-docs/latest || true
 
       - name: Recreate the docs latest branch
         run: |
@@ -114,10 +116,10 @@ jobs:
           netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
           netlify env:list
         env:
-            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-            NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-            DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
-            NETLIFY_CONTEXT: production 
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+          NETLIFY_CONTEXT: production
 
       - name: Update Environment Variables on Netlify
         run: |
@@ -129,6 +131,6 @@ jobs:
             "value": "'"${DOCS_LATEST_VERSION}"'"
           }'
         env:
-            NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-              : ${{ env.DOCS_LATEST_VERSION }}
-            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
