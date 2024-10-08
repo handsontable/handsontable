@@ -1,5 +1,5 @@
 import { IndexMapper } from './translations';
-import { Events } from './pluginHooks';
+import { Events } from './core/hooks';
 import {
   CellValue,
   RowObject,

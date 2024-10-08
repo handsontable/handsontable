@@ -1,33 +1,33 @@
 import { ExportedChange } from 'hyperformula';
-import CellCoords from './3rdparty/walkontable/src/cell/coords';
-import CellRange from './3rdparty/walkontable/src/cell/range';
-import { ViewportColumnsCalculator } from './3rdparty/walkontable/src/calculator/viewportColumns';
-import Core from './core';
-import { SelectionController } from './selection';
+import CellCoords from '../../3rdparty/walkontable/src/cell/coords';
+import CellRange from '../../3rdparty/walkontable/src/cell/range';
+import { ViewportColumnsCalculator } from '../../3rdparty/walkontable/src/calculator/viewportColumns';
+import Core from '../../core';
+import { SelectionController } from '../../selection';
 import {
   ContextMenu,
   PredefinedMenuItemKey as ContextMenuPredefinedMenuItemKey,
   MenuItemConfig as ContextMenuMenuItemConfig,
-} from './plugins/contextMenu';
+} from '../../plugins/contextMenu';
 import {
   DropdownMenu,
-} from './plugins/dropdownMenu';
+} from '../../plugins/dropdownMenu';
 import {
   Config as ColumnSortingConfig,
-} from './plugins/columnSorting';
+} from '../../plugins/columnSorting';
 import {
   ColumnConditions as FiltersColumnConditions,
-} from './plugins/filters';
+} from '../../plugins/filters';
 import {
   Action as UndoRedoAction,
-} from './plugins/undoRedo';
+} from '../../plugins/undoRedo';
 import {
   Settings as MergeCellsSettings,
-} from './plugins/mergeCells';
+} from '../../plugins/mergeCells';
 import {
   GridSettings,
   CellProperties,
-} from './settings';
+} from '../../settings';
 
 import {
   CellValue,
@@ -36,11 +36,7 @@ import {
   ChangeSource,
   RangeType,
   OverlayType,
-} from './common';
-
-type Bucket = {
-  [P in keyof Events]: Array<Events[P]>;
-};
+} from '../../common';
 
 interface HookHighlightRowHeaderMeta {
   selectionType: string;
@@ -247,7 +243,8 @@ export interface Events {
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFocusOnTabNavigation?: (tabActivationDir: 'from_above' | 'from_below', visualCoords: CellCoords) => void;
-  modifyGetCellCoords?: (row: number, column: number, topmost: boolean) => void | [number, number] | [number, number, number, number];
+  modifyGetCellCoords?: (row: number, column: number, topmost: boolean, source: string | undefined) => void | [number, number] | [number, number, number, number];
+  modifyGetCoordsElement?: (row: number, column: number) => void | [number, number];
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
   modifyRowHeaderWidth?: (rowHeaderWidth: number) => void;
@@ -264,15 +261,14 @@ export interface Events {
 
 export class Hooks {
   add<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core, orderIndex?: number): Hooks;
-  createEmptyBucket(): Bucket;
+  addAsFixed<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core, orderIndex?: number): Hooks;
   deregister(key: string): void;
   destroy(context?: Core): void;
-  getBucket(context?: Core): Bucket;
   getRegistered(): Array<keyof Events>;
   has(key: keyof Events, context?: Core): boolean;
   isDeprecated(key: keyof Events): boolean;
   isRegistered(key: keyof Events): boolean;
-  once<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core): void;
+  once<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core): Hooks;
   register(key: string): void;
   remove(key: keyof Events, callback: () => void, context?: Core): boolean;
   run(context: Core, key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;

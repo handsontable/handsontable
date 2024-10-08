@@ -7,8 +7,7 @@
     "start": "vite",
     "preview": "vite preview",
     "build": "vite build",
-    "type-check": "vue-tsc --build --force",
-    "test": "node spec/support/jasmine.config.js"
+    "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
     "vue": "^3.5.8",

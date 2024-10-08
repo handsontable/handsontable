@@ -5,6 +5,19 @@ import { PartiallyVisibleColumnsCalculationType } from './partiallyVisibleColumn
  */
 export class RenderedColumnsCalculationType extends PartiallyVisibleColumnsCalculationType {
   /**
+   * The property holds the offset applied in the `overrideFn` function to the `startColumn` value.
+   *
+   * @type {number}
+   */
+  columnStartOffset = 0;
+  /**
+   * The property holds the offset applied in the `overrideFn` function to the `endColumn` value.
+   *
+   * @type {number}
+   */
+  columnEndOffset = 0;
+
+  /**
    * Finalizes the calculation.
    *
    * @param {ViewportColumnsCalculator} viewportCalculator The viewport calculator object.
@@ -19,7 +32,13 @@ export class RenderedColumnsCalculationType extends PartiallyVisibleColumnsCalcu
     } = viewportCalculator;
 
     if (this.startColumn !== null && typeof overrideFn === 'function') {
+      const startColumn = this.startColumn;
+      const endColumn = this.endColumn;
+
       overrideFn(this);
+
+      this.columnStartOffset = startColumn - this.startColumn;
+      this.columnEndOffset = this.endColumn - endColumn;
     }
 
     if (this.startColumn < 0) {
