@@ -26,9 +26,13 @@ jobs:
       - name: debug
         working-directory: ./
         run: | 
-          curl -X GET "https://api.netlify.com/api/v1/accounts" \
-          -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
-          -H "Content-Type: application/json" | jq '.'
+          response=$(curl -X GET "https://api.netlify.com/api/v1/accounts" \
+            -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+            -H "Content-Type: application/json")
+          echo "Response: $response"  # Print the output of the curl command
+          
+          account_id=$(echo "$response" | jq -r '.[0].id')
+          echo $account_id
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       # - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
