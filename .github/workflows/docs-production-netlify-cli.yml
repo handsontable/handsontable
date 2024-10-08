@@ -73,6 +73,11 @@ jobs:
           # cache-dependency-path: ./latest/package-lock.json
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+ 
+      - name: Install Netlify CLI
+        run: |
+          npm install netlify-cli -g
+          netlify
       
       - name: Dependencies
         run: |
@@ -98,7 +103,7 @@ jobs:
           commit_user_name: "Docs Deployment"
           commit_user_email: "docs-deployment@handsontable.com"
 
-     - name: Deploy to Netlify
+      - name: Deploy to Netlify
         run: |
           npx netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
           npx netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/
