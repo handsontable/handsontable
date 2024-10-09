@@ -26,17 +26,10 @@ function getVersionRegexString(docsLatestVersion: string) {
 }
 
 function prepareRedirects(framework: string): Redirect[] {
-  const redirectsArray = getRawRedirects();
-  const redirectOlderVersionsToOvh = {
-    from: getVersionRegexString(Netlify.env.get('DOCS_LATEST_VERSION')),
-    to: `https://_docs.handsontable.com/docs/$1$2`,
-    status: 301,
-    rewrite: true,
-  };
+  const redirectsArray = getLocalRedirects();
 
   return [
-    redirectOlderVersionsToOvh,
-    ...redirectsArray
+    ...getLocalRedirects()
   ].map((redirect: { from: string, to: string, status: number, rewrite?: boolean }) => ({
     from: new RegExp(redirect.from), // Convert "from" string to RegExp
     to: redirect.to.replace('$framework', framework), // Replace $framework with the provided framework
@@ -45,107 +38,131 @@ function prepareRedirects(framework: string): Redirect[] {
   }));
 }
 
-// function isAuthenticated(request: Request): boolean {
-//   console.log('Checking if the user is authenticated');
-//   const cookies = request.headers.get('cookie') || '';
-//   const jwtCookie = cookies.split(';').find(cookie => cookie.trim().startsWith('nf_jwt='));
-//   return !!jwtCookie; 
-// }
-
-async function handleCustom404(baseUrl: string) {
-  console.log('handleCustom404', baseUrl);
-  return fetch(`${baseUrl}/docs/404.html`, {
-    headers: { 'Content-Type': 'text/html' },
-  });
-}
-
-async function handleMatchFound(
-  currentUrl: URL,
-  matchFound: Redirect,
-  baseUrl: string
-): Promise<Response> {
-  const newUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to);
-  console.log('Match found, proxying or redirecting to', newUrl);
-
-  try {
-    const response = await fetch(newUrl);
-    if (response.status === 404) {
-      console.log('Page not found at new URL, redirecting to 404 page');
-      return Response.redirect('/docs/404.html', 302);
-    }
-
-    if (matchFound.rewrite) {
-      return new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-      });
-    }
-
-    return Response.redirect(newUrl, 301);
-  } catch (error) {
-    console.error('Error while fetching the new URL', error);
-    return Response.redirect('/docs/404.html', 302);
-  }
+async function handle404(url: string) {
+  console.log('handle404', url);
+  return new URL('/docs/404.html', )
 }
 
 export default async function handler(request: Request, context: Context) {
   const { method } = request;
   console.log('Method:', method);
+  // if 404 was requested - always rewrite
 
-  if (method === 'POST') {
-    console.log('POST request', request.url);
+  // passing control to the default middleware, for example handle password
+  if (method !== 'GET') {
+    console.log('handling password - POST request', request.url);
+    return;
   }
 
   const currentUrl = new URL(request.url);
   const baseUrl = currentUrl.origin;
-  console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION'));
+  console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION') || 'none');
   console.log('Request URL', currentUrl);
-
-  // if (!isAuthenticated(request)) {
-  //   console.log('User is not authenticated');
-  //   // skipping to the next middleware
-  //   return context.next();
-  // }
 
   const cookieValue = context.cookies.get('docs_fw');
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
-  const redirects = addBaseUrlToRelativePaths(prepareRedirects(framework), baseUrl);
-  const matchFound = redirects.find(redirect => redirect.from.test(currentUrl.pathname));
+  const external = getExternalRedirects();
+  const externalMatchFound = external.find(entry => entry.from.test(currentUrl.pathname));
+  if (externalMatchFound) {
+    // error handling is handled by the external website
+    return console.log('handleExternalMatch');
+  }
+
+
+  const externalRewrites = getExternalRewrites();
+  const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrl.pathname));
+  if(externalRewritesFound) {
+    console.log('handleExternalRewrite');
+    const url = currentUrl.pathname.replace(externalRewritesFound.from, externalRewritesFound.to);
+    try {
+      const response = await fetch(url);
+      if(response.ok){
+        console.log('External Rewrite Found', url, response.status, response.statusText)
+        return response;
+      }
+      console.error('Response not ok ', url, response.status, response.statusText)
+      return handle404(url);
+    } catch(e) {
+      console.error('External Rewrite: Server error', url, e)
+      return handle404(url);
+    }
+  }
+
+  const localRedirects = addBaseUrlToRelativePaths(prepareRedirects(framework), baseUrl);
+  const matchFound = localRedirects.find(redirect => redirect.from.test(currentUrl.pathname));
 
   if (matchFound) {
-    return handleMatchFound(currentUrl, matchFound, baseUrl);
+    const newUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to);
+    console.log('Local match found, proxying or redirecting to', newUrl);
+    return Response.redirect(newUrl, 301);
   }
 
-  const response = await context.next();
-  console.log('match was not found', response.status, response.text);
-
-  if (response.status === 404) {
-    return handleCustom404(baseUrl);
-  } else {
-    console.log('status not handled', response.status)
+  // if not found, handle file or return 404
+  try {
+    const response = await context.next();
+    console.log('File was found', response.status, response.statusText);
+    if (response.status.ok) {
+      return response;
+    }
+    console.error('File was not found not ok ', request.url, response.status, response.statusText)
+  }
+  catch(e) {
+    console.error('External Rewrite: Server error', request.url, e);
+    return handle404(request.url);
   }
 
-  return response;
+  console.error('Non handled error', request.url)
+  return handle404(request.url);
 }
 
 export const config: Config = {
   path: ["/*"],
 };
 
-function getRawRedirects() {
+// OVH
+function getExternalRewrites() {
   return [
     {
-      "from": "^/docs/hyperformula$",
+      from: new RegExp(getVersionRegexString(Netlify.env.get('DOCS_LATEST_VERSION'))),
+      to: `https://_docs.handsontable.com/docs/$1$2`,
+      status: 301,
+      rewrite: true,
+    }
+  ]
+}
+
+// Hyperformula
+function getExternalRedirects() {
+  return [
+    {
+      "from": new RegExp("^/docs/hyperformula$"),
       "to": "https://hyperformula.handsontable.com",
       "status": 301
     },
     {
-      "from": "^/docs/hyperformula/(.*)$",
+      "from": new RegExp("^/docs/hyperformula/(.*)$"),
       "to": "https://hyperformula.handsontable.com/$1$2",
       "status": 301
     },
+  ]
+}
+
+
+// possible default redirect
+function get404Redirects() {
+  return [
+    {
+      "from": "^/docs/.*$",
+      "to": "/404.html",
+      "status": 404
+    }
+  ]
+}
+
+function getLocalRedirects() {
+  return [
+
     {
       "from": "^/docs/?$",
       "to": "/docs/$framework/",
@@ -780,11 +797,6 @@ function getRawRedirects() {
       "from": "^/docs/(?!\\d+\\.\\d+|next\\/)(?!(?:javascript|react)-data-grid|redirect|assets/|data/|handsontable/|@handsontable/|img/|scripts/|404\\.html|sitemap\\.xml|securitum-certificate\\.pdf|seqred-certificate\\.pdf|testarmy-certificate\\.pdf|testarmy-certificate-2024\\.pdf)(.+)$",
       "to": "/docs/$framework/$1",
       "status": 301
-    },
-    {
-      "from": "^/docs/.*$",
-      "to": "/404.html",
-      "status": 404
     }
   ];
 }
