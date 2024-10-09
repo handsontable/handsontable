@@ -61,8 +61,9 @@ export default async function handler(request: Request, context: Context) {
   const external = getExternalRedirects();
   const externalMatchFound = external.find(entry => entry.from.test(currentUrl.pathname));
   if (externalMatchFound) {
-    // error handling is handled by the external website
-    return console.log('handleExternalMatch');
+    const url = currentUrl.pathname.replace(externalMatchFound.from, externalMatchFound.to);
+    console.log('handleExternalMatch');
+    return Response.redirect(url, 301);
   }
 
 
@@ -90,14 +91,14 @@ export default async function handler(request: Request, context: Context) {
   const matchFound = localRedirects.find(redirect => redirect.from.test(currentUrl.pathname));
   if (matchFound) {
     const newUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to);
-    console.log('Local match found, proxying or redirecting to', newUrl);
+    console.log('Local match found, redirecting to', newUrl);
     return Response.redirect(newUrl, 301);
   }
 
   // if not found, handle file or return 404
   try {
     const response = await context.next();
-    if (response.status.ok) {
+    if (response.ok) {
       console.log('File was found', response.status, response.statusText);
       return response;
     }
