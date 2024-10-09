@@ -45,12 +45,12 @@ function prepareRedirects(framework: string): Redirect[] {
   }));
 }
 
-function isAuthenticated(request: Request): boolean {
-  console.log('Checking if the user is authenticated');
-  const cookies = request.headers.get('cookie') || '';
-  const jwtCookie = cookies.split(';').find(cookie => cookie.trim().startsWith('nf_jwt='));
-  return !!jwtCookie; 
-}
+// function isAuthenticated(request: Request): boolean {
+//   console.log('Checking if the user is authenticated');
+//   const cookies = request.headers.get('cookie') || '';
+//   const jwtCookie = cookies.split(';').find(cookie => cookie.trim().startsWith('nf_jwt='));
+//   return !!jwtCookie; 
+// }
 
 async function handleCustom404(baseUrl: string) {
   console.log('handleCustom404', baseUrl);
@@ -102,10 +102,11 @@ export default async function handler(request: Request, context: Context) {
   console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION'));
   console.log('Request URL', currentUrl);
 
-  if (!isAuthenticated(request)) {
-    console.log('User is not authenticated');
-    return context.next();
-  }
+  // if (!isAuthenticated(request)) {
+  //   console.log('User is not authenticated');
+  //   // skipping to the next middleware
+  //   return context.next();
+  // }
 
   const cookieValue = context.cookies.get('docs_fw');
   const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
@@ -118,9 +119,12 @@ export default async function handler(request: Request, context: Context) {
   }
 
   const response = await context.next();
+  console.log('match was not found', response.status, response.text);
 
   if (response.status === 404) {
     return handleCustom404(baseUrl);
+  } else {
+    console.log('status not handled', response.status)
   }
 
   return response;
