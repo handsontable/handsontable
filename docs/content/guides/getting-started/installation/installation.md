@@ -177,21 +177,21 @@ To install Handsontable locally using a package manager, run one of these comman
   <code-block title="npm">
 
   ```bash
-  npm install handsontable @handsontable/react
+  npm install handsontable @handsontable/react-wrapper
   ```
 
   </code-block>
   <code-block title="Yarn">
 
   ```bash
-  yarn add handsontable @handsontable/react
+  yarn add handsontable @handsontable/react-wrapper
   ```
 
   </code-block>
   <code-block title="pnpm">
 
   ```bash
-  pnpm add handsontable @handsontable/react
+  pnpm add handsontable @handsontable/react-wrapper
   ```
 
   </code-block>
@@ -223,7 +223,7 @@ Or, to reduce the size of your JavaScript bundle, [import only the modules that 
 The main Handsontable component is called `HotTable`.
 
 ```jsx
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 ```
 
 To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:

@@ -1,5 +1,5 @@
 import { MouseEvent, useRef } from 'react';
-import { HotTable, HotColumn, useHotEditor } from '@handsontable/react';
+import { HotTable, HotColumn, useHotEditor } from '@handsontable/react-wrapper';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const EditorComponent = () => {

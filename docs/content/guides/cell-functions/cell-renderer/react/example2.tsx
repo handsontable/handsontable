@@ -1,5 +1,5 @@
 import { useState, useContext, MouseEvent, createContext } from 'react';
-import { HotTable, HotColumn } from '@handsontable/react';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import 'handsontable/dist/handsontable.full.min.css';
 import Handsontable from 'handsontable';
 

@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import Handsontable from 'handsontable';
-import { HotTable, HotTableRef } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 

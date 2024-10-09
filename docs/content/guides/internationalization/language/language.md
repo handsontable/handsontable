@@ -84,7 +84,7 @@ To properly use the internationalization feature, you need to load the language 
 1. **ES modules (ESM)**
   ```js
   import Handsontable from 'handsontable/base';
-  import { HotTable } from '@handsontable/react';
+  import { HotTable } from '@handsontable/react-wrapper';
   import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 
   registerLanguageDictionary(deDE);

@@ -4,7 +4,7 @@ import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect, useDispatch } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
-import { HotTable, HotColumn, useHotEditor } from '@handsontable/react';
+import { HotTable, HotColumn, useHotEditor } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 

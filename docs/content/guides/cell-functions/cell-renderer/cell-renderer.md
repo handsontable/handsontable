@@ -85,7 +85,7 @@ In this example, React's `Context` passes information available in the main app 
 
 You can also declare a custom renderer for the `HotTable` component by declaring it as a function. In the simplest scenario, you can pass the rendering function as a Handsontable setting.
 
-The following example implements `@handsontable/react` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
+The following example implements `@handsontable/react-wrapper` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
 
 ::: example #example3 :react --js 1 --ts 2
 

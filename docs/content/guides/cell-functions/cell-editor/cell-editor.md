@@ -29,7 +29,7 @@ This tutorial will give you a comprehensive understanding of how the whole proce
 
 ## Component-based editors
 
-You can use React components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/react`.
+You can use React components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/react-wrapper`.
 
 This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close`, and `focus` methods, which are abstract in the `BaseEditor`. For more info, check the section on [creating custom editors from scratch](#how-to-create-a-custom-editor).
 
@@ -51,7 +51,7 @@ Note that in case of React 16 and older, it wouldn't work out of the box because
 
 You can also declare a custom editor for the `HotTable` component by declaring it as a class and passing it to the Handsontable options.
 
-The following example implements the `@handsontable/react` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
+The following example implements the `@handsontable/react-wrapper` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
 
 ::: example #example2 :react --js 1 --ts 2
 

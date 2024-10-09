@@ -1,6 +1,6 @@
 import { ChangeEvent, useRef, useState } from 'react';
 import { HyperFormula } from 'hyperformula';
-import { HotTable, HotTableRef } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { DetailedSettings } from 'handsontable/plugins/formulas';
 import 'handsontable/dist/handsontable.full.min.css';
