@@ -26,11 +26,7 @@ function getVersionRegexString(docsLatestVersion: string) {
 }
 
 function prepareRedirects(framework: string): Redirect[] {
-  const redirectsArray = getLocalRedirects();
-
-  return [
-    ...getLocalRedirects()
-  ].map((redirect: { from: string, to: string, status: number, rewrite?: boolean }) => ({
+  return getLocalRedirects().map((redirect: { from: string, to: string, status: number, rewrite?: boolean }) => ({
     from: new RegExp(redirect.from), // Convert "from" string to RegExp
     to: redirect.to.replace('$framework', framework), // Replace $framework with the provided framework
     status: redirect.status,
@@ -40,7 +36,7 @@ function prepareRedirects(framework: string): Redirect[] {
 
 async function handle404(url: string) {
   console.log('handle404', url);
-  return new URL('/docs/404.html', )
+  return new URL('/docs/404.html', url)
 }
 
 export default async function handler(request: Request, context: Context) {
@@ -82,16 +78,16 @@ export default async function handler(request: Request, context: Context) {
         return response;
       }
       console.error('Response not ok ', url, response.status, response.statusText)
-      return handle404(url);
+      return handle404(baseUrl);
     } catch(e) {
       console.error('External Rewrite: Server error', url, e)
-      return handle404(url);
+      return handle404(baseUrl);
     }
   }
 
+
   const localRedirects = addBaseUrlToRelativePaths(prepareRedirects(framework), baseUrl);
   const matchFound = localRedirects.find(redirect => redirect.from.test(currentUrl.pathname));
-
   if (matchFound) {
     const newUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to);
     console.log('Local match found, proxying or redirecting to', newUrl);
@@ -101,19 +97,19 @@ export default async function handler(request: Request, context: Context) {
   // if not found, handle file or return 404
   try {
     const response = await context.next();
-    console.log('File was found', response.status, response.statusText);
     if (response.status.ok) {
+      console.log('File was found', response.status, response.statusText);
       return response;
     }
-    console.error('File was not found not ok ', request.url, response.status, response.statusText)
+    console.error('File was not found', request.url, response.status, response.statusText)
   }
   catch(e) {
     console.error('External Rewrite: Server error', request.url, e);
-    return handle404(request.url);
+    return handle404(baseUrl);
   }
 
   console.error('Non handled error', request.url)
-  return handle404(request.url);
+  return handle404(baseUrl);
 }
 
 export const config: Config = {
