@@ -18,7 +18,9 @@
             cursor: auto;
 
             &.htFiltersMenuActionBar {
-              padding-top: calc(var(--ht-menu-item-horizontal-padding, 2px) * 2);
+              padding-top: calc(
+                var(--ht-menu-item-horizontal-padding, 4px) * 2
+              );
             }
           }
         }
@@ -27,8 +29,8 @@
 
     // Menu label
     .htFiltersMenuLabel {
-      font-size: var(--ht-label-font-size);
-      line-height: var(--ht-label-line-height);
+      font-size: calc(var(--ht-font-size) - 2px);
+      line-height: calc(var(--ht-line-height) - 4px);
       margin-bottom: calc(var(--ht-gap-size, 2px) * 2);
 
       &:empty {
@@ -65,11 +67,15 @@
     .htUIMultipleSelectHot {
       overflow: initial !important;
       width: calc(
-        100% + var(--ht-menu-item-vertical-padding, 2px) * 2 + var(--ht-gap-size, 2px) * 4
+        100% + var(--ht-menu-item-vertical-padding, 2px) * 2 +
+          var(--ht-gap-size, 2px) * 4
       );
       margin: 0
         calc(
-          (var(--ht-menu-item-vertical-padding, 2px) + var(--ht-gap-size, 2px) * 2) * -1
+          (
+              var(--ht-menu-item-vertical-padding, 2px) +
+                var(--ht-gap-size, 2px) * 2
+            ) * -1
         );
 
       &::before {
@@ -83,15 +89,18 @@
       }
 
       .wtHolder {
-        padding: calc(var(--ht-gap-size, 2px) * 4) 0;
+        padding: calc(var(--ht-gap-size, 2px) * 2) 0;
         overflow-x: hidden;
         box-sizing: border-box;
 
         td {
           height: auto;
           padding: 0;
-          padding: 0
-            calc(var(--ht-menu-item-vertical-padding, 2px) + var(--ht-gap-size, 2px) * 2);
+          padding: 1px
+            calc(
+              var(--ht-menu-item-vertical-padding, 2px) +
+                var(--ht-gap-size, 2px) * 2
+            );
         }
       }
     }

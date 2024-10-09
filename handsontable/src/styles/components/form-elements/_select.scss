@@ -15,9 +15,7 @@
       box-sizing: border-box;
       cursor: pointer;
       outline: none !important;
-      border-width: 1px;
-      border-style: solid;
-      border-color: var(--ht-input-border-color);
+      border-width: 1px solid var(--ht-input-border-color);
       color: var(--ht-input-foreground-color);
       background-color: var(--ht-input-background-color);
       text-overflow: ellipsis;

@@ -46,9 +46,7 @@
       &.corner {
         width: var(--ht-cell-autofill-size, 4px) !important;
         height: var(--ht-cell-autofill-size, 4px) !important;
-        border-width: var(--ht-cell-autofill-border-width, 1px) !important;
-        border-style: solid;
-        border-color: var(--ht-cell-autofill-border-color, #000) !important;
+        border: var(--ht-cell-autofill-border-width, 1px) solid var(--ht-cell-autofill-border-color, #000) !important;
         border-radius: var(--ht-cell-autofill-border-radius) !important;
         background-color: var(--ht-cell-autofill-background-color, #1a42e8) !important;
         margin-top: 4px;

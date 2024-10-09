@@ -19,6 +19,9 @@
       transition: var(--ht-table-transition) all ease-in-out;
       order: 1;
       z-index: 1;
+      float: inline-end;
+      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+      margin-inline-start: calc(var(--ht-gap-size) * 2);
 
       &:before {
         @include mixins.pseudo;
@@ -45,14 +48,13 @@
       background-color: var(--ht-icon-button-focus-background);
     }
 
-    // Menu 
+    // Menu
     &.htDropdownMenu,
     &.htContextMenu,
     &.htFiltersConditionsMenu {
       & > .ht_master {
-        border-color: var(--ht-menu-border-color, #e5e5e9);
-        border-style: solid;
-        border-width: var(--ht-menu-border-width, 1px);
+        border: var(--ht-menu-border-width, 1px) solid
+          var(--ht-menu-border-color, #e5e5e9);
         border-radius: var(--ht-menu-border-radius);
         @include mixins.menu-box-shadow;
         overflow: hidden;
@@ -93,8 +95,8 @@
 
       table tbody tr td {
         position: relative;
-        padding: var(--ht-menu-item-horizontal-padding, 2px)
-          var(--ht-menu-item-vertical-padding, 4px);
+        padding: var(--ht-menu-item-horizontal-padding, 4px)
+          var(--ht-menu-item-vertical-padding, 8px);
         border-width: 0;
         overflow: hidden;
         white-space: nowrap;
@@ -153,11 +155,6 @@
 
         .htItemWrapper {
           margin-inline: calc(2 * var(--ht-gap-size, 4px));
-
-          i {
-            font-size: 18px;
-            margin-right: 5px;
-          }
 
           &:before {
             vertical-align: text-bottom;

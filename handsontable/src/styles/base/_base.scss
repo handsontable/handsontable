@@ -20,6 +20,10 @@
     // Cell and Header
     th,
     td {
+      height: calc(
+        var(--ht-line-height, 18px) +
+          (2 * var(--ht-cell-horizontal-padding, 4px) + 1px)
+      );
       padding: var(--ht-cell-horizontal-padding, 4px)
         var(--ht-cell-vertical-padding, 8px);
       vertical-align: top;
@@ -81,6 +85,15 @@
         border-inline-start-width: 1px;
       }
 
+      &.current {
+        box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
+      }
+
+      &.active {
+        color: var(--ht-header-active-foreground-color);
+        background-color: var(--ht-header-active-background-color, #1a42e8);
+      }
+
       &.ht__highlight {
         color: var(--ht-header-highlighted-foreground-color);
         background-color: var(--ht-header-highlighted-background-color);
@@ -106,25 +119,6 @@
           background-color: var(--ht-header-active-background-color);
         }
       }
-
-      &.active {
-        color: var(--ht-header-active-foreground-color);
-        background-color: var(--ht-header-active-background-color, #1a42e8);
-      }
-
-      &.current {
-        color: var(--ht-header-active-foreground-color);
-        background-color: var(--ht-header-active-background-color);
-
-        &:after {
-          content: "";
-          position: absolute;
-          inset: -1px;
-          border: 1px solid var(--ht-cell-selection-border-color, #1a42e8);
-          z-index: 1;
-          pointer-events: none;
-        }
-      }
     }
 
     // Header in Col
@@ -132,9 +126,6 @@
       padding: 0;
 
       .relative {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
         padding: var(--ht-cell-horizontal-padding, 4px)
           var(--ht-cell-vertical-padding, 8px);
         overflow: hidden;
@@ -144,10 +135,6 @@
     thead tr:not(:last-child) th {
       /* Fix for - nested columns with hidden column  */
       overflow: hidden;
-
-      &:after {
-        inset: 0;
-      }
     }
 
     // Header in Row

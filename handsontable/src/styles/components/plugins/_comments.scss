@@ -13,10 +13,11 @@
         top: 0;
         inset-inline-end: 0;
         inset-inline-start: unset;
-        border-inline-start: var(--ht-comments-indicator-size) solid transparent;
+        border-inline-start: var(--ht-comments-indicator-size, 4px) solid
+          transparent;
         border-inline-end: none;
-        border-top: var(--ht-comments-indicator-size) solid
-          var(--ht-comments-indicator-color);
+        border-top: var(--ht-comments-indicator-size, 4px) solid
+          var(--ht-comments-indicator-color, #1a42e8);
       }
     }
   }
@@ -31,29 +32,29 @@
     .htCommentTextArea {
       width: 240px;
       height: 88px;
+      @include mixins.font-family;
+      font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height);
+      font-weight: var(--ht-font-weight);
       margin: 0 -1px;
       padding: var(--ht-comments-textarea-horizontal-padding)
         var(--ht-comments-textarea-vertical-padding);
-      box-sizing: border-box;
       border: 0;
-      border-inline-start: var(--ht-comments-textarea-focus-border-width) solid
-        var(--ht-comments-textarea-border-color);
+      border-inline-start: var(--ht-comments-textarea-focus-border-width, 1px)
+        solid var(--ht-comments-textarea-border-color, #ffffff);
       border-inline-end: none;
       border-radius: 0 calc(2 * var(--ht-gap-size)) calc(2 * var(--ht-gap-size))
         0;
-      outline: 0px !important;
       color: var(--ht-comments-textarea-foreground-color);
-      background-color: var(--ht-comments-textarea-background-color);
-      @include mixins.font-family;
-      font-size: var(--ht-comments-font-size);
-      line-height: var(--ht-comments-line-height);
-      font-weight: var(--ht-font-weight);
+      background-color: var(--ht-comments-textarea-background-color, #ffffff);
       @include mixins.menu-box-shadow;
+      outline: 0px !important;
+      box-sizing: border-box;
       -webkit-appearance: none;
 
       &:focus {
-        border-inline-start: var(--ht-comments-textarea-focus-border-width)
-          solid var(--ht-comments-textarea-focus-border-color);
+        border-inline-start: var(--ht-comments-textarea-focus-border-width, 1px)
+          solid var(--ht-comments-textarea-focus-border-color, #1a42e8);
         border-inline-end: none;
       }
     }

@@ -6,6 +6,7 @@
   .handsontable {
     &.listbox {
       margin: 0;
+      border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);
       @include mixins.menu-box-shadow;
 
       .ht_master {
@@ -34,7 +35,6 @@
 
         td.htDimmed {
           cursor: default;
-          color: inherit;
           font-style: inherit;
         }
 

@@ -21,9 +21,7 @@
           box-sizing: border-box;
           cursor: pointer;
           outline: none !important;
-          border-width: 1px;
-          border-style: solid;
-          border-color: var(--ht-secondary-button-border-color);
+          border: 1px solid var(--ht-secondary-button-border-color);
           background-color: var(--ht-secondary-button-background-color);
           color: var(--ht-secondary-button-foreground-color);
 

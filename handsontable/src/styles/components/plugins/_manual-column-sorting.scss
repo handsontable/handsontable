@@ -8,11 +8,6 @@
       position: relative;
 
       &.sortAction {
-        display: inline-flex;
-        align-items: center;
-        gap: 0;
-        inset: 0;
-
         &:hover {
           text-decoration: none;
           cursor: pointer;
@@ -20,9 +15,24 @@
 
         &:before {
           @include mixins.pseudo;
-          order: 1;
           width: var(--ht-icon-size);
-          height: var(--ht-icon-size);
+          position: absolute;
+          top: 50%;
+          left: 100%;
+          transform: translateY(-50%);
+        }
+      }
+    }
+  }
+
+  [dir="rtl"] {
+    .handsontable {
+      .columnSorting {
+        &.sortAction {
+          &:before {
+            left: auto;
+            right: 100%;
+          }
         }
       }
     }

@@ -57,6 +57,6 @@
 }
 
 @mixin menu-box-shadow {
-  box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y)
-    var(--ht-menu-shadow-blur) var(--ht-menu-shadow-color);
+  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0)
+    var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
 }

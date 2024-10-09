@@ -18,19 +18,19 @@
     @include icon($icons, "arrow-left");
   }
 
-  .handsontable .changeType:before {
+  .changeType:before {
     @include icon($icons, "menu");
   }
 
-  .handsontable .htAutocompleteArrow:after {
+  .htAutocompleteArrow:after {
     @include icon($icons, "select-arrow");
   }
 
-  .handsontable .columnSorting.sortAction.ascending:before {
+  .columnSorting.sortAction.ascending:before {
     @include icon($icons, "arrow-narrow-up");
   }
 
-  .handsontable .columnSorting.sortAction.descending:before {
+  .columnSorting.sortAction.descending:before {
     @include icon($icons, "arrow-narrow-down");
   }
 
@@ -46,28 +46,28 @@
     @include icon($icons, "check");
   }
 
-  .handsontable .htCheckboxRendererInput:after {
+  .htCheckboxRendererInput:after {
     @include icon($icons, "checkbox");
   }
 
-  .handsontable th.beforeHiddenColumn:after {
+  th.beforeHiddenColumn:after {
     @include icon($icons, "caret-hidden-left");
   }
 
-  .handsontable th.afterHiddenColumn:after {
+  th.afterHiddenColumn:after {
     @include icon($icons, "caret-hidden-right");
   }
 
-  .handsontable th.beforeHiddenRow:after {
+  th.beforeHiddenRow:after {
     @include icon($icons, "caret-hidden-up");
   }
 
-  .handsontable th.afterHiddenRow:after {
+  th.afterHiddenRow:after {
     @include icon($icons, "caret-hidden-down");
   }
 
-  .handsontable .collapsibleIndicator,
-  .handsontable .ht_nestingButton {
+  .collapsibleIndicator,
+  .ht_nestingButton {
     &:before {
       @include icon($icons, "collapse-off");
     }
@@ -79,7 +79,7 @@
     }
   }
 
-  .handsontable .htUIRadio > input[type="radio"]:after {
+  .htUIRadio > input[type="radio"]:after {
     @include icon($icons, "radio");
   }
 }

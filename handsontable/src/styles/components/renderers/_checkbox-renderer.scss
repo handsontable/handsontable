@@ -38,19 +38,6 @@
         pointer-events: none;
       }
 
-      &:hover {
-        // Box
-        &:before {
-          border-color: var(--ht-checkbox-hover-border-color);
-          background-color: var(--ht-checkbox-hover-background-color);
-        }
-
-        // Icon
-        &:after {
-          color: var(--ht-checkbox-hover-icon-color);
-        }
-      }
-
       &:checked {
         // Box
         &:before {
@@ -61,19 +48,6 @@
         // Icon
         &:after {
           color: var(--ht-checkbox-checked-icon-color);
-        }
-
-        &:hover {
-          // Box
-          &:before {
-            border-color: var(--ht-checkbox-checked-hover-border-color);
-            background-color: var(--ht-checkbox-checked-hover-background-color);
-          }
-
-          // Icon
-          &:after {
-            color: var(--ht-checkbox-checked-hover-icon-color);
-          }
         }
 
         &:disabled {

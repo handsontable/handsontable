@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 08/10/2024 07:19:53)
+ * Release date: 30/07/2024 (built at 09/10/2024 13:56:30)
  */
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
@@ -57,6 +57,7 @@
 }
 .handsontable th,
 .handsontable td {
+  height: calc(var(--ht-line-height, 18px) + 2 * var(--ht-cell-horizontal-padding, 4px) + 1px);
   padding: var(--ht-cell-horizontal-padding, 4px) var(--ht-cell-vertical-padding, 8px);
   vertical-align: top;
   border-top-width: 0;
@@ -108,6 +109,13 @@
 .handsontable th:first-child, .handsontable th:nth-child(2) {
   border-inline-start-width: 1px;
 }
+.handsontable th.current {
+  box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
+}
+.handsontable th.active {
+  color: var(--ht-header-active-foreground-color);
+  background-color: var(--ht-header-active-background-color, #1a42e8);
+}
 .handsontable th.ht__highlight {
   color: var(--ht-header-highlighted-foreground-color);
   background-color: var(--ht-header-highlighted-background-color);
@@ -129,38 +137,16 @@
 .handsontable th.ht__active_highlight:before {
   background-color: var(--ht-header-active-background-color);
 }
-.handsontable th.active {
-  color: var(--ht-header-active-foreground-color);
-  background-color: var(--ht-header-active-background-color, #1a42e8);
-}
-.handsontable th.current {
-  color: var(--ht-header-active-foreground-color);
-  background-color: var(--ht-header-active-background-color);
-}
-.handsontable th.current:after {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border: 1px solid var(--ht-cell-selection-border-color, #1a42e8);
-  z-index: 1;
-  pointer-events: none;
-}
 .handsontable thead th {
   padding: 0;
 }
 .handsontable thead th .relative {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: var(--ht-cell-horizontal-padding, 4px) var(--ht-cell-vertical-padding, 8px);
   overflow: hidden;
 }
 .handsontable thead tr:not(:last-child) th {
   /* Fix for - nested columns with hidden column  */
   overflow: hidden;
-}
-.handsontable thead tr:not(:last-child) th:after {
-  inset: 0;
 }
 .handsontable tbody th.ht__highlight:before {
   width: var(--ht-header-highlighted-shadow-size);
@@ -370,7 +356,7 @@ tr.ht__row_odd td {
 }
 
 .ht_editor_visible {
-  z-index: 200;
+  z-index: 140;
 }
 
 .handsontable td.area {
@@ -491,9 +477,7 @@ tr.ht__row_odd td {
 .handsontable .wtBorder.corner {
   width: var(--ht-cell-autofill-size, 4px) !important;
   height: var(--ht-cell-autofill-size, 4px) !important;
-  border-width: var(--ht-cell-autofill-border-width, 1px) !important;
-  border-style: solid;
-  border-color: var(--ht-cell-autofill-border-color, #000) !important;
+  border: var(--ht-cell-autofill-border-width, 1px) solid var(--ht-cell-autofill-border-color, #000) !important;
   border-radius: var(--ht-cell-autofill-border-radius) !important;
   background-color: var(--ht-cell-autofill-background-color, #1a42e8) !important;
   margin-top: 4px;
@@ -507,8 +491,8 @@ tr.ht__row_odd td {
 .hot-display-license-info {
   padding: var(--ht-license-horizontal-padding, 16px) var(--ht-license-vertical-padding, 12px);
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
-  font-size: var(--ht-license-font-size);
-  line-height: var(--ht-license-line-height);
+  font-size: calc(var(--ht-font-size) - 2px);
+  line-height: calc(var(--ht-line-height) - 4px);
   color: var(--ht-license-foreground-color);
   background-color: var(--ht-license-background-color, #f7f7f9);
   text-align: left;
@@ -525,13 +509,13 @@ tr.ht__row_odd td {
 
 .handsontable .htAutocompleteArrow {
   position: relative;
-  float: inline-end;
   cursor: default;
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   font-size: 0;
-  top: calc((var(--ht-line-height) - 16px) * 0.5);
-  margin-inline-end: calc(var(--ht-gap-size) - var(--ht-cell-horizontal-padding));
+  float: inline-end;
+  top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+  margin-inline-start: calc(var(--ht-gap-size) * 2);
 }
 .handsontable .htAutocompleteArrow:after {
   content: "";
@@ -573,26 +557,12 @@ tr.ht__row_odd td {
   color: var(--ht-checkbox-icon-color);
   pointer-events: none;
 }
-.handsontable .htCheckboxRendererInput:hover:before {
-  border-color: var(--ht-checkbox-hover-border-color);
-  background-color: var(--ht-checkbox-hover-background-color);
-}
-.handsontable .htCheckboxRendererInput:hover:after {
-  color: var(--ht-checkbox-hover-icon-color);
-}
 .handsontable .htCheckboxRendererInput:checked:before {
   border-color: var(--ht-checkbox-checked-border-color);
   background-color: var(--ht-checkbox-checked-background-color);
 }
 .handsontable .htCheckboxRendererInput:checked:after {
   color: var(--ht-checkbox-checked-icon-color);
-}
-.handsontable .htCheckboxRendererInput:checked:hover:before {
-  border-color: var(--ht-checkbox-checked-hover-border-color);
-  background-color: var(--ht-checkbox-checked-hover-background-color);
-}
-.handsontable .htCheckboxRendererInput:checked:hover:after {
-  color: var(--ht-checkbox-checked-hover-icon-color);
 }
 .handsontable .htCheckboxRendererInput:checked:disabled:before {
   border-color: var(--ht-checkbox-checked-disabled-border-color);
@@ -664,7 +634,7 @@ tr.ht__row_odd td {
 }
 .handsontable .htInvalid {
   /* gives priority over td.area selection background */
-  background-color: var(--ht-cell-error-background-color) !important;
+  background-color: var(--ht-cell-error-background-color);
 }
 .handsontable .htNoWrap {
   white-space: nowrap;
@@ -735,7 +705,8 @@ tr.ht__row_odd td {
 
 .handsontable.listbox {
   margin: 0;
-  box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) var(--ht-menu-shadow-color);
+  border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);
+  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
 }
 .handsontable.listbox .ht_master {
   overflow: hidden;
@@ -760,7 +731,6 @@ tr.ht__row_odd td {
 }
 .handsontable.listbox table td.htDimmed {
   cursor: default;
-  color: inherit;
   font-style: inherit;
 }
 .handsontable.listbox table .wtBorder {
@@ -815,7 +785,7 @@ tr.ht__row_odd td {
   font-weight: var(--ht-font-weight);
   color: var(--ht-foreground-color);
   background: var(--ht-background-color, #ffffff);
-  box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) var(--ht-menu-shadow-color);
+  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
   z-index: 9999;
 }
 .pika-single.is-hidden {
@@ -908,9 +878,7 @@ tr.ht__row_odd td {
   box-sizing: border-box;
   cursor: pointer;
   outline: none !important;
-  border-width: 1px;
-  border-style: solid;
-  border-color: var(--ht-input-border-color);
+  border-width: 1px solid var(--ht-input-border-color);
   color: var(--ht-input-foreground-color);
   background-color: var(--ht-input-background-color);
   text-overflow: ellipsis;
@@ -950,9 +918,7 @@ tr.ht__row_odd td {
   box-sizing: border-box;
   cursor: pointer;
   outline: none !important;
-  border-width: 1px;
-  border-style: solid;
-  border-color: var(--ht-input-border-color);
+  border: 1px solid var(--ht-input-border-color);
   color: var(--ht-input-foreground-color);
   background-color: var(--ht-input-background-color);
 }
@@ -999,9 +965,7 @@ tr.ht__row_odd td {
   box-sizing: border-box;
   cursor: pointer;
   outline: none !important;
-  border-width: 1px;
-  border-style: solid;
-  border-color: var(--ht-secondary-button-border-color);
+  border: 1px solid var(--ht-secondary-button-border-color);
   background-color: var(--ht-secondary-button-background-color);
   color: var(--ht-secondary-button-foreground-color);
 }
@@ -1082,23 +1046,11 @@ tr.ht__row_odd td {
   position: absolute;
   color: var(--ht-checkbox-background-color);
 }
-.handsontable .htUIRadio > input[type=radio]:hover:before {
-  border-color: var(--ht-checkbox-hover-border-color);
-}
-.handsontable .htUIRadio > input[type=radio]:hover:after {
-  color: var(--ht-checkbox-hover-background-color);
-}
 .handsontable .htUIRadio > input[type=radio]:checked:before {
   border-color: var(--ht-checkbox-checked-border-color);
 }
 .handsontable .htUIRadio > input[type=radio]:checked:after {
   color: var(--ht-checkbox-checked-background-color);
-}
-.handsontable .htUIRadio > input[type=radio]:checked:hover:before {
-  border-color: var(--ht-checkbox-checked-hover-border-color);
-}
-.handsontable .htUIRadio > input[type=radio]:checked:hover:after {
-  color: var(--ht-checkbox-checked-hover-background-color);
 }
 .handsontable .htUIRadio > input[type=radio]:checked:disabled {
   cursor: initial;
@@ -1114,12 +1066,6 @@ tr.ht__row_odd td {
 }
 .handsontable .htUIRadio > input[type=radio]:disabled:after {
   color: var(--ht-checkbox-disabled-background-color);
-}
-.handsontable .htUIRadio > input[type=radio]:focus:before {
-  border-color: var(--ht-checkbox-checked-focus-border-color);
-}
-.handsontable .htUIRadio > input[type=radio]:focus:after {
-  color: var(--ht-checkbox-checked-focus-icon-color);
 }
 .handsontable .htUIRadio > input[type=radio]:disabled {
   cursor: initial;
@@ -1153,6 +1099,9 @@ tr.ht__row_odd td {
   /* hide text */
   text-indent: -100px;
   font-size: 0;
+  float: inline-end;
+  top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+  margin-inline-start: calc(var(--ht-gap-size) * 2);
 }
 .handsontable .collapsibleIndicator:before,
 .handsontable .ht_nestingButton:before {
@@ -1269,7 +1218,7 @@ tr.ht__row_odd td {
   width: 10px !important;
   height: 10px !important;
   transform: translateY(-50%);
-  color: var(--ht-border-color);
+  color: var(--ht-hidden-indicator-color);
 }
 .handsontable th.beforeHiddenColumn:after {
   right: -2px;
@@ -1302,7 +1251,7 @@ tr.ht__row_odd td {
   width: 10px !important;
   height: 10px !important;
   transform: translateX(-50%);
-  color: var(--ht-border-color);
+  color: var(--ht-hidden-indicator-color);
 }
 .handsontable th.beforeHiddenRow:after {
   bottom: -2px;
@@ -1323,6 +1272,9 @@ tr.ht__row_odd td {
   transition: var(--ht-table-transition) all ease-in-out;
   order: 1;
   z-index: 1;
+  float: inline-end;
+  top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+  margin-inline-start: calc(var(--ht-gap-size) * 2);
 }
 .handsontable .changeType:before {
   content: "";
@@ -1346,11 +1298,9 @@ tr.ht__row_odd td {
   background-color: var(--ht-icon-button-focus-background);
 }
 .handsontable.htDropdownMenu > .ht_master, .handsontable.htContextMenu > .ht_master, .handsontable.htFiltersConditionsMenu > .ht_master {
-  border-color: var(--ht-menu-border-color, #e5e5e9);
-  border-style: solid;
-  border-width: var(--ht-menu-border-width, 1px);
+  border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);
   border-radius: var(--ht-menu-border-radius);
-  box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) var(--ht-menu-shadow-color);
+  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
   overflow: hidden;
   padding: var(--ht-menu-vertical-padding, 8px) var(--ht-menu-horizontal-padding, 0);
 }
@@ -1389,7 +1339,7 @@ tr.ht__row_odd td {
 }
 .handsontable.htDropdownMenu table tbody tr td, .handsontable.htContextMenu table tbody tr td, .handsontable.htFiltersConditionsMenu table tbody tr td {
   position: relative;
-  padding: var(--ht-menu-item-horizontal-padding, 2px) var(--ht-menu-item-vertical-padding, 4px);
+  padding: var(--ht-menu-item-horizontal-padding, 4px) var(--ht-menu-item-vertical-padding, 8px);
   border-width: 0;
   overflow: hidden;
   white-space: nowrap;
@@ -1439,10 +1389,6 @@ tr.ht__row_odd td {
 .handsontable.htDropdownMenu table tbody tr td .htItemWrapper, .handsontable.htContextMenu table tbody tr td .htItemWrapper, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper {
   margin-inline: calc(2 * var(--ht-gap-size, 4px));
 }
-.handsontable.htDropdownMenu table tbody tr td .htItemWrapper i, .handsontable.htContextMenu table tbody tr td .htItemWrapper i, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper i {
-  font-size: 18px;
-  margin-right: 5px;
-}
 .handsontable.htDropdownMenu table tbody tr td .htItemWrapper:before, .handsontable.htContextMenu table tbody tr td .htItemWrapper:before, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper:before {
   vertical-align: text-bottom;
   margin-right: 12px;
@@ -1480,11 +1426,11 @@ tr.ht__row_odd td {
   cursor: auto;
 }
 .handsontable .ht_master table td.htCustomMenuRenderer.htFiltersMenuActionBar {
-  padding-top: calc(var(--ht-menu-item-horizontal-padding, 2px) * 2);
+  padding-top: calc(var(--ht-menu-item-horizontal-padding, 4px) * 2);
 }
 .handsontable .htFiltersMenuLabel {
-  font-size: var(--ht-label-font-size);
-  line-height: var(--ht-label-line-height);
+  font-size: calc(var(--ht-font-size) - 2px);
+  line-height: calc(var(--ht-line-height) - 4px);
   margin-bottom: calc(var(--ht-gap-size, 2px) * 2);
 }
 .handsontable .htFiltersMenuLabel:empty {
@@ -1526,14 +1472,14 @@ tr.ht__row_odd td {
   background-color: var(--ht-border-color);
 }
 .handsontable .htUIMultipleSelectHot .wtHolder {
-  padding: calc(var(--ht-gap-size, 2px) * 4) 0;
+  padding: calc(var(--ht-gap-size, 2px) * 2) 0;
   overflow-x: hidden;
   box-sizing: border-box;
 }
 .handsontable .htUIMultipleSelectHot .wtHolder td {
   height: auto;
   padding: 0;
-  padding: 0 calc(var(--ht-menu-item-vertical-padding, 2px) + var(--ht-gap-size, 2px) * 2);
+  padding: 1px calc(var(--ht-menu-item-vertical-padding, 2px) + var(--ht-gap-size, 2px) * 2);
 }
 .handsontable .htUIClearAll,
 .handsontable .htUISelectAll {
@@ -1574,9 +1520,9 @@ tr.ht__row_odd td {
   top: 0;
   inset-inline-end: 0;
   inset-inline-start: unset;
-  border-inline-start: var(--ht-comments-indicator-size) solid transparent;
+  border-inline-start: var(--ht-comments-indicator-size, 4px) solid transparent;
   border-inline-end: none;
-  border-top: var(--ht-comments-indicator-size) solid var(--ht-comments-indicator-color);
+  border-top: var(--ht-comments-indicator-size, 4px) solid var(--ht-comments-indicator-color, #1a42e8);
 }
 
 .htCommentsContainer .htComments {
@@ -1587,36 +1533,30 @@ tr.ht__row_odd td {
 .htCommentsContainer .htCommentTextArea {
   width: 240px;
   height: 88px;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
+  font-size: var(--ht-font-size);
+  line-height: var(--ht-line-height);
+  font-weight: var(--ht-font-weight);
   margin: 0 -1px;
   padding: var(--ht-comments-textarea-horizontal-padding) var(--ht-comments-textarea-vertical-padding);
-  box-sizing: border-box;
   border: 0;
-  border-inline-start: var(--ht-comments-textarea-focus-border-width) solid var(--ht-comments-textarea-border-color);
+  border-inline-start: var(--ht-comments-textarea-focus-border-width, 1px) solid var(--ht-comments-textarea-border-color, #ffffff);
   border-inline-end: none;
   border-radius: 0 calc(2 * var(--ht-gap-size)) calc(2 * var(--ht-gap-size)) 0;
-  outline: 0px !important;
   color: var(--ht-comments-textarea-foreground-color);
-  background-color: var(--ht-comments-textarea-background-color);
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
-  font-size: var(--ht-comments-font-size);
-  line-height: var(--ht-comments-line-height);
-  font-weight: var(--ht-font-weight);
-  box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) var(--ht-menu-shadow-color);
+  background-color: var(--ht-comments-textarea-background-color, #ffffff);
+  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
+  outline: 0px !important;
+  box-sizing: border-box;
   -webkit-appearance: none;
 }
 .htCommentsContainer .htCommentTextArea:focus {
-  border-inline-start: var(--ht-comments-textarea-focus-border-width) solid var(--ht-comments-textarea-focus-border-color);
+  border-inline-start: var(--ht-comments-textarea-focus-border-width, 1px) solid var(--ht-comments-textarea-focus-border-color, #1a42e8);
   border-inline-end: none;
 }
 
 .handsontable .columnSorting {
   position: relative;
-}
-.handsontable .columnSorting.sortAction {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  inset: 0;
 }
 .handsontable .columnSorting.sortAction:hover {
   text-decoration: none;
@@ -1625,9 +1565,16 @@ tr.ht__row_odd td {
 .handsontable .columnSorting.sortAction:before {
   content: "";
   display: block;
-  order: 1;
   width: var(--ht-icon-size);
-  height: var(--ht-icon-size);
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+}
+
+[dir=rtl] .handsontable .columnSorting.sortAction:before {
+  left: auto;
+  right: 100%;
 }
 
 .htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
@@ -1639,40 +1586,46 @@ tr.ht__row_odd td {
   padding-right: 20px;
 }
 
-.handsontable span.colHeader.columnSorting:after {
+.handsontable .colHeader.columnSorting:after {
   content: "";
-  position: relative;
-  order: 2;
-  margin-left: calc(var(--ht-gap-size) * -1);
-  padding-inline-start: 1px;
-  padding-inline-end: 1px;
-  top: var(--ht-gap-size);
-  font-size: 8px;
+  display: block;
   width: 8px;
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  margin-top: 4px;
+  margin-inline-start: calc(var(--ht-icon-size) - 4px);
+  font-size: 8px;
 }
-.handsontable span.colHeader.columnSorting[class^=sort-]::after, .handsontable span.colHeader.columnSorting[class*=" sort-"]::after {
+.handsontable .colHeader.columnSorting[class^=sort-]::after, .handsontable .colHeader.columnSorting[class*=" sort-"]::after {
   content: "+";
 }
-.handsontable span.colHeader.columnSorting.sort-1::after {
+.handsontable .colHeader.columnSorting.sort-1::after {
   content: "1";
 }
-.handsontable span.colHeader.columnSorting.sort-2::after {
+.handsontable .colHeader.columnSorting.sort-2::after {
   content: "2";
 }
-.handsontable span.colHeader.columnSorting.sort-3::after {
+.handsontable .colHeader.columnSorting.sort-3::after {
   content: "3";
 }
-.handsontable span.colHeader.columnSorting.sort-4::after {
+.handsontable .colHeader.columnSorting.sort-4::after {
   content: "4";
 }
-.handsontable span.colHeader.columnSorting.sort-5::after {
+.handsontable .colHeader.columnSorting.sort-5::after {
   content: "5";
 }
-.handsontable span.colHeader.columnSorting.sort-6::after {
+.handsontable .colHeader.columnSorting.sort-6::after {
   content: "6";
 }
-.handsontable span.colHeader.columnSorting.sort-7::after {
+.handsontable .colHeader.columnSorting.sort-7::after {
   content: "7";
+}
+
+[dir=rtl] .handsontable .colHeader.columnSorting:after {
+  left: auto;
+  right: 100%;
 }
 
 .htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {
@@ -1701,7 +1654,7 @@ tr.ht__row_odd td {
 .ht_clone_top tbody tr:last-child th.current,
 .ht_clone_top_left_corner tbody tr:last-child td.current,
 .ht_clone_top_left_corner tbody tr:last-child th.current {
-  box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 inset var(--ht-frozen-shadow-color), 0 0 0 calc((var(--ht-frozen-shadow-size) - 1px) * -1) inset var(--ht-cell-selection-background-color);
+  box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
 }
 
 .ht_clone_inline_start.ht_clone_left,
@@ -1723,9 +1676,21 @@ tr.ht__row_odd td {
 .ht_clone_bottom_left_corner thead tr th:not(:first-child):last-child.current,
 .ht_clone_top_left_corner tbody tr td:last-child.current,
 .ht_clone_top_left_corner thead tr th:not(:first-child):last-child.current {
-  box-shadow: calc((var(--ht-frozen-shadow-size) - 1px) * -1) 0 0 0 inset var(--ht-frozen-shadow-color), 0 0 0 calc((var(--ht-frozen-shadow-size) - 1px) * -1) inset var(--ht-cell-selection-background-color);
+  box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
+}
+.ht_clone_inline_start.ht_clone_left tbody tr td:last-child.ht__active_highlight,
+.ht_clone_inline_start.ht_clone_left thead tr th:not(:first-child):last-child.ht__active_highlight,
+.ht_clone_bottom_left_corner tbody tr td:last-child.ht__active_highlight,
+.ht_clone_bottom_left_corner thead tr th:not(:first-child):last-child.ht__active_highlight,
+.ht_clone_top_left_corner tbody tr td:last-child.ht__active_highlight,
+.ht_clone_top_left_corner thead tr th:not(:first-child):last-child.ht__active_highlight {
+  box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset var(--ht-header-active-border-color);
 }
 
+.ht_clone_bottom,
+.ht_clone_bottom_left_corner {
+  background-color: var(--ht-background-color, #ffffff);
+}
 .ht_clone_bottom tbody tr:first-child td,
 .ht_clone_bottom tbody tr:first-child th,
 .ht_clone_bottom_left_corner tbody tr:first-child td,
@@ -1736,7 +1701,13 @@ tr.ht__row_odd td {
 .ht_clone_bottom tbody tr:first-child th.current,
 .ht_clone_bottom_left_corner tbody tr:first-child td.current,
 .ht_clone_bottom_left_corner tbody tr:first-child th.current {
-  box-shadow: 0 calc(var(--ht-frozen-shadow-size) - 1px) 0 0 inset var(--ht-frozen-shadow-color), 0 0 0 1px inset var(--ht-cell-selection-background-color);
+  box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
+}
+.ht_clone_bottom tbody tr:first-child td.ht__active_highlight,
+.ht_clone_bottom tbody tr:first-child th.ht__active_highlight,
+.ht_clone_bottom_left_corner tbody tr:first-child td.ht__active_highlight,
+.ht_clone_bottom_left_corner tbody tr:first-child th.ht__active_highlight {
+  box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset var(--ht-header-active-border-color);
 }
 
 .ht_clone_bottom_left_corner tbody tr td:last-child,
@@ -1745,7 +1716,11 @@ tr.ht__row_odd td {
 }
 .ht_clone_bottom_left_corner tbody tr td:last-child.current,
 .ht_clone_bottom_left_corner tbody tr th:last-child.current {
-  box-shadow: 0 calc(var(--ht-frozen-shadow-size) - 1px) 0 0 inset var(--ht-frozen-shadow-color), 0 0 0 1px inset var(--ht-cell-selection-background-color);
+  box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
+}
+.ht_clone_bottom_left_corner tbody tr td:last-child.ht__active_highlight,
+.ht_clone_bottom_left_corner tbody tr th:last-child.ht__active_highlight {
+  box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset var(--ht-header-active-border-color);
 }
 
 .ht_clone_top_inline_start_corner thead tr th:first-child {

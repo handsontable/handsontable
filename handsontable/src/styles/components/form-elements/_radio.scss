@@ -43,18 +43,6 @@
           color: var(--ht-checkbox-background-color);
         }
 
-        &:hover {
-          // Circle overlay
-          &:before {
-            border-color: var(--ht-checkbox-hover-border-color);
-          }
-
-          // Circle
-          &:after {
-            color: var(--ht-checkbox-hover-background-color);
-          }
-        }
-
         &:checked {
           // Circle overlay
           &:before {
@@ -64,18 +52,6 @@
           // Circle
           &:after {
             color: var(--ht-checkbox-checked-background-color);
-          }
-
-          &:hover {
-            // Circle overlay
-            &:before {
-              border-color: var(--ht-checkbox-checked-hover-border-color);
-            }
-
-            // Circle
-            &:after {
-              color: var(--ht-checkbox-checked-hover-background-color);
-            }
           }
 
           &:disabled {
@@ -105,17 +81,18 @@
           }
         }
 
-        &:focus {
-          // Circle overlay
-          &:before {
-            border-color: var(--ht-checkbox-checked-focus-border-color);
-          }
+        // TODO: fix focus, not working in current implementation
+        // &:focus {
+        //   // Circle overlay
+        //   &:before {
+        //     border-color: var(--ht-checkbox-checked-focus-border-color);
+        //   }
 
-          // Circle
-          &:after {
-            color: var(--ht-checkbox-checked-focus-icon-color);
-          }
-        }
+        //   // Circle
+        //   &:after {
+        //     color: var(--ht-checkbox-checked-focus-icon-color);
+        //   }
+        // }
 
         &:disabled {
           cursor: initial;

@@ -7,8 +7,8 @@
     padding: var(--ht-license-horizontal-padding, 16px)
       var(--ht-license-vertical-padding, 12px);
     @include mixins.font-family;
-    font-size: var(--ht-license-font-size);
-    line-height: var(--ht-license-line-height);
+    font-size: calc(var(--ht-font-size) - 2px);
+    line-height: calc(var(--ht-line-height) - 4px);
     color: var(--ht-license-foreground-color);
     background-color: var(--ht-license-background-color, #f7f7f9);
     text-align: left;

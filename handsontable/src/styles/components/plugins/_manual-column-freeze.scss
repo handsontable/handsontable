@@ -24,7 +24,7 @@
   .ht_clone_top,
   .ht_clone_top_left_corner {
     background-color: var(--ht-background-color, #ffffff);
-    
+
     tbody tr:last-child {
       td,
       th {
@@ -32,10 +32,7 @@
           var(--ht-frozen-shadow-color);
 
         &.current {
-          box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 inset
-              var(--ht-frozen-shadow-color),
-            0 0 0 calc((var(--ht-frozen-shadow-size) - 1px) * -1) inset
-              var(--ht-cell-selection-background-color);
+          box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
         }
       }
     }
@@ -53,10 +50,12 @@
         var(--ht-frozen-shadow-color);
 
       &.current {
-        box-shadow: calc((var(--ht-frozen-shadow-size) - 1px) * -1) 0 0 0 inset
-            var(--ht-frozen-shadow-color),
-          0 0 0 calc((var(--ht-frozen-shadow-size) - 1px) * -1) inset
-            var(--ht-cell-selection-background-color);
+        box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
+      }
+
+      &.ht__active_highlight {
+        box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset
+          var(--ht-header-active-border-color);
       }
     }
   }
@@ -64,6 +63,8 @@
   // Bottom
   .ht_clone_bottom,
   .ht_clone_bottom_left_corner {
+    background-color: var(--ht-background-color, #ffffff);
+
     tbody tr:first-child {
       td,
       th {
@@ -71,9 +72,12 @@
           var(--ht-frozen-shadow-color);
 
         &.current {
-          box-shadow: 0 calc(var(--ht-frozen-shadow-size) - 1px) 0 0 inset
-              var(--ht-frozen-shadow-color),
-            0 0 0 1px inset var(--ht-cell-selection-background-color);
+          box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
+        }
+
+        &.ht__active_highlight {
+          box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset
+            var(--ht-header-active-border-color);
         }
       }
     }
@@ -89,9 +93,12 @@
             var(--ht-frozen-shadow-color);
 
         &.current {
-          box-shadow: 0 calc(var(--ht-frozen-shadow-size) - 1px) 0 0 inset
-              var(--ht-frozen-shadow-color),
-            0 0 0 1px inset var(--ht-cell-selection-background-color);
+          box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
+        }
+
+        &.ht__active_highlight {
+          box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset
+            var(--ht-header-active-border-color);
         }
       }
     }

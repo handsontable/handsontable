@@ -16,12 +16,15 @@
     .htLeft {
       text-align: left;
     }
+
     .htCenter {
       text-align: center;
     }
+
     .htRight {
       text-align: right;
     }
+
     .htJustify {
       text-align: justify;
     }
@@ -30,9 +33,11 @@
     .htTop {
       vertical-align: top;
     }
+
     .htMiddle {
       vertical-align: middle;
     }
+
     .htBottom {
       vertical-align: bottom;
     }
@@ -40,7 +45,7 @@
     // TextRenderer others
     .htInvalid {
       /* gives priority over td.area selection background */
-      background-color: var(--ht-cell-error-background-color) !important;
+      background-color: var(--ht-cell-error-background-color);
     }
 
     .htNoWrap {
