@@ -21,7 +21,8 @@ const addBaseUrlToRelativePaths = (redirects: Redirect[], baseUrl: string) =>
   );
 
 function getVersionRegexString(docsLatestVersion: string) {
-  const escapedVersion = docsLatestVersion.replace('.', '\\.');
+  // replaces all occurrences of . with \\.
+  const escapedVersion = docsLatestVersion.replace(/\./g, '\\.');
   return `^\\/docs\\/(?!${escapedVersion})(\\d+\\.\\d+)(\\/.*)?$`;
 }
 

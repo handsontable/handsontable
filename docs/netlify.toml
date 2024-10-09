@@ -7,15 +7,3 @@
     to = "/docs/:splat"
     status = 200
     force = true
-
-[[redirects]]
-    from = "/docs/*"
-    to = "/docs/404.html"
-    status = 404
-    force = true
-
-[[redirects]]
-    from = "/*"
-    to = "/docs/404.html"
-    status = 404
-    force = true
