@@ -36,6 +36,10 @@ async function handle404(url: string) {
   return new URL('/docs/404.html', url)
 }
 
+function redirectionWasFound(status: number) {
+  return status >= 300 || status < 400;
+}
+
 export default async function handler(request: Request, context: Context) {
   try {
     const currentUrl = new URL(request.url);
@@ -82,6 +86,10 @@ export default async function handler(request: Request, context: Context) {
         if(response.ok){
           // console.log('External Rewrite Found', url, response.status, response.statusText)
           return response;
+        } else {
+          if (redirectionWasFound(response.status)) {
+            console.warn('Redirection was found', url, response.status, response.statusText)
+          }
         }
         console.error('Response not ok ', url, response.status, response.statusText)
         return handle404(baseUrl);
@@ -108,6 +116,10 @@ export default async function handler(request: Request, context: Context) {
       if (response.ok) {
         // console.log('File was found', response.status, response.statusText);
         return response;
+      } else {
+        if (redirectionWasFound(response.status)) {
+          console.warn('Redirection was found', response.status, response.statusText)
+        }
       }
       console.error('File was not found', request.url, response.status, response.statusText)
       return handle404(baseUrl);
