@@ -83,10 +83,6 @@ jobs:
           npm run docs:build:production:netlify
         working-directory: ./docs/
 
-      # - name: Copy _redirects file
-      #   run: |
-      #     cp ./netlify/_redirects ./.vuepress/dist/docs/_redirects
-
       - name : Add changes to the commit
         run:  |
           git add .

@@ -36,7 +36,7 @@ async function handle404(url: string) {
   return new URL('/docs/404.html', url)
 }
 
-function redirectionWasFound(status: number) {
+function redirectionWasFound(status: number): boolean {
   return status >= 300 && status < 400;
 }
 
@@ -82,13 +82,13 @@ export default async function handler(request: Request, context: Context) {
     if(externalRewritesFound) {
       const url = currentUrl.pathname.replace(externalRewritesFound.from, externalRewritesFound.to);
       try {
-        const response = await fetch(url);
+        const response = await fetch(url, { redirect: 'manual' });
         if(response.ok){
           // console.log('External Rewrite Found', url, response.status, response.statusText)
           return response;
         } else {
           if (redirectionWasFound(response.status)) {
-            console.warn('Redirection was found', url, response.status, response.statusText)
+            console.warn('Redirection was found', url, response.status, response.statusText, response.headers.get('location'))
           }
         }
         console.error('Response not ok ', url, response.status, response.statusText)
