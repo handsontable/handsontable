@@ -101,13 +101,15 @@
     }
 
     .htCheckboxRendererLabel {
+      position: relative;
       font-size: inherit;
       vertical-align: middle;
       display: flex;
       align-items: center;
       gap: var(--ht-gap-size);
-      position: relative;
       cursor: pointer;
+      color: inherit;
+      margin: 0;
 
       &.fullWidth {
         width: 100%;

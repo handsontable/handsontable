@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.5.0
- * Release date: 30/07/2024 (built at 09/10/2024 13:56:30)
+ * Release date: 30/07/2024 (built at 10/10/2024 14:40:08)
  */
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
@@ -52,7 +52,7 @@
   /* Miscellaneous */
   touch-action: manipulation;
 }
-.handsontable .ht_master {
+.handsontable .htCore {
   background-color: var(--ht-background-color, #ffffff);
 }
 .handsontable th,
@@ -593,13 +593,15 @@ tr.ht__row_odd td {
   opacity: 0.5;
 }
 .handsontable .htCheckboxRendererLabel {
+  position: relative;
   font-size: inherit;
   vertical-align: middle;
   display: flex;
   align-items: center;
   gap: var(--ht-gap-size);
-  position: relative;
   cursor: pointer;
+  color: inherit;
+  margin: 0;
 }
 .handsontable .htCheckboxRendererLabel.fullWidth {
   width: 100%;
@@ -681,6 +683,7 @@ tr.ht__row_odd td {
   height: 100%;
   padding: calc(var(--ht-cell-horizontal-padding, 4px) + 1px) calc(var(--ht-cell-vertical-padding, 8px) + 1px);
   padding-right: 26px;
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -691,6 +694,7 @@ tr.ht__row_odd td {
   line-height: inherit !important;
   box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8);
   border: none;
+  box-sizing: border-box;
   -webkit-appearance: none !important;
 }
 .htSelectEditor select:focus {
@@ -738,6 +742,7 @@ tr.ht__row_odd td {
 }
 .handsontable.listbox table strong {
   font-weight: var(--ht-font-weight);
+  color: inherit;
 }
 .handsontable.listbox table tr:hover td {
   background: var(--ht-menu-item-hover-color, #e5e5e9);
@@ -870,6 +875,7 @@ tr.ht__row_odd td {
 .handsontable .htUISelectCaption {
   width: 100%;
   padding: var(--ht-input-horizontal-padding) var(--ht-input-vertical-padding);
+  margin: 0;
   font-family: inherit;
   font-size: var(--ht-font-size);
   line-height: var(--ht-line-height);
@@ -1268,6 +1274,8 @@ tr.ht__row_odd td {
   border-radius: var(--ht-icon-button-border-radius);
   border: none;
   color: inherit;
+  padding: 0;
+  margin: 0;
   background-color: var(--ht-icon-button-background);
   transition: var(--ht-table-transition) all ease-in-out;
   order: 1;
@@ -1303,6 +1311,7 @@ tr.ht__row_odd td {
   box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
   overflow: hidden;
   padding: var(--ht-menu-vertical-padding, 8px) var(--ht-menu-horizontal-padding, 0);
+  background-color: var(--ht-background-color);
 }
 .handsontable.htDropdownMenu:not(.htGhostTable), .handsontable.htContextMenu:not(.htGhostTable), .handsontable.htFiltersConditionsMenu:not(.htGhostTable) {
   display: none;
@@ -1640,8 +1649,8 @@ tr.ht__row_odd td {
   box-shadow: calc((var(--ht-frozen-shadow-size) - 1px) * -1) calc((var(--ht-frozen-shadow-size) - 1px) * -1) 0 0 inset var(--ht-frozen-shadow-color);
 }
 
-.ht_clone_top,
-.ht_clone_top_left_corner {
+.ht_clone_top .htCore,
+.ht_clone_top_left_corner .htCore {
   background-color: var(--ht-background-color, #ffffff);
 }
 .ht_clone_top tbody tr:last-child td,
@@ -1657,9 +1666,9 @@ tr.ht__row_odd td {
   box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
 }
 
-.ht_clone_inline_start.ht_clone_left,
-.ht_clone_bottom_left_corner,
-.ht_clone_top_left_corner {
+.ht_clone_inline_start.ht_clone_left .htCore,
+.ht_clone_bottom_left_corner .htCore,
+.ht_clone_top_left_corner .htCore {
   background-color: var(--ht-background-color, #ffffff);
 }
 .ht_clone_inline_start.ht_clone_left tbody tr td:last-child,
@@ -1724,7 +1733,7 @@ tr.ht__row_odd td {
 }
 
 .ht_clone_top_inline_start_corner thead tr th:first-child {
-  border-bottom: transparent;
+  border-bottom-color: transparent;
 }
 
 .handsontable .manualColumnResizer {

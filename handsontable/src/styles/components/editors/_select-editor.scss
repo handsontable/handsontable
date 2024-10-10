@@ -12,6 +12,7 @@
       padding: calc(var(--ht-cell-horizontal-padding, 4px) + 1px)
         calc(var(--ht-cell-vertical-padding, 8px) + 1px);
       padding-right: 26px;
+      margin: 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -22,6 +23,7 @@
       line-height: inherit !important;
       box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8);
       border: none;
+      box-sizing: border-box;
       -webkit-appearance: none !important;
 
       &:focus {

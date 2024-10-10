@@ -12,6 +12,7 @@
       .ht_master {
         overflow: hidden;
       }
+      
       .wtHolder {
         overflow: auto;
       }
@@ -44,6 +45,7 @@
 
         strong {
           font-weight: var(--ht-font-weight);
+          color: inherit;
         }
 
         tr:hover td {
