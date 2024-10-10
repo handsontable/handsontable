@@ -36,7 +36,7 @@ function prepareRedirects(framework: string): Redirect[] {
 }
 
 async function handle404(url: string) {
-  console.log('handle404', url);
+  // console.log('handle404', url);
   return new URL('/docs/404.html', url)
 }
 
@@ -44,19 +44,18 @@ export default async function handler(request: Request, context: Context) {
   try {
     const currentUrl = new URL(request.url);
     const baseUrl = currentUrl.origin;
-    console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION') || 'none');
-    console.log('Requested URL', currentUrl);
+    // console.log('Detected Latest Docs Version', Netlify.env.get('DOCS_LATEST_VERSION') || 'none');
+    // console.log('Requested URL', currentUrl.href);
 
     if (currentUrl.pathname === '/docs/404.html') {
       return context.next(); // Serve the 404 page without further rewrites to avoid rewrite loop
     }
 
     const { method } = request;
-    console.log('Method:', method);
     // if 404 was requested - always rewrite
     // passing control to the default middleware, for example handle password
     if (method !== 'GET') {
-      console.log('handling password - POST request', request.url);
+      // console.log('handling password - POST request', request.url);
       return;
     }
   
@@ -75,12 +74,11 @@ export default async function handler(request: Request, context: Context) {
     const externalRewrites = getExternalRewrites();
     const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrl.pathname));
     if(externalRewritesFound) {
-      console.log('handleExternalRewrite');
       const url = currentUrl.pathname.replace(externalRewritesFound.from, externalRewritesFound.to);
       try {
         const response = await fetch(url);
         if(response.ok){
-          console.log('External Rewrite Found', url, response.status, response.statusText)
+          // console.log('External Rewrite Found', url, response.status, response.statusText)
           return response;
         }
         console.error('Response not ok ', url, response.status, response.statusText)
@@ -96,7 +94,7 @@ export default async function handler(request: Request, context: Context) {
     const matchFound = localRedirects.find(redirect => redirect.from.test(currentUrl.pathname));
     if (matchFound) {
       const newUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to);
-      console.log('Local match found, redirecting to', newUrl);
+      // console.log('Local redirect found, redirecting to', newUrl);
       return Response.redirect(newUrl, 301);
     }
   
@@ -104,7 +102,7 @@ export default async function handler(request: Request, context: Context) {
     try {
       const response = await context.next();
       if (response.ok) {
-        console.log('File was found', response.status, response.statusText);
+        // console.log('File was found', response.status, response.statusText);
         return response;
       }
       console.error('File was not found', request.url, response.status, response.statusText)
