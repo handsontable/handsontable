@@ -18,11 +18,11 @@ const addBaseUrlToRelativePaths = (redirects: Redirect[], baseUrl: string) =>
     : redirect
   );
 
-function getVersionRegexString(docsLatestVersion: string) {
-  // replaces all occurrences of . with \\.
-  const escapedVersion = docsLatestVersion.replace(/\./g, '\\.');
-  return `^\\/docs\\/(?!${escapedVersion})(\\d+\\.\\d+)(\\/.*)?$`;
-}
+  function getVersionRegexString(docsLatestVersion: string) {
+    // replaces all occurrences of . with \\.
+    const escapedVersion = docsLatestVersion.replace(/\./g, '\\.');
+    return `^\\/docs\\/(?!${escapedVersion})(\\d+\\.\\d+(?:\\.\\d+)?)(\\/.*)?$`;
+  }
 
 function prepareRedirects(framework: string): Redirect[] {
   return getLocalRedirects().map((redirect: { from: string, to: string }) => ({
@@ -37,7 +37,7 @@ async function handle404(url: string) {
 }
 
 function redirectionWasFound(status: number) {
-  return status >= 300 || status < 400;
+  return status >= 300 && status < 400;
 }
 
 export default async function handler(request: Request, context: Context) {
