@@ -112,6 +112,7 @@
         margin: 0;
         padding: 10px;
         cursor: pointer;
+        font-size: inherit;
 
         &:hover {
           background: var(--ht-menu-item-hover-color);

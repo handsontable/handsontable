@@ -25,23 +25,9 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 14.5.0
- * Release date: 30/07/2024 (built at 10/10/2024 14:40:08)
+ * Version: 14.6.0
+ * Release date: 01/10/2024 (built at 11/10/2024 14:39:39)
  */
-.handsontable .htUIClearAll a,
-.handsontable .htUISelectAll a {
-  padding: var(--ht-gap-size);
-  display: inline-block;
-  text-decoration: none;
-}
-.handsontable .htUIMultipleSelect .ht_master .wtHolder {
-  overflow-y: auto;
-  background: transparent;
-}
-.handsontable .htUIMultipleSelect .ht_master .wtHolder .htCore {
-  box-shadow: none;
-}
-
 .handsontable {
   position: relative;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
@@ -472,7 +458,7 @@ tr.ht__row_odd td {
 }
 .handsontable .wtBorder.fill {
   z-index: 6;
-  background-color: var(--ht-cell-selection-border-color, #1a42e8) !important;
+  background-color: var(--ht-read-only-color, #68696c) !important;
 }
 .handsontable .wtBorder.corner {
   width: var(--ht-cell-autofill-size, 4px) !important;
@@ -867,6 +853,7 @@ tr.ht__row_odd td {
   margin: 0;
   padding: 10px;
   cursor: pointer;
+  font-size: inherit;
 }
 .pika-single .pika-table .pika-button:hover {
   background: var(--ht-menu-item-hover-color);
@@ -927,6 +914,7 @@ tr.ht__row_odd td {
   border: 1px solid var(--ht-input-border-color);
   color: var(--ht-input-foreground-color);
   background-color: var(--ht-input-background-color);
+  transition: var(--ht-table-transition) all ease-in-out;
 }
 .handsontable .htFiltersMenuCondition .htUIInput input:hover,
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input:hover {
@@ -974,6 +962,7 @@ tr.ht__row_odd td {
   border: 1px solid var(--ht-secondary-button-border-color);
   background-color: var(--ht-secondary-button-background-color);
   color: var(--ht-secondary-button-foreground-color);
+  transition: var(--ht-table-transition) all ease-in-out;
 }
 .handsontable .htUIInput.htUIButton input:hover {
   border-color: var(--ht-secondary-button-hover-border-color);
@@ -1290,27 +1279,42 @@ tr.ht__row_odd td {
   position: absolute;
   top: 0;
   left: 0;
-  opacity: 0.6;
+  color: var(--ht-icon-button-icon-color);
 }
 .handsontable .changeType:hover {
   border: none;
   cursor: pointer;
-  background-color: var(--ht-icon-button-hover-background);
-  box-shadow: 0 0 0 1px var(--ht-border-color);
+  background-color: var(--ht-icon-button-hover-background-color);
 }
 .handsontable .changeType:hover:before {
-  border-color: var(--ht-icon-button-hover-icon-color);
+  color: var(--ht-icon-button-hover-icon-color);
 }
-.handsontable .htFiltersActive .changeType {
-  color: var(--ht-icon-button-focus-icon-color);
-  background-color: var(--ht-icon-button-focus-background);
+.handsontable .ht__active_highlight .changeType:before {
+  color: var(--ht-icon-active-button-icon-color);
+}
+.handsontable .ht__active_highlight .changeType:hover:before {
+  color: var(--ht-icon-active-button-icon-color);
+}
+.handsontable .htFiltersActive .changeType:after {
+  content: "";
+  display: block;
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--ht-accent-color);
+}
+.handsontable .htFiltersActive.ht__active_highlight .changeType:after {
+  background-color: var(--ht-header-active-foreground-color);
 }
 .handsontable.htDropdownMenu > .ht_master, .handsontable.htContextMenu > .ht_master, .handsontable.htFiltersConditionsMenu > .ht_master {
   border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);
   border-radius: var(--ht-menu-border-radius);
   box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
   overflow: hidden;
-  padding: var(--ht-menu-vertical-padding, 8px) var(--ht-menu-horizontal-padding, 0);
+  padding: var(--ht-menu-horizontal-padding, 8px) var(--ht-menu-vertical-padding, 0px);
   background-color: var(--ht-background-color);
 }
 .handsontable.htDropdownMenu:not(.htGhostTable), .handsontable.htContextMenu:not(.htGhostTable), .handsontable.htFiltersConditionsMenu:not(.htGhostTable) {
@@ -1426,6 +1430,22 @@ tr.ht__row_odd td {
 .handsontable.htDropdownMenu table tbody tr td div span.selected, .handsontable.htContextMenu table tbody tr td div span.selected, .handsontable.htFiltersConditionsMenu table tbody tr td div span.selected {
   position: absolute;
   inset-inline-end: 0;
+}
+.handsontable.htContextMenuSub_Alignment, .handsontable.htDropdownMenuSub_Alignment {
+  margin-top: calc(var(--ht-menu-horizontal-padding) * -1);
+}
+.handsontable .htUIClearAll a,
+.handsontable .htUISelectAll a {
+  padding: var(--ht-gap-size);
+  display: inline-block;
+  text-decoration: none;
+}
+.handsontable .htUIMultipleSelect .ht_master .wtHolder {
+  overflow-y: auto;
+  background: transparent;
+}
+.handsontable .htUIMultipleSelect .ht_master .wtHolder .htCore {
+  box-shadow: none;
 }
 
 .handsontable.htFiltersConditionsMenu:not(.htGhostTable) {

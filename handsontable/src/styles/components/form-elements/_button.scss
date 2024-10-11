@@ -24,6 +24,7 @@
           border: 1px solid var(--ht-secondary-button-border-color);
           background-color: var(--ht-secondary-button-background-color);
           color: var(--ht-secondary-button-foreground-color);
+          transition: var(--ht-table-transition) all ease-in-out;
 
           &:hover {
             border-color: var(--ht-secondary-button-hover-border-color);

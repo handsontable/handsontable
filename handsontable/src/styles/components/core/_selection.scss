@@ -39,7 +39,7 @@
 
       &.fill {
         z-index: 6;
-        background-color: var(--ht-cell-selection-border-color, #1a42e8) !important;
+        background-color: var(--ht-read-only-color, #68696c) !important;
       }
 
       // Fill handle

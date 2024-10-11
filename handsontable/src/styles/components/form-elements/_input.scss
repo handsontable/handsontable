@@ -19,6 +19,7 @@
       border: 1px solid var(--ht-input-border-color);
       color: var(--ht-input-foreground-color);
       background-color: var(--ht-input-background-color);
+      transition: var(--ht-table-transition) all ease-in-out;
 
       &:hover {
         border-color: var(--ht-input-hover-border-color);
