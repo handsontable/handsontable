@@ -110,10 +110,10 @@ export default async function handler(request: Request, context: Context): Promi
 
     // External redirect handling
     const external = getExternalRedirects();
-    const externalMatchFound = external.find(entry => entry.from.test(currentUrl.pathname));
+    const externalMatchFound = external.find(entry => entry.from.test(currentUrl.toString()));
 
     if (externalMatchFound) {
-      const url = currentUrl.pathname.replace(externalMatchFound.from, externalMatchFound.to);
+      const url = currentUrl.toString().replace(externalMatchFound.from, externalMatchFound.to);
 
       console.warn('handleExternalMatch');
 
@@ -122,10 +122,10 @@ export default async function handler(request: Request, context: Context): Promi
 
     // External rewrite handling (OVH)
     const externalRewrites = getExternalRewrites();
-    const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrl.pathname));
+    const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrl.toString()));
 
     if (externalRewritesFound) {
-      const url = currentUrl.pathname.replace(externalRewritesFound.from, externalRewritesFound.to);
+      const url = currentUrl.toString().replace(externalRewritesFound.from, externalRewritesFound.to);
 
       try {
         const response = await fetch(url, { redirect: 'manual' });
@@ -158,10 +158,10 @@ export default async function handler(request: Request, context: Context): Promi
 
     // Local redirection handling
     const localRedirects = addBaseUrlToRelativePaths(prepareRedirects(framework), baseUrl);
-    const matchFound = localRedirects.find(redirect => redirect.from.test(currentUrl.pathname));
+    const matchFound = localRedirects.find(redirect => redirect.from.test(currentUrl.toString()));
 
     if (matchFound) {
-      const newUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to);
+      const newUrl = currentUrl.toString().replace(matchFound.from, matchFound.to);
 
       return Response.redirect(newUrl, 301);
     }
