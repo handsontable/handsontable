@@ -110,10 +110,10 @@ export default async function handler(request: Request, context: Context): Promi
 
     // External redirect handling
     const external = getExternalRedirects();
-    const externalMatchFound = external.find(entry => entry.from.test(currentUrl.toString()));
+    const externalMatchFound = external.find(entry => entry.from.test(currentUrl.pathname));
 
     if (externalMatchFound) {
-      const url = currentUrl.toString().replace(externalMatchFound.from, externalMatchFound.to);
+      const url = currentUrl.pathname.replace(externalMatchFound.from, externalMatchFound.to);
 
       console.warn('handleExternalMatch');
 
@@ -122,11 +122,11 @@ export default async function handler(request: Request, context: Context): Promi
 
     // External rewrite handling (OVH)
     const externalRewrites = getExternalRewrites();
-    const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrl.toString()));
+    const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrl.pathname));
 
     if (externalRewritesFound) {
-      const url = currentUrl.toString().replace(externalRewritesFound.from, externalRewritesFound.to);
-
+      const url = currentUrl.pathname.replace(externalRewritesFound.from, externalRewritesFound.to);
+      console.log('externalRewrite', url.toString())
       try {
         const response = await fetch(url, { redirect: 'manual' });
 
@@ -158,10 +158,10 @@ export default async function handler(request: Request, context: Context): Promi
 
     // Local redirection handling
     const localRedirects = addBaseUrlToRelativePaths(prepareRedirects(framework), baseUrl);
-    const matchFound = localRedirects.find(redirect => redirect.from.test(currentUrl.toString()));
+    const matchFound = localRedirects.find(redirect => redirect.from.test(currentUrl.pathname));
 
     if (matchFound) {
-      const newUrl = currentUrl.toString().replace(matchFound.from, matchFound.to);
+      const newUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to);
 
       return Response.redirect(newUrl, 301);
     }
