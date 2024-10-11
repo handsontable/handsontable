@@ -28,7 +28,7 @@ import {
 } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 
 export const PLUGIN_KEY = 'formulas';

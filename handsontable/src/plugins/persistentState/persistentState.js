@@ -1,6 +1,6 @@
 import { BasePlugin } from '../base';
 import Storage from './storage';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 
 Hooks.getSingleton().register('persistentStateSave');
 Hooks.getSingleton().register('persistentStateLoad');

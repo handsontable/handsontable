@@ -6,7 +6,7 @@ import {
   outerHeight
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
-import { deepClone, deepExtend, isObject } from '../../helpers/object';
+import { deepClone, deepExtend } from '../../helpers/object';
 import { BasePlugin } from '../base';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
@@ -123,6 +123,12 @@ export class Comments extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get DEFAULT_SETTINGS() {
+    return {
+      displayDelay: 250,
+    };
+  }
+
   /**
    * Current cell range, an object with `from` property, with `row` and `col` properties (e.q. `{from: {row: 1, col: 6}}`).
    *
@@ -197,7 +203,7 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.#displaySwitch) {
-      this.#displaySwitch = new DisplaySwitch(this.getDisplayDelaySetting());
+      this.#displaySwitch = new DisplaySwitch(this.getSetting('displayDelay'));
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
@@ -222,7 +228,7 @@ export class Comments extends BasePlugin {
    *   - [`comments`](@/api/options.md#comments)
    */
   updatePlugin() {
-    this.#displaySwitch.updateDelay(this.getDisplayDelaySetting());
+    this.#displaySwitch.updateDelay(this.getSetting('displayDelay'));
     super.updatePlugin();
   }
 
@@ -771,20 +777,6 @@ export class Comments extends BasePlugin {
       removeCommentItem(this),
       readOnlyCommentItem(this),
     );
-  }
-
-  /**
-   * Get `displayDelay` setting of comment plugin.
-   *
-   * @private
-   * @returns {number|undefined}
-   */
-  getDisplayDelaySetting() {
-    const commentSetting = this.hot.getSettings()[PLUGIN_KEY];
-
-    if (isObject(commentSetting)) {
-      return commentSetting.displayDelay;
-    }
   }
 
   /**

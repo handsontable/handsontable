@@ -1,5 +1,5 @@
-import { BasePlugin } from '../base';
-import Hooks from '../../pluginHooks';
+import { BasePlugin, defaultMainSettingSymbol } from '../base';
+import { Hooks } from '../../core/hooks';
 import MergedCellsCollection from './cellsCollection';
 import MergedCellCoords from './cellCoords';
 import AutofillCalculations from './calculations/autofill';
@@ -8,7 +8,7 @@ import toggleMergeItem from './contextMenuItem/toggleMerge';
 import { arrayEach } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { warn } from '../../helpers/console';
-import { rangeEach } from '../../helpers/number';
+import { rangeEach, clamp } from '../../helpers/number';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
 import { FocusOrder } from './focusOrder';
@@ -67,6 +67,14 @@ export class MergeCells extends BasePlugin {
 
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  static get DEFAULT_SETTINGS() {
+    return {
+      [defaultMainSettingSymbol]: 'cells',
+      virtualized: false,
+      cells: [],
+    };
   }
 
   /**
@@ -154,6 +162,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterSelectionFocusSet', (...args) => this.#onAfterSelectionFocusSet(...args));
     this.addHook('afterSelectionEnd', (...args) => this.#onAfterSelectionEnd(...args));
     this.addHook('modifyGetCellCoords', (...args) => this.#onModifyGetCellCoords(...args));
+    this.addHook('modifyGetCoordsElement', (...args) => this.#onModifyGetCellCoords(...args));
     this.addHook('afterIsMultipleSelection', (...args) => this.#onAfterIsMultipleSelection(...args));
     this.addHook('afterRenderer', (...args) => this.#cellRenderer.after(...args));
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.#addMergeActionsToContextMenu(...args));
@@ -202,12 +211,10 @@ export class MergeCells extends BasePlugin {
    *  - [`mergeCells`](@/api/options.md#mergecells)
    */
   updatePlugin() {
-    const settings = this.hot.getSettings()[PLUGIN_KEY];
-
     this.disablePlugin();
     this.enablePlugin();
 
-    this.generateFromSettings(settings);
+    this.generateFromSettings();
 
     super.updatePlugin();
   }
@@ -307,14 +314,9 @@ export class MergeCells extends BasePlugin {
    * Generates the merged cells from the settings provided to the plugin.
    *
    * @private
-   * @param {Array|boolean} settings The settings provided to the plugin.
    */
-  generateFromSettings(settings) {
-    if (!Array.isArray(settings)) {
-      return;
-    }
-
-    const validSettings = settings
+  generateFromSettings() {
+    const validSettings = this.getSetting('cells')
       .filter(mergeCellInfo => this.validateSetting(mergeCellInfo));
     const nonOverlappingSettings = this.mergedCellsCollection
       .filterOverlappingMergeCells(validSettings);
@@ -575,7 +577,7 @@ export class MergeCells extends BasePlugin {
    * `afterInit` hook callback.
    */
   #onAfterInit() {
-    this.generateFromSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    this.generateFromSettings();
     this.hot.render();
   }
 
@@ -859,13 +861,16 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `modifyGetCellCoords` hook callback. Swaps the `getCell` coords with the merged parent coords.
+   * The `modifyGetCellCoords` hook callback allows forwarding all `getCell` calls that point in-between the merged cells
+   * to the root element of the cell.
    *
    * @param {number} row Row index.
    * @param {number} column Visual column index.
+   * @param {boolean} topmost Indicates if the requested element belongs to the topmost layer (any overlay) or not.
+   * @param {string} [source] String that identifies how this coords change will be processed.
    * @returns {Array|undefined} Visual coordinates of the merge.
    */
-  #onModifyGetCellCoords(row, column) {
+  #onModifyGetCellCoords(row, column, topmost, source) {
     if (row < 0 || column < 0) {
       return;
     }
@@ -876,14 +881,37 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const { row: mergeRow, col: mergeColumn, colspan, rowspan } = mergeParent;
+    const {
+      row: mergeRow,
+      col: mergeColumn,
+      colspan,
+      rowspan,
+    } = mergeParent;
+    const topStartRow = mergeRow;
+    const topStartColumn = mergeColumn;
+    const bottomEndRow = mergeRow + rowspan - 1;
+    const bottomEndColumn = mergeColumn + colspan - 1;
+
+    if (source === 'render' && this.getSetting('virtualized')) {
+      const overlayName = this.hot.view.getActiveOverlayName();
+      const firstRenderedRow = ['top', 'top_inline_start_corner']
+        .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleRow();
+      const firstRenderedColumn = ['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner']
+        .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleColumn();
+
+      return [
+        clamp(firstRenderedRow, topStartRow, bottomEndRow),
+        clamp(firstRenderedColumn, topStartColumn, bottomEndColumn),
+        clamp(this.hot.getLastRenderedVisibleRow(), topStartRow, bottomEndRow),
+        clamp(this.hot.getLastRenderedVisibleColumn(), topStartColumn, bottomEndColumn),
+      ];
+    }
 
     return [
-      // Most top-left merged cell coords.
-      mergeRow, mergeColumn,
-      // Most bottom-right merged cell coords.
-      mergeRow + rowspan - 1,
-      mergeColumn + colspan - 1
+      topStartRow,
+      topStartColumn,
+      bottomEndRow,
+      bottomEndColumn,
     ];
   }
 
@@ -1037,6 +1065,10 @@ export class MergeCells extends BasePlugin {
    * @param {object} calc The row calculator object.
    */
   #onAfterViewportRowCalculatorOverride(calc) {
+    if (this.getSetting('virtualized')) {
+      return;
+    }
+
     const nrOfColumns = this.hot.countCols();
 
     this.modifyViewportRowStart(calc, nrOfColumns);
@@ -1112,6 +1144,10 @@ export class MergeCells extends BasePlugin {
    * @param {object} calc The column calculator object.
    */
   #onAfterViewportColumnCalculatorOverride(calc) {
+    if (this.getSetting('virtualized')) {
+      return;
+    }
+
     const nrOfRows = this.hot.countRows();
 
     this.modifyViewportColumnStart(calc, nrOfRows);
@@ -1421,8 +1457,8 @@ export class MergeCells extends BasePlugin {
     let lastColumn;
 
     if (overlayType === 'master') {
-      firstColumn = this.hot.view.getFirstRenderedVisibleColumn();
-      lastColumn = this.hot.view.getLastRenderedVisibleColumn();
+      firstColumn = this.hot.getFirstRenderedVisibleColumn();
+      lastColumn = this.hot.getLastRenderedVisibleColumn();
 
     } else {
       const activeOverlay = this.hot.view.getOverlayByName(overlayType);
@@ -1442,7 +1478,7 @@ export class MergeCells extends BasePlugin {
     const from = this.hot._createCellCoords(row, firstColumn);
     const to = this.hot._createCellCoords(row, lastColumn);
     const viewportRange = this.hot._createCellRange(from, from, to);
-    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(viewportRange);
+    const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(viewportRange, true);
     const maxRowspan = mergedCellsWithinRange.reduce((acc, { rowspan }) => Math.max(acc, rowspan), 1);
     let rowspanCorrection = 0;
 

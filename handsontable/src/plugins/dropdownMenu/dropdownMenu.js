@@ -6,7 +6,7 @@ import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import { hasClass, setAttribute } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import {
   COLUMN_LEFT,
   COLUMN_RIGHT,

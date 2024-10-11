@@ -1,5 +1,5 @@
 import Core from '../../core';
-import { Events } from '../../pluginHooks';
+import { Events } from '../../core/hooks';
 
 export class BasePlugin {
   readonly hot: Core;

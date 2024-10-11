@@ -1,7 +1,7 @@
 /**
  * Utility to register editors and common namespace for keeping reference to all editor classes.
  */
-import Hooks from '../pluginHooks';
+import { Hooks } from '../core/hooks';
 import staticRegister from '../utils/staticRegister';
 
 const registeredEditorClasses = new WeakMap();
