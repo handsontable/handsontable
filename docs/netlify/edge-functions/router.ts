@@ -208,6 +208,13 @@ function getExternalRewrites(): Redirect[] {
     {
       from: new RegExp(getVersionRegexString(Netlify.env.get('DOCS_LATEST_VERSION'))),
       to: 'https://_docs.handsontable.com/docs/$1$2',
+    },
+    {
+      // Matches /docs/x.x/redirect or /docs/next/redirect with optional ?redirect=anyValue
+      // $1: Matches x.x or next, or is empty if the version is not present.
+      // $3: Captures the value after redirect= in the query string.
+      from: new RegExp('^/docs/((\\d+\\.\\d+|next)/)?redirect(?:\\?redirect=(.+))?$'),
+      to: 'https://_docs.handsontable.com/docs/$1?redirect=$3',
     }
   ];
 }
