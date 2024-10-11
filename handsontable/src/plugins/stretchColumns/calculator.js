@@ -1,4 +1,5 @@
 import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
+import { getScrollbarWidth } from '../../helpers/dom/element';
 import { StretchAllStrategy } from './strategies/all';
 import { StretchLastStrategy } from './strategies/last';
 
@@ -68,9 +69,17 @@ export class StretchCalculator {
       this.#widthsMap.clear();
 
       const stretchStrategy = this.#stretchStrategies.get(this.#activeStrategy);
+      const view = this.#hot.view;
+      let viewportWidth = view.getViewportWidth();
+
+      // console.log('viewportWidth', viewportWidth);
+
+      // if (!view.isVerticallyScrollableByWindow() && view.hasVerticalScroll()) {
+      //   viewportWidth -= getScrollbarWidth();
+      // }
 
       stretchStrategy.prepare({
-        viewportWidth: this.#hot.view.getWorkspaceWidth() - this.#hot.view.getRowHeaderWidth(),
+        viewportWidth,
       });
 
       for (let columnIndex = 0; columnIndex < this.#hot.countCols(); columnIndex++) {

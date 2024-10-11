@@ -1418,7 +1418,7 @@ class TableView {
    * @returns {number}
    */
   maximumVisibleElementWidth(inlineOffset) {
-    const workspaceWidth = this._wt.wtViewport.getWorkspaceWidth();
+    const workspaceWidth = this.getWorkspaceWidth();
     const maxWidth = workspaceWidth - inlineOffset;
 
     return maxWidth > 0 ? maxWidth : 0;
@@ -1433,7 +1433,7 @@ class TableView {
    * @returns {number}
    */
   maximumVisibleElementHeight(topOffset) {
-    const workspaceHeight = this._wt.wtViewport.getWorkspaceHeight();
+    const workspaceHeight = this.getWorkspaceHeight();
     const maxHeight = workspaceHeight - topOffset;
 
     return maxHeight > 0 ? maxHeight : 0;
@@ -1648,15 +1648,6 @@ class TableView {
   }
 
   /**
-   * Returns the table's total width including the scrollbar width.
-   *
-   * @returns {number}
-   */
-  getWorkspaceWidth() {
-    return this._wt.wtViewport.getWorkspaceWidth();
-  }
-
-  /**
    * Returns the table's viewport height. When the table has defined the size of the container,
    * and the rows do not fill the entire viewport, the viewport height is equal to the sum of
    * the rows' heights.
@@ -1665,6 +1656,15 @@ class TableView {
    */
   getViewportHeight() {
     return this._wt.wtViewport.getViewportHeight();
+  }
+
+  /**
+   * Returns the table's total width including the scrollbar width.
+   *
+   * @returns {number}
+   */
+  getWorkspaceWidth() {
+    return this._wt.wtViewport.getWorkspaceWidth();
   }
 
   /**
@@ -1731,6 +1731,24 @@ class TableView {
    */
   hasHorizontalScroll() {
     return this._wt.wtViewport.hasHorizontalScroll();
+  }
+
+  /**
+   * Checks if the table uses the window as a viewport and if there is a vertical scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isVerticallyScrollableByWindow() {
+    return this._wt.wtViewport.isVerticallyScrollableByWindow();
+  }
+
+  /**
+   * Checks if the table uses the window as a viewport and if there is a horizontal scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isHorizontallyScrollableByWindow() {
+    return this._wt.wtViewport.isHorizontallyScrollableByWindow();
   }
 
   /**
