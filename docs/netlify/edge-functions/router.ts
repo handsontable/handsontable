@@ -132,16 +132,22 @@ export default async function handler(request: Request, context: Context): Promi
 
         if (response.ok) {
           return response;
-        } else if (redirectionWasFound(response.status)) {
+        }
+
+        if (redirectionWasFound(response.status)) {
           console.warn('Redirection was found', url, response.status, response.headers.get('location'));
+          const location = response.headers.get('location');
+          if(location) {
+            return Response.redirect(location, 301)
+          }
+          console.error('Redirection without location', url, response.status, response.statusText);
+          return handle404( baseUrl);
         }
 
         console.error('Response not ok ', url, response.status, response.statusText);
-
         return handle404(baseUrl);
       } catch (e) {
         console.error('External Rewrite: Server error', url, e);
-
         return handle404(baseUrl);
       }
     }
@@ -187,6 +193,656 @@ export default async function handler(request: Request, context: Context): Promi
 export const config: Config = {
   path: ['/*'],
 };
+
+/** .........
+ * Retrieves OVH semver redirects with x.x.x format.
+ *
+ * @returns {Redirect[]} - Array of external rewrite rules.
+ */
+function getOvhSemverRedirects(): RedirectRaw[] {
+  return [
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/AutoColumnSize.html$',
+      to: '/docs/javascript-data-grid/api/auto-column-size/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/Autofill.html$',
+      to: '/docs/javascript-data-grid/api/autofill/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/AutoRowSize.html$',
+      to: '/docs/javascript-data-grid/api/auto-row-size/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/BaseEditor_BaseEditor.html$',
+      to: '/docs/javascript-data-grid/cell-editor/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/BaseEditor.html$',
+      to: '/docs/javascript-data-grid/cell-editor/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/BasePlugin.html$',
+      to: '/docs/javascript-data-grid/api/base-plugin/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/BindRowsWithHeaders.html$',
+      to: '/docs/javascript-data-grid/api/bind-rows-with-headers/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/CellCoords.html$',
+      to: '/docs/javascript-data-grid/api/cell-coords/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/CellRange.html$',
+      to: '/docs/javascript-data-grid/api/cell-range/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/CollapsibleColumns.html$',
+      to: '/docs/javascript-data-grid/api/collapsible-columns/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/ColumnSorting.html$',
+      to: '/docs/javascript-data-grid/api/column-sorting/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/ColumnSummary.html$',
+      to: '/docs/javascript-data-grid/api/column-summary/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/Comments.html$',
+      to: '/docs/javascript-data-grid/api/api/comments/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/ContextMenu.html$',
+      to: '/docs/javascript-data-grid/api/context-menu/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/CopyPaste.html$',
+      to: '/docs/javascript-data-grid/api/copy-paste/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/Core.html$',
+      to: '/docs/javascript-data-grid/api/core/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/CustomBorders.html$',
+      to: '/docs/javascript-data-grid/api/custom-borders/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/DragToScroll.html$',
+      to: '/docs/javascript-data-grid/api/drag-to-scroll/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/DropdownMenu.html$',
+      to: '/docs/javascript-data-grid/api/dropdown-menu/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/ExportFile.html$',
+      to: '/docs/javascript-data-grid/api/export-file/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/Filters.html$',
+      to: '/docs/javascript-data-grid/api/filters/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/Formulas.html$',
+      to: '/docs/javascript-data-grid/api/formulas/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/GhostTable.html$',
+      to: '/docs/javascript-data-grid/api/ghost-table/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/HiddenColumns.html$',
+      to: '/docs/javascript-data-grid/api/hidden-columns/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/HiddenRows.html$',
+      to: '/docs/javascript-data-grid/api/hidden-rows/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/Hooks.html$',
+      to: '/docs/javascript-data-grid/api/hooks/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/ManualColumnFreeze.html$',
+      to: '/docs/javascript-data-grid/api/manual-column-freeze/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/ManualColumnMove.html$',
+      to: '/docs/javascript-data-grid/api/manual-column-move/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/ManualColumnResize.html$',
+      to: '/docs/javascript-data-grid/api/manual-column-resize/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/ManualRowMove.html$',
+      to: '/docs/javascript-data-grid/api/manual-row-move/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/ManualRowResize.html$',
+      to: '/docs/javascript-data-grid/api/manual-row-resize/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/MergeCells.html$',
+      to: '/docs/javascript-data-grid/api/merge-cells/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/MultiColumnSorting.html$',
+      to: '/docs/javascript-data-grid/api/multi-column-sorting/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/NestedHeaders.html$',
+      to: '/docs/javascript-data-grid/api/nested-headers/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/NestedRows.html$',
+      to: '/docs/javascript-data-grid/api/nested-rows/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/Options.html$',
+      to: '/docs/javascript-data-grid/api/options/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/PersistentState.html$',
+      to: '/docs/javascript-data-grid/api/persistent-state/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/Search.html$',
+      to: '/docs/javascript-data-grid/api/search/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/TrimRows.html$',
+      to: '/docs/javascript-data-grid/trim-rows/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/UndoRedo.html$',
+      to: '/docs/javascript-data-grid/api/undo-redo/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-alignment.html$',
+      to: '/docs/javascript-data-grid/text-alignment/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-auto-fill.html$',
+      to: '/docs/javascript-data-grid/autofill-values/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-autocomplete.html$',
+      to: '/docs/javascript-data-grid/autocomplete-cell-type/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-bind-rows-headers.html$',
+      to: '/docs/javascript-data-grid/binding-to-data/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-checkbox.html$',
+      to: '/docs/javascript-data-grid/checkbox-cell-type/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-collapsing-columns.html$',
+      to: '/docs/javascript-data-grid/column-groups/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-comments_.html$',
+      to: '/docs/javascript-data-grid/comments/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-conditional-formatting.html$',
+      to: '/docs/javascript-data-grid/conditional-formatting/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-context-menu.html$',
+      to: '/docs/javascript-data-grid/context-menu/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-copy-paste.html$',
+      to: '/docs/javascript-data-grid/basic-clipboard/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-custom-renderers.html$',
+      to: '/docs/javascript-data-grid/cell-renderer/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-customizing-borders.html$',
+      to: '/docs/javascript-data-grid/formatting-cells/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-data-validation.html$',
+      to: '/docs/javascript-data-grid/cell-validator/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-date.html$',
+      to: '/docs/javascript-data-grid/date-cell-type/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-disabled-editing.html$',
+      to: '/docs/javascript-data-grid/disabled-cells/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-dropdown-menu.html$',
+      to: '/docs/javascript-data-grid/column-menu/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-dropdown.html$',
+      to: '/docs/javascript-data-grid/dropdown-cell-type/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-export-file.html$',
+      to: '/docs/javascript-data-grid/export-to-csv/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-filtering.html$',
+      to: '/docs/javascript-data-grid/column-filter/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-fixing-bottom.html$',
+      to: '/docs/javascript-data-grid/row-freezing/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-fixing.html$',
+      to: '/docs/javascript-data-grid/column-freezing/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-formula-support.html$',
+      to: '/docs/javascript-data-grid/formula-calculation/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-freezing.html$',
+      to: '/docs/javascript-data-grid/column-freezing'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-handsontable.html$',
+      to: '/docs/javascript-data-grid/handsontable-cell-type/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-hiding-columns.html$',
+      to: '/docs/javascript-data-grid/column-hiding/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-hiding-rows.html$',
+      to: '/docs/javascript-data-grid/row-hiding/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-highlighting-selection.html$',
+      to: '/docs/javascript-data-grid/selection/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-merged-cells.html$',
+      to: '/docs/javascript-data-grid/merge-cells/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-moving.html$',
+      to: '/docs/javascript-data-grid/column-moving/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-multicolumn-sorting.html$',
+      to: '/docs/javascript-data-grid/rows-sorting/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-nested-headers.html$',
+      to: '/docs/javascript-data-grid/column-groups/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-nested-rows.html$',
+      to: '/docs/javascript-data-grid/row-parent-child/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-numeric.html$',
+      to: '/docs/javascript-data-grid/numeric-cell-type/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-password.html$',
+      to: '/docs/javascript-data-grid/password-cell-type/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-pre-populating.html$',
+      to: '/docs/javascript-data-grid/row-prepopulating/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-read-only.html$',
+      to: '/docs/javascript-data-grid/disabled-cells/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-resizing.html$',
+      to: '/docs/javascript-data-grid/column-width/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-searching.html$',
+      to: '/docs/javascript-data-grid/searching-values/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-select.html$',
+      to: '/docs/javascript-data-grid/select-cell-type/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-selecting-ranges.html$',
+      to: '/docs/javascript-data-grid/selection/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-sorting.html$',
+      to: '/docs/javascript-data-grid/rows-sorting/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-spreadsheet-icons.html$',
+      to: '/docs/javascript-data-grid/icon-pack/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-stretching.html$',
+      to: '/docs/javascript-data-grid/column-width/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-summary-calculations.html$',
+      to: '/docs/javascript-data-grid/column-summary/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-time.html$',
+      to: '/docs/javascript-data-grid/time-cell-type/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/demo-trimming-rows.html$',
+      to: '/docs/javascript-data-grid/row-trimming/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-angular-custom-context-menu-example.html$',
+      to: '/docs/javascript-data-grid/angular-installation/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-angular-custom-editor-example.html$',
+      to: '/docs/javascript-data-grid/angular-custom-editor-example/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-angular-custom-id.html$',
+      to: '/docs/javascript-data-grid/angular-custom-id/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-angular-custom-renderer-example.html$',
+      to: '/docs/javascript-data-grid/angular-custom-renderer-example/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-angular-hot-reference.html$',
+      to: '/docs/javascript-data-grid/angular-hot-reference/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-angular-installation.html$',
+      to: '/docs/javascript-data-grid/angular-installation/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-angular-language-change-example.html$',
+      to: '/docs/javascript-data-grid/angular-language-change-example/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-angular-setting-up-a-locale.html$',
+      to: '/docs/javascript-data-grid/angular-language-change-example/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-angular-simple-example.html$',
+      to: '/docs/javascript-data-grid/angular-basic-example/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-react-custom-context-menu-example.html$',
+      to: '/docs/react-data-grid/context-menu/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-react-custom-editor-example.html$',
+      to: '/docs/react-data-grid/cell-editor/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-react-custom-renderer-example.html$',
+      to: '/docs/react-data-grid/cell-renderer/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-react-hot-column.html$',
+      to: '/docs/react-data-grid/hot-column/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-react-hot-reference.html$',
+      to: '/docs/react-data-grid/instance-methods/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-react-installation.html$',
+      to: '/docs/react-data-grid/installation/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-react-language-change-example.html$',
+      to: '/docs/react-data-grid/language/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-react-redux-example.html$',
+      to: '/docs/react-data-grid/redux/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-react-setting-up-a-locale.html$',
+      to: '/docs/react-data-grid/locale/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-react-simple-examples.html$',
+      to: '/docs/react-data-grid/binding-to-data/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-vue-custom-context-menu-example.html$',
+      to: '/docs/javascript-data-grid/vue-custom-context-menu-example/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-vue-custom-editor-example.html$',
+      to: '/docs/javascript-data-grid/vue-custom-editor-example/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-vue-custom-id-class-style.html$',
+      to: '/docs/javascript-data-grid/vue-custom-id-class-style/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-vue-custom-renderer-example.html$',
+      to: '/docs/javascript-data-grid/vue-custom-renderer-example/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-vue-hot-column.html$',
+      to: '/docs/javascript-data-grid/vue-hot-column/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-vue-hot-reference.html$',
+      to: '/docs/javascript-data-grid/vue-hot-reference/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-vue-installation.html$',
+      to: '/docs/javascript-data-grid/vue-installation/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-vue-language-change-example.html$',
+      to: '/docs/javascript-data-grid/vue-language-change-example/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-vue-setting-up-a-locale.html$',
+      to: '/docs/javascript-data-grid/vue-setting-up-a-translation/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-vue-simple-example.html$',
+      to: '/docs/javascript-data-grid/vue-basic-example/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/frameworks-wrapper-for-vue-vuex-example.html$',
+      to: '/docs/javascript-data-grid/vue-vuex-example/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-cell-editor.html$',
+      to: '/docs/javascript-data-grid/cell-editor/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-cell-function.html$',
+      to: '/docs/javascript-data-grid/cell-function/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-cell-types.html$',
+      to: '/docs/javascript-data-grid/cell-type/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-change-log.html$',
+      to: '/docs/javascript-data-grid/release-notes/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-compatibility.html$',
+      to: '/docs/javascript-data-grid/supported-browsers/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-custom-build.html$',
+      to: '/docs/javascript-data-grid/custom-builds/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-custom-plugin.html$',
+      to: '/docs/javascript-data-grid/custom-plugins/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-data-binding.html$',
+      to: '/docs/javascript-data-grid/binding-to-data/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-data-sources.html$',
+      to: '/docs/javascript-data-grid/binding-to-data/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-data-validation-demos.html$',
+      to: '/docs/javascript-data-grid/cell-validator/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-formula-support-demos.html$',
+      to: '/docs/javascript-data-grid/formula-calculation/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-grid-sizing.html$',
+      to: '/docs/javascript-data-grid/grid-size/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-index_.html$',
+      to: '/docs/javascript-data-grid/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-internationalization.html$',
+      to: '/docs/javascript-data-grid/language/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-introduction.html$',
+      to: '/docs/javascript-data-grid/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-jquery.html$',
+      to: '/docs/javascript-data-grid/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-keyboard-navigation.html$',
+      to: '/docs/javascript-data-grid/keyboard-shortcuts/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-license-key.html$',
+      to: '/docs/javascript-data-grid/license-key/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-licensing.html$',
+      to: '/docs/javascript-data-grid/software-license/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-load-and-save.html$',
+      to: '/docs/javascript-data-grid/saving-data/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-migration-guide.html$',
+      to: '/docs/javascript-data-grid/release-notes/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-milestones.html$',
+      to: '/docs/javascript-data-grid/release-notes/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-modules.html$',
+      to: '/docs/javascript-data-grid/modules/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-navigation-demos.html$',
+      to: '/docs/javascript-data-grid/keyboard-shortcuts/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-performance-tips.html$',
+      to: '/docs/javascript-data-grid/performance/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-quick-start.html$',
+      to: '/docs/javascript-data-grid/installation/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-release-notes.html$',
+      to: '/docs/javascript-data-grid/release-notes/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-releasing.html$',
+      to: '/docs/javascript-data-grid/versioning-policy/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-setting-options.html$',
+      to: '/docs/javascript-data-grid/configuration-options/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-sorting-data-demos.html$',
+      to: '/docs/javascript-data-grid/rows-sorting/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-suspend-rendering.html$',
+      to: '/docs/javascript-data-grid/batch-operations/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-testing.html$',
+      to: '/docs/javascript-data-grid/testing/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-using-callbacks.html$',
+      to: '/docs/javascript-data-grid/events-and-hooks/'
+    },
+    {
+      from: '^/docs/(\\d+.\\d+.\\d+)/tutorial-wrapper-for-react-examples.html$',
+      to: '/docs/react-data-grid/binding-to-data/'
+    }
+  ];
+}
+
+/** .........
+ * Retrieves different number of versions permanent redirects.
+ *
+ * @returns {Redirect[]} - Array of external rewrite rules.
+ */
+function getOvhVersionRedirects(): RedirectRaw[] {
+  return [
+    // --- redirect /x.x/ to /x.x.x/ (rewrites short semvers to long one only for 8.4.x and lower. Then this is consumed by old docs stack) ---
+    {
+      from: '^/docs/((?:[0-7]\\.\\d+)|(?:8\\.[0-4]))(?:/(.+)?)?$',
+      to: '/docs/$1.0$2', // Adds ".0" to short semvers for 8.4.x and lower
+    },
+
+    // --- redirect /x/ to /x.x.x/ (rewrites short semvers to long one only for 8.x and lower. Then this is consumed by old docs stack) ---
+    {
+      from: '^/docs/([0-8])(?:/(.+)?)?$',
+      to: '/docs/$1.0.0$2', // Adds ".0.0" to short semvers for 8.x and lower
+    },
+
+    // --- redirect /x.x.x/ to /x.x/ only for the new docs engine (/docs/9.4.6/ to /docs/9.4/) ---
+    {
+      from: '^/docs/((9|\\d{2,5})\\.\\d+\\.\\d+)(?:/(.+)?)?$',
+      to: '/docs/$1$3', // Removes the third ".x" from semver for 9.x or larger
+    },
+
+    // --- redirect /x.x.x/ to /x.x.x/tutorial-introduction.html ---
+    {
+      from: '^/docs/(\\d+\\.\\d+\\.\\d+)(?:/)?$',
+      to: '/docs/$1/tutorial-introduction.html', // Adds "tutorial-introduction.html" for semver
+    },
+
+    // --- entry for legacy docs (to version 8.4.x and lower use old documentation stack) ---
+    {
+      from: '^/docs/((?:[0-7]\\.\\d+\\.\\d+)|(?:8\\.\\d+\\.\\d+))(?:/(.+))?$',
+      to: '/home/httpd/docs.handsontable.com/$1/current/generated/$2', // Legacy doc handling
+      // break: true, // Stops further processing of rules after this one
+    }
+  ];
+}
 
 /**
  * Retrieves the external rewrites for OVH.
