@@ -40,13 +40,15 @@ const addBaseUrlToRelativePaths = (redirects: Redirect[], baseUrl: string): Redi
  * @param {string} docsLatestVersion - The latest version of the documentation.
  * @returns {string} - The regular expression string for matching versioned URLs.
  */
-function getVersionRegexString(docsLatestVersion: string): string {
-  // replaces all occurrences of . with \\.
-  const escapedVersion = docsLatestVersion.replace(/\./g, '\\.');
+function getVersionRegexString(docsLatestVersion: string) {
+  // replace each '\' with '\\'
+  const escapedVersion = docsLatestVersion.replace(/[\\.]/g, '\\$&');
+  const basePattern = '^\\/docs\\/';
+  const versionPattern = `(?!${escapedVersion})`;
+  const remainingPattern = '(\\d+\\.\\d+(?:\\.\\d+)?)(\\/.*)?$';
 
-  return `^\\/docs\\/(?!${escapedVersion})(\\d+\\.\\d+(?:\\.\\d+)?)(\\/.*)?$`;
+  return `${basePattern}${versionPattern}${remainingPattern}`;
 }
-
 /**
  * Prepares an array of redirect objects by replacing the `$framework` placeholder in the `to` field with the specified framework.
  *
