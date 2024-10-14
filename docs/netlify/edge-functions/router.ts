@@ -121,7 +121,7 @@ export default async function handler(request: Request, context: Context): Promi
       return Response.redirect(finalUrl, 301);
     }
 
-    // External rewrite handling (OVH)
+    // External rewrite handling (OVH).
     const externalRewrites = getExternalRewrites();
     const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrlString));
 
