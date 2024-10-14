@@ -136,9 +136,12 @@ export default async function handler(request: Request, context: Context): Promi
         }
 
         if (redirectionWasFound(response.status)) {
-          console.warn('Redirection was found', finalUrl, response.status, 'location', response.headers.get('location'));
-          console.warn('Redirection fullUrl', currentUrl.toString(), 'prepped',
-            currentUrl.toString().replace(externalRewritesFound.from, externalRewritesFound.to));
+          console.warn('Redirection currentUrl', currentUrl.toString(), response.status);
+          console.warn('Redirection was found finalUrl', finalUrl);
+          console.warn('Location', response.headers.get('location'));
+          const replacement = currentUrl.toString().replace(externalRewritesFound.from, externalRewritesFound.to);
+
+          console.warn('Replacement', replacement);
 
           const location = response.headers.get('location');
 
