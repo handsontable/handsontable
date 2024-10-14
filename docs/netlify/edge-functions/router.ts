@@ -126,7 +126,7 @@ export default async function handler(request: Request, context: Context): Promi
 
     if (externalRewritesFound) {
       const url = currentUrl.pathname.replace(externalRewritesFound.from, externalRewritesFound.to);
-      console.log('externalRewrite', url.toString())
+
       try {
         const response = await fetch(url, { redirect: 'manual' });
 
@@ -135,7 +135,10 @@ export default async function handler(request: Request, context: Context): Promi
         }
 
         if (redirectionWasFound(response.status)) {
-          console.warn('Redirection was found', url, response.status, response.headers.get('location'));
+          console.warn('Redirection was found', url, response.status, 'location',response.headers.get('location'));
+          console.warn('Redirection fullUrl', url, currentUrl.toString(), 'prepped',
+            currentUrl.toString().replace(externalRewritesFound.from, externalRewritesFound.to));
+
           const location = response.headers.get('location');
 
           if (location) {
@@ -196,6 +199,7 @@ export default async function handler(request: Request, context: Context): Promi
  */
 export const config: Config = {
   path: ['/*'],
+  cache: 'manual'
 };
 
 /**
