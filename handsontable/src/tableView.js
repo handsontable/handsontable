@@ -662,7 +662,6 @@ class TableView {
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
-      stretchH: () => this.settings.stretchH,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
       data: (renderableRow, renderableColumn) => {
@@ -1045,11 +1044,6 @@ class TableView {
       },
       onBeforeTouchScroll: () => this.hot.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.hot.runHooks('afterMomentumScroll'),
-      onBeforeStretchingColumnWidth: (stretchedWidth, renderedColumnIndex) => {
-        const visualColumnIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
-
-        return this.hot.runHooks('beforeStretchingColumnWidth', stretchedWidth, visualColumnIndex);
-      },
       onModifyRowHeaderWidth: rowHeaderWidth => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (renderableRowIndex, renderableColumnIndex, topmost, source) => {
         const rowMapper = this.hot.rowIndexMapper;
@@ -1424,7 +1418,7 @@ class TableView {
    * @returns {number}
    */
   maximumVisibleElementWidth(inlineOffset) {
-    const workspaceWidth = this._wt.wtViewport.getWorkspaceWidth();
+    const workspaceWidth = this.getWorkspaceWidth();
     const maxWidth = workspaceWidth - inlineOffset;
 
     return maxWidth > 0 ? maxWidth : 0;
@@ -1439,7 +1433,7 @@ class TableView {
    * @returns {number}
    */
   maximumVisibleElementHeight(topOffset) {
-    const workspaceHeight = this._wt.wtViewport.getWorkspaceHeight();
+    const workspaceHeight = this.getWorkspaceHeight();
     const maxHeight = workspaceHeight - topOffset;
 
     return maxHeight > 0 ? maxHeight : 0;
@@ -1654,15 +1648,6 @@ class TableView {
   }
 
   /**
-   * Returns the table's total width including the scrollbar width.
-   *
-   * @returns {number}
-   */
-  getWorkspaceWidth() {
-    return this._wt.wtViewport.getWorkspaceWidth();
-  }
-
-  /**
    * Returns the table's viewport height. When the table has defined the size of the container,
    * and the rows do not fill the entire viewport, the viewport height is equal to the sum of
    * the rows' heights.
@@ -1671,6 +1656,15 @@ class TableView {
    */
   getViewportHeight() {
     return this._wt.wtViewport.getViewportHeight();
+  }
+
+  /**
+   * Returns the table's total width including the scrollbar width.
+   *
+   * @returns {number}
+   */
+  getWorkspaceWidth() {
+    return this._wt.wtViewport.getWorkspaceWidth();
   }
 
   /**
@@ -1740,6 +1734,24 @@ class TableView {
   }
 
   /**
+   * Checks if the table uses the window as a viewport and if there is a vertical scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isVerticallyScrollableByWindow() {
+    return this._wt.wtViewport.isVerticallyScrollableByWindow();
+  }
+
+  /**
+   * Checks if the table uses the window as a viewport and if there is a horizontal scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isHorizontallyScrollableByWindow() {
+    return this._wt.wtViewport.isHorizontallyScrollableByWindow();
+  }
+
+  /**
    * Gets the table's width.
    *
    * @returns {boolean}
@@ -1755,6 +1767,26 @@ class TableView {
    */
   getTableHeight() {
     return this._wt.wtTable.getHeight();
+  }
+
+  /**
+   * Gets the row header width. If there are multiple row headers, the width of
+   * the sum of all of them is returned.
+   *
+   * @returns {number}
+   */
+  getRowHeaderWidth() {
+    return this._wt.wtViewport.getRowHeaderWidth();
+  }
+
+  /**
+   * Gets the column header height. If there are multiple column headers, the height
+   * of the sum of all of them is returned.
+   *
+   * @returns {number}
+   */
+  getColumnHeaderHeight() {
+    return this._wt.wtViewport.getColumnHeaderHeight();
   }
 
   /**

@@ -20,6 +20,7 @@ describe('built-in plugins', () => {
       'ManualColumnResize',
       'ManualRowMove',
       'MergeCells',
+      'StretchColumns',
       'MultipleSelectionHandles',
       'MultiColumnSorting',
       'Search',

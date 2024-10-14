@@ -1,8 +1,6 @@
 describe('HiddenColumns', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -117,23 +115,6 @@ describe('HiddenColumns', () => {
       expect(hot.getColWidth(0)).toBe(0);
       expect(hot.getColWidth(1)).toBe(0);
       expect(hot.getColWidth(2)).toBe(173);
-    });
-
-    it('should return proper values from the `getColWidth` function when the `ManualColumnResize` plugin define sizes for some columns', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
-        hiddenColumns: {
-          columns: [0, 2],
-        },
-        stretchH: 'all',
-        manualColumnResize: [10, 11, 12, 13, 14],
-      });
-
-      expect(hot.getColWidth(0)).toBe(0);
-      expect(hot.getColWidth(1)).toBe(11);
-      expect(hot.getColWidth(2)).toBe(0);
-      expect(hot.getColWidth(3)).toBe(13);
-      expect(hot.getColWidth(4)).toBe(14);
     });
 
     it('should return proper values from the `getColHeader` function', () => {

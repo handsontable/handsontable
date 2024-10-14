@@ -135,7 +135,6 @@ describe('HiddenRows', () => {
         hiddenRows: {
           rows: [0, 2],
         },
-        stretchH: 'all',
         manualRowResize: [30, 31, 32, 33, 34],
       });
 

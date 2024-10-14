@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Refactor the column stretching logic, move to the separate plugin and fix bugs related to the columns widths misalignments.",
+  "type": "changed",
+  "issueOrPR": 11210,
+  "breaking": false,
+  "framework": "none"
+}
