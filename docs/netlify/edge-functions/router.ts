@@ -181,7 +181,8 @@ export default async function handler(request: Request, context: Context): Promi
           const location = response.headers.get('location');
 
           if (location) {
-            return Response.redirect(location, 301);
+            // return Response.redirect(location, 301);
+            return await fetch(`https://_docs.handsontable.com/${location}`);
           }
           console.error('Redirection without location', url, response.status, response.statusText);
 
