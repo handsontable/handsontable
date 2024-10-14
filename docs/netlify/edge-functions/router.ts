@@ -92,7 +92,6 @@ function redirectionWasFound(status: number): boolean {
 export default async function handler(request: Request, context: Context): Promise<Response | URL | void> {
   try {
     const currentUrl = new URL(request.url);
-    const currentUrlString = currentUrl.toString();
     const baseUrl = currentUrl.origin;
 
     // Serve the 404 page without further rewrites to avoid rewrite loop
@@ -111,53 +110,51 @@ export default async function handler(request: Request, context: Context): Promi
 
     // External redirect handling
     const external = getExternalRedirects();
-    const externalMatchFound = external.find(entry => entry.from.test(currentUrl.pathname));
+    const externalRedirectsFound = external.find(entry => {
+      return entry.from.test(currentUrl.href) || entry.from.test(currentUrl.pathname);
+    });
 
-    if (externalMatchFound) {
-      const finalUrl = currentUrl.pathname.replace(externalMatchFound.from, externalMatchFound.to);
+    if (externalRedirectsFound) {
+      const url = currentUrl.href.replace(externalRedirectsFound.from, externalRedirectsFound.to);
 
       console.warn('handleExternalMatch');
 
-      return Response.redirect(finalUrl, 301);
+      return Response.redirect(url, 301);
     }
 
-    // External rewrite handling (OVH).
+    // External rewrite handling (OVH)
     const externalRewrites = getExternalRewrites();
-    const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrlString));
+    const externalRewritesFound = externalRewrites.find(entry => {
+      return entry.from.test(currentUrl.href) || entry.from.test(currentUrl.pathname);
+    });
 
     if (externalRewritesFound) {
-      const finalUrl = currentUrlString.replace(externalRewritesFound.from, externalRewritesFound.to);
+      const url = currentUrl.href.replace(externalRewritesFound.from, externalRewritesFound.to);
 
       try {
-        const response = await fetch(finalUrl, { redirect: 'manual' });
+        const response = await fetch(url, { redirect: 'manual' });
 
         if (response.ok) {
           return response;
         }
 
         if (redirectionWasFound(response.status)) {
-          console.warn('Redirection currentUrl', currentUrl.toString(), response.status);
-          console.warn('Redirection was found finalUrl', finalUrl);
-          console.warn('Location', response.headers.get('location'));
-          const replacement = currentUrl.toString().replace(externalRewritesFound.from, externalRewritesFound.to);
-
-          console.warn('Replacement', replacement);
-
+          console.warn('Redirection was found', url, response.status, response.headers.get('location'));
           const location = response.headers.get('location');
 
           if (location) {
             return Response.redirect(location, 301);
           }
-          console.error('Redirection without location', finalUrl, response.status, response.statusText);
+          console.error('Redirection without location', url, response.status, response.statusText);
 
           return handle404(baseUrl);
         }
 
-        console.error('Response not ok ', finalUrl, response.status, response.statusText);
+        console.error('Response not ok ', url, response.status, response.statusText);
 
         return handle404(baseUrl);
       } catch (e) {
-        console.error('External Rewrite: Server error', finalUrl, e);
+        console.error('External Rewrite: Server error', url, e);
 
         return handle404(baseUrl);
       }
@@ -168,9 +165,9 @@ export default async function handler(request: Request, context: Context): Promi
     const matchFound = localRedirects.find(redirect => redirect.from.test(currentUrl.pathname));
 
     if (matchFound) {
-      const finalUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to);
+      const newUrl = currentUrl.pathname.replace(matchFound.from, matchFound.to);
 
-      return Response.redirect(finalUrl, 301);
+      return Response.redirect(newUrl, 301);
     }
 
     // Static file handling
