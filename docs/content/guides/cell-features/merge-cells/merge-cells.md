@@ -66,6 +66,58 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 :::
 
+## Optimizing rendering of the wide/tall merged cells
+
+Sometimes, you might need to render a table with a very wide or very tall merged cells. In such cases, the standard rendering mode may not be optimal. We suggest enabling the virtual DOM for merged cells in these situations.
+
+To enable merged cells virtualization mode pass options like this:
+
+::: only-for javascript
+
+```js
+mergeCells: {
+  virtualized: true,
+  cells: [{ row: 1, col: 1, rowspan: 200, colspan: 2 }]
+}
+```
+
+:::
+
+::: only-for react
+
+```jsx
+mergeCells={{
+  virtualized: true,
+  cells: [{ row: 1, col: 1, rowspan: 200, colspan: 2 }]
+}}
+```
+
+:::
+
+The example below uses virtualized merged cells. Also it's recommended to increase the buffer of rendered rows/columns to minimize flickering effects.
+
+::: only-for javascript
+
+::: example #example2 --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/merge-cells/javascript/example2.js)
+@[code](@/content/guides/cell-features/merge-cells/javascript/example2.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/merge-cells/react/example2.jsx)
+@[code](@/content/guides/cell-features/merge-cells/react/example2.tsx)
+
+:::
+
+:::
+
 ## Related keyboard shortcuts
 
 | Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
@@ -76,6 +128,10 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 - Configuration options:
   - [`mergeCells`](@/api/options.md#mergecells)
+  - [`viewportColumnRenderingThreshold`](@/api/options.md#viewportcolumnrenderingthreshold)
+  - [`viewportRowRenderingThreshold`](@/api/options.md#viewportrowrenderingthreshold)
+  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
 - Hooks:
   - [`afterMergeCells`](@/api/hooks.md#aftermergecells)
   - [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
