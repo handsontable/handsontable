@@ -79,7 +79,7 @@ async function findExampleContainersInFiles() {
 async function setupBrowser() {
   const browser = await puppeteer.launch({
     headless: false,
-    args: ['--headless', '--disable-gpu', '--mute-audio'],
+    args: ['--headless', '--disable-gpu', '--mute-audio', '--no-sandbox'],
   });
   const page = await browser.newPage();
 
