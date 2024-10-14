@@ -21,9 +21,7 @@ new Handsontable(container, {
   contextMenu: true,
   mergeCells: {
     virtualized: true,
-    cells: [
-      { row: 1, col: 1, rowspan: 3, colspan: 498 },
-    ],
+    cells: [{ row: 1, col: 1, rowspan: 3, colspan: 498 }],
   },
   viewportColumnRenderingOffset: 15,
   viewportColumnRenderingThreshold: 5,
