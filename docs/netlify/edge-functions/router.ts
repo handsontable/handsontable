@@ -110,7 +110,7 @@ export default async function handler(request: Request, context: Context): Promi
 
     // External redirect handling
     const external = getExternalRedirects();
-    const externalRedirectsFound = external.find(entry => {
+    const externalRedirectsFound = external.find((entry) => {
       return entry.from.test(currentUrl.href) || entry.from.test(currentUrl.pathname);
     });
 
@@ -124,12 +124,13 @@ export default async function handler(request: Request, context: Context): Promi
 
     // External rewrite handling (OVH)
     const externalRewrites = getExternalRewrites();
-    const externalRewritesFound = externalRewrites.find(entry => {
+    const externalRewritesFound = externalRewrites.find((entry) => {
       return entry.from.test(currentUrl.href) || entry.from.test(currentUrl.pathname);
     });
 
     if (externalRewritesFound) {
       const url = currentUrl.href.replace(externalRewritesFound.from, externalRewritesFound.to);
+      console.log('externalRewriteUrl', url);
 
       try {
         const response = await fetch(url, { redirect: 'manual' });
