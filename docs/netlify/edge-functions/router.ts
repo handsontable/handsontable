@@ -131,16 +131,29 @@ export default async function handler(request: Request, context: Context): Promi
       console.log(`Fetching data from: ${rewrittenUrl}`);
 
       try {
-        const response = await fetch(rewrittenUrl, { method: 'GET' });
+        const response = await fetch(rewrittenUrl, { redirect: 'manual' });
 
         // Return the fetched response
         if (response.ok) {
           return response;
-        } else {
-          console.error(`Failed to fetch resource from ${rewrittenUrl}: ${response.status}`);
+        }
+
+        if (redirectionWasFound(response.status)) {
+          console.warn('Redirection was found', rewrittenUrl, response.status, response.headers.get('location'));
+          const location = response.headers.get('location');
+
+          if (location) {
+            return Response.redirect(location, 301);
+          }
+          console.error('Redirection without location', rewrittenUrl, response.status, response.statusText);
 
           return handle404(baseUrl);
         }
+
+        console.error(`Failed to fetch resource from ${rewrittenUrl}: ${response.status}`);
+
+        return handle404(baseUrl);
+
       } catch (error) {
         console.error(`Fetch error: ${error}`);
 
