@@ -93,9 +93,10 @@ export default async function handler(request: Request, context: Context): Promi
   try {
     const currentUrl = new URL(request.url);
     const baseUrl = currentUrl.origin;
+    const { pathname, search } = currentUrl;
 
     // Serve the 404 page without further rewrites to avoid rewrite loop
-    if (currentUrl.pathname === '/docs/404.html') {
+    if (pathname === '/docs/404.html') {
       return context.next();
     }
 
@@ -110,27 +111,36 @@ export default async function handler(request: Request, context: Context): Promi
 
     // External redirect handling
     const external = getExternalRedirects();
-    const externalRedirectsFound = external.find((entry) => {
-      return entry.from.test(currentUrl.href) || entry.from.test(currentUrl.pathname);
-    });
+    const externalMatchFound = external.find(entry => entry.from.test(pathname));
 
-    if (externalRedirectsFound) {
-      const url = currentUrl.href.replace(externalRedirectsFound.from, externalRedirectsFound.to);
+    if (externalMatchFound) {
+      const url = pathname.replace(externalMatchFound.from, externalMatchFound.to);
 
       console.warn('handleExternalMatch');
 
       return Response.redirect(url, 301);
     }
 
+    const onePageRewrites = getOnePageRewrites();
+    const rewriteMatch = onePageRewrites.find(rewrite => rewrite.from.test(`${pathname}${search}`));
+    if (rewriteMatch) {
+      // Apply the rewrite using the pattern from the matched rule
+      const rewrittenUrl = `${pathname}${search}`.replace(rewriteMatch.from, rewriteMatch.to);
+
+      console.log(`Redirecting to: ${rewrittenUrl}`);
+
+      // Redirect the user to the new URL
+      return Response.redirect(rewrittenUrl, 301);
+    }
+
+
     // External rewrite handling (OVH)
     const externalRewrites = getExternalRewrites();
-    const externalRewritesFound = externalRewrites.find((entry) => {
-      return entry.from.test(currentUrl.href) || entry.from.test(currentUrl.pathname);
-    });
+    const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrl.pathname));
 
     if (externalRewritesFound) {
-      const url = currentUrl.href.replace(externalRewritesFound.from, externalRewritesFound.to);
-      console.log('externalRewriteUrl', url);
+      
+      const url = currentUrl.pathname.replace(externalRewritesFound.from, externalRewritesFound.to);
 
       try {
         const response = await fetch(url, { redirect: 'manual' });
@@ -201,7 +211,6 @@ export default async function handler(request: Request, context: Context): Promi
  */
 export const config: Config = {
   path: ['/*'],
-  cache: 'manual'
 };
 
 /**
@@ -210,16 +219,24 @@ export const config: Config = {
  * @returns {Redirect[]} - Array of external rewrite rules.
  */
 function getExternalRewrites(): Redirect[] {
+  const excludedVersion = Netlify.env.get('DOCS_LATEST_VERSION');
   return [
     {
-      from: new RegExp(getVersionRegexString(Netlify.env.get('DOCS_LATEST_VERSION'))),
+      from: new RegExp(getVersionRegexString(excludedVersion)),
       to: 'https://_docs.handsontable.com/docs/$1$2',
-    },
+    }
+  ];
+}
+
+function getOnePageRewrites(): Redirect[] {
+  const excludedVersion = Netlify.env.get('DOCS_LATEST_VERSION');
+  return [
     {
-      // Matches URLs like /docs/x.x/redirect?pageId=somevalue
+      // Exclude the specific version using (?!<version>) in the regex
+      // This regex will match /docs/x.x/redirect URLs except when x.x is the excluded version.
       // $1: The version number in the x.x format (e.g., 14.2).
       // $2: The value of the pageId query parameter (e.g., zbx8ayzw).
-      from: new RegExp('^/docs/(\\d+\\.\\d+)/redirect(?:\\?pageId=(.+))?$'),
+      from: new RegExp(`^/docs/(?!${excludedVersion})(\\d+\\.\\d+)/redirect(?:\\?pageId=(.+))?$`),
       to: 'https://_docs.handsontable.com/docs/$1?redirect=$2',
     }
   ];
