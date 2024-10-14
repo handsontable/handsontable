@@ -15,8 +15,7 @@ import { createInputElementResizer } from '../../utils/autoResize';
 import { isDefined } from '../../helpers/mixed';
 import { updateCaretPosition } from './caretPositioner';
 import {
-  A11Y_HIDDEN,
-  A11Y_TABINDEX
+  A11Y_TABINDEX,
 } from '../../helpers/a11y';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
@@ -213,12 +212,6 @@ export class TextEditor extends BaseEditor {
       ['data-hot-input', ''],
       A11Y_TABINDEX(-1),
     ]);
-
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TEXTAREA, [
-        A11Y_HIDDEN(),
-      ]);
-    }
 
     addClass(this.TEXTAREA, 'handsontableInput');
 
