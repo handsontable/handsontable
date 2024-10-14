@@ -123,23 +123,37 @@ export default async function handler(request: Request, context: Context): Promi
 
     const onePageRewrites = getOnePageRewrites();
     const rewriteMatch = onePageRewrites.find(rewrite => rewrite.from.test(`${pathname}${search}`));
+
     if (rewriteMatch) {
       // Apply the rewrite using the pattern from the matched rule
       const rewrittenUrl = `${pathname}${search}`.replace(rewriteMatch.from, rewriteMatch.to);
 
-      console.log(`Redirecting to: ${rewrittenUrl}`);
+      console.log(`Fetching data from: ${rewrittenUrl}`);
 
-      // Redirect the user to the new URL
-      return Response.redirect(rewrittenUrl, 301);
+      try {
+        const response = await fetch(rewrittenUrl, { method: 'GET' });
+
+        // Return the fetched response
+        if (response.ok) {
+          return response;
+        } else {
+          console.error(`Failed to fetch resource from ${rewrittenUrl}: ${response.status}`);
+
+          return handle404(baseUrl);
+        }
+      } catch (error) {
+        console.error(`Fetch error: ${error}`);
+
+        return handle404(baseUrl);
+      }
     }
-
 
     // External rewrite handling (OVH)
     const externalRewrites = getExternalRewrites();
     const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrl.pathname));
 
     if (externalRewritesFound) {
-      
+
       const url = currentUrl.pathname.replace(externalRewritesFound.from, externalRewritesFound.to);
 
       try {
@@ -220,6 +234,7 @@ export const config: Config = {
  */
 function getExternalRewrites(): Redirect[] {
   const excludedVersion = Netlify.env.get('DOCS_LATEST_VERSION');
+
   return [
     {
       from: new RegExp(getVersionRegexString(excludedVersion)),
@@ -228,15 +243,18 @@ function getExternalRewrites(): Redirect[] {
   ];
 }
 
+/**
+ * Retrieves OVH one page rewrites.
+ *
+ * @returns {Redirect[]} - Array of external redirect rules.
+ */
 function getOnePageRewrites(): Redirect[] {
-  const excludedVersion = Netlify.env.get('DOCS_LATEST_VERSION');
   return [
     {
-      // Exclude the specific version using (?!<version>) in the regex
-      // This regex will match /docs/x.x/redirect URLs except when x.x is the excluded version.
+      // Matches URLs like /docs/x.x/redirect?pageId=somevalue
       // $1: The version number in the x.x format (e.g., 14.2).
       // $2: The value of the pageId query parameter (e.g., zbx8ayzw).
-      from: new RegExp(`^/docs/(?!${excludedVersion})(\\d+\\.\\d+)/redirect(?:\\?pageId=(.+))?$`),
+      from: new RegExp('^/docs/(\\d+\\.\\d+)/redirect(?:\\?pageId=(.+))?$'),
       to: 'https://_docs.handsontable.com/docs/$1?redirect=$2',
     }
   ];
