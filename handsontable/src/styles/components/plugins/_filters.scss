@@ -89,14 +89,14 @@
       }
 
       .wtHolder {
-        padding: calc(var(--ht-gap-size, 2px) * 2) 0;
+        padding: 0;
         overflow-x: hidden;
         box-sizing: border-box;
 
         td {
           height: auto;
           padding: 0;
-          padding: 1px
+          padding: 2px
             calc(
               var(--ht-menu-item-vertical-padding, 2px) +
                 var(--ht-gap-size, 2px) * 2

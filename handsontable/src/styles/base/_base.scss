@@ -13,6 +13,7 @@
     /* Miscellaneous */
     touch-action: manipulation;
 
+    .ht_master,
     .htCore {
       background-color: var(--ht-background-color, #ffffff);
     }
@@ -22,7 +23,7 @@
     td {
       height: calc(
         var(--ht-line-height, 18px) +
-          (2 * var(--ht-cell-horizontal-padding, 4px) + 1px)
+          (2 * var(--ht-cell-horizontal-padding, 4px))
       );
       padding: var(--ht-cell-horizontal-padding, 4px)
         var(--ht-cell-vertical-padding, 8px);
@@ -108,12 +109,8 @@
       }
 
       &.ht__active_highlight {
-        border-color: var(--ht-header-active-border-color, #e5e5e9);
         color: var(--ht-header-active-foreground-color);
         background-color: var(--ht-header-active-background-color);
-        box-shadow: -1px -1px 0 var(--ht-header-active-border-color),
-          0 -1px 0 var(--ht-header-active-border-color),
-          -1px 0 0 var(--ht-header-active-border-color);
 
         &:before {
           background-color: var(--ht-header-active-background-color);
@@ -317,14 +314,12 @@
   // Row even & odd
   tr {
     &.ht__row_even {
-      th,
       td {
         background-color: var(--ht-row-even-background-color, #ffffff);
       }
     }
 
     &.ht__row_odd {
-      th,
       td {
         background-color: var(--ht-row-odd-background-color, #ffffff);
       }

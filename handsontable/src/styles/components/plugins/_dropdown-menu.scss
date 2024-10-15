@@ -23,7 +23,7 @@
       z-index: 1;
       float: inline-end;
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
-      margin-inline-start: calc(var(--ht-gap-size) * 2);
+      margin-inline-start: calc(var(--ht-icon-size) + 4px);
 
       &:before {
         @include mixins.pseudo;
@@ -93,7 +93,6 @@
         overflow: hidden;
         padding: var(--ht-menu-horizontal-padding, 8px)
           var(--ht-menu-vertical-padding, 0px);
-        background-color: var(--ht-background-color);
       }
 
       &:not(.htGhostTable) {
@@ -157,12 +156,18 @@
         }
 
         &.htSubmenu {
-          .htItemWrapper:after {
-            @include mixins.pseudo;
-            position: absolute;
-            top: 50%;
-            right: calc(4 * var(--ht-gap-size));
-            transform: translateY(-50%);
+          .htItemWrapper {
+            margin-inline-end: calc(
+              2 * var(--ht-gap-size, 4px) + var(--ht-icon-size)
+            );
+            
+            &:after {
+              @include mixins.pseudo;
+              position: absolute;
+              top: 50%;
+              right: calc(4 * var(--ht-gap-size));
+              transform: translateY(-50%);
+            }
           }
         }
 
@@ -222,6 +227,13 @@
           position: absolute;
           inset-inline-end: 0;
         }
+
+        .htUIButton {
+          width: calc(50% - var(--ht-gap-size));
+          input {
+            width: 100%;
+          }
+        }
       }
     }
 
@@ -245,6 +257,32 @@
 
       .htCore {
         box-shadow: none;
+      }
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    &.htDropdownMenu,
+    &.htContextMenu,
+    &.htFiltersConditionsMenu {
+      table tbody tr td {
+        &.htSubmenu {
+          .htItemWrapper {
+            &:after {
+              left: calc(4 * var(--ht-gap-size));
+              right: auto;
+              transform: translateY(-50%) rotate(180deg);
+            }
+          }
+        }
+        .htItemWrapper {
+          span.selected {
+            &:after {
+              left: calc(4 * var(--ht-gap-size));
+              right: auto;
+            }
+          }
+        }
       }
     }
   }

@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.0
- * Release date: 01/10/2024 (built at 11/10/2024 14:59:10)
+ * Release date: 01/10/2024 (built at 15/10/2024 14:29:56)
  */
 .handsontable {
   position: relative;
@@ -38,12 +38,13 @@
   /* Miscellaneous */
   touch-action: manipulation;
 }
+.handsontable .ht_master,
 .handsontable .htCore {
   background-color: var(--ht-background-color, #ffffff);
 }
 .handsontable th,
 .handsontable td {
-  height: calc(var(--ht-line-height, 18px) + 2 * var(--ht-cell-horizontal-padding, 4px) + 1px);
+  height: calc(var(--ht-line-height, 18px) + 2 * var(--ht-cell-horizontal-padding, 4px));
   padding: var(--ht-cell-horizontal-padding, 4px) var(--ht-cell-vertical-padding, 8px);
   vertical-align: top;
   border-top-width: 0;
@@ -115,10 +116,8 @@
   background-color: var(--ht-accent-color);
 }
 .handsontable th.ht__active_highlight {
-  border-color: var(--ht-header-active-border-color, #e5e5e9);
   color: var(--ht-header-active-foreground-color);
   background-color: var(--ht-header-active-background-color);
-  box-shadow: -1px -1px 0 var(--ht-header-active-border-color), 0 -1px 0 var(--ht-header-active-border-color), -1px 0 0 var(--ht-header-active-border-color);
 }
 .handsontable th.ht__active_highlight:before {
   background-color: var(--ht-header-active-background-color);
@@ -268,11 +267,9 @@
   overflow: auto;
 }
 
-tr.ht__row_even th,
 tr.ht__row_even td {
   background-color: var(--ht-row-even-background-color, #ffffff);
 }
-tr.ht__row_odd th,
 tr.ht__row_odd td {
   background-color: var(--ht-row-odd-background-color, #ffffff);
 }
@@ -474,11 +471,16 @@ tr.ht__row_odd td {
   z-index: 10;
 }
 
+[dir=rtl].handsontable .wtBorder.corner {
+  margin-left: 0;
+  margin-right: -4px;
+}
+
 .hot-display-license-info {
-  padding: var(--ht-license-horizontal-padding, 16px) var(--ht-license-vertical-padding, 12px);
+  padding: var(--ht-license-horizontal-padding, 16px) var(--ht-license-vertical-padding, 16px);
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
-  font-size: calc(var(--ht-font-size) - 2px);
-  line-height: calc(var(--ht-line-height) - 4px);
+  font-size: calc(var(--ht-font-size) + 2px);
+  line-height: calc(var(--ht-line-height) + 2px);
   color: var(--ht-license-foreground-color);
   background-color: var(--ht-license-background-color, #f7f7f9);
   text-align: left;
@@ -1271,7 +1273,7 @@ tr.ht__row_odd td {
   z-index: 1;
   float: inline-end;
   top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
-  margin-inline-start: calc(var(--ht-gap-size) * 2);
+  margin-inline-start: calc(var(--ht-icon-size) + 4px);
 }
 .handsontable .changeType:before {
   content: "";
@@ -1315,7 +1317,6 @@ tr.ht__row_odd td {
   box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
   overflow: hidden;
   padding: var(--ht-menu-horizontal-padding, 8px) var(--ht-menu-vertical-padding, 0px);
-  background-color: var(--ht-background-color);
 }
 .handsontable.htDropdownMenu:not(.htGhostTable), .handsontable.htContextMenu:not(.htGhostTable), .handsontable.htFiltersConditionsMenu:not(.htGhostTable) {
   display: none;
@@ -1374,6 +1375,9 @@ tr.ht__row_odd td {
 .handsontable.htDropdownMenu table tbody tr td.current:not(.htSelectionDisabled), .handsontable.htContextMenu table tbody tr td.current:not(.htSelectionDisabled), .handsontable.htFiltersConditionsMenu table tbody tr td.current:not(.htSelectionDisabled) {
   background: var(--ht-menu-item-active-color, #e5e5e9);
 }
+.handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper, .handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper, .handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper {
+  margin-inline-end: calc(2 * var(--ht-gap-size, 4px) + var(--ht-icon-size));
+}
 .handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after, .handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after, .handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after {
   content: "";
   display: block;
@@ -1431,6 +1435,12 @@ tr.ht__row_odd td {
   position: absolute;
   inset-inline-end: 0;
 }
+.handsontable.htDropdownMenu table tbody tr td .htUIButton, .handsontable.htContextMenu table tbody tr td .htUIButton, .handsontable.htFiltersConditionsMenu table tbody tr td .htUIButton {
+  width: calc(50% - var(--ht-gap-size));
+}
+.handsontable.htDropdownMenu table tbody tr td .htUIButton input, .handsontable.htContextMenu table tbody tr td .htUIButton input, .handsontable.htFiltersConditionsMenu table tbody tr td .htUIButton input {
+  width: 100%;
+}
 .handsontable.htContextMenuSub_Alignment, .handsontable.htDropdownMenuSub_Alignment {
   margin-top: calc(var(--ht-menu-horizontal-padding) * -1);
 }
@@ -1446,6 +1456,16 @@ tr.ht__row_odd td {
 }
 .handsontable .htUIMultipleSelect .ht_master .wtHolder .htCore {
   box-shadow: none;
+}
+
+[dir=rtl].handsontable.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after, [dir=rtl].handsontable.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after, [dir=rtl].handsontable.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after {
+  left: calc(4 * var(--ht-gap-size));
+  right: auto;
+  transform: translateY(-50%) rotate(180deg);
+}
+[dir=rtl].handsontable.htDropdownMenu table tbody tr td .htItemWrapper span.selected:after, [dir=rtl].handsontable.htContextMenu table tbody tr td .htItemWrapper span.selected:after, [dir=rtl].handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected:after {
+  left: calc(4 * var(--ht-gap-size));
+  right: auto;
 }
 
 .handsontable.htFiltersConditionsMenu:not(.htGhostTable) {
@@ -1501,14 +1521,14 @@ tr.ht__row_odd td {
   background-color: var(--ht-border-color);
 }
 .handsontable .htUIMultipleSelectHot .wtHolder {
-  padding: calc(var(--ht-gap-size, 2px) * 2) 0;
+  padding: 0;
   overflow-x: hidden;
   box-sizing: border-box;
 }
 .handsontable .htUIMultipleSelectHot .wtHolder td {
   height: auto;
   padding: 0;
-  padding: 1px calc(var(--ht-menu-item-vertical-padding, 2px) + var(--ht-gap-size, 2px) * 2);
+  padding: 2px calc(var(--ht-menu-item-vertical-padding, 2px) + var(--ht-gap-size, 2px) * 2);
 }
 .handsontable .htUIClearAll,
 .handsontable .htUISelectAll {
@@ -1624,7 +1644,7 @@ tr.ht__row_odd td {
   left: 100%;
   transform: translateY(-50%);
   margin-top: 4px;
-  margin-inline-start: calc(var(--ht-icon-size) - 4px);
+  margin-inline-start: calc(var(--ht-icon-size) - 6px);
   font-size: 8px;
 }
 .handsontable .colHeader.columnSorting[class^=sort-]::after, .handsontable .colHeader.columnSorting[class*=" sort-"]::after {
@@ -1663,97 +1683,6 @@ tr.ht__row_odd td {
 
 .handsontable .htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone_top_inline_start_corner th:nth-child(2), .handsontable .htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone_inline_start td:first-of-type {
   border-left: 0 none;
-}
-
-.ht_clone_top_left_corner tbody tr:last-child td:last-child {
-  box-shadow: calc((var(--ht-frozen-shadow-size) - 1px) * -1) calc((var(--ht-frozen-shadow-size) - 1px) * -1) 0 0 inset var(--ht-frozen-shadow-color);
-}
-
-.ht_clone_top .htCore,
-.ht_clone_top_left_corner .htCore {
-  background-color: var(--ht-background-color, #ffffff);
-}
-.ht_clone_top tbody tr:last-child td,
-.ht_clone_top tbody tr:last-child th,
-.ht_clone_top_left_corner tbody tr:last-child td,
-.ht_clone_top_left_corner tbody tr:last-child th {
-  box-shadow: 0 calc((var(--ht-frozen-shadow-size) - 1px) * -1) 0 0 inset var(--ht-frozen-shadow-color);
-}
-.ht_clone_top tbody tr:last-child td.current,
-.ht_clone_top tbody tr:last-child th.current,
-.ht_clone_top_left_corner tbody tr:last-child td.current,
-.ht_clone_top_left_corner tbody tr:last-child th.current {
-  box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
-}
-
-.ht_clone_inline_start.ht_clone_left .htCore,
-.ht_clone_bottom_left_corner .htCore,
-.ht_clone_top_left_corner .htCore {
-  background-color: var(--ht-background-color, #ffffff);
-}
-.ht_clone_inline_start.ht_clone_left tbody tr td:last-child,
-.ht_clone_inline_start.ht_clone_left thead tr th:not(:first-child):last-child,
-.ht_clone_bottom_left_corner tbody tr td:last-child,
-.ht_clone_bottom_left_corner thead tr th:not(:first-child):last-child,
-.ht_clone_top_left_corner tbody tr td:last-child,
-.ht_clone_top_left_corner thead tr th:not(:first-child):last-child {
-  box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset var(--ht-frozen-shadow-color);
-}
-.ht_clone_inline_start.ht_clone_left tbody tr td:last-child.current,
-.ht_clone_inline_start.ht_clone_left thead tr th:not(:first-child):last-child.current,
-.ht_clone_bottom_left_corner tbody tr td:last-child.current,
-.ht_clone_bottom_left_corner thead tr th:not(:first-child):last-child.current,
-.ht_clone_top_left_corner tbody tr td:last-child.current,
-.ht_clone_top_left_corner thead tr th:not(:first-child):last-child.current {
-  box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
-}
-.ht_clone_inline_start.ht_clone_left tbody tr td:last-child.ht__active_highlight,
-.ht_clone_inline_start.ht_clone_left thead tr th:not(:first-child):last-child.ht__active_highlight,
-.ht_clone_bottom_left_corner tbody tr td:last-child.ht__active_highlight,
-.ht_clone_bottom_left_corner thead tr th:not(:first-child):last-child.ht__active_highlight,
-.ht_clone_top_left_corner tbody tr td:last-child.ht__active_highlight,
-.ht_clone_top_left_corner thead tr th:not(:first-child):last-child.ht__active_highlight {
-  box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset var(--ht-header-active-border-color);
-}
-
-.ht_clone_bottom,
-.ht_clone_bottom_left_corner {
-  background-color: var(--ht-background-color, #ffffff);
-}
-.ht_clone_bottom tbody tr:first-child td,
-.ht_clone_bottom tbody tr:first-child th,
-.ht_clone_bottom_left_corner tbody tr:first-child td,
-.ht_clone_bottom_left_corner tbody tr:first-child th {
-  box-shadow: 0 calc(var(--ht-frozen-shadow-size) - 1px) 0 0 inset var(--ht-frozen-shadow-color);
-}
-.ht_clone_bottom tbody tr:first-child td.current,
-.ht_clone_bottom tbody tr:first-child th.current,
-.ht_clone_bottom_left_corner tbody tr:first-child td.current,
-.ht_clone_bottom_left_corner tbody tr:first-child th.current {
-  box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
-}
-.ht_clone_bottom tbody tr:first-child td.ht__active_highlight,
-.ht_clone_bottom tbody tr:first-child th.ht__active_highlight,
-.ht_clone_bottom_left_corner tbody tr:first-child td.ht__active_highlight,
-.ht_clone_bottom_left_corner tbody tr:first-child th.ht__active_highlight {
-  box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset var(--ht-header-active-border-color);
-}
-
-.ht_clone_bottom_left_corner tbody tr td:last-child,
-.ht_clone_bottom_left_corner tbody tr th:last-child {
-  box-shadow: 0 calc(var(--ht-frozen-shadow-size) - 1px) 0 0 inset var(--ht-frozen-shadow-color), calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset var(--ht-frozen-shadow-color);
-}
-.ht_clone_bottom_left_corner tbody tr td:last-child.current,
-.ht_clone_bottom_left_corner tbody tr th:last-child.current {
-  box-shadow: inset 0 0 0 1px var(--ht-cell-selection-border-color);
-}
-.ht_clone_bottom_left_corner tbody tr td:last-child.ht__active_highlight,
-.ht_clone_bottom_left_corner tbody tr th:last-child.ht__active_highlight {
-  box-shadow: calc(-1 * (var(--ht-frozen-shadow-size) - 1px)) 0 0 0 inset var(--ht-header-active-border-color);
-}
-
-.ht_clone_top_inline_start_corner thead tr th:first-child {
-  border-bottom-color: transparent;
 }
 
 .handsontable .manualColumnResizer {
