@@ -25,6 +25,7 @@ import {
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
 import { A11Y_PRESENTATION } from '../../../helpers/a11y';
+import { StylesManager } from '../../../stylesManager';
 
 /**
  * @todo These mixes are never added to the class Table, however their members are used here.
@@ -767,6 +768,7 @@ class Table {
     let rowCount = this.TBODY.childNodes.length;
     const expectedTableHeight = rowCount * this.wtSettings.getSetting('defaultRowHeight');
     const actualTableHeight = innerHeight(this.TBODY) - 1;
+    const rowHeightFn = StylesManager.CELL_BOX_SIZING === 'border-box' ? outerHeight : innerHeight;
     let previousRowHeight;
     let rowInnerHeight;
     let sourceRowIndex;
@@ -786,9 +788,9 @@ class Table {
       rowHeader = currentTr.querySelector('th');
 
       if (rowHeader) {
-        rowInnerHeight = innerHeight(rowHeader);
+        rowInnerHeight = rowHeightFn(rowHeader);
       } else {
-        rowInnerHeight = innerHeight(currentTr) - 1;
+        rowInnerHeight = rowHeightFn(currentTr) - 1;
       }
 
       if ((!previousRowHeight && this.wtSettings.getSetting('defaultRowHeight') < rowInnerHeight ||

@@ -1,6 +1,8 @@
 import { ViewportBaseCalculator } from './viewportBase';
+import { StylesManager } from '../../../../stylesManager';
 
-export const DEFAULT_HEIGHT = 23;
+// eslint-disable-next-line import/no-mutable-exports
+export let DEFAULT_HEIGHT = 23;
 
 /**
  * @typedef {object} ViewportRowsCalculatorOptions
@@ -43,6 +45,10 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     overrideFn,
     horizontalScrollbarHeight,
   }) {
+    if (StylesManager?.ROW_HEIGHT) {
+      DEFAULT_HEIGHT = StylesManager.ROW_HEIGHT;
+    }
+
     super(calculationTypes);
     this.viewportHeight = viewportHeight;
     this.scrollOffset = scrollOffset;

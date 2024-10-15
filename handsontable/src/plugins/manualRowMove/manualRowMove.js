@@ -5,6 +5,7 @@ import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpe
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
+import { StylesManager } from '../../stylesManager';
 
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
@@ -296,7 +297,7 @@ export class ManualRowMove extends BasePlugin {
       const renderableIndex = rowMapper.getRenderableFromVisualIndex(visualRowIndex);
 
       if (renderableIndex !== null) {
-        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex) || 23;
+        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex) || StylesManager.ROW_HEIGHT;
       }
     }
 

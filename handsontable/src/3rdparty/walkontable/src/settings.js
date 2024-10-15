@@ -1,5 +1,7 @@
 import { fastInnerText } from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
+import { StylesManager } from '../../../stylesManager';
+
 /**
  * @todo Describe options.
  * @typedef SettingsPure
@@ -194,7 +196,7 @@ export default class Settings {
       rowHeightByOverlayName() {
         // return undefined means use default size for the rendered cell content
       },
-      defaultRowHeight: 23,
+      defaultRowHeight: StylesManager?.ROW_HEIGHT || 23,
       defaultColumnWidth: 50,
       selections: null,
       hideBorderOnMouseDownOver: false,
