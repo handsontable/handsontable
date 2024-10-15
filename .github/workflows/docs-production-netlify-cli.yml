@@ -59,14 +59,6 @@ jobs:
         run: |
           echo "!/.vuepress/dist" >> .gitignore
 
-      - name: Update netlify.toml with DOCS_LATEST_VERSION
-        run: |
-          echo '[context.production.environment]' >> netlify.toml
-          echo 'DOCS_LATEST_VERSION="${{ env.DOCS_LATEST_VERSION }}"' >> netlify.toml
-          echo '[context.dev.environment]' >> netlify.toml
-          echo 'DOCS_LATEST_VERSION="${{ env.DOCS_LATEST_VERSION }}"' >> netlify.toml
-          cat netlify.toml
-
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
