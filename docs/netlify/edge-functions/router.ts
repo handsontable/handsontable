@@ -133,27 +133,36 @@ export default async function handler(request: Request, context: Context): Promi
       try {
         const response = await fetch(rewrittenUrl, { redirect: 'manual' });
 
-        // Return the fetched response
-        if (response.ok) {
-          return response;
-        }
-
         if (redirectionWasFound(response.status)) {
-          console.warn('Redirection was found', rewrittenUrl, response.status, response.headers.get('location'));
-          const location = response.headers.get('location');
+          let location = response.headers.get('location');
+
+          console.warn('Redirection was found', rewrittenUrl, response.status, location);
 
           if (location) {
-            return Response.redirect(location, 301);
+            // If the location is relative, construct the full URL using the existing baseUrl
+            if (!location.startsWith('http')) {
+              location = `${baseUrl}${location}`;
+            }
+
+            const proxiedLocation = await fetch(location);
+
+            if (proxiedLocation.ok) {
+              return proxiedLocation;
+            }
           }
-          console.error('Redirection without location', rewrittenUrl, response.status, response.statusText);
+
+          console.error('Redirection without a valid location', rewrittenUrl, response.status, response.statusText);
 
           return handle404(baseUrl);
+        }
+
+        if (response.ok) {
+          return response;
         }
 
         console.error(`Failed to fetch resource from ${rewrittenUrl}: ${response.status}`);
 
         return handle404(baseUrl);
-
       } catch (error) {
         console.error(`Fetch error: ${error}`);
 
