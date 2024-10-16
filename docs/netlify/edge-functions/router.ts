@@ -177,12 +177,16 @@ export default async function handler(request: Request, context: Context): Promi
         }
 
         if (redirectionWasFound(response.status)) {
-          console.warn('Redirection was found', url, response.status, response.headers.get('location'));
           const location = response.headers.get('location');
+          console.warn('Redirection was found', url, response.status, location);
 
           if (location) {
-            // return Response.redirect(location, 301);
-            return await fetch(`https://_docs.handsontable.com/${location}`);
+            const _docsWithLocation = `https://_docs.handsontable.com/${location}`
+            console.log('location',_docsWithLocation  )
+            const proxedLocation = await fetch(_docsWithLocation);
+            if(proxedLocation.ok) {
+              return proxedLocation;
+            }
           }
           console.error('Redirection without location', url, response.status, response.statusText);
 
@@ -287,7 +291,7 @@ function getExternalRedirects(): Redirect[] {
     },
     {
       from: new RegExp('^/docs/hyperformula/(.*)$'),
-      to: 'https://hyperformula.handsontable.com/$1$2',
+      to: 'https://hyperformula.handsontable.com/$1',
     },
   ];
 }
