@@ -162,7 +162,7 @@ export default async function handler(request: Request, context: Context): Promi
     }
 
     // External rewrite handling (OVH)
-    const externalRewrites = getExternalRewrites();
+    const externalRewrites = getExternalRewrites(context);
     const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrl.pathname));
 
     if (externalRewritesFound) {
@@ -178,13 +178,16 @@ export default async function handler(request: Request, context: Context): Promi
 
         if (redirectionWasFound(response.status)) {
           const location = response.headers.get('location');
+
           console.warn('Redirection was found', url, response.status, location);
 
           if (location) {
-            const _docsWithLocation = `https://_docs.handsontable.com/${location}`
-            console.log('location',_docsWithLocation  )
+            const _docsWithLocation = `https://_docs.handsontable.com/${location}`;
+
+            console.log('location', _docsWithLocation);
             const proxedLocation = await fetch(_docsWithLocation);
-            if(proxedLocation.ok) {
+
+            if (proxedLocation.ok) {
               return proxedLocation;
             }
           }
@@ -246,17 +249,30 @@ export const config: Config = {
 };
 
 /**
- * Retrieves the external rewrites for OVH.
+ * Retrieves the external rewrites for versioned documentation and handles
+ * framework-specific redirection based on the 'docs_fw' cookie.
  *
- * @returns {Redirect[]} - Array of external rewrite rules.
+ * @param {Context} context - The context object provided by Netlify edge functions, used to retrieve the 'docs_fw' cookie.
+ * @returns {Redirect[]} - An array of external rewrite rules that handle version-specific and framework-specific redirects.
  */
-function getExternalRewrites(): Redirect[] {
+function getExternalRewrites(context: Context): Redirect[] {
   const excludedVersion = Netlify.env.get('DOCS_LATEST_VERSION');
 
+  // Determine the framework from the 'docs_fw' cookie
+  const cookieValue = context.cookies.get('docs_fw');
+  const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
+
   return [
+    // Handle general rewrites with version and paths
     {
       from: new RegExp(getVersionRegexString(excludedVersion)),
       to: 'https://_docs.handsontable.com/docs/$1$2',
+    },
+
+    // Handle version-only URLs with optional trailing slash
+    {
+      from: new RegExp('^/docs/(\\d+\\.\\d+)/?$'), // Matches version numbers like 14.5 or 14.6
+      to: `https://_docs.handsontable.com/docs/$1/${framework}`, // Redirect to framework-specific introduction page
     }
   ];
 }
