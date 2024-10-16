@@ -4,10 +4,25 @@
 
 @mixin output {
   .handsontable {
+    .htRight {
+      .columnSorting {
+        &.sortAction {
+          margin-inline-end: calc(var(--ht-gap-size));
+        }
+      }
+    }
+
     .columnSorting {
       position: relative;
 
       &.sortAction {
+        margin-inline-end: calc(calc(var(--ht-icon-size) * -1));
+
+        &.ascending,
+        &.descending {
+          margin-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size));
+        }
+
         &:hover {
           text-decoration: none;
           cursor: pointer;

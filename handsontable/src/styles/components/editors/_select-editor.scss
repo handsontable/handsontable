@@ -9,8 +9,8 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      padding: calc(var(--ht-cell-horizontal-padding, 4px) + 1px)
-        calc(var(--ht-cell-vertical-padding, 8px) + 1px);
+      padding: calc(var(--ht-cell-vertical-padding, 4px) + 1px)
+        calc(var(--ht-cell-horizontal-padding, 8px) + 1px);
       padding-right: 26px;
       margin: 0;
       white-space: nowrap;
@@ -36,6 +36,7 @@
       transform: translateY(-50%);
       margin-inline-end: 4px;
       z-index: 1;
+      pointer-events: none;
     }
   }
 }

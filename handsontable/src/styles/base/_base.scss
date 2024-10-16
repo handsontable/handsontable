@@ -23,20 +23,20 @@
     td {
       height: calc(
         var(--ht-line-height, 18px) +
-          (2 * var(--ht-cell-horizontal-padding, 4px))
+          (2 * var(--ht-cell-vertical-padding, 4px))
       );
-      padding: var(--ht-cell-horizontal-padding, 4px)
-        var(--ht-cell-vertical-padding, 8px);
+      padding: var(--ht-cell-vertical-padding, 4px)
+        var(--ht-cell-horizontal-padding, 8px);
       vertical-align: top;
       border-top-width: 0;
       border-inline-start-width: 0;
       border-inline-end-width: 1px;
       border-bottom-width: 1px;
       border-style: solid;
-      border-top-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
-      border-bottom-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
-      border-inline-start-color: var(--ht-cell-vertical-border-color, #e5e5e9);
-      border-inline-end-color: var(--ht-cell-vertical-border-color, #e5e5e9);
+      border-top-color: var(--ht-cell-vertical-border-color, #e5e5e9);
+      border-bottom-color: var(--ht-cell-vertical-border-color, #e5e5e9);
+      border-inline-start-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
+      border-inline-end-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
       font-size: var(--ht-font-size, 14px);
       line-height: var(--ht-line-height, 18px);
       white-space: pre-wrap;
@@ -111,6 +111,7 @@
       &.ht__active_highlight {
         color: var(--ht-header-active-foreground-color);
         background-color: var(--ht-header-active-background-color);
+        border-color: var(--ht-header-active-border-color, #e5e5e9);
 
         &:before {
           background-color: var(--ht-header-active-background-color);
@@ -123,8 +124,8 @@
       padding: 0;
 
       .relative {
-        padding: var(--ht-cell-horizontal-padding, 4px)
-          var(--ht-cell-vertical-padding, 8px);
+        padding: var(--ht-cell-vertical-padding, 4px)
+          var(--ht-cell-horizontal-padding, 8px);
         overflow: hidden;
       }
     }

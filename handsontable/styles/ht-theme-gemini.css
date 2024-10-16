@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.0
- * Release date: 01/10/2024 (built at 15/10/2024 14:30:56)
+ * Release date: 01/10/2024 (built at 16/10/2024 14:49:47)
  */
 .ht-theme-gemini,
 .ht-theme-gemini-dark,
@@ -52,23 +52,23 @@
   --ht-disabled-color: #aeaeae;
   /* Table transition and padding */
   --ht-table-transition: 0.2s;
-  --ht-cell-horizontal-border-width: 1px;
   --ht-cell-vertical-border-width: 1px;
-  --ht-cell-vertical-padding: 12px;
-  --ht-cell-horizontal-padding: 8px;
+  --ht-cell-horizontal-border-width: 1px;
+  --ht-cell-horizontal-padding: 12px;
+  --ht-cell-vertical-padding: 8px;
   /* Cell editor styling */
   --ht-cell-editor-foreground-color: #000000;
   --ht-cell-editor-border-color: #37bc6c;
   --ht-cell-editor-shadow-blur-radius: 0px;
-  --ht-cell-editor-shadow-color: rgba(55, 188, 108, 0.60);
+  --ht-cell-editor-shadow-color: rgba(55, 188, 108, 0.6);
   --ht-cell-editor-border-width: 2px;
   --ht-cell-editor-background-color: #ffffff;
   /* Cell search, error, and conditional formatting colors */
-  --ht-cell-search-background-color: rgba(251, 233, 82, 0.80);
-  --ht-cell-error-background-color: rgba(250, 77, 50, 0.20);
-  --ht-cell-success-background-color: rgba(55, 188, 108, 0.20);
-  --ht-cell-warning-background-color: rgba(251, 233, 82, 0.20);
-  --ht-cell-informational-background-color: rgba(39, 194, 255, 0.20);
+  --ht-cell-search-background-color: rgba(251, 233, 82, 0.8);
+  --ht-cell-error-background-color: rgba(250, 77, 50, 0.2);
+  --ht-cell-success-background-color: rgba(55, 188, 108, 0.2);
+  --ht-cell-warning-background-color: rgba(251, 233, 82, 0.2);
+  --ht-cell-informational-background-color: rgba(39, 194, 255, 0.2);
   /* Selection */
   --ht-cell-selection-border-color: #37bc6c;
   --ht-cell-selection-background-color: #37bc6c;
@@ -78,9 +78,9 @@
   --ht-cell-autofill-border-radius: 4px;
   --ht-cell-autofill-background-color: #37bc6c;
   --ht-cell-autofill-border-color: #ffffff;
+  --ht-cell-vertical-border-color: rgba(255, 255, 255, 0);
   /* Cell borders */
-  --ht-cell-horizontal-border-color: rgba(255, 255, 255, 0);
-  --ht-cell-vertical-border-color: #e5e5e9;
+  --ht-cell-horizontal-border-color: #e5e5e9;
   /* Checkbox styling */
   --ht-checkbox-size: 16px;
   --ht-checkbox-border-color: rgba(174, 174, 164, 0.64);
@@ -123,21 +123,22 @@
   --ht-header-row-background-color: #ffffff;
   --ht-header-font-weight: 400;
   --ht-header-foreground-color: #353535;
+  --ht-header-filter-background-color: rgba(55, 188, 108, 0.2);
   /* Frozen rows and columns styling */
   --ht-frozen-shadow-size: 1px;
   --ht-frozen-shadow-color: #b5b5b9;
   /* Odd and even row backgrounds */
   --ht-row-odd-background-color: rgba(35, 35, 38, 0);
-  --ht-row-hover-background-color: rgba(237, 237, 239, 0.60);
+  --ht-row-hover-background-color: rgba(237, 237, 239, 0.6);
   --ht-row-collapse-indicator-border-color: #e5e5e9;
   --ht-row-even-background-color: rgba(35, 35, 38, 0.04);
   /* Resize indicator */
   --ht-resize-indicator-color: #868686;
   --ht-icon-button-background-color: rgba(247, 247, 249, 0.16);
-  --ht-icon-button-icon-color: rgba(34, 34, 34, 0.60);
+  --ht-icon-button-icon-color: rgba(34, 34, 34, 0.6);
   --ht-icon-active-button-icon-color: #ffffff;
   --ht-icon-button-hover-background-color: rgba(34, 34, 34, 0.08);
-  --ht-icon-button-hover-icon-color: rgba(34, 34, 34, 0.40);
+  --ht-icon-button-hover-icon-color: rgba(34, 34, 34, 0.4);
   --ht-icon-button-focus-background-color: rgba(255, 255, 255, 0);
   --ht-icon-button-focus-icon-color: #37bc6c;
   --ht-icon-button-border-radius: 16px;
@@ -146,22 +147,22 @@
   --ht-collapse-button-border-radius: 16px;
   --ht-collapse-button-open-background-color: rgba(255, 255, 255, 0);
   --ht-collapse-button-open-border-color: rgba(255, 255, 255, 0);
-  --ht-collapse-button-open-icon-color: rgba(34, 34, 34, 0.40);
-  --ht-collapse-button-open-icon-active-color: rgba(255, 255, 255, 0.60);
+  --ht-collapse-button-open-icon-color: rgba(34, 34, 34, 0.4);
+  --ht-collapse-button-open-icon-active-color: rgba(255, 255, 255, 0.6);
   --ht-collapse-button-open-hover-background-color: rgba(34, 34, 34, 0.08);
   --ht-collapse-button-open-hover-border-color: rgba(255, 255, 255, 0);
-  --ht-collapse-button-open-hover-icon-color: rgba(34, 34, 34, 0.60);
+  --ht-collapse-button-open-hover-icon-color: rgba(34, 34, 34, 0.6);
   --ht-collapse-button-open-hover-icon-active-color: #ffffff;
   --ht-collapse-button-open-focus-background-color: rgba(255, 255, 255, 0);
   --ht-collapse-button-open-focus-border-color: rgba(255, 255, 255, 0);
   --ht-collapse-button-open-focus-icon-color: #1a42e8;
-  --ht-collapse-button-close-icon-color: rgba(34, 34, 34, 0.40);
+  --ht-collapse-button-close-icon-color: rgba(34, 34, 34, 0.4);
   --ht-collapse-button-close-background-color: #ffffff;
   --ht-collapse-button-close-border-color: #e5e5e9;
-  --ht-collapse-button-close-icon-active-color: rgba(255, 255, 255, 0.60);
+  --ht-collapse-button-close-icon-active-color: rgba(255, 255, 255, 0.6);
   --ht-collapse-button-close-hover-background-color: rgba(34, 34, 34, 0.08);
   --ht-collapse-button-close-hover-border-color: rgba(34, 34, 34, 0.08);
-  --ht-collapse-button-close-hover-icon-color: rgba(34, 34, 34, 0.40);
+  --ht-collapse-button-close-hover-icon-color: rgba(34, 34, 34, 0.4);
   --ht-collapse-button-close-hover-icon-active-color: #ffffff;
   --ht-collapse-button-close-focus-background-color: rgba(255, 255, 255, 0);
   --ht-collapse-button-close-focus-border-color: rgba(255, 255, 255, 0);
@@ -182,7 +183,7 @@
   --ht-secondary-button-background-color: #ffffff;
   --ht-secondary-button-foreground-color: #37bc6c;
   --ht-secondary-button-border-color: #e5e5e9;
-  --ht-secondary-button-disabled-background-color: rgba(218, 229, 223, 0.40);
+  --ht-secondary-button-disabled-background-color: rgba(218, 229, 223, 0.4);
   --ht-secondary-button-disabled-foreground-color: #aeaeae;
   --ht-secondary-button-disabled-border-color: #e5e5e9;
   --ht-secondary-button-hover-background-color: #ededef;
@@ -191,15 +192,15 @@
   --ht-secondary-button-focus-background-color: #ffffff;
   --ht-secondary-button-focus-foreground-color: #37bc6c;
   --ht-secondary-button-focus-border-color: #e5e5e9;
-  --ht-button-vertical-padding: 16px;
-  --ht-button-horizontal-padding: 8px;
+  --ht-button-horizontal-padding: 16px;
+  --ht-button-vertical-padding: 8px;
   --ht-button-border-radius: 24px;
   --ht-move-backlight-color: rgba(7, 6, 4, 0.08);
   --ht-move-indicator-color: #37bc6c;
   /* Comments styling */
   --ht-comments-indicator-size: 6px;
   --ht-comments-indicator-color: #37bc6c;
-  --ht-comments-textarea-horizontal-padding: 8px;
+  --ht-comments-textarea-vertical-padding: 8px;
   --ht-comments-textarea-background-color: #f7f7f9;
   --ht-comments-textarea-border-width: 0px;
   --ht-comments-textarea-border-color: #e5e5e9;
@@ -208,10 +209,10 @@
   --ht-comments-textarea-focus-border-color: #37bc6c;
   --ht-comments-textarea-focus-border-width: 1px;
   --ht-comments-textarea-focus-foreground-color: #353535;
-  --ht-comments-textarea-vertical-padding: 12px;
+  --ht-comments-textarea-horizontal-padding: 12px;
   --ht-license-background-color: #f7f7f9;
-  --ht-license-vertical-padding: 16px;
   --ht-license-horizontal-padding: 16px;
+  --ht-license-vertical-padding: 16px;
   --ht-license-foreground-color: #353535;
   --ht-link-color: #37bc6c;
   --ht-link-hover-color: #23a858;
@@ -229,8 +230,8 @@
   --ht-input-focus-background-color: #ffffff;
   --ht-input-focus-border-color: #37bc6c;
   --ht-input-focus-foreground-color: #353535;
-  --ht-input-horizontal-padding: 8px;
-  --ht-input-vertical-padding: 16px;
+  --ht-input-vertical-padding: 8px;
+  --ht-input-horizontal-padding: 16px;
   --ht-input-border-radius: 6px;
   --ht-menu-shadow-blur: 16px;
   --ht-menu-shadow-x: 0px;
@@ -239,12 +240,12 @@
   --ht-menu-border-color: #e5e5e9;
   --ht-menu-border-width: 0px;
   --ht-menu-border-radius: 16px;
-  --ht-menu-vertical-padding: 0px;
-  --ht-menu-horizontal-padding: 12px;
-  --ht-menu-item-horizontal-padding: 8px;
-  --ht-menu-item-vertical-padding: 16px;
-  --ht-menu-item-hover-color: rgba(237, 237, 239, 0.60);
-  --ht-menu-item-active-color: rgba(55, 188, 108, 0.10);
+  --ht-menu-horizontal-padding: 0px;
+  --ht-menu-vertical-padding: 12px;
+  --ht-menu-item-vertical-padding: 8px;
+  --ht-menu-item-horizontal-padding: 16px;
+  --ht-menu-item-hover-color: rgba(237, 237, 239, 0.6);
+  --ht-menu-item-active-color: rgba(55, 188, 108, 0.1);
   --ht-hidden-indicator-color: #868686;
   --ht-wrapper-border-width: 1px;
   --ht-wrapper-border-radius: 12px;
@@ -420,16 +421,16 @@
   --ht-disabled-color: #727272;
   --ht-cell-editor-foreground-color: #ffffff;
   --ht-cell-editor-border-color: #f1b93e;
-  --ht-cell-editor-shadow-color: rgba(241, 185, 62, 0.50);
+  --ht-cell-editor-shadow-color: rgba(241, 185, 62, 0.5);
   --ht-cell-editor-background-color: #070604;
-  --ht-cell-search-background-color: rgba(251, 233, 82, 0.40);
-  --ht-cell-error-background-color: rgba(236, 103, 43, 0.20);
-  --ht-cell-warning-background-color: rgba(252, 181, 21, 0.20);
+  --ht-cell-search-background-color: rgba(251, 233, 82, 0.4);
+  --ht-cell-error-background-color: rgba(236, 103, 43, 0.2);
+  --ht-cell-warning-background-color: rgba(252, 181, 21, 0.2);
   --ht-cell-selection-border-color: #f1b93e;
-  --ht-cell-selection-background-color: rgba(241, 185, 62, 0.10);
+  --ht-cell-selection-background-color: rgba(241, 185, 62, 0.1);
   --ht-cell-autofill-background-color: #f1b93e;
   --ht-cell-autofill-border-color: #070604;
-  --ht-cell-vertical-border-color: #222222;
+  --ht-cell-horizontal-border-color: #222222;
   --ht-checkbox-border-color: rgba(83, 83, 85, 0.64);
   --ht-checkbox-background-color: rgba(0, 0, 0, 0);
   --ht-checkbox-focus-background-color: #070604;
@@ -439,7 +440,7 @@
   --ht-checkbox-disabled-border-color: #535355;
   --ht-checkbox-checked-background-color: #f1b93e;
   --ht-checkbox-checked-border-color: rgba(83, 83, 85, 0.64);
-  --ht-checkbox-checked-icon-color: #000000;
+  --ht-checkbox-checked-icon-color: #0f0f10;
   --ht-checkbox-checked-focus-background-color: #f1b93e;
   --ht-checkbox-checked-focus-border-color: #070604;
   --ht-checkbox-checked-focus-icon-color: #070604;
@@ -465,49 +466,49 @@
   --ht-header-foreground-color: #b5b5b9;
   --ht-frozen-shadow-color: #353535;
   --ht-row-odd-background-color: rgba(209, 209, 255, 0);
-  --ht-row-hover-background-color: rgba(35, 35, 38, 0.60);
+  --ht-row-hover-background-color: rgba(35, 35, 38, 0.6);
   --ht-row-collapse-indicator-border-color: #222222;
   --ht-row-even-background-color: rgba(209, 209, 255, 0.08);
   --ht-icon-button-background-color: rgba(0, 0, 0, 0);
-  --ht-icon-button-icon-color: rgba(255, 255, 255, 0.50);
+  --ht-icon-button-icon-color: rgba(255, 255, 255, 0.5);
   --ht-icon-active-button-icon-color: #070604;
   --ht-icon-button-hover-background-color: rgba(255, 255, 255, 0.08);
-  --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.40);
+  --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.4);
   --ht-icon-button-focus-background-color: rgba(0, 0, 0, 0);
   --ht-icon-button-focus-icon-color: #f1b93e;
   --ht-icon-button-disabled-icon-color: #727272;
   --ht-collapse-button-open-background-color: rgba(0, 0, 0, 0);
   --ht-collapse-button-open-border-color: rgba(0, 0, 0, 0);
-  --ht-collapse-button-open-icon-color: rgba(255, 255, 255, 0.40);
+  --ht-collapse-button-open-icon-color: rgba(255, 255, 255, 0.4);
   --ht-collapse-button-open-hover-background-color: rgba(238, 238, 238, 0.08);
-  --ht-collapse-button-open-hover-icon-color: rgba(255, 255, 255, 0.60);
+  --ht-collapse-button-open-hover-icon-color: rgba(255, 255, 255, 0.6);
   --ht-collapse-button-open-hover-icon-active-color: #070604;
   --ht-collapse-button-open-focus-background-color: rgba(0, 0, 0, 0);
   --ht-collapse-button-open-focus-border-color: rgba(0, 0, 0, 0);
   --ht-collapse-button-open-focus-icon-color: #27c2ff;
-  --ht-collapse-button-close-icon-color: rgba(255, 255, 255, 0.40);
+  --ht-collapse-button-close-icon-color: rgba(255, 255, 255, 0.4);
   --ht-collapse-button-close-background-color: #000000;
   --ht-collapse-button-close-border-color: #222222;
   --ht-collapse-button-close-hover-background-color: rgba(255, 255, 255, 0.08);
   --ht-collapse-button-close-hover-border-color: rgba(255, 255, 255, 0.08);
-  --ht-collapse-button-close-hover-icon-color: rgba(255, 255, 255, 0.40);
+  --ht-collapse-button-close-hover-icon-color: rgba(255, 255, 255, 0.4);
   --ht-collapse-button-close-hover-icon-active-color: #070604;
   --ht-collapse-button-close-focus-background-color: rgba(0, 0, 0, 0);
   --ht-collapse-button-close-focus-border-color: rgba(0, 0, 0, 0);
   --ht-collapse-button-close-focus-icon-color: #27c2ff;
   --ht-primary-button-background-color: #f1b93e;
-  --ht-primary-button-foreground-color: #000000;
+  --ht-primary-button-foreground-color: #0f0f10;
   --ht-primary-button-disabled-background-color: #262624;
   --ht-primary-button-disabled-foreground-color: #727272;
   --ht-primary-button-hover-background-color: #f2c051;
-  --ht-primary-button-hover-foreground-color: #000000;
+  --ht-primary-button-hover-foreground-color: #0f0f10;
   --ht-primary-button-focus-background-color: #f1b93e;
   --ht-primary-button-focus-foreground-color: #070604;
-  --ht-primary-button-focus-border-color: #000000;
+  --ht-primary-button-focus-border-color: #0f0f10;
   --ht-secondary-button-background-color: #070604;
   --ht-secondary-button-foreground-color: #f1b93e;
   --ht-secondary-button-border-color: #222222;
-  --ht-secondary-button-disabled-background-color: rgba(68, 68, 68, 0.40);
+  --ht-secondary-button-disabled-background-color: rgba(68, 68, 68, 0.4);
   --ht-secondary-button-disabled-foreground-color: #727272;
   --ht-secondary-button-disabled-border-color: #222222;
   --ht-secondary-button-hover-background-color: #232326;
@@ -541,10 +542,10 @@
   --ht-input-focus-background-color: #070604;
   --ht-input-focus-border-color: #f1b93e;
   --ht-input-focus-foreground-color: #b5b5b9;
-  --ht-menu-shadow-color: rgba(0, 0, 0, 0.80);
+  --ht-menu-shadow-color: rgba(0, 0, 0, 0.8);
   --ht-menu-border-color: #222222;
-  --ht-menu-item-hover-color: rgba(35, 35, 38, 0.60);
-  --ht-menu-item-active-color: rgba(241, 185, 62, 0.10);
+  --ht-menu-item-hover-color: rgba(35, 35, 38, 0.6);
+  --ht-menu-item-active-color: rgba(241, 185, 62, 0.1);
   --ht-scrollbar-track-color: #19191c;
 }
 
@@ -559,16 +560,16 @@
     --ht-disabled-color: #727272;
     --ht-cell-editor-foreground-color: #ffffff;
     --ht-cell-editor-border-color: #f1b93e;
-    --ht-cell-editor-shadow-color: rgba(241, 185, 62, 0.50);
+    --ht-cell-editor-shadow-color: rgba(241, 185, 62, 0.5);
     --ht-cell-editor-background-color: #070604;
-    --ht-cell-search-background-color: rgba(251, 233, 82, 0.40);
-    --ht-cell-error-background-color: rgba(236, 103, 43, 0.20);
-    --ht-cell-warning-background-color: rgba(252, 181, 21, 0.20);
+    --ht-cell-search-background-color: rgba(251, 233, 82, 0.4);
+    --ht-cell-error-background-color: rgba(236, 103, 43, 0.2);
+    --ht-cell-warning-background-color: rgba(252, 181, 21, 0.2);
     --ht-cell-selection-border-color: #f1b93e;
-    --ht-cell-selection-background-color: rgba(241, 185, 62, 0.10);
+    --ht-cell-selection-background-color: rgba(241, 185, 62, 0.1);
     --ht-cell-autofill-background-color: #f1b93e;
     --ht-cell-autofill-border-color: #070604;
-    --ht-cell-vertical-border-color: #222222;
+    --ht-cell-horizontal-border-color: #222222;
     --ht-checkbox-border-color: rgba(83, 83, 85, 0.64);
     --ht-checkbox-background-color: rgba(0, 0, 0, 0);
     --ht-checkbox-focus-background-color: #070604;
@@ -578,7 +579,7 @@
     --ht-checkbox-disabled-border-color: #535355;
     --ht-checkbox-checked-background-color: #f1b93e;
     --ht-checkbox-checked-border-color: rgba(83, 83, 85, 0.64);
-    --ht-checkbox-checked-icon-color: #000000;
+    --ht-checkbox-checked-icon-color: #0f0f10;
     --ht-checkbox-checked-focus-background-color: #f1b93e;
     --ht-checkbox-checked-focus-border-color: #070604;
     --ht-checkbox-checked-focus-icon-color: #070604;
@@ -604,49 +605,49 @@
     --ht-header-foreground-color: #b5b5b9;
     --ht-frozen-shadow-color: #353535;
     --ht-row-odd-background-color: rgba(209, 209, 255, 0);
-    --ht-row-hover-background-color: rgba(35, 35, 38, 0.60);
+    --ht-row-hover-background-color: rgba(35, 35, 38, 0.6);
     --ht-row-collapse-indicator-border-color: #222222;
     --ht-row-even-background-color: rgba(209, 209, 255, 0.08);
     --ht-icon-button-background-color: rgba(0, 0, 0, 0);
-    --ht-icon-button-icon-color: rgba(255, 255, 255, 0.50);
+    --ht-icon-button-icon-color: rgba(255, 255, 255, 0.5);
     --ht-icon-active-button-icon-color: #070604;
     --ht-icon-button-hover-background-color: rgba(255, 255, 255, 0.08);
-    --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.40);
+    --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.4);
     --ht-icon-button-focus-background-color: rgba(0, 0, 0, 0);
     --ht-icon-button-focus-icon-color: #f1b93e;
     --ht-icon-button-disabled-icon-color: #727272;
     --ht-collapse-button-open-background-color: rgba(0, 0, 0, 0);
     --ht-collapse-button-open-border-color: rgba(0, 0, 0, 0);
-    --ht-collapse-button-open-icon-color: rgba(255, 255, 255, 0.40);
+    --ht-collapse-button-open-icon-color: rgba(255, 255, 255, 0.4);
     --ht-collapse-button-open-hover-background-color: rgba(238, 238, 238, 0.08);
-    --ht-collapse-button-open-hover-icon-color: rgba(255, 255, 255, 0.60);
+    --ht-collapse-button-open-hover-icon-color: rgba(255, 255, 255, 0.6);
     --ht-collapse-button-open-hover-icon-active-color: #070604;
     --ht-collapse-button-open-focus-background-color: rgba(0, 0, 0, 0);
     --ht-collapse-button-open-focus-border-color: rgba(0, 0, 0, 0);
     --ht-collapse-button-open-focus-icon-color: #27c2ff;
-    --ht-collapse-button-close-icon-color: rgba(255, 255, 255, 0.40);
+    --ht-collapse-button-close-icon-color: rgba(255, 255, 255, 0.4);
     --ht-collapse-button-close-background-color: #000000;
     --ht-collapse-button-close-border-color: #222222;
     --ht-collapse-button-close-hover-background-color: rgba(255, 255, 255, 0.08);
     --ht-collapse-button-close-hover-border-color: rgba(255, 255, 255, 0.08);
-    --ht-collapse-button-close-hover-icon-color: rgba(255, 255, 255, 0.40);
+    --ht-collapse-button-close-hover-icon-color: rgba(255, 255, 255, 0.4);
     --ht-collapse-button-close-hover-icon-active-color: #070604;
     --ht-collapse-button-close-focus-background-color: rgba(0, 0, 0, 0);
     --ht-collapse-button-close-focus-border-color: rgba(0, 0, 0, 0);
     --ht-collapse-button-close-focus-icon-color: #27c2ff;
     --ht-primary-button-background-color: #f1b93e;
-    --ht-primary-button-foreground-color: #000000;
+    --ht-primary-button-foreground-color: #0f0f10;
     --ht-primary-button-disabled-background-color: #262624;
     --ht-primary-button-disabled-foreground-color: #727272;
     --ht-primary-button-hover-background-color: #f2c051;
-    --ht-primary-button-hover-foreground-color: #000000;
+    --ht-primary-button-hover-foreground-color: #0f0f10;
     --ht-primary-button-focus-background-color: #f1b93e;
     --ht-primary-button-focus-foreground-color: #070604;
-    --ht-primary-button-focus-border-color: #000000;
+    --ht-primary-button-focus-border-color: #0f0f10;
     --ht-secondary-button-background-color: #070604;
     --ht-secondary-button-foreground-color: #f1b93e;
     --ht-secondary-button-border-color: #222222;
-    --ht-secondary-button-disabled-background-color: rgba(68, 68, 68, 0.40);
+    --ht-secondary-button-disabled-background-color: rgba(68, 68, 68, 0.4);
     --ht-secondary-button-disabled-foreground-color: #727272;
     --ht-secondary-button-disabled-border-color: #222222;
     --ht-secondary-button-hover-background-color: #232326;
@@ -680,10 +681,10 @@
     --ht-input-focus-background-color: #070604;
     --ht-input-focus-border-color: #f1b93e;
     --ht-input-focus-foreground-color: #b5b5b9;
-    --ht-menu-shadow-color: rgba(0, 0, 0, 0.80);
+    --ht-menu-shadow-color: rgba(0, 0, 0, 0.8);
     --ht-menu-border-color: #222222;
-    --ht-menu-item-hover-color: rgba(35, 35, 38, 0.60);
-    --ht-menu-item-active-color: rgba(241, 185, 62, 0.10);
+    --ht-menu-item-hover-color: rgba(35, 35, 38, 0.6);
+    --ht-menu-item-active-color: rgba(241, 185, 62, 0.1);
     --ht-scrollbar-track-color: #19191c;
   }
 }

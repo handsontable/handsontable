@@ -23,7 +23,6 @@
       z-index: 1;
       float: inline-end;
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
-      margin-inline-start: calc(var(--ht-icon-size) + 4px);
 
       &:before {
         @include mixins.pseudo;
@@ -91,8 +90,8 @@
         border-radius: var(--ht-menu-border-radius);
         @include mixins.menu-box-shadow;
         overflow: hidden;
-        padding: var(--ht-menu-horizontal-padding, 8px)
-          var(--ht-menu-vertical-padding, 0px);
+        padding: var(--ht-menu-vertical-padding, 8px)
+          var(--ht-menu-horizontal-padding, 0px);
       }
 
       &:not(.htGhostTable) {
@@ -128,8 +127,8 @@
 
       table tbody tr td {
         position: relative;
-        padding: var(--ht-menu-item-horizontal-padding, 4px)
-          var(--ht-menu-item-vertical-padding, 8px);
+        padding: var(--ht-menu-item-vertical-padding, 4px)
+          var(--ht-menu-item-horizontal-padding, 8px);
         border-width: 0;
         overflow: hidden;
         white-space: nowrap;
@@ -153,6 +152,11 @@
 
         &.current:not(.htSelectionDisabled) {
           background: var(--ht-menu-item-active-color, #e5e5e9);
+
+          &:hover {
+            background: var(--ht-menu-item-hover-color, #e5e5e9);
+            cursor: pointer;
+          }
         }
 
         &.htSubmenu {
@@ -160,7 +164,7 @@
             margin-inline-end: calc(
               2 * var(--ht-gap-size, 4px) + var(--ht-icon-size)
             );
-            
+
             &:after {
               @include mixins.pseudo;
               position: absolute;

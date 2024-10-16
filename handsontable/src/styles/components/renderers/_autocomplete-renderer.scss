@@ -14,6 +14,7 @@
       float: inline-end;
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
       margin-inline-start: calc(var(--ht-gap-size) * 2);
+      pointer-events: none;
 
       &:after {
         @include mixins.pseudo;

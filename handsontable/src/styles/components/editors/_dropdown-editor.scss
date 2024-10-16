@@ -6,13 +6,14 @@
   .handsontable {
     &.listbox {
       margin: 0;
-      border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);
+      border: var(--ht-menu-border-width, 1px) solid
+        var(--ht-menu-border-color, #e5e5e9);
       @include mixins.menu-box-shadow;
 
       .ht_master {
         overflow: hidden;
       }
-      
+
       .wtHolder {
         overflow: auto;
       }
@@ -37,6 +38,7 @@
         td.htDimmed {
           cursor: default;
           font-style: inherit;
+          color: inherit;
         }
 
         .wtBorder {
@@ -48,13 +50,13 @@
           color: inherit;
         }
 
-        tr:hover td {
-          background: var(--ht-menu-item-hover-color, #e5e5e9);
-          cursor: pointer;
-        }
-
         tr td.current {
           background: var(--ht-menu-item-active-color, #e5e5e9);
+          
+          &:hover {
+            background: var(--ht-menu-item-hover-color, #e5e5e9);
+            cursor: pointer;
+          }
         }
 
         thead th {
