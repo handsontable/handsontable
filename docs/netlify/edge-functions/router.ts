@@ -158,7 +158,9 @@ export default async function handler(request: Request, context: Context): Promi
             }
 
             if (redirectionWasFound(proxiedResponse.status)) {
-              console.warn('Further redirection found', finalLocation, proxiedResponse.status, proxiedResponse.headers.get('location'));
+              const proxedLocation = proxiedResponse.headers.get('location');
+
+              console.warn('Further redirection found', finalLocation, proxiedResponse.status, proxedLocation);
             }
 
             return handle404(baseUrl);
