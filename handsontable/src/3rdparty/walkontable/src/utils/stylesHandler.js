@@ -134,7 +134,7 @@ export class StylesHandler {
     }
 
     return this.getStyleForTD('border-top-width') +
-      (this.getCSSVariableValue('cell-horizontal-padding') * 2) +
+      (this.getCSSVariableValue('cell-vertical-padding') * 2) +
       this.getCSSVariableValue('line-height') +
       this.getStyleForTD('border-bottom-width');
   }

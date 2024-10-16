@@ -144,7 +144,7 @@ class HeadersUI extends BaseUI {
       deepestLevelIndex = this.dataManager.cache.levelCount;
     }
 
-    const verticalPadding = this.hot.view.getCSSVariableValue('cell-vertical-padding');
+    const verticalPadding = this.hot.view.getCSSVariableValue('cell-horizontal-padding');
     const completeVerticalPadding = this.hot.view.isUsingClassicTheme() ? 11 : verticalPadding * 2;
 
     this.rowHeaderWidthCache = Math.max(50, completeVerticalPadding + (10 * deepestLevelIndex) + 25);
