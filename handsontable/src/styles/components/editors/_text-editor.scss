@@ -9,8 +9,8 @@
     .handsontableInput {
       display: block;
       margin: 0;
-      padding: calc(var(--ht-cell-horizontal-padding, 4px) + 1px)
-        calc(var(--ht-cell-vertical-padding, 8px) + 1px);
+      padding: calc(var(--ht-cell-vertical-padding, 4px) + 1px)
+        calc(var(--ht-cell-horizontal-padding, 8px) + 1px);
       font-family: inherit !important;
       font-size: inherit !important;
       line-height: inherit !important;

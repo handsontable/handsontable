@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.0
- * Release date: 01/10/2024 (built at 11/10/2024 14:59:10)
+ * Release date: 01/10/2024 (built at 16/10/2024 14:48:56)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "11/10/2024 14:59:10";
+Handsontable.buildDate = "16/10/2024 14:48:56";
 Handsontable.version = "14.6.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -49233,6 +49233,7 @@ function createInputElementResizer(ownerDocument) {
    * Resizes the element.
    */
   function resize() {
+    var _getComputedStyle, _getComputedStyle2;
     textHolder.textContent = observedElement.value;
     // Won't expand the element size for displaying body as for example, `grid`, `inline-grid` or `flex` with
     // `flex-direction` set as `column`.
@@ -49241,7 +49242,9 @@ function createInputElementResizer(ownerDocument) {
     textContainer.style.fontFamily = getComputedStyle(observedElement).fontFamily;
     textContainer.style.whiteSpace = 'pre';
     body.appendChild(textContainer);
-    const width = textContainer.clientWidth + 2;
+    const paddingStart = parseInt(((_getComputedStyle = getComputedStyle(observedElement)) === null || _getComputedStyle === void 0 ? void 0 : _getComputedStyle.paddingInlineStart) || 0, 10);
+    const paddingEnd = parseInt(((_getComputedStyle2 = getComputedStyle(observedElement)) === null || _getComputedStyle2 === void 0 ? void 0 : _getComputedStyle2.paddingInlineEnd) || 0, 10);
+    const width = textContainer.clientWidth + 2 + paddingStart + paddingEnd;
     body.removeChild(textContainer);
     const elementStyle = observedElement.style;
     elementStyle.height = `${defaults.minHeight}px`;

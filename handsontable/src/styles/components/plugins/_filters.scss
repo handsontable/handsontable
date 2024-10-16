@@ -18,9 +18,7 @@
             cursor: auto;
 
             &.htFiltersMenuActionBar {
-              padding-top: calc(
-                var(--ht-menu-item-horizontal-padding, 4px) * 2
-              );
+              padding-top: calc(var(--ht-menu-item-vertical-padding, 4px) * 2);
             }
           }
         }
@@ -61,19 +59,23 @@
     .htFiltersMenuOperators,
     .htUISelectionControls {
       padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
-      padding-bottom: 0 !important;
+      padding-bottom: var(--ht-gap-size, 2px) !important;
+    }
+
+    .htUISelectionControls {
+      margin: 0 calc(var(--ht-gap-size, 2px) * -1);
     }
 
     .htUIMultipleSelectHot {
       overflow: initial !important;
       width: calc(
-        100% + var(--ht-menu-item-vertical-padding, 2px) * 2 +
+        100% + var(--ht-menu-item-horizontal-padding, 2px) * 2 +
           var(--ht-gap-size, 2px) * 4
       );
       margin: 0
         calc(
           (
-              var(--ht-menu-item-vertical-padding, 2px) +
+              var(--ht-menu-item-horizontal-padding, 2px) +
                 var(--ht-gap-size, 2px) * 2
             ) * -1
         );
@@ -81,7 +83,7 @@
       &::before {
         @include mixins.pseudo;
         position: absolute;
-        top: 0;
+        top: -1px;
         left: 0;
         width: 100%;
         height: 1px;
@@ -89,16 +91,16 @@
       }
 
       .wtHolder {
-        padding: calc(var(--ht-gap-size, 2px) * 2) 0;
+        padding: 0;
         overflow-x: hidden;
         box-sizing: border-box;
 
         td {
           height: auto;
           padding: 0;
-          padding: 1px
+          padding: 4px
             calc(
-              var(--ht-menu-item-vertical-padding, 2px) +
+              var(--ht-menu-item-horizontal-padding, 2px) +
                 var(--ht-gap-size, 2px) * 2
             );
         }

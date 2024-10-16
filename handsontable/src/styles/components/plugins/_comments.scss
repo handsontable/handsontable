@@ -37,8 +37,8 @@
       line-height: var(--ht-line-height);
       font-weight: var(--ht-font-weight);
       margin: 0 -1px;
-      padding: var(--ht-comments-textarea-horizontal-padding)
-        var(--ht-comments-textarea-vertical-padding);
+      padding: var(--ht-comments-textarea-vertical-padding)
+        var(--ht-comments-textarea-horizontal-padding);
       border: 0;
       border-inline-start: var(--ht-comments-textarea-focus-border-width, 1px)
         solid var(--ht-comments-textarea-border-color, #ffffff);

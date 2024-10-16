@@ -5,8 +5,8 @@
   .handsontable {
     .htUISelectCaption {
       width: 100%;
-      padding: var(--ht-input-horizontal-padding)
-        var(--ht-input-vertical-padding);
+      padding: var(--ht-input-vertical-padding)
+        var(--ht-input-horizontal-padding);
       margin: 0;
       font-family: inherit;
       font-size: var(--ht-font-size);
@@ -16,7 +16,7 @@
       box-sizing: border-box;
       cursor: pointer;
       outline: none !important;
-      border-width: 1px solid var(--ht-input-border-color);
+      border: 1px solid var(--ht-input-border-color);
       color: var(--ht-input-foreground-color);
       background-color: var(--ht-input-background-color);
       text-overflow: ellipsis;
