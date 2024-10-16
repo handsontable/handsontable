@@ -182,23 +182,30 @@ export default async function handler(request: Request, context: Context): Promi
           console.warn('Redirection was found', url, response.status, location);
 
           if (location) {
-            const _docsWithLocation = `https://_docs.handsontable.com/${location}`;
+            // If the 'location' header is present but is relative, prepend the base URL
+            const completeLocation = location.startsWith('http')
+              ? location
+              : `https://_docs.handsontable.com${location}`;
 
-            console.log('location', _docsWithLocation);
-            const proxedLocation = await fetch(_docsWithLocation);
+            console.log('Redirecting to:', completeLocation);
+
+            // Fetch the redirected location and return the response
+            const proxedLocation = await fetch(completeLocation);
 
             if (proxedLocation.ok) {
               return proxedLocation;
             }
-          }
-          console.error('Redirection without location', url, response.status, response.statusText);
+          } else {
+            console.error('Redirection without location', url, response.status, response.statusText);
 
-          return handle404(baseUrl);
+            return handle404(baseUrl);
+          }
         }
 
         console.error('Response not ok ', url, response.status, response.statusText);
 
         return handle404(baseUrl);
+
       } catch (e) {
         console.error('External Rewrite: Server error', url, e);
 
