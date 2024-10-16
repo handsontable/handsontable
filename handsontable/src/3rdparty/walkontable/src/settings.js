@@ -1,6 +1,5 @@
 import { fastInnerText } from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
-import { StylesManager } from '../../../stylesManager';
 
 /**
  * @todo Describe options.
@@ -14,7 +13,6 @@ import { StylesManager } from '../../../stylesManager';
  * @property {Option} currentRowClassName Option `currentRowClassName`.
  * @property {Option} data Option `data`.
  * @property {Option} defaultColumnWidth Option `defaultColumnWidth`.
- * @property {Option} defaultRowHeight Option `defaultRowHeight`.
  * @property {Option} externalRowCalculator Option `externalRowCalculator`.
  * @property {Option} fixedColumnsStart Option `fixedColumnsStart`.
  * @property {Option} fixedRowsBottom Option `fixedRowsBottom`.
@@ -196,7 +194,6 @@ export default class Settings {
       rowHeightByOverlayName() {
         // return undefined means use default size for the rendered cell content
       },
-      defaultRowHeight: StylesManager?.ROW_HEIGHT || 23,
       defaultColumnWidth: 50,
       selections: null,
       hideBorderOnMouseDownOver: false,

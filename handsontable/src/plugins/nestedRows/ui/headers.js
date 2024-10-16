@@ -3,7 +3,6 @@ import { rangeEach } from '../../../helpers/number';
 import { addClass, setAttribute } from '../../../helpers/dom/element';
 import BaseUI from './_base';
 import { A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
-import { StylesManager } from '../../../stylesManager';
 
 /**
  * Class responsible for the UI in the Nested Rows' row headers.
@@ -145,8 +144,8 @@ class HeadersUI extends BaseUI {
       deepestLevelIndex = this.dataManager.cache.levelCount;
     }
 
-    const verticalPadding = StylesManager.CELL_VERTICAL_PADDING;
-    const completeVerticalPadding = StylesManager.isLegacyTheme ? 11 : verticalPadding * 2;
+    const verticalPadding = this.hot.view.getCSSVariableValue('cell-vertical-padding');
+    const completeVerticalPadding = this.hot.view.isUsingClassicTheme() ? 11 : verticalPadding * 2;
 
     this.rowHeaderWidthCache = Math.max(50, completeVerticalPadding + (10 * deepestLevelIndex) + 25);
 

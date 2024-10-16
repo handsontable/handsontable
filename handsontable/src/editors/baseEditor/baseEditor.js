@@ -9,7 +9,6 @@ import {
   outerWidth,
   outerHeight,
 } from '../../helpers/dom/element';
-import { StylesManager } from '../../stylesManager';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -539,7 +538,7 @@ export class BaseEditor {
     const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) -
       actualVerticalScrollbarWidth + inlineStartBorderCompensation;
     const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) -
-      actualHorizontalScrollbarWidth + topBorderCompensation, StylesManager.ROW_HEIGHT);
+      actualHorizontalScrollbarWidth + topBorderCompensation, this.hot.view.getDefaultRowHeight());
 
     return {
       top: topPos,

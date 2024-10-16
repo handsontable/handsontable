@@ -42,7 +42,6 @@ import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
-import { StylesManager } from './stylesManager';
 
 let activeGuid = null;
 
@@ -1121,9 +1120,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.init = function() {
     dataSource.setData(tableMeta.data);
     instance.runHooks('beforeInit');
-
-    // eslint-disable-next-line no-new
-    new StylesManager(instance.rootElement);
 
     if (isMobileBrowser() || isIpadOS()) {
       addClass(instance.rootElement, 'mobile');

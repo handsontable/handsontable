@@ -1,5 +1,4 @@
 import { ViewportBaseCalculator } from './viewportBase';
-import { StylesManager } from '../../../../stylesManager';
 
 // eslint-disable-next-line import/no-mutable-exports
 export let DEFAULT_HEIGHT = 23;
@@ -41,13 +40,13 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     viewportHeight,
     scrollOffset,
     totalRows,
+    defaultRowHeight,
     rowHeightFn,
     overrideFn,
     horizontalScrollbarHeight,
   }) {
-    if (StylesManager?.ROW_HEIGHT) {
-      DEFAULT_HEIGHT = StylesManager.ROW_HEIGHT;
-    }
+    // Replace the default height of `23px` with a value from the current theme.
+    DEFAULT_HEIGHT = defaultRowHeight;
 
     super(calculationTypes);
     this.viewportHeight = viewportHeight;
