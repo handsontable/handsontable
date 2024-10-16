@@ -131,33 +131,42 @@ export default async function handler(request: Request, context: Context): Promi
       console.log(`Fetching data from: ${rewrittenUrl}`);
 
       try {
-        const response = await fetch(rewrittenUrl, { redirect: 'manual' });
+        const response = await fetch(rewrittenUrl, { method: 'GET', redirect: 'manual' });
+
+        if (response.ok) {
+          return response;
+        }
 
         if (redirectionWasFound(response.status)) {
-          let location = response.headers.get('location');
+          const location = response.headers.get('location');
 
           console.warn('Redirection was found', rewrittenUrl, response.status, location);
 
           if (location) {
-            // If the location is relative, construct the full URL using the existing baseUrl
-            if (!location.startsWith('http')) {
-              location = `${baseUrl}${location}`;
+            // Handle relative and absolute location headers
+            const finalLocation = location.startsWith('/')
+              ? `${baseUrl}${location}` // Append baseUrl if relative
+              : location; // Use as-is if absolute
+
+            console.log('Following redirection to:', finalLocation);
+
+            // Fetch the new location after redirection
+            const proxiedResponse = await fetch(finalLocation, { method: 'GET', redirect: 'manual' });
+
+            if (proxiedResponse.ok) {
+              return proxiedResponse;
             }
 
-            const proxiedLocation = await fetch(location);
-
-            if (proxiedLocation.ok) {
-              return proxiedLocation;
+            if (redirectionWasFound(proxiedResponse.status)) {
+              console.warn('Further redirection found', finalLocation, proxiedResponse.status, proxiedResponse.headers.get('location'));
             }
+
+            return handle404(baseUrl);
           }
 
           console.error('Redirection without a valid location', rewrittenUrl, response.status, response.statusText);
 
           return handle404(baseUrl);
-        }
-
-        if (response.ok) {
-          return response;
         }
 
         console.error(`Failed to fetch resource from ${rewrittenUrl}: ${response.status}`);
