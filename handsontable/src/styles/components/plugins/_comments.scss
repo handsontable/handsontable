@@ -1,0 +1,62 @@
+@use "../../utils/mixins";
+
+// Comments
+
+@mixin output {
+  .handsontable {
+    .htCommentCell {
+      position: relative;
+
+      &:after {
+        @include mixins.pseudo;
+        position: absolute;
+        top: 0;
+        inset-inline-end: 0;
+        inset-inline-start: unset;
+        border-inline-start: var(--ht-comments-indicator-size, 4px) solid
+          transparent;
+        border-inline-end: none;
+        border-top: var(--ht-comments-indicator-size, 4px) solid
+          var(--ht-comments-indicator-color, #1a42e8);
+      }
+    }
+  }
+
+  .htCommentsContainer {
+    .htComments {
+      display: none;
+      z-index: 1059;
+      position: absolute;
+    }
+
+    .htCommentTextArea {
+      width: 240px;
+      height: 88px;
+      @include mixins.font-family;
+      font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height);
+      font-weight: var(--ht-font-weight);
+      margin: 0 -1px;
+      padding: var(--ht-comments-textarea-vertical-padding)
+        var(--ht-comments-textarea-horizontal-padding);
+      border: 0;
+      border-inline-start: var(--ht-comments-textarea-focus-border-width, 1px)
+        solid var(--ht-comments-textarea-border-color, #ffffff);
+      border-inline-end: none;
+      border-radius: 0 calc(2 * var(--ht-gap-size)) calc(2 * var(--ht-gap-size))
+        0;
+      color: var(--ht-comments-textarea-foreground-color);
+      background-color: var(--ht-comments-textarea-background-color, #ffffff);
+      @include mixins.menu-box-shadow;
+      outline: 0px !important;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+
+      &:focus {
+        border-inline-start: var(--ht-comments-textarea-focus-border-width, 1px)
+          solid var(--ht-comments-textarea-focus-border-color, #1a42e8);
+        border-inline-end: none;
+      }
+    }
+  }
+}

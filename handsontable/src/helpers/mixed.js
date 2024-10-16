@@ -186,7 +186,7 @@ export function _injectProductInfo(key, element) {
     if (message) {
       const messageNode = document.createElement('div');
 
-      messageNode.className = 'hot-display-license-info';
+      messageNode.className = 'handsontable hot-display-license-info';
       messageNode.innerHTML = domMessages[domMessageState]({
         keyValidityDate,
         hotVersion,

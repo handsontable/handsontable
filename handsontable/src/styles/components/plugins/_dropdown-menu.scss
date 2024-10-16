@@ -1,0 +1,293 @@
+@use "../../utils/mixins";
+
+// Handsontable DropdownMenu
+//  - Button
+//  - Dropdown Menu and Context Menu and Filters
+
+@mixin output {
+  .handsontable {
+    // Menu Button
+    .changeType {
+      position: relative;
+      box-sizing: border-box;
+      width: var(--ht-icon-size);
+      height: var(--ht-icon-size);
+      border-radius: var(--ht-icon-button-border-radius);
+      border: none;
+      color: inherit;
+      padding: 0;
+      margin: 0;
+      background-color: var(--ht-icon-button-background);
+      transition: var(--ht-table-transition) all ease-in-out;
+      order: 1;
+      z-index: 1;
+      float: inline-end;
+      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+
+      &:before {
+        @include mixins.pseudo;
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: var(--ht-icon-button-icon-color);
+      }
+
+      &:hover {
+        border: none;
+        cursor: pointer;
+        background-color: var(--ht-icon-button-hover-background-color);
+
+        &:before {
+          color: var(--ht-icon-button-hover-icon-color);
+        }
+      }
+    }
+
+    .ht__active_highlight {
+      .changeType {
+        &:before {
+          color: var(--ht-icon-active-button-icon-color);
+        }
+
+        &:hover {
+          &:before {
+            color: var(--ht-icon-active-button-icon-color);
+          }
+        }
+      }
+    }
+
+    .htFiltersActive {
+      .changeType {
+        &:after {
+          @include mixins.pseudo;
+          position: absolute;
+          right: 2px;
+          bottom: 2px;
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background-color: var(--ht-accent-color);
+        }
+      }
+
+      &.ht__active_highlight {
+        .changeType {
+          &:after {
+            background-color: var(--ht-header-active-foreground-color);
+          }
+        }
+      }
+    }
+
+    // Menu
+    &.htDropdownMenu,
+    &.htContextMenu,
+    &.htFiltersConditionsMenu {
+      & > .ht_master {
+        border: var(--ht-menu-border-width, 1px) solid
+          var(--ht-menu-border-color, #e5e5e9);
+        border-radius: var(--ht-menu-border-radius);
+        @include mixins.menu-box-shadow;
+        overflow: hidden;
+        padding: var(--ht-menu-vertical-padding, 8px)
+          var(--ht-menu-horizontal-padding, 0px);
+      }
+
+      &:not(.htGhostTable) {
+        display: none;
+        position: absolute;
+        /* needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569) */
+        z-index: 1060;
+      }
+
+      .ht_clone_top,
+      .ht_clone_bottom,
+      .ht_clone_inline_start,
+      .ht_clone_top_inline_start_corner,
+      .ht_clone_bottom_inline_start_corner {
+        display: none;
+      }
+
+      table.htCore {
+        overflow: hidden;
+      }
+
+      .htCustomMenuRenderer .table.htCore {
+        box-shadow: none;
+      }
+
+      &.handsontable:focus {
+        outline: none;
+      }
+
+      .wtBorder {
+        visibility: hidden;
+      }
+
+      table tbody tr td {
+        position: relative;
+        padding: var(--ht-menu-item-vertical-padding, 4px)
+          var(--ht-menu-item-horizontal-padding, 8px);
+        border-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        background: var(--ht-background-color, #ffffff);
+        cursor: pointer;
+        transition: background calc(0.5 * var(--ht-table-transition))
+          ease-in-out;
+
+        &:first-child {
+          border-top-width: 0;
+          border-inline-end-width: 0;
+          border-bottom-width: 0;
+          border-inline-start-width: 0;
+        }
+
+        &.htDimmed {
+          font-style: normal;
+          color: var(--ht-foreground-color);
+        }
+
+        &.current:not(.htSelectionDisabled) {
+          background: var(--ht-menu-item-active-color, #e5e5e9);
+
+          &:hover {
+            background: var(--ht-menu-item-hover-color, #e5e5e9);
+            cursor: pointer;
+          }
+        }
+
+        &.htSubmenu {
+          .htItemWrapper {
+            margin-inline-end: calc(
+              2 * var(--ht-gap-size, 4px) + var(--ht-icon-size)
+            );
+
+            &:after {
+              @include mixins.pseudo;
+              position: absolute;
+              top: 50%;
+              right: calc(4 * var(--ht-gap-size));
+              transform: translateY(-50%);
+            }
+          }
+        }
+
+        &.htSeparator {
+          border-top: 1px solid var(--ht-menu-border-color);
+          height: 0;
+          padding: 0;
+          cursor: default;
+        }
+
+        &.htDisabled {
+          color: var(--ht-disabled-color);
+          cursor: default;
+
+          &:hover {
+            background: var(--ht-background-color);
+            color: var(--ht-disabled-color);
+          }
+        }
+
+        &.htHidden {
+          display: none;
+        }
+
+        .htItemWrapper {
+          margin-inline: calc(2 * var(--ht-gap-size, 4px));
+
+          &:before {
+            vertical-align: text-bottom;
+            margin-right: 12px;
+          }
+
+          span.selected {
+            font-size: 0;
+            inset: 0;
+
+            &:after {
+              @include mixins.pseudo;
+              position: absolute;
+              top: 50%;
+              right: calc(4 * var(--ht-gap-size));
+              color: var(--ht-accent-color);
+              transform: translateY(-50%);
+            }
+
+            &::before {
+              @include mixins.pseudo;
+              position: absolute;
+              inset: 0;
+              background-color: var(--ht-accent-color);
+              opacity: 0.1;
+            }
+          }
+        }
+
+        div span.selected {
+          position: absolute;
+          inset-inline-end: 0;
+        }
+
+        .htUIButton {
+          width: calc(50% - var(--ht-gap-size));
+          input {
+            width: 100%;
+          }
+        }
+      }
+    }
+
+    // Submenu
+    &.htContextMenuSub_Alignment,
+    &.htDropdownMenuSub_Alignment {
+      margin-top: calc(var(--ht-menu-horizontal-padding) * -1);
+    }
+
+    // Filter
+    .htUIClearAll a,
+    .htUISelectAll a {
+      padding: var(--ht-gap-size);
+      display: inline-block;
+      text-decoration: none;
+    }
+
+    .htUIMultipleSelect .ht_master .wtHolder {
+      overflow-y: auto;
+      background: transparent;
+
+      .htCore {
+        box-shadow: none;
+      }
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    &.htDropdownMenu,
+    &.htContextMenu,
+    &.htFiltersConditionsMenu {
+      table tbody tr td {
+        &.htSubmenu {
+          .htItemWrapper {
+            &:after {
+              left: calc(4 * var(--ht-gap-size));
+              right: auto;
+              transform: translateY(-50%) rotate(180deg);
+            }
+          }
+        }
+        .htItemWrapper {
+          span.selected {
+            &:after {
+              left: calc(4 * var(--ht-gap-size));
+              right: auto;
+            }
+          }
+        }
+      }
+    }
+  }
+}

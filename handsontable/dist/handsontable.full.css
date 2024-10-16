@@ -26,12 +26,12 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.0
- * Release date: 01/10/2024 (built at 30/09/2024 12:33:19)
+ * Release date: 01/10/2024 (built at 16/10/2024 14:49:50)
  */
 /**
  * Fix for bootstrap styles
  */
-.handsontable .table th, .handsontable .table td {
+ .handsontable .table th, .handsontable .table td {
   border-top: none;
 }
 
