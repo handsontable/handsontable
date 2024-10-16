@@ -302,10 +302,12 @@ function getOnePageRewrites(): Redirect[] {
   return [
     {
       // Matches URLs like /docs/x.x/redirect?pageId=somevalue
+      // Also matches /docs/x.x/any-other-path/redirect?pageId=somevalue
       // $1: The version number in the x.x format (e.g., 14.2).
-      // $2: The value of the pageId query parameter (e.g., zbx8ayzw).
-      from: new RegExp('^/docs/(\\d+\\.\\d+)/redirect(?:\\?pageId=(.+))?$'),
-      to: 'https://_docs.handsontable.com/docs/$1?redirect=$2',
+      // $2: The optional path after the version number (e.g., javascript-data-grid/license-key).
+      // $3: The value of the pageId query parameter (e.g., zbx8ayzw).
+      from: new RegExp('^/docs/(\\d+\\.\\d+)(?:/([^/]+))?/redirect(?:\\?pageId=(.+))?$'),
+      to: 'https://_docs.handsontable.com/docs/$1/$2?redirect=$3',
     }
   ];
 }
