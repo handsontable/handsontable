@@ -25,6 +25,16 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 14.6.1
+
+Released on October 17, 2024
+
+For more information about this release see:
+- [Documentation (14.6)](https://handsontable.com/docs/14.6)
+
+### Removed
+- Removed `aria-hidden` from the TextEditor and PasswordEditor's `TEXTAREA` elements.  [#11218](https://github.com/handsontable/handsontable/pull/11218)
+
 ## 14.6.0
 
 Released on October 1, 2024
