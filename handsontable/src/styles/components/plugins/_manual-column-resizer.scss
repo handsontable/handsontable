@@ -13,7 +13,6 @@
       background: none;
       opacity: 0;
       z-index: 210;
-      transition: opacity var(--ht-table-transition) ease-in-out;
 
       &::before,
       &::after {
@@ -22,8 +21,8 @@
         top: 0;
         left: 1px;
         width: 2px;
-        height: calc(100% - 8px);
-        margin: 4px 0;
+        height: calc(100% - 12px);
+        margin: 6px 0;
         background: var(--ht-read-only-color);
         border-radius: 2px;
       }

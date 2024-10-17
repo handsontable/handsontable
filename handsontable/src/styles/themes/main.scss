@@ -23,7 +23,7 @@
   --ht-foreground-color: #222222;
   --ht-placeholder-color: #999999;
   --ht-read-only-color: #6a6a6a;
-  --ht-disabled-color: #999999;
+  --ht-disabled-color: #a3a3a3;
 
   /* Table transition and padding */
   --ht-table-transition: 0.15s;
@@ -36,16 +36,16 @@
   --ht-cell-editor-foreground-color: #000000;
   --ht-cell-editor-border-color: #1a42e8;
   --ht-cell-editor-shadow-blur-radius: 0px;
-  --ht-cell-editor-shadow-color: rgba(17, 61, 201, 0.6);
+  --ht-cell-editor-shadow-color: rgba(17, 61, 201, 0.60);
   --ht-cell-editor-border-width: 2px;
   --ht-cell-editor-background-color: #ffffff;
 
   /* Cell search, error, and conditional formatting colors */
-  --ht-cell-search-background-color: rgba(251, 233, 82, 0.8);
-  --ht-cell-error-background-color: rgba(250, 77, 50, 0.2);
-  --ht-cell-success-background-color: rgba(55, 188, 108, 0.2);
-  --ht-cell-warning-background-color: rgba(251, 233, 82, 0.2);
-  --ht-cell-informational-background-color: rgba(39, 194, 255, 0.2);
+  --ht-cell-search-background-color: rgba(251, 233, 82, 0.80);
+  --ht-cell-error-background-color: rgba(250, 77, 50, 0.20);
+  --ht-cell-success-background-color: rgba(55, 188, 108, 0.20);
+  --ht-cell-warning-background-color: rgba(251, 233, 82, 0.20);
+  --ht-cell-informational-background-color: rgba(39, 194, 255, 0.20);
 
   /* Selection */
   --ht-cell-selection-border-color: #1a42e8;
@@ -84,9 +84,9 @@
   --ht-checkbox-checked-focus-icon-color: #ffffff;
   --ht-checkbox-checked-disabled-background-color: #d1d1d5;
   --ht-checkbox-checked-disabled-border-color: #e7e7e9;
-  --ht-checkbox-checked-disabled-icon-color: #999999;
+  --ht-checkbox-checked-disabled-icon-color: #a3a3a3;
   --ht-checkbox-indeterminate-background-color: #1a42e8;
-  --ht-checkbox-indeterminate-border-color: #e5e5e9;
+  --ht-checkbox-indeterminate-border-color: #ffffff;
   --ht-checkbox-indeterminate-icon-color: #ffffff;
   --ht-checkbox-indeterminate-disabled-background-color: #d1d1d5;
   --ht-checkbox-indeterminate-disabled-border-color: #e7e7e9;
@@ -106,7 +106,7 @@
   --ht-header-row-background-color: #f7f7f9;
   --ht-header-font-weight: 400;
   --ht-header-foreground-color: #222222;
-  --ht-header-filter-background-color: rgba(55, 188, 108, 0.2);
+  --ht-header-filter-background-color: rgba(55, 188, 108, 0.20);
 
   /* Frozen rows and columns styling */
   --ht-frozen-shadow-size: 2px;
@@ -121,15 +121,15 @@
   /* Resize indicator */
   --ht-resize-indicator-color: #6a6a6a;
   --ht-icon-button-background-color: rgba(255, 255, 255, 0);
-  --ht-icon-button-icon-color: rgba(34, 34, 34, 0.6);
+  --ht-icon-button-icon-color: rgba(34, 34, 34, 0.60);
   --ht-icon-active-button-icon-color: #ffffff;
   --ht-icon-button-hover-background-color: rgba(34, 34, 34, 0.08);
-  --ht-icon-button-hover-icon-color: rgba(34, 34, 34, 0.4);
+  --ht-icon-button-hover-icon-color: rgba(34, 34, 34, 0.40);
   --ht-icon-button-focus-background-color: rgba(255, 255, 255, 0);
   --ht-icon-button-focus-icon-color: #1a42e8;
   --ht-icon-button-border-radius: 2px;
   --ht-icon-button-disabled-background-color: rgba(153, 153, 153, 0.32);
-  --ht-icon-button-disabled-icon-color: #999999;
+  --ht-icon-button-disabled-icon-color: #a3a3a3;
   --ht-collapse-button-border-radius: 4px;
   --ht-collapse-button-open-background-color: #ffffff;
   --ht-collapse-button-open-border-color: #e7e7e9;
@@ -141,7 +141,7 @@
   --ht-collapse-button-open-hover-icon-active-color: #999999;
   --ht-collapse-button-open-focus-background-color: #f7f7f9;
   --ht-collapse-button-open-focus-border-color: #e7e7e9;
-  --ht-collapse-button-open-focus-icon-color: #1a42e8;
+  --ht-collapse-button-open-focus-icon-color: undefined;
   --ht-collapse-button-close-icon-color: #666666;
   --ht-collapse-button-close-background-color: rgba(34, 34, 34, 0.08);
   --ht-collapse-button-close-border-color: #e7e7e9;
@@ -152,14 +152,14 @@
   --ht-collapse-button-close-hover-icon-active-color: #666666;
   --ht-collapse-button-close-focus-background-color: rgba(34, 34, 34, 0.08);
   --ht-collapse-button-close-focus-border-color: #e7e7e9;
-  --ht-collapse-button-close-focus-icon-color: #1a42e8;
+  --ht-collapse-button-close-focus-icon-color: undefined;
 
   /* Buttons */
   --ht-primary-button-background-color: #1a42e8;
   --ht-primary-button-border-color: rgba(255, 255, 255, 0);
   --ht-primary-button-foreground-color: #ffffff;
   --ht-primary-button-disabled-background-color: rgba(153, 153, 153, 0.32);
-  --ht-primary-button-disabled-foreground-color: #999999;
+  --ht-primary-button-disabled-foreground-color: #a3a3a3;
   --ht-primary-button-disabled-border-color: rgba(255, 255, 255, 0);
   --ht-primary-button-hover-background-color: #1535bc;
   --ht-primary-button-hover-foreground-color: #ffffff;
@@ -171,7 +171,7 @@
   --ht-secondary-button-foreground-color: #222222;
   --ht-secondary-button-border-color: #e7e7e9;
   --ht-secondary-button-disabled-background-color: #ebebed;
-  --ht-secondary-button-disabled-foreground-color: #999999;
+  --ht-secondary-button-disabled-foreground-color: #a3a3a3;
   --ht-secondary-button-disabled-border-color: #e7e7e9;
   --ht-secondary-button-hover-background-color: #f7f7f9;
   --ht-secondary-button-hover-foreground-color: #222222;
@@ -212,7 +212,7 @@
   --ht-input-border-width: 1px;
   --ht-input-disabled-background-color: rgba(153, 153, 153, 0.32);
   --ht-input-disabled-border-color: #e7e7e9;
-  --ht-input-disabled-foreground-color: #999999;
+  --ht-input-disabled-foreground-color: #a3a3a3;
   --ht-input-hover-background-color: #ffffff;
   --ht-input-hover-border-color: #e7e7e9;
   --ht-input-hover-foreground-color: #222222;
@@ -255,13 +255,13 @@
   --ht-disabled-color: #68696c;
   --ht-cell-editor-foreground-color: #ffffff;
   --ht-cell-editor-border-color: #6d9af1;
-  --ht-cell-editor-shadow-color: rgba(109, 154, 241, 0.5);
+  --ht-cell-editor-shadow-color: rgba(109, 154, 241, 0.50);
   --ht-cell-editor-background-color: #0f0f10;
-  --ht-cell-search-background-color: rgba(255, 231, 34, 0.3);
-  --ht-cell-error-background-color: rgba(255, 42, 52, 0.3);
-  --ht-cell-success-background-color: rgba(66, 190, 101, 0.3);
-  --ht-cell-warning-background-color: rgba(241, 194, 28, 0.3);
-  --ht-cell-informational-background-color: rgba(39, 194, 255, 0.3);
+  --ht-cell-search-background-color: rgba(255, 231, 34, 0.30);
+  --ht-cell-error-background-color: rgba(255, 42, 52, 0.30);
+  --ht-cell-success-background-color: rgba(66, 190, 101, 0.30);
+  --ht-cell-warning-background-color: rgba(241, 194, 28, 0.30);
+  --ht-cell-informational-background-color: rgba(39, 194, 255, 0.30);
   --ht-cell-selection-border-color: #6d9af1;
   --ht-cell-selection-background-color: #95c2ff;
   --ht-cell-autofill-background-color: #6d9af1;
@@ -275,24 +275,19 @@
   --ht-checkbox-focus-ring-color: #6d9af1;
   --ht-checkbox-disabled-background-color: #404144;
   --ht-checkbox-disabled-border-color: #313132;
-  --ht-checkbox-checked-background-color: #6d9af1;
-  --ht-checkbox-checked-border-color: undefined;
   --ht-checkbox-checked-icon-color: #f3f3f3;
-  --ht-checkbox-checked-focus-background-color: #6d9af1;
   --ht-checkbox-checked-focus-border-color: #000000;
-  --ht-checkbox-checked-focus-icon-color: #0f0f10;
+  --ht-checkbox-checked-focus-icon-color: #f3f3f3;
   --ht-checkbox-checked-disabled-background-color: #36373a;
   --ht-checkbox-checked-disabled-border-color: #313132;
   --ht-checkbox-checked-disabled-icon-color: #68696c;
-  --ht-checkbox-indeterminate-background-color: #6d9af1;
-  --ht-checkbox-indeterminate-border-color: #222222;
+  --ht-checkbox-indeterminate-border-color: #000000;
   --ht-checkbox-indeterminate-icon-color: #0f0f10;
   --ht-checkbox-indeterminate-disabled-background-color: #36373a;
   --ht-checkbox-indeterminate-disabled-border-color: #313132;
   --ht-checkbox-indeterminate-disabled-icon-color: #727272;
-  --ht-checkbox-indeterminate-focus-background-color: #6d9af1;
   --ht-checkbox-indeterminate-focus-border-color: #000000;
-  --ht-checkbox-indeterminate-focus-icon-color: #0f0f10;
+  --ht-checkbox-indeterminate-focus-icon-color: #f3f3f3;
   --ht-header-active-background-color: #6d9af1;
   --ht-header-active-foreground-color: #0f0f10;
   --ht-header-active-border-color: #5986dd;
@@ -301,7 +296,7 @@
   --ht-header-background-color: #1e1e1f;
   --ht-header-row-background-color: #1e1e1f;
   --ht-header-foreground-color: #f3f3f3;
-  --ht-header-filter-background-color: rgba(66, 190, 101, 0.3);
+  --ht-header-filter-background-color: rgba(66, 190, 101, 0.30);
   --ht-frozen-shadow-color: #48484a;
   --ht-row-odd-background-color: rgba(239, 239, 243, 0);
   --ht-row-hover-background-color: rgba(239, 239, 243, 0.12);
@@ -309,10 +304,10 @@
   --ht-row-even-background-color: rgba(239, 239, 243, 0);
   --ht-resize-indicator-color: #999999;
   --ht-icon-button-background-color: rgba(0, 0, 0, 0);
-  --ht-icon-button-icon-color: rgba(255, 255, 255, 0.6);
+  --ht-icon-button-icon-color: rgba(255, 255, 255, 0.60);
   --ht-icon-active-button-icon-color: #0f0f10;
   --ht-icon-button-hover-background-color: rgba(255, 255, 255, 0.08);
-  --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.4);
+  --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.40);
   --ht-icon-button-focus-background-color: rgba(0, 0, 0, 0);
   --ht-icon-button-focus-icon-color: #27c2ff;
   --ht-icon-button-disabled-background-color: rgba(104, 105, 108, 0.32);
@@ -327,7 +322,6 @@
   --ht-collapse-button-open-hover-icon-active-color: #666666;
   --ht-collapse-button-open-focus-background-color: #1e1e1f;
   --ht-collapse-button-open-focus-border-color: #313132;
-  --ht-collapse-button-open-focus-icon-color: #6d9af1;
   --ht-collapse-button-close-icon-color: #999999;
   --ht-collapse-button-close-background-color: rgba(255, 255, 255, 0.08);
   --ht-collapse-button-close-border-color: #313132;
@@ -338,7 +332,6 @@
   --ht-collapse-button-close-hover-icon-active-color: #999999;
   --ht-collapse-button-close-focus-background-color: rgba(255, 255, 255, 0.08);
   --ht-collapse-button-close-focus-border-color: #313132;
-  --ht-collapse-button-close-focus-icon-color: #6d9af1;
   --ht-primary-button-background-color: #6d9af1;
   --ht-primary-button-foreground-color: #0f0f10;
   --ht-primary-button-disabled-background-color: rgba(104, 105, 108, 0.32);
@@ -384,7 +377,7 @@
   --ht-input-focus-background-color: #0f0f10;
   --ht-input-focus-border-color: #6d9af1;
   --ht-input-focus-foreground-color: #f3f3f3;
-  --ht-menu-shadow-color: rgba(0, 0, 0, 0.8);
+  --ht-menu-shadow-color: rgba(0, 0, 0, 0.80);
   --ht-menu-border-color: #313132;
   --ht-menu-item-hover-color: rgba(239, 239, 243, 0.12);
   --ht-menu-item-active-color: rgba(239, 239, 243, 0.12);

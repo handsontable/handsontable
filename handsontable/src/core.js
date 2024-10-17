@@ -242,6 +242,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   if (isRootInstance(this)) {
     _injectProductInfo(userSettings.licenseKey, rootElement);
 
+    addClass(rootElement, 'ht-wrapper');
+
     const rootThemeClassName = getThemeClassName(rootElement.className);
 
     if (rootThemeClassName) {

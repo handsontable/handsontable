@@ -150,9 +150,7 @@
           color: var(--ht-foreground-color);
         }
 
-        &.current:not(.htSelectionDisabled) {
-          background: var(--ht-menu-item-active-color, #e5e5e9);
-
+        &:not(&.htCustomMenuRenderer, &.htDisabled) {
           &:hover {
             background: var(--ht-menu-item-hover-color, #e5e5e9);
             cursor: pointer;
@@ -221,8 +219,7 @@
               @include mixins.pseudo;
               position: absolute;
               inset: 0;
-              background-color: var(--ht-accent-color);
-              opacity: 0.1;
+              background-color: var(--ht-menu-item-active-color);
             }
           }
         }

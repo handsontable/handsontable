@@ -50,9 +50,12 @@
           color: inherit;
         }
 
-        tr td.current {
-          background: var(--ht-menu-item-active-color, #e5e5e9);
-          
+        tr:hover td {
+          background: var(--ht-menu-item-hover-color, #e5e5e9);
+          cursor: pointer;
+        }
+
+        tr td {
           &:hover {
             background: var(--ht-menu-item-hover-color, #e5e5e9);
             cursor: pointer;

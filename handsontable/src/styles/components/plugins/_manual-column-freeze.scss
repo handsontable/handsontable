@@ -8,5 +8,13 @@
         border-left: 0 none;
       }
     }
+
+    .ht_clone_top_inline_start_corner {
+      th {
+        &.ht__active_highlight {
+          box-shadow: none;
+        }
+      }
+    }
   }
 }

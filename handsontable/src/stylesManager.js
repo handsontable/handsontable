@@ -17,7 +17,7 @@ export class StylesManager {
     this.#hot = hotInstance;
 
     this.cellVerticalPadding = parseInt(
-      getComputedStyle(this.#hot.rootElement)?.getPropertyValue('--ht-cell-vertical-padding') || 0,
+      getComputedStyle(this.#hot.rootElement)?.getPropertyValue('--ht-cell-horizontal-padding') || 0,
       10
     );
   }
