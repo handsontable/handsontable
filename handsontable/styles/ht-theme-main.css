@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.0
- * Release date: 01/10/2024 (built at 17/10/2024 15:01:21)
+ * Release date: 01/10/2024 (built at 17/10/2024 15:06:16)
  */
 .ht-theme-main,
 .ht-theme-main-dark,
@@ -133,7 +133,7 @@
   --ht-row-collapse-indicator-border-color: #e7e7e9;
   --ht-row-even-background-color: rgba(34, 34, 34, 0);
   /* Resize indicator */
-  --ht-resize-indicator-color: #6a6a6a;
+  --ht-resize-indicator-color: rgba(34, 34, 34, 0.60);
   --ht-icon-button-background-color: rgba(255, 255, 255, 0);
   --ht-icon-button-icon-color: rgba(34, 34, 34, 0.60);
   --ht-icon-active-button-icon-color: #ffffff;
@@ -157,14 +157,14 @@
   --ht-collapse-button-open-focus-border-color: #e7e7e9;
   --ht-collapse-button-open-focus-icon-color: undefined;
   --ht-collapse-button-close-icon-color: #666666;
-  --ht-collapse-button-close-background-color: rgba(34, 34, 34, 0.08);
+  --ht-collapse-button-close-background-color: #ebebed;
   --ht-collapse-button-close-border-color: #e7e7e9;
   --ht-collapse-button-close-icon-active-color: #666666;
-  --ht-collapse-button-close-hover-background-color: rgba(34, 34, 34, 0.08);
+  --ht-collapse-button-close-hover-background-color: #ebebed;
   --ht-collapse-button-close-hover-border-color: #e7e7e9;
   --ht-collapse-button-close-hover-icon-color: #666666;
   --ht-collapse-button-close-hover-icon-active-color: #666666;
-  --ht-collapse-button-close-focus-background-color: rgba(34, 34, 34, 0.08);
+  --ht-collapse-button-close-focus-background-color: #ebebed;
   --ht-collapse-button-close-focus-border-color: #e7e7e9;
   --ht-collapse-button-close-focus-icon-color: undefined;
   /* Buttons */
@@ -246,7 +246,7 @@
   --ht-menu-item-horizontal-padding: 12px;
   --ht-menu-item-hover-color: rgba(34, 34, 34, 0.05);
   --ht-menu-item-active-color: rgba(0, 0, 0, 0.08);
-  --ht-hidden-indicator-color: #6a6a6a;
+  --ht-hidden-indicator-color: rgba(34, 34, 34, 0.60);
   --ht-wrapper-border-width: 1px;
   --ht-wrapper-border-radius: 0px;
   /* Scrollbars */
@@ -469,7 +469,7 @@
   --ht-row-hover-background-color: rgba(239, 239, 243, 0.12);
   --ht-row-collapse-indicator-border-color: #313132;
   --ht-row-even-background-color: rgba(239, 239, 243, 0);
-  --ht-resize-indicator-color: #999999;
+  --ht-resize-indicator-color: rgba(255, 255, 255, 0.60);
   --ht-icon-button-background-color: rgba(0, 0, 0, 0);
   --ht-icon-button-icon-color: rgba(255, 255, 255, 0.60);
   --ht-icon-active-button-icon-color: #0f0f10;
@@ -490,14 +490,14 @@
   --ht-collapse-button-open-focus-background-color: #1e1e1f;
   --ht-collapse-button-open-focus-border-color: #313132;
   --ht-collapse-button-close-icon-color: #999999;
-  --ht-collapse-button-close-background-color: rgba(255, 255, 255, 0.08);
+  --ht-collapse-button-close-background-color: #262627;
   --ht-collapse-button-close-border-color: #313132;
   --ht-collapse-button-close-icon-active-color: #999999;
-  --ht-collapse-button-close-hover-background-color: rgba(255, 255, 255, 0.08);
+  --ht-collapse-button-close-hover-background-color: #262627;
   --ht-collapse-button-close-hover-border-color: #313132;
   --ht-collapse-button-close-hover-icon-color: #999999;
   --ht-collapse-button-close-hover-icon-active-color: #999999;
-  --ht-collapse-button-close-focus-background-color: rgba(255, 255, 255, 0.08);
+  --ht-collapse-button-close-focus-background-color: #262627;
   --ht-collapse-button-close-focus-border-color: #313132;
   --ht-primary-button-background-color: #6d9af1;
   --ht-primary-button-foreground-color: #0f0f10;
@@ -548,7 +548,7 @@
   --ht-menu-border-color: #313132;
   --ht-menu-item-hover-color: rgba(239, 239, 243, 0.12);
   --ht-menu-item-active-color: rgba(239, 239, 243, 0.12);
-  --ht-hidden-indicator-color: #999999;
+  --ht-hidden-indicator-color: rgba(255, 255, 255, 0.60);
   --ht-scrollbar-thumb-color: #68696c;
   --ht-scrollbar-track-color: #19191c;
 }
@@ -612,7 +612,7 @@
     --ht-row-hover-background-color: rgba(239, 239, 243, 0.12);
     --ht-row-collapse-indicator-border-color: #313132;
     --ht-row-even-background-color: rgba(239, 239, 243, 0);
-    --ht-resize-indicator-color: #999999;
+    --ht-resize-indicator-color: rgba(255, 255, 255, 0.60);
     --ht-icon-button-background-color: rgba(0, 0, 0, 0);
     --ht-icon-button-icon-color: rgba(255, 255, 255, 0.60);
     --ht-icon-active-button-icon-color: #0f0f10;
@@ -633,14 +633,14 @@
     --ht-collapse-button-open-focus-background-color: #1e1e1f;
     --ht-collapse-button-open-focus-border-color: #313132;
     --ht-collapse-button-close-icon-color: #999999;
-    --ht-collapse-button-close-background-color: rgba(255, 255, 255, 0.08);
+    --ht-collapse-button-close-background-color: #262627;
     --ht-collapse-button-close-border-color: #313132;
     --ht-collapse-button-close-icon-active-color: #999999;
-    --ht-collapse-button-close-hover-background-color: rgba(255, 255, 255, 0.08);
+    --ht-collapse-button-close-hover-background-color: #262627;
     --ht-collapse-button-close-hover-border-color: #313132;
     --ht-collapse-button-close-hover-icon-color: #999999;
     --ht-collapse-button-close-hover-icon-active-color: #999999;
-    --ht-collapse-button-close-focus-background-color: rgba(255, 255, 255, 0.08);
+    --ht-collapse-button-close-focus-background-color: #262627;
     --ht-collapse-button-close-focus-border-color: #313132;
     --ht-primary-button-background-color: #6d9af1;
     --ht-primary-button-foreground-color: #0f0f10;
@@ -691,7 +691,7 @@
     --ht-menu-border-color: #313132;
     --ht-menu-item-hover-color: rgba(239, 239, 243, 0.12);
     --ht-menu-item-active-color: rgba(239, 239, 243, 0.12);
-    --ht-hidden-indicator-color: #999999;
+    --ht-hidden-indicator-color: rgba(255, 255, 255, 0.60);
     --ht-scrollbar-thumb-color: #68696c;
     --ht-scrollbar-track-color: #19191c;
   }
