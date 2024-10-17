@@ -767,9 +767,11 @@ class Table {
     let rowCount = this.TBODY.childNodes.length;
     const expectedTableHeight = rowCount * this.wot.stylesHandler.getDefaultRowHeight();
     const actualTableHeight = innerHeight(this.TBODY) - 1;
-    const rowHeightFn = this.wot.stylesHandler.getStyleForTD('box-sizing') === 'border-box' ? outerHeight : innerHeight;
+    const borderBoxSizing = this.wot.stylesHandler.getStyleForTD('box-sizing') === 'border-box';
+    const rowHeightFn = borderBoxSizing ? outerHeight : innerHeight;
+    const borderCompensation = borderBoxSizing ? 0 : 1;
     let previousRowHeight;
-    let rowInnerHeight;
+    let rowCurrentHeight;
     let sourceRowIndex;
     let currentTr;
     let rowHeader;
@@ -787,15 +789,16 @@ class Table {
       rowHeader = currentTr.querySelector('th');
 
       if (rowHeader) {
-        rowInnerHeight = rowHeightFn(rowHeader);
+        rowCurrentHeight = rowHeightFn(rowHeader);
+
       } else {
-        rowInnerHeight = rowHeightFn(currentTr) - 1;
+        rowCurrentHeight = rowHeightFn(currentTr) - borderCompensation;
       }
 
-      if ((!previousRowHeight && this.wot.stylesHandler.getDefaultRowHeight() < rowInnerHeight ||
-          previousRowHeight < rowInnerHeight)) {
-        rowInnerHeight += 1;
-        this.dataAccessObject.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
+      if ((!previousRowHeight && this.wot.stylesHandler.getDefaultRowHeight() < rowCurrentHeight ||
+          previousRowHeight < rowCurrentHeight)) {
+        rowCurrentHeight += 1;
+        this.dataAccessObject.wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;
       }
     }
   }
