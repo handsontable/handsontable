@@ -6,8 +6,12 @@ env:
   DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
 
 on:
+  create:
+    branches:
+      - 'prod-docs/[0-9]+\\.[0-9]+'
   push:
     branches:
+      - 'prod-docs/[0-9]+\\.[0-9]+'
       #!TODO remove feature branch after the merge
       - feature/dev-issue-1790
   workflow_dispatch:
@@ -36,6 +40,15 @@ jobs:
 
       - name: Validate Docs version
         run: if [ -z "$DOCS_LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
+
+      - name: Check if branch matches the latest version
+        run: |
+          if [[ "${{ github.ref_name }}" != "$DOCS_LATEST_VERSION" ]]; then
+            echo "The current branch is not the latest version and will not be deployed to Netlify"
+            exit 0
+          else
+            echo "Branch matches the latest version"
+          fi
 
       - name: Remove local branch if it exists
         run: |
