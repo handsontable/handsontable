@@ -80,9 +80,13 @@ jobs:
       - name: Recreate the docs latest branch
         run: |
           git fetch origin prod-docs/${DOCS_LATEST_VERSION}
-          git checkout origin/prod-docs/${DOCS_LATEST_VERSION}
+          git checkout origin/prod- /${DOCS_LATEST_VERSION}
           git checkout -b prod-docs/latest
           git push --force --set-upstream origin prod-docs/latest
+      - name: print directory
+        run: | 
+          pwd
+          ls -al
 
       - name: Branch Patch
         run: |
