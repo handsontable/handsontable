@@ -37,7 +37,7 @@ jobs:
           docs_latest_version=$(git ls-remote --heads origin | grep 'prod-docs/[0-9]\+\.[0-9]\+' | sed 's|.*/prod-docs/||' | sort -V | tail -n 1)
           echo "The docs latest version: $docs_latest_version"
           echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV
-          echo "docs_latest_version=$docs_latest_version" >> $GITHUB_OUTPUT  # Set output for later use
+          echo "docs_latest_version=$docs_latest_version" >> $GITHUB_OUTPUT
 
       - name: Validate Docs version
         run: |
@@ -84,10 +84,6 @@ jobs:
           git checkout origin/prod-docs/${DOCS_LATEST_VERSION}
           git checkout -b prod-docs/latest
           git push --force --set-upstream origin prod-docs/latest
-      - name: print directory
-        run: |
-          pwd
-          ls -al
 
       - name: Branch Patch
         working-directory: ./
@@ -95,8 +91,12 @@ jobs:
           git fetch origin feature/dev-issue-1790
           git checkout feature/dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js docs/netlify.toml
 
+      - name: Preserve the dist directory
+        run: |
+          echo "!/.vuepress/dist" >> .gitignore
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
