@@ -48,7 +48,7 @@ jobs:
           if [[ "${{ github.ref_name }}" != "$DOCS_LATEST_VERSION" ]]; then
             echo "The current branch is not the latest version and will not be deployed to Netlify"
             echo "::set-output name=continue::false"
-          elif [[ "${{ github.ref_name }}" =~ ${{ env.FEATURE_BRANCH }} ]]; then
+          elif [[ "${{ github.ref_name }}" =~ $FEATURE_BRANCH ]]; then
             echo "Branch matches: ${{ github.ref_name }}."
             echo "::set-output name=continue::true"
           else
