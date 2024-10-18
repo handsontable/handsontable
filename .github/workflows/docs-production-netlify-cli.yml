@@ -131,4 +131,7 @@ jobs:
               "value": "'"${DOCS_LATEST_VERSION}"'"
             }'
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.N
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_ACCOUNT_ID: handsonable-team
