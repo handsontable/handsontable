@@ -21,33 +21,36 @@ defaults:
     working-directory: ./docs/
 
 jobs:
-  netlify-deploy:
-    name: Build Docs
+  check-version:
+    name: Check Docs Version and Branch
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+      - uses: actions/checkout@v3
       - name: Print the list of prod-docs branches without fetching
         run: git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/'
 
       - name: Obtain the docs latest version
         working-directory: ./  
         run: |
-          docs_latest_version=`git ls-remote --heads origin | grep 'prod-docs/[0-9]\+\.[0-9]\+' | sed 's|.*/prod-docs/||' | sort -V | tail -n 1`
+          docs_latest_version=$(git ls-remote --heads origin | grep 'prod-docs/[0-9]\+\.[0-9]\+' | sed 's|.*/prod-docs/||' | sort -V | tail -n 1)
           echo "The docs latest version: $docs_latest_version"
           echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV
 
       - name: Validate Docs version
-        run: if [ -z "$DOCS_LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
+        run: |
+          if [ -z "$DOCS_LATEST_VERSION" ]; then
+            echo "Docs version is empty";
+            exit 1;
+          fi
 
       - name: Check if branch matches the latest version
         id: check-branch
         run: |
-          echo "FEATURE_BRANCH=feature/dev-issue-1790" >> $GITHUB_ENV
+          FEATURE_BRANCH="feature/dev-issue-1790"
           if [[ "${{ github.ref_name }}" != "$DOCS_LATEST_VERSION" ]]; then
             echo "The current branch is not the latest version and will not be deployed to Netlify"
             echo "::set-output name=continue::false"
+            exit 0
           elif [[ "${{ github.ref_name }}" =~ $FEATURE_BRANCH ]]; then
             echo "Branch matches: ${{ github.ref_name }}."
             echo "::set-output name=continue::true"
@@ -56,9 +59,20 @@ jobs:
             echo "Branch matches the latest version"
           fi
 
-      - name: Continue if branch matches
-        if: steps.check-branch.outputs.continue == 'true'
-        run: echo "Continuing workflow as branch matches."
+      - name: Stop if branch does not match
+        if: steps.check-branch.outputs.continue == 'false'
+        run: exit 0
+
+  netlify-deploy:
+    name: Build Docs
+    needs: check-version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+      - name: Print the list of prod-docs branches without fetching
+        run: git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/'
 
       - name: Remove local branch if it exists
         run: |
