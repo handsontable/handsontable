@@ -28,7 +28,7 @@ jobs:
       docs_latest_version: ${{ steps.set-docs-version.outputs.docs_latest_version }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
       - name: Obtain the docs latest version
         id: set-docs-version
@@ -71,7 +71,7 @@ jobs:
       DOCS_LATEST_VERSION: ${{ needs.check-version.outputs.docs_latest_version }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
       - name: Remove local branch if it exists
         run: |
@@ -84,7 +84,7 @@ jobs:
           git checkout -b prod-docs/latest
           git push --force --set-upstream origin prod-docs/latest
       - name: print directory
-        run: | 
+        run: |
           pwd
           ls -al
 
