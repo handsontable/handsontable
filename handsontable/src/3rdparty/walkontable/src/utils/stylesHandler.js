@@ -103,7 +103,7 @@ export class StylesHandler {
 
     const acquiredValue = this.#getParsedCSSValue(`--ht-${variableName}`);
 
-    if (acquiredValue && acquiredValue !== '') {
+    if (acquiredValue !== undefined && acquiredValue !== null) {
       this.#cssVars[variableName] = acquiredValue;
 
       return acquiredValue;
@@ -184,7 +184,7 @@ export class StylesHandler {
    */
   #getParsedCSSValue(property) {
     const parsedValue = parseInt(this.#rootComputedStyle.getPropertyValue(property), 10);
-    
+
     return Number.isNaN(parsedValue) ? null : parsedValue;
   }
 }
