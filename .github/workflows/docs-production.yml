@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - 'prod-docs/**'
+      - '!prod-docs/latest'
   workflow_dispatch:
 
 defaults:
