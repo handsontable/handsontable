@@ -149,6 +149,7 @@ class TableView {
    */
   render() {
     if (!this.hot.isRenderSuspended()) {
+      this._wt.prepare();
       this.hot.runHooks('beforeRender', this.hot.forceFullRender);
 
       if (this.postponedAdjustElementsSize) {
@@ -157,6 +158,7 @@ class TableView {
         this.adjustElementsSize(true);
       }
 
+      // console.log('[RENDER]');
       this._wt.draw(!this.hot.forceFullRender);
       this.hot.runHooks('afterRender', this.hot.forceFullRender);
       this.hot.forceFullRender = false;
@@ -797,11 +799,13 @@ class TableView {
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
       onWindowResize: () => {
         if (this.hot && !this.hot.isDestroyed) {
+          // console.log('[onWindowResize]');
           this.hot.refreshDimensions();
         }
       },
       onContainerElementResize: () => {
         if (this.hot && !this.hot.isDestroyed && isVisible(this.hot.rootElement)) {
+          // console.log('[onContainerElementResize]');
           this.hot.refreshDimensions();
         }
       },

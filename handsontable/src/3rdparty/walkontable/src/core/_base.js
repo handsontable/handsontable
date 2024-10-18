@@ -27,6 +27,7 @@ export default class CoreAbstract {
   guid = `wt_${randomString()}`;
   drawInterrupted = false;
   drawn = false;
+  prepared = false;
 
   /**
    * The name of the overlay that currently renders the table.
@@ -112,6 +113,12 @@ export default class CoreAbstract {
     return new CellRange(highlight, from, to, this.wtSettings.getSetting('rtlMode'));
   }
 
+  prepare() {
+    this.prepared = true;
+    this.wtViewport.clearCache();
+    this.wtViewport.calcScroll();
+  }
+
   /**
    * Force rerender of Walkontable.
    *
@@ -127,7 +134,12 @@ export default class CoreAbstract {
       // draw interrupted because TABLE is not visible
       this.drawInterrupted = true;
     } else {
+      if (!this.prepared) {
+        this.prepare();
+      }
+
       this.wtTable.draw(fastDraw);
+      this.prepared = false;
     }
 
     return this;

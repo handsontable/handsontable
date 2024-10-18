@@ -284,8 +284,6 @@ class Table {
     const columnHeadersCount = columnHeaders.length;
     let runFastDraw = fastDraw;
 
-    wtViewport.clearCache();
-
     if (this.isMaster) {
       wtOverlays.beforeDraw();
       this.holderOffset = offset(this.holder);
@@ -366,12 +364,12 @@ class Table {
           wtOverlays.applyToDOM();
 
           // TODO: check hasVerticalScroll methods
-          const holderWidth = this.holder.offsetWidth;
-          const hiderWidth = this.hider.offsetWidth;
+          // const holderWidth = this.holder.offsetWidth;
+          // const hiderWidth = this.hider.offsetWidth;
 
-          if (holderWidth !== 0 && (holderWidth !== hiderWidth)) {
-            wtOverlays.adjustElementsSize();
-          }
+          // if (holderWidth !== 0 && (holderWidth !== hiderWidth)) {
+          //   wtOverlays.adjustElementsSize();
+          // }
 
           this.wtSettings.getSetting('onDraw', true);
 

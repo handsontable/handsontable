@@ -1,6 +1,5 @@
 import {
   getScrollbarWidth,
-  getStyle,
   offset,
 } from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
@@ -43,7 +42,6 @@ class Viewport {
     this.hasOversizedColumnHeadersMarked = {};
     this.clientHeight = 0;
     this.rowHeaderWidth = NaN;
-    this.hadVerticalScroll = false;
     this.rowsCalculator = null;
     this.columnsCalculator = null;
     this.rowsRenderCalculator = null;
@@ -54,6 +52,10 @@ class Viewport {
     this.columnsVisibleCalculator = null;
     this.cachedWorkspaceWidth = null;
     this.cachedWorkspaceHeight = null;
+    this.cachedViewportWidth = null;
+    this.cachedViewportHeight = null;
+    this.cachedHasVerticalScroll = null;
+    this.cachedHasHorizontalScroll = null;
     this.rowsCalculatorTypes = new Map([
       ['rendered', () => (this.wtSettings.getSetting('renderAllRows') ?
         new RenderedAllRowsCalculationType() : new RenderedRowsCalculationType())],
@@ -84,22 +86,24 @@ class Viewport {
       return this.cachedWorkspaceHeight;
     }
 
-    const currentDocument = this.domBindings.rootDocument;
     const trimmingContainer = this.dataAccessObject.topOverlayTrimmingContainer;
-
-    // const tableRect = this.wtTable.TABLE.getBoundingClientRect();
-    // const inlineStart = isRtl ? tableRect.right - docOffsetWidth : tableRect.left;
-
     let height = 0;
 
     if (trimmingContainer === this.domBindings.rootWindow) {
-      height = currentDocument.documentElement.clientHeight;
+      const { rootDocument, rootWindow } = this.domBindings;
+      const top = Math.max(this.wtTable.TBODY.getBoundingClientRect().top, 0);
+      const hasHorizontalScroll = this.hasHorizontalScroll();
+
+      height = rootDocument.documentElement.clientHeight - top;
+
+      if (rootDocument.documentElement.scrollWidth > rootWindow.innerWidth !== hasHorizontalScroll) {
+        const scrollbarHeight = getScrollbarWidth(rootDocument);
+
+        height += hasHorizontalScroll ? -scrollbarHeight : scrollbarHeight;
+      }
 
     } else {
-      const elemHeight = trimmingContainer.offsetHeight;
-
-      // returns height without DIV scrollbar
-      height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : Infinity;
+      height = trimmingContainer.clientHeight;
     }
 
     this.cachedWorkspaceHeight = height;
@@ -109,7 +113,11 @@ class Viewport {
 
   /**
    * Gets the width of the table workspace (in pixels). The workspace size contains
-   * the viewport width plus row headers width.
+   * the viewport width plus row headers width including the scrollbar width but only if the
+   * scrollable element is not the window otherwise the scrollbar width is not included.
+   *
+   * The method calculates the workspace size that will be after the entire table is rendered - prediction,
+   * not after. Thanks to that, it's possible to set the correct viewport size before rendering.
    *
    * @returns {number}
    */
@@ -118,95 +126,105 @@ class Viewport {
       return this.cachedWorkspaceWidth;
     }
 
-    const { wtSettings } = this;
     const { rootDocument, rootWindow } = this.domBindings;
     const trimmingContainer = this.dataAccessObject.inlineStartOverlayTrimmingContainer;
-    const docOffsetWidth = rootDocument.documentElement.offsetWidth;
-    const totalColumns = wtSettings.getSetting('totalColumns');
-    const preventOverflow = wtSettings.getSetting('preventOverflow');
-    const isRtl = wtSettings.getSetting('rtlMode');
-    const tableRect = this.wtTable.TABLE.getBoundingClientRect();
-    const inlineStart = isRtl ? tableRect.right - docOffsetWidth : tableRect.left;
-    const tableOffset = docOffsetWidth - inlineStart;
     let width;
-    let overflow;
 
-    if (preventOverflow) {
-      this.cachedWorkspaceWidth = this.wtTable.wtRootElement.offsetWidth;
+    if (trimmingContainer === rootWindow) {
+      const { wtSettings } = this;
+      const totalColumns = wtSettings.getSetting('totalColumns');
+      // TODO: add RTL support
+      const left = Math.max(Math.round(this.wtTable.TBODY.getBoundingClientRect().left), 0);
 
-      return this.cachedWorkspaceWidth;
-    }
+      width = this.wtTable.holder.offsetWidth;
 
-    if (wtSettings.getSetting('freezeOverlays')) {
-      width = Math.min(tableOffset, docOffsetWidth);
-    } else {
-      width = Math.min(this.wtTable.holder.offsetWidth, tableOffset, docOffsetWidth);
-    }
+      if (this.getRowHeaderWidth() + this.sumColumnWidths(0, totalColumns) > width) {
+        width = rootWindow.innerWidth - left;
 
-    if (trimmingContainer === rootWindow && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
-      // in case sum of column widths is higher than available stylesheet width, let's assume using the whole window
-      // otherwise continue below, which will allow stretching
-      // this is used in `scroll_window.html`
-      // TODO test me
-      this.cachedWorkspaceWidth = rootDocument.documentElement.clientWidth;
+      } else {
+        const hasVerticalScroll = this.hasVerticalScroll();
 
-      return this.cachedWorkspaceWidth;
-    }
+        if (rootDocument.documentElement.scrollHeight > rootWindow.innerHeight !== hasVerticalScroll) {
+          const scrollbarWidth = getScrollbarWidth(rootDocument);
 
-    const hasVerticalScroll = this.hasVerticalScroll();
-
-    if (trimmingContainer !== rootWindow) {
-      overflow = getStyle(this.dataAccessObject.inlineStartOverlayTrimmingContainer, 'overflow', rootWindow);
-
-      if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
-        width = Math.max(width, trimmingContainer.clientWidth);
+          width += hasVerticalScroll ? -scrollbarWidth : scrollbarWidth;
+        }
       }
+
     } else {
-      if (hasVerticalScroll && this.hadVerticalScroll !== hasVerticalScroll) {
-        width -= getScrollbarWidth(rootDocument);
-      }
+      width = trimmingContainer.clientWidth;
     }
 
     this.cachedWorkspaceWidth = width;
-    this.hadVerticalScroll = hasVerticalScroll;
 
     return width;
   }
 
   /**
+   * Gets the width of the table viewport (in pixels). The viewport size is the same as the workspace size
+   * minus the row headers width and the scrollbar width (if present).
+   *
    * @returns {number}
    */
   getViewportWidth() {
+    if (this.cachedViewportWidth !== null) {
+      return this.cachedViewportWidth;
+    }
+
     let viewportWidth = this.getWorkspaceWidth();
 
-    if (viewportWidth === Infinity) {
-      return viewportWidth;
+    if (this.hasVerticalScroll()) {
+      if (this.isHorizontallyScrollableByWindow()) {
+        const { rootDocument } = this.domBindings;
+        // TODO: add RTL support
+        const left = Math.max(Math.round(this.wtTable.TBODY.getBoundingClientRect().left), 0);
+
+        if (viewportWidth + left > rootDocument.documentElement.clientWidth) {
+          viewportWidth -= getScrollbarWidth(this.domBindings.rootDocument);
+        }
+
+      } else {
+        viewportWidth -= getScrollbarWidth(this.domBindings.rootDocument);
+      }
     }
 
     viewportWidth -= this.getRowHeaderWidth();
+    this.cachedViewportWidth = viewportWidth;
 
-    if (!this.isVerticallyScrollableByWindow() && this.hasVerticalScroll()) {
-      viewportWidth -= getScrollbarWidth();
-    }
+    // console.log('workspaceWidth', this.getWorkspaceWidth(), 'viewportWidth', viewportWidth);
 
     return viewportWidth;
   }
 
   /**
+   * Gets the height of the table viewport (in pixels). The viewport size is the same as the workspace size
+   * minus the column headers height and the scrollbar height (if present).
+   *
    * @returns {number}
    */
   getViewportHeight() {
+    if (this.cachedViewportHeight !== null) {
+      return this.cachedViewportHeight;
+    }
+
     let viewportHeight = this.getWorkspaceHeight();
 
-    if (viewportHeight === Infinity) {
-      return viewportHeight;
+    if (this.hasHorizontalScroll()) {
+      if (this.isVerticallyScrollableByWindow()) {
+        const { rootDocument } = this.domBindings;
+        const top = Math.max(Math.round(this.wtTable.TABLE.getBoundingClientRect().top), 0);
+
+        if (viewportHeight + top > rootDocument.documentElement.clientHeight) {
+          viewportHeight -= getScrollbarWidth(this.domBindings.rootDocument);
+        }
+
+      } else {
+        viewportHeight -= getScrollbarWidth(this.domBindings.rootDocument);
+      }
     }
 
     viewportHeight -= this.getColumnHeaderHeight();
-
-    // if (this.hasHorizontalScroll()) {
-    //   viewportHeight -= getScrollbarWidth();
-    // }
+    this.cachedViewportHeight = viewportHeight;
 
     return viewportHeight;
   }
@@ -217,26 +235,7 @@ class Viewport {
    * @returns {boolean}
    */
   hasVerticalScroll() {
-    if (!this.rowsCalculator) {
-      const { wtSettings, wtTable } = this;
-      const totalRows = wtSettings.getSetting('totalRows');
-      const viewportHeight = this.getViewportHeight();
-      let totalHeight = 0;
-      let hasScroll = false;
-
-      for (let row = 0; row < totalRows; row++) {
-        totalHeight += wtTable.getRowHeight(row) ?? DEFAULT_ROW_HEIGHT;
-
-        if (totalHeight >= viewportHeight) {
-          hasScroll = true;
-          break;
-        }
-      }
-
-      return hasScroll;
-    }
-
-    return this.rowsCalculator.needReverse === false;
+    return this.cachedHasVerticalScroll || false;
   }
 
   /**
@@ -245,26 +244,108 @@ class Viewport {
    * @returns {boolean}
    */
   hasHorizontalScroll() {
-    // if (!this.columnsCalculator) {
-    //   const { wtSettings, wtTable } = this;
-    //   const totalColumns = wtSettings.getSetting('totalColumns');
-    //   const viewportWidth = this.getViewportWidth();
-    //   let totalWidth = 0;
-    //   let hasScroll = false;
+    return this.cachedHasHorizontalScroll || false;
+  }
 
-    //   for (let column = 0; column < totalColumns; column++) {
-    //     totalWidth += wtTable.getColumnWidth(column) ?? DEFAULT_COLUMN_WIDTH;
+  calcScroll() {
+    const { wtSettings, wtTable } = this;
+    const { rootWindow, rootDocument } = this.domBindings;
 
-    //     if (totalWidth >= viewportWidth) {
-    //       hasScroll = true;
-    //       break;
-    //     }
-    //   }
+    const calcHScroll = () => {
+      const totalColumns = wtSettings.getSetting('totalColumns');
+      let viewportWidth = 0;
 
-    //   return hasScroll;
-    // }
+      if (this.isHorizontallyScrollableByWindow()) {
+        if (
+          rootDocument.documentElement.scrollWidth > rootWindow.innerWidth ||
+          rootWindow.getComputedStyle(rootDocument.body).overflowX === 'scroll'
+        ) {
+          this.cachedHasHorizontalScroll = true;
 
-    return this.columnsCalculator?.needReverse === false;
+          return;
+        }
+
+        // TODO: add RTL support
+        const tableLeft = Math.max(Math.round(wtTable.TABLE.getBoundingClientRect().left), 0);
+
+        viewportWidth = rootWindow.innerWidth - tableLeft;
+
+        if (this.hasVerticalScroll()) {
+          viewportWidth -= getScrollbarWidth(rootDocument);
+        }
+
+      } else {
+        viewportWidth = this.getViewportWidth();
+      }
+
+      let hasHScroll = false;
+      let totalWidth = 0;
+
+      for (let column = 0; column < totalColumns; column++) {
+        totalWidth += wtTable.getColumnWidth(column) ?? DEFAULT_COLUMN_WIDTH;
+
+        if (totalWidth > viewportWidth) {
+          hasHScroll = true;
+          break;
+        }
+      }
+
+      this.cachedHasHorizontalScroll = hasHScroll;
+    };
+
+    const calcVScroll = () => {
+      const totalRows = wtSettings.getSetting('totalRows');
+      let viewportHeight = 0;
+
+      if (this.isVerticallyScrollableByWindow()) {
+        if (
+          rootDocument.documentElement.scrollHeight > rootWindow.innerHeight ||
+          rootWindow.getComputedStyle(rootDocument.body).overflowY === 'scroll'
+        ) {
+          this.cachedHasVerticalScroll = true;
+
+          return;
+        }
+
+        const tableTop = Math.max(Math.round(wtTable.TABLE.getBoundingClientRect().top), 0);
+        const marginBottom = parseInt(rootWindow.getComputedStyle(rootDocument.body).marginBottom, 10);
+
+        viewportHeight = rootWindow.innerHeight - tableTop - marginBottom;
+
+        if (this.hasHorizontalScroll()) {
+          viewportHeight -= getScrollbarWidth(rootDocument);
+        }
+      } else {
+        viewportHeight = this.getViewportHeight();
+      }
+
+      let totalHeight = 0;
+      let hasVScroll = false;
+
+      for (let row = 0; row < totalRows; row++) {
+        const height = (wtTable.getRowHeight(row) ?? DEFAULT_ROW_HEIGHT) + (row === 0 ? 1 : 0);
+
+        totalHeight += height;
+
+        if (totalHeight > viewportHeight) {
+          hasVScroll = true;
+          break;
+        }
+      }
+
+      this.cachedHasVerticalScroll = hasVScroll;
+    };
+
+    calcHScroll();
+    calcVScroll();
+
+    if (this.cachedHasHorizontalScroll !== this.cachedHasVerticalScroll) {
+      this.cachedViewportWidth = null;
+      this.cachedViewportHeight = null;
+
+      calcHScroll();
+      calcVScroll();
+    }
   }
 
   /**
@@ -447,9 +528,9 @@ class Viewport {
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }
-    if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
-      width -= getScrollbarWidth(this.domBindings.rootDocument);
-    }
+    // if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
+    //   width -= getScrollbarWidth(this.domBindings.rootDocument);
+    // }
 
     return new ViewportColumnsCalculator({
       calculationTypes: calculatorTypes.map(type => [type, this.columnsCalculatorTypes.get(type)()]),
@@ -629,6 +710,10 @@ class Viewport {
   clearCache() {
     this.cachedWorkspaceWidth = null;
     this.cachedWorkspaceHeight = null;
+    this.cachedHasVerticalScroll = null;
+    this.cachedHasHorizontalScroll = null;
+    this.cachedViewportWidth = null;
+    this.cachedViewportHeight = null;
   }
 
   /**
