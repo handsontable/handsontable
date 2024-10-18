@@ -5,8 +5,6 @@ import {
   removeTextNodes,
   overlayContainsElement,
   closest,
-  outerHeight,
-  outerWidth,
   innerHeight,
   isVisible,
   setAttribute,
@@ -347,11 +345,7 @@ class Table {
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
 
-        let workspaceWidth;
-
         if (this.isMaster) {
-          workspaceWidth = this.dataAccessObject.workspaceWidth;
-          wtViewport.containerWidth = null;
           this.markOversizedColumnHeaders();
         }
 
@@ -369,21 +363,13 @@ class Table {
           wtOverlays.refresh(false);
           wtOverlays.applyToDOM();
 
-          const hiderWidth = outerWidth(this.hider);
-          const tableWidth = outerWidth(this.TABLE);
+          // TODO: check hasVerticalScroll methods
+          // const holderWidth = this.holder.offsetWidth;
+          // const hiderWidth = this.hider.offsetWidth;
 
-          if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
-            // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
-            this.columnUtils.calculateWidths();
-            this.tableRenderer.renderer.colGroup.render();
-          }
-
-          if (workspaceWidth !== wtViewport.getWorkspaceWidth()) {
-            // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
-            wtViewport.containerWidth = null;
-            this.columnUtils.calculateWidths();
-            this.tableRenderer.renderer.colGroup.render();
-          }
+          // if (holderWidth !== 0 && (holderWidth !== hiderWidth)) {
+          //   wtOverlays.adjustElementsSize();
+          // }
 
           this.wtSettings.getSetting('onDraw', true);
 
@@ -418,7 +404,7 @@ class Table {
       // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
       // when there is a switch between rendering from 0 to N rows/columns and vice versa).
       wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
-      wtOverlays.adjustElementsSize();
+      // wtOverlays.adjustElementsSize();
     } else {
       this.dataAccessObject.selectionManager
         .setActiveOverlay(this.facadeGetter())
@@ -1052,14 +1038,6 @@ class Table {
   }
 
   /**
-   * @param {number} sourceColumn The physical column index.
-   * @returns {number}
-   */
-  getStretchedColumnWidth(sourceColumn) {
-    return this.columnUtils.getStretchedColumnWidth(sourceColumn);
-  }
-
-  /**
    * Checks if the table has defined size. It returns `true` when the table has width and height
    * set bigger than `0px`.
    *
@@ -1076,7 +1054,7 @@ class Table {
    * @returns {number}
    */
   getWidth() {
-    return outerWidth(this.TABLE);
+    return this.TABLE.offsetWidth;
   }
 
   /**
@@ -1086,7 +1064,7 @@ class Table {
    * @returns {number}
    */
   getHeight() {
-    return outerHeight(this.TABLE);
+    return this.TABLE.offsetHeight;
   }
 
   /**
@@ -1096,7 +1074,7 @@ class Table {
    * @returns {number}
    */
   getTotalWidth() {
-    const width = outerWidth(this.hider);
+    const width = this.hider.offsetWidth;
 
     // when the overlay's table does not have any cells the hider returns 0, get then width from the table element
     return width !== 0 ? width : this.getWidth();
@@ -1109,7 +1087,7 @@ class Table {
    * @returns {number}
    */
   getTotalHeight() {
-    const height = outerHeight(this.hider);
+    const height = this.hider.offsetHeight;
 
     // when the overlay's table does not have any cells the hider returns 0, get then height from the table element
     return height !== 0 ? height : this.getHeight();

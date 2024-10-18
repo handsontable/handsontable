@@ -122,6 +122,10 @@ export default class WalkontableFacade {
     return this._wot.createCellRange(highlight, from, to);
   }
 
+  prepare() {
+    this._wot.prepare();
+  }
+
   draw(fastDraw = false) {
     this._wot.draw(fastDraw);
 

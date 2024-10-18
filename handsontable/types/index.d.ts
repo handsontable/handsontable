@@ -221,6 +221,9 @@ import {
   SearchQueryMethod,
 } from './plugins/search';
 import {
+  Settings as StretchColumnsSettings,
+} from './plugins/stretchColumns';
+import {
   TouchScroll as _TouchScroll,
   Settings as TouchScrollSettings,
 } from './plugins/touchScroll';
@@ -521,6 +524,10 @@ declare namespace Handsontable {
       export { SearchSettings as Settings };
       export { SearchCallback };
       export { SearchQueryMethod };
+    }
+
+    export namespace StretchColumns {
+      export { StretchColumnsSettings as Settings };
     }
 
     export namespace TouchScroll {

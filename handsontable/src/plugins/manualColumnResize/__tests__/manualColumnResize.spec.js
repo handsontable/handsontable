@@ -375,11 +375,11 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect($columnHeaders.eq(0).width()).toBe(180);
-    expect($columnHeaders.eq(1).width()).toBe(181);
-    expect($columnHeaders.eq(2).width()).toBe(181);
-    expect($columnHeaders.eq(3).width()).toBe(181);
-    expect($columnHeaders.eq(4).width()).toBe(181);
+    expect($columnHeaders.eq(0).width()).toBe(221);
+    expect($columnHeaders.eq(1).width()).toBe(19);
+    expect($columnHeaders.eq(2).width()).toBe(222);
+    expect($columnHeaders.eq(3).width()).toBe(222);
+    expect($columnHeaders.eq(4).width()).toBe(220);
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async() => {

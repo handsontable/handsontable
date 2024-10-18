@@ -14,7 +14,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
   }
 
   class ColumnUtilsMock {
-    getStretchedColumnWidth() {
+    getWidth() {
       return 100;
     }
     getHeaderWidth() {
@@ -185,7 +185,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     spyOn(columnUtilsMock, 'getHeaderWidth').and.callFake((sourceColumnIndex) => {
       return sourceColumnIndex + 100;
     });
-    spyOn(columnUtilsMock, 'getStretchedColumnWidth').and.callFake((sourceColumnIndex) => {
+    spyOn(columnUtilsMock, 'getWidth').and.callFake((sourceColumnIndex) => {
       return sourceColumnIndex + 100;
     });
 
@@ -205,7 +205,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
       `);
   });
 
-  it('should render column widths based on source column index (offseted value)', () => {
+  it('should render column widths based on source column index (offset value)', () => {
     const { renderer, tableMock, rootNode, columnUtilsMock } = createRenderer();
 
     spyOn(tableMock, 'renderedColumnToSource').and.callFake((index) => {
@@ -214,7 +214,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     spyOn(columnUtilsMock, 'getHeaderWidth').and.callFake((sourceColumnIndex) => {
       return sourceColumnIndex + 100;
     });
-    spyOn(columnUtilsMock, 'getStretchedColumnWidth').and.callFake((sourceColumnIndex) => {
+    spyOn(columnUtilsMock, 'getWidth').and.callFake((sourceColumnIndex) => {
       return sourceColumnIndex + 100;
     });
 

@@ -392,9 +392,10 @@ class Overlays {
       }, 200);
     });
 
-    if (!isScrollOnWindow) {
-      this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
-    }
+    // if (!isScrollOnWindow) {
+    //   this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
+    // }
+    this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
   }
 
   /**

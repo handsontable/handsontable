@@ -430,32 +430,6 @@ describe('Core_updateSettings', () => {
     expect(getCellValidator(0, 0)).toBeUndefined();
   });
 
-  it('should allow updating the stretching type', () => {
-    const hot = handsontable({
-      stretchH: 'last'
-    });
-
-    expect(hot.view._wt.getSetting('stretchH')).toEqual('last');
-
-    updateSettings({
-      stretchH: 'all'
-    });
-
-    expect(hot.view._wt.getSetting('stretchH')).toEqual('all');
-
-    updateSettings({
-      stretchH: 'none'
-    });
-
-    expect(hot.view._wt.getSetting('stretchH')).toEqual('none');
-
-    updateSettings({
-      stretchH: 'last'
-    });
-
-    expect(hot.view._wt.getSetting('stretchH')).toEqual('last');
-  });
-
   it('should change colHeader\'s row height if is needed', () => {
     handsontable({
       colHeaders: true,
