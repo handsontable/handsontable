@@ -3,7 +3,6 @@ import { addClass, closest, hasClass, removeClass, outerWidth, isDetached } from
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { DEFAULT_ROW_HEIGHT } from '../../3rdparty/walkontable/src';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
@@ -204,7 +203,7 @@ export class ManualRowResize extends BasePlugin {
    */
   setManualSize(row, height) {
     const physicalRow = this.hot.toPhysicalRow(row);
-    const newHeight = Math.max(height, DEFAULT_ROW_HEIGHT);
+    const newHeight = Math.max(height, this.hot.view.getDefaultRowHeight());
 
     this.#rowHeightsMap.setValueAtIndex(physicalRow, newHeight);
 

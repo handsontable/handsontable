@@ -538,7 +538,7 @@ export class BaseEditor {
     const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) -
       actualVerticalScrollbarWidth + inlineStartBorderCompensation;
     const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) -
-      actualHorizontalScrollbarWidth + topBorderCompensation, 23);
+      actualHorizontalScrollbarWidth + topBorderCompensation, this.hot.view.getDefaultRowHeight());
 
     return {
       top: topPos,
