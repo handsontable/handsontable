@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       continue: ${{ steps.check-branch.outputs.continue }}
-      docs_latest_version: ${{ steps.set-docs-version.outputs.docs_latest_version }}  # Set output for DOCS_LATEST_VERSION
+      docs_latest_version: ${{ steps.set-docs-version.outputs.docs_latest_version }}
 
     steps:
       - uses: actions/checkout@v3
@@ -35,8 +35,7 @@ jobs:
         run: |
           docs_latest_version=$(git ls-remote --heads origin | grep 'prod-docs/[0-9]\+\.[0-9]\+' | sed 's|.*/prod-docs/||' | sort -V | tail -n 1)
           echo "The docs latest version: $docs_latest_version"
-          echo "::set-output name=docs_latest_version::$docs_latest_version"
-          echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV  # Save DOCS_LATEST_VERSION to env
+          echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV
 
       - name: Validate Docs version
         run: |
@@ -53,16 +52,12 @@ jobs:
 
           if [[ "$GITHUB_REF_NAME" != "$DOCS_LATEST_VERSION" && ! "$GITHUB_REF_NAME" =~ $FEATURE_BRANCH ]]; then
             echo "The current branch is not the latest version and will not be deployed to Netlify"
-            echo "::set-output name=continue::false"
+            echo "continue=false" >> $GITHUB_OUTPUT
             exit 0
           else
-            echo "::set-output name=continue::true"
+            echo "continue=true" >> $GITHUB_OUTPUT
             echo "Branch matches the latest version or is a feature branch."
           fi
-
-      - name: Stop if branch does not match
-        if: steps.check-branch.outputs.continue == 'false'
-        run: exit 0
 
   netlify-deploy:
     name: Build Docs
@@ -73,7 +68,7 @@ jobs:
       contents: write
 
     env:
-      DOCS_LATEST_VERSION: ${{ needs.check-version.outputs.docs_latest_version }}  # Reuse DOCS_LATEST_VERSION from check-version
+      DOCS_LATEST_VERSION: ${{ needs.check-version.outputs.docs_latest_version }}
 
     steps:
       - uses: actions/checkout@v3
@@ -89,16 +84,10 @@ jobs:
           git checkout -b prod-docs/latest
           git push --force --set-upstream origin prod-docs/latest
 
-      # This step includes source files, so it can be built even if the feature branch is not merged yet
       - name: Branch Patch
         run: |
           git fetch origin feature/dev-issue-1790
           git checkout feature/dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js docs/netlify.toml
-        working-directory: ./
-
-      - name: Preserve the dist directory
-        run: |
-          echo "!/.vuepress/dist" >> .gitignore
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v3
@@ -113,7 +102,7 @@ jobs:
         run: npm run docs:build:production:netlify
 
       - name : Add changes to the commit
-        run:  git add .
+        run: git add .
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
