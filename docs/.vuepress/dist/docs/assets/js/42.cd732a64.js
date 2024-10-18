@@ -1,0 +1,1 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[42],{365:function(n,o,s){"use strict";s.r(o);var t={name:"Logo"},e=s(24),l=Object(e.a)(t,(function(){return(0,this._self._c)("i",{staticClass:"Logo"})}),[],!1,null,null,null);o.default=l.exports}}]);
