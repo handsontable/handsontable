@@ -35,10 +35,12 @@
           text-overflow: ellipsis;
         }
 
-        td.htDimmed {
-          cursor: default;
-          font-style: inherit;
-          color: inherit;
+        td {
+          &.htDimmed {
+            cursor: default;
+            font-style: inherit;
+            color: inherit;
+          }
         }
 
         .wtBorder {
@@ -50,30 +52,36 @@
           color: inherit;
         }
 
-        tr:hover td {
-          background: var(--ht-menu-item-hover-color, #e5e5e9);
-          cursor: pointer;
-        }
-
-        tr td {
+        tr {
           &:hover {
-            background: var(--ht-menu-item-hover-color, #e5e5e9);
-            cursor: pointer;
+            td {
+              background: var(--ht-menu-item-hover-color, #e5e5e9);
+              cursor: pointer;
+            }
+          }
+
+          td {
+            &:hover, &.current {
+              background: var(--ht-menu-item-hover-color, #e5e5e9);
+              cursor: pointer;
+            }
           }
         }
 
-        thead th {
-          height: auto !important;
-          text-align: left;
-          border-width: 0px 1px 1px;
+        thead {
+          th {
+            height: auto !important;
+            text-align: left;
+            border-width: 0px 1px 1px;
 
-          > div {
-            padding-top: 8px;
-            padding-bottom: 8px;
-          }
+            > div {
+              padding-top: 8px;
+              padding-bottom: 8px;
+            }
 
-          &:first-child {
-            padding-left: 8px;
+            &:first-child {
+              padding-left: 8px;
+            }
           }
         }
       }

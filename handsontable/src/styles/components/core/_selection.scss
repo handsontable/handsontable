@@ -17,6 +17,14 @@
       }
     }
 
+    td.area {
+      border-color: color-mix(
+        in srgb,
+        var(--ht-border-color),
+        var(--ht-foreground-color) 10%
+      );
+    }
+
     // Borders
     .wtBorder {
       position: absolute;
@@ -50,10 +58,10 @@
 
       // Fill handle
       &.corner {
-        width: var(--ht-cell-autofill-size, 4px) !important;
-        height: var(--ht-cell-autofill-size, 4px) !important;
+        width: var(--ht-cell-autofill-size, 6px) !important;
+        height: var(--ht-cell-autofill-size, 6px) !important;
         border: var(--ht-cell-autofill-border-width, 1px) solid
-          var(--ht-cell-autofill-border-color, #000) !important;
+          var(--ht-cell-autofill-border-color, #fff) !important;
         border-radius: var(--ht-cell-autofill-border-radius) !important;
         background-color: var(
           --ht-cell-autofill-background-color,
@@ -68,6 +76,7 @@
       }
     }
   }
+
   [dir="rtl"].handsontable {
     .wtBorder {
       &.corner {

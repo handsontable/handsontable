@@ -18,13 +18,13 @@
       &::after {
         @include mixins.pseudo;
         position: absolute;
-        top: 0;
+        top: 50%;
         left: 1px;
         width: 2px;
         height: calc(100% - 12px);
-        margin: 6px 0;
         background: var(--ht-read-only-color);
         border-radius: 2px;
+        transform: translateY(-50%);
       }
 
       &::after {
