@@ -61,7 +61,7 @@ export class StylesHandler {
     this.#rootDocument = domBindings.rootDocument;
 
     // TODO: naive method of checking for modern themes
-    if (this.#rootComputedStyle?.getPropertyValue('--ht-line-height') === '') {
+    if (this.#rootComputedStyle.getPropertyValue('--ht-line-height') === '') {
       this.#isClassicTheme = true;
     }
 
@@ -180,9 +180,11 @@ export class StylesHandler {
    * Parses the value of a specified CSS property from the root element's computed style.
    *
    * @param {string} property - The CSS property to retrieve and parse.
-   * @returns {number|string} The parsed value of the CSS property.
+   * @returns {number|null} The parsed value of the CSS property.
    */
   #getParsedCSSValue(property) {
-    return parseInt(this.#rootComputedStyle?.getPropertyValue(property), 10);
+    const parsedValue = parseInt(this.#rootComputedStyle.getPropertyValue(property), 10);
+    
+    return Number.isNaN(parsedValue) ? null : parsedValue;
   }
 }
