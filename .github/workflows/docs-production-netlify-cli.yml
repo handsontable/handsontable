@@ -12,7 +12,6 @@ on:
   push:
     branches:
       - 'prod-docs/[0-9]+\\.[0-9]+'
-      #!TODO remove feature branch after the merge
       - feature/dev-issue-1790
   workflow_dispatch:
 
@@ -24,17 +23,20 @@ jobs:
   check-version:
     name: Check Docs Version and Branch
     runs-on: ubuntu-latest
+    outputs:
+      continue: ${{ steps.check-branch.outputs.continue }}
+      docs_latest_version: ${{ steps.set-docs-version.outputs.docs_latest_version }}  # Set output for DOCS_LATEST_VERSION
+
     steps:
       - uses: actions/checkout@v3
-      - name: Print the list of prod-docs branches without fetching
-        run: git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/'
 
       - name: Obtain the docs latest version
-        working-directory: ./  
+        id: set-docs-version
         run: |
           docs_latest_version=$(git ls-remote --heads origin | grep 'prod-docs/[0-9]\+\.[0-9]\+' | sed 's|.*/prod-docs/||' | sort -V | tail -n 1)
           echo "The docs latest version: $docs_latest_version"
-          echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV
+          echo "::set-output name=docs_latest_version::$docs_latest_version"
+          echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV  # Save DOCS_LATEST_VERSION to env
 
       - name: Validate Docs version
         run: |
@@ -66,13 +68,16 @@ jobs:
   netlify-deploy:
     name: Build Docs
     needs: check-version
+    if: needs.check-version.outputs.continue == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
+    env:
+      DOCS_LATEST_VERSION: ${{ needs.check-version.outputs.docs_latest_version }}  # Reuse DOCS_LATEST_VERSION from check-version
+
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-      - name: Print the list of prod-docs branches without fetching
-        run: git ls-remote --heads origin | awk '{print $2}' | sed 's/refs\/heads\///' | grep 'prod-docs/'
+      - uses: actions/checkout@v3
 
       - name: Remove local branch if it exists
         run: |
@@ -85,7 +90,7 @@ jobs:
           git checkout -b prod-docs/latest
           git push --force --set-upstream origin prod-docs/latest
 
-      # this step includes source files, so it can be build even if the feature branch is not merged yet
+      # This step includes source files, so it can be built even if the feature branch is not merged yet
       - name: Branch Patch
         run: |
           git fetch origin feature/dev-issue-1790
@@ -97,24 +102,19 @@ jobs:
           echo "!/.vuepress/dist" >> .gitignore
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@v3
         with:
-          # cache-dependency-path: ./latest/package-lock.json
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Dependencies
-        run: |
-          npm ci
+        run: npm ci
 
       - name: Docs build
-        run: |
-          npm run docs:build:production:netlify
-        working-directory: ./docs/
+        run: npm run docs:build:production:netlify
 
       - name : Add changes to the commit
-        run:  |
-          git add .
+        run:  git add .
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -126,13 +126,12 @@ jobs:
       - name: Deploy to Netlify
         run: |
           npx netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
-          npx netlify env:list
           npx netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/ --site $NETLIFY_SITE_ID
 
         env:
-            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-            NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-            DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
 
       - name: Update Environment Variables on Netlify
         run: |
@@ -144,7 +143,7 @@ jobs:
               "value": "'"${DOCS_LATEST_VERSION}"'"
             }'
         env:
-            NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-            DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
-            NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-            NETLIFY_ACCOUNT_ID: handsonable-team
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_ACCOUNT_ID: handsonable-team
