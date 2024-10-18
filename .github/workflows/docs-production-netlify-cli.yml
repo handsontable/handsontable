@@ -42,13 +42,23 @@ jobs:
         run: if [ -z "$DOCS_LATEST_VERSION" ]; then echo "Docs version is empty"; exit 1; fi
 
       - name: Check if branch matches the latest version
+        id: check-branch
         run: |
+          echo "FEATURE_BRANCH=feature/dev-issue-1790" >> $GITHUB_ENV
           if [[ "${{ github.ref_name }}" != "$DOCS_LATEST_VERSION" ]]; then
             echo "The current branch is not the latest version and will not be deployed to Netlify"
-            exit 0
+            echo "::set-output name=continue::false"
+          elif [[ "${{ github.ref_name }}" =~ ${{ env.FEATURE_BRANCH }} ]]; then
+            echo "Branch matches: ${{ github.ref_name }}."
+            echo "::set-output name=continue::true"
           else
+            echo "::set-output name=continue::true"
             echo "Branch matches the latest version"
           fi
+
+      - name: Continue if branch matches
+        if: steps.check-branch.outputs.continue == 'true'
+        run: echo "Continuing workflow as branch matches."
 
       - name: Remove local branch if it exists
         run: |
