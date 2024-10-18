@@ -60,6 +60,7 @@ export class StylesHandler {
     this.#rootComputedStyle = getComputedStyle(this.#rootElement);
     this.#rootDocument = domBindings.rootDocument;
 
+    // TODO: naive method of checking for modern themes
     if (this.#rootComputedStyle?.getPropertyValue('--ht-line-height') === '') {
       this.#isClassicTheme = true;
     }
@@ -104,6 +105,7 @@ export class StylesHandler {
 
     if (acquiredValue && acquiredValue !== '') {
       this.#cssVars[variableName] = acquiredValue;
+
       return acquiredValue;
     }
   }
