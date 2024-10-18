@@ -31,6 +31,7 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
       - name: Obtain the docs latest version
+        working-directory: ./
         id: set-docs-version
         run: |
           docs_latest_version=$(git ls-remote --heads origin | grep 'prod-docs/[0-9]\+\.[0-9]\+' | sed 's|.*/prod-docs/||' | sort -V | tail -n 1)
@@ -104,6 +105,7 @@ jobs:
         run: npm ci
 
       - name: Docs build
+        working-directory: ./docs/
         run: npm run docs:build:production:netlify
 
       - name : Add changes to the commit
