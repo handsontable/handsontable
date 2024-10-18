@@ -66,6 +66,8 @@
  * @property {Walkontable} cloneSource CloneSource.
  * @property {Walkontable} wot Wot.
  * @property {number} parentTableOffset ParentTableOffset.
+ * @property {StylesHandler} stylesHandler StylesHandler.
+ * @property {SelectionManager} selectionManager SelectionManager.
  * @property {number|null} startColumnRendered StartColumnRendered.
  * @property {number|null} startColumnVisible StartColumnVisible.
  * @property {number|null} endColumnRendered EndColumnRendered.

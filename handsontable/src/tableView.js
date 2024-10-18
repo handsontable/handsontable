@@ -642,7 +642,7 @@ class TableView {
    * @returns {number} The default row height.
    */
   getDefaultRowHeight() {
-    return this._wt._wot.stylesHandler.getDefaultRowHeight();
+    return this._wt.stylesHandler.getDefaultRowHeight();
   }
 
   /**
@@ -652,7 +652,7 @@ class TableView {
    * @returns {string} The value of the specified CSS variable.
    */
   getCSSVariableValue(variableName) {
-    return this._wt._wot.stylesHandler.getCSSVariableValue(variableName);
+    return this._wt.stylesHandler.getCSSVariableValue(variableName);
   }
 
   /**
@@ -664,7 +664,7 @@ class TableView {
    * @returns {boolean} `true` if the classic theme is being used, `false` otherwise.
    */
   isUsingClassicTheme() {
-    return this._wt._wot.stylesHandler.isClassicTheme();
+    return this._wt.stylesHandler.isClassicTheme();
   }
 
   /**

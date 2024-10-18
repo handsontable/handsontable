@@ -1,3 +1,5 @@
+const CLASSIC_THEME_DEFAULT_HEIGHT = 23;
+
 /**
  * Handles the theme-related style operations.
  */
@@ -62,19 +64,20 @@ export class StylesHandler {
       this.#isClassicTheme = true;
     }
 
-    // Some of the properties are not stored in the CSS variables, so we need to get them from the computed style.
-    this.#getStylesForTD((computedStyle) => {
-      this.#computedStyles = {
-        ...this.#computedStyles,
-        ...{
-          td: {
-            'box-sizing': computedStyle['box-sizing'],
-            'border-top-width': parseInt(computedStyle['border-top-width'], 10),
-            'border-bottom-width': parseInt(computedStyle['border-bottom-width'], 10),
-          },
-        },
-      };
-    });
+    const stylesForTD = this.#getStylesForTD([
+      'box-sizing',
+      'border-top-width',
+      'border-bottom-width',
+    ]);
+
+    this.#computedStyles.td = {
+      ...this.#computedStyles.td,
+      ...{
+        'box-sizing': stylesForTD['box-sizing'],
+        'border-top-width': parseInt(stylesForTD['border-top-width'], 10),
+        'border-bottom-width': parseInt(stylesForTD['border-bottom-width'], 10),
+      },
+    };
   }
 
   /**
@@ -100,11 +103,7 @@ export class StylesHandler {
     const acquiredValue = this.#getParsedCSSValue(`--ht-${variableName}`);
 
     if (acquiredValue && acquiredValue !== '') {
-      this.#cssVars = {
-        ...this.#cssVars,
-        ...{ [variableName]: acquiredValue },
-      };
-
+      this.#cssVars[variableName] = acquiredValue;
       return acquiredValue;
     }
   }
@@ -116,11 +115,7 @@ export class StylesHandler {
    * @returns {number|string|undefined} The value of the specified CSS property, or `undefined` if not found.
    */
   getStyleForTD(cssProperty) {
-    const value = this.#computedStyles?.td[cssProperty];
-
-    if (value !== undefined && value !== '') {
-      return value;
-    }
+    return this.#computedStyles?.td[cssProperty];
   }
 
   /**
@@ -130,7 +125,7 @@ export class StylesHandler {
    */
   getDefaultRowHeight() {
     if (this.#isClassicTheme) {
-      return 23;
+      return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
     return this.getStyleForTD('border-top-width') +
@@ -146,28 +141,37 @@ export class StylesHandler {
    * retrieves the computed styles for the `td` element, and then removes the table
    * from the DOM. The computed styles are passed to the provided callback function.
    *
-   * @param {Function} getterCallback - A callback function that processes the computed styles.
-   *                                    It receives a `CSSStyleDeclaration` object as its argument.
+   * @param {Array} cssProps - An array of CSS properties to retrieve.
+   * @returns {object} An object containing the requested computed styles for the `td` element.
    * @private
    */
-  #getStylesForTD(getterCallback) {
-    const table = this.#rootDocument.createElement('table');
-    const tbody = this.#rootDocument.createElement('tbody');
-    const tr = this.#rootDocument.createElement('tr');
+  #getStylesForTD(cssProps) {
+    const rootDocument = this.#rootDocument;
+    const rootElement = this.#rootElement;
+    const table = rootDocument.createElement('table');
+    const tbody = rootDocument.createElement('tbody');
+    const tr = rootDocument.createElement('tr');
     // This needs not to be the first row in order to get "regular" vaules.
-    const tr2 = this.#rootDocument.createElement('tr');
-    const td = this.#rootDocument.createElement('td');
+    const tr2 = rootDocument.createElement('tr');
+    const td = rootDocument.createElement('td');
 
     tr2.appendChild(td);
     tbody.appendChild(tr);
     tbody.appendChild(tr2);
     table.appendChild(tbody);
 
-    this.#rootElement.appendChild(table);
+    rootElement.appendChild(table);
 
-    getterCallback(getComputedStyle(td));
+    const computedStyle = getComputedStyle(td);
+    const returnObject = {};
 
-    this.#rootElement.removeChild(table);
+    cssProps.forEach((prop) => {
+      returnObject[prop] = computedStyle.getPropertyValue(prop);
+    });
+
+    rootElement.removeChild(table);
+
+    return returnObject;
   }
 
   /**

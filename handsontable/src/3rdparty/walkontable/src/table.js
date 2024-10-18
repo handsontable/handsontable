@@ -440,7 +440,7 @@ class Table {
   markIfOversizedColumnHeader(col) {
     const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = this.wtSettings.getSetting('columnHeaders').length;
-    const defaultRowHeight = this.wot.stylesHandler.getDefaultRowHeight();
+    const defaultRowHeight = this.dataAccessObject.stylesHandler.getDefaultRowHeight();
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
@@ -765,7 +765,7 @@ class Table {
       return;
     }
     let rowCount = this.TBODY.childNodes.length;
-    const expectedTableHeight = rowCount * this.wot.stylesHandler.getDefaultRowHeight();
+    const expectedTableHeight = rowCount * this.dataAccessObject.stylesHandler.getDefaultRowHeight();
     const actualTableHeight = innerHeight(this.TBODY) - 1;
     const borderBoxSizing = this.wot.stylesHandler.getStyleForTD('box-sizing') === 'border-box';
     const rowHeightFn = borderBoxSizing ? outerHeight : innerHeight;
@@ -795,7 +795,7 @@ class Table {
         rowCurrentHeight = rowHeightFn(currentTr) - borderCompensation;
       }
 
-      if ((!previousRowHeight && this.wot.stylesHandler.getDefaultRowHeight() < rowCurrentHeight ||
+      if ((!previousRowHeight && this.dataAccessObject.stylesHandler.getDefaultRowHeight() < rowCurrentHeight ||
           previousRowHeight < rowCurrentHeight)) {
         rowCurrentHeight += 1;
         this.dataAccessObject.wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;
