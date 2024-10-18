@@ -39,12 +39,10 @@
       margin: 0 -1px;
       padding: var(--ht-comments-textarea-vertical-padding)
         var(--ht-comments-textarea-horizontal-padding);
-      border: 0;
+      border: var(--ht-comments-textarea-focus-border-width, 1px) solid
+        transparent;
       border-inline-start: var(--ht-comments-textarea-focus-border-width, 1px)
-        solid var(--ht-comments-textarea-border-color, #ffffff);
-      border-inline-end: none;
-      border-radius: 0 calc(2 * var(--ht-gap-size)) calc(2 * var(--ht-gap-size))
-        0;
+        solid var(--ht-comments-textarea-focus-border-color, #1a42e8);
       color: var(--ht-comments-textarea-foreground-color);
       background-color: var(--ht-comments-textarea-background-color, #ffffff);
       @include mixins.menu-box-shadow;
@@ -53,9 +51,8 @@
       -webkit-appearance: none;
 
       &:focus {
-        border-inline-start: var(--ht-comments-textarea-focus-border-width, 1px)
-          solid var(--ht-comments-textarea-focus-border-color, #1a42e8);
-        border-inline-end: none;
+        border: var(--ht-comments-textarea-focus-border-width, 1px) solid
+          var(--ht-comments-textarea-focus-border-color, #1a42e8);
       }
     }
   }

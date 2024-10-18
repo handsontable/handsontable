@@ -13,6 +13,7 @@
       &.after-selection--columns thead th.ht__highlight {
         @include mixins.cursor-grab;
       }
+
       &.on-moving--columns {
         & *,
         thead th.ht__highlight {

@@ -38,7 +38,7 @@
 }
 
 @mixin selection-opacity($index) {
-  $opacity: 0.1 + ($index * 0.07);
+  $opacity: 0.14 + ($index * 0.07);
   .handsontable
     tbody
     td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-#{$index}"]:before {

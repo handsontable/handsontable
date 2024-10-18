@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.0
- * Release date: 01/10/2024 (built at 16/10/2024 14:48:56)
+ * Release date: 01/10/2024 (built at 18/10/2024 14:30:18)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "16/10/2024 14:48:56";
+Handsontable.buildDate = "18/10/2024 14:30:18";
 Handsontable.version = "14.6.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -365,6 +365,7 @@ function Core(rootElement, userSettings) {
   if ((0, _rootInstance.isRootInstance)(this)) {
     var _rootElement$parentNo;
     (0, _mixed._injectProductInfo)(userSettings.licenseKey, rootElement);
+    (0, _element.addClass)(rootElement, 'ht-wrapper');
     const rootThemeClassName = (0, _themes.getThemeClassName)(rootElement.className);
     if (rootThemeClassName) {
       tableMeta.themeName = rootThemeClassName;
@@ -48660,7 +48661,7 @@ class StylesManager {
      */
     (0, _defineProperty2.default)(this, "cellVerticalPadding", void 0);
     _classPrivateFieldSet(_hot, this, hotInstance);
-    this.cellVerticalPadding = parseInt(((_getComputedStyle = getComputedStyle(_classPrivateFieldGet(_hot, this).rootElement)) === null || _getComputedStyle === void 0 ? void 0 : _getComputedStyle.getPropertyValue('--ht-cell-vertical-padding')) || 0, 10);
+    this.cellVerticalPadding = parseInt(((_getComputedStyle = getComputedStyle(_classPrivateFieldGet(_hot, this).rootElement)) === null || _getComputedStyle === void 0 ? void 0 : _getComputedStyle.getPropertyValue('--ht-cell-horizontal-padding')) || 0, 10);
   }
 
   /**

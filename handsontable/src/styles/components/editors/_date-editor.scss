@@ -13,6 +13,7 @@
     color: var(--ht-foreground-color);
     background: var(--ht-background-color, #ffffff);
     border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);
+    border-radius: var(--ht-menu-border-radius);
     @include mixins.menu-box-shadow;
     z-index: 9999;
 

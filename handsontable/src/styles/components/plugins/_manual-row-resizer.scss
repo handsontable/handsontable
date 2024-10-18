@@ -20,12 +20,12 @@
         @include mixins.pseudo;
         position: absolute;
         top: 1px;
-        left: 0;
-        width: calc(100% - 8px);
+        left: 50%;
+        width: calc(100% - 12px);
         height: 2px;
-        margin: 0 4px;
         background: var(--ht-resize-indicator-color);
         border-radius: 2px;
+        transform: translateX(-50%);
       }
 
       &::after {

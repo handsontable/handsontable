@@ -13,19 +13,18 @@
       background: none;
       opacity: 0;
       z-index: 210;
-      transition: opacity var(--ht-table-transition) ease-in-out;
 
       &::before,
       &::after {
         @include mixins.pseudo;
         position: absolute;
-        top: 0;
+        top: 50%;
         left: 1px;
         width: 2px;
-        height: calc(100% - 8px);
-        margin: 4px 0;
+        height: calc(100% - 12px);
         background: var(--ht-read-only-color);
         border-radius: 2px;
+        transform: translateY(-50%);
       }
 
       &::after {

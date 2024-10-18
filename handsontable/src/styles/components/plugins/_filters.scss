@@ -95,6 +95,10 @@
         overflow-x: hidden;
         box-sizing: border-box;
 
+        .wtSpreader {
+          padding: calc(var(--ht-gap-size) * 2) 0;
+        }
+
         td {
           height: auto;
           padding: 0;

@@ -4,41 +4,54 @@
 
 @mixin output {
   .handsontable {
-    th.beforeHiddenColumn,
-    th.afterHiddenColumn {
-      position: relative;
+    th {
+      &.beforeHiddenColumn,
+      &.afterHiddenColumn {
+        position: relative;
 
-      &:after {
-        @include mixins.pseudo;
-        position: absolute;
-        top: 50%;
-        width: 10px !important;
-        height: 10px !important;
-        transform: translateY(-50%);
-        color: var(--ht-hidden-indicator-color);
+        &:after {
+          @include mixins.pseudo;
+          position: absolute;
+          top: 50%;
+          width: 10px !important;
+          height: 10px !important;
+          transform: translateY(-50%);
+          color: var(--ht-hidden-indicator-color);
+        }
       }
-    }
 
-    th.beforeHiddenColumn:after {
-      right: -2px;
-    }
+      &.beforeHiddenColumn:after {
+        right: -2px;
+      }
 
-    th.afterHiddenColumn:after {
-      left: -2px;
+      &.afterHiddenColumn:after {
+        left: -2px;
+      }
+
+      &.ht__active_highlight {
+        &.beforeHiddenColumn,
+        &.afterHiddenColumn {
+          &:after {
+            color: var(--ht-icon-active-button-icon-color);
+          }
+        }
+      }
     }
   }
 
   [dir="rtl"].handsontable {
-    th.beforeHiddenColumn:after {
-      right: initial;
-      left: -2px;
-      transform: translateY(-50%) rotate(180deg);
-    }
+    th {
+      &.beforeHiddenColumn:after {
+        right: initial;
+        left: -2px;
+        transform: translateY(-50%) rotate(180deg);
+      }
 
-    th.afterHiddenColumn:after {
-      right: -2px;
-      left: initial;
-      transform: translateY(-50%) rotate(180deg);
+      &.afterHiddenColumn:after {
+        right: -2px;
+        left: initial;
+        transform: translateY(-50%) rotate(180deg);
+      }
     }
   }
 }
