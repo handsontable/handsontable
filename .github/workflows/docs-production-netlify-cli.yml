@@ -36,6 +36,7 @@ jobs:
           docs_latest_version=$(git ls-remote --heads origin | grep 'prod-docs/[0-9]\+\.[0-9]\+' | sed 's|.*/prod-docs/||' | sort -V | tail -n 1)
           echo "The docs latest version: $docs_latest_version"
           echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV
+          echo "docs_latest_version=$docs_latest_version" >> $GITHUB_OUTPUT  # Set output for later use
 
       - name: Validate Docs version
         run: |
@@ -49,7 +50,7 @@ jobs:
         run: |
           FEATURE_BRANCH="feature/dev-issue-1790"
 
-          if [[ "$GITHUB_REF_NAME" != "$DOCS_LATEST_VERSION" && ! "$GITHUB_REF_NAME" == $FEATURE_BRANCH ]]; then
+          if [[ "$GITHUB_REF_NAME" != "$DOCS_LATEST_VERSION" && "$GITHUB_REF_NAME" != "$FEATURE_BRANCH" ]]; then
             echo "The current branch is not the latest version and will not be deployed to Netlify"
             echo "continue=false" >> $GITHUB_OUTPUT
             exit 0
@@ -57,7 +58,6 @@ jobs:
             echo "Branch matches the latest version or is a feature branch."
             echo "continue=true" >> $GITHUB_OUTPUT
           fi
-
 
   netlify-deploy:
     name: Build Docs
@@ -79,8 +79,8 @@ jobs:
 
       - name: Recreate the docs latest branch
         run: |
-          git fetch origin prod-docs/$DOCS_LATEST_VERSION
-          git checkout origin/prod-docs/$DOCS_LATEST_VERSION
+          git fetch origin prod-docs/${DOCS_LATEST_VERSION}
+          git checkout origin/prod-docs/${DOCS_LATEST_VERSION}
           git checkout -b prod-docs/latest
           git push --force --set-upstream origin prod-docs/latest
 
@@ -131,7 +131,4 @@ jobs:
               "value": "'"${DOCS_LATEST_VERSION}"'"
             }'
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_ACCOUNT_ID: handsonable-team
+          NETLIFY_AUTH_TOKEN: ${{ secrets.N
