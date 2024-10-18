@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "React wrapper: Wrap internal utilities into a context provided from HotTable to its children",
+  "type": "changed",
+  "issueOrPR": 10789,
+  "breaking": false,
+  "framework": "react"
+}

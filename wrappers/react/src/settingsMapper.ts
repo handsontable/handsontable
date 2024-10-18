@@ -3,7 +3,7 @@ import { HotTableProps } from './types';
 
 export class SettingsMapper {
   /**
-   * Parse component settings into Handosntable-compatible settings.
+   * Parse component settings into Handsontable-compatible settings.
    *
    * @param {Object} properties Object containing properties from the HotTable object.
    * @param {Object} additionalSettings Additional settings.
@@ -31,27 +31,9 @@ export class SettingsMapper {
     };
     let newSettings: Handsontable.GridSettings = {};
 
-    if (properties.settings) {
-      let settings = properties.settings;
-      for (const key in settings) {
-        if (
-          settings.hasOwnProperty(key)
-          &&
-          !shouldSkipProp(key as keyof Handsontable.GridSettings)
-        ) {
-          newSettings[key] = settings[key];
-        }
-      }
-    }
-
     for (const key in properties) {
-      if (
-        key !== 'settings' &&
-        key !== 'children' &&
-        !shouldSkipProp(key as keyof Handsontable.GridSettings) &&
-        properties.hasOwnProperty(key)
-      ) {
-        newSettings[key] = properties[key];
+      if (key !== 'children' && properties.hasOwnProperty(key)) {
+        (newSettings as any)[key] = properties[key as keyof HotTableProps];
       }
     }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { act } from '@testing-library/react';
 import {
   HotTable
@@ -9,11 +9,12 @@ import {
   simulateMouseEvent,
   mountComponentWithRef
 } from './_helpers';
+import { HotRendererProps, HotTableRef } from '../src/types'
 
-describe('Using hooks within HotTable renderers', () => {
+describe('Using hooks within HotTable', () => {
   it('should be possible to use hook-enabled components as renderers', async () => {
-    function HookEnabledRenderer(props) {
-      const [count, setCount] = useState(0);
+    function HookEnabledRenderer(props: HotRendererProps) {
+      const [count, setCount] = React.useState(0);
 
       return (
         <div className={'hook-enabled-renderer-container'}>
@@ -25,7 +26,7 @@ describe('Using hooks within HotTable renderers', () => {
       );
     }
 
-    const hotInstance = mountComponentWithRef((
+    const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -37,29 +38,29 @@ describe('Using hooks within HotTable renderers', () => {
                 autoColumnSize={false}
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
-                }}>
-        <HookEnabledRenderer hot-renderer></HookEnabledRenderer>
-      </HotTable>
-    )).hotInstance;
+                }}
+                renderer={HookEnabledRenderer}/>
+    )).hotInstance!;
 
-    expect(hotInstance.getCell(0, 0).querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
-    expect(hotInstance.getCell(1, 1).querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
+    expect(hotInstance.getCell(0, 0)!.querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
+    expect(hotInstance.getCell(1, 1)!.querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
 
     await act(async () => {
-      simulateMouseEvent(hotInstance.getCell(0, 0).querySelector('button'), 'click');
+      simulateMouseEvent(hotInstance.getCell(0, 0)!.querySelector('button'), 'click');
     });
     await act(async () => {
-      simulateMouseEvent(hotInstance.getCell(0, 0).querySelector('button'), 'click');
+      simulateMouseEvent(hotInstance.getCell(0, 0)!.querySelector('button'), 'click');
     });
     await act(async () => {
-      simulateMouseEvent(hotInstance.getCell(0, 0).querySelector('button'), 'click');
+      simulateMouseEvent(hotInstance.getCell(0, 0)!.querySelector('button'), 'click');
     });
 
-    expect(hotInstance.getCell(0, 0).querySelector('span').innerHTML).toEqual('3');
-    expect(hotInstance.getCell(1, 1).querySelector('span').innerHTML).toEqual('0');
+    expect(hotInstance.getCell(0, 0)!.querySelector('span')!.innerHTML).toEqual('3');
+    expect(hotInstance.getCell(1, 1)!.querySelector('span')!.innerHTML).toEqual('0');
   });
+
+  /*
+   Editor components are always used with React Hooks as they need to use useHotEditorHooks - tested everywhere else.
+   */
 });
 
-/*
- Editor components cannot be used with React Hooks, as they need to be classes derived from BaseEditorComponent.
- */

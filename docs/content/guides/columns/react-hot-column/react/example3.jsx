@@ -71,12 +71,10 @@ const ExampleComponent = () => {
     >
       <HotColumn data="id" />
       <HotColumn data="name" />
-      <HotColumn data="score">
-        <ScoreRenderer hot-renderer />
-      </HotColumn>
-      <HotColumn data="isPromoted">
-        <PromotionRenderer hot-renderer />
-      </HotColumn>
+      {/* add the `renderer` prop to set the component as a Handsontable renderer */}
+      <HotColumn data="score" renderer={ScoreRenderer} />
+      {/* add the `renderer` prop to set the component as a Handsontable renderer */}
+      <HotColumn data="isPromoted" renderer={PromotionRenderer} />
     </HotTable>
   );
 };
