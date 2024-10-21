@@ -48,13 +48,22 @@ function prepareRedirects(framework: string): Redirect[] {
 }
 
 /**
+ * Handles 404 responses by returning the URL of the 404 page.
+ *
+ * @param {string} url - The current URL that caused the 404 error.
+ * @returns {Promise<URL>} - A promise that resolves to the URL of the 404 page.
+ */
+async function handle404(url: string): Promise<URL> {
+  return new URL('/docs/404.html', url);
+}
+/**
  * Fetches the 404 page for a specific version.
  *
  * @param {string} baseUrl BaseUrl.
  * @param {string} version HOT docs version.
  * @returns {Promise<Response>} Response.
  */
-async function handle404(baseUrl: string, version: string) {
+async function handle404Versioned(baseUrl: string, version: string) {
   const versioned404Url = new URL(`/docs/${version}/404.html`, baseUrl);
 
   return fetch(versioned404Url.href);
@@ -71,6 +80,16 @@ function redirectionWasFound(status: number): boolean {
 }
 
 /**
+ * Checks if a status code is a redirection (i.e., 3xx status codes).
+ *
+ * @param {number} status - The HTTP status code to check.
+ * @returns {boolean} - True if the status code indicates code between 400 and 600, otherwise false.
+ */
+function errorWasFound(status: number): boolean {
+  return status >= 400 && status < 600;
+}
+
+/**
  * Proxies requests to the OVH docs server and appends query parameters if present.
  *
  * @param {Request} request The original Request object.
@@ -82,9 +101,10 @@ async function proxyRequestToOvh(request: Request, baseUrl: string, version: str
   // Extract pathname and search (query string) from the original request
   const originalUrl = new URL(request.url);
   const { pathname, search } = originalUrl;
+  const OVHbaseUrl = 'https://_docs.handsontable.com';
 
   // Construct the target URL for OVH using the request's original pathname and search (query string)
-  const targetUrl = new URL(`https://_docs.handsontable.com${pathname}${search}`);
+  const targetUrl = new URL(`${OVHbaseUrl}${pathname}${search}`);
 
   console.log('Fetching from OVH:', targetUrl.href);
 
@@ -92,15 +112,14 @@ async function proxyRequestToOvh(request: Request, baseUrl: string, version: str
   const proxiedResponse = await fetch(targetUrl.href, { redirect: 'manual' });
 
   // Handle redirections if OVH responds with a redirect
-  if (proxiedResponse.status >= 300 && proxiedResponse.status < 400) {
+  if (redirectionWasFound(proxiedResponse.status)) {
     const locationHeader = proxiedResponse.headers.get('location');
 
-    if (locationHeader) {
-      // Create a new URL from the location header returned by OVH
-      const updatedLocation = new URL(locationHeader);
+    console.log('locationHeader', locationHeader);
 
+    if (locationHeader) {
       // Replace OVH's hostname with the baseUrl (to ensure it's under your control)
-      const finalRedirectUrl = `${baseUrl}${updatedLocation.pathname}${updatedLocation.search}`;
+      const finalRedirectUrl = `${baseUrl}${locationHeader}`;
 
       console.log('Updated location redirected to:', finalRedirectUrl);
 
@@ -110,8 +129,10 @@ async function proxyRequestToOvh(request: Request, baseUrl: string, version: str
   }
 
   // Handle errors (4xx, 5xx) by serving the 404 page
-  if (proxiedResponse.status >= 400 && proxiedResponse.status < 600) {
-    return handle404(baseUrl, version);
+  if (errorWasFound(proxiedResponse.status)) {
+    console.error('errorWasFound', proxiedResponse.status);
+
+    return handle404Versioned(OVHbaseUrl, version);
   }
 
   // Return the proxied response from OVH
@@ -198,11 +219,11 @@ export default async function handler(request: Request, context: Context): Promi
 
       console.error('File was not found', request.url, response.status, response.statusText);
 
-      return handle404(baseUrl, DOCS_LATEST_VERSION);
+      return handle404(baseUrl);
     } catch (e) {
       console.error('External Rewrite: Server error', request.url, e);
 
-      return handle404(baseUrl, DOCS_LATEST_VERSION);
+      return handle404(baseUrl);
     }
   } catch (e) {
     console.error('Uncaught server error', e);
