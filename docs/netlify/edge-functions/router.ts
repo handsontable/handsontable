@@ -83,6 +83,30 @@ function redirectionWasFound(status: number): boolean {
 }
 
 /**
+ * Proxies requests to the OVH docs server.
+ *
+ * @param {Request} request The original Request object.
+ * @param {string} pathname The current request path.
+ * @returns {Promise<Response>} A proxied Response object.
+ */
+async function proxyRequestToOvh(request: Request, pathname: string): Promise<Response> {
+  const targetUrl = `https://_docs.handsontable.com${pathname}`;
+  const proxiedResponse = await fetch(targetUrl, { redirect: 'manual' });
+
+  if (proxiedResponse.status >= 300 && proxiedResponse.status < 400) {
+    const locationHeader = proxiedResponse.headers.get('location');
+
+    if (locationHeader) {
+      const updatedLocation = locationHeader.replace('https://_docs.handsontable.com', '');
+
+      return Response.redirect(`${pathname}${updatedLocation}`, proxiedResponse.status);
+    }
+  }
+
+  return proxiedResponse;
+}
+
+/**
  * The main handler for Netlify edge functions. Processes requests and handles redirects and rewrites based on the URL.
  *
  * @param {Request} request - The incoming request object.
@@ -94,13 +118,18 @@ export default async function handler(request: Request, context: Context): Promi
     const currentUrl = new URL(request.url);
     const baseUrl = currentUrl.origin;
     const { pathname, search } = currentUrl;
+    const DOCS_LATEST_VERSION = Netlify.env.get('DOCS_LATEST_VERSION');
+
+    if (!DOCS_LATEST_VERSION) {
+      console.warn('No latest version found');
+    }
 
     // Serve the 404 page without further rewrites to avoid rewrite loop
     if (pathname === '/docs/404.html') {
       return context.next();
     }
 
-    // if 404 was requested - always rewrite
+    // handle POST and other request by the default
     if (request.method !== 'GET') {
       return;
     }
@@ -109,7 +138,7 @@ export default async function handler(request: Request, context: Context): Promi
     const cookieValue = context.cookies.get('docs_fw');
     const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
 
-    // External redirect handling
+    // External redirect handling, 404 is handled by the external website
     const external = getExternalRedirects();
     const externalMatchFound = external.find(entry => entry.from.test(pathname));
 
@@ -121,115 +150,17 @@ export default async function handler(request: Request, context: Context): Promi
       return Response.redirect(url, 301);
     }
 
-    const onePageRewrites = getOnePageRewrites();
-    const rewriteMatch = onePageRewrites.find(rewrite => rewrite.from.test(`${pathname}${search}`));
+    // Matches 1-3 digits docs version
+    const versionPattern = /^\/docs\/(\d+\.\d+\.\d+|\d+\.\d+|\d+)(.*)$/;
+    const match = pathname.match(versionPattern);
 
-    if (rewriteMatch) {
-      // Apply the rewrite using the pattern from the matched rule
-      const rewrittenUrl = `${pathname}${search}`.replace(rewriteMatch.from, rewriteMatch.to);
+    if (match) {
+      const version = match[1];
 
-      console.log(`Fetching data from: ${rewrittenUrl}`);
-
-      try {
-        const response = await fetch(rewrittenUrl, { method: 'GET', redirect: 'manual' });
-
-        if (response.ok) {
-          return response;
-        }
-
-        if (redirectionWasFound(response.status)) {
-          const location = response.headers.get('location');
-
-          console.warn('Redirection was found', rewrittenUrl, response.status, location);
-
-          if (location) {
-            // Handle relative and absolute location headers
-            const finalLocation = location.startsWith('/')
-              ? `${baseUrl}${location}` // Append baseUrl if relative
-              : location; // Use as-is if absolute
-
-            console.log('Following redirection to:', finalLocation);
-
-            // Fetch the new location after redirection
-            const proxiedResponse = await fetch(finalLocation, { method: 'GET', redirect: 'manual' });
-
-            if (proxiedResponse.ok) {
-              return proxiedResponse;
-            }
-
-            if (redirectionWasFound(proxiedResponse.status)) {
-              const proxedLocation = proxiedResponse.headers.get('location');
-
-              console.warn('Further redirection found', finalLocation, proxiedResponse.status, proxedLocation);
-            }
-
-            return handle404(baseUrl);
-          }
-
-          console.error('Redirection without a valid location', rewrittenUrl, response.status, response.statusText);
-
-          return handle404(baseUrl);
-        }
-
-        console.error(`Failed to fetch resource from ${rewrittenUrl}: ${response.status}`);
-
-        return handle404(baseUrl);
-      } catch (error) {
-        console.error(`Fetch error: ${error}`);
-
-        return handle404(baseUrl);
-      }
-    }
-
-    // External rewrite handling (OVH)
-    const externalRewrites = getExternalRewrites(context);
-    const externalRewritesFound = externalRewrites.find(entry => entry.from.test(currentUrl.pathname));
-
-    if (externalRewritesFound) {
-
-      const url = currentUrl.pathname.replace(externalRewritesFound.from, externalRewritesFound.to);
-
-      try {
-        const response = await fetch(url, { redirect: 'manual' });
-
-        if (response.ok) {
-          return response;
-        }
-
-        if (redirectionWasFound(response.status)) {
-          const location = response.headers.get('location');
-
-          console.warn('Redirection was found', url, response.status, location);
-
-          if (location) {
-            // If the 'location' header is present but is relative, prepend the base URL
-            const completeLocation = location.startsWith('http')
-              ? location
-              : `https://_docs.handsontable.com${location}`;
-
-            console.log('Redirecting to:', completeLocation);
-
-            // Fetch the redirected location and return the response
-            const proxedLocation = await fetch(completeLocation);
-
-            if (proxedLocation.ok) {
-              return proxedLocation;
-            }
-          } else {
-            console.error('Redirection without location', url, response.status, response.statusText);
-
-            return handle404(baseUrl);
-          }
-        }
-
-        console.error('Response not ok ', url, response.status, response.statusText);
-
-        return handle404(baseUrl);
-
-      } catch (e) {
-        console.error('External Rewrite: Server error', url, e);
-
-        return handle404(baseUrl);
+      // If it's not the latest version, redirect/proxy to external OVH docs
+      if (version !== DOCS_LATEST_VERSION) {
+        // Handle transparent proxy
+        return proxyRequestToOvh(request, pathname);
       }
     }
 
@@ -274,54 +205,6 @@ export default async function handler(request: Request, context: Context): Promi
 export const config: Config = {
   path: ['/*'],
 };
-
-/**
- * Retrieves the external rewrites for versioned documentation and handles
- * framework-specific redirection based on the 'docs_fw' cookie.
- *
- * @param {Context} context - The context object provided by Netlify edge functions, used to retrieve the 'docs_fw' cookie.
- * @returns {Redirect[]} - An array of external rewrite rules that handle version-specific and framework-specific redirects.
- */
-function getExternalRewrites(context: Context): Redirect[] {
-  const excludedVersion = Netlify.env.get('DOCS_LATEST_VERSION');
-
-  // Determine the framework from the 'docs_fw' cookie
-  const cookieValue = context.cookies.get('docs_fw');
-  const framework = cookieValue === 'react' ? 'react-data-grid' : 'javascript-data-grid';
-
-  return [
-    // Handle general rewrites with version and paths
-    {
-      from: new RegExp(getVersionRegexString(excludedVersion)),
-      to: 'https://_docs.handsontable.com/docs/$1$2',
-    },
-
-    // Handle version-only URLs with optional trailing slash
-    {
-      from: new RegExp('^/docs/(\\d+\\.\\d+)/?$'), // Matches version numbers like 14.5 or 14.6
-      to: `https://_docs.handsontable.com/docs/$1/${framework}`, // Redirect to framework-specific introduction page
-    }
-  ];
-}
-
-/**
- * Retrieves OVH one page rewrites.
- *
- * @returns {Redirect[]} - Array of external redirect rules.
- */
-function getOnePageRewrites(): Redirect[] {
-  return [
-    {
-      // Matches URLs like /docs/x.x/redirect?pageId=somevalue
-      // Also matches /docs/x.x/any-other-path/redirect?pageId=somevalue
-      // $1: The version number in the x.x format (e.g., 14.2).
-      // $2: The optional path after the version number (e.g., javascript-data-grid/license-key).
-      // $3: The value of the pageId query parameter (e.g., zbx8ayzw).
-      from: new RegExp('^/docs/(\\d+\\.\\d+)(?:/([^/]+))?/redirect(?:\\?pageId=(.+))?$'),
-      to: 'https://_docs.handsontable.com/docs/$1/$2?redirect=$3',
-    }
-  ];
-}
 
 /**
  * Retrieves external redirect rules for Hyperformula documentation.
