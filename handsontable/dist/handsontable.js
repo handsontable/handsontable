@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 14.6.0
- * Release date: 01/10/2024 (built at 18/10/2024 15:03:08)
+ * Version: 14.6.1
+ * Release date: 17/10/2024 (built at 21/10/2024 07:32:30)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,8 +104,8 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "18/10/2024 15:03:08";
-Handsontable.version = "14.6.0";
+Handsontable.buildDate = "21/10/2024 07:32:30";
+Handsontable.version = "14.6.1";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
   getLanguageDictionary: _registry.getLanguageDictionary,
@@ -9270,7 +9270,7 @@ const domMessages = {
 function _injectProductInfo(key, element) {
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  const hotVersion = "14.6.0";
+  const hotVersion = "14.6.1";
   let keyValidityDate;
   let consoleMessageState = 'invalid';
   let domMessageState = 'invalid';
@@ -9278,7 +9278,7 @@ function _injectProductInfo(key, element) {
   const schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = (0, _moment.default)("01/10/2024", 'DD/MM/YYYY');
+      const releaseDate = (0, _moment.default)("17/10/2024", 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
@@ -48916,9 +48916,6 @@ class TextEditor extends _baseEditor.BaseEditor {
     // Makes the element recognizable by Hot as its own
     // component's element.
     (0, _element.setAttribute)(this.TEXTAREA, [['data-hot-input', ''], (0, _a11y.A11Y_TABINDEX)(-1)]);
-    if (this.hot.getSettings().ariaTags) {
-      (0, _element.setAttribute)(this.TEXTAREA, [(0, _a11y.A11Y_HIDDEN)()]);
-    }
     (0, _element.addClass)(this.TEXTAREA, 'handsontableInput');
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;
@@ -51051,7 +51048,6 @@ exports.PasswordEditor = _passwordEditor.PasswordEditor;
 exports.__esModule = true;
 var _textEditor = __webpack_require__(394);
 var _element = __webpack_require__(135);
-var _a11y = __webpack_require__(142);
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'password';
 
 /**
@@ -51071,9 +51067,6 @@ class PasswordEditor extends _textEditor.TextEditor {
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
-    if (this.hot.getSettings().ariaTags) {
-      (0, _element.setAttribute)(this.TEXTAREA, [(0, _a11y.A11Y_HIDDEN)()]);
-    }
     (0, _element.empty)(this.TEXTAREA_PARENT);
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
