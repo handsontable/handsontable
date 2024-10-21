@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.0
- * Release date: 01/10/2024 (built at 18/10/2024 14:30:18)
+ * Release date: 01/10/2024 (built at 18/10/2024 15:03:08)
  */
 .handsontable {
   position: relative;
@@ -248,7 +248,7 @@
   scrollbar-color: var(--ht-scrollbar-thumb-color) var(--ht-scrollbar-track-color);
 }
 .handsontable::-webkit-scrollbar-track {
-  border-radius: 30px;
+  border-radius: var(--ht-scrollbar-border-radius);
 }
 .handsontable .ht_master table.htCore > thead,
 .handsontable .ht_master table.htCore > tbody > tr > th,

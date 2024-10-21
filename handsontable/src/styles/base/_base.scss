@@ -293,7 +293,7 @@
         var(--ht-scrollbar-track-color);
     }
     &::-webkit-scrollbar-track {
-      border-radius: 30px;
+      border-radius: var(--ht-scrollbar-border-radius);
     }
 
     .ht_master table.htCore > thead,
