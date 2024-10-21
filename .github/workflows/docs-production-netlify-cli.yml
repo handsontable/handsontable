@@ -112,7 +112,7 @@ jobs:
         run: git add .
 
       - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@8756aa0c5ca33c28335492f751dcb1c889bc7f4f
+        uses: stefanzweifel/git-auto-commit-action@v5.0.1 # stefanzweifel/git-auto-commit-action@8756aa0c5ca33c28335492f751dcb1c889bc7f4f
         with:
           commit_message: "Docs: build production"
           commit_user_name: "Docs Deployment"

@@ -5,21 +5,21 @@
 import type { Context, Config } from '@netlify/edge-functions';
 
 declare let Netlify: {
-  env: {
-    get: (key: string) => string;
-    context: string;
+    env: {
+      get: (key: string) => string;
+      context: string;
+    }
+  };
+
+  interface RedirectRaw {
+    from: string,
+    to: string
   }
-};
 
-interface RedirectRaw {
-  from: string,
-  to: string
-}
-
-interface Redirect {
-  from: RegExp;
-  to: string;
-}
+  interface Redirect {
+    from: RegExp;
+    to: string;
+  }
 
 /**
  * Adds base URL to relative paths in the `to` property of redirect objects.
