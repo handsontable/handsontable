@@ -101,18 +101,18 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Dependencies
+      - name: Install Docs dependencies
         run: npm ci
 
       - name: Docs build
         working-directory: ./docs/
         run: npm run docs:build:production:netlify
 
-      - name : Add changes to the commit
+      - name: Add changes to the commit
         run: git add .
 
       - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 // https://github.com/stefanzweifel/git-auto-commit-action/releases/tag/v5.0.1
         with:
           commit_message: "Docs: build production"
           commit_user_name: "Docs Deployment"
