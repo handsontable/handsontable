@@ -71,37 +71,50 @@ function redirectionWasFound(status: number): boolean {
 }
 
 /**
- * Proxies requests to the OVH docs server.
+ * Proxies requests to the OVH docs server and appends query parameters if present.
  *
  * @param {Request} request The original Request object.
- * @param {string} pathname The current request path.
- * @param {string} version HOT docs version.
  * @param {string} baseUrl BaseUrl.
+ * @param {string} version HOT docs version.
  * @returns {Promise<Response>} A proxied Response object.
  */
-async function proxyRequestToOvh(request: Request,
-                                 pathname: string,
-                                 version:string,
-                                 baseUrl:string): Promise<Response> {
-  const targetUrl = `https://_docs.handsontable.com${pathname}`;
-  const proxiedResponse = await fetch(targetUrl, { redirect: 'manual' });
+async function proxyRequestToOvh(request: Request, baseUrl: string, version: string): Promise<Response> {
+  // Extract pathname and search (query string) from the original request
+  const originalUrl = new URL(request.url);
+  const { pathname, search } = originalUrl;
 
+  // Construct the target URL for OVH using the request's original pathname and search (query string)
+  const targetUrl = new URL(`https://_docs.handsontable.com${pathname}${search}`);
+
+  console.log('Fetching from OVH:', targetUrl.href);
+
+  // Fetch from the OVH docs server with the original URL, but from the OVH domain
+  const proxiedResponse = await fetch(targetUrl.href, { redirect: 'manual' });
+
+  // Handle redirections if OVH responds with a redirect
   if (proxiedResponse.status >= 300 && proxiedResponse.status < 400) {
     const locationHeader = proxiedResponse.headers.get('location');
 
     if (locationHeader) {
-      const updatedLocation = locationHeader.replace('https://_docs.handsontable.com', '');
+      // Create a new URL from the location header returned by OVH
+      const updatedLocation = new URL(locationHeader);
 
-      console.log('updatedLocation', locationHeader);
+      // Replace OVH's hostname with the baseUrl (to ensure it's under your control)
+      const finalRedirectUrl = `${baseUrl}${updatedLocation.pathname}${updatedLocation.search}`;
 
-      return Response.redirect(`${updatedLocation}`, proxiedResponse.status);
+      console.log('Updated location redirected to:', finalRedirectUrl);
+
+      // Redirect the user to the updated location, but under your baseUrl
+      return Response.redirect(finalRedirectUrl, proxiedResponse.status);
     }
   }
 
+  // Handle errors (4xx, 5xx) by serving the 404 page
   if (proxiedResponse.status >= 400 && proxiedResponse.status < 600) {
     return handle404(baseUrl, version);
   }
 
+  // Return the proxied response from OVH
   return proxiedResponse;
 }
 
@@ -116,7 +129,7 @@ export default async function handler(request: Request, context: Context): Promi
   try {
     const currentUrl = new URL(request.url);
     const baseUrl = currentUrl.origin;
-    const { pathname, search } = currentUrl;
+    const { pathname } = currentUrl;
     const DOCS_LATEST_VERSION = Netlify.env.get('DOCS_LATEST_VERSION');
 
     if (!DOCS_LATEST_VERSION) {
@@ -159,7 +172,7 @@ export default async function handler(request: Request, context: Context): Promi
       // If it's not the latest version, redirect/proxy to external OVH docs
       if (version !== DOCS_LATEST_VERSION) {
         // Handle transparent proxy
-        return proxyRequestToOvh(request, pathname, version, baseUrl);
+        return proxyRequestToOvh(request, baseUrl, version);
       }
     }
 
