@@ -15,9 +15,8 @@
   "scripts": {
     "serve": "vite preview",
     "start": "vite preview",
-    "build": "vite build",
-    "test": "node spec/support/jasmine.config.js"
-  },
+    "build": "vite build"
+    },
   "dependencies": {
     "@handsontable/pikaday": "^1.0.0",
     "handsontable": "latest"

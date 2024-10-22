@@ -8,7 +8,7 @@
     "preview": "vite preview",
     "build": "vite build",
     "type-check": "vue-tsc --build --force",
-    "test": "node spec/support/jasmine.config.js"
+    "test": "node spec/support/jasmine.config.cjs"
   },
   "dependencies": {
     "vue": "^3.5.8",

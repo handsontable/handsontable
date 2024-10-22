@@ -14,8 +14,7 @@
   "scripts": {
     "start": "vue-cli-service serve",
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "test": "node spec/support/jasmine.config.js"
+    "build": "vue-cli-service build"
   },
   "dependencies": {
     "@handsontable/vue": "latest",

@@ -11,7 +11,7 @@ testCrossBrowser(__filename, async({ tablePage }) => {
 
   (await selectCell(1, 1)).click({ button: 'right' });
   await tablePage.getByText('Add comment').click();
-  await tablePage.getByRole('textbox').fill('This is a comment');
+  await tablePage.locator('.htComments').getByRole('textbox').fill('This is a comment');
   const testFileName = path.basename(__filename, '.spec.ts');
 
   await tablePage.screenshot({
