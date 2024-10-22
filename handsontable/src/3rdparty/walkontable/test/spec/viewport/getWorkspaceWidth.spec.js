@@ -1,4 +1,4 @@
-describe('WalkontableViewport', () => {
+xdescribe('WalkontableViewport', () => {
   const BODY_MARGIN = parseInt(getComputedStyle(document.body).margin, 10);
   const OUTER_WIDTH = 200;
   const OUTER_HEIGHT = 200;

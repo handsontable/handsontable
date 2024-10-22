@@ -56,6 +56,7 @@ class Viewport {
     this.cachedViewportHeight = null;
     this.cachedHasVerticalScroll = null;
     this.cachedHasHorizontalScroll = null;
+    this.columnHeaderHeight = null;
     this.rowsCalculatorTypes = new Map([
       ['rendered', () => (this.wtSettings.getSetting('renderAllRows') ?
         new RenderedAllRowsCalculationType() : new RenderedRowsCalculationType())],
@@ -91,10 +92,11 @@ class Viewport {
 
     if (trimmingContainer === this.domBindings.rootWindow) {
       const { rootDocument, rootWindow } = this.domBindings;
-      const top = Math.max(this.wtTable.TBODY.getBoundingClientRect().top, 0);
+      // const top = Math.max(this.wtTable.THEAD.getBoundingClientRect().top, 0);
       const hasHorizontalScroll = this.hasHorizontalScroll();
 
-      height = rootDocument.documentElement.clientHeight - top;
+      // height = rootDocument.documentElement.clientHeight - top;
+      height = rootDocument.documentElement.clientHeight;
 
       if (rootDocument.documentElement.scrollWidth > rootWindow.innerWidth !== hasHorizontalScroll) {
         const scrollbarHeight = getScrollbarWidth(rootDocument);
@@ -103,7 +105,10 @@ class Viewport {
       }
 
     } else {
-      height = trimmingContainer.clientHeight;
+      const offsetHeight = trimmingContainer.offsetHeight;
+      const clientHeight = trimmingContainer.clientHeight;
+
+      height = (offsetHeight > 0 && clientHeight > 0) ? clientHeight : Infinity;
     }
 
     this.cachedWorkspaceHeight = height;
@@ -134,12 +139,13 @@ class Viewport {
       const { wtSettings } = this;
       const totalColumns = wtSettings.getSetting('totalColumns');
       // TODO: add RTL support
-      const left = Math.max(Math.round(this.wtTable.TBODY.getBoundingClientRect().left), 0);
+      // const left = Math.max(Math.round(this.wtTable.TBODY.getBoundingClientRect().left), 0);
 
       width = this.wtTable.holder.offsetWidth;
 
       if (this.getRowHeaderWidth() + this.sumColumnWidths(0, totalColumns) > width) {
-        width = rootWindow.innerWidth - left;
+        // width = Math.max(rootWindow.innerWidth - left, 0);
+        width = rootWindow.innerWidth;
 
       } else {
         const hasVerticalScroll = this.hasVerticalScroll();
@@ -174,26 +180,24 @@ class Viewport {
     let viewportWidth = this.getWorkspaceWidth();
 
     if (this.hasVerticalScroll()) {
-      if (this.isHorizontallyScrollableByWindow()) {
-        const { rootDocument } = this.domBindings;
-        // TODO: add RTL support
-        const left = Math.max(Math.round(this.wtTable.TBODY.getBoundingClientRect().left), 0);
+      // if (this.isHorizontallyScrollableByWindow()) {
+      //   const { rootDocument } = this.domBindings;
+      //   // TODO: add RTL support
+      //   const left = Math.max(Math.round(this.wtTable.TBODY.getBoundingClientRect().left), 0);
 
-        if (viewportWidth + left > rootDocument.documentElement.clientWidth) {
-          viewportWidth -= getScrollbarWidth(this.domBindings.rootDocument);
-        }
+      //   if (viewportWidth + left > rootDocument.documentElement.clientWidth) {
+      //     viewportWidth -= getScrollbarWidth(this.domBindings.rootDocument);
+      //   }
 
-      } else {
+      // } else {
         viewportWidth -= getScrollbarWidth(this.domBindings.rootDocument);
-      }
+      // }
     }
 
     viewportWidth -= this.getRowHeaderWidth();
-    this.cachedViewportWidth = viewportWidth;
+    this.cachedViewportWidth = Math.max(viewportWidth, 0);
 
-    // console.log('workspaceWidth', this.getWorkspaceWidth(), 'viewportWidth', viewportWidth);
-
-    return viewportWidth;
+    return this.cachedViewportWidth;
   }
 
   /**
@@ -209,24 +213,28 @@ class Viewport {
 
     let viewportHeight = this.getWorkspaceHeight();
 
+    if (viewportHeight === Infinity) {
+      return viewportHeight;
+    }
+
     if (this.hasHorizontalScroll()) {
-      if (this.isVerticallyScrollableByWindow()) {
-        const { rootDocument } = this.domBindings;
-        const top = Math.max(Math.round(this.wtTable.TABLE.getBoundingClientRect().top), 0);
+      // if (this.isVerticallyScrollableByWindow()) {
+      //   const { rootDocument } = this.domBindings;
+      //   const top = Math.max(Math.round(this.wtTable.TABLE.getBoundingClientRect().top), 0);
 
-        if (viewportHeight + top > rootDocument.documentElement.clientHeight) {
-          viewportHeight -= getScrollbarWidth(this.domBindings.rootDocument);
-        }
+      //   if (viewportHeight + top > rootDocument.documentElement.clientHeight) {
+      //     viewportHeight -= getScrollbarWidth(this.domBindings.rootDocument);
+      //   }
 
-      } else {
+      // } else {
         viewportHeight -= getScrollbarWidth(this.domBindings.rootDocument);
-      }
+      // }
     }
 
     viewportHeight -= this.getColumnHeaderHeight();
-    this.cachedViewportHeight = viewportHeight;
+    this.cachedViewportHeight = Math.max(viewportHeight, 0);
 
-    return viewportHeight;
+    return this.cachedViewportHeight;
   }
 
   /**
@@ -336,16 +344,18 @@ class Viewport {
       this.cachedHasVerticalScroll = hasVScroll;
     };
 
-    calcHScroll();
     calcVScroll();
+    calcHScroll();
 
-    if (this.cachedHasHorizontalScroll !== this.cachedHasVerticalScroll) {
+    // if (this.cachedHasHorizontalScroll !== this.cachedHasVerticalScroll) {
       this.cachedViewportWidth = null;
       this.cachedViewportHeight = null;
+      this.cachedWorkspaceWidth = null;
+      this.cachedWorkspaceHeight = null;
 
-      calcHScroll();
       calcVScroll();
-    }
+      calcHScroll();
+    // }
   }
 
   /**
@@ -394,15 +404,24 @@ class Viewport {
    * @returns {number}
    */
   getColumnHeaderHeight() {
-    const columnHeaders = this.wtSettings.getSetting('columnHeaders');
-
-    if (!columnHeaders.length) {
-      this.columnHeaderHeight = 0;
-    } else if (isNaN(this.columnHeaderHeight)) {
-      this.columnHeaderHeight = this.wtTable.THEAD.offsetHeight;
+    if (this.columnHeaderHeight !== null) {
+      return this.columnHeaderHeight;
     }
 
-    return this.columnHeaderHeight;
+    const columnHeaders = this.wtSettings.getSetting('columnHeaders');
+    let headersHeight = 0;
+
+    if (columnHeaders.length !== 0) {
+      headersHeight = this.wtTable.THEAD.offsetHeight;
+
+      if (headersHeight === 0) {
+        headersHeight = DEFAULT_ROW_HEIGHT * columnHeaders.length;
+      }
+    }
+
+    this.columnHeaderHeight = headersHeight;
+
+    return headersHeight;
   }
 
   /**
@@ -492,6 +511,8 @@ class Viewport {
     //   scrollbarHeight = getScrollbarWidth(this.domBindings.rootDocument);
     // }
 
+    console.log('height', height);
+
     return new ViewportRowsCalculator({
       calculationTypes: calculatorTypes.map(type => [type, this.rowsCalculatorTypes.get(type)()]),
       viewportHeight: height,
@@ -518,8 +539,6 @@ class Viewport {
     let width = this.getViewportWidth();
     let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
 
-    this.columnHeaderHeight = NaN;
-
     const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
 
     if (fixedColumnsStart && pos >= 0) {
@@ -531,6 +550,8 @@ class Viewport {
     // if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
     //   width -= getScrollbarWidth(this.domBindings.rootDocument);
     // }
+
+    console.log('width', width);
 
     return new ViewportColumnsCalculator({
       calculationTypes: calculatorTypes.map(type => [type, this.columnsCalculatorTypes.get(type)()]),
@@ -714,6 +735,7 @@ class Viewport {
     this.cachedHasHorizontalScroll = null;
     this.cachedViewportWidth = null;
     this.cachedViewportHeight = null;
+    this.columnHeaderHeight = null;
   }
 
   /**

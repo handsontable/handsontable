@@ -20,9 +20,9 @@ xdescribe('WalkontableViewport', () => {
     this.wotInstance.destroy();
   });
 
-  describe('getWorkspaceHeight()', () => {
+  describe('getViewportHeight()', () => {
     describe('with defined table size', () => {
-      it('should return correct workspace height when there are no scrollbars', () => {
+      it('should return correct viewport height when there are no scrollbars', () => {
         createDataArray(6, 6);
 
         spec().$wrapper.width(300).height(139);
@@ -35,14 +35,14 @@ xdescribe('WalkontableViewport', () => {
 
         wt.prepare();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(139);
+        expect(wt.wtViewport.getViewportHeight()).toBe(139);
 
         wt.draw();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(139);
+        expect(wt.wtViewport.getViewportHeight()).toBe(139);
       });
 
-      it('should return workspace height including column headers height', () => {
+      it('should return viewport height excluding column headers height', () => {
         createDataArray(6, 6);
 
         spec().$wrapper.width(300).height(185);
@@ -59,14 +59,14 @@ xdescribe('WalkontableViewport', () => {
 
         wt.prepare();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(185);
+        expect(wt.wtViewport.getViewportHeight()).toBe(139);
 
         wt.draw();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(185);
+        expect(wt.wtViewport.getViewportHeight()).toBe(139);
       });
 
-      it('should return workspace height including scrollbar height when there is horizontal scrollbar', () => {
+      it('should return viewport height excluding scrollbar height when there is horizontal scrollbar', () => {
         createDataArray(6, 6);
 
         spec().$wrapper.width(300).height(120);
@@ -79,16 +79,16 @@ xdescribe('WalkontableViewport', () => {
 
         wt.prepare();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(120);
+        expect(wt.wtViewport.getViewportHeight()).toBe(105);
 
         wt.draw();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(120);
+        expect(wt.wtViewport.getViewportHeight()).toBe(105);
       });
     });
 
     describe('without defined table size (window as scrollable element)', () => {
-      it('should return workspace height as high as the browser height minus top position', () => {
+      it('should return viewport height as high as the browser height minus top position', () => {
         $(document.body).css({ overflowY: 'auto' });
         spec().$wrapper.css({
           width: '',
@@ -102,21 +102,26 @@ xdescribe('WalkontableViewport', () => {
           data: getData,
           totalRows: getTotalRows,
           totalColumns: getTotalColumns,
+          columnHeaders: [
+            (column, TH) => { TH.innerHTML = column; },
+          ],
         });
 
         wt.prepare();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight - 100);
+        console.log(wt.wtViewport.getViewportHeight());
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - 100 - 23);
 
         wt.draw();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight - 100);
+        console.log(wt.wtViewport.getViewportHeight());
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - 100 - 23);
 
         $(document.body).css({ overflowY: 'scroll' });
         spec().$wrapper.css({ marginTop: '' });
       });
 
-      it('should return workspace height as high as the browser viewport height minus top position (dynamic viewport size depends on the scroll position)', () => {
+      it('should return viewport height as high as the browser viewport height minus top position (dynamic viewport size depends on the scroll position)', () => {
         $(document.body).css({ overflowY: 'auto' });
         spec().$wrapper.css({
           width: '',
@@ -130,6 +135,9 @@ xdescribe('WalkontableViewport', () => {
           data: getData,
           totalRows: getTotalRows,
           totalColumns: getTotalColumns,
+          columnHeaders: [
+            (column, TH) => { TH.innerHTML = column; },
+          ],
         });
 
         wt.draw();
@@ -137,37 +145,38 @@ xdescribe('WalkontableViewport', () => {
 
         wt.prepare();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight - 40);
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - 40 - 23);
 
         wt.draw();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight - 40);
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - 40 - 23);
 
         setScrollTop(100);
 
         wt.prepare();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight);
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - 23);
 
         wt.draw();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight);
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - 23);
 
         setScrollTop(200);
 
         wt.prepare();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight);
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - 23);
 
         wt.draw();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight);
+        // 1px correction after scroll
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - 23 - 1);
 
         $(document.body).css({ overflowY: 'scroll' });
         spec().$wrapper.css({ marginTop: '' });
       });
 
-      it('should return workspace height as high as the browser viewport height minus top position and scrollbar height', () => {
+      it('should return viewport height as high as the browser viewport height minus top position and scrollbar height', () => {
         $(document.body).css({ overflowY: 'auto' });
         spec().$wrapper.css({ width: '', height: '', overflow: '' });
         createDataArray(1, 1);
@@ -185,16 +194,16 @@ xdescribe('WalkontableViewport', () => {
 
         wt.prepare();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight - BODY_MARGIN - getScrollbarWidth());
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - BODY_MARGIN - getScrollbarWidth());
 
         wt.draw();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight - BODY_MARGIN - getScrollbarWidth());
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - BODY_MARGIN - getScrollbarWidth());
 
         $(document.body).css({ overflowY: 'scroll' });
       });
 
-      it('should return workspace height minus scrollbar height that is caused by the external UI element', () => {
+      it('should return viewport height minus scrollbar height that is caused by the external UI element', () => {
         $(document.body).css({ overflowY: 'auto' });
         spec().$wrapper.css({ width: '', height: '', overflow: '' });
         createDataArray(1, 6);
@@ -207,18 +216,18 @@ xdescribe('WalkontableViewport', () => {
 
         wt.draw();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight - BODY_MARGIN);
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - BODY_MARGIN);
 
         // add element that causes horizontal scrollbar to appear
         spec().$wrapper.css({ paddingInlineStart: `${window.innerWidth * 2}px` });
 
         wt.prepare();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight - BODY_MARGIN - getScrollbarWidth());
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - BODY_MARGIN - getScrollbarWidth());
 
         wt.draw();
 
-        expect(wt.wtViewport.getWorkspaceHeight()).toBe(window.innerHeight - BODY_MARGIN - getScrollbarWidth());
+        expect(wt.wtViewport.getViewportHeight()).toBe(window.innerHeight - BODY_MARGIN - getScrollbarWidth());
 
         $(document.body).css({ overflowY: 'scroll' });
         spec().$wrapper.css({ paddingBottom: '' });
