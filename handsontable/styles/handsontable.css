@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 22/10/2024 10:45:11)
+ * Release date: 17/10/2024 (built at 22/10/2024 15:48:18)
  */
 .handsontable {
   position: relative;
@@ -39,7 +39,7 @@
   touch-action: manipulation;
 }
 .handsontable.ht-wrapper {
-  border: var(--ht-wrapper-border-width) solid var(--ht-border-color);
+  border: var(--ht-wrapper-border-width) solid var(--ht-wrapper-border-color);
   border-radius: var(--ht-wrapper-border-radius);
 }
 .handsontable .ht_master,
@@ -48,7 +48,7 @@
 }
 .handsontable th,
 .handsontable td {
-  height: calc(var(--ht-line-height, 18px) + 2 * var(--ht-cell-vertical-padding, 4px));
+  height: var(--ht-row-height);
   padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
   vertical-align: top;
   border-top-width: 0;
@@ -56,10 +56,7 @@
   border-inline-end-width: 1px;
   border-bottom-width: 1px;
   border-style: solid;
-  border-top-color: var(--ht-cell-vertical-border-color, #e5e5e9);
-  border-bottom-color: var(--ht-cell-vertical-border-color, #e5e5e9);
-  border-inline-start-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
-  border-inline-end-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
+  border-color: var(--ht-border-color);
   font-size: var(--ht-font-size, 14px);
   line-height: var(--ht-line-height, 18px);
   white-space: pre-wrap;
@@ -139,10 +136,16 @@
   /* Fix for - nested columns with hidden column  */
   overflow: hidden;
 }
+.handsontable tbody th {
+  background-color: var(--ht-header-row-background-color);
+}
 .handsontable tbody th.ht__highlight:before {
   width: var(--ht-header-highlighted-shadow-size);
   height: auto;
   inset: 0 -1px -1px auto;
+}
+.handsontable tbody th.ht__active_highlight {
+  box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #e5e5e9);
 }
 .handsontable .hide {
   display: none;
@@ -569,13 +572,21 @@ tr.ht__row_odd td {
 .handsontable .htCheckboxRendererInput:checked:disabled:after {
   color: var(--ht-checkbox-checked-disabled-icon-color);
 }
-.handsontable .htCheckboxRendererInput:focus:before {
+.handsontable .htCheckboxRendererInput:checked:focus:before {
   border-color: var(--ht-checkbox-checked-focus-border-color);
   background-color: var(--ht-checkbox-checked-focus-background-color);
+  outline: 1px solid var(--ht-checkbox-checked-focus-ring-color);
+}
+.handsontable .htCheckboxRendererInput:checked:focus:after {
+  color: var(--ht-checkbox-checked-focus-icon-color);
+}
+.handsontable .htCheckboxRendererInput:focus:before {
+  border-color: var(--ht-checkbox-focus-border-color);
+  background-color: var(--ht-checkbox-focus-background-color);
   outline: 1px solid var(--ht-checkbox-focus-ring-color);
 }
 .handsontable .htCheckboxRendererInput:focus:after {
-  color: var(--ht-checkbox-checked-focus-icon-color);
+  color: var(--ht-checkbox-focus-icon-color);
 }
 .handsontable .htCheckboxRendererInput:disabled {
   cursor: initial;
@@ -656,7 +667,7 @@ tr.ht__row_odd td {
   font-size: inherit !important;
   line-height: inherit !important;
   color: var(--ht-cell-editor-foreground-color);
-  background-color: var(--ht-background-color, #ffffff);
+  background-color: var(--ht-cell-editor-background-color, #ffffff);
   box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8), 0px 0px var(--ht-cell-editor-shadow-blur-radius) 0px var(--ht-cell-editor-shadow-color);
   border: none;
   -webkit-appearance: none !important;
@@ -686,7 +697,7 @@ tr.ht__row_odd td {
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--ht-cell-editor-foreground-color);
-  background-color: var(--ht-background-color, #ffffff);
+  background-color: var(--ht-cell-editor-background-color, #ffffff);
   font-family: inherit !important;
   font-size: inherit !important;
   line-height: inherit !important;
@@ -788,6 +799,7 @@ tr.ht__row_odd td {
   padding: 10px;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
   font-size: var(--ht-font-size);
+  line-height: var(--ht-line-height);
   font-weight: var(--ht-font-weight);
   color: var(--ht-foreground-color);
   background: var(--ht-background-color, #ffffff);
@@ -884,11 +896,11 @@ tr.ht__row_odd td {
   font-size: var(--ht-font-size);
   line-height: var(--ht-line-height);
   font-weight: var(--ht-font-weight);
-  border-radius: var(--ht-border-radius);
+  border-radius: var(--ht-input-border-radius);
   box-sizing: border-box;
   cursor: pointer;
   outline: none !important;
-  border: 1px solid var(--ht-input-border-color);
+  border: var(--ht-input-border-width) solid var(--ht-input-border-color);
   color: var(--ht-input-foreground-color);
   background-color: var(--ht-input-background-color);
   text-overflow: ellipsis;
@@ -924,11 +936,11 @@ tr.ht__row_odd td {
   font-size: var(--ht-font-size);
   line-height: var(--ht-line-height);
   font-weight: var(--ht-font-weight);
-  border-radius: var(--ht-border-radius);
+  border-radius: var(--ht-input-border-radius);
   box-sizing: border-box;
   cursor: pointer;
   outline: none !important;
-  border: 1px solid var(--ht-input-border-color);
+  border: var(--ht-input-border-width) solid var(--ht-input-border-color);
   color: var(--ht-input-foreground-color);
   background-color: var(--ht-input-background-color);
   transition: var(--ht-table-transition) all ease-in-out;
@@ -1071,13 +1083,25 @@ tr.ht__row_odd td {
   border-color: var(--ht-checkbox-checked-disabled-border-color);
 }
 .handsontable .htUIRadio > input[type=radio]:checked:disabled:after {
-  color: var(--ht-checkbox-checked-disabled-icon-color);
+  color: var(--ht-checkbox-checked-disabled-background-color);
+}
+.handsontable .htUIRadio > input[type=radio]:checked:focus:before {
+  border-color: var(--ht-checkbox-checked-focus-background-color);
+}
+.handsontable .htUIRadio > input[type=radio]:checked:focus:after {
+  color: var(--ht-checkbox-checked-focus-background-color);
 }
 .handsontable .htUIRadio > input[type=radio]:disabled:before {
   border-color: var(--ht-checkbox-disabled-border-color);
 }
 .handsontable .htUIRadio > input[type=radio]:disabled:after {
   color: var(--ht-checkbox-disabled-background-color);
+}
+.handsontable .htUIRadio > input[type=radio]:focus:before {
+  border-color: var(--ht-checkbox-focus-background-color);
+}
+.handsontable .htUIRadio > input[type=radio]:focus:after {
+  color: var(--ht-checkbox-focus-background-color);
 }
 .handsontable .htUIRadio > input[type=radio]:disabled {
   cursor: initial;
@@ -1086,7 +1110,7 @@ tr.ht__row_odd td {
   border-color: var(--ht-checkbox-disabled-border-color);
 }
 .handsontable .htUIRadio > input[type=radio]:disabled:after {
-  color: var(--ht-checkbox-disabled-icon-color);
+  color: var(--ht-checkbox-disabled-background-color);
 }
 .handsontable .htUIRadio label {
   vertical-align: middle;
@@ -1286,7 +1310,7 @@ tr.ht__row_odd td {
   color: inherit;
   padding: 0;
   margin: 0;
-  background-color: var(--ht-icon-button-background);
+  background-color: var(--ht-icon-button-background-color);
   transition: var(--ht-table-transition) all ease-in-out;
   order: 1;
   z-index: 1;
@@ -1412,7 +1436,7 @@ tr.ht__row_odd td {
   transform: translateY(-50%);
 }
 .handsontable.htDropdownMenu table tbody tr td.htSeparator, .handsontable.htContextMenu table tbody tr td.htSeparator, .handsontable.htFiltersConditionsMenu table tbody tr td.htSeparator {
-  border-top: 1px solid var(--ht-menu-border-color);
+  border-top: 1px solid var(--ht-border-color);
   height: 0;
   padding: 0;
   cursor: default;
@@ -1466,7 +1490,7 @@ tr.ht__row_odd td {
   width: 100%;
 }
 .handsontable.htContextMenuSub_Alignment, .handsontable.htDropdownMenuSub_Alignment {
-  margin-top: calc(var(--ht-menu-horizontal-padding) * -1);
+  margin-top: calc(var(--ht-menu-vertical-padding) * -1);
 }
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
@@ -1504,6 +1528,7 @@ tr.ht__row_odd td {
 .handsontable .htFiltersMenuLabel {
   font-size: calc(var(--ht-font-size) - 2px);
   line-height: calc(var(--ht-line-height) - 4px);
+  font-weight: var(--ht-font-weight);
   margin-bottom: calc(var(--ht-gap-size, 2px) * 2);
 }
 .handsontable .htFiltersMenuLabel:empty {
@@ -1618,8 +1643,8 @@ tr.ht__row_odd td {
   font-weight: var(--ht-font-weight);
   margin: 0 -1px;
   padding: var(--ht-comments-textarea-vertical-padding) var(--ht-comments-textarea-horizontal-padding);
-  border: var(--ht-comments-textarea-focus-border-width, 1px) solid transparent;
-  border-inline-start: var(--ht-comments-textarea-focus-border-width, 1px) solid var(--ht-comments-textarea-focus-border-color, #1a42e8);
+  border: var(--ht-comments-textarea-border-width, 1px) solid var(--ht-comments-textarea-border-color);
+  border-inline-start: var(--ht-comments-textarea-border-width, 1px) solid var(--ht-comments-textarea-border-color, #1a42e8);
   color: var(--ht-comments-textarea-foreground-color);
   background-color: var(--ht-comments-textarea-background-color, #ffffff);
   box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
@@ -1629,6 +1654,8 @@ tr.ht__row_odd td {
 }
 .htCommentsContainer .htCommentTextArea:focus {
   border: var(--ht-comments-textarea-focus-border-width, 1px) solid var(--ht-comments-textarea-focus-border-color, #1a42e8);
+  color: var(--ht-comments-textarea-focus-foreground-color);
+  background-color: var(--ht-comments-textarea-focus-background-color);
 }
 
 .handsontable .htRight .columnSorting.sortAction {
@@ -1742,6 +1769,7 @@ tr.ht__row_odd td {
   left: 1px;
   width: 2px;
   height: calc(100% - 12px);
+  max-height: 16px;
   background: var(--ht-read-only-color);
   border-radius: 2px;
   transform: translateY(-50%);
@@ -1787,6 +1815,7 @@ tr.ht__row_odd td {
   top: 1px;
   left: 50%;
   width: calc(100% - 12px);
+  max-width: 16px;
   height: 2px;
   background: var(--ht-resize-indicator-color);
   border-radius: 2px;

@@ -39,10 +39,10 @@
       margin: 0 -1px;
       padding: var(--ht-comments-textarea-vertical-padding)
         var(--ht-comments-textarea-horizontal-padding);
-      border: var(--ht-comments-textarea-focus-border-width, 1px) solid
-        transparent;
-      border-inline-start: var(--ht-comments-textarea-focus-border-width, 1px)
-        solid var(--ht-comments-textarea-focus-border-color, #1a42e8);
+      border: var(--ht-comments-textarea-border-width, 1px) solid
+        var(--ht-comments-textarea-border-color);
+      border-inline-start: var(--ht-comments-textarea-border-width, 1px) solid
+        var(--ht-comments-textarea-border-color, #1a42e8);
       color: var(--ht-comments-textarea-foreground-color);
       background-color: var(--ht-comments-textarea-background-color, #ffffff);
       @include mixins.menu-box-shadow;
@@ -53,6 +53,8 @@
       &:focus {
         border: var(--ht-comments-textarea-focus-border-width, 1px) solid
           var(--ht-comments-textarea-focus-border-color, #1a42e8);
+        color: var(--ht-comments-textarea-focus-foreground-color);
+        background-color: var(--ht-comments-textarea-focus-background-color);
       }
     }
   }

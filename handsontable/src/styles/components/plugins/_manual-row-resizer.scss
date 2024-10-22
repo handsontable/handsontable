@@ -22,6 +22,7 @@
         top: 1px;
         left: 50%;
         width: calc(100% - 12px);
+        max-width: 16px;
         height: 2px;
         background: var(--ht-resize-indicator-color);
         border-radius: 2px;

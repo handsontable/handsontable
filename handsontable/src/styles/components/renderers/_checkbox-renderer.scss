@@ -64,19 +64,33 @@
             color: var(--ht-checkbox-checked-disabled-icon-color);
           }
         }
+
+        &:focus {
+          // Box
+          &:before {
+            border-color: var(--ht-checkbox-checked-focus-border-color);
+            background-color: var(--ht-checkbox-checked-focus-background-color);
+            outline: 1px solid var(--ht-checkbox-checked-focus-ring-color);
+          }
+  
+          // Icon
+          &:after {
+            color: var(--ht-checkbox-checked-focus-icon-color);
+          }
+        }
       }
 
       &:focus {
         // Box
         &:before {
-          border-color: var(--ht-checkbox-checked-focus-border-color);
-          background-color: var(--ht-checkbox-checked-focus-background-color);
+          border-color: var(--ht-checkbox-focus-border-color);
+          background-color: var(--ht-checkbox-focus-background-color);
           outline: 1px solid var(--ht-checkbox-focus-ring-color);
         }
 
         // Icon
         &:after {
-          color: var(--ht-checkbox-checked-focus-icon-color);
+          color: var(--ht-checkbox-focus-icon-color);
         }
       }
 
