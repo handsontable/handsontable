@@ -482,4 +482,26 @@ describe('TableView', () => {
       expect(hot.view._wt.wtViewport.getColumnHeaderHeight).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('isVerticallyScrollableByWindow()', () => {
+    it('should internally call `isVerticallyScrollableByWindow` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'isVerticallyScrollableByWindow').and.returnValue(true);
+
+      expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+      expect(hot.view._wt.wtViewport.isVerticallyScrollableByWindow).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('isHorizontallyScrollableByWindow()', () => {
+    it('should internally call `isHorizontallyScrollableByWindow` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'isHorizontallyScrollableByWindow').and.returnValue(true);
+
+      expect(hot.view.isHorizontallyScrollableByWindow()).toBe(true);
+      expect(hot.view._wt.wtViewport.isHorizontallyScrollableByWindow).toHaveBeenCalledTimes(1);
+    });
+  });
 });

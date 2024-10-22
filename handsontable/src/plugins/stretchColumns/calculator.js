@@ -1,4 +1,5 @@
-import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
+import { DEFAULT_COLUMN_WIDTH, DEFAULT_ROW_HEIGHT } from '../../3rdparty/walkontable/src';
+import { getScrollbarWidth } from '../../helpers/dom/element';
 import { StretchAllStrategy } from './strategies/all';
 import { StretchLastStrategy } from './strategies/last';
 
@@ -68,9 +69,15 @@ export class StretchCalculator {
       this.#widthsMap.clear();
 
       const stretchStrategy = this.#stretchStrategies.get(this.#activeStrategy);
+      const view = this.#hot.view;
+      let viewportWidth = view.getViewportWidth();
+
+      if (this.#willVerticalScrollAppear()) {
+        viewportWidth -= getScrollbarWidth(this.#hot.rootDocument);
+      }
 
       stretchStrategy.prepare({
-        viewportWidth: this.#hot.view.getWorkspaceWidth() - this.#hot.view.getRowHeaderWidth(),
+        viewportWidth,
       });
 
       for (let columnIndex = 0; columnIndex < this.#hot.countCols(); columnIndex++) {
@@ -95,6 +102,38 @@ export class StretchCalculator {
    */
   getStretchedWidth(columnVisualIndex) {
     return this.#widthsMap.getValueAtIndex(this.#hot.toPhysicalColumn(columnVisualIndex));
+  }
+
+  /**
+   * Checks if the vertical scrollbar will appear. Based on the current data and viewport size
+   * the method calculates if the vertical scrollbar will appear after the table is rendered.
+   * The method is a workaround for the issue in the Walkontable that returns unstable viewport
+   * size.
+   *
+   * @returns {boolean}
+   */
+  #willVerticalScrollAppear() {
+    const { view } = this.#hot;
+
+    if (view.isVerticallyScrollableByWindow()) {
+      return false;
+    }
+
+    const viewportHeight = view.getViewportHeight();
+    const totalRows = this.#hot.countRows();
+    let totalHeight = 0;
+    let hasVerticalScroll = false;
+
+    for (let row = 0; row < totalRows; row++) {
+      totalHeight += (this.#hot.getRowHeight(row) ?? DEFAULT_ROW_HEIGHT) + (row === 0 ? 1 : 0);
+
+      if (totalHeight > viewportHeight) {
+        hasVerticalScroll = true;
+        break;
+      }
+    }
+
+    return hasVerticalScroll;
   }
 
   /**

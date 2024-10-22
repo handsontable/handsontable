@@ -1772,6 +1772,24 @@ class TableView {
   }
 
   /**
+   * Checks if the table uses the window as a viewport and if there is a vertical scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isVerticallyScrollableByWindow() {
+    return this._wt.wtViewport.isVerticallyScrollableByWindow();
+  }
+
+  /**
+   * Checks if the table uses the window as a viewport and if there is a horizontal scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isHorizontallyScrollableByWindow() {
+    return this._wt.wtViewport.isHorizontallyScrollableByWindow();
+  }
+
+  /**
    * Return the value of the `aria-colcount` attribute.
    *
    * @returns {number} The value of the `aria-colcount` attribute.

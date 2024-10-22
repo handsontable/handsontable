@@ -17,7 +17,6 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} fixedColumnsStart Option `fixedColumnsStart`.
  * @property {Option} fixedRowsBottom Option `fixedRowsBottom`.
  * @property {Option} fixedRowsTop Option `fixedRowsTop`.
- * @property {Option} freezeOverlays Option `freezeOverlays`.
  * @property {Option} groups Option `groups`.
  * @property {Option} hideBorderOnMouseDownOver Option `hideBorderOnMouseDownOver`.
  * @property {Option} isRtl Option `isRtl`.
@@ -143,7 +142,6 @@ export default class Settings {
 
       // data source
       data: undefined,
-      freezeOverlays: false,
       // Number of renderable columns for the left overlay.
       fixedColumnsStart: 0,
       // Number of renderable rows for the top overlay.
