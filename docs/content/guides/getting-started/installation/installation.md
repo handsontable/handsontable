@@ -245,6 +245,14 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 />
 ```
 
+::: tip
+
+`@handsontable/react-wrapper` is built with functional editor and renderer components in mind. If you prefer to use class-based components, you can use the `@handsontable/react` package instead.
+
+For more information on `@handsontable/react`, see the [14.6 documentation](https://handsontable.com/docs/14.6/react-data-grid/installation/).
+
+:::
+
 ## Preview the result
 
 ::: example #example :react --js 1 --ts 2

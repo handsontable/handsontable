@@ -146,12 +146,6 @@ Language files were loaded after loading Handsontable.
 
 ::: only-for react
 
-::: tip
-
-Note that the `language` property is bound to the component separately using `language={language}`, but it could be included in the `settings` property just as well.
-
-:::
-
 ::: example #example2 :react-languages
 
 @[code](@/content/guides/internationalization/language/react/example2.jsx)

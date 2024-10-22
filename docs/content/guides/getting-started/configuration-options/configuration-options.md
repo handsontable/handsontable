@@ -80,30 +80,6 @@ To apply configuration options, pass them as individual props of the [`HotTable`
   manualRowMove={true}
 />
 ```
-You can also pass your options as an object, using the `settings` prop.
-
-```jsx
-<HotTable
-  settings={{
-    // configuration options, in the object literal notation
-    licenseKey: 'non-commercial-and-evaluation',
-    data: [
-      ['A1', 'B1', 'C1', 'D1'],
-      ['A2', 'B2', 'C2', 'D2'],
-      ['A3', 'B3', 'C3', 'D3'],
-    ],
-    width: 400,
-    height: 300,
-    colHeaders: true,
-    rowHeaders: true,
-    customBorders: true,
-    dropdownMenu: true,
-    multiColumnSorting: true,
-    filters: true,
-    manualRowMove: true,
-  }}
-/>
-```
 
 :::
 
@@ -166,7 +142,7 @@ To apply configuration options to the entire grid, pass your options as a second
 
 ::: only-for react
 
-To apply configuration options to the entire grid, pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column/react-hot-column.md) components. You can also pass your options as an object, using the `settings` prop.
+To apply configuration options to the entire grid, pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column/react-hot-column.md) components.
 
 :::
 
