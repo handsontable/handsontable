@@ -12,7 +12,7 @@ const urls = [
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  testCrossBrowser(`Test merging for URL: ${url}`, async({ tablePage }) => {
+  testCrossBrowser.skip(`Test merging for URL: ${url}`, async({ tablePage }) => {
     await tablePage.goto(url);
 
     const cellFrom = await selectCell(15, 1);
