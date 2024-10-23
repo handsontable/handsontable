@@ -122,17 +122,21 @@ async function proxyRequestToOvh(request: Request, version: string, baseUrl: str
   // If response is a redirection (3xx), handle redirection
   if (redirectionWasFound(proxiedResponse.status)) {
     const locationHeader = proxiedResponse.headers.get('location');
-
     if (locationHeader) {
-      const updatedLocation = locationHeader.replace('https://_docs.handsontable.com', '');
+      const updatedLocation = locationHeader.startsWith('http')
+        ? locationHeader
+        : `${baseUrl}${locationHeader}`;
 
-      return Response.redirect(`${baseUrl}${updatedLocation}`, proxiedResponse.status);
+      console.log(`Redirecting to: ${updatedLocation}`);
+      return Response.redirect(updatedLocation, proxiedResponse.status);
     }
   }
 
-  // If there's an error (4xx, 5xx), handle it by serving a 404 page
   if (errorWasFound(proxiedResponse.status)) {
-    return handle404(baseUrl); // Show 404 page for errors
+    if (version !== latestVersion) {
+      return handle404Versioned(baseUrl, version);
+    }
+    return handle404(baseUrl);
   }
 
   // If the response is successful and the version is the latest, remove the version segment and redirect
