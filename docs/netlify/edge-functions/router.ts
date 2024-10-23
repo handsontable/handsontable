@@ -105,52 +105,56 @@ function errorWasFound(status: number): boolean {
  * @returns {Promise<Response>} A proxied Response object.
  */
 async function proxyRequestToOvh(request: Request, version: string, baseUrl: string): Promise<Response | URL> {
+  try {
   // Get the latest version from environment variables
-  const latestVersion = Netlify.env.get('DOCS_LATEST_VERSION');
+    const latestVersion = Netlify.env.get('DOCS_LATEST_VERSION');
 
-  if (!latestVersion) {
-    console.error('DOCS_LATEST_VERSION is not set in the environment.');
+    // Build the target URL to proxy the request to OVH
+    const url = new URL(request.url); // Parse the full request URL
+    const targetUrl = `https://_docs.handsontable.com${url.pathname}${url.search}`; // Include query string in the target URL
+    const proxiedResponse = await fetch(targetUrl, { redirect: 'manual' });
 
-    return new Response('Latest version not set', { status: 500 });
-  }
+    // If response is a redirection (3xx), handle redirection
+    if (redirectionWasFound(proxiedResponse.status)) {
+      const locationHeader = proxiedResponse.headers.get('location');
 
-  // Build the target URL to proxy the request to OVH
-  const url = new URL(request.url); // Parse the full request URL
-  const targetUrl = `https://_docs.handsontable.com${url.pathname}${url.search}`; // Include query string in the target URL
-  const proxiedResponse = await fetch(targetUrl, { redirect: 'manual' });
+      if (locationHeader) {
+        const updatedLocation = locationHeader.startsWith('http')
+          ? locationHeader
+          : `${baseUrl}${locationHeader}`;
 
-  // If response is a redirection (3xx), handle redirection
-  if (redirectionWasFound(proxiedResponse.status)) {
-    const locationHeader = proxiedResponse.headers.get('location');
-    if (locationHeader) {
-      const updatedLocation = locationHeader.startsWith('http')
-        ? locationHeader
-        : `${baseUrl}${locationHeader}`;
+        console.log(`Redirecting to: ${updatedLocation}`);
 
-      console.log(`Redirecting to: ${updatedLocation}`);
-      return Response.redirect(updatedLocation, proxiedResponse.status);
+        return Response.redirect(updatedLocation, proxiedResponse.status);
+      }
     }
-  }
 
-  if (errorWasFound(proxiedResponse.status)) {
-    if (version !== latestVersion) {
-      return handle404Versioned(baseUrl, version);
+    if (errorWasFound(proxiedResponse.status)) {
+      if (version !== latestVersion) {
+        return handle404Versioned(baseUrl, version);
+      }
+
+      return handle404(baseUrl);
     }
+
+    // If the response is successful and the version is the latest, remove the version segment and redirect
+    if (proxiedResponse.status === 200 && version === latestVersion) {
+      const cleanPathname = url.pathname.replace(`/${latestVersion}`, '');
+      const newUrl = `${baseUrl}${cleanPathname}${url.search}`;
+
+      console.log(`Removing latest version segment: Redirecting to ${newUrl}`);
+
+      return Response.redirect(newUrl, 301);
+    }
+
+    // Return the original response for non-redirects and non-errors
+    return proxiedResponse;
+  } catch (e) {
+    console.error('Uncaught Proxy Error', e);
+
     return handle404(baseUrl);
   }
 
-  // If the response is successful and the version is the latest, remove the version segment and redirect
-  if (proxiedResponse.status === 200 && version === latestVersion) {
-    const cleanPathname = url.pathname.replace(`/${latestVersion}`, '');
-    const newUrl = `${baseUrl}${cleanPathname}${url.search}`;
-
-    console.log(`Removing latest version segment: Redirecting to ${newUrl}`);
-
-    return Response.redirect(newUrl, 301);
-  }
-
-  // Return the original response for non-redirects and non-errors
-  return proxiedResponse;
 }
 
 /**
