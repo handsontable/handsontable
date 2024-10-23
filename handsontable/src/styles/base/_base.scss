@@ -14,9 +14,18 @@
     touch-action: manipulation;
 
     &.ht-wrapper {
-      border: var(--ht-wrapper-border-width) solid
-        var(--ht-wrapper-border-color);
       border-radius: var(--ht-wrapper-border-radius);
+
+      &:before {
+        @include mixins.pseudo;
+        position: absolute;
+        inset: 0;
+        border: var(--ht-wrapper-border-width) solid
+          var(--ht-wrapper-border-color);
+        border-radius: var(--ht-wrapper-border-radius);
+        z-index: 999;
+        pointer-events: none;
+      }
     }
 
     .ht_master,
@@ -109,8 +118,8 @@
       }
 
       &.ht__active_highlight {
-        color: var(--ht-header-active-foreground-color);
-        background-color: var(--ht-header-active-background-color);
+        color: var(--ht-header-active-foreground-color, #ffffff);
+        background-color: var(--ht-header-active-background-color, #1a42e8);
         border-color: var(--ht-header-active-border-color, #e5e5e9);
         box-shadow: -1px 0 0 0 var(--ht-header-active-border-color, #e5e5e9);
 
@@ -138,8 +147,8 @@
 
     // Header in Row
     tbody th {
-      background-color: var(--ht-header-row-background-color);
-      
+      background-color: var(--ht-header-row-background-color, #f7f7f9);
+
       &.ht__highlight {
         &:before {
           width: var(--ht-header-highlighted-shadow-size);

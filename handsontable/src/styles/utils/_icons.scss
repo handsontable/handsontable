@@ -22,6 +22,7 @@
     @include icon($icons, "menu");
   }
 
+  .htUISelectCaption:after,
   .htAutocompleteArrow:after {
     @include icon($icons, "select-arrow");
   }

@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 22/10/2024 15:48:18)
+ * Release date: 17/10/2024 (built at 23/10/2024 14:40:21)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "22/10/2024 15:48:18";
+Handsontable.buildDate = "23/10/2024 14:40:21";
 Handsontable.version = "14.6.1";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -370,7 +370,9 @@ function Core(rootElement, userSettings) {
     if (rootThemeClassName) {
       tableMeta.themeName = rootThemeClassName;
     }
-    (0, _element.addClass)(rootElement, tableMeta.themeName);
+    if (tableMeta.themeName) {
+      (0, _element.addClass)(rootElement, tableMeta.themeName);
+    }
     const licenseInfo = (_rootElement$parentNo = rootElement.parentNode) === null || _rootElement$parentNo === void 0 ? void 0 : _rootElement$parentNo.querySelector('.hot-display-license-info');
     if (licenseInfo) {
       (0, _element.addClass)(licenseInfo, tableMeta.themeName);
@@ -43442,7 +43444,7 @@ var _default = () => {
      * themeName: 'ht-theme-name',
      * ```
      */
-    themeName: 'ht-theme-main',
+    themeName: undefined,
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
      *

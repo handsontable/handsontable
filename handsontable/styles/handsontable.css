@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 22/10/2024 15:48:18)
+ * Release date: 17/10/2024 (built at 23/10/2024 14:40:21)
  */
 .handsontable {
   position: relative;
@@ -39,8 +39,17 @@
   touch-action: manipulation;
 }
 .handsontable.ht-wrapper {
+  border-radius: var(--ht-wrapper-border-radius);
+}
+.handsontable.ht-wrapper:before {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: 0;
   border: var(--ht-wrapper-border-width) solid var(--ht-wrapper-border-color);
   border-radius: var(--ht-wrapper-border-radius);
+  z-index: 999;
+  pointer-events: none;
 }
 .handsontable .ht_master,
 .handsontable .htCore {
@@ -117,8 +126,8 @@
   background-color: var(--ht-accent-color);
 }
 .handsontable th.ht__active_highlight {
-  color: var(--ht-header-active-foreground-color);
-  background-color: var(--ht-header-active-background-color);
+  color: var(--ht-header-active-foreground-color, #ffffff);
+  background-color: var(--ht-header-active-background-color, #1a42e8);
   border-color: var(--ht-header-active-border-color, #e5e5e9);
   box-shadow: -1px 0 0 0 var(--ht-header-active-border-color, #e5e5e9);
 }
@@ -137,7 +146,7 @@
   overflow: hidden;
 }
 .handsontable tbody th {
-  background-color: var(--ht-header-row-background-color);
+  background-color: var(--ht-header-row-background-color, #f7f7f9);
 }
 .handsontable tbody th.ht__highlight:before {
   width: var(--ht-header-highlighted-shadow-size);
@@ -668,7 +677,7 @@ tr.ht__row_odd td {
   line-height: inherit !important;
   color: var(--ht-cell-editor-foreground-color);
   background-color: var(--ht-cell-editor-background-color, #ffffff);
-  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8), 0px 0px var(--ht-cell-editor-shadow-blur-radius) 0px var(--ht-cell-editor-shadow-color);
+  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8), 0px 0px var(--ht-cell-editor-shadow-blur-radius, 0px) 0px var(--ht-cell-editor-shadow-color, transparent);
   border: none;
   -webkit-appearance: none !important;
   overflow: hidden !important;
@@ -701,7 +710,7 @@ tr.ht__row_odd td {
   font-family: inherit !important;
   font-size: inherit !important;
   line-height: inherit !important;
-  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8), 0px 0px var(--ht-cell-editor-shadow-blur-radius) 0px var(--ht-cell-editor-shadow-color);
+  box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width, 2px) var(--ht-cell-editor-border-color, #1a42e8), 0px 0px var(--ht-cell-editor-shadow-blur-radius, 0px) 0px var(--ht-cell-editor-shadow-color, transparent);
   border: none;
   box-sizing: border-box;
   -webkit-appearance: none !important;
@@ -891,6 +900,7 @@ tr.ht__row_odd td {
 .handsontable .htUISelectCaption {
   width: 100%;
   padding: var(--ht-input-vertical-padding) var(--ht-input-horizontal-padding);
+  padding-right: calc(var(--ht-input-horizontal-padding) + var(--ht-icon-size));
   margin: 0;
   font-family: inherit;
   font-size: var(--ht-font-size);
@@ -906,6 +916,14 @@ tr.ht__row_odd td {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+}
+.handsontable .htUISelectCaption:after {
+  content: "";
+  display: block;
+  position: absolute;
+  right: calc(var(--ht-input-horizontal-padding) - var(--ht-icon-size) / 4);
+  top: 50%;
+  transform: translateY(-50%);
 }
 .handsontable .htUISelectCaption:hover {
   border-color: var(--ht-input-hover-border-color);
@@ -1643,7 +1661,7 @@ tr.ht__row_odd td {
   font-weight: var(--ht-font-weight);
   margin: 0 -1px;
   padding: var(--ht-comments-textarea-vertical-padding) var(--ht-comments-textarea-horizontal-padding);
-  border: var(--ht-comments-textarea-border-width, 1px) solid var(--ht-comments-textarea-border-color);
+  border: var(--ht-comments-textarea-border-width, 1px) solid var(--ht-comments-textarea-border-color, transparent);
   border-inline-start: var(--ht-comments-textarea-border-width, 1px) solid var(--ht-comments-textarea-border-color, #1a42e8);
   color: var(--ht-comments-textarea-foreground-color);
   background-color: var(--ht-comments-textarea-background-color, #ffffff);
@@ -1655,7 +1673,7 @@ tr.ht__row_odd td {
 .htCommentsContainer .htCommentTextArea:focus {
   border: var(--ht-comments-textarea-focus-border-width, 1px) solid var(--ht-comments-textarea-focus-border-color, #1a42e8);
   color: var(--ht-comments-textarea-focus-foreground-color);
-  background-color: var(--ht-comments-textarea-focus-background-color);
+  background-color: var(--ht-comments-textarea-focus-background-color, #ffffff);
 }
 
 .handsontable .htRight .columnSorting.sortAction {

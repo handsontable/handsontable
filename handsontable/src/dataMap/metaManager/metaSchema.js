@@ -4451,7 +4451,7 @@ export default () => {
      * themeName: 'ht-theme-name',
      * ```
      */
-    themeName: 'ht-theme-main',
+    themeName: undefined,
 
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
