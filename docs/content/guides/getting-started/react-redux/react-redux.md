@@ -33,7 +33,7 @@ Before using any state management library, make sure you know how Handsontable h
 
 :::
 
-The following example implements the `@handsontable/react` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Redux state manager.
+The following example implements the `@handsontable/react-wrapper` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Redux state manager.
 
 ## Simple example
 

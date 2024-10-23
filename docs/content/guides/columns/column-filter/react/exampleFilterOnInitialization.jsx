@@ -1,6 +1,6 @@
 // you need `useRef` to call Handsontable's instance methods
 import { useRef, useEffect } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 

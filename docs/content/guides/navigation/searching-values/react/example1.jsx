@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -19,12 +19,12 @@ const ExampleComponent = () => {
     (event) => {
       const hot = hotRef.current?.hotInstance;
       // get the `Search` plugin's instance
-      const search = hot.getPlugin('search');
+      const search = hot?.getPlugin('search');
       // use the `Search` plugin's `query()` method
-      const queryResult = search.query(event.currentTarget.value);
+      const queryResult = search?.query(event.currentTarget.value);
 
       console.log(queryResult);
-      hot.render();
+      hot?.render();
     },
     [hotRef.current]
   );

@@ -177,21 +177,21 @@ To install Handsontable locally using a package manager, run one of these comman
   <code-block title="npm">
 
   ```bash
-  npm install handsontable @handsontable/react
+  npm install handsontable @handsontable/react-wrapper
   ```
 
   </code-block>
   <code-block title="Yarn">
 
   ```bash
-  yarn add handsontable @handsontable/react
+  yarn add handsontable @handsontable/react-wrapper
   ```
 
   </code-block>
   <code-block title="pnpm">
 
   ```bash
-  pnpm add handsontable @handsontable/react
+  pnpm add handsontable @handsontable/react-wrapper
   ```
 
   </code-block>
@@ -223,7 +223,7 @@ Or, to reduce the size of your JavaScript bundle, [import only the modules that 
 The main Handsontable component is called `HotTable`.
 
 ```jsx
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 ```
 
 To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
@@ -244,6 +244,14 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
   licenseKey="non-commercial-and-evaluation" // for non-commercial use only
 />
 ```
+
+::: tip
+
+`@handsontable/react-wrapper` requires at least React@18 and is built with functional editors and renderers components in mind. If you use a lower version of React or prefer to use class-based components, you can use the `@handsontable/react` package instead.
+
+For more information on `@handsontable/react`, see the [14.6 documentation](https://handsontable.com/docs/14.6/react-data-grid/installation/).
+
+:::
 
 ## Preview the result
 

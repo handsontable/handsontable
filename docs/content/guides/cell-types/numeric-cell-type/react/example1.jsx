@@ -1,4 +1,4 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import numbro from 'numbro';
 import deDE from 'numbro/languages/de-DE';
 import { registerAllModules } from 'handsontable/registry';
