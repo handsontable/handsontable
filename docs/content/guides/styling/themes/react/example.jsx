@@ -1,5 +1,3 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -29,7 +27,3 @@ const ExampleComponent = () => {
 };
 
 export default ExampleComponent;
-
-const rootElement = document.getElementById('example');
-
-ReactDOM.render(<ExampleComponent />, rootElement);
