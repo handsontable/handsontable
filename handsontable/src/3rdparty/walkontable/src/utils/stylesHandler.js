@@ -103,8 +103,8 @@ export class StylesHandler {
 
     const acquiredValue = this.#getParsedCSSValue(`--ht-${variableName}`);
 
-    if (acquiredValue !== undefined && acquiredValue !== null) {
-      this.#cssVars[variableName] = acquiredValue;
+    if (acquiredValue !== null) {
+      this.#cssVars[`--ht-${variableName}`] = acquiredValue;
 
       return acquiredValue;
     }
