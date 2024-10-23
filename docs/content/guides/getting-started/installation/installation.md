@@ -247,7 +247,7 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 ::: tip
 
-`@handsontable/react-wrapper` is built with functional editor and renderer components in mind. If you prefer to use class-based components, you can use the `@handsontable/react` package instead.
+`@handsontable/react-wrapper` requires at least React@18 and is built with functional editors and renderers components in mind. If you use a lower version of React or prefer to use class-based components, you can use the `@handsontable/react` package instead.
 
 For more information on `@handsontable/react`, see the [14.6 documentation](https://handsontable.com/docs/14.6/react-data-grid/installation/).
 
