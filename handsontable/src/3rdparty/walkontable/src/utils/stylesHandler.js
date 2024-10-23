@@ -94,7 +94,7 @@ export class StylesHandler {
    * Retrieves the value of a specified CSS variable.
    *
    * @param {string} variableName - The name of the CSS variable to retrieve.
-   * @returns {number|string|undefined} The value of the specified CSS variable, or `undefined` if not found.
+   * @returns {number|undefined} The value of the specified CSS variable, or `undefined` if not found.
    */
   getCSSVariableValue(variableName) {
     if (this.#cssVars[`--ht-${variableName}`]) {
