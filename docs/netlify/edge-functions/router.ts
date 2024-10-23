@@ -4,6 +4,8 @@
 
 import type { Context, Config } from '@netlify/edge-functions';
 
+const OVH_BASE_URL = 'https://_docs.handsontable.com';
+
 declare let Netlify: {
     env: {
       get: (key: string) => string;
@@ -67,7 +69,7 @@ async function handle404(url: string): Promise<URL> {
 async function handle404Versioned(baseUrl: string, version: string): Promise<Response | URL> {
   try {
     console.log('handle404Versioned', baseUrl, version);
-    const versioned404Url = `${baseUrl}/docs/${version}/404.html`;
+    const versioned404Url = `${OVH_BASE_URL}/docs/${version}/404.html`;
     const errorPage = await fetch(versioned404Url);
 
     return errorPage;
@@ -114,12 +116,13 @@ async function proxyRequestToOvh(request: Request, version: string, baseUrl: str
 
     // Build the target URL to proxy the request to OVH
     const url = new URL(request.url); // Parse the full request URL
-    const targetUrl = `https://_docs.handsontable.com${url.pathname}${url.search}`; // Include query string in the target URL
+    const targetUrl = `${OVH_BASE_URL}${url.pathname}${url.search}`; // Include query string in the target URL
     const proxiedResponse = await fetch(targetUrl, { redirect: 'manual' });
 
     // If response is a redirection (3xx), handle redirection
     if (redirectionWasFound(proxiedResponse.status)) {
       const locationHeader = proxiedResponse.headers.get('location');
+
       console.log('locationHeader', locationHeader);
 
       if (locationHeader) {
