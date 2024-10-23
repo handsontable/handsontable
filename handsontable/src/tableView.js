@@ -154,7 +154,7 @@ class TableView {
       if (this.postponedAdjustElementsSize) {
         this.postponedAdjustElementsSize = false;
 
-        this.adjustElementsSize(true);
+        this.adjustElementsSize();
       }
 
       this._wt.draw(!this.hot.forceFullRender);
@@ -662,7 +662,6 @@ class TableView {
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
-      stretchH: () => this.settings.stretchH,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
       data: (renderableRow, renderableColumn) => {
@@ -1045,11 +1044,6 @@ class TableView {
       },
       onBeforeTouchScroll: () => this.hot.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.hot.runHooks('afterMomentumScroll'),
-      onBeforeStretchingColumnWidth: (stretchedWidth, renderedColumnIndex) => {
-        const visualColumnIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
-
-        return this.hot.runHooks('beforeStretchingColumnWidth', stretchedWidth, visualColumnIndex);
-      },
       onModifyRowHeaderWidth: rowHeaderWidth => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (renderableRowIndex, renderableColumnIndex, topmost, source) => {
         const rowMapper = this.hot.rowIndexMapper;
@@ -1755,6 +1749,44 @@ class TableView {
    */
   getTableHeight() {
     return this._wt.wtTable.getHeight();
+  }
+
+  /**
+   * Gets the row header width. If there are multiple row headers, the width of
+   * the sum of all of them is returned.
+   *
+   * @returns {number}
+   */
+  getRowHeaderWidth() {
+    return this._wt.wtViewport.getRowHeaderWidth();
+  }
+
+  /**
+   * Gets the column header height. If there are multiple column headers, the height
+   * of the sum of all of them is returned.
+   *
+   * @returns {number}
+   */
+  getColumnHeaderHeight() {
+    return this._wt.wtViewport.getColumnHeaderHeight();
+  }
+
+  /**
+   * Checks if the table uses the window as a viewport and if there is a vertical scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isVerticallyScrollableByWindow() {
+    return this._wt.wtViewport.isVerticallyScrollableByWindow();
+  }
+
+  /**
+   * Checks if the table uses the window as a viewport and if there is a horizontal scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isHorizontallyScrollableByWindow() {
+    return this._wt.wtViewport.isHorizontallyScrollableByWindow();
   }
 
   /**

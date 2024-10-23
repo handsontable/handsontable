@@ -382,14 +382,15 @@ class Overlays {
     let resizeTimeout;
 
     this.eventManager.addEventListener(rootWindow, 'resize', () => {
-      clearTimeout(resizeTimeout);
-
-      resizeTimeout = setTimeout(() => {
+      requestAnimationFrame(() => {
+        clearTimeout(resizeTimeout);
         this.wtSettings.getSetting('onWindowResize');
 
-        // Remove resizing the window from the ResizeObserver's endless-loop-blocking logic.
-        this.#containerDomResizeCount = 0;
-      }, 200);
+        resizeTimeout = setTimeout(() => {
+          // Remove resizing the window from the ResizeObserver's endless-loop-blocking logic.
+          this.#containerDomResizeCount = 0;
+        }, 200);
+      });
     });
 
     if (!isScrollOnWindow) {

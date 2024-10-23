@@ -69,7 +69,7 @@ export default class Core {
   getColHeader(): Array<number | string>;
   getColHeader(column: number, headerLevel?: number): number | string;
   getColumnMeta(column: number): ColumnSettings;
-  getColWidth(column: number): number;
+  getColWidth(column: number, source?: string): number;
   getCoords(element: Element | null): CellCoords;
   getCopyableData(row: number, column: number): string;
   getCopyableText(startRow: number, startColumn: number, endRow: number, endColumn: number): string;
@@ -99,7 +99,7 @@ export default class Core {
   getPlugin(pluginName: string): Plugins['basePlugin'];
   getRowHeader(): Array<string | number>;
   getRowHeader(row: number): string | number;
-  getRowHeight(row: number): number;
+  getRowHeight(row: number, source?: string): number;
   getSchema(): RowObject;
   getSelected(): Array<[number, number, number, number]> | undefined;
   getSelectedLast(): number[] | undefined;

@@ -347,11 +347,7 @@ class Table {
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
 
-        let workspaceWidth;
-
         if (this.isMaster) {
-          workspaceWidth = this.dataAccessObject.workspaceWidth;
-          wtViewport.containerWidth = null;
           this.markOversizedColumnHeaders();
         }
 
@@ -368,22 +364,6 @@ class Table {
 
           wtOverlays.refresh(false);
           wtOverlays.applyToDOM();
-
-          const hiderWidth = outerWidth(this.hider);
-          const tableWidth = outerWidth(this.TABLE);
-
-          if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
-            // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
-            this.columnUtils.calculateWidths();
-            this.tableRenderer.renderer.colGroup.render();
-          }
-
-          if (workspaceWidth !== wtViewport.getWorkspaceWidth()) {
-            // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
-            wtViewport.containerWidth = null;
-            this.columnUtils.calculateWidths();
-            this.tableRenderer.renderer.colGroup.render();
-          }
 
           this.wtSettings.getSetting('onDraw', true);
 
@@ -1049,14 +1029,6 @@ class Table {
    */
   getColumnWidth(sourceColumn) {
     return this.columnUtils.getWidth(sourceColumn);
-  }
-
-  /**
-   * @param {number} sourceColumn The physical column index.
-   * @returns {number}
-   */
-  getStretchedColumnWidth(sourceColumn) {
-    return this.columnUtils.getStretchedColumnWidth(sourceColumn);
   }
 
   /**
