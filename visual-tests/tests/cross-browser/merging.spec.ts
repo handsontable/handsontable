@@ -20,7 +20,7 @@ urls.forEach((url) => {
 
     await createSelection(cellFrom, cellTo);
 
-    await cellTo.click({ button: 'right' });
+    await cellFrom.click({ button: 'right'});
     await tablePage.getByText('Merge cells').click();
 
     const testFileName = path.basename(__filename, '.spec.ts');
