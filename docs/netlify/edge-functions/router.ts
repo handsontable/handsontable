@@ -70,7 +70,7 @@ async function handle404Versioned(baseUrl: string, version: string): Promise<Res
 
     return errorPage;
   } catch (e) {
-    console.error('Error during downloading external page', e);
+    console.error('Error during downloading external error page', e);
 
     return handle404(baseUrl);
   }
@@ -208,7 +208,7 @@ export default async function handler(request: Request, context: Context): Promi
     if (match) {
       const version = match[1];
 
-      return proxyRequestToOvh(request, baseUrl, version);
+      return proxyRequestToOvh(request, version, baseUrl);
     }
 
     // Local redirection handling
