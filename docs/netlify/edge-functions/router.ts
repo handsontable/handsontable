@@ -56,6 +56,7 @@ function prepareRedirects(framework: string): Redirect[] {
 async function handle404(url: string): Promise<URL> {
   return new URL('/docs/404.html', url);
 }
+
 /**
  * Fetches the 404 page for a specific version.
  *
@@ -65,6 +66,7 @@ async function handle404(url: string): Promise<URL> {
  */
 async function handle404Versioned(baseUrl: string, version: string): Promise<Response | URL> {
   try {
+    console.log('handle404Versioned');
     const versioned404Url = `${baseUrl}/docs/${version}/404.html`;
     const errorPage = await fetch(versioned404Url);
 
@@ -123,8 +125,6 @@ async function proxyRequestToOvh(request: Request, version: string, baseUrl: str
           ? locationHeader
           : `${baseUrl}${locationHeader}`;
 
-        console.log(`Redirecting to: ${updatedLocation}`);
-
         return Response.redirect(updatedLocation, proxiedResponse.status);
       }
     }
@@ -141,8 +141,6 @@ async function proxyRequestToOvh(request: Request, version: string, baseUrl: str
     if (proxiedResponse.status === 200 && version === latestVersion) {
       const cleanPathname = url.pathname.replace(`/${latestVersion}`, '');
       const newUrl = `${baseUrl}${cleanPathname}${url.search}`;
-
-      console.log(`Removing latest version segment: Redirecting to ${newUrl}`);
 
       return Response.redirect(newUrl, 301);
     }
@@ -168,15 +166,12 @@ export default async function handler(request: Request, context: Context): Promi
   try {
     const currentUrl = new URL(request.url);
     const baseUrl = currentUrl.origin;
-    const { pathname, search } = currentUrl;
-    const DOCS_LATEST_VERSION = Netlify.env.get('DOCS_LATEST_VERSION');
-
-    if (!DOCS_LATEST_VERSION) {
-      console.warn('No latest version found');
-    }
+    const { pathname } = currentUrl;
 
     // Serve the 404 page without further rewrites to avoid rewrite loop
     if (pathname === '/docs/404.html') {
+      console.log('Pathname 404 handling', currentUrl.href, pathname);
+
       return context.next();
     }
 
@@ -195,8 +190,6 @@ export default async function handler(request: Request, context: Context): Promi
 
     if (externalMatchFound) {
       const url = pathname.replace(externalMatchFound.from, externalMatchFound.to);
-
-      console.warn('handleExternalMatch');
 
       return Response.redirect(url, 301);
     }
@@ -227,8 +220,6 @@ export default async function handler(request: Request, context: Context): Promi
 
       if (response.ok) {
         return response;
-      } else if (redirectionWasFound(response.status)) {
-        console.warn('Redirection was found', response.status, response.statusText);
       }
 
       console.error('File was not found', request.url, response.status, response.statusText);
