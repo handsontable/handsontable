@@ -66,7 +66,7 @@ async function handle404(url: string): Promise<URL> {
  */
 async function handle404Versioned(baseUrl: string, version: string): Promise<Response | URL> {
   try {
-    console.log('handle404Versioned');
+    console.log('handle404Versioned', baseUrl, version);
     const versioned404Url = `${baseUrl}/docs/${version}/404.html`;
     const errorPage = await fetch(versioned404Url);
 
@@ -107,6 +107,7 @@ function errorWasFound(status: number): boolean {
  * @returns {Promise<Response>} A proxied Response object.
  */
 async function proxyRequestToOvh(request: Request, version: string, baseUrl: string): Promise<Response | URL> {
+  console.log('proxyRequestToOvh', request, version, baseUrl);
   try {
   // Get the latest version from environment variables
     const latestVersion = Netlify.env.get('DOCS_LATEST_VERSION');
@@ -119,6 +120,7 @@ async function proxyRequestToOvh(request: Request, version: string, baseUrl: str
     // If response is a redirection (3xx), handle redirection
     if (redirectionWasFound(proxiedResponse.status)) {
       const locationHeader = proxiedResponse.headers.get('location');
+      console.log('locationHeader', locationHeader);
 
       if (locationHeader) {
         const updatedLocation = locationHeader.startsWith('http')
@@ -130,9 +132,12 @@ async function proxyRequestToOvh(request: Request, version: string, baseUrl: str
     }
 
     if (errorWasFound(proxiedResponse.status)) {
+      console.log('proxyErrorWasFound', targetUrl, proxiedResponse.status);
+
       if (version !== latestVersion) {
         return handle404Versioned(baseUrl, version);
       }
+      console.log('proxyErrorNonVersioned');
 
       return handle404(baseUrl);
     }
