@@ -63,10 +63,17 @@ async function handle404(url: string): Promise<URL> {
  * @param {string} version HOT docs version.
  * @returns {Promise<Response>} Response.
  */
-async function handle404Versioned(baseUrl: string, version: string) {
-  const versioned404Url = new URL(`/docs/${version}/404.html`, baseUrl);
+async function handle404Versioned(baseUrl: string, version: string): Promise<Response | URL> {
+  try {
+    const versioned404Url = `${baseUrl}/docs/${version}/404.html`;
+    const errorPage = await fetch(versioned404Url);
 
-  return fetch(versioned404Url.href);
+    return errorPage;
+  } catch (e) {
+    console.error('Error during downloading external page', e);
+
+    return handle404(baseUrl);
+  }
 }
 
 /**
@@ -97,7 +104,7 @@ function errorWasFound(status: number): boolean {
  * @param {string} version HOT docs version.
  * @returns {Promise<Response>} A proxied Response object.
  */
-async function proxyRequestToOvh(request: Request, baseUrl: string, version: string): Promise<Response> {
+async function proxyRequestToOvh(request: Request, baseUrl: string, version: string): Promise<Response | URL> {
   // Extract pathname and search (query string) from the original request
   const originalUrl = new URL(request.url);
   const { pathname, search } = originalUrl;
@@ -105,8 +112,6 @@ async function proxyRequestToOvh(request: Request, baseUrl: string, version: str
 
   // Construct the target URL for OVH using the request's original pathname and search (query string)
   const targetUrl = new URL(`${OVHbaseUrl}${pathname}${search}`);
-
-  console.log('Fetching from OVH:', targetUrl.href);
 
   // Fetch from the OVH docs server with the original URL, but from the OVH domain
   const proxiedResponse = await fetch(targetUrl.href, { redirect: 'manual' });
@@ -150,7 +155,7 @@ export default async function handler(request: Request, context: Context): Promi
   try {
     const currentUrl = new URL(request.url);
     const baseUrl = currentUrl.origin;
-    const { pathname } = currentUrl;
+    const { pathname, search } = currentUrl;
     const DOCS_LATEST_VERSION = Netlify.env.get('DOCS_LATEST_VERSION');
 
     if (!DOCS_LATEST_VERSION) {
@@ -189,6 +194,12 @@ export default async function handler(request: Request, context: Context): Promi
 
     if (match) {
       const version = match[1];
+
+      if (version === DOCS_LATEST_VERSION) {
+        const newPath = pathname.replace(`/${version}`, '');
+
+        return Response.redirect(`${baseUrl}${newPath}${search}`, 301);
+      }
 
       // If it's not the latest version, redirect/proxy to external OVH docs
       if (version !== DOCS_LATEST_VERSION) {
@@ -238,28 +249,6 @@ export default async function handler(request: Request, context: Context): Promi
 export const config: Config = {
   path: ['/*'],
 };
-
-/**
- * Retrieves OVH redirects.
- *
- * @returns {Redirect[]}
- */
-function getOVHRedirects(): { from: RegExp; to: string }[] {
-  return [
-    {
-      from: /^\/docs\/(\d+\.\d+)(.*)$/,
-      to: 'https://_docs.handsontable.com/docs/$1.0$2',
-    },
-    {
-      from: /^\/docs\/(\d+)(.*)$/,
-      to: 'https://_docs.handsontable.com/docs/$1.0.0$2',
-    },
-    {
-      from: /^\/docs\/(\d+\.\d+\.\d+)(.*)$/,
-      to: 'https://_docs.handsontable.com/docs/$1$2',
-    },
-  ];
-}
 
 /**
  * Retrieves external redirect rules for Hyperformula documentation.
