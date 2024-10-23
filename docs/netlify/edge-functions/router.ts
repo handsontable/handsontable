@@ -97,50 +97,55 @@ function errorWasFound(status: number): boolean {
 }
 
 /**
- * Proxies requests to the OVH docs server and appends query parameters if present.
+ * Proxies requests to the OVH docs server.
  *
  * @param {Request} request The original Request object.
- * @param {string} baseUrl BaseUrl.
  * @param {string} version HOT docs version.
+ * @param {string} baseUrl BaseUrl.
  * @returns {Promise<Response>} A proxied Response object.
  */
-async function proxyRequestToOvh(request: Request, baseUrl: string, version: string): Promise<Response | URL> {
-  // Extract pathname and search (query string) from the original request
-  const originalUrl = new URL(request.url);
-  const { pathname, search } = originalUrl;
-  const OVHbaseUrl = 'https://_docs.handsontable.com';
+async function proxyRequestToOvh(request: Request, version: string, baseUrl: string): Promise<Response | URL> {
+  // Get the latest version from environment variables
+  const latestVersion = Netlify.env.get('DOCS_LATEST_VERSION');
 
-  // Construct the target URL for OVH using the request's original pathname and search (query string)
-  const targetUrl = new URL(`${OVHbaseUrl}${pathname}${search}`);
+  if (!latestVersion) {
+    console.error('DOCS_LATEST_VERSION is not set in the environment.');
 
-  // Fetch from the OVH docs server with the original URL, but from the OVH domain
-  const proxiedResponse = await fetch(targetUrl.href, { redirect: 'manual' });
+    return new Response('Latest version not set', { status: 500 });
+  }
 
-  // Handle redirections if OVH responds with a redirect
+  // Build the target URL to proxy the request to OVH
+  const url = new URL(request.url); // Parse the full request URL
+  const targetUrl = `https://_docs.handsontable.com${url.pathname}${url.search}`; // Include query string in the target URL
+  const proxiedResponse = await fetch(targetUrl, { redirect: 'manual' });
+
+  // If response is a redirection (3xx), handle redirection
   if (redirectionWasFound(proxiedResponse.status)) {
     const locationHeader = proxiedResponse.headers.get('location');
 
-    console.log('locationHeader', locationHeader);
-
     if (locationHeader) {
-      // Replace OVH's hostname with the baseUrl (to ensure it's under your control)
-      const finalRedirectUrl = `${baseUrl}${locationHeader}`;
+      const updatedLocation = locationHeader.replace('https://_docs.handsontable.com', '');
 
-      console.log('Updated location redirected to:', finalRedirectUrl);
-
-      // Redirect the user to the updated location, but under your baseUrl
-      return Response.redirect(finalRedirectUrl, proxiedResponse.status);
+      return Response.redirect(`${baseUrl}${updatedLocation}`, proxiedResponse.status);
     }
   }
 
-  // Handle errors (4xx, 5xx) by serving the 404 page
+  // If there's an error (4xx, 5xx), handle it by serving a 404 page
   if (errorWasFound(proxiedResponse.status)) {
-    console.error('errorWasFound', proxiedResponse.status);
-
-    return handle404Versioned(OVHbaseUrl, version);
+    return handle404(baseUrl); // Show 404 page for errors
   }
 
-  // Return the proxied response from OVH
+  // If the response is successful and the version is the latest, remove the version segment and redirect
+  if (proxiedResponse.status === 200 && version === latestVersion) {
+    const cleanPathname = url.pathname.replace(`/${latestVersion}`, '');
+    const newUrl = `${baseUrl}${cleanPathname}${url.search}`;
+
+    console.log(`Removing latest version segment: Redirecting to ${newUrl}`);
+
+    return Response.redirect(newUrl, 301);
+  }
+
+  // Return the original response for non-redirects and non-errors
   return proxiedResponse;
 }
 
@@ -195,17 +200,7 @@ export default async function handler(request: Request, context: Context): Promi
     if (match) {
       const version = match[1];
 
-      if (version === DOCS_LATEST_VERSION) {
-        const newPath = pathname.replace(`/${version}`, '');
-
-        return Response.redirect(`${baseUrl}${newPath}${search}`, 301);
-      }
-
-      // If it's not the latest version, redirect/proxy to external OVH docs
-      if (version !== DOCS_LATEST_VERSION) {
-        // Handle transparent proxy
-        return proxyRequestToOvh(request, baseUrl, version);
-      }
+      return proxyRequestToOvh(request, baseUrl, version);
     }
 
     // Local redirection handling
