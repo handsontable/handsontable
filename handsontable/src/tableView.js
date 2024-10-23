@@ -154,7 +154,7 @@ class TableView {
       if (this.postponedAdjustElementsSize) {
         this.postponedAdjustElementsSize = false;
 
-        this.adjustElementsSize(true);
+        this.adjustElementsSize();
       }
 
       this._wt.draw(!this.hot.forceFullRender);

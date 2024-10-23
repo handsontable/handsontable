@@ -348,7 +348,6 @@ class Table {
           .render();
 
         if (this.isMaster) {
-          wtViewport.containerWidth = null;
           this.markOversizedColumnHeaders();
         }
 

@@ -72,6 +72,35 @@ export class StretchColumns extends BasePlugin {
    * @type {StretchCalculator}
    */
   #stretchCalculator = new StretchCalculator(this.hot);
+  /**
+   * The previous width of the root element. Helps to determine if the width has changed.
+   *
+   * @type {number | null}
+   */
+  #previousTableWidth = null;
+  /**
+   * It observes the root element to detect changes in its width, and if detected, then it triggers
+   * the table dimension calculations. In a situation where the browser's vertical scrollbar
+   * appears - caused by some external UI element, the observer triggers the render.
+   *
+   * @type {ResizeObserver}
+   */
+  #resizeObserver = new ResizeObserver((entries) => {
+    requestAnimationFrame(() => {
+      if (!this.hot?.view.isHorizontallyScrollableByWindow()) {
+        return;
+      }
+
+      entries.forEach(({ contentRect }) => {
+        if (this.#previousTableWidth !== null && this.#previousTableWidth !== contentRect.width) {
+          this.hot.refreshDimensions();
+          this.hot.view.adjustElementsSize();
+        }
+
+        this.#previousTableWidth = contentRect.width;
+      });
+    });
+  });
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -92,6 +121,7 @@ export class StretchColumns extends BasePlugin {
     }
 
     this.#stretchCalculator.useStrategy(this.hot.getSettings().stretchH);
+    this.#resizeObserver.observe(this.hot.rootElement);
 
     this.addHook('beforeRender', () => this.#onBeforeRender());
     this.addHook('modifyColWidth', (...args) => this.#onModifyColWidth(...args), 10);
@@ -112,6 +142,7 @@ export class StretchColumns extends BasePlugin {
    */
   disablePlugin() {
     super.disablePlugin();
+    this.#resizeObserver.unobserve(this.hot.rootElement);
   }
 
   /**
@@ -159,6 +190,8 @@ export class StretchColumns extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#resizeObserver.disconnect();
+    this.#resizeObserver = null;
     this.#stretchCalculator = null;
     super.destroy();
   }

@@ -95,6 +95,105 @@ describe('StretchColumns', () => {
     expect(getColWidth(2)).toBe(150);
   });
 
+  it('should correctly stretch columns after vertical scroll appears (defined table size)', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 3),
+      colHeaders: true,
+      rowHeaders: true,
+      width: 320,
+      height: 142,
+      stretchH: 'all',
+    });
+
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
+
+    updateSettings({
+      height: 141,
+    });
+
+    expect(getColWidth(0)).toBe(85);
+    expect(getColWidth(1)).toBe(85);
+    expect(getColWidth(2)).toBe(85);
+
+    updateSettings({
+      height: 142,
+    });
+
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
+  });
+
+  it('should correctly stretch columns after vertical scroll appears (window as scrollable element)', async() => {
+    document.body.style.overflowY = 'hidden';
+
+    handsontable({
+      data: createSpreadsheetData(5, 3),
+      colHeaders: false,
+      rowHeaders: false,
+      stretchH: 'all',
+    });
+
+    {
+      const columnWidth = window.innerWidth / 3;
+
+      expect(getColWidth(0)).toBeAroundValue(columnWidth, 1);
+      expect(getColWidth(1)).toBeAroundValue(columnWidth, 1);
+      expect(getColWidth(2)).toBeAroundValue(columnWidth, 1);
+      expect(getMaster().find('.wtHider').width()).toBe(window.innerWidth);
+    }
+
+    await sleep(50);
+    document.body.style.overflowY = 'scroll';
+    await sleep(50);
+
+    {
+      const columnWidth = (window.innerWidth - 15) / 3;
+
+      expect(getColWidth(0)).toBeAroundValue(columnWidth, 1);
+      expect(getColWidth(1)).toBeAroundValue(columnWidth, 1);
+      expect(getColWidth(2)).toBeAroundValue(columnWidth, 1);
+      expect(getMaster().find('.wtHider').width()).toBe(window.innerWidth - 15);
+    }
+  });
+
+  it('should correctly stretch columns after vertical scroll disappears (window as scrollable element)', async() => {
+    document.body.style.overflowY = 'scroll';
+
+    handsontable({
+      data: createSpreadsheetData(5, 3),
+      colHeaders: false,
+      rowHeaders: false,
+      stretchH: 'all',
+    });
+
+    {
+      const columnWidth = (window.innerWidth - 15) / 3;
+
+      expect(getColWidth(0)).toBeAroundValue(columnWidth, 1);
+      expect(getColWidth(1)).toBeAroundValue(columnWidth, 1);
+      expect(getColWidth(2)).toBeAroundValue(columnWidth, 1);
+      expect(getMaster().find('.wtHider').width()).toBe(window.innerWidth - 15);
+    }
+
+    await sleep(50);
+    document.body.style.overflowY = 'hidden';
+    await sleep(50);
+
+    {
+      const columnWidth = window.innerWidth / 3;
+
+      expect(getColWidth(0)).toBeAroundValue(columnWidth, 1);
+      expect(getColWidth(1)).toBeAroundValue(columnWidth, 1);
+      expect(getColWidth(2)).toBeAroundValue(columnWidth, 1);
+      expect(getMaster().find('.wtHider').width()).toBe(window.innerWidth);
+    }
+
+    document.body.style.overflowY = 'scroll';
+  });
+
   it('should correctly stretch columns after window size change', () => {
     handsontable({
       data: createSpreadsheetData(5, 3),
