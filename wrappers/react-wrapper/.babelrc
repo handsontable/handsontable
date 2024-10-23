@@ -1,0 +1,21 @@
+{
+  "presets": [
+    "@babel/preset-react"
+  ],
+  "env": {
+    "test": {
+      "presets": [
+        "@babel/env",
+        [
+          "@babel/preset-typescript",
+          {
+            "allowDeclareFields": true
+          }
+        ]
+      ],
+      "plugins": [
+        "@babel/transform-runtime"
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+node_modules
+bower_components
+dist
+commonjs
+es
+
+.DS_Store
+.idea
+.rpt2_cache
+*.log
+/*.d.ts
