@@ -583,9 +583,9 @@ export class Menu {
    */
   isCommandPassive(commandDescriptor) {
     return commandDescriptor.isCommand === false ||
-      isItemSeparator(commandDescriptor) ||
-      isItemDisabled(commandDescriptor, this.hot) ||
-      isItemSubMenu(commandDescriptor);
+           isItemSeparator(commandDescriptor) ||
+           isItemDisabled(commandDescriptor, this.hot) ||
+           isItemSubMenu(commandDescriptor);
   }
 
   /**
