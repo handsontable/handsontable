@@ -933,9 +933,6 @@ CheckboxRenderer
   content: "*";
   display: inline-block;
   position: relative;
-  /* The multi-line header and header with longer text need more padding to not hide arrow,
-  we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
-  padding-right: 20px;
 }
 .handsontable .htCommentCell {
   position: relative;
