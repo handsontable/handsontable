@@ -12,11 +12,11 @@
       font-size: var(--ht-font-size);
       line-height: var(--ht-line-height);
       font-weight: var(--ht-font-weight);
-      border-radius: var(--ht-border-radius);
+      border-radius: var(--ht-input-border-radius);
       box-sizing: border-box;
       cursor: pointer;
       outline: none !important;
-      border: 1px solid var(--ht-input-border-color);
+      border: var(--ht-input-border-width) solid var(--ht-input-border-color);
       color: var(--ht-input-foreground-color);
       background-color: var(--ht-input-background-color);
       transition: var(--ht-table-transition) all ease-in-out;

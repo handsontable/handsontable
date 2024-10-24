@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 14.6.0
- * Release date: 01/10/2024 (built at 18/10/2024 14:31:23)
+ * Version: 14.6.1
+ * Release date: 17/10/2024 (built at 24/10/2024 08:52:28)
  */
 /**
  * Fix for bootstrap styles
@@ -589,6 +589,7 @@ innerBorderBottom - Property controlled by bottom overlay
   color: #000;
   border-radius: 0;
   background-color: #FFF;
+  box-sizing: border-box !important;
   /*overwrite styles potentionally made by a framework*/
 }
 
@@ -603,14 +604,23 @@ innerBorderBottom - Property controlled by bottom overlay
 }
 
 .htSelectEditor {
-  -webkit-appearance: menulist-button !important;
   position: absolute;
-  width: auto;
-  border: 2px solid #4b89ff;
+
+  select {
+    -webkit-appearance: menulist-button !important;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #4b89ff;
+    box-sizing: border-box !important;
+  }
 }
 
-.htSelectEditor:focus {
+.htSelectEditor select:focus {
   outline: none;
+}
+
+.htSelectEditor .htAutocompleteArrow {
+  display: none;
 }
 
 /*

@@ -14,8 +14,18 @@
     touch-action: manipulation;
 
     &.ht-wrapper {
-      border: var(--ht-wrapper-border-width) solid var(--ht-border-color);
       border-radius: var(--ht-wrapper-border-radius);
+
+      &:before {
+        @include mixins.pseudo;
+        position: absolute;
+        inset: 0;
+        border: var(--ht-wrapper-border-width) solid
+          var(--ht-wrapper-border-color);
+        border-radius: var(--ht-wrapper-border-radius);
+        z-index: 999;
+        pointer-events: none;
+      }
     }
 
     .ht_master,
@@ -26,10 +36,7 @@
     // Cell and Header
     th,
     td {
-      height: calc(
-        var(--ht-line-height, 18px) +
-          (2 * var(--ht-cell-vertical-padding, 4px))
-      );
+      height: var(--ht-row-height);
       padding: var(--ht-cell-vertical-padding, 4px)
         var(--ht-cell-horizontal-padding, 8px);
       vertical-align: top;
@@ -38,10 +45,7 @@
       border-inline-end-width: 1px;
       border-bottom-width: 1px;
       border-style: solid;
-      border-top-color: var(--ht-cell-vertical-border-color, #e5e5e9);
-      border-bottom-color: var(--ht-cell-vertical-border-color, #e5e5e9);
-      border-inline-start-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
-      border-inline-end-color: var(--ht-cell-horizontal-border-color, #e5e5e9);
+      border-color: var(--ht-border-color);
       font-size: var(--ht-font-size, 14px);
       line-height: var(--ht-line-height, 18px);
       white-space: pre-wrap;
@@ -114,8 +118,8 @@
       }
 
       &.ht__active_highlight {
-        color: var(--ht-header-active-foreground-color);
-        background-color: var(--ht-header-active-background-color);
+        color: var(--ht-header-active-foreground-color, #ffffff);
+        background-color: var(--ht-header-active-background-color, #1a42e8);
         border-color: var(--ht-header-active-border-color, #e5e5e9);
         box-shadow: -1px 0 0 0 var(--ht-header-active-border-color, #e5e5e9);
 
@@ -143,12 +147,18 @@
 
     // Header in Row
     tbody th {
+      background-color: var(--ht-header-row-background-color, #f7f7f9);
+
       &.ht__highlight {
         &:before {
           width: var(--ht-header-highlighted-shadow-size);
           height: auto;
           inset: 0 -1px -1px auto;
         }
+      }
+
+      &.ht__active_highlight {
+        box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #e5e5e9);
       }
     }
 
@@ -293,7 +303,7 @@
         var(--ht-scrollbar-track-color);
     }
     &::-webkit-scrollbar-track {
-      border-radius: 30px;
+      border-radius: var(--ht-scrollbar-border-radius);
     }
 
     .ht_master table.htCore > thead,

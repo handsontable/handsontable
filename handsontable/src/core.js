@@ -248,7 +248,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       tableMeta.themeName = rootThemeClassName;
     }
 
-    addClass(rootElement, tableMeta.themeName);
+    if (tableMeta.themeName) {
+      addClass(rootElement, tableMeta.themeName);
+    }
 
     const licenseInfo = rootElement.parentNode?.querySelector('.hot-display-license-info');
 

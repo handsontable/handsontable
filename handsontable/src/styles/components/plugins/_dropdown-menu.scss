@@ -17,7 +17,7 @@
       color: inherit;
       padding: 0;
       margin: 0;
-      background-color: var(--ht-icon-button-background);
+      background-color: var(--ht-icon-button-background-color);
       transition: var(--ht-table-transition) all ease-in-out;
       order: 1;
       z-index: 1;
@@ -185,7 +185,7 @@
         }
 
         &.htSeparator {
-          border-top: 1px solid var(--ht-menu-border-color);
+          border-top: 1px solid var(--ht-border-color);
           height: 0;
           padding: 0;
           cursor: default;
@@ -252,7 +252,7 @@
     // Submenu
     &.htContextMenuSub_Alignment,
     &.htDropdownMenuSub_Alignment {
-      margin-top: calc(var(--ht-menu-horizontal-padding) * -1);
+      margin-top: calc(var(--ht-menu-vertical-padding) * -1);
     }
 
     // Filter

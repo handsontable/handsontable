@@ -64,7 +64,19 @@
 
             // Circle
             &:after {
-              color: var(--ht-checkbox-checked-disabled-icon-color);
+              color: var(--ht-checkbox-checked-disabled-background-color);
+            }
+          }
+
+          &:focus {
+            // Circle overlay
+            &:before {
+              border-color: var(--ht-checkbox-checked-focus-background-color);
+            }
+
+            // Circle
+            &:after {
+              color: var(--ht-checkbox-checked-focus-background-color);
             }
           }
         }
@@ -81,18 +93,17 @@
           }
         }
 
-        // TODO: fix focus, not working in current implementation
-        // &:focus {
-        //   // Circle overlay
-        //   &:before {
-        //     border-color: var(--ht-checkbox-checked-focus-border-color);
-        //   }
+        &:focus {
+          // Circle overlay
+          &:before {
+            border-color: var(--ht-checkbox-focus-background-color);
+          }
 
-        //   // Circle
-        //   &:after {
-        //     color: var(--ht-checkbox-checked-focus-icon-color);
-        //   }
-        // }
+          // Circle
+          &:after {
+            color: var(--ht-checkbox-focus-background-color);
+          }
+        }
 
         &:disabled {
           cursor: initial;
@@ -104,7 +115,7 @@
 
           // Circle
           &:after {
-            color: var(--ht-checkbox-disabled-icon-color);
+            color: var(--ht-checkbox-disabled-background-color);
           }
         }
       }

@@ -54,7 +54,7 @@ describe('GhostTable', () => {
       gt.addRow(2, samples);
 
       expect(gt.createContainer.calls.count()).toBe(1);
-      expect(gt.createContainer.calls.mostRecent().args).toEqual(['ht-theme-main handsontable']);
+      expect(gt.createContainer.calls.mostRecent().args).toEqual(['ht-wrapper handsontable']);
     });
 
     it('should add row to rows collection after call `addRow` method', () => {
@@ -157,7 +157,7 @@ describe('GhostTable', () => {
       gt.addColumn(2, samples);
 
       expect(gt.createContainer.calls.count()).toBe(1);
-      expect(gt.createContainer.calls.mostRecent().args).toEqual(['ht-theme-main handsontable']);
+      expect(gt.createContainer.calls.mostRecent().args).toEqual(['ht-wrapper handsontable']);
     });
 
     it('should add column to columns collection after call `addColumn` method', () => {

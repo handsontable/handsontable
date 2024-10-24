@@ -5,7 +5,7 @@ const container = document.querySelector('#example-main');
 
 new Handsontable(container, {
   data: [
-    ['Main', 'B1', 'C1', 'D1', 'E1'],
+    ['Main Dark', 'B1', 'C1', 'D1', 'E1'],
     ['A2', 'B2', 'C2', 'D2', 'E2'],
     ['A3', 'B3', 'C3', 'D3', 'E3'],
     ['A4', 'B4', 'C4', 'D4', 'E4'],
