@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 24/10/2024 08:19:30)
+ * Release date: 17/10/2024 (built at 24/10/2024 08:52:28)
  */
 /**
  * Fix for bootstrap styles
@@ -1196,6 +1196,9 @@ CheckboxRenderer
   content: "*";
   display: inline-block;
   position: relative;
+  /* The multi-line header and header with longer text need more padding to not hide arrow,
+  we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
+  padding-right: 20px;
 }
 .handsontable .htCommentCell {
   position: relative;
