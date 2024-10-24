@@ -854,6 +854,6 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).toBe(290);
-    expect(container.clientHeight).toBe(167);
+    expect(container.clientHeight).toBe(168);
   });
 });

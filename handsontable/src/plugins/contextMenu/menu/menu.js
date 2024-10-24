@@ -633,9 +633,8 @@ export class Menu {
         return accumulator + (value.name === SEPARATOR ? 1 : currentRowHeight);
       }, 0);
 
-    // Additional 3px to menu's size because of additional border around its `table.htCore`.
-    holderStyle.width = `${currentHiderWidth + 3}px`;
-    holderStyle.height = `${realHeight + 3}px`;
+    holderStyle.width = `${currentHiderWidth}px`;
+    holderStyle.height = `${realHeight}px`;
     hiderStyle.height = holderStyle.height;
   }
 
@@ -670,9 +669,12 @@ export class Menu {
     }
 
     if (!container) {
+      const themeClassName = this.hot.getSettings().themeName;
+
       container = doc.createElement('div');
 
       addClass(container, `htMenu ${this.options.className}`);
+      addClass(container, themeClassName);
 
       if (className) {
         addClass(container, className);

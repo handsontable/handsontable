@@ -94,7 +94,8 @@ describe('Filters UI Conditional component', () => {
 
     const rect = document.querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
 
-    expect(window.scrollY + rect.top).toBeAroundValue(757, 1);
+    // 3px comes from borders
+    expect(window.scrollY + rect.top - 3).toBeAroundValue(757, 1);
     hot.rootElement.style.marginTop = '';
   });
 

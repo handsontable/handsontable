@@ -1,0 +1,39 @@
+// Handsontable Nested Rows
+
+@mixin output {
+  .handsontable {
+    th {
+      &.ht_nestingLevels {
+        > .relative {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        span {
+          &:last-child {
+            padding-left: calc(var(--ht-icon-size) + 5px);
+          }
+
+          &.ht_nestingLevel {
+            display: inline-block;
+
+            &_empty {
+              position: relative;
+              display: inline-block;
+              width: 5px;
+              height: 1px;
+              order: -2;
+            }
+          }
+        }
+
+        .ht_nestingButton {
+          position: relative;
+          cursor: pointer;
+          order: -1;
+        }
+      }
+    }
+  }
+}

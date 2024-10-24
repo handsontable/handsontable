@@ -144,7 +144,9 @@ class HeadersUI extends BaseUI {
       deepestLevelIndex = this.dataManager.cache.levelCount;
     }
 
-    this.rowHeaderWidthCache = Math.max(50, 11 + (10 * deepestLevelIndex) + 25);
+    const verticalPadding = this.hot.getStylesManager().getCellVerticalPadding();
+
+    this.rowHeaderWidthCache = Math.max(50, (verticalPadding * 2 || 11) + (10 * deepestLevelIndex) + 25);
 
     this.hot.render();
   }

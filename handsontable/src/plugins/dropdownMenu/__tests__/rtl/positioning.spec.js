@@ -43,7 +43,8 @@ describe('DropdownMenu (RTL mode)', () => {
         const subMenuWidth = subMenuRoot.outerWidth();
 
         expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
-        expect(subMenuOffset.left).toBe(Math.floor(dropdownOffset.left - subMenuWidth));
+        // 3px comes from borders
+        expect(subMenuOffset.left).toBe(Math.floor(dropdownOffset.left - subMenuWidth) - 3);
       });
 
       it('should open subMenu on the right of the main menu if on the left there\'s no space left', async() => {
@@ -114,7 +115,8 @@ describe('DropdownMenu (RTL mode)', () => {
       const subMenuWidth = subMenuRoot.outerWidth();
 
       expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
-      expect(subMenuOffset.left).toBe(Math.floor(dropdownOffset.left - subMenuWidth));
+      // 3px comes from borders
+      expect(subMenuOffset.left).toBe(Math.floor(dropdownOffset.left - subMenuWidth) - 3);
     });
 
     it('should open subMenu on the right-bottom of the main menu if on the left there\'s no space left (scrolled viewport) #dev-1895', async() => {

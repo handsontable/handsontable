@@ -3,7 +3,6 @@ import { textRenderer } from '../textRenderer';
 import EventManager from '../../eventManager';
 import { addClass, hasClass } from '../../helpers/dom/element';
 
-import './autocompleteRenderer.scss';
 import { A11Y_HIDDEN } from '../../helpers/a11y';
 
 export const RENDERER_TYPE = 'autocomplete';

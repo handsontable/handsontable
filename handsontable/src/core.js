@@ -41,6 +41,8 @@ import {
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
+import { getThemeClassName } from './helpers/themes';
+import { StylesManager } from './stylesManager';
 
 let activeGuid = null;
 
@@ -120,6 +122,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let grid;
   let editorManager;
   let focusManager;
+  let stylesManager;
   let viewportScroller;
   let firstRun = true;
 
@@ -238,6 +241,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   if (isRootInstance(this)) {
     _injectProductInfo(userSettings.licenseKey, rootElement);
+
+    addClass(rootElement, 'ht-wrapper');
+
+    const rootThemeClassName = getThemeClassName(rootElement.className);
+
+    if (rootThemeClassName) {
+      tableMeta.themeName = rootThemeClassName;
+    }
+
+    if (tableMeta.themeName) {
+      addClass(rootElement, tableMeta.themeName);
+    }
+
+    const licenseInfo = rootElement.parentNode?.querySelector('.hot-display-license-info');
+
+    if (licenseInfo) {
+      addClass(licenseInfo, tableMeta.themeName);
+    }
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
@@ -1117,6 +1138,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
     viewportScroller = createViewportScroller(instance);
     focusManager = new FocusManager(instance);
+    stylesManager = new StylesManager(instance);
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
@@ -5074,6 +5096,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getFocusManager = function() {
     return focusManager;
+  };
+
+  /**
+   * Return the Styles Manager responsible for managing css variables.
+   *
+   * @memberof Core#
+   * @since 14.0.0
+   * @function getStylesManager
+   * @returns {StylesManager}
+   */
+  this.getStylesManager = function() {
+    return stylesManager;
   };
 
   getPluginsNames().forEach((pluginName) => {

@@ -15,8 +15,6 @@ import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
 
-import './comments.scss';
-
 export const PLUGIN_KEY = 'comments';
 export const PLUGIN_PRIORITY = 60;
 export const META_COMMENT = 'comment';
@@ -200,7 +198,7 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.#editor) {
-      this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl());
+      this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.getSettings().themeName);
       this.#editor.addLocalHook('resize', (...args) => this.#onEditorResize(...args));
     }
 

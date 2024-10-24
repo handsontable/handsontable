@@ -6,8 +6,6 @@ import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/e
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 
-import '@handsontable/pikaday/css/pikaday.css';
-
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
 
@@ -64,7 +62,10 @@ export class DateEditor extends TextEditor {
 
     this.datePicker.setAttribute('dir', this.hot.isRtl() ? 'rtl' : 'ltr');
 
+    const themeClassName = this.hot.getSettings().themeName;
+
     addClass(this.datePicker, 'htDatepickerHolder');
+    addClass(this.datePicker, themeClassName);
     this.hot.rootDocument.body.appendChild(this.datePicker);
 
     /**
