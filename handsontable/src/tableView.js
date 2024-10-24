@@ -635,6 +635,39 @@ class TableView {
   }
 
   /**
+   * Returns the default row height.
+   *
+   * This method retrieves the default row height from the Walkontable styles handler.
+   *
+   * @returns {number} The default row height.
+   */
+  getDefaultRowHeight() {
+    return this._wt.stylesHandler.getDefaultRowHeight();
+  }
+
+  /**
+   * Retrieves the value of a specified CSS variable for the instance's container.
+   *
+   * @param {string} variableName - The name of the CSS variable to retrieve.
+   * @returns {string} The value of the specified CSS variable.
+   */
+  getCSSVariableValue(variableName) {
+    return this._wt.stylesHandler.getCSSVariableValue(variableName);
+  }
+
+  /**
+   * Checks if the classic theme is being used.
+   *
+   * This method verifies if the current theme applied to the Handsontable instance
+   * is the classic theme.
+   *
+   * @returns {boolean} `true` if the classic theme is being used, `false` otherwise.
+   */
+  isUsingClassicTheme() {
+    return this._wt.stylesHandler.isClassicTheme();
+  }
+
+  /**
    * Checks if at least one cell than belongs to the main table is not covered by the top, left or
    * bottom overlay.
    *
@@ -654,6 +687,7 @@ class TableView {
    */
   initializeWalkontable() {
     const walkontableConfig = {
+      themeName: this.settings.themeName,
       ariaTags: this.settings.ariaTags,
       rtlMode: this.hot.isRtl(),
       externalRowCalculator: this.hot.getPlugin('autoRowSize') &&

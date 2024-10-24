@@ -7,10 +7,9 @@ import { RenderedAllRowsCalculationType } from './calculationType/renderedAllRow
 import { RenderedColumnsCalculationType } from './calculationType/renderedColumns';
 import { RenderedRowsCalculationType } from './calculationType/renderedRows';
 import { ViewportColumnsCalculator, DEFAULT_WIDTH } from './viewportColumns';
-import { ViewportRowsCalculator, DEFAULT_HEIGHT } from './viewportRows';
+import { ViewportRowsCalculator } from './viewportRows';
 
 export {
-  DEFAULT_HEIGHT as DEFAULT_ROW_HEIGHT,
   DEFAULT_WIDTH as DEFAULT_COLUMN_WIDTH,
   FullyVisibleColumnsCalculationType,
   FullyVisibleRowsCalculationType,

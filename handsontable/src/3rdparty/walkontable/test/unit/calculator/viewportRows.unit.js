@@ -335,6 +335,7 @@ describe('ViewportRowsCalculator', () => {
       viewportHeight: 100,
       scrollOffset: 0,
       totalRows: 1000,
+      defaultRowHeight: 23,
       rowHeightFn: () => (undefined + 1),
       overrideFn: undefined,
       horizontalScrollbarHeight: undefined,

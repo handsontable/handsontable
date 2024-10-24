@@ -1,5 +1,6 @@
 import { fastInnerText } from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
+
 /**
  * @todo Describe options.
  * @typedef SettingsPure
@@ -12,7 +13,6 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} currentRowClassName Option `currentRowClassName`.
  * @property {Option} data Option `data`.
  * @property {Option} defaultColumnWidth Option `defaultColumnWidth`.
- * @property {Option} defaultRowHeight Option `defaultRowHeight`.
  * @property {Option} externalRowCalculator Option `externalRowCalculator`.
  * @property {Option} fixedColumnsStart Option `fixedColumnsStart`.
  * @property {Option} fixedRowsBottom Option `fixedRowsBottom`.
@@ -39,6 +39,7 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
  * @property {Option} stretchH Option `stretchH`.
  * @property {Option} table Option `table`.
+ * @property {Option} themeName Option `themeName`.
  * @property {Option} totalColumns Option `totalColumns`.
  * @property {Option} totalRows Option `totalRows`.
  * @property {?Option} beforeDraw Option `beforeDraw`.
@@ -194,7 +195,6 @@ export default class Settings {
       rowHeightByOverlayName() {
         // return undefined means use default size for the rendered cell content
       },
-      defaultRowHeight: 23,
       defaultColumnWidth: 50,
       selections: null,
       hideBorderOnMouseDownOver: false,
