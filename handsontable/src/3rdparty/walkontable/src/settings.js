@@ -39,6 +39,7 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
  * @property {Option} stretchH Option `stretchH`.
  * @property {Option} table Option `table`.
+ * @property {Option} themeName Option `themeName`.
  * @property {Option} totalColumns Option `totalColumns`.
  * @property {Option} totalRows Option `totalRows`.
  * @property {?Option} beforeDraw Option `beforeDraw`.

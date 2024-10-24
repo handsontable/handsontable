@@ -14,7 +14,7 @@ describe('StylesHandler', () => {
     walkontable({
       data: getData,
       totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      totalColumns: getTotalColumns,
     });
 
     this.wotInstance.draw();
@@ -31,66 +31,71 @@ describe('StylesHandler', () => {
     this.wotInstance.destroy();
   });
 
-  it('should return true if the classic theme is present', () => {
-    spec().rootElement.style.setProperty('--ht-line-height', '');
-
-    expect(spec().wotInstance.stylesHandler.isClassicTheme()).toBe(true);
-  });
-
-  it('should return false if the moder theme is not present', () => {
-    // TODO: naive method of simulating a modern theme
-    spec().rootElement.style.setProperty('--ht-line-height', '1.5');
-
-    spec().wotInstance.destroy();
-    walkontable({
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+  describe('isClassicTheme', () => {
+    it('should return true if `themeName` is not provided as a Walkontable option', () => {
+      expect(spec().wotInstance.stylesHandler.isClassicTheme()).toBe(true);
     });
 
-    expect(spec().wotInstance.stylesHandler.isClassicTheme()).toBe(false);
+    it('should return false if `themeName` is provided as a Walkontable option', () => {
+      spec().wotInstance.destroy();
+      walkontable({
+        themeName: 'ht-theme-sth',
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      expect(spec().wotInstance.stylesHandler.isClassicTheme()).toBe(false);
+    });
   });
 
-  it('should return the correct CSS variable value', () => {
-    spec().rootElement.style.setProperty('--ht-cell-vertical-padding', '10px');
+  describe('getCSSVariableValue', () => {
+    it('should return the correct CSS variable value', () => {
+      spec().rootElement.style.setProperty('--ht-cell-vertical-padding', '10px');
 
-    spec().wotInstance.destroy();
-    walkontable({
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+      spec().wotInstance.destroy();
+      walkontable({
+        themeName: 'ht-theme-sth',
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      expect(spec().wotInstance.stylesHandler.getCSSVariableValue('cell-vertical-padding')).toBe(10);
     });
 
-    expect(spec().wotInstance.stylesHandler.getCSSVariableValue('cell-vertical-padding')).toBe(10);
+    it('should return undefined for non-existent CSS variable', () => {
+      expect(spec().wotInstance.stylesHandler.getCSSVariableValue('non-existent-variable')).toBeUndefined();
+    });
   });
 
-  it('should return undefined for non-existent CSS variable', () => {
-    expect(spec().wotInstance.stylesHandler.getCSSVariableValue('non-existent-variable')).toBeUndefined();
-  });
-
-  it('should return the correct style for a td element', () => {
-    expect(spec().wotInstance.stylesHandler.getStyleForTD('border-bottom-width')).toBe(1);
-  });
-
-  it('should return undefined for non-existent td style', () => {
-    expect(spec().wotInstance.stylesHandler.getStyleForTD('non-existent-style')).toBeUndefined();
-  });
-
-  it('should calculate the default row height for classic theme', () => {
-    expect(spec().wotInstance.stylesHandler.getDefaultRowHeight()).toBe(23);
-  });
-
-  it('should calculate the default row height for non-classic theme', () => {
-    spec().rootElement.style.setProperty('--ht-line-height', '20px');
-    spec().rootElement.style.setProperty('--ht-cell-vertical-padding', '5px');
-
-    spec().wotInstance.destroy();
-    walkontable({
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns
+  describe('getStyleForTD', () => {
+    it('should return the correct style for a td element', () => {
+      expect(spec().wotInstance.stylesHandler.getStyleForTD('box-sizing')).toBe('content-box');
     });
 
-    expect(spec().wotInstance.stylesHandler.getDefaultRowHeight()).toBe(31);
+    it('should return undefined for non-existent td style', () => {
+      expect(spec().wotInstance.stylesHandler.getStyleForTD('non-existent-style')).toBeUndefined();
+    });
+  });
+
+  describe('getDefaultRowHeight', () => {
+    it('should return the default row height of 23px for the classic theme', () => {
+      expect(spec().wotInstance.stylesHandler.getDefaultRowHeight()).toBe(23);
+    });
+
+    it('should calculate the default row height for non-classic theme', () => {
+      spec().rootElement.style.setProperty('--ht-row-height', '31px');
+
+      spec().wotInstance.destroy();
+      walkontable({
+        themeName: 'ht-theme-sth',
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      expect(spec().wotInstance.stylesHandler.getDefaultRowHeight()).toBe(31);
+    });
   });
 });

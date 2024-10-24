@@ -53,30 +53,26 @@ export class StylesHandler {
   /**
    * Initializes a new instance of the `StylesHandler` class.
    *
+   * @param {string} themeName - The name of the theme.
    * @param {object} domBindings - The DOM bindings for the instance.
    */
-  constructor(domBindings) {
+  constructor(themeName, domBindings) {
     this.#rootElement = domBindings.rootTable.parentElement;
     this.#rootComputedStyle = getComputedStyle(this.#rootElement);
     this.#rootDocument = domBindings.rootDocument;
 
-    // TODO: naive method of checking for modern themes
-    if (this.#rootComputedStyle.getPropertyValue('--ht-line-height') === '') {
+    if (!themeName) {
       this.#isClassicTheme = true;
     }
 
     const stylesForTD = this.#getStylesForTD([
       'box-sizing',
-      'border-top-width',
-      'border-bottom-width',
     ]);
 
     this.#computedStyles.td = {
       ...this.#computedStyles.td,
       ...{
         'box-sizing': stylesForTD['box-sizing'],
-        'border-top-width': parseInt(stylesForTD['border-top-width'], 10),
-        'border-bottom-width': parseInt(stylesForTD['border-bottom-width'], 10),
       },
     };
   }
@@ -130,10 +126,7 @@ export class StylesHandler {
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
-    return this.getStyleForTD('border-top-width') +
-      (this.getCSSVariableValue('cell-vertical-padding') * 2) +
-      this.getCSSVariableValue('line-height') +
-      this.getStyleForTD('border-bottom-width');
+    return this.getCSSVariableValue('row-height');
   }
 
   /**
