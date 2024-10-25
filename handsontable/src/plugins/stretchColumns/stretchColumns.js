@@ -123,7 +123,7 @@ export class StretchColumns extends BasePlugin {
     this.#stretchCalculator.useStrategy(this.hot.getSettings().stretchH);
     this.#resizeObserver.observe(this.hot.rootElement);
 
-    this.addHook('beforeRender', () => this.#onBeforeRender());
+    this.addHook('beforeRender', (...args) => this.#onBeforeRender(...args));
     this.addHook('modifyColWidth', (...args) => this.#onModifyColWidth(...args), 10);
 
     super.enablePlugin();
@@ -181,9 +181,13 @@ export class StretchColumns extends BasePlugin {
   /**
    * On each before render the plugin recalculates the column widths
    * based on the chosen stretching strategy.
+   *
+   * @param {boolean} fullRender If `true` then the full render is in progress.
    */
-  #onBeforeRender() {
-    this.#stretchCalculator.refreshStretching();
+  #onBeforeRender(fullRender) {
+    if (fullRender) {
+      this.#stretchCalculator.refreshStretching();
+    }
   }
 
   /**
