@@ -61,6 +61,14 @@
       cursor: pointer;
       position: relative;
       outline: none !important;
+      
+      &:focus {
+        .htUISelectCaption {
+          border-color: var(--ht-input-focus-border-color);
+          color: var(--ht-input-focus-foreground-color);
+          background-color: var(--ht-input-focus-background-color);
+        }
+      }
     }
   }
 }

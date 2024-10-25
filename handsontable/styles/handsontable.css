@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 24/10/2024 08:51:29)
+ * Release date: 17/10/2024 (built at 25/10/2024 08:27:55)
  */
 .handsontable {
   position: relative;
@@ -129,7 +129,7 @@
   color: var(--ht-header-active-foreground-color, #ffffff);
   background-color: var(--ht-header-active-background-color, #1a42e8);
   border-color: var(--ht-header-active-border-color, #e5e5e9);
-  box-shadow: -1px 0 0 0 var(--ht-header-active-border-color, #e5e5e9);
+  box-shadow: -1px 0 0 0 var(--ht-header-active-border-color, #1a42e8);
 }
 .handsontable th.ht__active_highlight:before {
   background-color: var(--ht-header-active-background-color);
@@ -154,7 +154,7 @@
   inset: 0 -1px -1px auto;
 }
 .handsontable tbody th.ht__active_highlight {
-  box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #e5e5e9);
+  box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #1a42e8);
 }
 .handsontable .hide {
   display: none;
@@ -506,7 +506,8 @@ tr.ht__row_odd td {
   background-color: var(--ht-license-background-color, #f7f7f9);
   text-align: left;
   border: 1px solid var(--ht-border-color, #f7f7f9);
-  border-top-width: 0;
+  margin-top: 10px;
+  border-radius: var(--ht-wrapper-border-radius);
 }
 .hot-display-license-info a {
   font-size: var(--ht-license-font-size);
@@ -944,6 +945,11 @@ tr.ht__row_odd td {
   cursor: pointer;
   position: relative;
   outline: none !important;
+}
+.handsontable .htUISelect:focus .htUISelectCaption {
+  border-color: var(--ht-input-focus-border-color);
+  color: var(--ht-input-focus-foreground-color);
+  background-color: var(--ht-input-focus-background-color);
 }
 
 .handsontable .htFiltersMenuCondition .htUIInput input,
@@ -1924,7 +1930,7 @@ tr.ht__row_odd td {
   margin-inline-start: -0.5px;
   margin-inline-end: 0;
   z-index: 205;
-  background: var(--ht-move-indicator-color);
+  background: var(--ht-move-indicator-color, #1a42e8);
 }
 .handsontable .ht__manualColumnMove--backlight, .handsontable.ht__manualColumnMove--backlight {
   display: none;

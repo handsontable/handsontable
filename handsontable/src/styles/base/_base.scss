@@ -121,7 +121,7 @@
         color: var(--ht-header-active-foreground-color, #ffffff);
         background-color: var(--ht-header-active-background-color, #1a42e8);
         border-color: var(--ht-header-active-border-color, #e5e5e9);
-        box-shadow: -1px 0 0 0 var(--ht-header-active-border-color, #e5e5e9);
+        box-shadow: -1px 0 0 0 var(--ht-header-active-border-color, #1a42e8);
 
         &:before {
           background-color: var(--ht-header-active-background-color);
@@ -158,7 +158,7 @@
       }
 
       &.ht__active_highlight {
-        box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #e5e5e9);
+        box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #1a42e8);
       }
     }
 
