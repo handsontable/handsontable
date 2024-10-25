@@ -38,7 +38,7 @@
         margin-inline-start: -0.5px;
         margin-inline-end: 0;
         z-index: 205;
-        background: var(--ht-move-indicator-color);
+        background: var(--ht-move-indicator-color, #1a42e8);
       }
 
       &--backlight {
