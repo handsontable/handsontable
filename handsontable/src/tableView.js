@@ -668,6 +668,15 @@ class TableView {
   }
 
   /**
+   * Checks if the cells are using the `border-box` box-sizing model.
+   *
+   * @returns {boolean}
+   */
+  areCellsBorderBox() {
+    return this._wt.stylesHandler.areCellsBorderBox();
+  }
+
+  /**
    * Checks if at least one cell than belongs to the main table is not covered by the top, left or
    * bottom overlay.
    *

@@ -767,7 +767,7 @@ class Table {
     let rowCount = this.TBODY.childNodes.length;
     const expectedTableHeight = rowCount * this.dataAccessObject.stylesHandler.getDefaultRowHeight();
     const actualTableHeight = innerHeight(this.TBODY) - 1;
-    const borderBoxSizing = this.wot.stylesHandler.getStyleForTD('box-sizing') === 'border-box';
+    const borderBoxSizing = this.wot.stylesHandler.areCellsBorderBox();
     const rowHeightFn = borderBoxSizing ? outerHeight : innerHeight;
     const borderCompensation = borderBoxSizing ? 0 : 1;
     let previousRowHeight;

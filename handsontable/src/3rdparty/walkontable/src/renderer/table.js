@@ -302,8 +302,7 @@ export default class TableRenderer {
       if (TR.firstChild) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
         const rowHeight = rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
-        const isBorderBoxSizing =
-          rowUtils.dataAccessObject.stylesHandler.getStyleForTD('box-sizing') === 'border-box';
+        const isBorderBoxSizing = rowUtils.dataAccessObject.stylesHandler.areCellsBorderBox();
         const borderCompensation = isBorderBoxSizing ? 0 : 1;
 
         if (rowHeight) {

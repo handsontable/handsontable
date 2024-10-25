@@ -149,14 +149,18 @@ class GhostTable {
     if (!this.injected) {
       this.injectTable();
     }
+
+    const isBorderBoxSizing = this.hot.view.areCellsBorderBox();
+    const borderCompensation = isBorderBoxSizing ? 0 : 1;
+
     arrayEach(this.rows, (row) => {
       // In cases when the cell's content produces the height with a decimal point, the height
       // needs to be rounded up to make sure that there will be a space for the cell's content.
       // The `.offsetHeight` always returns the rounded number (floored), so it's not suitable for this case.
       const { height } = row.table.getBoundingClientRect();
 
-      // -1 <- reduce border-top from table
-      callback(row.row, Math.ceil(height) - 1);
+      // -1 <- reduce border-top from table (if box-sizing is not border-box)
+      callback(row.row, Math.ceil(height) - borderCompensation);
     });
   }
 

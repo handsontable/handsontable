@@ -130,6 +130,15 @@ export class StylesHandler {
   }
 
   /**
+   * Checks if the cells are using the `border-box` box-sizing model.
+   *
+   * @returns {boolean}
+   */
+  areCellsBorderBox() {
+    return this.getStyleForTD('box-sizing') === 'border-box';
+  }
+
+  /**
    * Retrieves and processes the computed styles for a `td` element.
    *
    * This method creates a temporary table structure, appends it to the root element,
