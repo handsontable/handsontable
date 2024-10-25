@@ -297,14 +297,18 @@ export default class TableRenderer {
     // Fix for multi-line content and for supporting `rowHeights` option.
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const TR = rows.getRenderedNode(visibleRowIndex);
+      const rowUtils = this.rowUtils;
 
       if (TR.firstChild) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
-        const rowHeight = this.rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
+        const rowHeight = rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
+        const isBorderBoxSizing =
+          rowUtils.dataAccessObject.stylesHandler.getStyleForTD('box-sizing') === 'border-box';
+        const borderCompensation = isBorderBoxSizing ? 0 : 1;
 
         if (rowHeight) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
-          TR.firstChild.style.height = `${rowHeight - 1}px`;
+          TR.firstChild.style.height = `${rowHeight - borderCompensation}px`;
         } else {
           TR.firstChild.style.height = '';
         }

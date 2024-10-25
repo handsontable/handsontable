@@ -795,9 +795,13 @@ class Table {
         rowCurrentHeight = rowHeightFn(currentTr) - borderCompensation;
       }
 
-      if ((!previousRowHeight && this.dataAccessObject.stylesHandler.getDefaultRowHeight() < rowCurrentHeight ||
-          previousRowHeight < rowCurrentHeight)) {
-        rowCurrentHeight += 1;
+      if (!previousRowHeight && this.dataAccessObject.stylesHandler.getDefaultRowHeight() < rowCurrentHeight ||
+          previousRowHeight < rowCurrentHeight
+      ) {
+        if (!borderBoxSizing) {
+          rowCurrentHeight += 1;
+        }
+
         this.dataAccessObject.wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;
       }
     }
