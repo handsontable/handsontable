@@ -10,7 +10,7 @@ import {
   SortDirection } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
-const baseUrl = 'http://localhost:8083';
+const baseUrl = 'http://localhost:8084';
 const urls = [
   '/?theme=main',
   '/?theme=main-dark',

@@ -35,7 +35,7 @@ const config: PlaywrightTestConfig = {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:8082',
+    baseURL: 'http://localhost:8083',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -43,15 +43,13 @@ const config: PlaywrightTestConfig = {
   },
   webServer: [{
     command: 'npm run serve-example-legacy',
-    url: 'http://localhost:8082',
+    url: 'http://localhost:8083',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
   },
   {
     command: 'npm run serve-example-themes',
-    url: 'http://localhost:8083',
+    url: 'http://localhost:8084',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
   }],
 
   /* Configure projects for major browsers */
