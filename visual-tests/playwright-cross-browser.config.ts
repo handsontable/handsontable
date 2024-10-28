@@ -45,11 +45,13 @@ const config: PlaywrightTestConfig = {
     command: 'npm run serve-example-legacy',
     url: 'http://localhost:8082',
     reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
   },
   {
     command: 'npm run serve-example-themes',
     url: 'http://localhost:8083',
     reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
   }],
 
   /* Configure projects for major browsers */

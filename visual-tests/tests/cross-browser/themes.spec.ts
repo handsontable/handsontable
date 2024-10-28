@@ -20,13 +20,10 @@ const urls = [
 
 urls.forEach((url) => {
   const testFileName = path.basename(__filename, '.spec.ts');
-  const urlParams = new URLSearchParams(url.split('?')[1]);
-  const theme = urlParams.get('theme');
-  const themeSuffix = theme ? `-${theme}` : '';
   const fullUrl = `${baseUrl}${url}`;
-  const screenshotName = `${testFileName}${themeSuffix}`;
+  const themeName = `-${url.replace('/?theme=', '')}`;
 
-  testCrossBrowser(`Colapse nested headers for ${url}`, async({ tablePage }) => {
+  testCrossBrowser(`Colapse nested headers in theme: ${themeName}`, async({ tablePage }) => {
     await tablePage.goto(fullUrl);
 
     const table = tablePage.locator('#root');
@@ -35,23 +32,25 @@ urls.forEach((url) => {
 
     await collapseNestedColumn('I');
 
-    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(screenshotName) });
+    await tablePage.screenshot(
+      { path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-collapseNestedColumn') }
+    );
   });
-  testCrossBrowser(`Open context menus for ${url}`, async({ tablePage }) => {
+  testCrossBrowser(`Open context menus in theme: ${themeName}`, async({ tablePage }) => {
 
     await tablePage.goto(fullUrl);
     const table = tablePage.locator('#root');
 
     await table.waitFor();
     await openHeaderDropdownMenu(4);
-    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(screenshotName, url, 'dropDown') });
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-dropDownMenu') });
 
     const cell = await selectCell(5, 1);
 
     await openContextMenu(cell);
-    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(screenshotName, url, 'context') });
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-contextMenu') });
   });
-  testCrossBrowser(`Sort multpiple columns ${url}`, async({ tablePage }) => {
+  testCrossBrowser(`Sort multpiple columns in theme: ${themeName}`, async({ tablePage }) => {
 
     await tablePage.goto(fullUrl);
     const table = tablePage.locator('#root');
@@ -60,6 +59,6 @@ urls.forEach((url) => {
     await setColumnSorting('Age', SortDirection.Descending);
     await setAdditionalColumnSorting('Interest', SortDirection.Ascending);
 
-    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(screenshotName, url, 'sorting') });
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-sorting') });
   });
 });
