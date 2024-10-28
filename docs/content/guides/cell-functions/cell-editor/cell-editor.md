@@ -33,7 +33,7 @@ You can use React components to create custom editors. To do so, you'll need to 
 
 In the simplest case:
 ```js
-import { useHotEditor } from "@handsontable/react";
+import { useHotEditor } from "@handsontable/react-wrapper";
 
 const EditorComponent = () => {
   const { value, setValue, finishEditing } = useHotEditor({

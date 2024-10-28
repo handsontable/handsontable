@@ -18,7 +18,7 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
   <tr>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"> <strong>React</strong></a>&nbsp;
+      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> <strong>React</strong></a>&nbsp;
     </td>
     <td>
       <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="14" height="14">
