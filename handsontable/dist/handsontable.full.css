@@ -31,7 +31,7 @@
 /**
  * Fix for bootstrap styles
  */
- .handsontable .table th, .handsontable .table td {
+.handsontable .table th, .handsontable .table td {
   border-top: none;
 }
 
