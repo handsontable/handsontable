@@ -1,36 +1,33 @@
-import { data } from './data';
-
-// import "handsontable/dist/handsontable.full.css";
-
 import "handsontable/styles/handsontable.min.css";
-import "handsontable/styles/ht-theme-gemini.min.css";
-// import "handsontable/styles/ht-theme-horizon.min.css";
+import "handsontable/styles/ht-theme-main.min.css";
+import "handsontable/styles/ht-theme-horizon.min.css";
 
 import Handsontable from 'handsontable';
+import { data } from './data';
 
 function getQueryParam(param) {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get(param);
 }
 
-function applyTheme() {
-  const container = document.querySelector('#root');
+function applyTheme(container) {
   const theme = getQueryParam('theme');
 
-  if (theme === 'dark') {
-    container.classList.remove('ht-theme-main');
-    container.classList.add('ht-theme-main-dark');
+  container.classList.forEach(className => {
+    if (className.startsWith('ht-theme-')) {
+      container.classList.remove(className);
+    }
+  });
+
+  if (theme) {
+    container.classList.add(`ht-theme-${theme}`);
   } else {
-    container.classList.remove('ht-theme-main-dark');
-    container.classList.add('ht-theme-main');
+    container.classList.add('ht-theme-main'); // Default theme
   }
 }
-
-// Apply the theme based on the query parameter
-applyTheme();
-
 //DEMO Main
 const containerMain = document.querySelector('#root');
+applyTheme(containerMain);
 
 new Handsontable(containerMain, {
   data: data,

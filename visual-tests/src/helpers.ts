@@ -9,7 +9,8 @@ export const helpers = {
   screenshotsExtension: 'png',
 
   selectors: {
-    mainTable: '#root',
+    mainTable: '#root > .handsontable',
+    themesMainTable: '#root',
     mainTableBody: '> .ht_master.handsontable table tbody',
     cloneTopTable: '> .ht_clone_top.handsontable table thead',
     cloneInlineStartTable: '> .ht_clone_inline_start.handsontable table tbody',

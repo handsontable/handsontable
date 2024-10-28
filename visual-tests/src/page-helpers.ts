@@ -49,7 +49,11 @@ function getPageInstance() {
  * @returns {Locator} The locator of the main table.
  */
 function getDefaultTableInstance() {
-  return getPageInstance().locator(helpers.selectors.mainTable);
+  const page = getPageInstance();
+  const mainTableLocator = page.locator(helpers.selectors.mainTable);
+  const themesMainTableLocator = page.locator(helpers.selectors.themesMainTable);
+
+  return mainTableLocator.first().or(themesMainTableLocator.first());
 }
 
 /**
@@ -238,7 +242,7 @@ export async function makeSelectionFromCell(cell: Locator, size: number) {
  * @param {number} columnIndex Cell locator.
  */
 export async function openHeaderDropdownMenu(columnIndex: number) {
-  const table = getPageInstance().locator(helpers.selectors.mainTable);
+  const table = getDefaultTableInstance();
   const changeTypeButton = table.locator(
     helpers.findDropdownMenuExpander({ col: columnIndex })
   );

@@ -41,11 +41,16 @@ const config: PlaywrightTestConfig = {
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
-  webServer: {
-    command: 'npm run serve-example-e2e',
+  webServer: [{
+    command: 'npm run serve-example-legacy',
     url: 'http://localhost:8082',
     reuseExistingServer: !process.env.CI,
   },
+  {
+    command: 'npm run serve-example-themes',
+    url: 'http://localhost:8083',
+    reuseExistingServer: !process.env.CI,
+  }],
 
   /* Configure projects for major browsers */
   projects: [
