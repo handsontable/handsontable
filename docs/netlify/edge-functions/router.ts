@@ -7,21 +7,21 @@ import type { Context, Config } from '@netlify/edge-functions';
 const OVH_BASE_URL = 'https://_docs.handsontable.com';
 
 declare let Netlify: {
-    env: {
-      get: (key: string) => string;
-      context: string;
-    }
-  };
-
-  interface RedirectRaw {
-    from: string,
-    to: string
+  env: {
+    get: (key: string) => string;
+    context: string;
   }
+};
 
-  interface Redirect {
-    from: RegExp;
-    to: string;
-  }
+interface RedirectRaw {
+  from: string,
+  to: string
+}
+
+interface Redirect {
+  from: RegExp;
+  to: string;
+}
 
 /**
  * Adds base URL to relative paths in the `to` property of redirect objects.
