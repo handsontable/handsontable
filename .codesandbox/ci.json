@@ -10,7 +10,7 @@
   "publishDirectory": {
     "handsontable": "handsontable/tmp",
     "@handsontable/angular": "wrappers/angular/dist/hot-table",
-    "@handsontable/react": "wrappers/react",
+    "@handsontable/react-wrapper": "wrappers/react-wrapper",
     "@handsontable/vue": "wrappers/vue",
     "@handsontable/vue3": "wrappers/vue3"
 
