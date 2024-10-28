@@ -43,12 +43,12 @@ const config: PlaywrightTestConfig = {
   },
   webServer: [{
     command: 'npm run serve-example-legacy',
-    url: 'http://localhost:8083',
+    port: 8083,
     reuseExistingServer: !process.env.CI,
   },
   {
     command: 'npm run serve-example-themes',
-    url: 'http://localhost:8084',
+    port: 8084,
     reuseExistingServer: !process.env.CI,
   }],
 
