@@ -28,13 +28,14 @@ Handsontable's building process transforms the source files located in the code 
 
 The Handsontable repository is a monorepo that contains the following projects:
 
-| Project                 | Location            | Description                                                                           |
-| ----------------------- | ------------------- | ------------------------------------------------------------------------------------- |
-| `handsontable`          | `/handsontable`     | Main Handsontable project                                                             |
-| `@handsontable/react`   | `/wrappers/react`   | [React wrapper](@/react/guides/getting-started/introduction/introduction.md)                       |
-| `@handsontable/angular` | `/wrappers/angular` | [Angular wrapper](@/javascript/guides/integrate-with-angular/angular-installation/angular-installation.md) |
-| `@handsontable/vue`     | `/wrappers/vue`     | [Vue 2 wrapper](@/javascript/guides/integrate-with-vue/vue-installation/vue-installation.md)           |
-| `@handsontable/vue3`    | `/wrappers/vue3`    | [Vue 3 wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)         |
+| Project                 | Location                  | Description                                                                                                |
+| ----------------------- |---------------------------|------------------------------------------------------------------------------------------------------------|
+| `handsontable`          | `/handsontable`           | Main Handsontable project                                                                                  |
+| `@handsontable/react`   | `/wrappers/react`         | [React wrapper](@/react/guides/getting-started/introduction/introduction.md)                               |
+| `@handsontable/react-wrapper`  | `/wrappers/react-wrapper` | [React wrapper (functional components)](@/react/guides/getting-started/introduction/introduction.md)       |
+| `@handsontable/angular` | `/wrappers/angular`       | [Angular wrapper](@/javascript/guides/integrate-with-angular/angular-installation/angular-installation.md) |
+| `@handsontable/vue`     | `/wrappers/vue`           | [Vue 2 wrapper](@/javascript/guides/integrate-with-vue/vue-installation/vue-installation.md)               |
+| `@handsontable/vue3`    | `/wrappers/vue3`          | [Vue 3 wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)            |
 
 All the projects are released together, under the same version number.
 But each project has its own [building](#build-processes) and [testing](@/guides/tools-and-building/testing/testing.md) processes.
