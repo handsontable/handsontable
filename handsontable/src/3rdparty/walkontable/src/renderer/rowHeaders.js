@@ -42,21 +42,20 @@ export default class RowHeadersRenderer extends BaseRenderer {
   /**
    * Obtains the instance of the SharedOrderView class which is responsible for rendering the nodes to the root node.
    *
-   * @param {Number} sourceRowIndex The source row index of currently processed row.
    * @param {HTMLTableRowElement} rootNode The TR element, which is root element for row headers (TH).
    * @returns {SharedOrderView}
    */
-  obtainOrderView(sourceRowIndex, rootNode = null) {
+  obtainOrderView(rootNode) {
     let orderView;
 
-    if (this.orderViews.has(sourceRowIndex)) {
-      orderView = this.orderViews.get(sourceRowIndex);
+    if (this.orderViews.has(rootNode)) {
+      orderView = this.orderViews.get(rootNode);
     } else {
       orderView = new SharedOrderView(
         rootNode,
         sourceColumnIndex => this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex),
       );
-      this.orderViews.set(sourceRowIndex, orderView);
+      this.orderViews.set(rootNode, orderView);
     }
 
     return orderView;
@@ -74,8 +73,8 @@ export default class RowHeadersRenderer extends BaseRenderer {
 
       this.sourceRowIndex = sourceRowIndex;
 
-      const orderView = this.obtainOrderView(sourceRowIndex, TR);
-      const cellsView = cells.obtainOrderView(sourceRowIndex, TR);
+      const orderView = this.obtainOrderView(TR);
+      const cellsView = cells.obtainOrderView(TR);
 
       orderView
         .appendView(cellsView)

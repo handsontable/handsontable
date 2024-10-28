@@ -29,12 +29,6 @@ export default class OrderView {
    */
   sizeSet = new ViewSizeSet();
   /**
-   * Node type which the order view will manage while rendering the DOM elements.
-   *
-   * @type {string}
-   */
-  childNodeType;
-  /**
    * The visual index of currently processed row.
    *
    * @type {number}
@@ -59,10 +53,9 @@ export default class OrderView {
    */
   leads = [];
 
-  constructor(rootNode, nodesPool, childNodeType) {
+  constructor(rootNode, nodesPool) {
     this.rootNode = rootNode;
     this.nodesPool = nodesPool;
-    this.childNodeType = childNodeType.toUpperCase();
   }
 
   /**

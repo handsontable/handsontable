@@ -10,15 +10,15 @@ export default class NodesPool {
    * @type {string}
    */
   nodeType;
+  /**
+   * The holder for all obtained DOM nodes.
+   *
+   * @type {Map<String, HTMLElement>}
+   */
+  pool = new Map();
 
   constructor(nodeType) {
     this.nodeType = nodeType.toUpperCase();
-    /**
-     * The holder for all obtained DOM nodes.
-     *
-     * @type {Map<String, HTMLElement>}
-     */
-    this.pool = new Map();
   }
 
   /**
