@@ -677,6 +677,15 @@ class TableView {
   }
 
   /**
+   * Reinitialize the Styles Handler.
+   *
+   * @param {string|undefined} themeName The `themeName` option value.
+   */
+  reinitializeStylesHandler(themeName) {
+    this._wt.stylesHandler.reinit(themeName);
+  }
+
+  /**
    * Checks if at least one cell than belongs to the main table is not covered by the top, left or
    * bottom overlay.
    *
