@@ -3,6 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "homepage": "https://handsontable.com/",
+  "main": "index.js",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/handsontable/handsontable.git"
@@ -13,7 +15,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "vite",
-    "serve": "vite preview --port 8082",
+    "serve": "vite preview",
     "build": "vite build"
   },
   "dependencies": {
@@ -21,7 +23,7 @@
     "handsontable": "latest"
   },
   "devDependencies": {
-    "vite": "4.4.3"
+    "vite": "5.4.3"
   },
   "license": "SEE LICENSE IN LICENSE.txt"
 }
