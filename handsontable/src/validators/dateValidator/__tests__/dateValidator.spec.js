@@ -388,6 +388,51 @@ describe('dateValidator', () => {
 
       expect(countRows()).toBe(6);
     });
+
+    it('should validate strings strictly when `strict` parameter is set to `true`', async() => {
+      const { validators } = Handsontable;
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          { data: 'date',
+            type: 'date',
+            dateFormat: 'MMM D, YYYY',
+            validator: (
+              value,
+              callback,
+            ) => {
+              return validators.dateValidator.call(
+                this,
+                value,
+                callback,
+                (val, format) => validators.correctFormat(val, format, true)
+              );
+            }
+          },
+          { data: 'name' },
+          { data: 'lastName' }
+        ],
+      });
+
+      setDataAtCell(1, 0, '01-01-2015');
+
+      await sleep(100);
+
+      expect(getDataAtCell(1, 0)).toEqual('01/01/2015');
+
+      setDataAtCell(1, 0, '01-01-15');
+      await sleep(100);
+      expect(getDataAtCell(1, 0)).toEqual('01/01/2015');
+
+      setDataAtCell(1, 0, '01/01/2015');
+      await sleep(100);
+      expect(getDataAtCell(1, 0)).toEqual('01/01/2015');
+
+      setDataAtCell(1, 0, '01/01/15');
+      await sleep(100);
+      expect(getDataAtCell(1, 0)).toEqual('01/01/2015');
+    });
   });
 
   describe('Date formats', () => {

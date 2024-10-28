@@ -1,6 +1,6 @@
 import moment from 'moment';
-import { getEditorInstance } from '../../editors/registry';
 import { EDITOR_TYPE as DATE_EDITOR_TYPE } from '../../editors/dateEditor';
+import { getEditorInstance } from '../../editors/registry';
 import { getNormalizedDate } from '../../helpers/date';
 
 export const VALIDATOR_TYPE = 'date';
@@ -11,8 +11,9 @@ export const VALIDATOR_TYPE = 'date';
  * @private
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
+ * @param {Function} correctFormatFn Function to correct the format of the input date.
  */
-export function dateValidator(value, callback) {
+export function dateValidator(value, callback, correctFormatFn = correctFormat) {
   const dateEditor = getEditorInstance(DATE_EDITOR_TYPE, this.instance);
   let valueToValidate = value;
   let valid = true;
@@ -37,7 +38,7 @@ export function dateValidator(value, callback) {
 
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
-      const correctedValue = correctFormat(valueToValidate, this.dateFormat);
+      const correctedValue = correctFormatFn(valueToValidate, this.dateFormat);
 
       this.instance.setDataAtCell(this.visualRow, this.visualCol, correctedValue, 'dateValidator');
       valid = true;
@@ -56,11 +57,12 @@ dateValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
  *
  * @param {string} value The value to format.
  * @param {string} dateFormat The date pattern to format to.
+ * @param {boolean} strictFormat If true, moment will try to format the date string strictly. Defaults to false.
  * @returns {string}
  */
-export function correctFormat(value, dateFormat) {
+export function correctFormat(value, dateFormat, strictFormat = false) {
   const dateFromDate = moment(getNormalizedDate(value));
-  const dateFromMoment = moment(value, dateFormat);
+  const dateFromMoment = moment(value, dateFormat, strictFormat);
   const isAlphanumeric = value.search(/[A-z]/g) > -1;
   let date;
 

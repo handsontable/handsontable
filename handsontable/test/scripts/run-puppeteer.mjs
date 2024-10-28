@@ -1,8 +1,8 @@
-import puppeteer, { JSHandle } from 'puppeteer';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
+import path from 'path';
+import puppeteer, { JSHandle } from 'puppeteer';
+import { fileURLToPath } from 'url';
 
 const PORT = 8086;
 const IS_CI = process.env.CI;
