@@ -1,7 +1,0 @@
-{
-  "title": "Improved the performance of the `getCellMeta()` method.",
-  "type": "changed",
-  "issue": 6303,
-  "breaking": false,
-  "framework": "none"
-}

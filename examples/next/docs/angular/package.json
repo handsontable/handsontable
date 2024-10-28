@@ -2,9 +2,10 @@
   "name": "examples-angular",
   "version": "0.0.0",
   "private": true,
-  "workspaces": {
-    "packages": [
+  "scripts": {
+    "postinstall": "cd ../../.. && npm run link-packages -- --f angular --examples-version next"
+  },
+  "workspaces": [
       "@(!(node_modules))/"
-    ]
-  }
+  ]
 }

@@ -1,7 +1,0 @@
-{
-  "title": "Fixed cooperation of drop-down menu and column sorting (closing menu on click)",
-  "type": "fixed",
-  "issue": 8232,
-  "breaking": false,
-  "framework": "none"
-}

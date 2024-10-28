@@ -1,70 +1,80 @@
 <template>
   <header class="navbar">
-    <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />
+    <div class="navbar-wrapper">
+      <RouterLink
+          :to="frameworkUrlPrefix"
+          class="home-link"
+          aria-label="Docs Homepage Link"
+      >
+        <Logo />
+      </RouterLink>
 
-    <RouterLink
-        :to="versionedUrl($localePath)"
-        class="home-link"
-    >
+      <div class="top-bar">
+        <div class="top-bar_left">
+          <div class="framework-and-version">
+            <FrameworksDropdown/>
+            <!--<VersionsDropdown></VersionsDropdown>-->
+          </div>
+        </div>
 
-    <Logo />
-
-    </RouterLink>
-    <Versions></Versions>
-
-    <ThemeSwitcher />
-
-    <div
-        class="links"
-        :style="linksWrapMaxWidth ? {
-        'max-width': linksWrapMaxWidth + 'px'
-      } : {}"
-    >
-      <AlgoliaSearchBox
+        <AlgoliaSearch
           v-if="isAlgoliaSearch"
           :options="algolia"
-      />
+        />
 
-      <SearchBox />
+        <div class="menu">
+          <NavLinks/>
+          <ExternalNavLinks/>
 
-      <NavLinks class="can-hide" />
+          <nav class="icons-nav">
+            <!--<ThemeSwitcher />-->
+            <span class="news"><i class="ico i-bell"></i></span>
+            <a href="https://github.com/handsontable/handsontable" class="github-stars" target="_blank">
+              <i class="ico i-github"></i>
+              <span v-if="stars">{{ stars }}</span>
+            </a>
+            <button class="menuButton" id="mobileSearch" aria-label="Search"><i class="ico i-search"></i></button>
+            <button @click="$emit('toggle-sidebar')" class="menuButton" aria-label="Menu button">
+              <i class="ico i-menu"></i>
+              <i class="ico i-close"></i>
+            </button>
+          </nav>
+        </div>
+      </div>
+
     </div>
   </header>
 </template>
 
 <script>
-import AlgoliaSearchBox from '@AlgoliaSearchBox';
-import SearchBox from '@theme/components/SearchBox';
+/* global Headway */
+import AlgoliaSearch from '@theme/components/AlgoliaSearch.vue';
+import Logo from '@theme/components/Logo.vue';
 import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
-import Versions from '@theme/components/Versions.vue';
-import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
-import { ensureExt } from './util';
-import Logo from './Logo.vue';
+// import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
+// import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
+import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
+import ExternalNavLinks from '@theme/components/ExternalNavLinks.vue';
+import SidebarLinks from '@theme/components/SidebarLinks.vue';
 
 export default {
   name: 'Navbar',
   components: {
+    Logo,
+    FrameworksDropdown,
     SidebarButton,
     NavLinks,
-    SearchBox,
-    AlgoliaSearchBox,
-    Versions,
-    ThemeSwitcher,
-    Logo
-  },
-  methods: {
-    versionedUrl(url) {
-      if (this.$page.currentVersion === this.$page.latestVersion) {
-        return ensureExt(url);
-      } else {
-        return ensureExt(`/${this.$page.currentVersion}${url}`);
-      }
-    }
+    AlgoliaSearch,
+    // VersionsDropdown,
+    // ThemeSwitcher,
+    ExternalNavLinks,
+    SidebarLinks
   },
   data() {
     return {
-      linksWrapMaxWidth: null
+      linksWrapMaxWidth: null,
+      stars: 0
     };
   },
   computed: {
@@ -73,83 +83,54 @@ export default {
     },
     isAlgoliaSearch() {
       return this.algolia && this.algolia.apiKey && this.algolia.indexName;
+    },
+    frameworkUrlPrefix() {
+      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
     }
   },
-  mounted() {
-    const MOBILE_DESKTOP_BREAKPOINT = 719; // refer to config.styl
-    const paddingLeft = css(this.$el, 'paddingLeft');
-    const paddingRight = css(this.$el, 'paddingRight');
-    const NAVBAR_VERTICAL_PADDING = parseInt(paddingLeft, 10) + parseInt(paddingRight, 10);
-    const handleLinksWrapWidth = () => {
-      if (document.documentElement.clientWidth < MOBILE_DESKTOP_BREAKPOINT) {
-        this.linksWrapMaxWidth = null;
-      } else {
-        this.linksWrapMaxWidth = this.$el.offsetWidth - NAVBAR_VERTICAL_PADDING
-            - (this.$refs.siteName && this.$refs.siteName.offsetWidth || 0);
+  methods: {
+    kFormatter(num) {
+      return Math.abs(num) > 999
+        ? `${Math.sign(num) * (Math.abs(num) / 1000).toFixed(1)}k`
+        : Math.sign(num) * Math.abs(num);
+    },
+    async getStars() {
+      try {
+        const response = await fetch(
+          'https://api.github.com/repos/handsontable/handsontable'
+        );
+        const data = await response.json();
+
+        this.stars = this.kFormatter(data?.stargazers_count ?? 0);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log(error);
       }
+    },
+    handleSearchClick() {
+      const btnAlgolia = document.querySelector('.DocSearch');
+
+      if (btnAlgolia) {
+        btnAlgolia.click();
+      }
+    },
+  },
+  mounted() {
+    // Initialize Headway widget
+    const config = {
+      selector: '.news',
+      account: 'xaD6ry'
     };
 
-    handleLinksWrapWidth();
-    window.addEventListener('resize', handleLinksWrapWidth, false);
+    Headway.init(config);
+    this.getStars();
+
+    // Add click event to #search
+    const searchElement = document.getElementById('mobileSearch');
+
+    if (searchElement) {
+      searchElement.addEventListener('click', this.handleSearchClick);
+    }
   }
 };
-/**
- * @param {Element} el The element to check.
- * @param {string} property The property the gather.
- * @returns {CSSStyleDeclaration}
- */
-function css(el, property) {
-  // NOTE: Known bug, will return 'auto' if style value is 'auto'
-  const win = el.ownerDocument.defaultView;
-
-  // null means not to return pseudo styles
-  return win.getComputedStyle(el, null)[property];
-}
 </script>
-
-<style lang="stylus">
-$navbar-vertical-padding = 0.65rem
-$navbar-horizontal-padding = 1.5rem
-
-.navbar
-  padding $navbar-vertical-padding $navbar-horizontal-padding
-  line-height $navbarHeight - 1.4rem
-  z-index 2000
-  border-color: #e9eef2
-  a, span, img
-    display inline-block
-    font-weight 500
-    font-size: 14px
-  .home-link
-    margin-right 2rem
-    position relative
-    top .6rem
-    @media (max-width: $MQMobile) {
-      margin-right 1.5rem
-      top .4rem
-    }
-  #handsontable-logo
-    height $navbarHeight - 2.2rem
-    @media (max-width: $MQMobile) {
-      height 1rem
-    }
-  .links
-    box-sizing border-box
-    background-color white
-    white-space nowrap
-    font-size 0.9rem
-    position absolute
-    right $navbar-horizontal-padding
-    top $navbar-vertical-padding
-    display flex
-    align-items center
-    .search-box
-      flex: 0 0 auto
-      vertical-align top
-@media (max-width: $MQMobile)
-  .navbar
-    padding-left 4rem
-    .can-hide
-      display none
-
-</style>

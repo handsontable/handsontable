@@ -6,7 +6,7 @@ import {
   Input,
 } from '@angular/core';
 import { HotTableComponent } from './hot-table.component';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 
 @Component({
   selector: 'hot-column',
@@ -30,6 +30,7 @@ export class HotColumnComponent implements OnInit, OnChanges, OnDestroy {
   @Input() defaultDate: Handsontable.ColumnSettings['defaultDate'];
   @Input() editor: Handsontable.ColumnSettings['editor'];
   @Input() filteringCaseSensitive: Handsontable.ColumnSettings['filteringCaseSensitive'];
+  @Input() headerClassName: Handsontable.GridSettings['headerClassName'];
   @Input() invalidCellClassName: Handsontable.ColumnSettings['invalidCellClassName'];
   @Input() label: Handsontable.ColumnSettings['label'];
   @Input() language: Handsontable.ColumnSettings['language'];

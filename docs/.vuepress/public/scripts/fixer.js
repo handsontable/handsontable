@@ -25,7 +25,11 @@
     return s[0].toUpperCase() + s.substr(1);
   }
 
-  // Necessery for jsFiddle environment
+  function toUpperCaseFirst(string) {
+    return string[0].toUpperCase() + string.substr(1);
+  }
+
+  // Necessary for jsFiddle environment
   if (!isInternalFixer && window.addEventListener) {
     function appendScript(code) {
       const scriptEl = document.createElement('script');
@@ -68,6 +72,7 @@
           if (nsPart === 'Angular') {
             nsPart = 'ng';
           }
+
         } else {
           nsPart = `.${camelCase(k, true)}`;
         }
@@ -75,14 +80,42 @@
         ns = ns + nsPart;
       });
 
-      if (key === 'react-dom') {
+      if (key === './helpers') {
+        ns = 'helpers';
+
+      } else if (key === 'handsontable/base') {
+        ns = 'Handsontable';
+
+      } else if (key === 'hyperformula') {
+        ns = 'HyperFormula';
+
+      } else if (key === 'react-dom') {
         ns = 'ReactDOM';
+
+      } else if (key === 'react-colorful') {
+        return window.exports;
+
+      } 
+      else if (key === '@handsontable/angular') {
+        ns = 'Handsontable.angular';
 
       } else if (key === '@handsontable/react') {
         ns = 'Handsontable.react';
 
-      } else if (key === '@handsontable/vue') {
+      } else if (key === '@handsontable/vue' || key === '@handsontable/vue3') {
         ns = 'Handsontable.vue';
+
+      } else if (key === 'vuex') {
+        ns = 'Vuex';
+
+      } else if (key === 'vue-color') {
+        ns = 'VueColor';
+
+      } else if (key === 'vue-star-rating') {
+        ns = 'VueStarRating';
+
+      } else if (key === 'vue-class-component') {
+        ns = 'VueClassComponent';
 
       } else if (/^handsontable\/dist\/.+\.css$/.test(key)) { // ignore CSS imports
         ns = '';
@@ -97,6 +130,36 @@
         const match = key.match(/^numbro\/languages\/(.+)$/);
 
         ns = `numbro.allLanguages.${match[1]}`;
+
+      } else if (/^handsontable\/registry$/.test(key)) {
+        // The wrappers are run in the environment where the full Handsontable
+        // exists. The `handsontable/registry` imports are only use as an example how to
+        // use these functions.
+        return {
+          registerAllEditors: function() {},
+          registerAllRenderers: function() {},
+          registerAllValidators: function() {},
+          registerAllCellTypes: function() {},
+          registerAllPlugins: function() {},
+          registerAllModules: function() {},
+        };
+      } else if (/^handsontable\/cellTypes(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.cellTypes';
+
+      } else if (/^handsontable\/editors(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.editors';
+
+      } else if (/^handsontable\/plugins(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.plugins';
+
+      } else if (/^handsontable\/renderers(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.renderers';
+
+      } else if (/^handsontable\/validators(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.validators';
+
+      } else if (/^handsontable\/i18n(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.languages';
       }
 
       let moduleToReturn = window;
@@ -111,6 +174,34 @@
 
           ns.split('.').forEach((n) => {
             moduleToReturn = moduleToReturn[n];
+          });
+        }
+
+        // Covers `import plPL from 'handsontable/languages'` expressions
+        if (ns === 'Handsontable.languages') {
+          Handsontable.languages.getLanguagesDictionaries().forEach((lang) => {
+            moduleToReturn[lang.languageCode.replace('-', '')] = lang;
+          });
+
+        // Covers `import { textRenderer } from 'handsontable/renderers'` expressions
+        } else if (ns === 'Handsontable.renderers') {
+          moduleToReturn = Handsontable.renderers;
+
+          Object.keys(Handsontable.renderers).forEach((rendererKey) => {
+            if (rendererKey.endsWith('Renderer')) {
+              const camelCase = rendererKey.replace(/^[A-Z]/, (firstChar) => firstChar.toLowerCase());
+
+              moduleToReturn[camelCase] = moduleToReturn[rendererKey];
+            }
+          });
+        }
+
+        // Covers default import expressions
+        if (typeof moduleToReturn.default === 'undefined') {
+          Object.defineProperty(moduleToReturn, 'default', {
+            value: moduleToReturn,
+            writable: false,
+            enumerable: false,
           });
         }
       }

@@ -1,19 +1,48 @@
 # Contributing to Handsontable
 
-Your contributions to this project are very welcome. If you want to fix a bug or propose a new feature, you can open a new Pull Request but first make sure it follows these general rules:
+Your contribution to Handsontable's codebase is most welcome. To fix a bug or propose a new feature, open a new pull request (PR), targeted at the `develop` branch.
 
-1. Sign this [Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2) to allow us to publish your changes to the code.
-2. Make changes to the appropriate project. `handsontable` is located at the root of the repository - the framework-specific wrappers in the `./wrappers` subdirectory.
-3. Make your changes on a separate branch. This will speed up the merging process.
-4. Always make the target of your pull request the `develop` branch, not `master`.
-5. Do not edit files in `dist/` (e.g: `handsontable.js`, `handsontable.css`, `handsontable.full.js`, `handsontable.full.css`, `languages/all.js`), `languages/` (e.g: `en-US.js`, `pl-PL.js`), `commonjs` and `es` directories as well as their analogous counterparts in the `wrappers/` subdirectories. Instead, edit files inside the `src/` directory and then use `npm run build` (or `npm run all build`) to make a build. More information about this you can find [here](http://docs.handsontable.com/tutorial-custom-build.html).
-6. **Important: For any change you make, please add at least one test case** in `test/e2e/` (for End-to-End tests), `test/unit/` or `src/3rdparty/walkontable/test/spec/`. That will help us understand the issue and make sure that it stays fixed forever. If you're making changes to the framework-specific wrappers, add tests to the test directories in their respective subdirectories. Read more about our [testing process](http://docs.handsontable.com/tutorial-testing.html).
-7. Please lint the code, i.e. by `npm run lint` task. It should follow [our coding style](https://github.com/handsontable/handsontable/blob/master/.eslintrc.js), inspired by [Airbnb JavaScript Style](https://github.com/airbnb/javascript).
-8. Add a thorough description of all the changes.
+## Contribution rules
 
-Thank you for your commitment!
+To speed up the process of merging your changes, follow these rules:
+
+1. Sign the [Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2), to let us publish your changes.
+2. Make your changes on a separate branch. This will speed up the merging process.
+3. Always target your PR at the `develop` branch, not the `master` branch.
+4. Make changes to the right project:
+    - The main Handsontable project is located in the `./handsontable/` directory.
+    - Framework wrapper projects are located in the `./wrappers/` directory.
+5. Don't edit files in the following directories:
+    - `./handsontable/dist/`
+    - `./wrappers/angular/dist/hot-table/`
+    - `./wrappers/react/dist/` & `./wrappers/react/es/` & `./wrappers/react/commonjs/`
+    - `./wrappers/vue/dist/` & `./wrappers/vue/es/` & `./wrappers/vue/commonjs/`
+    - `./handsontable/languages/`
+6. Instead, edit the source files, located in the following directories:
+    - `./handsontable/src/`
+    - `./wrappers/angular/projects/hot-table/src/`
+    - `./wrappers/react/src/`
+    - `./wrappers/vue/src/`<br>
+    To check your changes, [make a build](https://handsontable.com/docs/building/), but don't commit your build files.
+7. For any change you make, add at least one test case. Your tests will help us understand the issue and make sure it stays fixed forever. Read more about our [testing process](https://handsontable.com/docs/testing/).<br>
+   For the main Handsontable project, add your tests to one of the following directories:
+    - `./handsontable/test/e2e/`
+    - `./handsontable/test/unit/`
+    - `./handsontable/src/3rdparty/walkontable/test/spec/`<br>
+   For framework wrapper projects, add your tests to their respective test directories.
+8. Lint your code. From the root directory, run: `npm run lint`.<br>
+   Your code should follow [our coding style](https://github.com/handsontable/handsontable/blob/master/.eslintrc.js), inspired by the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript).
+9. Add a mandatory [changelog](https://github.com/handsontable/handsontable/blob/master/CHANGELOG.md) entry. From the root directory, run: `npm run changelog entry`.<br>
+   Read more about [generating changelog entries](https://github.com/handsontable/handsontable/tree/master/.changelogs).
+10. In your PR, add a thorough description of all the changes.
+
+Thank you for your contribution!
+
+## Contributing to the documentation
+
+To contribute to the Handsontable documentation, see the separate [documentation section](https://github.com/handsontable/handsontable/blob/master/docs/README.md).
 
 ## Team rules
 
-1. We're using `npm workspaces` - this requires you to use `npm@7+`.
-2. The Handsontable team utilizes Git-Flow. Read more - [How we use Git-Flow](https://github.com/handsontable/handsontable/wiki/How-we-use-Git-Flow)
+1. We use [npm workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces). This requires you to use `npm@7+`.
+2. We use the Gitflow workflow.

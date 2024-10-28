@@ -1,0 +1,92 @@
+name: Docs Staging Deployment
+
+env:
+  GHA_DOCKER_TAG_NEXT: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:next
+  GHA_DOCKER_TAG_SHA: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:${{ github.sha }}
+  NODE_VERSION: 20
+
+on:
+  push:
+    branches-ignore:
+      - 'prod-docs/**'
+      - 'master'
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./docs/
+
+jobs:
+  docker:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Docker login into GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
+
+      - name: Install the documentation dependencies
+        run: |
+          npm ci
+
+      - name: Install the monorepo dependencies and build the packages
+        run: |
+          cd ..
+          npm ci
+          npm run all build -- --e examples visual-tests
+
+      - name: Generate API references
+        run: |
+          npm run docs:api
+
+      - name: Docker build (for staging deployment)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          npm run docs:docker:build:staging
+
+      - name: Docker build (for local testing)
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run: |
+          npm run docs:docker:build:testing
+
+      - name: Test examples
+        run: |
+          npm run docs:test:example-checker
+
+      - name: Docker tags
+        run: |
+          docker tag docs-md $GHA_DOCKER_TAG_NEXT
+          docker tag docs-md $GHA_DOCKER_TAG_SHA
+
+      - name: Docker push "next" into GHCR and deploy to the staging (only when manually dispatched)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          docker push ${GHA_DOCKER_TAG_NEXT}
+
+      - name: Docker push SHA tagged into GHCR
+        run: |
+          docker push ${GHA_DOCKER_TAG_SHA}
+
+      - name: Find PR
+        uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
+        id: pr-finder
+
+      - name: Publish sticky comment in PR
+        uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
+        with:
+          number: ${{ steps.pr-finder.outputs.pr }}
+          message: |
+            Launch the local version of documentation by running:
+            ```bash
+            npm run docs:review ${{ github.sha }}
+            ```

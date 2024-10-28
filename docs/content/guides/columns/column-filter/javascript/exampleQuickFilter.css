@@ -1,0 +1,9 @@
+.controlsQuickFilter {
+  margin: 0;
+  padding: 0;
+}
+
+#filterField {
+  margin-top: 20px;
+  padding: 2px 5px;
+}

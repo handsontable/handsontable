@@ -12,13 +12,14 @@ import { unescapeRedundant } from './postProcessors/unescapeRedundant.mjs';
 import { jsdocLinksFixer } from './postProcessors/jsdocLinksFixer.mjs';
 import { isJsdocPlugin } from './predictors.mjs';
 import { buildHeaderWriter } from './seo.mjs';
+import { removeInternals } from './preProcessors/removeInternals.mjs';
 
 export const buildRenderer = ({ dist, generateMarkdown, configuration, logger }) =>
   (fileName, members, parsedTypes) => {
     const header = buildHeaderWriter(configuration);
 
     const write = (file, output) => {
-      if (output.endsWith('[[toc]]\n')) {
+      if (output.trimRight().endsWith('[[toc]]')) {
         logger.info(`Empty output detected, file omitted: ${file}`);
 
         return;
@@ -35,6 +36,7 @@ export const buildRenderer = ({ dist, generateMarkdown, configuration, logger })
     };
 
     const preProcessor = buildPreProcessor([
+      removeInternals,
       sortJsdocMembers,
       applyLinkToSource,
       ...applyOptionsToPlugins,

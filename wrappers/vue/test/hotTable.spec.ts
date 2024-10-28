@@ -51,12 +51,15 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should update the previously initialized Handsontable instance only once with multiple changed properties', async() => {
-    let App = Vue.extend({
+    const initialAfterChangeHook = () => { /* initial hook */ };
+    const modifiedAfterChangeHook = () => { /* modified hook */ };
+    const App = Vue.extend({
       data: function () {
         return {
           rowHeaders: true,
           colHeaders: true,
           readOnly: true,
+          afterChange: initialAfterChangeHook
         }
       },
       methods: {
@@ -64,6 +67,7 @@ describe('Updating the Handsontable settings', () => {
           this.rowHeaders = false;
           this.colHeaders = false;
           this.readOnly = false;
+          this.afterChange = modifiedAfterChangeHook;
         }
       },
       render(h) {
@@ -74,6 +78,7 @@ describe('Updating the Handsontable settings', () => {
             rowHeaders: this.rowHeaders,
             colHeaders: this.colHeaders,
             readOnly: this.readOnly,
+            afterChange: this.afterChange,
             afterUpdateSettings: function () {
               updateSettingsCalls++;
             }
@@ -94,6 +99,11 @@ describe('Updating the Handsontable settings', () => {
     expect(hotTableComponent.hotInstance.getSettings().colHeaders).toEqual(true);
     expect(hotTableComponent.hotInstance.getSettings().readOnly).toEqual(true);
 
+    const hooks = hotTableComponent.hotInstance.pluginHookBucket.getHooks('afterChange');
+
+    expect(hooks.filter(hookEntry => hookEntry.callback === initialAfterChangeHook).length).toBe(1);
+    expect(hooks.filter(hookEntry => hookEntry.callback === modifiedAfterChangeHook).length).toBe(0);
+
     testWrapper.vm.updateData();
 
     await Vue.nextTick();
@@ -101,6 +111,8 @@ describe('Updating the Handsontable settings', () => {
     expect(hotTableComponent.hotInstance.getSettings().rowHeaders).toEqual(false);
     expect(hotTableComponent.hotInstance.getSettings().colHeaders).toEqual(false);
     expect(hotTableComponent.hotInstance.getSettings().readOnly).toEqual(false);
+    expect(hooks.filter(hookEntry => hookEntry.callback === initialAfterChangeHook).length).toBe(0);
+    expect(hooks.filter(hookEntry => hookEntry.callback === modifiedAfterChangeHook).length).toBe(1);
   });
 
   it('should update the previously initialized Handsontable instance with only the options that are passed to the' +
@@ -656,8 +668,8 @@ describe('HOT-based CRUD actions', () => {
     });
     const hotInstance = testWrapper.vm.hotInstance;
 
-    hotInstance.alter('insert_row', 2, 2);
-    hotInstance.alter('insert_col', 2, 2);
+    hotInstance.alter('insert_row_above', 2, 2);
+    hotInstance.alter('insert_col_end', 2, 2);
 
     await Vue.nextTick();
 
@@ -717,46 +729,5 @@ describe('Non-HOT based CRUD actions', () => {
     expect(hotInstance.countSourceCols()).toEqual(4);
     expect(hotInstance.getSourceData().length).toEqual(4);
     expect(hotInstance.getSourceData()[0].length).toEqual(4);
-  });
-});
-
-describe('cooperation with NestedRows plugin', () => {
-  it('should display dataset properly #7548', async() => {
-    const testWrapper = mount(HotTable, {
-      propsData: {
-        data: [{
-          col1: 'parent1',
-          __children: [
-            {
-              col1: 'p1.c1',
-            }, {
-              col1: 'p1.c2',
-            }
-          ]
-        }, {
-          col1: 'parent2',
-          __children: [
-            {
-              col1: 'p2.c1',
-            }, {
-              col1: 'p2.c2',
-            }, {
-              col1: 'p2.c3',
-            }
-          ]
-        }],
-        rowHeaders: true,
-        colHeaders: true,
-        nestedRows: true,
-      }
-    });
-
-    expect(testWrapper.vm.hotInstance.countRows()).toEqual(7);
-
-    await Vue.nextTick();
-
-    expect(testWrapper.vm.hotInstance.countRows()).toEqual(7);
-
-    testWrapper.destroy();
   });
 });

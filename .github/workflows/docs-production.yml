@@ -1,0 +1,75 @@
+name: Docs Production Deployment
+
+env:
+  GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation
+  NODE_VERSION: 20
+
+on:
+  push:
+    branches:
+      - 'prod-docs/**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./docs/
+
+jobs:
+  docker:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # https://github.com/actions/github-script/releases/tag/v6.3.3
+        id: get-docs-version
+        with:
+          script: return context.ref.match(/^refs\/heads\/prod\-docs\/(\d+\.\d+)$/)[1] ?? '';
+          result-encoding: string
+
+      - name: Validate Docs version
+        run: if [ -z "${{steps.get-docs-version.outputs.result}}" ]; then echo "Docs version is empty"; exit 1; fi
+
+      - name: Docker login into GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
+
+      - name: Dependencies
+        run: |
+          npm ci
+
+      - name: Docker build
+        run: |
+          npm run docs:docker:build:production
+
+      - name: Test examples
+        run: |
+          npm run docs:test:example-checker
+
+      - name: Docker tags
+        run: |
+          docker tag docs-md:production $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}"
+          docker tag docs-md:production $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
+
+      - name: Docker push production into GHCR
+        run: |
+          docker push $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}"
+
+      - name: Docker push SHA tagged into GHCR
+        run: |
+          docker push $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
+
+      - name: Deploy the Docs image
+        uses: satak/webrequest-action@6127ff14e9269df0d49bcaec84f948dc8b50df1f # v1.2.4
+        with:
+          url: 'https://docs.handsontable.com/api/deploy'
+          method: POST
+          username: ${{secrets.DOCS_DEPLOYMENT_USER}}
+          password: ${{secrets.DOCS_DEPLOYMENT_PASSWORD}}
+          payload: '{"token": "${{secrets.DOCS_DEPLOYMENT_TOKEN}}","docsVersion": "${{steps.get-docs-version.outputs.result}}"}'

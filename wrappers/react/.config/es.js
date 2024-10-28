@@ -1,9 +1,8 @@
 import typescript from 'rollup-plugin-typescript2';
-import { baseConfig } from './base';
 import { plugins } from './base';
 
 const env = process.env.NODE_ENV;
-const filename = 'react-handsontable.js';
+const filename = 'react-handsontable.mjs';
 
 export const esConfig = {
   output: {
@@ -22,7 +21,6 @@ export const esConfig = {
         }
       },
       useTsconfigDeclarationDir: true,
-      objectHashIgnoreUnknownHack: true,
       clean: true,
     }),
     plugins.babel,

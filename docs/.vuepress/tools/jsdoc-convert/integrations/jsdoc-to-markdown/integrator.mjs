@@ -1,15 +1,17 @@
-import jsdoc2md from 'jsdoc-to-markdown';
-import dmd from 'dmd';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import jsdoc2md from 'jsdoc-to-markdown';
+import dmd from 'dmd';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const buildJsdocToMarkdownIntegrator = ({ source }) => {
-  const parseJsdoc = file => jsdoc2md.getTemplateDataSync({
-    files: source(file),
-    'no-cache': true,
-  });
+  const parseJsdoc = (files) => {
+    return jsdoc2md.getTemplateDataSync({
+      files: source(files),
+      'no-cache': true,
+    });
+  };
 
   const generateMarkdown = data => dmd(data, {
     noCache: true,

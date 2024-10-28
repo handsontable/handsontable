@@ -1,21 +1,46 @@
 const { register } = require('./register');
-const { buildDependencyGetter, presetMap } = require('./dependencies');
+const {
+  buildDependencyGetter,
+  presetMap,
+} = require('./dependencies');
 
 const ATTR_VERSION = 'data-hot-version';
 
-const useHandsontable = (version, callback = () => {}, preset = 'hot') => {
+class AbortError extends Error {}
 
-  const getDependency = buildDependencyGetter(version);
+const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode = 'production') => {
+  const getDependency = buildDependencyGetter(version, buildMode);
+  const abortSignal = register.getAbortSignal();
 
-  const loadDependency = dep => new Promise((resolve) => {
-    const id = `dependency-reloader_${dep}`;
-    const [jsUrl, dependentVars = [], cssUrl = undefined] = getDependency(dep);
+  const loadDependency = dep => new Promise((resolve, reject) => {
+    const abortHandler = () => {
+      reject(new AbortError());
+    };
+
+    if (abortSignal.aborted) {
+      reject(abortHandler());
+    }
+
+    abortSignal.addEventListener('abort', abortHandler);
+
+    const getId = depName => `dependency-reloader_${depName}`;
+    const [jsUrl, dependentVars = [], cssUrl = undefined, globalVarSharedDependency] = getDependency(dep);
+    const id = getId(dep);
 
     const _document = document; // eslint-disable-line no-restricted-globals
-    let script = _document.getElementById(`script-${id}`);
+    let script = null;
+
+    // As the documentation uses multiple versions of Vue (which reuse the same global variable - `Vue`), every
+    // time the Vue dependency is loaded, the previously used version should be removed.
+    if (globalVarSharedDependency) {
+      script = _document.getElementById(`script-${getId(globalVarSharedDependency)}`);
+
+    } else {
+      script = _document.getElementById(`script-${id}`);
+    }
 
     // clear outdated version
-    if (script && script.getAttribute(ATTR_VERSION) !== version) {
+    if (script && (script.getAttribute(ATTR_VERSION) !== version || globalVarSharedDependency)) {
       dependentVars.forEach(x => delete x.split('.').reduce((p, c) => p[c] || {}, {}));
       script.remove();
       script = null;
@@ -51,16 +76,17 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot') => {
     // execute callback
     if (script.loaded) {
       setTimeout(() => {
+        abortSignal.removeEventListener('abort', abortHandler);
         register.listen();
         resolve();
       });
     } else {
       script.addEventListener('load', () => {
+        abortSignal.removeEventListener('abort', abortHandler);
         register.listen();
         resolve();
       });
     }
-
   });
 
   const loadPreset = async() => {
@@ -69,12 +95,22 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot') => {
     for (let i = 0; i < dependencies.length; i++) {
       const dep = dependencies[i];
 
+      if (abortSignal.aborted) {
+        break;
+      }
+
       // The order of loading is really important. For that purpose await was used.
       await loadDependency(dep); // eslint-disable-line no-await-in-loop
     }
   };
 
-  loadPreset().then(callback);
+  loadPreset()
+    .then(callback)
+    .catch((err) => {
+      if (!(err instanceof AbortError)) {
+        throw err;
+      }
+    });
 };
 
 module.exports = { useHandsontable };

@@ -1,8 +1,15 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { HotTableModule, HotTableRegisterer } from '@handsontable/angular';
 import { HOT_DESTROYED_WARNING } from '../lib/hot-table-registerer.service';
+import { createSpreadsheetData } from './helpers';
+import {
+  registerPlugin,
+  CopyPaste,
+} from 'handsontable/plugins';
+
+registerPlugin(CopyPaste);
 
 @Component({
   selector: 'hot-test-component',
@@ -60,7 +67,7 @@ describe('HotTableComponent', () => {
       const app = fixture.componentInstance;
 
       app.prop['settings'] = {
-        data: Handsontable.helper.createSpreadsheetData(5, 5)
+        data: createSpreadsheetData(5, 5)
       };
 
       fixture.detectChanges();
@@ -89,25 +96,25 @@ describe('HotTableComponent', () => {
 
   describe('options', () => {
     it('should support all of the available options in Handsontable', async() => {
-        const options = Object.keys(Handsontable.DefaultSettings);
-        const unsupportedSettings = ['isEmptyRow', 'isEmptyCol'];
-        const template = `<hot-table [hotId]="id" ${options.map(option => unsupportedSettings.includes(option) ?
-            '' :
-            `[${option}]="prop.${option}"`).join(' ')}></hot-table>`;
+      const options = Object.keys(Handsontable.DefaultSettings);
+      const unsupportedSettings = ['isEmptyRow', 'isEmptyCol', '_automaticallyAssignedMetaProps'];
+      const template = `<hot-table [hotId]="id" ${options.map(option => unsupportedSettings.includes(option) ?
+        '' :
+        `[${option}]="prop.${option}"`).join(' ')}></hot-table>`;
 
-        TestBed.overrideComponent(TestComponent, {
-          set: {
-            template: template
-          }
-        });
-        await TestBed.compileComponents().then(() => {
-          fixture = TestBed.createComponent(TestComponent);
-          const elem = fixture.nativeElement;
+      TestBed.overrideComponent(TestComponent, {
+        set: {
+          template: template
+        }
+      });
+      await TestBed.compileComponents().then(() => {
+        fixture = TestBed.createComponent(TestComponent);
+        const elem = fixture.nativeElement;
 
-          fixture.detectChanges();
+        fixture.detectChanges();
 
-          expect(elem.querySelectorAll('.handsontable').length).toBeGreaterThan(0);
-        });
+        expect(elem.querySelectorAll('.handsontable').length).toBeGreaterThan(0);
+      });
     });
 
     it(`should overwrite settings' option by the attribute`, async() => {
@@ -140,8 +147,8 @@ describe('HotTableComponent', () => {
         'afterIsMultipleSelection'
       ];
       const template = `<hot-table [hotId]="id" ${hooks.map(hook => unsupportedHooks.includes(hook) ?
-          '' :
-          `[${hook}]="prop.${hook}"`).join(' ')}></hot-table>`;
+        '' :
+        `[${hook}]="prop.${hook}"`).join(' ')}></hot-table>`;
 
       TestBed.overrideComponent(TestComponent, {
         set: {
@@ -263,9 +270,7 @@ describe('HotTableComponent', () => {
         app.prop['specKey'] = 'testKey';
         app.prop['settings'] = {
           afterInit: (function() {
-            return () => {
-              return this;
-            };
+            return () => this;
           }).call(app),
         };
 
@@ -309,7 +314,9 @@ describe('HotTableComponent', () => {
         const app = fixture.componentInstance;
         let afterChangeResult = false;
 
-        app.prop['beforeChange'] = function() { return false; };
+        app.prop['beforeChange'] = function() {
+          return false;
+        };
         app.prop['afterChange'] = function(changes, source) {
           // `afterChange` is called once during the initialisation
           if (source === 'edit') {
@@ -345,7 +352,7 @@ describe('HotTableComponent', () => {
         const app = fixture.componentInstance;
 
         app.prop['settings'] = {
-          data: Handsontable.helper.createSpreadsheetData(5, 5)
+          data: createSpreadsheetData(5, 5)
         };
 
         fixture.detectChanges();

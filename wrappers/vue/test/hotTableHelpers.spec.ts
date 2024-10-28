@@ -1,3 +1,4 @@
+import { GridSettings } from 'handsontable/settings';
 import {
   rewriteSettings,
   prepareSettings,
@@ -69,5 +70,33 @@ describe('prepareSettings', () => {
     expect(preparedSettings.id).toBe(void 0);
     expect(preparedSettings.settings).toBe(void 0);
     expect(preparedSettings.wrapperRendererCacheSize).toBe(void 0);
+  });
+
+  it('should handle settings with circular structure', () => {
+    const circularStructure = { foo: 'bar', myself: {} };
+
+    circularStructure.myself = circularStructure;
+
+    const propsMockCircular = {
+      readOnly: true,
+      whatever: circularStructure
+    };
+
+    const preparedSettings = prepareSettings(propsMockCircular, {});
+
+    expect(preparedSettings.readOnly).toBe(true);
+    expect(preparedSettings.whatever.foo).toBe('bar');
+    expect(preparedSettings.whatever.myself.foo).toBe('bar');
+  });
+
+  it('should not recognize passing of the same array twice as a changed object', () => {
+    const settings1: GridSettings = {
+      mergeCells: [{ row: 1, col: 1, colspan: 1, rowspan: 1 }],
+    };
+
+    const preparedSettings = prepareSettings({ settings: settings1 }, settings1);
+
+    expect(preparedSettings.mergeCells).toBe(undefined);
+    expect(Object.keys(preparedSettings).length).toBe(0);
   });
 });

@@ -11,7 +11,43 @@ const wrap = (code, lang) => {
     code = escapeHtml(code);
   }
 
-  return `<pre v-pre class="language-${lang}"><code>${code}</code></pre>`;
+  // eslint-disable-next-line max-len
+  return `<pre v-pre class="language-${lang}"><code>${code}</code></pre>
+          <div class="codeControls">
+            <div class="select-type">
+              <button
+                type="button"
+                class="select-type-button"
+                @click="$parent.$parent.toggleDropdown($event)"
+                value="${lang}"
+              >
+                {{ $parent.$parent.selectedLang }}
+              </button>
+              <ul>
+                <li>
+                  <button
+                    type="button"
+                    @click="$parent.$parent.setLanguage('JavaScript')" 
+                    :class="{'select-type-js': true, 'active': ${lang.includes('js')}}"
+                  >
+                    JavaScript
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    @click="$parent.$parent.setLanguage('TypeScript')" 
+                    :class="{'select-type-ts': true, 'active': ${lang.includes('ts')}}"
+                  >
+                    TypeScript
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <button @click="$parent.$parent.copyCode($event)" class="copycode" aria-label="Copy to clipboard">
+              <i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i>
+            </button>
+          </div>`;
 };
 
 const getLangCodeFromExtension = (extension) => {

@@ -11,10 +11,10 @@ import inquirer from 'inquirer';
 import semver from 'semver';
 import {
   cleanNodeModules,
+  scheduleRelease,
+  spawnProcess,
   displayErrorMessage,
   displaySeparator,
-  scheduleRelease,
-  spawnProcess
 } from './utils/index.mjs';
 
 const argv = yargs(hideBin(process.argv))
@@ -52,8 +52,8 @@ displaySeparator();
     const processInfo = await spawnProcess('npm --version', { silent: true });
     const npmVersion = processInfo.stdout.toString();
 
-    if (!semver.satisfies(npmVersion, '>=7.2.0')) {
-      displayErrorMessage('The minimum required npm version is 7.2.0');
+    if (!semver.satisfies(npmVersion, '>=7.17.0')) {
+      displayErrorMessage('The minimum required npm version is 7.17.0');
       process.exit(1);
     }
   }
@@ -112,20 +112,17 @@ displaySeparator();
   // Install the "next" package for examples
   await spawnProcess('npm run examples:install next');
 
-  // Build the examples/next directory.
+  // Build the examples directory.
   await spawnProcess('npm run in examples build');
 
   // Test all packages.
   await spawnProcess('npm run all test');
 
   // Verify if the bundles have the same (and correct) version.
-  await spawnProcess('node --experimental-json-modules ./scripts/verify-bundles.mjs');
+  await spawnProcess('node ./scripts/verify-bundles.mjs');
 
   // Generate the CHANGELOG.md file.
   await spawnProcess('npm run changelog consume', { stdin: 'pipe' });
-
-  // Create the examples/[version] directory.
-  await spawnProcess(`npm run examples:version ${finalVersion}`);
 
   if (argv.commit === true) {
     // Commit the changes to the release branch.

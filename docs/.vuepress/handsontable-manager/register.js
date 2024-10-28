@@ -10,7 +10,10 @@
  */
 function createDestroyableResource(presetType, { rootExampleElement, hotInstance }) {
   return () => {
-    if (presetType.startsWith('vue')) {
+    if (presetType.startsWith('vue3')) {
+      rootExampleElement.firstChild.__vue_app__.unmount();
+
+    } else if (presetType.startsWith('vue')) {
       rootExampleElement.firstChild.__vue__.$root.$destroy();
 
     } else if (presetType.startsWith('react')) {
@@ -63,7 +66,7 @@ function createRegister() {
     return null;
   }
 
-  const register = new Set();
+  const register = new Map();
 
   const listen = () => {
     try {
@@ -74,8 +77,9 @@ function createRegister() {
 
           if (rootExampleElement) {
             const examplePresetType = rootExampleElement.getAttribute('data-preset-type');
+            const exampleId = rootExampleElement.getAttribute('data-example-id');
 
-            register.add(createDestroyableResource(examplePresetType, {
+            register.set(exampleId, createDestroyableResource(examplePresetType, {
               rootExampleElement,
               hotInstance: this,
             }));
@@ -93,9 +97,34 @@ function createRegister() {
     register.clear();
   };
 
+  const destroyExample = (exampleId) => {
+    if (register.has(exampleId)) {
+      register.get(exampleId)();
+      register.delete(exampleId);
+    }
+  };
+
+  const abortControllers = new Set();
+
+  const initPage = () => {
+    abortControllers.forEach(ctrl => ctrl.abort());
+    abortControllers.add(new AbortController());
+
+    destroyAll();
+  };
+
+  const getAbortSignal = () => {
+    const controllers = Array.from(abortControllers);
+
+    return controllers[controllers.length - 1].signal;
+  };
+
   return {
+    initPage,
     listen,
     destroyAll,
+    destroyExample,
+    getAbortSignal,
   };
 }
 

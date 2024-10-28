@@ -46,3 +46,8 @@ export function createDomContainer() {
 
   return container;
 }
+
+export class IntersectionObserverMock {
+  observe() {}
+  unobserve() {}
+}

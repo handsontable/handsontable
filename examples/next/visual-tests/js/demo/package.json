@@ -1,0 +1,34 @@
+{
+  "name": "vanilla-demo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "This is a general purpose demo that showcases the most popular features of Handsontable",
+  "homepage": "https://handsontable.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable/issues"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
+  "scripts": {
+    "serve": "vite preview",
+    "start": "vite preview",
+    "build": "vite build"
+    },
+  "dependencies": {
+    "@handsontable/pikaday": "^1.0.0",
+    "handsontable": "latest"
+  },
+  "devDependencies": {
+    "@ngneat/falso": "^7.2.0",
+    "jasmine": "3.7.0",
+    "jasmine-console-reporter": "3.1.0",
+    "navigo": "^8.11.1",
+    "puppeteer": "14.3.0",
+    "rollup-plugin-copy": "^3.5.0",
+    "vite": "5.4.3"
+  },
+  "license": "SEE LICENSE IN LICENSE.txt"
+}

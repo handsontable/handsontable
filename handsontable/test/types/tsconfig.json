@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es2015",
+      "dom"
+    ],
+    "module": "commonjs",
+    "target": "es2015",
+    "noEmit": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "baseUrl": "./",
+    "paths": {
+      "handsontable": [ "../../types" ],
+      "handsontable/*": [ "../../types/*" ]
+    },
+    "typeRoots": [
+      "../../node_modules/@types",
+      "../../../node_modules/@types"
+    ],
+    "types": ["node"]
+  },
+  "include": [
+    "./common.d.ts",
+    "**/*.types.ts",
+    "../../src/**/*.types.ts"
+  ]
+}

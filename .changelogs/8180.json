@@ -1,7 +1,0 @@
-{
-  "title": "Data stored by the NestedRows plugin won't be corrupted by some actions",
-  "type": "fixed",
-  "issue": 8180,
-  "breaking": false,
-  "framework": "none"
-}

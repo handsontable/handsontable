@@ -1,5 +1,5 @@
 import BaseEditorComponent from '../src/BaseEditorComponent.vue';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 
 describe('BaseEditorComponent', () => {
   it('should have all of the props that the Handsontable Base Editor assigns in its `prepare` method nulled', () => {

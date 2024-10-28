@@ -2,20 +2,20 @@
 
 <a href="https://handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-blue.svg" alt="Handsontable - data grid for React" width="300"></a>
 
-# Data Grid for React <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="22" height="22">
+# React Data Grid <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="22" height="22">
 
 Handsontable's wrapper for React combines data grid features with spreadsheet-like UX. <br>
 It provides data binding, data validation, filtering, sorting, and CRUD operations.
 
 [![npm](https://img.shields.io/npm/dt/@handsontable/react.svg)](https://npmjs.com/package/@handsontable/react)
 [![npm](https://img.shields.io/npm/dm/@handsontable/react.svg)](https://npmjs.com/package/@handsontable/react)
-[![Build status](https://app.codeship.com/projects/1ec34290-ed0a-0131-911c-1a47c8fbcce0/status?branch=master)](https://app.codeship.com/projects/26649)
+[![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
-[![Known Vulnerabilities](https://snyk.io/test/github/handsontable/handsontable/badge.svg?targetFile=package.json)](https://snyk.io/test/github/handsontable/handsontable?targetFile=package.json)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
 
 ---
 
-<a href="https://handsontable.com/examples"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid for React" width="805"/></a>
+<a href="https://handsontable.com/demo"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid for React" width="805"/></a>
 
 </div>
 
@@ -39,64 +39,77 @@ The most popular features of Handsontable for React:
 
 ## Documentation
 
-- [Developer guides](https://handsontable.com/docs/frameworks-wrapper-for-react-installation.html)
-- [API Reference](https://handsontable.com/docs/Core.html)
-- [Change log](https://handsontable.com/docs/tutorial-release-notes.html)
-- [Demo](https://handsontable.com/examples)
+- [Developer guides](https://handsontable.com/docs/react-installation/)
+- [API Reference](https://handsontable.com/docs/api/core/)
+- [Changelog](https://handsontable.com/docs/release-notes/)
+- [Demo](https://handsontable.com/demo)
 
 <div id="installation"></div>
 
-## Get Started
-### Install with npm
+## Get started
 
-Run the following command in your terminal
-```
+### 1. Install Handsontable
+
+Get Handsontable from [npm](https://www.npmjs.com/package/@handsontable/react) or [Yarn](https://yarnpkg.com/package/@handsontable/react).
+
+```bash
 npm install handsontable @handsontable/react
 ```
 
-You can load it directly from [jsDelivr](https://jsdelivr.com/package/npm/@handsontable/react) as well.
-```html
-<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.min.js"></script>
+Import Handsontable's CSS:
 
-<link href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" rel="stylesheet">
+```jsx
+import 'handsontable/dist/handsontable.full.min.css';
 ```
 
-The component will be available as `Handsontable.react.HotTable`.
+### 2. Register Handsontable's modules
 
-### Usage
+```jsx
+import { registerAllModules } from 'handsontable/registry';
 
-Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/Options.html) can be set as `HotTable` props.
-
-**Styles**
-```css
-@import '~handsontable/dist/handsontable.full.css';
+registerAllModules();
 ```
 
-**React Component**
-```js
-import React from 'react';
-import ReactDOM from 'react-dom';
+### 3. Use the `HotTable` component
+
+The main Handsontable component is called `HotTable`.
+
+```jsx
 import { HotTable } from '@handsontable/react';
-
-class HotApp extends React.Component {
-  constructor(props) {
-    super(props);
-    this.data = [
-      ['', 'Tesla', 'Mercedes', 'Toyota', 'Volvo'],
-      ['2019', 10, 11, 12, 13],
-      ['2020', 20, 11, 14, 13],
-      ['2021', 30, 15, 12, 13]
-    ];
-  }
-
-  render() {
-    return (<HotTable data={this.data} colHeaders={true} rowHeaders={true} width="600" height="300" />);
-  }
-}
 ```
 
-### [View live demo](//handsontable.com/docs/frameworks-wrapper-for-react-simple-examples.html)
+To set Handsontable's [configuration options](https://handsontable.com/docs/react-data-grid/configuration-options), use `HotTable`'s props. For example:
+
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  return (
+      <HotTable
+        // set `HotTable`'s props here
+        data={[
+          ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+          ['2019', 10, 11, 12, 13],
+          ['2020', 20, 11, 14, 13],
+          ['2021', 30, 15, 12, 13]
+        ]}
+        rowHeaders={true}
+        colHeaders={true}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation" // for non-commercial use only
+      />
+  );
+};
+```
+
+
+
+### [View live demo](https://handsontable.com/docs/react-data-grid/demo/)
 
 ## Support
 
@@ -115,7 +128,7 @@ Handsontable is a commercial software with two licenses available:
 
 If you use Handsontable for React in a project that supports your commercial activity, then you must purchase the license key at [handsontable.com](https://handsontable.com/pricing).
 
-If you use the free for non-commercial license of Handsontable, then pass the phrase `'non-commercial-and-evaluation'`, as described in [this documentation](https://handsontable.com/docs/tutorial-license-key.html).
+If you use the free for non-commercial license of Handsontable, then pass the phrase `'non-commercial-and-evaluation'`, as described in [this documentation](https://handsontable.com/docs/license-key/).
 
 <br>
 <br>

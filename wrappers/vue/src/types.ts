@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import Vue, { VNode } from 'vue';
 import { ThisTypedComponentOptionsWithRecordProps } from 'vue/types/options';
 
@@ -57,8 +57,8 @@ type ClassFieldKey<T> = ({[P in keyof T]: T[P] extends Function ? never : P })[k
 type ClassMethods<T> = Pick<T, NotOriginalValueProp<T>>;
 type ClassFields<T> = Pick<T, ClassFieldKey<T>>;
 
-export interface BaseVueEditorMethods extends ClassMethods<Handsontable._editors.Base> {
+export interface BaseVueEditorMethods extends ClassMethods<Handsontable.editors.BaseEditor> {
 }
 
-export interface BaseVueEditorFields extends ClassFields<Handsontable._editors.Base> {
+export interface BaseVueEditorFields extends ClassFields<Handsontable.editors.BaseEditor> {
 }

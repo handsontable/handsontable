@@ -1,0 +1,1 @@
+export { createShortcutManager } from './manager';

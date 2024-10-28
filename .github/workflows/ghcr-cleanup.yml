@@ -1,0 +1,23 @@
+name: GHCR cleanup
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # every day at midnight
+  push:
+    paths:
+      - .github/workflows/ghcr-cleanup.yml
+
+jobs:
+  clean-ghcr:
+    name: Delete old unused images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete documentation images older than a month
+        uses: snok/container-retention-policy@754c94da17832ea399f34da9f3efa7194055010b
+        with:
+          image-names: handsontable/handsontable-documentation
+          cut-off: One month ago UTC
+          account-type: org
+          org-name: handsontable
+          skip-tags: latest, production, next, v*
+          token: ${{ secrets.WARPECH_PAT_DELETE_PACKAGES }}

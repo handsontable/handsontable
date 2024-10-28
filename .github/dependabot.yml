@@ -1,0 +1,8 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/visual-tests"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-name: "@playwright/test"

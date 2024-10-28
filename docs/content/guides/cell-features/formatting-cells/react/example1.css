@@ -1,0 +1,8 @@
+td.custom-cell {
+  color: #fff;
+  background-color: #37bc6c;
+}
+.custom-table thead th:nth-child(even),
+.custom-table tbody tr:nth-child(odd) th {
+  background-color: #d7f1e1;
+}

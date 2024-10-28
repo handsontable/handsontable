@@ -1,7 +1,0 @@
-{
-  "title": "Fixed some problems with Nested Rows, occuring with the Formulas plugin enabled.",
-  "type": "fixed",
-  "issue": 8048,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,15 +1,24 @@
 {
   "name": "@handsontable/vue",
-  "version": "9.0.2",
+  "version": "14.6.1",
   "description": "Best Data Grid for Vue with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./commonjs/vue-handsontable.js",
-  "module": "./es/vue-handsontable.js",
+  "module": "./es/vue-handsontable.mjs",
   "jsdelivr": "./dist/vue-handsontable.min.js",
   "unpkg": "./dist/vue-handsontable.min.js",
   "types": "./index.d.ts",
+  "exports": {
+    "./dist/vue-handsontable.js": "./dist/vue-handsontable.js",
+    "./dist/vue-handsontable.min.js": "./dist/vue-handsontable.min.js",
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./es/vue-handsontable.mjs",
+      "require": "./commonjs/vue-handsontable.js"
+    }
+  },
   "keywords": [
     "handsontable",
     "component",
@@ -44,7 +53,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "peerDependencies": {
-    "handsontable": ">=9.0.0",
+    "handsontable": ">=14.0.0",
     "vue": "^2.5.0"
   },
   "devDependencies": {
@@ -55,44 +64,41 @@
     "@babel/preset-env": "^7.4.5",
     "@babel/preset-typescript": "^7.3.3",
     "@babel/runtime": "^7.4.5",
+    "@rollup/plugin-commonjs": "25.0.7",
+    "@rollup/plugin-node-resolve": "15.2.3",
+    "@rollup/plugin-terser": "0.4.4",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-babel": "6.0.4",
     "@vue/test-utils": "^1.0.3",
-    "babel-core": "^7.0.0-bridge.0",
-    "cpy-cli": "^3.1.1",
-    "cross-env": "^5.2.0",
-    "css-loader": "^3.0.0",
-    "del-cli": "^3.0.1",
-    "handsontable": "^9.0.0",
+    "cross-env": "^7.0.3",
+    "css-loader": "^6.10.0",
+    "handsontable": "^14.0.0",
     "jest": "^26.6.3",
-    "rollup": "^2.0.0",
-    "rollup-plugin-babel": "^4.3.2",
-    "rollup-plugin-cleanup": "^3.1.1",
-    "rollup-plugin-commonjs": "^10.0.0",
-    "rollup-plugin-json": "^4.0.0",
-    "rollup-plugin-node-resolve": "^5.0.2",
-    "rollup-plugin-replace": "^2.2.0",
-    "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-typescript": "^1.0.1",
-    "rollup-plugin-typescript2": "^0.21.1",
-    "rollup-plugin-vue": "^5.0.0",
+    "rimraf": "^3.0.2",
+    "rollup": "^4.16.1",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "rollup-plugin-vue": "^5.1.9",
     "typescript": "3.8.2",
-    "vue": "^2.6.10",
+    "vue": "~2.6.10",
     "vue-class-component": "^7.1.0",
-    "vue-jest": "^3.0.4",
+    "vue-jest": "^4.0.1",
     "vue-router": "^3.0.6",
-    "vue-template-compiler": "^2.6.10",
-    "vuex": "^3.1.1"
+    "vue-template-compiler": "~2.6.10",
+    "vuex": "^3.1.1",
+    "ts-jest": "^26.5.6"
   },
   "scripts": {
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",
-    "build:commonjs": "cross-env NODE_ENV=cjs rollup -c",
-    "build:umd": "cross-env NODE_ENV=umd rollup -c",
-    "build:es": "cross-env NODE_ENV=es rollup -c",
-    "build:min": "cross-env NODE_ENV=min rollup -c",
-    "build:esDts": "cross-env NODE_ENV=esDts rollup -c && del-cli ./buildTemp/",
+    "build:commonjs": "cross-env NODE_ENV=cjs rollup -c --bundleConfigAsCjs",
+    "build:umd": "cross-env NODE_ENV=umd rollup -c --bundleConfigAsCjs",
+    "build:es": "cross-env NODE_ENV=es rollup -c --bundleConfigAsCjs",
+    "build:min": "cross-env NODE_ENV=min rollup -c --bundleConfigAsCjs",
+    "build:esDts": "cross-env NODE_ENV=esDts rollup -c && rimraf ./buildTemp/",
     "watch:commonjs": "cross-env NODE_ENV=cjs rollup -c --watch",
     "watch:es": "cross-env NODE_ENV=es rollup -c --watch",
     "watch:umd": "cross-env NODE_ENV=umd rollup -c --watch",
-    "clean": "del-cli ./es/ && del-cli ./commonjs/ && del-cli ./dist/ && del-cli ./*.d.ts",
+    "clean": "rimraf ./es/ && rimraf ./commonjs/ && rimraf ./dist/ && rimraf ./*.d.ts",
     "publish-package": "npm publish",
     "test": "jest"
   },
@@ -110,6 +116,9 @@
       "json",
       "vue",
       "node"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/bootstrap.js"
     ],
     "globals": {
       "ts-jest": {

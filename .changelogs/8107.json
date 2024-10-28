@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue where autofill was not able to be blocked/changed with the `beforeChange` hook when the formulas plugin was enabled",
-  "type": "fixed",
-  "issue": 8107,
-  "breaking": false,
-  "framework": "none"
-}

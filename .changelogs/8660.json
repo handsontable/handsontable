@@ -1,7 +1,0 @@
-{
-  "title": "Changed the default values for `rowsLimit` and `columnsLimit` options of the _CopyPaste_ plugin.",
-  "type": "changed",
-  "issue": 8660,
-  "breaking": true,
-  "framework": "none"
-}

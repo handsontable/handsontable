@@ -1,7 +1,0 @@
-{
-  "title": "Collapsed parents won't be expanded after inserting rows",
-  "type": "fixed",
-  "issue": 8181,
-  "breaking": false,
-  "framework": "none"
-}

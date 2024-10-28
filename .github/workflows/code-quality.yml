@@ -14,17 +14,57 @@ jobs:
     name: SonarCloud
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
         with:
           fetch-depth: 0
+
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@5392662532e48780d7e796d79e55351fcb7ee3c9 # Commits on Sep 16, 2021
+        uses: SonarSource/sonarcloud-github-action@49e6cd3b187936a73b8280d59ffd9da69df63ec9 # https://github.com/SonarSource/sonarcloud-github-action/releases/tag/v2.1.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: SonarQube Quality Gate check
-        uses: sonarsource/sonarqube-quality-gate-action@6a7dcc22310cef7cb83b0dfcf37c225113fb37cf # Commits on Jun 25, 2021
+        uses: SonarSource/sonarqube-quality-gate-action@d304d050d930b02a896b0f85935344f023928496 # https://github.com/SonarSource/sonarqube-quality-gate-action/releases/tag/v1.1.0
         # Force to fail step after specific time
         timeout-minutes: 1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          
+  codeql:
+      name: CodeQL
+      runs-on: 'ubuntu-latest'
+      timeout-minutes: 60
+      permissions:
+        security-events: write
+        packages: read
+        actions: read
+        contents: read
+
+      strategy:
+        fail-fast: false
+        matrix: 
+          language: [javascript-typescript]
+      steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # https://github.com/actions/checkout/releases/tag/v4.1.7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          config-file: .github/codeql/codeql-config.yml 
+          
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+  
+  fossa-scan:
+      name: FOSSA Scan
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # https://github.com/actions/checkout/releases/tag/v4.1.7
+        - uses: fossas/fossa-action@47ef11b1e1e3812e88dae436ccbd2d0cbd1adab0 # https://github.com/fossas/fossa-action/releases/tag/v1.3.3
+          with:
+            api-key: ${{secrets.FOSSA_API_KEY}}

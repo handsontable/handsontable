@@ -1,7 +1,0 @@
-{
-  "title": "Changed the optional HyperFormula dependency from 0.6.2 to ^1.1.0, which introduces breaking changes for the `Formulas` plugin users.",
-  "type": "changed",
-  "issue": 8502,
-  "breaking": true,
-  "framework": "none"
-}
