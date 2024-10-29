@@ -128,6 +128,7 @@ export interface GridSettings extends Events {
   copyable?: boolean;
   copyPaste?: CopyPasteSettings;
   correctFormat?: boolean;
+  isCorrectFormatStrict?: boolean;
   currentColClassName?: string;
   currentHeaderClassName?: string;
   currentRowClassName?: string;

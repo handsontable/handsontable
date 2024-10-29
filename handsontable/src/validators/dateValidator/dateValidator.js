@@ -11,9 +11,8 @@ export const VALIDATOR_TYPE = 'date';
  * @private
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
- * @param {Function} correctFormatFn Function to correct the format of the input date.
  */
-export function dateValidator(value, callback, correctFormatFn = correctFormat) {
+export function dateValidator(value, callback) {
   const dateEditor = getEditorInstance(DATE_EDITOR_TYPE, this.instance);
   let valueToValidate = value;
   let valid = true;
@@ -38,7 +37,7 @@ export function dateValidator(value, callback, correctFormatFn = correctFormat) 
 
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
-      const correctedValue = correctFormatFn(valueToValidate, this.dateFormat);
+      const correctedValue = correctFormat(valueToValidate, this.dateFormat, this.isCorrectFormatStrict);
 
       this.instance.setDataAtCell(this.visualRow, this.visualCol, correctedValue, 'dateValidator');
       valid = true;
