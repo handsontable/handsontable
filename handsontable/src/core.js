@@ -41,6 +41,7 @@ import {
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
+import { getThemeClassName } from './helpers/themes';
 
 let activeGuid = null;
 
@@ -238,6 +239,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   if (isRootInstance(this)) {
     _injectProductInfo(userSettings.licenseKey, rootElement);
+
+    addClass(rootElement, 'ht-wrapper');
+
+    const rootThemeClassName = getThemeClassName(rootElement.className);
+
+    if (rootThemeClassName) {
+      tableMeta.themeName = rootThemeClassName;
+    }
+
+    if (tableMeta.themeName) {
+      addClass(rootElement, tableMeta.themeName);
+    }
+
+    const licenseInfo = rootElement.parentNode?.querySelector('.hot-display-license-info');
+
+    if (licenseInfo) {
+      addClass(licenseInfo, tableMeta.themeName);
+    }
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
@@ -2576,9 +2595,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (instance.view) {
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
-
-        // Reinitialize the Styles Handler if `themeName` changed.
-        instance.view.reinitializeStylesHandler(settings.themeName);
       }
 
       instance.runHooks('afterUpdateSettings', settings);

@@ -1,18 +1,9 @@
-import { addClass } from '../../../../helpers/dom/element';
-
 const CLASSIC_THEME_DEFAULT_HEIGHT = 23;
 
 /**
  * Handles the theme-related style operations.
  */
 export class StylesHandler {
-  /**
-   * The name of the theme.
-   *
-   * @type {string|undefined}
-   */
-  #themeName;
-
   /**
    * The instance's root element.
    *
@@ -66,26 +57,24 @@ export class StylesHandler {
    * @param {object} domBindings - The DOM bindings for the instance.
    */
   constructor(themeName, domBindings) {
-    this.#themeName = themeName;
-    this.#rootElement = domBindings.rootTable.parentElement.parentElement;
+    this.#rootElement = domBindings.rootTable.parentElement;
+    this.#rootComputedStyle = getComputedStyle(this.#rootElement);
     this.#rootDocument = domBindings.rootDocument;
 
-    addClass(this.#rootElement, 'ht-wrapper');
-
-    this.#init(themeName);
-  }
-
-  /**
-   * Reinitializes the instance with a provided theme name.
-   *
-   * @param {string|undefined} themeName The name of the theme.
-   */
-  reinit(themeName) {
-    if (themeName !== this.#themeName) {
-      this.#clearCachedValues();
-
-      this.#init(themeName);
+    if (!themeName) {
+      this.#isClassicTheme = true;
     }
+
+    const stylesForTD = this.#getStylesForTD([
+      'box-sizing',
+    ]);
+
+    this.#computedStyles.td = {
+      ...this.#computedStyles.td,
+      ...{
+        'box-sizing': stylesForTD['box-sizing'],
+      },
+    };
   }
 
   /**
@@ -150,62 +139,6 @@ export class StylesHandler {
   }
 
   /**
-   * Initializes the instance.
-   *
-   * @param {string|undefined} themeName The `themeName` option value.
-   */
-  #init(themeName) {
-    let currentThemeName = themeName;
-    const rootThemeClassName = this.#getThemeClassName(this.#rootElement.className);
-
-    if (rootThemeClassName) {
-      currentThemeName = rootThemeClassName;
-    }
-
-    if (currentThemeName) {
-      addClass(this.#rootElement, currentThemeName);
-
-      const licenseInfo = this.#rootElement.parentNode?.querySelector('.hot-display-license-info');
-
-      if (licenseInfo) {
-        addClass(licenseInfo, currentThemeName);
-      }
-
-    } else {
-      this.#isClassicTheme = true;
-    }
-
-    this.#rootComputedStyle = getComputedStyle(this.#rootElement);
-
-    const stylesForTD = this.#getStylesForTD([
-      'box-sizing',
-    ]);
-
-    this.#computedStyles.td = {
-      ...this.#computedStyles.td,
-      ...{
-        'box-sizing': stylesForTD['box-sizing'],
-      },
-    };
-  }
-
-  /**
-   * Retrieve the theme class name from the provided class name string.
-   *
-   * @param {string} className Class name string.
-   * @returns {string}
-   */
-  #getThemeClassName(className) {
-    if (!className || typeof className !== 'string') {
-      return false;
-    }
-
-    const [match] = className.match(/ht-theme-[a-zA-Z0-9_-]+/) || [];
-
-    return match;
-  }
-
-  /**
    * Retrieves and processes the computed styles for a `td` element.
    *
    * This method creates a temporary table structure, appends it to the root element,
@@ -255,14 +188,5 @@ export class StylesHandler {
     const parsedValue = parseInt(this.#rootComputedStyle.getPropertyValue(property), 10);
 
     return Number.isNaN(parsedValue) ? null : parsedValue;
-  }
-
-  /**
-   * Clears the cached values.
-   */
-  #clearCachedValues() {
-    this.#computedStyles = {};
-    this.#cssVars = {};
-    this.#isClassicTheme = false;
   }
 }
