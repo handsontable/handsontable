@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added missing typings for language files",
+  "type": "added",
+  "issueOrPR": 11236,
+  "breaking": false,
+  "framework": "none"
+}
