@@ -26,10 +26,10 @@ export default class Clone extends CoreAbstract {
 
     this.cloneSource = clone.source;
     this.cloneOverlay = clone.overlay;
+    this.stylesHandler = clone.stylesHandler;
     this.wtTable = this.cloneOverlay.createTable(this.getTableDao(), facadeGetter, this.domBindings, this.wtSettings);
     this.wtViewport = clone.viewport;
     this.selectionManager = clone.selectionManager;
-    this.stylesHandler = clone.stylesHandler;
     this.wtEvent = new Event(
       facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable,
       this.selectionManager, clone.event

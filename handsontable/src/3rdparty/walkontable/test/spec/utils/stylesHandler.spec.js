@@ -32,18 +32,19 @@ describe('StylesHandler', () => {
   });
 
   describe('isClassicTheme', () => {
-    it('should return true if `themeName` is not provided as a Walkontable option', () => {
+    it('should return true if no theme was previously enabled', () => {
       expect(spec().wotInstance.stylesHandler.isClassicTheme()).toBe(true);
     });
 
-    it('should return false if `themeName` is provided as a Walkontable option', () => {
+    it('should return false if `useTheme` was called with a theme name', () => {
       spec().wotInstance.destroy();
       walkontable({
-        themeName: 'ht-theme-sth',
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
       });
+
+      spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
 
       expect(spec().wotInstance.stylesHandler.isClassicTheme()).toBe(false);
     });
@@ -55,16 +56,21 @@ describe('StylesHandler', () => {
 
       spec().wotInstance.destroy();
       walkontable({
-        themeName: 'ht-theme-sth',
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
       });
 
+      // `getCSSVariableValue` requires a non-classic theme to be enabled.
+      spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
+
       expect(spec().wotInstance.stylesHandler.getCSSVariableValue('cell-vertical-padding')).toBe(10);
     });
 
     it('should return undefined for non-existent CSS variable', () => {
+      // `getCSSVariableValue` requires a non-classic theme to be enabled.
+      spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
+
       expect(spec().wotInstance.stylesHandler.getCSSVariableValue('non-existent-variable')).toBeUndefined();
     });
   });
@@ -89,11 +95,12 @@ describe('StylesHandler', () => {
 
       spec().wotInstance.destroy();
       walkontable({
-        themeName: 'ht-theme-sth',
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
       });
+
+      spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
 
       expect(spec().wotInstance.stylesHandler.getDefaultRowHeight()).toBe(31);
     });

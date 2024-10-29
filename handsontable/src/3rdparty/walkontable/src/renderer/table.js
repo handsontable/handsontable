@@ -158,10 +158,11 @@ export default class TableRenderer {
    */
   activeOverlayName;
 
-  constructor(rootNode, { cellRenderer } = {}) {
+  constructor(rootNode, { cellRenderer, stylesHandler } = {}) {
     this.rootNode = rootNode;
     this.rootDocument = this.rootNode.ownerDocument;
     this.cellRenderer = cellRenderer;
+    this.stylesHandler = stylesHandler;
   }
 
   /**
@@ -302,7 +303,7 @@ export default class TableRenderer {
       if (TR.firstChild) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
         const rowHeight = rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
-        const isBorderBoxSizing = rowUtils.dataAccessObject.stylesHandler.areCellsBorderBox();
+        const isBorderBoxSizing = this.stylesHandler.areCellsBorderBox();
         const borderCompensation = isBorderBoxSizing ? 0 : 1;
 
         if (rowHeight) {

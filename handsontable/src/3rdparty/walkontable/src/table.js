@@ -130,6 +130,7 @@ class Table {
       rowUtils: this.rowUtils,
       columnUtils: this.columnUtils,
       cellRenderer: this.wtSettings.getSettingPure('cellRenderer'),
+      stylesHandler: this.dataAccessObject.stylesHandler,
     });
   }
 

@@ -41,7 +41,7 @@ export class StylesHandler {
    *
    * @type {boolean}
    */
-  #isClassicTheme = false;
+  #isClassicTheme = true;
 
   /**
    * An object to store CSS variable values.
@@ -84,9 +84,13 @@ export class StylesHandler {
    * Retrieves the value of a specified CSS variable.
    *
    * @param {string} variableName - The name of the CSS variable to retrieve.
-   * @returns {number|undefined} The value of the specified CSS variable, or `undefined` if not found.
+   * @returns {number|null} The value of the specified CSS variable, or `undefined` if not found.
    */
   getCSSVariableValue(variableName) {
+    if (this.#isClassicTheme) {
+      return null;
+    }
+
     if (this.#cssVars[`--ht-${variableName}`]) {
       return this.#cssVars[`--ht-${variableName}`];
     }
@@ -135,10 +139,18 @@ export class StylesHandler {
   /**
    * Applies the specified theme to the instance.
    *
-   * @param {string|undefined} themeName - The name of the theme to apply.
+   * @param {string} [themeName] - The name of the theme to apply.
    */
   useTheme(themeName) {
-    if (themeName !== this.#themeName) {
+    if (!themeName) {
+      this.#cacheStylesheetValues();
+
+      return;
+    }
+
+    if (themeName && themeName !== this.#themeName) {
+      this.#isClassicTheme = false;
+
       if (this.#themeName) {
         this.#clearCachedValues();
       }
@@ -245,6 +257,10 @@ export class StylesHandler {
    * @returns {number|null} The parsed value of the CSS property.
    */
   #getParsedCSSValue(property) {
+    if (this.#isClassicTheme) {
+      return null;
+    }
+
     const parsedValue = parseInt(this.#rootComputedStyle.getPropertyValue(property), 10);
 
     return Number.isNaN(parsedValue) ? null : parsedValue;
@@ -256,6 +272,6 @@ export class StylesHandler {
   #clearCachedValues() {
     this.#computedStyles = {};
     this.#cssVars = {};
-    this.#isClassicTheme = false;
+    this.#isClassicTheme = true;
   }
 }
