@@ -100,10 +100,10 @@ dateFormat: 'D/M/YY',
 
 // default behavior
 // date entered as `01/02/2023` will be formatted as `1/2/20` which is incorrect
-isCorrectFormatStrict={false}
+isCorrectFormatStrict: false,
 
 // date entered as `01/02/2023` will be formatted as `1/2/23` which is correct
-isCorrectFormatStrict={true}
+isCorrectFormatStrict: true,
 ```
 
 ```jsx
