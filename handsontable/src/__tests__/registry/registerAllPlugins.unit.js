@@ -34,6 +34,7 @@ describe('`registerAllPlugins`', () => {
       'ManualColumnResize',
       'ManualRowMove',
       'MergeCells',
+      'StretchColumns',
       'MultipleSelectionHandles',
       'MultiColumnSorting',
       'Search',

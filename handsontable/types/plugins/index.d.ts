@@ -29,6 +29,7 @@ import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
 import { PersistentState } from './persistentState';
 import { Search } from './search';
+import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
 import { UndoRedo } from './undoRedo';
@@ -65,6 +66,7 @@ export interface Plugins {
   nestedRows: NestedRows;
   persistentState: PersistentState;
   search: Search;
+  stretchColumns: StretchColumns;
   touchScroll: TouchScroll;
   trimRows: TrimRows;
   undoRedo: UndoRedo;
@@ -105,6 +107,7 @@ export {
   NestedRows,
   PersistentState,
   Search,
+  StretchColumns,
   TouchScroll,
   TrimRows,
   UndoRedo
