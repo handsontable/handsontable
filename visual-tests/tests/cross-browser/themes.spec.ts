@@ -26,10 +26,6 @@ urls.forEach((url) => {
   testCrossBrowser(`Colapse nested headers in theme: ${themeName}`, async({ tablePage }) => {
     await tablePage.goto(fullUrl);
 
-    const table = tablePage.locator('#root');
-
-    await table.waitFor();
-
     await collapseNestedColumn('I');
 
     await tablePage.screenshot(
@@ -39,9 +35,6 @@ urls.forEach((url) => {
   testCrossBrowser(`Open context menus in theme: ${themeName}`, async({ tablePage }) => {
 
     await tablePage.goto(fullUrl);
-    const table = tablePage.locator('#root');
-
-    await table.waitFor();
     await openHeaderDropdownMenu(4);
     await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-dropDownMenu') });
 
@@ -53,12 +46,8 @@ urls.forEach((url) => {
   testCrossBrowser(`Sort multpiple columns in theme: ${themeName}`, async({ tablePage }) => {
 
     await tablePage.goto(fullUrl);
-    const table = tablePage.locator('#root');
-
-    await table.waitFor();
     await setColumnSorting('Age', SortDirection.Descending);
     await setAdditionalColumnSorting('Interest', SortDirection.Ascending);
-
     await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-sorting') });
   });
 });
