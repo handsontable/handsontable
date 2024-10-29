@@ -17,7 +17,6 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} fixedColumnsStart Option `fixedColumnsStart`.
  * @property {Option} fixedRowsBottom Option `fixedRowsBottom`.
  * @property {Option} fixedRowsTop Option `fixedRowsTop`.
- * @property {Option} freezeOverlays Option `freezeOverlays`.
  * @property {Option} groups Option `groups`.
  * @property {Option} hideBorderOnMouseDownOver Option `hideBorderOnMouseDownOver`.
  * @property {Option} isRtl Option `isRtl`.
@@ -26,7 +25,6 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} onBeforeHighlightingColumnHeader Option `onBeforeHighlightingColumnHeader`.
  * @property {Option} onBeforeHighlightingRowHeader Option `onBeforeHighlightingRowHeader`.
  * @property {Option} onBeforeRemoveCellClassNames Option `onBeforeRemoveCellClassNames`.
- * @property {Option} onBeforeStretchingColumnWidth Option `onBeforeStretchingColumnWidth`.
  * @property {Option} preventOverflow Option `preventOverflow`.
  * @property {Option} preventWheel Option `preventWheel`.
  * @property {Option} renderAllColumns Option `renderAllColumns`.
@@ -37,7 +35,6 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
  * @property {Option} shouldRenderInlineStartOverlay Option `shouldRenderInlineStartOverlay`.
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
- * @property {Option} stretchH Option `stretchH`.
  * @property {Option} table Option `table`.
  * @property {Option} totalColumns Option `totalColumns`.
  * @property {Option} totalRows Option `totalRows`.
@@ -136,7 +133,6 @@ export default class Settings {
       isDataViewInstance: true,
       // presentation mode
       externalRowCalculator: false,
-      stretchH: 'none', // values: all, last, none
       currentRowClassName: null,
       currentColumnClassName: null,
       preventOverflow() {
@@ -146,7 +142,6 @@ export default class Settings {
 
       // data source
       data: undefined,
-      freezeOverlays: false,
       // Number of renderable columns for the left overlay.
       fixedColumnsStart: 0,
       // Number of renderable rows for the top overlay.
@@ -228,7 +223,6 @@ export default class Settings {
       //
       onBeforeTouchScroll: null,
       onAfterMomentumScroll: null,
-      onBeforeStretchingColumnWidth: width => width,
       onModifyRowHeaderWidth: null,
       onModifyGetCellCoords: null,
       onModifyGetCoordsElement: null,

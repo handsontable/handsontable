@@ -237,7 +237,7 @@ export interface Events {
   modifyColHeader?: (column: number) => void;
   modifyColumnHeaderHeight?: () => void;
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
-  modifyColWidth?: (width: number, column: number) => void;
+  modifyColWidth?: (width: number, column: number, source?: string) => void;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | CellValue;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
@@ -248,7 +248,7 @@ export interface Events {
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
   modifyRowHeaderWidth?: (rowHeaderWidth: number) => void;
-  modifyRowHeight?: (height: number, row: number) => void | number;
+  modifyRowHeight?: (height: number, row: number, source?: string) => void | number;
   modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: OverlayType) => void | number;
   modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyTransformEnd?: (delta: CellCoords) => void;

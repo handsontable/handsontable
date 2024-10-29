@@ -631,28 +631,6 @@ describe('Core.alter', () => {
         expect(countCols()).toBe(4);
       });
 
-      it('should stretch the table after adding another column (if stretching is set to `all`)', () => {
-        spec().$container.css({
-          width: 500,
-        });
-
-        const hot = handsontable({
-          startCols: 5,
-          startRows: 10,
-          stretchH: 'all'
-        });
-
-        expect(Handsontable.dom.outerWidth(hot.view.TBODY)).toBe(500);
-
-        alter('insert_col_start', null, 1);
-
-        expect(Handsontable.dom.outerWidth(hot.view.TBODY)).toBe(500);
-
-        alter('insert_col_start', null, 1);
-
-        expect(Handsontable.dom.outerWidth(hot.view.TBODY)).toBe(500);
-      });
-
       it('should insert column at proper position when there were some column sequence changes', () => {
         const hot = handsontable({
           data: createSpreadsheetData(5, 5)

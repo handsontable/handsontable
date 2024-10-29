@@ -287,7 +287,7 @@ export default class TableRenderer {
     this.rowHeaders.render();
     this.cells.render();
 
-    // After the cells are rendered calculate columns width (or columns stretch width) to prepare proper values
+    // After the cells are rendered calculate columns width to prepare proper values
     // for colGroup renderer (which renders COL elements).
     this.columnUtils.calculateWidths();
     this.colGroup.render();

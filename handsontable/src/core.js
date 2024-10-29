@@ -3820,13 +3820,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getColWidth
    * @param {number} column Visual column index.
+   * @param {string} [source] The source of the call.
    * @returns {number} Column width.
    * @fires Hooks#modifyColWidth
    */
-  this.getColWidth = function(column) {
+  this.getColWidth = function(column, source) {
     let width = instance._getColWidthFromSettings(column);
 
-    width = instance.runHooks('modifyColWidth', width, column);
+    width = instance.runHooks('modifyColWidth', width, column, source);
 
     if (width === undefined) {
       width = DEFAULT_COLUMN_WIDTH;
@@ -3890,13 +3891,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getRowHeight
    * @param {number} row A visual row index.
+   * @param {string} [source] The source of the call.
    * @returns {number|undefined} The height of the specified row, in pixels.
    * @fires Hooks#modifyRowHeight
    */
-  this.getRowHeight = function(row) {
+  this.getRowHeight = function(row, source) {
     let height = instance._getRowHeightFromSettings(row);
 
-    height = instance.runHooks('modifyRowHeight', height, row);
+    height = instance.runHooks('modifyRowHeight', height, row, source);
 
     return height;
   };
