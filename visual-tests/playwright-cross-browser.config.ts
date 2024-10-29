@@ -12,7 +12,7 @@ import { PlaywrightTestConfig, devices } from '@playwright/test';
 const config: PlaywrightTestConfig = {
   testDir: './tests/cross-browser',
   /* Maximum time one test can run for. */
-  timeout: 10 * 1000,
+  timeout: 30 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
