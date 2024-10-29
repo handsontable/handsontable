@@ -41,6 +41,7 @@ import {
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
+import { getThemeClassName } from './helpers/themes';
 
 let activeGuid = null;
 
@@ -1113,6 +1114,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.updateSettings(tableMeta, true);
 
     this.view = new TableView(this);
+
+    const themeName = getThemeClassName(instance.rootElement.className) || tableMeta.themeName;
+    const stylesHandler = instance.view.getStylesHandler();
+
+    // Use the theme defined as a root element class or in the settings (in that order).
+    stylesHandler.useTheme(themeName);
+
+    // Add the theme class name to the license info element.
+    instance.view.addClassNameToLicenseElement(stylesHandler.getThemeName());
 
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
@@ -2577,8 +2587,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
 
-        // Reinitialize the Styles Handler if `themeName` changed.
-        instance.view.reinitializeStylesHandler(settings.themeName);
+        const themeName = getThemeClassName(instance.rootElement.className) || settings.themeName;
+        const stylesHandler = instance.view.getStylesHandler();
+
+        // Use the theme defined as a root element class or in the settings (in that order).
+        stylesHandler.useTheme(themeName);
+
+        // Add the theme class name to the license info element.
+        instance.view.addClassNameToLicenseElement(stylesHandler.getThemeName());
       }
 
       instance.runHooks('afterUpdateSettings', settings);

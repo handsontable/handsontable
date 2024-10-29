@@ -150,7 +150,7 @@ class GhostTable {
       this.injectTable();
     }
 
-    const isBorderBoxSizing = this.hot.view.areCellsBorderBox();
+    const isBorderBoxSizing = this.hot.view.getStylesHandler().areCellsBorderBox();
     const borderCompensation = isBorderBoxSizing ? 0 : 1;
 
     arrayEach(this.rows, (row) => {

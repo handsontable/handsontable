@@ -1,4 +1,4 @@
-import { addClass } from '../../../../helpers/dom/element';
+import { addClass, hasClass } from '../../../../helpers/dom/element';
 
 const CLASSIC_THEME_DEFAULT_HEIGHT = 23;
 
@@ -62,30 +62,13 @@ export class StylesHandler {
   /**
    * Initializes a new instance of the `StylesHandler` class.
    *
-   * @param {string} themeName - The name of the theme.
    * @param {object} domBindings - The DOM bindings for the instance.
    */
-  constructor(themeName, domBindings) {
-    this.#themeName = themeName;
+  constructor(domBindings) {
     this.#rootElement = domBindings.rootTable.parentElement.parentElement;
     this.#rootDocument = domBindings.rootDocument;
 
     addClass(this.#rootElement, 'ht-wrapper');
-
-    this.#init(themeName);
-  }
-
-  /**
-   * Reinitializes the instance with a provided theme name.
-   *
-   * @param {string|undefined} themeName The name of the theme.
-   */
-  reinit(themeName) {
-    if (themeName !== this.#themeName) {
-      this.#clearCachedValues();
-
-      this.#init(themeName);
-    }
   }
 
   /**
@@ -150,32 +133,58 @@ export class StylesHandler {
   }
 
   /**
-   * Initializes the instance.
+   * Applies the specified theme to the instance.
    *
-   * @param {string|undefined} themeName The `themeName` option value.
+   * @param {string|undefined} themeName - The name of the theme to apply.
    */
-  #init(themeName) {
-    let currentThemeName = themeName;
-    const rootThemeClassName = this.#getThemeClassName(this.#rootElement.className);
-
-    if (rootThemeClassName) {
-      currentThemeName = rootThemeClassName;
-    }
-
-    if (currentThemeName) {
-      addClass(this.#rootElement, currentThemeName);
-
-      const licenseInfo = this.#rootElement.parentNode?.querySelector('.hot-display-license-info');
-
-      if (licenseInfo) {
-        addClass(licenseInfo, currentThemeName);
+  useTheme(themeName) {
+    if (themeName !== this.#themeName) {
+      if (this.#themeName) {
+        this.#clearCachedValues();
       }
 
-    } else {
-      this.#isClassicTheme = true;
-    }
+      this.#setThemeName(themeName);
 
-    this.#rootComputedStyle = getComputedStyle(this.#rootElement);
+      this.#applyClassNames();
+
+      this.#cacheStylesheetValues();
+    }
+  }
+
+  /**
+   * Gets the name of the theme.
+   *
+   * @returns {string|undefined}
+   */
+  getThemeName() {
+    return this.#themeName;
+  }
+
+  /**
+   * Sets the name of the theme.
+   *
+   * @param {string} themeName The name of the theme.
+   */
+  #setThemeName(themeName) {
+    this.#themeName = themeName;
+  }
+
+  /**
+   * Applies the necessary class names to the root element.
+   */
+  #applyClassNames() {
+    if (!hasClass(this.#rootElement, this.#themeName)) {
+      addClass(this.#rootElement, this.#themeName);
+    }
+  }
+
+  /**
+   * Caches the computed style values for the root element and `td` element.
+   */
+  #cacheStylesheetValues() {
+    if (!this.isClassicTheme()) {
+      this.#rootComputedStyle = getComputedStyle(this.#rootElement);
+    }
 
     const stylesForTD = this.#getStylesForTD([
       'box-sizing',
@@ -187,22 +196,6 @@ export class StylesHandler {
         'box-sizing': stylesForTD['box-sizing'],
       },
     };
-  }
-
-  /**
-   * Retrieve the theme class name from the provided class name string.
-   *
-   * @param {string} className Class name string.
-   * @returns {string}
-   */
-  #getThemeClassName(className) {
-    if (!className || typeof className !== 'string') {
-      return false;
-    }
-
-    const [match] = className.match(/ht-theme-[a-zA-Z0-9_-]+/) || [];
-
-    return match;
   }
 
   /**

@@ -635,6 +635,15 @@ class TableView {
   }
 
   /**
+   * Retrieves the styles handler from the Walkontable instance.
+   *
+   * @returns {StylesHandler} The styles handler instance.
+   */
+  getStylesHandler() {
+    return this._wt.stylesHandler;
+  }
+
+  /**
    * Returns the default row height.
    *
    * This method retrieves the default row height from the Walkontable styles handler.
@@ -646,43 +655,16 @@ class TableView {
   }
 
   /**
-   * Retrieves the value of a specified CSS variable for the instance's container.
+   * Add a class name to the license information element.
    *
-   * @param {string} variableName - The name of the CSS variable to retrieve.
-   * @returns {string} The value of the specified CSS variable.
+   * @param {string} className The class name to add.
    */
-  getCSSVariableValue(variableName) {
-    return this._wt.stylesHandler.getCSSVariableValue(variableName);
-  }
+  addClassNameToLicenseElement(className) {
+    const licenseInfoElement = this.hot.rootElement.parentNode?.querySelector('.hot-display-license-info');
 
-  /**
-   * Checks if the classic theme is being used.
-   *
-   * This method verifies if the current theme applied to the Handsontable instance
-   * is the classic theme.
-   *
-   * @returns {boolean} `true` if the classic theme is being used, `false` otherwise.
-   */
-  isUsingClassicTheme() {
-    return this._wt.stylesHandler.isClassicTheme();
-  }
-
-  /**
-   * Checks if the cells are using the `border-box` box-sizing model.
-   *
-   * @returns {boolean}
-   */
-  areCellsBorderBox() {
-    return this._wt.stylesHandler.areCellsBorderBox();
-  }
-
-  /**
-   * Reinitialize the Styles Handler.
-   *
-   * @param {string|undefined} themeName The `themeName` option value.
-   */
-  reinitializeStylesHandler(themeName) {
-    this._wt.stylesHandler.reinit(themeName);
+    if (licenseInfoElement) {
+      addClass(licenseInfoElement, className);
+    }
   }
 
   /**
