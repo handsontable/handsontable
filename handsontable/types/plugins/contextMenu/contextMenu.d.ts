@@ -49,6 +49,7 @@ export interface SubmenuItemConfig extends Omit<MenuItemConfig, "key"> {
 
 export interface DetailedSettings {
   callback?: (key: string, selection: Selection[], clickEvent: MouseEvent) => void;
+  uiContainer?: HTMLElement,
   items: PredefinedMenuItemKey[] | MenuConfig;
 }
 
