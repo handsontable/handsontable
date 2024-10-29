@@ -23,6 +23,7 @@
       z-index: 1;
       float: inline-end;
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+      margin-inline-start: var(--ht-gap-size);
 
       &:before {
         @include mixins.pseudo;
