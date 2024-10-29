@@ -41,16 +41,16 @@ const config: PlaywrightTestConfig = {
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
-  webServer: [{
-    command: 'npm run serve-example-legacy',
+  webServer: {
+    command: 'npm run serve-example-all',
     port: 8083,
     reuseExistingServer: !process.env.CI,
   },
-  {
-    command: 'npm run serve-example-themes',
-    port: 8084,
-    reuseExistingServer: !process.env.CI,
-  }],
+  // {
+  //   command: 'npm run serve-example-themes',
+  //   port: 8084,
+  //   reuseExistingServer: !process.env.CI,
+  // }],
 
   /* Configure projects for major browsers */
   projects: [
