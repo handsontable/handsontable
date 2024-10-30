@@ -137,6 +137,8 @@ To deploy the documentation locally at a `[COMMIT_HASH]` commit:
 New documentation is created automatically after the Handsontable is released. The `./scripts/release.mjs`
 takes care to create a Documentation production branch, generate API content from source code, commit, and deploy the Docs image to the production.
 
+The `docs-production-netlify-cli.yml` workflow detects whether the latest version has been released or patched, and then deploys that version to Netlify.
+
 ## Markdown links
 
 When linking to other documentation pages, **avoid using absolute links or relative URLs**.
