@@ -19,7 +19,7 @@ const ExampleComponent = () => {
     <HotTable
       data={data}
       height={320}
-      colWidths={47}
+      colWidths={50}
       rowHeaders={true}
       colHeaders={true}
       contextMenu={true}
