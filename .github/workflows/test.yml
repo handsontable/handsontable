@@ -468,7 +468,7 @@ jobs:
       - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in react-wrapper build
-      - run: tar --exclude='node_modules' -zcf react.tar.gz ./wrappers/react-wrapper
+      - run: tar --exclude='node_modules' -zcf react-wrapper.tar.gz ./wrappers/react-wrapper
 
       - name: Upload the React build artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # https://github.com/actions/upload-artifact/releases/tag/v4.3.1
