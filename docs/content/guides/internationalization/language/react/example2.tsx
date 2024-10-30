@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import {
   registerLanguageDictionary,
   getLanguagesDictionaries,

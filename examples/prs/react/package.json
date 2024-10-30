@@ -15,7 +15,7 @@
     "react-dom": "^18.2.0",
     "@ngneat/falso": "^7.1.1",
     "handsontable": "latest",
-    "@handsontable/react": "latest"
+    "@handsontable/react-wrapper": "latest"
   },
   "devDependencies": {
     "cross-env": "7.0.3",

@@ -84,7 +84,7 @@ To properly use the internationalization feature, you need to load the language 
 1. **ES modules (ESM)**
   ```js
   import Handsontable from 'handsontable/base';
-  import { HotTable } from '@handsontable/react';
+  import { HotTable } from '@handsontable/react-wrapper';
   import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 
   registerLanguageDictionary(deDE);
@@ -145,12 +145,6 @@ Language files were loaded after loading Handsontable.
 :::
 
 ::: only-for react
-
-::: tip
-
-Note that the `language` property is bound to the component separately using `language={language}`, but it could be included in the `settings` property just as well.
-
-:::
 
 ::: example #example2 :react-languages
 
