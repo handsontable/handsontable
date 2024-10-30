@@ -15,7 +15,7 @@ const container = document.querySelector('#example1');
 new Handsontable(container, {
   data,
   height: 320,
-  colWidths: 47,
+  colWidths: 50,
   rowHeaders: true,
   colHeaders: true,
   contextMenu: true,
