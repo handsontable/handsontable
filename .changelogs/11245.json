@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Add `isCorrectFormatStrict` parameter to GridSettings",
+  "type": "added",
+  "issueOrPR": 11245,
+  "breaking": false,
+  "framework": "none"
+}
