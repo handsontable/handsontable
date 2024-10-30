@@ -68,7 +68,7 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 ## Optimizing rendering of the wide/tall merged cells
 
-Sometimes, you might need to render a table with merged cells that are very wide or very tall. In such cases, the standard rendering mode may not be optimal. In these situations, we suggest enabling the virtual DOM for the merged cells.
+When cells span thousands of rows or columns, scrolling may feel slower compared to unmerged cells. To improve performance, consider enabling the dedicated virtualization feature for merged cells, which is disabled by default.
 
 To enable the merged cells virtualization mode, enable the `virtualized` option:
 
