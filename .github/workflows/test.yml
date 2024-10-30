@@ -580,6 +580,9 @@ jobs:
       - name: Run visual cross-browser tests
         run: npm run in visual-tests test:cross-browser
 
+      - name: Run visual tests for themes
+        run: npm run in visual-tests test:themes
+
       - name: Upload the screenshot to Argos CI
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}

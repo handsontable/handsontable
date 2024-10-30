@@ -10,7 +10,6 @@ import {
   SortDirection } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
-const baseUrl = 'http://localhost:8084';
 const urls = [
   '/?theme=main',
   '/?theme=main-dark',
@@ -20,11 +19,10 @@ const urls = [
 
 urls.forEach((url) => {
   const testFileName = path.basename(__filename, '.spec.ts');
-  const fullUrl = `${baseUrl}${url}`;
   const themeName = `-${url.replace('/?theme=', '')}`;
 
   testCrossBrowser(`Colapse nested headers in theme: ${themeName}`, async({ tablePage }) => {
-    await tablePage.goto(fullUrl);
+    await tablePage.goto(url);
 
     await collapseNestedColumn('I');
 
@@ -34,7 +32,7 @@ urls.forEach((url) => {
   });
   testCrossBrowser(`Open context menus in theme: ${themeName}`, async({ tablePage }) => {
 
-    await tablePage.goto(fullUrl);
+    await tablePage.goto(url);
     await openHeaderDropdownMenu(4);
     await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-dropDownMenu') });
 
@@ -45,7 +43,7 @@ urls.forEach((url) => {
   });
   testCrossBrowser(`Sort multpiple columns in theme: ${themeName}`, async({ tablePage }) => {
 
-    await tablePage.goto(fullUrl);
+    await tablePage.goto(url);
     await setColumnSorting('Age', SortDirection.Descending);
     await setAdditionalColumnSorting('Interest', SortDirection.Ascending);
     await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-sorting') });
