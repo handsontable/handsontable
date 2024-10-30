@@ -212,4 +212,17 @@ describe('Core_init', () => {
     $testParentContainer.remove();
     $style.remove();
   });
+
+  describe('theme initialization', () => {
+    it('should enable a theme when a theme class name was added to the root element', () => {
+      spec().$container.addClass('ht-theme-sth');
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(15, 15),
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.view.getStylesHandler().getThemeName()).toBe('ht-theme-sth');
+    });
+  });
 });

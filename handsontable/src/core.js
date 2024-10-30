@@ -2587,8 +2587,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
 
-        const themeName = getThemeClassName(instance.rootElement.className) || settings.themeName;
         const stylesHandler = instance.view.getStylesHandler();
+        const currentThemeName = stylesHandler.getThemeName();
+
+        if (currentThemeName) {
+          stylesHandler.removeClassNames();
+          instance.view.removeClassNameFromLicenseElement(currentThemeName);
+        }
+
+        const themeName = getThemeClassName(instance.rootElement.className) || settings.themeName;
 
         // Use the theme defined as a root element class or in the settings (in that order).
         stylesHandler.useTheme(themeName);

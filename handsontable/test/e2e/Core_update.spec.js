@@ -681,4 +681,43 @@ describe('Core_updateSettings', () => {
     expect($('.ht_master .wtHider')[0].offsetWidth)
       .toEqual($('.ht_master td')[0].offsetWidth);
   });
+
+  describe('theme updating', () => {
+    it('should be able to change the themes with the `updateSettings` method', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(15, 15),
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.view.getStylesHandler().getThemeName()).toBe(undefined);
+
+      hot.updateSettings({
+        themeName: 'ht-theme-sth'
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.view.getStylesHandler().getThemeName()).toBe('ht-theme-sth');
+
+      hot.updateSettings({
+        themeName: undefined
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.view.getStylesHandler().getThemeName()).toBe(undefined);
+
+      spec().$container.addClass('ht-theme-sth');
+
+      hot.updateSettings({});
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.view.getStylesHandler().getThemeName()).toBe('ht-theme-sth');
+
+      spec().$container.removeClass('ht-theme-sth');
+
+      hot.updateSettings({});
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.view.getStylesHandler().getThemeName()).toBe(undefined);
+    });
+  });
 });

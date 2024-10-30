@@ -1,4 +1,4 @@
-import { addClass, hasClass } from '../../../../helpers/dom/element';
+import { addClass, hasClass, removeClass } from '../../../../helpers/dom/element';
 
 const CLASSIC_THEME_DEFAULT_HEIGHT = 23;
 
@@ -145,6 +145,10 @@ export class StylesHandler {
     if (!themeName) {
       this.#cacheStylesheetValues();
 
+      this.#isClassicTheme = true;
+
+      this.#setThemeName(themeName);
+
       return;
     }
 
@@ -170,6 +174,15 @@ export class StylesHandler {
    */
   getThemeName() {
     return this.#themeName;
+  }
+
+  /**
+   * Removes the theme-related class names from the root element.
+   */
+  removeClassNames() {
+    if (hasClass(this.#rootElement, this.#themeName)) {
+      removeClass(this.#rootElement, this.#themeName);
+    }
   }
 
   /**

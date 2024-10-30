@@ -1,5 +1,6 @@
 import {
   addClass,
+  removeClass,
   clearTextSelection,
   empty,
   fastInnerHTML,
@@ -664,6 +665,19 @@ class TableView {
 
     if (licenseInfoElement) {
       addClass(licenseInfoElement, className);
+    }
+  }
+
+  /**
+   * Remove a class name from the license information element.
+   *
+   * @param {string} className The class name to remove.
+   */
+  removeClassNameFromLicenseElement(className) {
+    const licenseInfoElement = this.hot.rootElement.parentNode?.querySelector('.hot-display-license-info');
+
+    if (licenseInfoElement) {
+      removeClass(licenseInfoElement, className);
     }
   }
 

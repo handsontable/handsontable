@@ -105,4 +105,56 @@ describe('StylesHandler', () => {
       expect(spec().wotInstance.stylesHandler.getDefaultRowHeight()).toBe(31);
     });
   });
+
+  describe('areCellsBorderBox', () => {
+    it('should return true if the cells are using the `border-box` box-sizing model', () => {
+      expect(spec().wotInstance.stylesHandler.areCellsBorderBox()).toBe(false);
+
+      const style = $('<style>.handsontable tbody td {box-sizing: border-box;}</style>').appendTo('head');
+
+      // Reset the styles handler with a new faux theme.
+      spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
+
+      expect(spec().wotInstance.stylesHandler.areCellsBorderBox()).toBe(true);
+
+      style.remove();
+    });
+  });
+
+  describe('useTheme', () => {
+    it('should change the theme to the one specified by the provided class name', () => {
+      expect(spec().wotInstance.stylesHandler.isClassicTheme()).toBe(true);
+      expect(spec().wotInstance.stylesHandler.getThemeName()).toBe(undefined);
+
+      spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
+
+      expect(spec().wotInstance.stylesHandler.isClassicTheme()).toBe(false);
+      expect(spec().wotInstance.stylesHandler.getThemeName()).toBe('ht-theme-sth');
+
+      spec().wotInstance.stylesHandler.useTheme(undefined);
+
+      expect(spec().wotInstance.stylesHandler.isClassicTheme()).toBe(true);
+      expect(spec().wotInstance.stylesHandler.getThemeName()).toBe(undefined);
+    });
+
+    it('should add the appropriate class names to the root element when enabling a theme', () => {
+      expect(spec().rootElement.className.includes('ht-theme-sth')).toBe(false);
+
+      spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
+
+      expect(spec().rootElement.className.includes('ht-theme-sth')).toBe(true);
+    });
+  });
+
+  describe('removeClassNames', () => {
+    it('should remove all the theme-related class names from the root element', () => {
+      spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
+
+      expect(spec().rootElement.className.includes('ht-theme-sth')).toBe(true);
+
+      spec().wotInstance.stylesHandler.removeClassNames();
+
+      expect(spec().rootElement.className.includes('ht-theme-sth')).toBe(false);
+    });
+  });
 });
