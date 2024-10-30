@@ -155,6 +155,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     uiContainer: document.body,
   }),
   correctFormat: true,
+  isCorrectFormatStrict: true,
   currentColClassName: 'foo',
   currentHeaderClassName: 'foo',
   currentRowClassName: 'foo',
