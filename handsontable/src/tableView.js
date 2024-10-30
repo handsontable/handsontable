@@ -701,7 +701,6 @@ class TableView {
    */
   initializeWalkontable() {
     const walkontableConfig = {
-      themeName: this.settings.themeName,
       ariaTags: this.settings.ariaTags,
       rtlMode: this.hot.isRtl(),
       externalRowCalculator: this.hot.getPlugin('autoRowSize') &&

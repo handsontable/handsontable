@@ -121,7 +121,7 @@ export class StretchCalculator {
 
     const viewportHeight = view.getViewportHeight();
     const totalRows = this.#hot.countRows();
-    const defaultRowHeight = this.#hot.view.getStylesHandler().getDefaultRowHeight();
+    const defaultRowHeight = view.getStylesHandler().getDefaultRowHeight();
     let totalHeight = 0;
     let hasVerticalScroll = false;
 

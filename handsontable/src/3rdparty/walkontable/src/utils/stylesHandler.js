@@ -84,7 +84,7 @@ export class StylesHandler {
    * Retrieves the value of a specified CSS variable.
    *
    * @param {string} variableName - The name of the CSS variable to retrieve.
-   * @returns {number|null} The value of the specified CSS variable, or `undefined` if not found.
+   * @returns {number|null|undefined} The value of the specified CSS variable, or `undefined` if not found.
    */
   getCSSVariableValue(variableName) {
     if (this.#isClassicTheme) {
@@ -146,8 +146,7 @@ export class StylesHandler {
       this.#cacheStylesheetValues();
 
       this.#isClassicTheme = true;
-
-      this.#setThemeName(themeName);
+      this.#themeName = themeName;
 
       return;
     }
@@ -159,10 +158,8 @@ export class StylesHandler {
         this.#clearCachedValues();
       }
 
-      this.#setThemeName(themeName);
-
+      this.#themeName = themeName;
       this.#applyClassNames();
-
       this.#cacheStylesheetValues();
     }
   }
@@ -183,15 +180,6 @@ export class StylesHandler {
     if (hasClass(this.#rootElement, this.#themeName)) {
       removeClass(this.#rootElement, this.#themeName);
     }
-  }
-
-  /**
-   * Sets the name of the theme.
-   *
-   * @param {string} themeName The name of the theme.
-   */
-  #setThemeName(themeName) {
-    this.#themeName = themeName;
   }
 
   /**

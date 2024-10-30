@@ -157,6 +157,10 @@ export default class TableRenderer {
    * @type {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'}
    */
   activeOverlayName;
+  /**
+   * Styles handler instance.
+   */
+  stylesHandler;
 
   constructor(rootNode, { cellRenderer, stylesHandler } = {}) {
     this.rootNode = rootNode;
