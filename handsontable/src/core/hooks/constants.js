@@ -1467,6 +1467,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#modifyColWidth
    * @param {number} width Current column width.
    * @param {number} column Visual column index.
+   * @param {string} [source] String that identifies source of hook call.
    */
   'modifyColWidth',
 
@@ -1507,6 +1508,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#modifyRowHeight
    * @param {number} height Row height.
    * @param {number} row Visual row index.
+   * @param {string} [source] String that identifies source of hook call.
    */
   'modifyRowHeight',
 
