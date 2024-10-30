@@ -1,4 +1,4 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 import 'handsontable/dist/handsontable.full.min.css';

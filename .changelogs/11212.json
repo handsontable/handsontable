@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added `@handsontable/react-wrapper` to the monorepo.",
+  "type": "added",
+  "issueOrPR": 11212,
+  "breaking": false,
+  "framework": "react"
+}
