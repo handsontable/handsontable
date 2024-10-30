@@ -46,7 +46,7 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getHeaderHeight(level) {
-    let height = this.wtSettings.getSetting('defaultRowHeight');
+    let height = this.dataAccessObject.stylesHandler.getDefaultRowHeight();
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedColumnHeaders[level];
 
     if (oversizedHeight !== undefined) {

@@ -42,7 +42,6 @@ import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
-import { StylesManager } from './stylesManager';
 
 let activeGuid = null;
 
@@ -122,7 +121,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let grid;
   let editorManager;
   let focusManager;
-  let stylesManager;
   let viewportScroller;
   let firstRun = true;
 
@@ -241,24 +239,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   if (isRootInstance(this)) {
     _injectProductInfo(userSettings.licenseKey, rootElement);
-
-    addClass(rootElement, 'ht-wrapper');
-
-    const rootThemeClassName = getThemeClassName(rootElement.className);
-
-    if (rootThemeClassName) {
-      tableMeta.themeName = rootThemeClassName;
-    }
-
-    if (tableMeta.themeName) {
-      addClass(rootElement, tableMeta.themeName);
-    }
-
-    const licenseInfo = rootElement.parentNode?.querySelector('.hot-display-license-info');
-
-    if (licenseInfo) {
-      addClass(licenseInfo, tableMeta.themeName);
-    }
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
@@ -1135,10 +1115,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.view = new TableView(this);
 
+    const themeName = getThemeClassName(instance.rootElement.className) || tableMeta.themeName;
+    const stylesHandler = instance.view.getStylesHandler();
+
+    // Use the theme defined as a root element class or in the settings (in that order).
+    stylesHandler.useTheme(themeName);
+
+    // Add the theme class name to the license info element.
+    instance.view.addClassNameToLicenseElement(stylesHandler.getThemeName());
+
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
+
     viewportScroller = createViewportScroller(instance);
+
     focusManager = new FocusManager(instance);
-    stylesManager = new StylesManager(instance);
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
@@ -2596,6 +2586,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (instance.view) {
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
+
+        const stylesHandler = instance.view.getStylesHandler();
+        const currentThemeName = stylesHandler.getThemeName();
+
+        if (currentThemeName) {
+          stylesHandler.removeClassNames();
+          instance.view.removeClassNameFromLicenseElement(currentThemeName);
+        }
+
+        const themeName = getThemeClassName(instance.rootElement.className) || settings.themeName;
+
+        // Use the theme defined as a root element class or in the settings (in that order).
+        stylesHandler.useTheme(themeName);
+
+        // Add the theme class name to the license info element.
+        instance.view.addClassNameToLicenseElement(stylesHandler.getThemeName());
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -5098,18 +5104,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getFocusManager = function() {
     return focusManager;
-  };
-
-  /**
-   * Return the Styles Manager responsible for managing css variables.
-   *
-   * @memberof Core#
-   * @since 14.0.0
-   * @function getStylesManager
-   * @returns {StylesManager}
-   */
-  this.getStylesManager = function() {
-    return stylesManager;
   };
 
   getPluginsNames().forEach((pluginName) => {
