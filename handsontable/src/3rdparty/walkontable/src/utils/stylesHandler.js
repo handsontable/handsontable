@@ -67,8 +67,6 @@ export class StylesHandler {
   constructor(domBindings) {
     this.#rootElement = domBindings.rootTable.parentElement.parentElement;
     this.#rootDocument = domBindings.rootDocument;
-
-    addClass(this.#rootElement, 'ht-wrapper');
   }
 
   /**

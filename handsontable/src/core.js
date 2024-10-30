@@ -239,6 +239,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   if (isRootInstance(this)) {
     _injectProductInfo(userSettings.licenseKey, rootElement);
+
+    addClass(rootElement, 'ht-wrapper');
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
