@@ -10,7 +10,7 @@ const stackblitz = (id, html, js, css, docsVersion, preset, lang) => {
 
   const addReactDependencies = preset.includes('react')
     // eslint-disable-next-line max-len
-    ? ', "@handsontable/react": "latest", "react": "latest", "react-dom": "latest", "redux": "latest", "react-redux": "latest", "react-colorful": "latest", "react-star-rating-component": "latest", "@types/react": "latest", "@types/react-dom": "latest"'
+    ? ', "@handsontable/react-wrapper": "latest", "react": "latest", "react-dom": "latest", "redux": "latest", "react-redux": "latest", "react-colorful": "latest", "react-star-rating-component": "latest", "@types/react": "latest", "@types/react-dom": "latest"'
     : '';
 
   const getTemplate = () => {
