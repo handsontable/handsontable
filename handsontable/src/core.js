@@ -1117,7 +1117,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.view = new TableView(this);
 
-    const themeName = getThemeClassName(instance.rootElement.className) || tableMeta.themeName;
+    const themeName = tableMeta.themeName || getThemeClassName(instance.rootElement.className);
     const stylesHandler = instance.view.getStylesHandler();
 
     // Use the theme defined as a root element class or in the settings (in that order).
@@ -2591,13 +2591,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         const stylesHandler = instance.view.getStylesHandler();
         const currentThemeName = stylesHandler.getThemeName();
+        const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
 
-        if (currentThemeName) {
+        if (currentThemeName && themeNameOptionExists) {
           stylesHandler.removeClassNames();
           instance.view.removeClassNameFromLicenseElement(currentThemeName);
         }
 
-        const themeName = getThemeClassName(instance.rootElement.className) || settings.themeName;
+        const themeName =
+          (themeNameOptionExists && settings.themeName) ||
+          getThemeClassName(instance.rootElement.className);
 
         // Use the theme defined as a root element class or in the settings (in that order).
         stylesHandler.useTheme(themeName);
