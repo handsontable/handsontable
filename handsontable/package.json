@@ -204,6 +204,13 @@
         }
       },
       {
+        "./common": {
+          "types": "./common.d.ts",
+          "import": "./common.mjs",
+          "require": "./common.js"
+        }
+      },
+      {
         "./languages/all": {
           "import": "./languages/index.mjs",
           "require": "./languages/all.js"
