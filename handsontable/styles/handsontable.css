@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 29/10/2024 15:05:14)
+ * Release date: 17/10/2024 (built at 31/10/2024 14:39:13)
  */
 .handsontable {
   position: relative;
@@ -617,6 +617,9 @@ tr.ht__row_odd td {
 .handsontable .htCheckboxRendererInput:disabled:after {
   color: var(--ht-checkbox-disabled-icon-color);
 }
+.handsontable .htCheckboxRendererInput:indeterminate::before {
+  background-color: red;
+}
 .handsontable .htCheckboxRendererInput.noValue {
   opacity: 0.5;
 }
@@ -1073,8 +1076,9 @@ tr.ht__row_odd td {
   display: inline-flex;
   margin: 0;
   padding: var(--ht-gap-size) calc(2 * var(--ht-gap-size));
+  padding-bottom: 0;
   align-items: center;
-  gap: calc(2 * var(--ht-gap-size));
+  gap: var(--ht-gap-size);
   cursor: pointer;
 }
 .handsontable .htUIRadio:first-child {
@@ -1367,6 +1371,9 @@ tr.ht__row_odd td {
 .handsontable .changeType:hover:before {
   color: var(--ht-icon-button-hover-icon-color);
 }
+.handsontable .ht__active_highlight .changeType {
+  background-color: var(--ht-icon-active-button-background-color);
+}
 .handsontable .ht__active_highlight .changeType:before {
   color: var(--ht-icon-active-button-icon-color);
 }
@@ -1466,7 +1473,7 @@ tr.ht__row_odd td {
   display: block;
   position: absolute;
   top: 50%;
-  right: calc(4 * var(--ht-gap-size));
+  right: calc(var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2);
   transform: translateY(-50%);
 }
 .handsontable.htDropdownMenu table tbody tr td.htSeparator, .handsontable.htContextMenu table tbody tr td.htSeparator, .handsontable.htFiltersConditionsMenu table tbody tr td.htSeparator {
@@ -1502,7 +1509,7 @@ tr.ht__row_odd td {
   display: block;
   position: absolute;
   top: 50%;
-  right: calc(4 * var(--ht-gap-size));
+  right: calc(var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2);
   color: var(--ht-accent-color);
   transform: translateY(-50%);
 }
@@ -1569,7 +1576,7 @@ tr.ht__row_odd td {
   display: none;
 }
 .handsontable .htFiltersMenuCondition {
-  padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
+  padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;
   padding-bottom: 0 !important;
 }
 .handsontable .htFiltersMenuCondition .border {
@@ -1579,11 +1586,14 @@ tr.ht__row_odd td {
   margin-top: calc(var(--ht-gap-size, 2px) * 2);
 }
 .handsontable .htFiltersMenuValue {
-  padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
+  padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;
   padding-bottom: 0 !important;
   border-bottom: 1px solid var(--ht-border-color) !important;
 }
-.handsontable .htFiltersMenuOperators,
+.handsontable .htFiltersMenuOperators {
+  padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
+  padding-bottom: 0 !important;
+}
 .handsontable .htUISelectionControls {
   padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
   padding-bottom: var(--ht-gap-size, 2px) !important;
@@ -1696,9 +1706,9 @@ tr.ht__row_odd td {
   position: relative;
 }
 .handsontable .columnSorting.sortAction {
-  padding-inline-end: var(--ht-icon-size);
-  min-width: calc(var(--ht-icon-size) + 8px);
-  max-width: calc(100% - var(--ht-icon-size) * 2 - 4px);
+  padding-inline-end: var(--ht-icon-size, 16px);
+  min-width: calc(var(--ht-icon-size, 16px) + 8px);
+  max-width: calc(100% - var(--ht-icon-size, 16px) * 2 - 4px);
 }
 .handsontable .columnSorting.sortAction:hover {
   text-decoration: none;
@@ -1707,7 +1717,7 @@ tr.ht__row_odd td {
 .handsontable .columnSorting.sortAction:before {
   content: "";
   display: block;
-  width: var(--ht-icon-size);
+  width: var(--ht-icon-size, 16px);
   position: absolute;
   top: 50%;
   right: 2px;

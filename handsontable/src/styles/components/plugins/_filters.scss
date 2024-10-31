@@ -39,7 +39,7 @@
 
     // Component filter by conditional
     .htFiltersMenuCondition {
-      padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
+      padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;
       padding-bottom: 0 !important;
 
       .border {
@@ -52,12 +52,16 @@
     }
 
     .htFiltersMenuValue {
-      padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
+      padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;
       padding-bottom: 0 !important;
       border-bottom: 1px solid var(--ht-border-color) !important;
     }
 
-    .htFiltersMenuOperators,
+    .htFiltersMenuOperators {
+      padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
+      padding-bottom: 0 !important;
+    }
+
     .htUISelectionControls {
       padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
       padding-bottom: var(--ht-gap-size, 2px) !important;

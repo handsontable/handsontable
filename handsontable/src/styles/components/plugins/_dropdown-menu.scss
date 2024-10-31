@@ -46,6 +46,8 @@
 
     .ht__active_highlight {
       .changeType {
+        background-color: var(--ht-icon-active-button-background-color);
+
         &:before {
           color: var(--ht-icon-active-button-icon-color);
         }
@@ -179,7 +181,9 @@
               @include mixins.pseudo;
               position: absolute;
               top: 50%;
-              right: calc(4 * var(--ht-gap-size));
+              right: calc(
+                var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2
+              );
               transform: translateY(-50%);
             }
           }
@@ -222,7 +226,9 @@
               @include mixins.pseudo;
               position: absolute;
               top: 50%;
-              right: calc(4 * var(--ht-gap-size));
+              right: calc(
+                var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2
+              );
               color: var(--ht-accent-color);
               transform: translateY(-50%);
             }

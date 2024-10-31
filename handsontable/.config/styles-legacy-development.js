@@ -2,6 +2,7 @@ const path = require('path');
 const configFactory = require('./base');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
+const { getClosest } = require('./helper/path');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -14,7 +15,8 @@ module.exports.create = function create(envArgs) {
         './src/styles/legacy/handsontable.css',
       ],
       'handsontable.full': [
-        './src/styles/legacy/handsontable.full.css',
+        './src/styles/legacy/handsontable.css',
+        `${getClosest('node_modules/@handsontable/pikaday/')}css/pikaday.css`
       ]
     };
 

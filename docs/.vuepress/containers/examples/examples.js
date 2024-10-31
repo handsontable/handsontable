@@ -109,7 +109,7 @@ module.exports = function(docsVersion, base) {
         const htmlToken = htmlPos ? tokens[htmlIndex] : undefined;
         const htmlContent = htmlToken
           ? htmlToken.content
-          : `<div id="${id}" class="hot ${klass}"></div>`;
+          : `<div id="${id}" class="hot ${klass} ht-theme-main-dark-auto"></div>`;
         const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}" >${htmlContent}</div>`;
 
         const cssPos = args.match(/--css (\d*)/)?.[1];

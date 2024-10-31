@@ -10,8 +10,9 @@
       display: inline-flex;
       margin: 0;
       padding: var(--ht-gap-size) calc(2 * var(--ht-gap-size));
+      padding-bottom: 0;
       align-items: center;
-      gap: calc(2 * var(--ht-gap-size));
+      gap: var(--ht-gap-size);
       cursor: pointer;
 
       &:first-child {

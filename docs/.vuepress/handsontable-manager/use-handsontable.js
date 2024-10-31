@@ -65,7 +65,15 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
 
       _document.head.appendChild(script);
 
-      if (cssUrl) {
+      if(Array.isArray(cssUrl)) {
+        cssUrl.forEach((css, index) => {
+          _document.head.insertAdjacentHTML(
+            'beforeend',
+            `<link type="text/css" data-hot-version="${version}" rel="stylesheet" id="css-${id}-${index}" href="${css}"/>`
+          );
+        })
+      }
+      else if (cssUrl) {
         _document.head.insertAdjacentHTML(
           'beforeend',
           `<link type="text/css" data-hot-version="${version}" rel="stylesheet" id="css-${id}" href="${cssUrl}"/>`

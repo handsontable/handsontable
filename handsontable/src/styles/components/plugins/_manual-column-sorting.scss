@@ -8,9 +8,9 @@
       position: relative;
 
       &.sortAction {
-        padding-inline-end: var(--ht-icon-size);
-        min-width: calc(var(--ht-icon-size) + 8px);
-        max-width: calc(100% - calc(var(--ht-icon-size) * 2) - 4px);
+        padding-inline-end: var(--ht-icon-size, 16px);
+        min-width: calc(var(--ht-icon-size, 16px) + 8px);
+        max-width: calc(100% - calc(var(--ht-icon-size, 16px) * 2) - 4px);
 
         &:hover {
           text-decoration: none;
@@ -19,7 +19,7 @@
 
         &:before {
           @include mixins.pseudo;
-          width: var(--ht-icon-size);
+          width: var(--ht-icon-size, 16px);
           position: absolute;
           top: 50%;
           right: 2px;

@@ -183,6 +183,11 @@ module.exports = {
           d.documentElement.setAttribute('data-theme', 'dark');
         }
 
+        if (preferredScheme === 'light') {
+          d.documentElement.classList.add('theme-light');
+          d.documentElement.setAttribute('data-theme', 'light');
+        }
+
         w.SELECTED_COLOR_SCHEME = preferredScheme;
       }(window, document));
     `,
