@@ -301,6 +301,7 @@ export class Menu {
       disableVisualSelection: 'area',
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
+      themeName: this.hot.getCurrentThemeName(),
       beforeOnCellMouseOver: (event, coords) => {
         this.#navigator.setCurrentPage(coords.row);
       },
@@ -366,8 +367,6 @@ export class Menu {
     this.hotMenu = new this.hot.constructor(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
     this.hotMenu.init();
-    // Use the same theme the "parent" table is using.
-    this.hotMenu.view.useTheme(this.hot.view.getCurrentThemeName());
 
     this.#navigator = createMenuNavigator(this.hotMenu);
     this.#shortcutsCtrl = createKeyboardShortcutsCtrl(this);

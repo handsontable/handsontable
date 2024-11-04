@@ -682,24 +682,6 @@ class TableView {
   }
 
   /**
-   * Use the theme specified by the provided name.
-   *
-   * @param {string|undefined} themeName The name of the theme to use.
-   */
-  useTheme(themeName) {
-    this._wt.stylesHandler.useTheme(themeName);
-  }
-
-  /**
-   * Gets the name of the currently used theme.
-   *
-   * @returns {string} The name of the currently used theme.
-   */
-  getCurrentThemeName() {
-    return this._wt.stylesHandler.getThemeName();
-  }
-
-  /**
    * Checks if at least one cell than belongs to the main table is not covered by the top, left or
    * bottom overlay.
    *

@@ -24,7 +24,7 @@ describe('Theme handling', () => {
   });
 
   it('should have the same theme as the parent Handsontable instance (if originally passed as a config option)', async() => {
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'handsontable',
@@ -42,13 +42,13 @@ describe('Theme handling', () => {
 
     await sleep(50);
 
-    expect($(hot.getActiveEditor().htEditor.rootElement).hasClass('ht-theme-sth')).toBe(true);
-    expect(hot.getActiveEditor().htEditor.view.getCurrentThemeName()).toEqual('ht-theme-sth');
+    expect($(getActiveEditor().htEditor.rootElement).hasClass('ht-theme-sth')).toBe(true);
+    expect(getActiveEditor().htEditor.getCurrentThemeName()).toBe('ht-theme-sth');
   });
 
   it('should have the same theme as the parent Handsontable instance (if originally passed as a container class)', async() => {
     spec().$container.addClass('ht-theme-sth-else');
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'handsontable',
@@ -65,7 +65,7 @@ describe('Theme handling', () => {
 
     await sleep(50);
 
-    expect($(hot.getActiveEditor().htEditor.rootElement).hasClass('ht-theme-sth-else')).toBe(true);
-    expect(hot.getActiveEditor().htEditor.view.getCurrentThemeName()).toEqual('ht-theme-sth-else');
+    expect($(getActiveEditor().htEditor.rootElement).hasClass('ht-theme-sth-else')).toBe(true);
+    expect(getActiveEditor().htEditor.getCurrentThemeName()).toBe('ht-theme-sth-else');
   });
 });

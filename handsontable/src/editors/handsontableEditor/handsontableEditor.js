@@ -36,8 +36,6 @@ export class HandsontableEditor extends TextEditor {
     // Constructs and initializes a new Handsontable instance
     this.htEditor = new this.hot.constructor(this.htContainer, this.htOptions);
     this.htEditor.init();
-    // Use the same theme the "parent" table is using.
-    this.htEditor.view.useTheme(this.hot.view.getCurrentThemeName());
     this.htEditor.rootElement.style.display = '';
 
     if (this.cellProperties.strict) {
@@ -95,6 +93,7 @@ export class HandsontableEditor extends TextEditor {
       autoWrapCol: false,
       autoWrapRow: false,
       ariaTags: false,
+      themeName: this.hot.getCurrentThemeName(),
       afterOnCellMouseDown(_, coords) {
         const sourceValue = this.getSourceData(coords.row, coords.col);
 
