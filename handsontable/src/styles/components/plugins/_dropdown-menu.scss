@@ -13,12 +13,12 @@
       width: var(--ht-icon-size);
       height: var(--ht-icon-size);
       border-radius: var(--ht-icon-button-border-radius);
+      box-shadow: 0 0 0 1px var(--ht-icon-button-border-color);
       border: none;
       color: inherit;
       padding: 0;
       margin: 0;
       background-color: var(--ht-icon-button-background-color);
-      transition: var(--ht-table-transition) all ease-in-out;
       order: 1;
       z-index: 1;
       float: inline-end;
@@ -34,7 +34,6 @@
       }
 
       &:hover {
-        border: none;
         cursor: pointer;
         background-color: var(--ht-icon-button-hover-background-color);
 

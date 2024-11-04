@@ -42,15 +42,15 @@ const getPackageUrls = (packageName, version, fileSelection) => {
   const urlSet = subDirs[packageName];
 
   if (version === 'next' && isBrowser) {
-    if(Array.isArray(urlSet[fileSelection])) {
-      return urlSet[fileSelection].map(file => (`/docs/${packageName}/${file}`))
+    if (Array.isArray(urlSet[fileSelection])) {
+      return urlSet[fileSelection].map(file => (`/docs/${packageName}/${file}`));
     }
 
-    if(urlSet[fileSelection]) {
-      return `/docs/${packageName}/${urlSet[fileSelection]}`
-    } 
-      
-    return `/docs/${packageName}/${fileSelection}`
+    if (urlSet[fileSelection]) {
+      return `/docs/${packageName}/${urlSet[fileSelection]}`;
+    }
+
+    return `/docs/${packageName}/${fileSelection}`;
   }
 
   const mappedVersion = formatVersion(version);
