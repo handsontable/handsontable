@@ -110,7 +110,7 @@ module.exports = function(docsVersion, base) {
         const htmlContent = htmlToken
           ? htmlToken.content
           : `<div id="${id}" class="hot ${klass} ht-theme-main-dark-auto"></div>`;
-        const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}" >${htmlContent}</div>`;
+        const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}" class="ht-theme-main-dark-auto">${htmlContent}</div>`;
 
         const cssPos = args.match(/--css (\d*)/)?.[1];
         const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
