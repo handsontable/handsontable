@@ -222,7 +222,7 @@ describe('Core_init', () => {
       });
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.view.getStylesHandler().getThemeName()).toBe('ht-theme-sth');
+      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
     });
   });
 });

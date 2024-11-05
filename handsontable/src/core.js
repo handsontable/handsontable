@@ -1117,14 +1117,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.view = new TableView(this);
 
-    const themeName = getThemeClassName(instance.rootElement.className) || tableMeta.themeName;
-    const stylesHandler = instance.view.getStylesHandler();
+    const themeName = tableMeta.themeName || getThemeClassName(instance.rootElement.className);
 
     // Use the theme defined as a root element class or in the settings (in that order).
-    stylesHandler.useTheme(themeName);
+    instance.useTheme(themeName);
 
     // Add the theme class name to the license info element.
-    instance.view.addClassNameToLicenseElement(stylesHandler.getThemeName());
+    instance.view.addClassNameToLicenseElement(instance.getCurrentThemeName());
 
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
@@ -2589,21 +2588,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
 
-        const stylesHandler = instance.view.getStylesHandler();
-        const currentThemeName = stylesHandler.getThemeName();
+        const currentThemeName = instance.getCurrentThemeName();
+        const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
 
-        if (currentThemeName) {
-          stylesHandler.removeClassNames();
+        if (currentThemeName && themeNameOptionExists) {
+          instance.view.getStylesHandler().removeClassNames();
           instance.view.removeClassNameFromLicenseElement(currentThemeName);
         }
 
-        const themeName = getThemeClassName(instance.rootElement.className) || settings.themeName;
+        const themeName =
+          (themeNameOptionExists && settings.themeName) ||
+          getThemeClassName(instance.rootElement.className);
 
         // Use the theme defined as a root element class or in the settings (in that order).
-        stylesHandler.useTheme(themeName);
+        instance.useTheme(themeName);
 
         // Add the theme class name to the license info element.
-        instance.view.addClassNameToLicenseElement(stylesHandler.getThemeName());
+        instance.view.addClassNameToLicenseElement(instance.getCurrentThemeName());
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -4960,6 +4961,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   this.timeouts = [];
+
+  /**
+   * Use the theme specified by the provided name.
+   *
+   * @memberof Core#
+   * @function useTheme
+   * @since 15.0.0
+   * @param {string|undefined} themeName The name of the theme to use.
+   */
+  this.useTheme = (themeName) => {
+    this.view.getStylesHandler().useTheme(themeName);
+  };
+
+  /**
+   * Gets the name of the currently used theme.
+   *
+   * @memberof Core#
+   * @function getCurrentThemeName
+   * @since 15.0.0
+   * @returns {string|undefined} The name of the currently used theme.
+   */
+  this.getCurrentThemeName = () => {
+    return this.view.getStylesHandler().getThemeName();
+  };
 
   /**
    * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called.

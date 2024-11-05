@@ -137,26 +137,26 @@ export class StylesHandler {
   /**
    * Applies the specified theme to the instance.
    *
-   * @param {string} [themeName] - The name of the theme to apply.
+   * @param {string|undefined|boolean} [themeName] - The name of the theme to apply.
    */
   useTheme(themeName) {
     if (!themeName) {
       this.#cacheStylesheetValues();
 
       this.#isClassicTheme = true;
-      this.#themeName = themeName;
+      this.#themeName = themeName || undefined;
 
       return;
     }
 
     if (themeName && themeName !== this.#themeName) {
-      this.#isClassicTheme = false;
-
       if (this.#themeName) {
         this.#clearCachedValues();
       }
 
       this.#themeName = themeName;
+      this.#isClassicTheme = false;
+
       this.#applyClassNames();
       this.#cacheStylesheetValues();
     }

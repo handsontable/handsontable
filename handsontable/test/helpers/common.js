@@ -108,6 +108,7 @@ export const getColWidth = handsontableMethodFactory('getColWidth');
 export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
+export const getCurrentThemeName = handsontableMethodFactory('getCurrentThemeName');
 export const getData = handsontableMethodFactory('getData');
 export const getDataAtCell = handsontableMethodFactory('getDataAtCell');
 export const getDataAtCol = handsontableMethodFactory('getDataAtCol');
@@ -176,6 +177,7 @@ export const undo = handsontableMethodFactory('undo');
 export const unlisten = handsontableMethodFactory('unlisten');
 export const updateData = handsontableMethodFactory('updateData');
 export const updateSettings = handsontableMethodFactory('updateSettings');
+export const useTheme = handsontableMethodFactory('useTheme');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
 
