@@ -12,7 +12,7 @@ module.exports.create = function create(envArgs) {
       'handsontable.min': [
         './src/styles/legacy/handsontable.css',
       ],
-      'handsontable.full': [
+      'handsontable.full.min': [
         './src/styles/legacy/handsontable.css',
         `${getClosest('node_modules/@handsontable/pikaday/')}css/pikaday.css`
       ]
