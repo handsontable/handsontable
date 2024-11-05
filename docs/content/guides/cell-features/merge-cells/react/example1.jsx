@@ -1,4 +1,4 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -19,7 +19,7 @@ const ExampleComponent = () => {
     <HotTable
       data={data}
       height={320}
-      colWidths={47}
+      colWidths={50}
       rowHeaders={true}
       colHeaders={true}
       contextMenu={true}
