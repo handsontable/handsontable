@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 29/10/2024 15:05:14)
+ * Release date: 17/10/2024 (built at 05/11/2024 07:14:11)
  */
 .handsontable {
   position: relative;
@@ -57,7 +57,7 @@
 }
 .handsontable th,
 .handsontable td {
-  height: var(--ht-row-height);
+  height: var(--ht-row-height, 28px);
   padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
   vertical-align: top;
   border-top-width: 0;
@@ -67,7 +67,7 @@
   border-style: solid;
   border-color: var(--ht-border-color);
   font-size: var(--ht-font-size, 14px);
-  line-height: var(--ht-line-height, 18px);
+  line-height: var(--ht-line-height, 20px);
   white-space: pre-wrap;
   overflow: hidden;
   outline: none;
@@ -617,6 +617,9 @@ tr.ht__row_odd td {
 .handsontable .htCheckboxRendererInput:disabled:after {
   color: var(--ht-checkbox-disabled-icon-color);
 }
+.handsontable .htCheckboxRendererInput:indeterminate::before {
+  background-color: red;
+}
 .handsontable .htCheckboxRendererInput.noValue {
   opacity: 0.5;
 }
@@ -1073,8 +1076,9 @@ tr.ht__row_odd td {
   display: inline-flex;
   margin: 0;
   padding: var(--ht-gap-size) calc(2 * var(--ht-gap-size));
+  padding-bottom: 0;
   align-items: center;
-  gap: calc(2 * var(--ht-gap-size));
+  gap: var(--ht-gap-size);
   cursor: pointer;
 }
 .handsontable .htUIRadio:first-child {
@@ -1339,12 +1343,12 @@ tr.ht__row_odd td {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   border-radius: var(--ht-icon-button-border-radius);
+  box-shadow: 0 0 0 1px var(--ht-icon-button-border-color);
   border: none;
   color: inherit;
   padding: 0;
   margin: 0;
   background-color: var(--ht-icon-button-background-color);
-  transition: var(--ht-table-transition) all ease-in-out;
   order: 1;
   z-index: 1;
   float: inline-end;
@@ -1360,12 +1364,14 @@ tr.ht__row_odd td {
   color: var(--ht-icon-button-icon-color);
 }
 .handsontable .changeType:hover {
-  border: none;
   cursor: pointer;
   background-color: var(--ht-icon-button-hover-background-color);
 }
 .handsontable .changeType:hover:before {
   color: var(--ht-icon-button-hover-icon-color);
+}
+.handsontable .ht__active_highlight .changeType {
+  background-color: var(--ht-icon-active-button-background-color);
 }
 .handsontable .ht__active_highlight .changeType:before {
   color: var(--ht-icon-active-button-icon-color);
@@ -1466,7 +1472,7 @@ tr.ht__row_odd td {
   display: block;
   position: absolute;
   top: 50%;
-  right: calc(4 * var(--ht-gap-size));
+  right: calc(var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2);
   transform: translateY(-50%);
 }
 .handsontable.htDropdownMenu table tbody tr td.htSeparator, .handsontable.htContextMenu table tbody tr td.htSeparator, .handsontable.htFiltersConditionsMenu table tbody tr td.htSeparator {
@@ -1502,7 +1508,7 @@ tr.ht__row_odd td {
   display: block;
   position: absolute;
   top: 50%;
-  right: calc(4 * var(--ht-gap-size));
+  right: calc(var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2);
   color: var(--ht-accent-color);
   transform: translateY(-50%);
 }
@@ -1569,7 +1575,7 @@ tr.ht__row_odd td {
   display: none;
 }
 .handsontable .htFiltersMenuCondition {
-  padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
+  padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;
   padding-bottom: 0 !important;
 }
 .handsontable .htFiltersMenuCondition .border {
@@ -1579,11 +1585,14 @@ tr.ht__row_odd td {
   margin-top: calc(var(--ht-gap-size, 2px) * 2);
 }
 .handsontable .htFiltersMenuValue {
-  padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
+  padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;
   padding-bottom: 0 !important;
   border-bottom: 1px solid var(--ht-border-color) !important;
 }
-.handsontable .htFiltersMenuOperators,
+.handsontable .htFiltersMenuOperators {
+  padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
+  padding-bottom: 0 !important;
+}
 .handsontable .htUISelectionControls {
   padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
   padding-bottom: var(--ht-gap-size, 2px) !important;
@@ -1696,9 +1705,9 @@ tr.ht__row_odd td {
   position: relative;
 }
 .handsontable .columnSorting.sortAction {
-  padding-inline-end: var(--ht-icon-size);
-  min-width: calc(var(--ht-icon-size) + 8px);
-  max-width: calc(100% - var(--ht-icon-size) * 2 - 4px);
+  padding-inline-end: var(--ht-icon-size, 16px);
+  min-width: calc(var(--ht-icon-size, 16px) + 8px);
+  max-width: calc(100% - var(--ht-icon-size, 16px) * 2 - 4px);
 }
 .handsontable .columnSorting.sortAction:hover {
   text-decoration: none;
@@ -1707,7 +1716,7 @@ tr.ht__row_odd td {
 .handsontable .columnSorting.sortAction:before {
   content: "";
   display: block;
-  width: var(--ht-icon-size);
+  width: var(--ht-icon-size, 16px);
   position: absolute;
   top: 50%;
   right: 2px;

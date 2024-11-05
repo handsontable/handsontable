@@ -13,12 +13,12 @@
       width: var(--ht-icon-size);
       height: var(--ht-icon-size);
       border-radius: var(--ht-icon-button-border-radius);
+      box-shadow: 0 0 0 1px var(--ht-icon-button-border-color);
       border: none;
       color: inherit;
       padding: 0;
       margin: 0;
       background-color: var(--ht-icon-button-background-color);
-      transition: var(--ht-table-transition) all ease-in-out;
       order: 1;
       z-index: 1;
       float: inline-end;
@@ -34,7 +34,6 @@
       }
 
       &:hover {
-        border: none;
         cursor: pointer;
         background-color: var(--ht-icon-button-hover-background-color);
 
@@ -46,6 +45,8 @@
 
     .ht__active_highlight {
       .changeType {
+        background-color: var(--ht-icon-active-button-background-color);
+
         &:before {
           color: var(--ht-icon-active-button-icon-color);
         }
@@ -179,7 +180,9 @@
               @include mixins.pseudo;
               position: absolute;
               top: 50%;
-              right: calc(4 * var(--ht-gap-size));
+              right: calc(
+                var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2
+              );
               transform: translateY(-50%);
             }
           }
@@ -222,7 +225,9 @@
               @include mixins.pseudo;
               position: absolute;
               top: 50%;
-              right: calc(4 * var(--ht-gap-size));
+              right: calc(
+                var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2
+              );
               color: var(--ht-accent-color);
               transform: translateY(-50%);
             }

@@ -13,8 +13,7 @@ const gettingStartedItems = [
 ];
 
 const stylingItems = [
-  { path: 'guides/styling/themes/themes' },
-  { path: 'guides/styling/figma/figma' },
+  { path: 'guides/styling/themes/themes' }
 ];
 
 const integrateWithAngularItems = [

@@ -109,6 +109,12 @@
         }
       }
 
+      &:indeterminate {
+        &::before {
+          background-color: red;
+        }
+      }
+
       &.noValue {
         opacity: 0.5;
       }

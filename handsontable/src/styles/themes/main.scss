@@ -6,11 +6,11 @@
   --ht-font-size: 14px;
   --ht-line-height: 20px;
   --ht-font-weight: 400;
-  --ht-letter-spacing: 0px; /* unused variable */
+  --ht-letter-spacing: 0px;
 
   /* Border */
   --ht-border-radius: 4px;
-  --ht-border-width: 1px; /* unused variable */
+  --ht-border-width: 1px;
 
   /* Gap */
   --ht-gap-size: 4px;
@@ -23,7 +23,7 @@
 
   /* Wrapper */
   --ht-wrapper-border-width: 1px;
-  --ht-wrapper-border-radius: 0px;
+  --ht-wrapper-border-radius: 4px;
   --ht-wrapper-border-color: #e7e7e9;
 
   /* Icon sizes */
@@ -35,12 +35,12 @@
   --ht-accent-color: #1a42e8;
   --ht-foreground-color: #222222;
   --ht-placeholder-color: #999999;
-  --ht-read-only-color: #6a6a6a;
+  --ht-read-only-color: #222222;
   --ht-disabled-color: #a3a3a3;
 
   /* Cell border and padding */
-  --ht-cell-vertical-border-width: 1px; /* unused variable */
-  --ht-cell-horizontal-border-width: 1px; /* unused variable */
+  --ht-cell-vertical-border-width: 1px;
+  --ht-cell-horizontal-border-width: 1px;
   --ht-cell-horizontal-padding: 8px;
   --ht-cell-vertical-padding: 4px;
 
@@ -53,11 +53,11 @@
   --ht-cell-editor-background-color: #ffffff;
 
   /* Cell search, error, and conditional formatting colors */
-  --ht-cell-search-background-color: rgba(251, 233, 82, 0.80); /* unused variable */
+  --ht-cell-search-background-color: rgba(251, 233, 82, 0.80);
   --ht-cell-error-background-color: rgba(250, 77, 50, 0.20);
   --ht-cell-success-background-color: rgba(55, 188, 108, 0.20);
-  --ht-cell-warning-background-color: rgba(251, 233, 82, 0.20); /* unused variable */
-  --ht-cell-informational-background-color: rgba(39, 194, 255, 0.20); /* unused variable */
+  --ht-cell-warning-background-color: rgba(251, 233, 82, 0.20);
+  --ht-cell-informational-background-color: rgba(39, 194, 255, 0.20);
 
   /* Selection */
   --ht-cell-selection-border-color: #1a42e8;
@@ -66,7 +66,7 @@
   /* Cell autofill data */
   --ht-cell-autofill-size: 6px;
   --ht-cell-autofill-border-width: 1px;
-  --ht-cell-autofill-border-radius: 0px;
+  --ht-cell-autofill-border-radius: 4px;
   --ht-cell-autofill-background-color: #1a42e8;
   --ht-cell-autofill-border-color: #ffffff;
 
@@ -83,7 +83,7 @@
   --ht-checkbox-disabled-border-color: #e7e7e9;
   --ht-checkbox-disabled-icon-color: rgba(255, 255, 255, 0);
   --ht-checkbox-checked-background-color: #1a42e8;
-  --ht-checkbox-checked-border-color: #1a42e8;
+  --ht-checkbox-checked-border-color: #3f60ec;
   --ht-checkbox-checked-icon-color: #ffffff;
   --ht-checkbox-checked-focus-background-color: #1a42e8;
   --ht-checkbox-checked-focus-border-color: #ffffff;
@@ -91,15 +91,15 @@
   --ht-checkbox-checked-disabled-background-color: #d1d1d5;
   --ht-checkbox-checked-disabled-border-color: #e7e7e9;
   --ht-checkbox-checked-disabled-icon-color: #a3a3a3;
-  --ht-checkbox-indeterminate-background-color: #1a42e8; /* unused variable */
-  --ht-checkbox-indeterminate-border-color: #ffffff; /* unused variable */
-  --ht-checkbox-indeterminate-icon-color: #ffffff; /* unused variable */
-  --ht-checkbox-indeterminate-disabled-background-color: #d1d1d5; /* unused variable */
-  --ht-checkbox-indeterminate-disabled-border-color: #e7e7e9; /* unused variable */
-  --ht-checkbox-indeterminate-disabled-icon-color: #aeaeae; /* unused variable */
-  --ht-checkbox-indeterminate-focus-background-color: #1a42e8; /* unused variable */
-  --ht-checkbox-indeterminate-focus-border-color: #ffffff; /* unused variable */
-  --ht-checkbox-indeterminate-focus-icon-color: #ffffff; /* unused variable */
+  --ht-checkbox-indeterminate-background-color: #1a42e8;
+  --ht-checkbox-indeterminate-border-color: #ffffff;
+  --ht-checkbox-indeterminate-icon-color: #ffffff;
+  --ht-checkbox-indeterminate-disabled-background-color: #d1d1d5;
+  --ht-checkbox-indeterminate-disabled-border-color: #e7e7e9;
+  --ht-checkbox-indeterminate-disabled-icon-color: #aeaeae;
+  --ht-checkbox-indeterminate-focus-background-color: #1a42e8;
+  --ht-checkbox-indeterminate-focus-border-color: #ffffff;
+  --ht-checkbox-indeterminate-focus-icon-color: #ffffff;
 
   /* Header styling */
   --ht-header-active-background-color: #1a42e8;
@@ -115,27 +115,31 @@
   --ht-header-filter-background-color: rgba(55, 188, 108, 0.20);
 
   /* Frozen rows and columns styling */
-  --ht-frozen-shadow-size: 2px; /* unused variable */
-  --ht-frozen-shadow-color: #e5e5e9; /* unused variable */
+  --ht-frozen-shadow-size: 2px;
+  --ht-frozen-shadow-color: #e5e5e9;
 
   /* Odd and even row backgrounds */
   --ht-row-odd-background-color: rgba(34, 34, 34, 0);
   --ht-row-even-background-color: rgba(34, 34, 34, 0);
 
   /* Resize indicator */
-  --ht-resize-indicator-color: rgba(34, 34, 34, 0.60);
+  --ht-resize-indicator-color: rgba(34, 34, 34, 0.40);
 
   /* Icon Buttons */
-  --ht-icon-button-background-color: rgba(255, 255, 255, 0);
-  --ht-icon-button-icon-color: rgba(34, 34, 34, 0.60);
+  --ht-icon-button-background-color: #f7f7f9;
+  --ht-icon-button-icon-color: rgba(34, 34, 34, 0.40);
   --ht-icon-active-button-icon-color: #ffffff;
-  --ht-icon-button-hover-background-color: rgba(34, 34, 34, 0.08);
+  --ht-icon-active-button-background-color: #1a42e8;
+  --ht-icon-button-border-color: #f7f7f9;
+  --ht-icon-button-hover-background-color: #e7e7e8;
   --ht-icon-button-hover-icon-color: rgba(34, 34, 34, 0.40);
-  --ht-icon-button-focus-background-color: rgba(255, 255, 255, 0); /* unused variable */
-  --ht-icon-button-focus-icon-color: #1a42e8; /* unused variable */
+  --ht-icon-active-button-hover-background-color: #3357ea;
+  --ht-icon-active-button-hover-icon-color: #ffffff;
+  --ht-icon-button-focus-background-color: rgba(255, 255, 255, 0);
+  --ht-icon-button-focus-icon-color: #1a42e8;
   --ht-icon-button-border-radius: 2px;
-  --ht-icon-button-disabled-background-color: rgba(153, 153, 153, 0.32); /* unused variable */
-  --ht-icon-button-disabled-icon-color: #a3a3a3; /* unused variable */
+  --ht-icon-button-disabled-background-color: rgba(153, 153, 153, 0.32);
+  --ht-icon-button-disabled-icon-color: #a3a3a3;
 
   /* Collapse Buttons */
   --ht-collapse-button-border-radius: 4px;
@@ -147,9 +151,9 @@
   --ht-collapse-button-open-hover-border-color: #d1d1d5;
   --ht-collapse-button-open-hover-icon-color: #999999;
   --ht-collapse-button-open-hover-icon-active-color: #999999;
-  --ht-collapse-button-open-focus-background-color: #f7f7f9; /* unused variable */
-  --ht-collapse-button-open-focus-border-color: #d1d1d5; /* unused variable */
-  --ht-collapse-button-open-focus-icon-color: #1a42e8; /* unused variable */
+  --ht-collapse-button-open-focus-background-color: #f7f7f9;
+  --ht-collapse-button-open-focus-border-color: #d1d1d5;
+  --ht-collapse-button-open-focus-icon-color: #1a42e8;
   --ht-collapse-button-close-icon-color: #666666;
   --ht-collapse-button-close-background-color: #ebebed;
   --ht-collapse-button-close-border-color: #d1d1d5;
@@ -158,9 +162,9 @@
   --ht-collapse-button-close-hover-border-color: #d1d1d5;
   --ht-collapse-button-close-hover-icon-color: #666666;
   --ht-collapse-button-close-hover-icon-active-color: #666666;
-  --ht-collapse-button-close-focus-background-color: #ebebed; /* unused variable */
-  --ht-collapse-button-close-focus-border-color: #d1d1d5; /* unused variable */
-  --ht-collapse-button-close-focus-icon-color: #1a42e8; /* unused variable */
+  --ht-collapse-button-close-focus-background-color: #ebebed;
+  --ht-collapse-button-close-focus-border-color: #d1d1d5;
+  --ht-collapse-button-close-focus-icon-color: #1a42e8;
 
   /* Buttons */
   --ht-primary-button-background-color: #1a42e8;
@@ -246,14 +250,14 @@
   --ht-menu-border-width: 1px;
   --ht-menu-border-radius: 4px;
   --ht-menu-horizontal-padding: 0px;
-  --ht-menu-vertical-padding: 12px;
+  --ht-menu-vertical-padding: 8px;
   --ht-menu-item-vertical-padding: 4px;
   --ht-menu-item-horizontal-padding: 12px;
   --ht-menu-item-hover-color: rgba(0, 0, 0, 0.05);
   --ht-menu-item-active-color: rgba(0, 0, 0, 0.08);
 
   /* Hidden indicator */
-  --ht-hidden-indicator-color: rgba(34, 34, 34, 0.60);
+  --ht-hidden-indicator-color: rgba(34, 34, 34, 0.40);
 
   /* Scrollbars */
   --ht-scrollbar-thumb-color: #999999;
@@ -268,7 +272,7 @@
   --ht-accent-color: #476af7;
   --ht-foreground-color: #f3f3f3;
   --ht-placeholder-color: #68696c;
-  --ht-read-only-color: #9a9b9e;
+  --ht-read-only-color: #f3f3f3;
   --ht-disabled-color: #68696c;
   --ht-cell-editor-foreground-color: #ffffff;
   --ht-cell-editor-border-color: #476af7;
@@ -291,7 +295,7 @@
   --ht-checkbox-disabled-background-color: #404144;
   --ht-checkbox-disabled-border-color: #313132;
   --ht-checkbox-checked-background-color: #476af7;
-  --ht-checkbox-checked-border-color: #476af7;
+  --ht-checkbox-checked-border-color: #3c59cf;
   --ht-checkbox-checked-icon-color: #f3f3f3;
   --ht-checkbox-checked-focus-background-color: #476af7;
   --ht-checkbox-checked-focus-icon-color: #f3f3f3;
@@ -319,12 +323,16 @@
   --ht-frozen-shadow-color: #48484a;
   --ht-row-odd-background-color: rgba(239, 239, 243, 0);
   --ht-row-even-background-color: rgba(239, 239, 243, 0);
-  --ht-resize-indicator-color: rgba(255, 255, 255, 0.60);
-  --ht-icon-button-background-color: rgba(0, 0, 0, 0);
-  --ht-icon-button-icon-color: rgba(255, 255, 255, 0.60);
+  --ht-resize-indicator-color: rgba(255, 255, 255, 0.40);
+  --ht-icon-button-background-color: #1e1e1f;
+  --ht-icon-button-icon-color: rgba(255, 255, 255, 0.40);
   --ht-icon-active-button-icon-color: #0f0f10;
-  --ht-icon-button-hover-background-color: rgba(255, 255, 255, 0.08);
+  --ht-icon-active-button-background-color: #476af7;
+  --ht-icon-button-border-color: #1e1e1f;
+  --ht-icon-button-hover-background-color: #303031;
   --ht-icon-button-hover-icon-color: rgba(255, 255, 255, 0.40);
+  --ht-icon-active-button-hover-background-color: #5576f8;
+  --ht-icon-active-button-hover-icon-color: #0f0f10;
   --ht-icon-button-focus-background-color: rgba(0, 0, 0, 0);
   --ht-icon-button-focus-icon-color: #476af7;
   --ht-icon-button-disabled-background-color: rgba(104, 105, 108, 0.32);
@@ -400,7 +408,7 @@
   --ht-menu-border-color: #313132;
   --ht-menu-item-hover-color: rgba(239, 239, 243, 0.05);
   --ht-menu-item-active-color: rgba(239, 239, 243, 0.12);
-  --ht-hidden-indicator-color: rgba(255, 255, 255, 0.60);
+  --ht-hidden-indicator-color: rgba(255, 255, 255, 0.40);
   --ht-scrollbar-thumb-color: #68696c;
   --ht-scrollbar-track-color: #19191c;
 }
@@ -409,7 +417,6 @@
 .ht-theme-main-dark,
 .ht-theme-main-dark-auto {
   @include light();
-  @include icons.output();
 }
 
 .ht-theme-main-dark {
@@ -421,4 +428,8 @@
   .ht-theme-main-dark-auto {
     @include dark();
   }
+}
+
+[class*=ht-theme-main] {
+  @include icons.output();
 }

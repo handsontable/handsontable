@@ -33,54 +33,15 @@ Use Handsontable's built-in themes or customize its look by adjusting available 
 
 ## Overview
 
-Handsontable themes manage most visual elements of the design and are simple to customize. By default, two built-in themes are available: `main` and `gemini`. Both themes feature dark and light modes that automatically adjust to your app's preferred color scheme.
+Handsontable themes manage most visual elements of the design and are simple to customize. By default, two built-in themes are available: `main` and `horizon`. Both themes feature dark and light modes that automatically adjust to your app's preferred color scheme.
 
 The themes give you control over grid elements and components, allowing you to customize properties like colors and sizes.
-
-## Themes demo
-
-Below is a demo featuring two built-in themes and a custom theme inspired by Douglas Adams' book The Hitchhiker's Guide to the Galaxy. Use the dropdown above the grid to explore how different grid elements change with each theme.
-
-<div class="theme-examples">
-  <div class="theme-examples-controls">
-    <div class="example-container">
-      <label>
-        <select v-model="$parent.$parent.themeName">
-          <option value="main">Main</option>
-          <option value="gemini">Gemini</option>
-        </select>
-      </label>
-      <label>
-        <select v-model="$parent.$parent.themeVariant">
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
-      </label>
-      <style id="color-box-style"></style>
-      <div class="color-box">
-        <span class="color" style="background: var(--theme-primary);"></span>
-        <span class="color" style="background: var(--theme-secondary);"></span>
-        <span class="color" style="background: var(--theme-accent);"></span>
-      </div>
-    </div>
-  </div>
-
-  <div id="example-main-light-container" class="theme-example" :style="{display: $parent.$parent.themeName === 'main' ? 'block' : 'none'}">
-
-  ::: example-without-tabs #example-main-light
-  @[code](@/content/guides/styling/themes/javascript/example-main.html)
-  @[code](@/content/guides/styling/themes/javascript/example-main.css)
-  @[code](@/content/guides/styling/themes/javascript/example-main.js)
-  :::
-  
-  </div>
-</div>
 
 ## Built-in themes
 
 Handsontable includes two built-in themes. The `main` theme offers a spreadsheet-like interface, perfect for batch-editing tasks and providing users with a familiar experience, similar to other popular spreadsheet software on the market.
 
-The `gemini` theme, on the other hand, is better suited for data display and analysis. It hides the vertical lines between columns, giving it a cleaner and more lightweight feel.
+The `horizon` theme, on the other hand, is better suited for data display and analysis. It hides the vertical lines between columns, giving it a cleaner and more lightweight feel.
 
 ## Light and dark modes
 
@@ -97,7 +58,7 @@ Here's a summary of each available theme, mode, and their corresponding file nam
 | File name                                         | Root CSS class                                                       | Description                                                                                                                                                                        |
 | ----------------------------------------------    | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ht-theme-main.css<br>ht-theme-main.min.css        | ht-theme-main<br>ht-theme-main-dark<br>ht-theme-main-dark-auto       | The main theme resembles spreadsheet software, featuring soft colors primarily from a white and grey palette, with blue accents.                                                   |
-| ht-theme-gemini.css<br>ht-theme-gemini.min.css    | ht-theme-gemini<br>ht-theme-gemini-dark<br>ht-theme-gemini-dark-auto | A sleek and elegant theme designed to feel like an enterprise data grid, optimized for improved data readability in internal applications.                                         |
+| ht-theme-horizon.css<br>ht-theme-horizon.min.css    | ht-theme-horizon<br>ht-theme-horizon-dark<br>ht-theme-horizon-dark-auto | A sleek and elegant theme designed to feel like an enterprise data grid, optimized for improved data readability in internal applications.                                         |
 | handsontable.css<br>handsontable.min.css          | Not required                                                         | The classic theme, available only in light mode. While it will continue to be supported and tested in future Handsontable releases, it is not recommended for use in new projects. |
 
 ## Load CSS files
