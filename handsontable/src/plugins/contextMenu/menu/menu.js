@@ -670,12 +670,9 @@ export class Menu {
     }
 
     if (!container) {
-      const themeClassName = this.hot.getSettings().themeName;
-
       container = doc.createElement('div');
 
       addClass(container, `htMenu ${this.options.className}`);
-      addClass(container, themeClassName);
 
       if (className) {
         addClass(container, className);

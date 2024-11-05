@@ -2,7 +2,8 @@ describe('Core_init', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$parentContainer = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo(this.$parentContainer);
   });
 
   afterEach(function() {
@@ -10,6 +11,8 @@ describe('Core_init', () => {
       destroy();
       this.$container.remove();
     }
+
+    this.$parentContainer.remove();
   });
 
   it('should respect startRows and startCols when no data is provided', () => {
@@ -223,6 +226,18 @@ describe('Core_init', () => {
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
       expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+    });
+
+    it('should enable a theme when a theme class name was added to a parent of the root element', () => {
+      spec().$parentContainer.addClass('ht-theme-sth');
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(15, 15),
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect($(hot.rootElement).hasClass('ht-theme-sth')).toBe(true);
     });
   });
 });

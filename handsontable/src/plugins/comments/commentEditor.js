@@ -55,15 +55,9 @@ class CommentEditor {
    */
   #resizeObserver = new EditorResizeObserver();
 
-  /**
-   * @type {string}
-   */
-  #themeClassName;
-
-  constructor(rootDocument, isRtl, themeClassName) {
+  constructor(rootDocument, isRtl) {
     this.#rootDocument = rootDocument;
     this.#isRtl = isRtl;
-    this.#themeClassName = themeClassName;
     this.#editor = this.createEditor();
     this.#editorStyle = this.#editor.style;
     this.#resizeObserver.setObservedElement(this.getInputElement());
@@ -219,7 +213,6 @@ class CommentEditor {
     this.#container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
     addClass(this.#container, CommentEditor.CLASS_EDITOR_CONTAINER);
-    addClass(this.#container, this.#themeClassName);
 
     this.#rootDocument.body.appendChild(this.#container);
 
@@ -240,6 +233,15 @@ class CommentEditor {
    */
   getInputElement() {
     return this.#editor.querySelector(`.${CommentEditor.CLASS_INPUT}`);
+  }
+
+  /**
+   * Get the editor element.
+   *
+   * @returns {HTMLElement} The editor element.
+   */
+  getEditorElement() {
+    return this.#editor;
   }
 
   /**

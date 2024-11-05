@@ -1117,7 +1117,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.view = new TableView(this);
 
-    const themeName = tableMeta.themeName || getThemeClassName(instance.rootElement.className);
+    const themeName = tableMeta.themeName || getThemeClassName(instance.rootElement);
 
     // Use the theme defined as a root element class or in the settings (in that order).
     instance.useTheme(themeName);
@@ -2598,7 +2598,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         const themeName =
           (themeNameOptionExists && settings.themeName) ||
-          getThemeClassName(instance.rootElement.className);
+          getThemeClassName(instance.rootElement);
 
         // Use the theme defined as a root element class or in the settings (in that order).
         instance.useTheme(themeName);
