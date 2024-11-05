@@ -1,7 +1,8 @@
 import Handsontable from 'handsontable';
 import numbro from 'numbro';
 import deDE from 'numbro/languages/de-DE';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register the languages you need
 numbro.registerLanguage(deDE);

@@ -2,7 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // constants.ts
 export const data = [

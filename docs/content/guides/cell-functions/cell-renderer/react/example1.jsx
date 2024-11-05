@@ -1,5 +1,6 @@
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // your renderer component
 const RendererComponent = (props) => {

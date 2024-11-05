@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 import { NestedRows } from 'handsontable/plugins';
 import { DetailedSettings } from 'handsontable/plugins/columnSummary';
 

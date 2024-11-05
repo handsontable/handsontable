@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { HotTable, HotColumn, useHotEditor } from '@handsontable/react-wrapper';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 const EditorComponent = () => {
   const mainElementRef = useRef(null);

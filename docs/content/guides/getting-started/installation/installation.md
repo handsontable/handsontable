@@ -114,7 +114,8 @@ Import Handsontable's CSS into your application.
 If your bundler allows it, you can import Handsontable's full distribution CSS file, using an `import` statement.
 
 ```js
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 ```
 
 ### Using the `link` tag
@@ -202,7 +203,8 @@ To install Handsontable locally using a package manager, run one of these comman
 Import Handsontable's CSS into your application.
 
 ```jsx
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 ```
 
 ## `3` Register Handsontable's modules
