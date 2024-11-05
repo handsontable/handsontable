@@ -205,9 +205,7 @@
       },
       {
         "./common": {
-          "types": "./common.d.ts",
-          "import": "./common.mjs",
-          "require": "./common.js"
+          "types": "./common.d.ts"
         }
       },
       {
