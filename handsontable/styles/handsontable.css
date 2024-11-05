@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 05/11/2024 07:14:11)
+ * Release date: 17/10/2024 (built at 05/11/2024 14:48:04)
  */
 .handsontable {
   position: relative;
@@ -561,7 +561,7 @@ tr.ht__row_odd td {
   display: inline-block;
   width: var(--ht-checkbox-size);
   height: var(--ht-checkbox-size);
-  border-radius: var(--ht-border-radius);
+  border-radius: var(--ht-checkbox-border-radius);
   border: 1px solid var(--ht-checkbox-border-color);
   background-color: var(--ht-checkbox-background-color);
   box-sizing: border-box;
@@ -832,6 +832,9 @@ tr.ht__row_odd td {
 }
 .pika-single.is-hidden {
   display: none;
+}
+.pika-single .pika-row {
+  background-color: transparent;
 }
 .pika-single .pika-title {
   display: flex;
@@ -1376,8 +1379,11 @@ tr.ht__row_odd td {
 .handsontable .ht__active_highlight .changeType:before {
   color: var(--ht-icon-active-button-icon-color);
 }
+.handsontable .ht__active_highlight .changeType:hover {
+  background-color: var(--ht-icon-active-button-hover-background-color);
+}
 .handsontable .ht__active_highlight .changeType:hover:before {
-  color: var(--ht-icon-active-button-icon-color);
+  color: var(--ht-icon-active-button-hover-icon-color);
 }
 .handsontable th.htFiltersActive {
   background-color: var(--ht-header-filter-background-color);
@@ -1637,7 +1643,7 @@ tr.ht__row_odd td {
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
   color: var(--ht-link-color);
-  border-radius: var(--ht-border-radius);
+  border-radius: var(--ht-button-border-radius);
 }
 .handsontable .htUIClearAll a:hover,
 .handsontable .htUISelectAll a:hover {
@@ -1723,11 +1729,33 @@ tr.ht__row_odd td {
   transform: translateY(-50%);
   text-align: right;
 }
+.handsontable .htRight .columnSorting.sortAction {
+  padding-inline-start: var(--ht-icon-size, 16px);
+  padding-inline-end: 0;
+}
+.handsontable .htRight .columnSorting.sortAction:before {
+  left: 2px;
+  right: auto;
+  text-align: left;
+}
 
 [dir=rtl] .handsontable .columnSorting.sortAction:before {
   left: 2px;
   right: auto;
   text-align: left;
+}
+[dir=rtl] .handsontable .htRight .columnSorting.sortAction {
+  padding-inline-start: 0;
+  padding-inline-end: var(--ht-icon-size, 16px);
+}
+[dir=rtl] .handsontable .htLeft .columnSorting.sortAction {
+  padding-inline-start: var(--ht-icon-size, 16px);
+  padding-inline-end: 0;
+}
+[dir=rtl] .handsontable .htLeft .columnSorting.sortAction:before {
+  left: auto;
+  right: 2px;
+  text-align: right;
 }
 
 .htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
@@ -1775,11 +1803,21 @@ tr.ht__row_odd td {
 .handsontable .colHeader.columnSorting.sort-7::after {
   content: "7";
 }
+.handsontable .htRight .colHeader.columnSorting:after {
+  left: 0px;
+  right: auto;
+  text-align: left;
+}
 
 [dir=rtl] .handsontable .colHeader.columnSorting:after {
   left: 0px;
   right: auto;
   text-align: left;
+}
+[dir=rtl] .handsontable .htLeft .colHeader.columnSorting:after {
+  left: auto;
+  right: 0;
+  text-align: right;
 }
 
 .htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {

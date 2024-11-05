@@ -28,6 +28,21 @@
         }
       }
     }
+
+    .htRight {
+      .columnSorting {
+        &.sortAction {
+          padding-inline-start: var(--ht-icon-size, 16px);
+          padding-inline-end: 0;
+
+          &:before {
+            left: 2px;
+            right: auto;
+            text-align: left;
+          }
+        }
+      }
+    }
   }
 
   [dir="rtl"] {
@@ -38,6 +53,29 @@
             left: 2px;
             right: auto;
             text-align: left;
+          }
+        }
+      }
+
+      .htRight {
+        .columnSorting {
+          &.sortAction {
+            padding-inline-start: 0;
+            padding-inline-end: var(--ht-icon-size, 16px);
+          }
+        }
+      }
+
+      .htLeft {
+        .columnSorting {
+          &.sortAction {
+            padding-inline-start: var(--ht-icon-size, 16px);
+            padding-inline-end: 0;
+            &:before {
+              left: auto;
+              right: 2px;
+              text-align: right;
+            }
           }
         }
       }

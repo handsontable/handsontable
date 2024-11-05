@@ -35,6 +35,18 @@
         }
       }
     }
+
+    .htRight {
+      .colHeader {
+        &.columnSorting {
+          &:after {
+            left: 0px;
+            right: auto;
+            text-align: left;
+          }
+        }
+      }
+    }
   }
 
   [dir="rtl"] {
@@ -46,6 +58,18 @@
             left: 0px;
             right: auto;
             text-align: left;
+          }
+        }
+      }
+
+      .htLeft {
+        .colHeader {
+          &.columnSorting {
+            &:after {
+              left: auto;
+              right: 0;
+              text-align: right;
+            }
           }
         }
       }
