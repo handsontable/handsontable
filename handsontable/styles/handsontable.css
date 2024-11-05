@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 31/10/2024 14:39:13)
+ * Release date: 17/10/2024 (built at 05/11/2024 07:14:11)
  */
 .handsontable {
   position: relative;
@@ -57,7 +57,7 @@
 }
 .handsontable th,
 .handsontable td {
-  height: var(--ht-row-height);
+  height: var(--ht-row-height, 28px);
   padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
   vertical-align: top;
   border-top-width: 0;
@@ -67,7 +67,7 @@
   border-style: solid;
   border-color: var(--ht-border-color);
   font-size: var(--ht-font-size, 14px);
-  line-height: var(--ht-line-height, 18px);
+  line-height: var(--ht-line-height, 20px);
   white-space: pre-wrap;
   overflow: hidden;
   outline: none;
@@ -1343,12 +1343,12 @@ tr.ht__row_odd td {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   border-radius: var(--ht-icon-button-border-radius);
+  box-shadow: 0 0 0 1px var(--ht-icon-button-border-color);
   border: none;
   color: inherit;
   padding: 0;
   margin: 0;
   background-color: var(--ht-icon-button-background-color);
-  transition: var(--ht-table-transition) all ease-in-out;
   order: 1;
   z-index: 1;
   float: inline-end;
@@ -1364,7 +1364,6 @@ tr.ht__row_odd td {
   color: var(--ht-icon-button-icon-color);
 }
 .handsontable .changeType:hover {
-  border: none;
   cursor: pointer;
   background-color: var(--ht-icon-button-hover-background-color);
 }
