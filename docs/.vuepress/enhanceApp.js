@@ -41,7 +41,7 @@ const buildRegisterCleaner = register => (to, from) => {
  * route changes, the event is triggered manually.
  */
 let isFirstPageGALoaded = true;
-let isPageLoaded = false;
+// const isPageLoaded = false;
 
 export default async({ router, siteData, isServer }) => {
   if (isServer) {
@@ -78,28 +78,33 @@ export default async({ router, siteData, isServer }) => {
     page.versionsWithPatches = new Map(docsData.versionsWithPatches);
   });
 
-  router.options.scrollBehavior = async (to, from, savedPosition) => {
+  router.options.scrollBehavior = async(to, from, savedPosition) => {
     if (this.app.$vuepress.$get('disableScrollBehavior')) {
+      console.log('disableScrollBehabior');
+
       return false;
     }
-  
+
     // Default position is top of page
     let scrollPosition = { x: 0, y: 0 };
-  
+
     if (savedPosition) {
       scrollPosition = savedPosition; // Return to saved position on back/forward
+      console.log('savedPosition');
+
     } else if (to.hash) {
       // Scroll to anchor if hash is present
-      scrollPosition = { 
-        selector: to.hash, 
-        behavior: 'smooth', 
+      console.log('scroll to anchor', to.hash);
+      scrollPosition = {
+        selector: to.hash,
+        behavior: 'smooth',
         offset: { x: 0, y: 75 }
       };
     }
-  
+
     // Wait until the page is fully loaded before scrolling
-    await new Promise(resolve => window.onload ? resolve() : window.addEventListener('load', resolve));
-  
+    await new Promise(resolve => (window.onload ? resolve() : window.addEventListener('load', resolve)));
+
     return scrollPosition;
   };
 
