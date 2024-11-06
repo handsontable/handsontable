@@ -119,6 +119,10 @@ export class StylesHandler {
    * @returns {number} The calculated row height.
    */
   getDefaultRowHeight() {
+    if (this.#isClassicTheme) {
+      return CLASSIC_THEME_DEFAULT_HEIGHT;
+    }
+
     const cssVarRowHeightValue = this.getCSSVariableValue('row-height');
 
     if (!this.#isClassicTheme && !cssVarRowHeightValue) {
@@ -128,10 +132,6 @@ Import the correct CSS files in order to use that theme.`);
       this.#isClassicTheme = true;
       this.useTheme();
 
-      return CLASSIC_THEME_DEFAULT_HEIGHT;
-    }
-
-    if (this.#isClassicTheme) {
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 

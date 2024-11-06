@@ -4968,7 +4968,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function useTheme
    * @since 15.0.0
-   * @param {string|undefined} themeName The name of the theme to use.
+   * @param {string|boolean|undefined} themeName The name of the theme to use.
    */
   this.useTheme = (themeName) => {
     this.view.getStylesHandler().useTheme(themeName);

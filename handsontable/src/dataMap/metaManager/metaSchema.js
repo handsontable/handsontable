@@ -4444,7 +4444,7 @@ export default () => {
      * - [Themes](@/guides/styling/themes/themes.md)
      *
      * @memberof Options#
-     * @type {string}
+     * @type {string|boolean|undefined}
      * @default undefined
      * @category Core
      * @since 15.0.0
