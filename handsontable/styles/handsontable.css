@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 05/11/2024 14:48:04)
+ * Release date: 17/10/2024 (built at 06/11/2024 15:41:46)
  */
 .handsontable {
   position: relative;
@@ -535,7 +535,6 @@ tr.ht__row_odd td {
   float: inline-end;
   top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
   margin-inline-start: calc(var(--ht-gap-size) * 2);
-  pointer-events: none;
 }
 .handsontable .htAutocompleteArrow:after {
   content: "";
@@ -624,15 +623,17 @@ tr.ht__row_odd td {
   opacity: 0.5;
 }
 .handsontable .htCheckboxRendererLabel {
+  display: inline-block;
   position: relative;
   font-size: inherit;
-  vertical-align: middle;
-  display: flex;
-  align-items: center;
-  gap: var(--ht-gap-size);
+  line-height: inherit;
   cursor: pointer;
   color: inherit;
   margin: 0;
+}
+.handsontable .htCheckboxRendererLabel .htCheckboxRendererInput {
+  margin-top: -2px;
+  margin-inline-end: var(--ht-gap-size);
 }
 .handsontable .htCheckboxRendererLabel.fullWidth {
   width: 100%;
@@ -1731,7 +1732,7 @@ tr.ht__row_odd td {
 }
 .handsontable .htRight .columnSorting.sortAction {
   padding-inline-start: var(--ht-icon-size, 16px);
-  padding-inline-end: 0;
+  padding-inline-end: var(--ht-gap-size, 4px);
 }
 .handsontable .htRight .columnSorting.sortAction:before {
   left: 2px;
@@ -1745,12 +1746,12 @@ tr.ht__row_odd td {
   text-align: left;
 }
 [dir=rtl] .handsontable .htRight .columnSorting.sortAction {
-  padding-inline-start: 0;
+  padding-inline-start: var(--ht-gap-size, 4px);
   padding-inline-end: var(--ht-icon-size, 16px);
 }
 [dir=rtl] .handsontable .htLeft .columnSorting.sortAction {
   padding-inline-start: var(--ht-icon-size, 16px);
-  padding-inline-end: 0;
+  padding-inline-end: var(--ht-gap-size, 4px);
 }
 [dir=rtl] .handsontable .htLeft .columnSorting.sortAction:before {
   left: auto;

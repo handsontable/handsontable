@@ -109,7 +109,7 @@ module.exports = function(docsVersion, base) {
         const htmlToken = htmlPos ? tokens[htmlIndex] : undefined;
         const htmlContent = htmlToken
           ? htmlToken.content
-          : `<div id="${id}" class="hot ${klass} ht-theme-main-dark-auto"></div>`;
+          : `<div id="${id}" class="hot ${klass}"></div>`;
         // eslint-disable-next-line max-len
         const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}" class="ht-theme-main-dark-auto">${htmlContent}</div>`;
 

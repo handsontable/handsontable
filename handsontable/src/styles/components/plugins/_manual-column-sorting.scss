@@ -33,7 +33,7 @@
       .columnSorting {
         &.sortAction {
           padding-inline-start: var(--ht-icon-size, 16px);
-          padding-inline-end: 0;
+          padding-inline-end: var(--ht-gap-size, 4px);
 
           &:before {
             left: 2px;
@@ -60,7 +60,7 @@
       .htRight {
         .columnSorting {
           &.sortAction {
-            padding-inline-start: 0;
+            padding-inline-start: var(--ht-gap-size, 4px);
             padding-inline-end: var(--ht-icon-size, 16px);
           }
         }
@@ -70,7 +70,8 @@
         .columnSorting {
           &.sortAction {
             padding-inline-start: var(--ht-icon-size, 16px);
-            padding-inline-end: 0;
+            padding-inline-end: var(--ht-gap-size, 4px);
+
             &:before {
               left: auto;
               right: 2px;
