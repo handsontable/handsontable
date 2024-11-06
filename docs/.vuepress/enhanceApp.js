@@ -78,50 +78,29 @@ export default async({ router, siteData, isServer }) => {
     page.versionsWithPatches = new Map(docsData.versionsWithPatches);
   });
 
-  router.options.scrollBehavior = function(to, from, savedPosition) {
+  router.options.scrollBehavior = async (to, from, savedPosition) => {
     if (this.app.$vuepress.$get('disableScrollBehavior')) {
       return false;
     }
-
-    let scrollPosition = { x: 0, y: 0 }; // page without hash
-
+  
+    // Default position is top of page
+    let scrollPosition = { x: 0, y: 0 };
+  
     if (savedPosition) {
-      scrollPosition = savedPosition; // page from the browser navigation (back/forward)
-    }
-
-    if (from.hash) {
-      scrollPosition = { x: 0, y: 0 };
-    }
-
-    if (to.hash) {
-      scrollPosition = {
-        selector: to.hash,
-        // top offset that matches to the "scroll-padding-top" (.vuepress/theme/styles/index.styl@34)
-        // mostly it's the height of the top header plus some margin
+      scrollPosition = savedPosition; // Return to saved position on back/forward
+    } else if (to.hash) {
+      // Scroll to anchor if hash is present
+      scrollPosition = { 
+        selector: to.hash, 
+        behavior: 'smooth', 
         offset: { x: 0, y: 75 }
       };
     }
-
-    let scrollResolver;
-
-    const scrollPromise = new Promise((resolve) => {
-      scrollResolver = resolve;
-    });
-
-    if (isPageLoaded) {
-      if (to.path === from.path) {
-        scrollResolver(scrollPosition);
-      } else {
-        setTimeout(() => scrollResolver(scrollPosition));
-      }
-    } else {
-      window.onload = () => {
-        isPageLoaded = true;
-        scrollResolver(scrollPosition);
-      };
-    }
-
-    return scrollPromise;
+  
+    // Wait until the page is fully loaded before scrolling
+    await new Promise(resolve => window.onload ? resolve() : window.addEventListener('load', resolve));
+  
+    return scrollPosition;
   };
 
   if (typeof window.ga === 'function') {
