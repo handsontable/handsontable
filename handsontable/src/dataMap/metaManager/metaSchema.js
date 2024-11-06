@@ -3951,8 +3951,8 @@ export default () => {
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
      *
-     * In the rendering process, the default row height is 23 px (22 px + 1 px of the row's bottom border).
-     * You can change it to equal or greater than 23px, by setting the `rowHeights` option to one of the following:
+     * In the rendering process, the default row height is 23 px (in the classic theme: 22 px + 1 px of the row's bottom border) or what's defined as `--ht-row-height` in the used theme.
+     * You can change it to equal or greater than the defautl value, by setting the `rowHeights` option to one of the following:
      *
      * | Setting     | Description                                                                                         | Example                                                      |
      * | ----------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
@@ -3984,7 +3984,7 @@ export default () => {
      * // set the first (by visual index) row's height to 100
      * // set the second (by visual index) row's height to 120
      * // set the third (by visual index) row's height to `undefined`
-     * // set any other row's height to the default 23px
+     * // set any other row's height to the default height value
      * rowHeights: [100, 120, undefined],
      *
      * // set each row's height individually, using a function
@@ -4435,19 +4435,22 @@ export default () => {
      */
     tableClassName: undefined,
 
-    // TODO: add themeName description
     /**
-     * The `themeName` option lets you add CSS class names
+     * The `themeName` option allows enabling a theme by that name.
+     *
+     * If no `themeName` is provided, the table will use the classic theme (if the correct CSS files are imported).
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
      *
      * @memberof Options#
-     * @type {string|string[]}
+     * @type {string|boolean|undefined}
      * @default undefined
      * @category Core
+     * @since 15.0.0
      *
      * @example
      * ```js
-     * // add a `ht-theme-name` CSS class name
-     * // to every Handsontable instance inside the `container` element
      * themeName: 'ht-theme-name',
      * ```
      */

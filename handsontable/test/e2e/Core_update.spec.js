@@ -665,6 +665,7 @@ describe('Core_updateSettings', () => {
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
       expect(hot.getCurrentThemeName()).toBe(undefined);
 
+      simulateModernThemeStylesheet(spec().$container);
       hot.updateSettings({
         themeName: 'ht-theme-sth'
       });
@@ -703,6 +704,7 @@ describe('Core_updateSettings', () => {
     });
 
     it('should update the theme based on the `themeName` option, even if a theme class is already applied to the container', () => {
+      simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(15, 15),
@@ -723,6 +725,7 @@ describe('Core_updateSettings', () => {
     });
 
     it('should be possible to disable a "modern" theme by setting the `themeName` to `false` or `undefined`', () => {
+      simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
 
       const hot = handsontable({

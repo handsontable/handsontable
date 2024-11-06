@@ -1,4 +1,5 @@
 import { addClass, hasClass, removeClass } from '../../../../helpers/dom/element';
+import { warn } from '../../../../helpers/console';
 
 const CLASSIC_THEME_DEFAULT_HEIGHT = 23;
 
@@ -122,7 +123,19 @@ export class StylesHandler {
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
-    return this.getCSSVariableValue('row-height');
+    const cssVarRowHeightValue = this.getCSSVariableValue('row-height');
+
+    if (!cssVarRowHeightValue) {
+      warn(`The "${this.#themeName}" theme is enabled, but its stylesheets are missing. \
+Import the correct CSS files in order to use that theme.`);
+
+      this.#isClassicTheme = true;
+      this.useTheme();
+
+      return CLASSIC_THEME_DEFAULT_HEIGHT;
+    }
+
+    return cssVarRowHeightValue;
   }
 
   /**
