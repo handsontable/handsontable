@@ -218,6 +218,7 @@ describe('Core_init', () => {
 
   describe('theme initialization', () => {
     it('should enable a theme when a theme class name was added to the root element', () => {
+      simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
 
       const hot = handsontable({
@@ -229,6 +230,7 @@ describe('Core_init', () => {
     });
 
     it('should enable a theme when a theme class name was added to a parent of the root element', () => {
+      simulateModernThemeStylesheet(spec().$container);
       spec().$parentContainer.addClass('ht-theme-sth');
 
       const hot = handsontable({

@@ -1,4 +1,4 @@
-describe('Theme handling', () => {
+describe('Comments theme handling', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -13,6 +13,7 @@ describe('Theme handling', () => {
   });
 
   it('should have the same theme as the parent Handsontable instance (if originally passed as a config option)', () => {
+    simulateModernThemeStylesheet(spec().$container);
     handsontable({
       data: createSpreadsheetData(4, 4),
       comments: true,
@@ -29,6 +30,7 @@ describe('Theme handling', () => {
   });
 
   it('should have the same theme as the parent Handsontable instance (if originally passed as a container class)', () => {
+    simulateModernThemeStylesheet(spec().$container);
     spec().$container.addClass('ht-theme-sth-else');
     handsontable({
       comments: true,

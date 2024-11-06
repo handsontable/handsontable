@@ -1079,6 +1079,28 @@ export function simulateTouch(target) {
 }
 
 /**
+ * Simulates the application of modern theme styles to a Handsontable context.
+ *
+ * @param {HTMLElement|jQuery} container - The container element to which the styles will be applied.
+ */
+export function simulateModernThemeStylesheet(container) {
+  const element = container instanceof $ ? container.get(0) : container;
+
+  element.style.setProperty('--ht-row-height', '28px');
+}
+
+/**
+ * Clears the modern theme styles simulation applied using the `simulateModernThemeStylesheet` method.
+ *
+ * @param {HTMLElement|jQuery} container - The container element.
+ */
+export function clearModernThemeStylesheetMock(container) {
+  const element = container instanceof $ ? container.get(0) : container;
+
+  element.style.removeProperty('--ht-row-height');
+}
+
+/**
  * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label
  * values (e.q "A1", "A2"...).
  *
