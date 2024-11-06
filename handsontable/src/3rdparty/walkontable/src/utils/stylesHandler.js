@@ -125,7 +125,7 @@ export class StylesHandler {
 
     const cssVarRowHeightValue = this.getCSSVariableValue('row-height');
 
-    if (!this.#isClassicTheme && !cssVarRowHeightValue) {
+    if (!cssVarRowHeightValue) {
       warn(`The "${this.#themeName}" theme is enabled, but its stylesheets are missing. \
 Import the correct CSS files in order to use that theme.`);
 
@@ -135,7 +135,7 @@ Import the correct CSS files in order to use that theme.`);
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
-    return this.getCSSVariableValue('row-height');
+    return cssVarRowHeightValue;
   }
 
   /**
