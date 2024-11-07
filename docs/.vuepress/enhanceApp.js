@@ -82,33 +82,8 @@ export default async({ router, siteData, isServer }) => {
   });
 
   router.options.scrollBehavior = async(to, from, savedPosition) => {
-    console.log('startscrollBehavior');
-
-    if (this.app.$vuepress.$get('disableScrollBehavior')) {
-      console.log('disableScrollBehavior');
-
-      return false;
-    }
-
-    // Default position is top of page
-    let scrollPosition = { top: 0, left: 0 };
-
-    if (savedPosition) {
-      scrollPosition = savedPosition;
-      console.log('savedPosition');
-    } else if (to.hash) {
-      console.log('scroll to anchor', to.hash);
-      scrollPosition = {
-        selector: to.hash,
-        behavior: 'smooth',
-        offset: { left: 0, top: 75 }
-      };
-    }
-
-    // Ensure DOM is updated
-    await nextTick();
-
-    return scrollPosition;
+    console.log('scrollbar always scroll to the top')
+    return { top: 0 }
   };
   if (typeof window.ga === 'function') {
     router.afterEach((to) => {
