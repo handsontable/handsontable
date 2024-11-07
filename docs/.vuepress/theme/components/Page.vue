@@ -198,7 +198,7 @@ export default {
   },
   mounted() {
     this.selectedLang = localStorage?.getItem('selected_lang') ?? 'JavaScript';
-    this.themeClassName = this.getThemeClassName(localStorage?.getItem('handsontable/docs::color-scheme'));
+    this.themeClassName = this.getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
 
     this.checkSectionInView();
     window.addEventListener('click', this.detectClickOutsideButton);
@@ -210,7 +210,7 @@ export default {
   },
   watch: {
     $route() {
-      this.themeClassName = this.getThemeClassName(localStorage?.getItem('handsontable/docs::color-scheme'));
+      this.themeClassName = this.getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
     }
   }
 };
