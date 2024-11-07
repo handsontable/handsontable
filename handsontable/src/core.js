@@ -42,7 +42,6 @@ import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
-import { StylesManager } from './stylesManager';
 
 let activeGuid = null;
 
@@ -122,7 +121,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let grid;
   let editorManager;
   let focusManager;
-  let stylesManager;
   let viewportScroller;
   let firstRun = true;
 
@@ -243,22 +241,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     _injectProductInfo(userSettings.licenseKey, rootElement);
 
     addClass(rootElement, 'ht-wrapper');
-
-    const rootThemeClassName = getThemeClassName(rootElement.className);
-
-    if (rootThemeClassName) {
-      tableMeta.themeName = rootThemeClassName;
-    }
-
-    if (tableMeta.themeName) {
-      addClass(rootElement, tableMeta.themeName);
-    }
-
-    const licenseInfo = rootElement.parentNode?.querySelector('.hot-display-license-info');
-
-    if (licenseInfo) {
-      addClass(licenseInfo, tableMeta.themeName);
-    }
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
@@ -1135,10 +1117,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.view = new TableView(this);
 
+    const themeName = tableMeta.themeName || getThemeClassName(instance.rootElement);
+
+    // Use the theme defined as a root element class or in the settings (in that order).
+    instance.useTheme(themeName);
+
+    // Add the theme class name to the license info element.
+    instance.view.addClassNameToLicenseElement(instance.getCurrentThemeName());
+
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
+
     viewportScroller = createViewportScroller(instance);
+
     focusManager = new FocusManager(instance);
-    stylesManager = new StylesManager(instance);
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
@@ -2596,6 +2587,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (instance.view) {
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
+
+        const currentThemeName = instance.getCurrentThemeName();
+        const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
+
+        if (currentThemeName && themeNameOptionExists) {
+          instance.view.getStylesHandler().removeClassNames();
+          instance.view.removeClassNameFromLicenseElement(currentThemeName);
+        }
+
+        const themeName =
+          (themeNameOptionExists && settings.themeName) ||
+          getThemeClassName(instance.rootElement);
+
+        // Use the theme defined as a root element class or in the settings (in that order).
+        instance.useTheme(themeName);
+
+        // Add the theme class name to the license info element.
+        instance.view.addClassNameToLicenseElement(instance.getCurrentThemeName());
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -3820,13 +3829,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getColWidth
    * @param {number} column Visual column index.
+   * @param {string} [source] The source of the call.
    * @returns {number} Column width.
    * @fires Hooks#modifyColWidth
    */
-  this.getColWidth = function(column) {
+  this.getColWidth = function(column, source) {
     let width = instance._getColWidthFromSettings(column);
 
-    width = instance.runHooks('modifyColWidth', width, column);
+    width = instance.runHooks('modifyColWidth', width, column, source);
 
     if (width === undefined) {
       width = DEFAULT_COLUMN_WIDTH;
@@ -3890,13 +3900,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getRowHeight
    * @param {number} row A visual row index.
+   * @param {string} [source] The source of the call.
    * @returns {number|undefined} The height of the specified row, in pixels.
    * @fires Hooks#modifyRowHeight
    */
-  this.getRowHeight = function(row) {
+  this.getRowHeight = function(row, source) {
     let height = instance._getRowHeightFromSettings(row);
 
-    height = instance.runHooks('modifyRowHeight', height, row);
+    height = instance.runHooks('modifyRowHeight', height, row, source);
 
     return height;
   };
@@ -4952,6 +4963,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.timeouts = [];
 
   /**
+   * Use the theme specified by the provided name.
+   *
+   * @memberof Core#
+   * @function useTheme
+   * @since 15.0.0
+   * @param {string|boolean|undefined} themeName The name of the theme to use.
+   */
+  this.useTheme = (themeName) => {
+    this.view.getStylesHandler().useTheme(themeName);
+  };
+
+  /**
+   * Gets the name of the currently used theme.
+   *
+   * @memberof Core#
+   * @function getCurrentThemeName
+   * @since 15.0.0
+   * @returns {string|undefined} The name of the currently used theme.
+   */
+  this.getCurrentThemeName = () => {
+    return this.view.getStylesHandler().getThemeName();
+  };
+
+  /**
    * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called.
    *
    * @param {number|Function} handle Handler returned from setTimeout or function to execute (it will be automatically wraped
@@ -5096,18 +5131,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getFocusManager = function() {
     return focusManager;
-  };
-
-  /**
-   * Return the Styles Manager responsible for managing css variables.
-   *
-   * @memberof Core#
-   * @since 14.0.0
-   * @function getStylesManager
-   * @returns {StylesManager}
-   */
-  this.getStylesManager = function() {
-    return stylesManager;
   };
 
   getPluginsNames().forEach((pluginName) => {

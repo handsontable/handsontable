@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 25/10/2024 08:27:55)
+ * Release date: 17/10/2024 (built at 06/11/2024 15:41:46)
  */
 .handsontable {
   position: relative;
@@ -57,7 +57,7 @@
 }
 .handsontable th,
 .handsontable td {
-  height: var(--ht-row-height);
+  height: var(--ht-row-height, 28px);
   padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
   vertical-align: top;
   border-top-width: 0;
@@ -67,7 +67,7 @@
   border-style: solid;
   border-color: var(--ht-border-color);
   font-size: var(--ht-font-size, 14px);
-  line-height: var(--ht-line-height, 18px);
+  line-height: var(--ht-line-height, 20px);
   white-space: pre-wrap;
   overflow: hidden;
   outline: none;
@@ -140,6 +140,15 @@
 .handsontable thead th .relative {
   padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
   overflow: hidden;
+}
+.handsontable thead th .relative .colHeader {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  vertical-align: top;
+  max-width: calc(100% + 1px);
+}
+.handsontable thead th .relative:has(.collapsibleIndicator, .changeType) .colHeader {
+  max-width: calc(100% - (var(--ht-icon-size) + var(--ht-gap-size)));
 }
 .handsontable thead tr:not(:last-child) th {
   /* Fix for - nested columns with hidden column  */
@@ -526,7 +535,6 @@ tr.ht__row_odd td {
   float: inline-end;
   top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
   margin-inline-start: calc(var(--ht-gap-size) * 2);
-  pointer-events: none;
 }
 .handsontable .htAutocompleteArrow:after {
   content: "";
@@ -552,7 +560,7 @@ tr.ht__row_odd td {
   display: inline-block;
   width: var(--ht-checkbox-size);
   height: var(--ht-checkbox-size);
-  border-radius: var(--ht-border-radius);
+  border-radius: var(--ht-checkbox-border-radius);
   border: 1px solid var(--ht-checkbox-border-color);
   background-color: var(--ht-checkbox-background-color);
   box-sizing: border-box;
@@ -608,19 +616,24 @@ tr.ht__row_odd td {
 .handsontable .htCheckboxRendererInput:disabled:after {
   color: var(--ht-checkbox-disabled-icon-color);
 }
+.handsontable .htCheckboxRendererInput:indeterminate::before {
+  background-color: red;
+}
 .handsontable .htCheckboxRendererInput.noValue {
   opacity: 0.5;
 }
 .handsontable .htCheckboxRendererLabel {
+  display: inline-block;
   position: relative;
   font-size: inherit;
-  vertical-align: middle;
-  display: flex;
-  align-items: center;
-  gap: var(--ht-gap-size);
+  line-height: inherit;
   cursor: pointer;
   color: inherit;
   margin: 0;
+}
+.handsontable .htCheckboxRendererLabel .htCheckboxRendererInput {
+  margin-top: -2px;
+  margin-inline-end: var(--ht-gap-size);
 }
 .handsontable .htCheckboxRendererLabel.fullWidth {
   width: 100%;
@@ -820,6 +833,9 @@ tr.ht__row_odd td {
 }
 .pika-single.is-hidden {
   display: none;
+}
+.pika-single .pika-row {
+  background-color: transparent;
 }
 .pika-single .pika-title {
   display: flex;
@@ -1064,8 +1080,9 @@ tr.ht__row_odd td {
   display: inline-flex;
   margin: 0;
   padding: var(--ht-gap-size) calc(2 * var(--ht-gap-size));
+  padding-bottom: 0;
   align-items: center;
-  gap: calc(2 * var(--ht-gap-size));
+  gap: var(--ht-gap-size);
   cursor: pointer;
 }
 .handsontable .htUIRadio:first-child {
@@ -1149,7 +1166,7 @@ tr.ht__row_odd td {
 
 .handsontable .collapsibleIndicator {
   top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
-  margin-inline-start: calc(var(--ht-gap-size) * 2);
+  margin-inline-start: var(--ht-gap-size);
 }
 .handsontable .collapsibleIndicator,
 .handsontable .ht_nestingButton {
@@ -1330,16 +1347,17 @@ tr.ht__row_odd td {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   border-radius: var(--ht-icon-button-border-radius);
+  box-shadow: 0 0 0 1px var(--ht-icon-button-border-color);
   border: none;
   color: inherit;
   padding: 0;
   margin: 0;
   background-color: var(--ht-icon-button-background-color);
-  transition: var(--ht-table-transition) all ease-in-out;
   order: 1;
   z-index: 1;
   float: inline-end;
   top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+  margin-inline-start: var(--ht-gap-size);
 }
 .handsontable .changeType:before {
   content: "";
@@ -1350,18 +1368,23 @@ tr.ht__row_odd td {
   color: var(--ht-icon-button-icon-color);
 }
 .handsontable .changeType:hover {
-  border: none;
   cursor: pointer;
   background-color: var(--ht-icon-button-hover-background-color);
 }
 .handsontable .changeType:hover:before {
   color: var(--ht-icon-button-hover-icon-color);
 }
+.handsontable .ht__active_highlight .changeType {
+  background-color: var(--ht-icon-active-button-background-color);
+}
 .handsontable .ht__active_highlight .changeType:before {
   color: var(--ht-icon-active-button-icon-color);
 }
+.handsontable .ht__active_highlight .changeType:hover {
+  background-color: var(--ht-icon-active-button-hover-background-color);
+}
 .handsontable .ht__active_highlight .changeType:hover:before {
-  color: var(--ht-icon-active-button-icon-color);
+  color: var(--ht-icon-active-button-hover-icon-color);
 }
 .handsontable th.htFiltersActive {
   background-color: var(--ht-header-filter-background-color);
@@ -1456,7 +1479,7 @@ tr.ht__row_odd td {
   display: block;
   position: absolute;
   top: 50%;
-  right: calc(4 * var(--ht-gap-size));
+  right: calc(var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2);
   transform: translateY(-50%);
 }
 .handsontable.htDropdownMenu table tbody tr td.htSeparator, .handsontable.htContextMenu table tbody tr td.htSeparator, .handsontable.htFiltersConditionsMenu table tbody tr td.htSeparator {
@@ -1492,7 +1515,7 @@ tr.ht__row_odd td {
   display: block;
   position: absolute;
   top: 50%;
-  right: calc(4 * var(--ht-gap-size));
+  right: calc(var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2);
   color: var(--ht-accent-color);
   transform: translateY(-50%);
 }
@@ -1559,7 +1582,7 @@ tr.ht__row_odd td {
   display: none;
 }
 .handsontable .htFiltersMenuCondition {
-  padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
+  padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;
   padding-bottom: 0 !important;
 }
 .handsontable .htFiltersMenuCondition .border {
@@ -1569,11 +1592,14 @@ tr.ht__row_odd td {
   margin-top: calc(var(--ht-gap-size, 2px) * 2);
 }
 .handsontable .htFiltersMenuValue {
-  padding-top: calc(var(--ht-gap-size, 2px) * 4) !important;
+  padding-top: calc(var(--ht-gap-size, 2px) * 3) !important;
   padding-bottom: 0 !important;
   border-bottom: 1px solid var(--ht-border-color) !important;
 }
-.handsontable .htFiltersMenuOperators,
+.handsontable .htFiltersMenuOperators {
+  padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
+  padding-bottom: 0 !important;
+}
 .handsontable .htUISelectionControls {
   padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
   padding-bottom: var(--ht-gap-size, 2px) !important;
@@ -1618,7 +1644,7 @@ tr.ht__row_odd td {
 .handsontable .htUIClearAll a,
 .handsontable .htUISelectAll a {
   color: var(--ht-link-color);
-  border-radius: var(--ht-border-radius);
+  border-radius: var(--ht-button-border-radius);
 }
 .handsontable .htUIClearAll a:hover,
 .handsontable .htUISelectAll a:hover {
@@ -1682,17 +1708,13 @@ tr.ht__row_odd td {
   background-color: var(--ht-comments-textarea-focus-background-color, #ffffff);
 }
 
-.handsontable .htRight .columnSorting.sortAction {
-  margin-inline-end: calc(var(--ht-gap-size));
-}
 .handsontable .columnSorting {
   position: relative;
 }
 .handsontable .columnSorting.sortAction {
-  margin-inline-end: calc(var(--ht-icon-size) * -1);
-}
-.handsontable .columnSorting.sortAction.ascending, .handsontable .columnSorting.sortAction.descending {
-  margin-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size));
+  padding-inline-end: var(--ht-icon-size, 16px);
+  min-width: calc(var(--ht-icon-size, 16px) + 8px);
+  max-width: calc(100% - var(--ht-icon-size, 16px) * 2 - 4px);
 }
 .handsontable .columnSorting.sortAction:hover {
   text-decoration: none;
@@ -1701,16 +1723,40 @@ tr.ht__row_odd td {
 .handsontable .columnSorting.sortAction:before {
   content: "";
   display: block;
-  width: var(--ht-icon-size);
+  width: var(--ht-icon-size, 16px);
   position: absolute;
   top: 50%;
-  left: 100%;
+  right: 2px;
   transform: translateY(-50%);
+  text-align: right;
+}
+.handsontable .htRight .columnSorting.sortAction {
+  padding-inline-start: var(--ht-icon-size, 16px);
+  padding-inline-end: var(--ht-gap-size, 4px);
+}
+.handsontable .htRight .columnSorting.sortAction:before {
+  left: 2px;
+  right: auto;
+  text-align: left;
 }
 
 [dir=rtl] .handsontable .columnSorting.sortAction:before {
+  left: 2px;
+  right: auto;
+  text-align: left;
+}
+[dir=rtl] .handsontable .htRight .columnSorting.sortAction {
+  padding-inline-start: var(--ht-gap-size, 4px);
+  padding-inline-end: var(--ht-icon-size, 16px);
+}
+[dir=rtl] .handsontable .htLeft .columnSorting.sortAction {
+  padding-inline-start: var(--ht-icon-size, 16px);
+  padding-inline-end: var(--ht-gap-size, 4px);
+}
+[dir=rtl] .handsontable .htLeft .columnSorting.sortAction:before {
   left: auto;
-  right: 100%;
+  right: 2px;
+  text-align: right;
 }
 
 .htGhostTable .htCore span.colHeader.columnSorting:not(.indicatorDisabled)::before {
@@ -1728,11 +1774,11 @@ tr.ht__row_odd td {
   width: 8px;
   position: absolute;
   top: 50%;
-  left: 100%;
+  right: 0;
   transform: translateY(-50%);
   margin-top: 4px;
-  margin-inline-start: calc(var(--ht-icon-size) - 6px);
   font-size: 8px;
+  text-align: right;
 }
 .handsontable .colHeader.columnSorting[class^=sort-]::after, .handsontable .colHeader.columnSorting[class*=" sort-"]::after {
   content: "+";
@@ -1758,10 +1804,21 @@ tr.ht__row_odd td {
 .handsontable .colHeader.columnSorting.sort-7::after {
   content: "7";
 }
+.handsontable .htRight .colHeader.columnSorting:after {
+  left: 0px;
+  right: auto;
+  text-align: left;
+}
 
 [dir=rtl] .handsontable .colHeader.columnSorting:after {
+  left: 0px;
+  right: auto;
+  text-align: left;
+}
+[dir=rtl] .handsontable .htLeft .colHeader.columnSorting:after {
   left: auto;
-  right: 100%;
+  right: 0;
+  text-align: right;
 }
 
 .htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {

@@ -1,6 +1,7 @@
 import { useState, useContext, createContext } from 'react';
-import { HotTable, HotColumn } from '@handsontable/react';
-import 'handsontable/dist/handsontable.full.min.css';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // a component
 const HighlightContext = createContext(false);
@@ -52,9 +53,7 @@ const ExampleComponent = () => {
         height="auto"
         licenseKey={'non-commercial-and-evaluation'}
       >
-        <HotColumn>
-          <CustomRenderer hot-renderer />
-        </HotColumn>
+        <HotColumn renderer={CustomRenderer} />
       </HotTable>
     </HighlightContext.Provider>
   );

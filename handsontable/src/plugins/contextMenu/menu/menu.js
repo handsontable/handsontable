@@ -301,6 +301,7 @@ export class Menu {
       disableVisualSelection: 'area',
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
+      themeName: this.hot.getCurrentThemeName(),
       beforeOnCellMouseOver: (event, coords) => {
         this.#navigator.setCurrentPage(coords.row);
       },
@@ -669,12 +670,9 @@ export class Menu {
     }
 
     if (!container) {
-      const themeClassName = this.hot.getSettings().themeName;
-
       container = doc.createElement('div');
 
       addClass(container, `htMenu ${this.options.className}`);
-      addClass(container, themeClassName);
 
       if (className) {
         addClass(container, className);

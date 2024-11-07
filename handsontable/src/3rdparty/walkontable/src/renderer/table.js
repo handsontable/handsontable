@@ -157,11 +157,16 @@ export default class TableRenderer {
    * @type {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'}
    */
   activeOverlayName;
+  /**
+   * Styles handler instance.
+   */
+  stylesHandler;
 
-  constructor(rootNode, { cellRenderer } = {}) {
+  constructor(rootNode, { cellRenderer, stylesHandler } = {}) {
     this.rootNode = rootNode;
     this.rootDocument = this.rootNode.ownerDocument;
     this.cellRenderer = cellRenderer;
+    this.stylesHandler = stylesHandler;
   }
 
   /**
@@ -287,7 +292,7 @@ export default class TableRenderer {
     this.rowHeaders.render();
     this.cells.render();
 
-    // After the cells are rendered calculate columns width (or columns stretch width) to prepare proper values
+    // After the cells are rendered calculate columns width to prepare proper values
     // for colGroup renderer (which renders COL elements).
     this.columnUtils.calculateWidths();
     this.colGroup.render();
@@ -297,14 +302,17 @@ export default class TableRenderer {
     // Fix for multi-line content and for supporting `rowHeights` option.
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const TR = rows.getRenderedNode(visibleRowIndex);
+      const rowUtils = this.rowUtils;
 
       if (TR.firstChild) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
-        const rowHeight = this.rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
+        const rowHeight = rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
+        const isBorderBoxSizing = this.stylesHandler.areCellsBorderBox();
+        const borderCompensation = isBorderBoxSizing ? 0 : 1;
 
         if (rowHeight) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
-          TR.firstChild.style.height = `${rowHeight - 1}px`;
+          TR.firstChild.style.height = `${rowHeight - borderCompensation}px`;
         } else {
           TR.firstChild.style.height = '';
         }

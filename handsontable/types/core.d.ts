@@ -69,10 +69,11 @@ export default class Core {
   getColHeader(): Array<number | string>;
   getColHeader(column: number, headerLevel?: number): number | string;
   getColumnMeta(column: number): ColumnSettings;
-  getColWidth(column: number): number;
+  getColWidth(column: number, source?: string): number;
   getCoords(element: Element | null): CellCoords;
   getCopyableData(row: number, column: number): string;
   getCopyableText(startRow: number, startColumn: number, endRow: number, endColumn: number): string;
+  getCurrentThemeName(): string | undefined;
   getData(row?: number, column?: number, row2?: number, column2?: number): CellValue[];
   getDataAtCell(row: number, column: number): CellValue;
   getDataAtCol(column: number): CellValue[];
@@ -99,7 +100,7 @@ export default class Core {
   getPlugin(pluginName: string): Plugins['basePlugin'];
   getRowHeader(): Array<string | number>;
   getRowHeader(row: number): string | number;
-  getRowHeight(row: number): number;
+  getRowHeight(row: number, source?: string): number;
   getSchema(): RowObject;
   getSelected(): Array<[number, number, number, number]> | undefined;
   getSelectedLast(): number[] | undefined;
@@ -179,6 +180,7 @@ export default class Core {
   unlisten(): void;
   updateData(data: CellValue[][] | RowObject[], source?: string): void;
   updateSettings(settings: GridSettings, init?: boolean): void;
+  useTheme(themeName: string|undefined): void;
   validateCell(value: any, cellProperties: CellProperties, callback: (valid: boolean) => void, source: string): void;
   validateCells(callback?: (valid: boolean) => void): void;
   validateColumns(columns: number[], callback?: (valid: boolean) => void): void;

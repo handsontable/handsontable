@@ -4,24 +4,13 @@
 
 @mixin output {
   .handsontable {
-    .htRight {
-      .columnSorting {
-        &.sortAction {
-          margin-inline-end: calc(var(--ht-gap-size));
-        }
-      }
-    }
-
     .columnSorting {
       position: relative;
 
       &.sortAction {
-        margin-inline-end: calc(calc(var(--ht-icon-size) * -1));
-
-        &.ascending,
-        &.descending {
-          margin-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size));
-        }
+        padding-inline-end: var(--ht-icon-size, 16px);
+        min-width: calc(var(--ht-icon-size, 16px) + 8px);
+        max-width: calc(100% - calc(var(--ht-icon-size, 16px) * 2) - 4px);
 
         &:hover {
           text-decoration: none;
@@ -30,11 +19,27 @@
 
         &:before {
           @include mixins.pseudo;
-          width: var(--ht-icon-size);
+          width: var(--ht-icon-size, 16px);
           position: absolute;
           top: 50%;
-          left: 100%;
+          right: 2px;
           transform: translateY(-50%);
+          text-align: right;
+        }
+      }
+    }
+
+    .htRight {
+      .columnSorting {
+        &.sortAction {
+          padding-inline-start: var(--ht-icon-size, 16px);
+          padding-inline-end: var(--ht-gap-size, 4px);
+
+          &:before {
+            left: 2px;
+            right: auto;
+            text-align: left;
+          }
         }
       }
     }
@@ -45,8 +50,33 @@
       .columnSorting {
         &.sortAction {
           &:before {
-            left: auto;
-            right: 100%;
+            left: 2px;
+            right: auto;
+            text-align: left;
+          }
+        }
+      }
+
+      .htRight {
+        .columnSorting {
+          &.sortAction {
+            padding-inline-start: var(--ht-gap-size, 4px);
+            padding-inline-end: var(--ht-icon-size, 16px);
+          }
+        }
+      }
+
+      .htLeft {
+        .columnSorting {
+          &.sortAction {
+            padding-inline-start: var(--ht-icon-size, 16px);
+            padding-inline-end: var(--ht-gap-size, 4px);
+
+            &:before {
+              left: auto;
+              right: 2px;
+              text-align: right;
+            }
           }
         }
       }

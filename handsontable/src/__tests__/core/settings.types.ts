@@ -341,6 +341,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   strict: true,
   tableClassName: oneOf('foo', ['first-class-name', 'second-class-name']),
   tabMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 2, col: 2})),
+  themeName: 'ht-theme-some-theme',
   title: 'foo',
   trimDropdown: true,
   trimRows: oneOf(true, [5, 10, 15]),
@@ -620,7 +621,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeSetRangeEnd: (coords) => {},
   beforeSetRangeStart: (coords) => {},
   beforeSetRangeStartOnly: (coords) => {},
-  beforeStretchingColumnWidth: (stretchedWidth, column) => {},
+  beforeStretchingColumnWidth: (stretchedWidth, column) => {
+    const _stretchedWidth: number = stretchedWidth;
+    const _column: number = column;
+  },
   beforeTouchScroll: () => {},
   beforeTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
   beforeUndo: (action) => {},
@@ -647,7 +651,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyColHeader: (column) => {},
   modifyColumnHeaderHeight: () => {},
   modifyColumnHeaderValue: (headerValue, visualColumnIndex, headerLevel) => {},
-  modifyColWidth: (width) => {},
+  modifyColWidth: (width, column, source) => {
+    const _width: number = width;
+    const _column: number = column;
+    const _source: string | undefined = source;
+  },
   modifyCopyableRange: (copyableRanges) => {},
   modifyFiltersMultiSelectValue: (value, meta) => '123',
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
@@ -670,9 +678,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},
-  modifyRowHeight: (height, row) => {
+  modifyRowHeight: (height, row, source) => {
     const _height: number = height;
     const _row: number = row;
+    const _source: string | undefined = source;
   },
   modifyRowHeightByOverlayName: (height, row, overlayType) => {
     const _height: number = height;

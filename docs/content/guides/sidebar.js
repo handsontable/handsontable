@@ -13,8 +13,7 @@ const gettingStartedItems = [
 ];
 
 const stylingItems = [
-  { path: 'guides/styling/themes/themes' },
-  { path: 'guides/styling/figma/figma' },
+  { path: 'guides/styling/themes/themes' }
 ];
 
 const integrateWithAngularItems = [
@@ -187,6 +186,7 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/migrating-from-11.1-to-12.0/migrating-from-11.1-to-12.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-12.4-to-13.0/migrating-from-12.4-to-13.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-13.1-to-14.0/migrating-from-13.1-to-14.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0' },
 ];
 
 module.exports = {

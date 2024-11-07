@@ -1,8 +1,9 @@
 import { useRef } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 import Handsontable from 'handsontable';
 import { CellChange } from 'handsontable/common';
 
@@ -10,7 +11,7 @@ import { CellChange } from 'handsontable/common';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableClass>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
   const templateValues = ['one', 'two', 'three'];
   const data = [

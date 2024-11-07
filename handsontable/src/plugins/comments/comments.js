@@ -198,7 +198,7 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.#editor) {
-      this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.getSettings().themeName);
+      this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl());
       this.#editor.addLocalHook('resize', (...args) => this.#onEditorResize(...args));
     }
 
@@ -212,6 +212,8 @@ export class Comments extends BasePlugin {
     this.addHook('afterScroll', () => this.#onAfterScroll());
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
+    this.addHook('afterInit', () => this.#updateEditorThemeClassName());
+    this.addHook('afterUpdateSettings', () => this.#updateEditorThemeClassName());
 
     this.#displaySwitch.addLocalHook('hide', () => this.hide());
     this.#displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
@@ -556,7 +558,7 @@ export class Comments extends BasePlugin {
       this.#editor.resetSize();
     }
 
-    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
+    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getColumnWidth(renderableColumn);
     const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
 
     const {
@@ -762,6 +764,13 @@ export class Comments extends BasePlugin {
     if (!this.#preventEditorHiding) {
       this.hide();
     }
+  }
+
+  /**
+   * Updates the editor theme class name.
+   */
+  #updateEditorThemeClassName() {
+    addClass(this.#editor.getEditorElement(), this.hot.getCurrentThemeName());
   }
 
   /**

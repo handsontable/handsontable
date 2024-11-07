@@ -93,6 +93,7 @@ export class HandsontableEditor extends TextEditor {
       autoWrapCol: false,
       autoWrapRow: false,
       ariaTags: false,
+      themeName: this.hot.getCurrentThemeName(),
       afterOnCellMouseDown(_, coords) {
         const sourceValue = this.getSourceData(coords.row, coords.col);
 

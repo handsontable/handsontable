@@ -36,7 +36,7 @@
     // Cell and Header
     th,
     td {
-      height: var(--ht-row-height);
+      height: var(--ht-row-height, 28px);
       padding: var(--ht-cell-vertical-padding, 4px)
         var(--ht-cell-horizontal-padding, 8px);
       vertical-align: top;
@@ -47,7 +47,7 @@
       border-style: solid;
       border-color: var(--ht-border-color);
       font-size: var(--ht-font-size, 14px);
-      line-height: var(--ht-line-height, 18px);
+      line-height: var(--ht-line-height, 20px);
       white-space: pre-wrap;
       overflow: hidden;
       outline: none;
@@ -137,6 +137,19 @@
         padding: var(--ht-cell-vertical-padding, 4px)
           var(--ht-cell-horizontal-padding, 8px);
         overflow: hidden;
+
+        .colHeader {
+          text-overflow: ellipsis;
+          overflow: hidden;
+          vertical-align: top;
+          max-width: calc(100% + 1px);
+        }
+
+        &:has(.collapsibleIndicator, .changeType) {
+          .colHeader {
+            max-width: calc(100% - (var(--ht-icon-size) + var(--ht-gap-size)));
+          }
+        }
       }
     }
 

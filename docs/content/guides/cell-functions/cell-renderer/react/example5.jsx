@@ -1,8 +1,9 @@
 import { useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -11,7 +12,7 @@ const ExampleComponent = () => {
   const hotRef = useRef(null);
   let isChecked = false;
 
-  function customRenderer(instance, td) {
+  function customRenderer(_instance, td) {
     textRenderer.apply(this, arguments);
 
     if (isChecked) {

@@ -430,32 +430,6 @@ describe('Core_updateSettings', () => {
     expect(getCellValidator(0, 0)).toBeUndefined();
   });
 
-  it('should allow updating the stretching type', () => {
-    const hot = handsontable({
-      stretchH: 'last'
-    });
-
-    expect(hot.view._wt.getSetting('stretchH')).toEqual('last');
-
-    updateSettings({
-      stretchH: 'all'
-    });
-
-    expect(hot.view._wt.getSetting('stretchH')).toEqual('all');
-
-    updateSettings({
-      stretchH: 'none'
-    });
-
-    expect(hot.view._wt.getSetting('stretchH')).toEqual('none');
-
-    updateSettings({
-      stretchH: 'last'
-    });
-
-    expect(hot.view._wt.getSetting('stretchH')).toEqual('last');
-  });
-
   it('should change colHeader\'s row height if is needed', () => {
     handsontable({
       colHeaders: true,
@@ -680,5 +654,110 @@ describe('Core_updateSettings', () => {
 
     expect($('.ht_master .wtHider')[0].offsetWidth)
       .toEqual($('.ht_master td')[0].offsetWidth);
+  });
+
+  describe('theme updating', () => {
+    it('should be able to change the themes with the `updateSettings` method', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(15, 15),
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.getCurrentThemeName()).toBe(undefined);
+
+      simulateModernThemeStylesheet(spec().$container);
+      hot.updateSettings({
+        themeName: 'ht-theme-sth'
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+
+      // `updateSettings` calls without `themeName` provided should not change the theme
+      hot.updateSettings({});
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+
+      // Calling `updateSettings` with `themeName` defined to `undefined` or `false` should
+      // switch HOT back to the classic theme.
+      hot.updateSettings({
+        themeName: undefined
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.getCurrentThemeName()).toBe(undefined);
+      expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
+
+      hot.updateSettings({
+        themeName: 'ht-theme-sth'
+      });
+      hot.updateSettings({
+        themeName: false
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.getCurrentThemeName()).toBe(undefined);
+      expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
+    });
+
+    it('should update the theme based on the `themeName` option, even if a theme class is already applied to the container', () => {
+      simulateModernThemeStylesheet(spec().$container);
+      spec().$container.addClass('ht-theme-sth');
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(15, 15),
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+
+      hot.updateSettings({
+        themeName: 'ht-theme-sth-else',
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth-else');
+      expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
+      expect(spec().$container.hasClass('ht-theme-sth-else')).toBe(true);
+    });
+
+    it('should be possible to disable a "modern" theme by setting the `themeName` to `false` or `undefined`', () => {
+      simulateModernThemeStylesheet(spec().$container);
+      spec().$container.addClass('ht-theme-sth');
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(15, 15),
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+
+      hot.updateSettings({
+        themeName: undefined,
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.getCurrentThemeName()).toBe(undefined);
+      expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
+
+      spec().$container.addClass('ht-theme-sth');
+      hot.useTheme('ht-theme-sth');
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+
+      hot.updateSettings({
+        themeName: false,
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.getCurrentThemeName()).toBe(undefined);
+      expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
+    });
   });
 });

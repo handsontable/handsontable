@@ -1,14 +1,15 @@
 // you need `useRef` to call Handsontable's instance methods
 import { useEffect, useRef } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotTableComponentRef = useRef<HotTableClass>(null);
+  const hotTableComponentRef = useRef<HotTableRef>(null);
 
   useEffect(() => {
     const handsontableInstance = hotTableComponentRef.current?.hotInstance;

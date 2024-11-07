@@ -144,6 +144,43 @@ export function closestDown(element, nodes, until) {
 }
 
 /**
+ * Traverses up the DOM tree from the given element and finds parent elements that have a specified class name
+ * or match a provided class name regular expression.
+ *
+ * @param {HTMLElement} element - The element from which to start traversing.
+ * @param {string|RegExp} className - The class name or class name regular expression to check.
+ * @returns {{element: HTMLElement, classNames: string[]}} - Returns an object containing the matched parent element and an array of matched class names.
+ */
+export function findFirstParentWithClass(element, className) {
+  const matched = {
+    element: undefined,
+    classNames: []
+  };
+  let elementToCheck = element;
+
+  while (elementToCheck !== null && elementToCheck !== element.ownerDocument.documentElement && !matched.element) {
+    if (typeof className === 'string' && elementToCheck.classList.contains(className)) {
+
+      matched.element = elementToCheck;
+      matched.classNames.push(className);
+
+    } else if (className instanceof RegExp) {
+      const matchingClasses = Array.from(elementToCheck.classList).filter(cls => className.test(cls));
+
+      if (matchingClasses.length) {
+
+        matched.element = elementToCheck;
+        matched.classNames.push(...matchingClasses);
+      }
+    }
+
+    elementToCheck = elementToCheck.parentElement;
+  }
+
+  return matched;
+}
+
+/**
  * Goes up the DOM tree and checks if element is child of another element.
  *
  * @param {HTMLElement} child Child element An element to check.

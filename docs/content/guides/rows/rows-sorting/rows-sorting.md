@@ -983,7 +983,8 @@ To use sorting, you need only the following modules:
 import Handsontable from 'handsontable/base';
 
 // import Handsontable's CSS
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // import the ColumnSorting plugin (or the MultiColumnSorting plugin)
 import { registerPlugin, ColumnSorting } from 'handsontable/plugins';

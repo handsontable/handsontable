@@ -40,7 +40,9 @@ export class DateEditor extends TextEditor {
     if (typeof Pikaday !== 'function') {
       throw new Error('You need to include Pikaday to your project.');
     }
+
     super.init();
+
     this.hot.addHook('afterDestroy', () => {
       this.parentDestroyed = true;
       this.destroyElements();
@@ -62,7 +64,7 @@ export class DateEditor extends TextEditor {
 
     this.datePicker.setAttribute('dir', this.hot.isRtl() ? 'rtl' : 'ltr');
 
-    const themeClassName = this.hot.getSettings().themeName;
+    const themeClassName = this.hot.getCurrentThemeName();
 
     addClass(this.datePicker, 'htDatepickerHolder');
     addClass(this.datePicker, themeClassName);

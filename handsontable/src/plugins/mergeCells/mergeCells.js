@@ -1509,7 +1509,7 @@ export class MergeCells extends BasePlugin {
    * @returns {number}
    */
   #sumCellsHeights(row, rowspan) {
-    const defaultHeight = this.hot.view._wt.wtSettings.getSettingPure('defaultRowHeight');
+    const defaultHeight = this.hot.view.getDefaultRowHeight();
     const autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
     let height = 0;
 

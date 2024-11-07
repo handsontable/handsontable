@@ -14,11 +14,11 @@
           width: 8px;
           position: absolute;
           top: 50%;
-          left: 100%;
+          right: 0;
           transform: translateY(-50%);
           margin-top: 4px;
-          margin-inline-start: calc(var(--ht-icon-size) - 6px);
           font-size: 8px;
+          text-align: right;
         }
 
         // We support up to 7 numeric indicators, describing order of column in sorted columns queue
@@ -35,6 +35,18 @@
         }
       }
     }
+
+    .htRight {
+      .colHeader {
+        &.columnSorting {
+          &:after {
+            left: 0px;
+            right: auto;
+            text-align: left;
+          }
+        }
+      }
+    }
   }
 
   [dir="rtl"] {
@@ -43,8 +55,21 @@
       .colHeader {
         &.columnSorting {
           &:after {
-            left: auto;
-            right: 100%;
+            left: 0px;
+            right: auto;
+            text-align: left;
+          }
+        }
+      }
+
+      .htLeft {
+        .colHeader {
+          &.columnSorting {
+            &:after {
+              left: auto;
+              right: 0;
+              text-align: right;
+            }
           }
         }
       }

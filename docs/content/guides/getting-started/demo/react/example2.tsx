@@ -1,8 +1,9 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import Handsontable from 'handsontable';
-import { HotTable, HotColumn } from '@handsontable/react';
-import 'handsontable/dist/handsontable.full.min.css';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // constants.ts
 export const data = [
@@ -1293,7 +1294,7 @@ const App = () => {
 
 const rootElement = document.getElementById('example2');
 
-ReactDOM.render(<App />, rootElement);
+ReactDOM.createRoot(rootElement).render(<App />);
 
 console.log(
   `Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`

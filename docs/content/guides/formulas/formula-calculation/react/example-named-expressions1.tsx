@@ -1,15 +1,16 @@
 import { ChangeEvent, useRef, useState } from 'react';
 import { HyperFormula } from 'hyperformula';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { DetailedSettings } from 'handsontable/plugins/formulas';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotNamedExpressionsRef = useRef<HotTableClass>(null);
+  const hotNamedExpressionsRef = useRef<HotTableRef>(null);
   const [namedExpressionValue, setNamedExpressionValue] =
     useState('=10 * Sheet1!$A$2');
 

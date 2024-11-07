@@ -108,6 +108,7 @@ export const getColWidth = handsontableMethodFactory('getColWidth');
 export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
+export const getCurrentThemeName = handsontableMethodFactory('getCurrentThemeName');
 export const getData = handsontableMethodFactory('getData');
 export const getDataAtCell = handsontableMethodFactory('getDataAtCell');
 export const getDataAtCol = handsontableMethodFactory('getDataAtCol');
@@ -176,6 +177,7 @@ export const undo = handsontableMethodFactory('undo');
 export const unlisten = handsontableMethodFactory('unlisten');
 export const updateData = handsontableMethodFactory('updateData');
 export const updateSettings = handsontableMethodFactory('updateSettings');
+export const useTheme = handsontableMethodFactory('useTheme');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
 
@@ -1074,6 +1076,28 @@ export function simulateTouch(target) {
       $(target).simulate('click');
     }
   }
+}
+
+/**
+ * Simulates the application of modern theme styles to a Handsontable context.
+ *
+ * @param {HTMLElement|jQuery} container - The container element to which the styles will be applied.
+ */
+export function simulateModernThemeStylesheet(container) {
+  const element = container instanceof $ ? container.get(0) : container;
+
+  element.style.setProperty('--ht-row-height', '28px');
+}
+
+/**
+ * Clears the modern theme styles simulation applied using the `simulateModernThemeStylesheet` method.
+ *
+ * @param {HTMLElement|jQuery} container - The container element.
+ */
+export function clearModernThemeStylesheetMock(container) {
+  const element = container instanceof $ ? container.get(0) : container;
+
+  element.style.removeProperty('--ht-row-height');
 }
 
 /**

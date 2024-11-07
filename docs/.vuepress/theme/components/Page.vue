@@ -25,9 +25,7 @@ export default {
     return {
       inActiveElementId: '',
       isButtonInactive: false,
-      selectedLang: 'JavaScript',
-      themeName: 'main',
-      themeVariant: 'dark'
+      selectedLang: 'JavaScript'
     };
   },
   computed: {
@@ -185,15 +183,6 @@ export default {
           button.classList.remove('active');
         }
       });
-    },
-    setThemeExample() {
-      // console.log(e.target.value);
-    },
-    setThemeExampleMode(e) {
-      document.querySelectorAll('.theme-example').forEach((element) => {
-        element.classList.add('hide');
-      });
-      document.querySelector(`#example-main-${e.target.value}-container`).classList.remove('hide');
     }
   },
   mounted() {
@@ -201,43 +190,10 @@ export default {
     this.checkSectionInView();
     window.addEventListener('click', this.detectClickOutsideButton);
     window.addEventListener('scroll', this.checkSectionInView);
-
-    // TODO: replace with real styles getter
-    document.querySelectorAll('.theme-example').forEach((element) => {
-      const style = getComputedStyle(element);
-
-      if (style.display !== 'none') {
-        document.querySelector('#color-box-style').innerHTML = `
-            .color-box {
-              --theme-primary: ${style.getPropertyValue('--hot-background-color')};
-              --theme-secondary:  ${style.getPropertyValue('--hot-foreground-color')};
-              --theme-accent:  ${style.getPropertyValue('--hot-accent-color')};
-            }
-          `;
-      }
-    });
   },
   unmounted() {
     window.removeEventListener('scroll', this.checkSectionInView);
     window.removeEventListener('click', this.detectClickOutsideButton);
-  },
-  watch: {
-    themeVariant(variant) {
-      // TODO: replace with real styles getter
-      document.querySelectorAll('.theme-example').forEach((element) => {
-        const style = getComputedStyle(element);
-
-        if (element.getAttribute('id').includes(variant)) {
-          document.querySelector('#color-box-style').innerHTML = `
-              .color-box {
-                --theme-primary: ${style.getPropertyValue('--hot-background-color')};
-                --theme-secondary:  ${style.getPropertyValue('--hot-foreground-color')};
-                --theme-accent:  ${style.getPropertyValue('--hot-accent-color')};
-              }
-            `;
-        }
-      });
-    }
   }
 };
 </script>
