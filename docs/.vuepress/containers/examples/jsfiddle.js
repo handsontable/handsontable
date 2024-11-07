@@ -6,11 +6,15 @@ const { getDependencies } = require('../../handsontable-manager');
 const jsfiddle = (_id, html, code, css, version, preset, lang) => {
   const isBabelPanel = preset.includes('react') || preset.includes('vue') || preset.includes('hot');
   const isAngularPanel = preset.includes('angular');
+  
   const imports = getDependencies(version, preset).reduce(
     (p, c) =>
       p +
       (c[0] ? `<script src="${c[0]}"></script>\n` : '') +
-      (c[2] ? `<link type="text/css" rel="stylesheet" href="${c[2]}" /> \n` : ''),
+      (Array.isArray(c[2]) 
+      ? c[2].map(href => `<link type="text/css" rel="stylesheet" href="${href}" /> \n`).join('')
+      : c[2] ? `<link type="text/css" rel="stylesheet" href="${c[2]}" /> \n` 
+      : ''),
     '');
 
   return `
