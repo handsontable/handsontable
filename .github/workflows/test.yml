@@ -570,7 +570,9 @@ jobs:
             npm run in handsontable build:languages.min
           fi
           npm run in handsontable postbuild
-
+      - run: |
+          npm run in handsontable build:themes
+          npm run in handsontable postbuild
       - name: Build wrappers and test examples
         run: npm run build -- -e handsontable
 
