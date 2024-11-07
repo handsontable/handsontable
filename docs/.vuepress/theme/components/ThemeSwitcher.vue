@@ -9,6 +9,7 @@
 </template>
 
 <script>
+/* global instanceRegister */
 const CLASS_THEME_DARK = 'theme-dark';
 const STORAGE_KEY = 'handsontable/docs::color-scheme';
 // The "SELECTED_COLOR_SCHEME" const is defined in the script that is injected in the VuePress config.js file.
