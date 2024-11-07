@@ -31,6 +31,8 @@ export default {
         document.documentElement.classList.remove(CLASS_THEME_DARK);
         document.documentElement.setAttribute('data-theme', 'light');
       }
+
+      instanceRegister.switchExamplesTheme();
     },
   },
   data() {

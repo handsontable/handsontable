@@ -198,6 +198,10 @@ export class HandsontableEditor extends TextEditor {
         this.htEditor.destroy();
       }
     });
+
+    this.hot.addHook('afterSetTheme', (themeName) => {
+      this.htEditor.useTheme(themeName);
+    });
   }
 
   /**

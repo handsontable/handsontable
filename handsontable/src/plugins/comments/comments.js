@@ -1,9 +1,10 @@
 import {
   addClass,
+  removeClass,
   closest,
   isChildOf,
   hasClass,
-  outerHeight
+  outerHeight,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
@@ -212,8 +213,7 @@ export class Comments extends BasePlugin {
     this.addHook('afterScroll', () => this.#onAfterScroll());
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
-    this.addHook('afterInit', () => this.#updateEditorThemeClassName());
-    this.addHook('afterUpdateSettings', () => this.#updateEditorThemeClassName());
+    this.addHook('afterSetTheme', () => this.#updateEditorThemeClassName());
 
     this.#displaySwitch.addLocalHook('hide', () => this.hide());
     this.#displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
@@ -770,7 +770,10 @@ export class Comments extends BasePlugin {
    * Updates the editor theme class name.
    */
   #updateEditorThemeClassName() {
-    addClass(this.#editor.getEditorElement(), this.hot.getCurrentThemeName());
+    const editorElement = this.#editor.getEditorElement();
+
+    removeClass(editorElement, /ht-theme-.*/g);
+    addClass(editorElement, this.hot.getCurrentThemeName());
   }
 
   /**

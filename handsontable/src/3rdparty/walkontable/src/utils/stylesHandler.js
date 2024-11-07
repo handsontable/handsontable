@@ -197,9 +197,9 @@ Import the correct CSS files in order to use that theme.`);
    * Applies the necessary class names to the root element.
    */
   #applyClassNames() {
-    if (!hasClass(this.#rootElement, this.#themeName)) {
-      addClass(this.#rootElement, this.#themeName);
-    }
+    removeClass(this.#rootElement, /ht-theme-.*/g);
+
+    addClass(this.#rootElement, this.#themeName);
   }
 
   /**

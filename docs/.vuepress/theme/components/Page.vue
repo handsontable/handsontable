@@ -25,7 +25,8 @@ export default {
     return {
       inActiveElementId: '',
       isButtonInactive: false,
-      selectedLang: 'JavaScript'
+      selectedLang: 'JavaScript',
+      themeClassName: null,
     };
   },
   computed: {
@@ -175,6 +176,16 @@ export default {
         '_blank'
       );
     },
+    getThemeClassName(colorScheme) {
+      switch (colorScheme) {
+        case 'dark':
+          return 'ht-theme-main-dark';
+        case 'light':
+          return 'ht-theme-main';
+        default:
+          return 'ht-theme-main-dark-auto';
+      }
+    },
     detectClickOutsideButton(e) {
       const buttons = document.querySelectorAll('.select-type-button');
 
@@ -187,6 +198,8 @@ export default {
   },
   mounted() {
     this.selectedLang = localStorage?.getItem('selected_lang') ?? 'JavaScript';
+    this.themeClassName = this.getThemeClassName(localStorage?.getItem('handsontable/docs::color-scheme'));
+
     this.checkSectionInView();
     window.addEventListener('click', this.detectClickOutsideButton);
     window.addEventListener('scroll', this.checkSectionInView);
@@ -194,6 +207,11 @@ export default {
   unmounted() {
     window.removeEventListener('scroll', this.checkSectionInView);
     window.removeEventListener('click', this.detectClickOutsideButton);
+  },
+  watch: {
+    $route() {
+      this.themeClassName = this.getThemeClassName(localStorage?.getItem('handsontable/docs::color-scheme'));
+    }
   }
 };
 </script>

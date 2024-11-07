@@ -329,7 +329,7 @@ export function addClass(element, className) {
  * Remove class name from an element.
  *
  * @param {HTMLElement} element An element to process.
- * @param {string|Array<string|RegExp>} className Class name as string or array of strings.
+ * @param {string|RegExp|Array<string|RegExp>} className Class name as string or array of strings.
  */
 export function removeClass(element, className) {
   if (typeof className === 'string') {
