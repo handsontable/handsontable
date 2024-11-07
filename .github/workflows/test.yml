@@ -577,7 +577,7 @@ jobs:
         run: npm run build -- -e handsontable
 
       - name: Install dependencies for examples
-        run: npm run examples:install next
+        run: npm run in visual-tests build
 
       - name: Run visual multi-framework tests
         run: npm run in visual-tests test
