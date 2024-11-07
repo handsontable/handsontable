@@ -923,7 +923,7 @@ export const REGISTERED_HOOKS = [
   'afterSetSourceDataAtCell',
 
   /**
-   * Fired after a theme is enabled.
+   * Fired after a theme is enabled, changed, or disabled.
    *
    * @since 15.0.0
    * @event Hooks#afterSetTheme

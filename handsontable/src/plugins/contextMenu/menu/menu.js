@@ -167,9 +167,7 @@ export class Menu {
     }
 
     this.hot.addHook('afterSetTheme', (themeName) => {
-      if (this.hotMenu) {
-        this.hotMenu.useTheme(themeName);
-      }
+      this.hotMenu?.useTheme(themeName);
     });
   }
 
