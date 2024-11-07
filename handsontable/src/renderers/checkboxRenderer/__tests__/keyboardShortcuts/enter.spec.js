@@ -132,6 +132,50 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
     });
 
+    it('should change checkbox state from checked to unchecked for merged cell', () => {
+      handsontable({
+        data: [
+          [true, null, null],
+          [null, null, null],
+          [null, null, null],
+        ],
+        type: 'checkbox',
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 3, colspan: 3 },
+        ],
+      });
+
+      const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
+      addHook('afterChange', afterChangeCallback);
+
+      let checkboxes = spec().$container.find(':checkbox');
+
+      expect(checkboxes.eq(0).prop('checked')).toBe(true);
+      expect(checkboxes.eq(1).prop('checked')).toBe(true);
+      expect(checkboxes.eq(2).prop('checked')).toBe(true);
+      expect(getData()).toEqual([
+        [true, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      checkboxes = spec().$container.find(':checkbox');
+
+      expect(checkboxes.eq(0).prop('checked')).toBe(false);
+      expect(getData()).toEqual([
+        [false, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+      expect(afterChangeCallback.calls.count()).toEqual(1);
+      expect(afterChangeCallback)
+        .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
+    });
+
     it('should move down without changing checkbox state when enterBeginsEditing equals false', () => {
       handsontable({
         enterBeginsEditing: false,
