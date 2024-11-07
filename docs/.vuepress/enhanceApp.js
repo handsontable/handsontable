@@ -91,7 +91,7 @@ export default async({ router, siteData, isServer }) => {
     }
 
     // Default position is top of page
-    let scrollPosition = { x: 0, y: 0 };
+    let scrollPosition = { top: 0, left: 0 };
 
     if (savedPosition) {
       scrollPosition = savedPosition;
@@ -101,7 +101,7 @@ export default async({ router, siteData, isServer }) => {
       scrollPosition = {
         selector: to.hash,
         behavior: 'smooth',
-        offset: { x: 0, y: 75 }
+        offset: { left: 0, top: 75 }
       };
     }
 
