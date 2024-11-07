@@ -1,4 +1,7 @@
 /* global GA_ID, ga */
+
+import { nextTick } from 'vue';
+
 const { applyToWindow, instanceRegister } = require('./handsontable-manager');
 
 applyToWindow();
@@ -79,8 +82,10 @@ export default async({ router, siteData, isServer }) => {
   });
 
   router.options.scrollBehavior = async(to, from, savedPosition) => {
+    console.log('startscrollBehavior');
+
     if (this.app.$vuepress.$get('disableScrollBehavior')) {
-      console.log('disableScrollBehabior');
+      console.log('disableScrollBehavior');
 
       return false;
     }
@@ -89,11 +94,9 @@ export default async({ router, siteData, isServer }) => {
     let scrollPosition = { x: 0, y: 0 };
 
     if (savedPosition) {
-      scrollPosition = savedPosition; // Return to saved position on back/forward
+      scrollPosition = savedPosition;
       console.log('savedPosition');
-
     } else if (to.hash) {
-      // Scroll to anchor if hash is present
       console.log('scroll to anchor', to.hash);
       scrollPosition = {
         selector: to.hash,
@@ -102,12 +105,11 @@ export default async({ router, siteData, isServer }) => {
       };
     }
 
-    // Wait until the page is fully loaded before scrolling
-    await new Promise(resolve => (window.onload ? resolve() : window.addEventListener('load', resolve)));
+    // Ensure DOM is updated
+    await nextTick();
 
     return scrollPosition;
   };
-
   if (typeof window.ga === 'function') {
     router.afterEach((to) => {
       if (!isFirstPageGALoaded) {
