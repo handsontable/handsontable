@@ -59,7 +59,6 @@ export default async({ router, siteData, isServer }) => {
   // in watch mode redirect to page with default framework
   if (location.pathname === '/docs/' && currentVersion === 'next' && !buildMode) {
     location.replace(`${location.href}${defaultFramework}${frameworkSuffix}`);
-
     return;
   }
 
@@ -79,10 +78,10 @@ export default async({ router, siteData, isServer }) => {
     page.versionsWithPatches = new Map(docsData.versionsWithPatches);
   });
 
-  router.options.afterEach(() => {
-    window.scrollTo(0, 0)
+  router.afterEach((to, from) => {
+    console.log(`Navigated from ${from.fullPath} to ${to.fullPath}`);
+    window.scrollTo(0, 0);
   });
-
   router.options.scrollBehavior = async(to, from, savedPosition) => {
     // disable autoscrolling
     // return undefined
