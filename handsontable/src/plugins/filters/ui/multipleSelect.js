@@ -235,9 +235,14 @@ export class MultipleSelectUI extends BaseUI {
         fillHandle: false,
         fragmentSelection: 'cell',
         tabMoves: { row: 1, col: 0 },
+        themeName: this.hot.getCurrentThemeName(),
         layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       });
       this.#itemsBox.init();
+
+      this.hot.addHook('afterSetTheme', () => {
+        this.#itemsBox.useTheme(this.hot.getCurrentThemeName());
+      });
 
       const shortcutManager = this.#itemsBox.getShortcutManager();
       const gridContext = shortcutManager.getContext('grid');
