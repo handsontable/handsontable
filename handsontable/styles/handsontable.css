@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 06/11/2024 15:41:46)
+ * Release date: 17/10/2024 (built at 08/11/2024 10:45:07)
  */
 .handsontable {
   position: relative;
@@ -876,12 +876,19 @@ tr.ht__row_odd td {
 .pika-single .pika-table thead {
   height: 50px;
 }
+.pika-single .pika-table th {
+  padding: 1px;
+  vertical-align: middle;
+}
 .pika-single .pika-table th abbr {
   text-decoration: none;
   font-weight: normal;
+  border: none;
+  cursor: initial;
 }
 .pika-single .pika-table td {
   padding: 1px;
+  vertical-align: middle;
 }
 .pika-single .pika-table td.is-disabled .pika-button {
   pointer-events: none;
@@ -1851,7 +1858,7 @@ tr.ht__row_odd td {
   width: 2px;
   height: calc(100% - 12px);
   max-height: 16px;
-  background: var(--ht-read-only-color);
+  background: var(--ht-resize-indicator-color);
   border-radius: 2px;
   transform: translateY(-50%);
 }

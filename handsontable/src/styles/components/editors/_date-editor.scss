@@ -75,14 +75,20 @@
       }
 
       th {
+        padding: 1px;
+        vertical-align: middle;
+
         abbr {
           text-decoration: none;
           font-weight: normal;
+          border: none;
+          cursor: initial;
         }
       }
 
       td {
         padding: 1px;
+        vertical-align: middle;
 
         &.is-disabled {
           .pika-button {

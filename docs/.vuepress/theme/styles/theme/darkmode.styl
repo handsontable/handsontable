@@ -1362,6 +1362,13 @@ html.theme-dark {
     
     .controls:not(button), .example-container {
 
+        label:has(select) {
+            &:after {
+                border-bottom: 1px solid $textColor !important;
+                border-right: 1px solid $textColor !important;
+            }
+        }
+
         #mainInput, select:not([data-hot-input]), input[type=text], input[type=search], .placeholder-input {
             border-radius: $radius
             border: 1px solid $lightBorderColor
