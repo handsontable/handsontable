@@ -83,7 +83,7 @@ export default async({ router, siteData, isServer }) => {
 
   router.options.scrollBehavior = async(to, from, savedPosition) => {
     // disable autoscrolling
-    return false;
+    return undefined;
     // delay
     // return new Promise((resolve, reject) => {
     //   setTimeout(() => {
