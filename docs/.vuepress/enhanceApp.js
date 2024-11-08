@@ -82,8 +82,11 @@ export default async({ router, siteData, isServer }) => {
   });
 
   router.options.scrollBehavior = async(to, from, savedPosition) => {
-    console.log('scrollbar always scroll to the top')
-    return { top: 0 }
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve({ left: 0, top: 0 })
+      }, 3000)
+    })
   };
   if (typeof window.ga === 'function') {
     router.afterEach((to) => {
