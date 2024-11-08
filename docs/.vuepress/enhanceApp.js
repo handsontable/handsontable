@@ -82,11 +82,18 @@ export default async({ router, siteData, isServer }) => {
   });
 
   router.options.scrollBehavior = async(to, from, savedPosition) => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve({ left: 0, top: 0 })
-      }, 3000)
-    })
+    // disable autoscrolling
+    return false;
+    // delay
+    // return new Promise((resolve, reject) => {
+    //   setTimeout(() => {
+    //     resolve({
+    //       left: 0,
+    //       top: 0,
+    //       behavior: 'smooth'
+    //      })
+    //   }, 3000)
+    // })
   };
   if (typeof window.ga === 'function') {
     router.afterEach((to) => {
