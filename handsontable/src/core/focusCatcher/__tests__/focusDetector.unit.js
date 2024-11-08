@@ -36,9 +36,11 @@ describe('focusDetector', () => {
     const inputTrapBottom = hot.rootElement.lastChild;
 
     expect(inputTrapTop.className).toBe('htFocusCatcher');
+    expect(inputTrapTop.name).toBe('__htFocusCatcher');
     expect(inputTrapTop.getAttribute('role')).toBe('presentation');
     expect(inputTrapTop.getAttribute('aria-hidden')).toBe('true');
     expect(inputTrapBottom.className).toBe('htFocusCatcher');
+    expect(inputTrapBottom.name).toBe('__htFocusCatcher');
     expect(inputTrapBottom.getAttribute('role')).toBe('presentation');
     expect(inputTrapBottom.getAttribute('aria-hidden')).toBe('true');
   });

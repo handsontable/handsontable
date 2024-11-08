@@ -211,6 +211,11 @@
         }
       },
       {
+        "./common": {
+          "types": "./common.d.ts"
+        }
+      },
+      {
         "./languages/all": {
           "import": "./languages/index.mjs",
           "require": "./languages/all.js"
