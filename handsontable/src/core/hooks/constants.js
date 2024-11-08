@@ -923,6 +923,15 @@ export const REGISTERED_HOOKS = [
   'afterSetSourceDataAtCell',
 
   /**
+   * Fired after a theme is enabled, changed, or disabled.
+   *
+   * @since 15.0.0
+   * @event Hooks#afterSetTheme
+   * @param {string|boolean|undefined} themeName The theme name.
+   */
+  'afterSetTheme',
+
+  /**
    * Fired after calling the [`updateSettings`](@/api/core.md#updatesettings) method.
    *
    * @event Hooks#afterUpdateSettings

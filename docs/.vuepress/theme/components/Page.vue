@@ -11,7 +11,7 @@
 </template>
 
 <script>
-/* global instanceRegister */
+/* global instanceRegister, hotThemeManager */
 import PageEdit from '@theme/components/PageEdit.vue';
 import Breadcrumbs from '@theme/components/Breadcrumbs.vue';
 
@@ -25,7 +25,8 @@ export default {
     return {
       inActiveElementId: '',
       isButtonInactive: false,
-      selectedLang: 'JavaScript'
+      selectedLang: 'JavaScript',
+      themeClassName: null,
     };
   },
   computed: {
@@ -187,6 +188,8 @@ export default {
   },
   mounted() {
     this.selectedLang = localStorage?.getItem('selected_lang') ?? 'JavaScript';
+    this.themeClassName = hotThemeManager.getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
+
     this.checkSectionInView();
     window.addEventListener('click', this.detectClickOutsideButton);
     window.addEventListener('scroll', this.checkSectionInView);
@@ -194,6 +197,11 @@ export default {
   unmounted() {
     window.removeEventListener('scroll', this.checkSectionInView);
     window.removeEventListener('click', this.detectClickOutsideButton);
+  },
+  watch: {
+    $route() {
+      this.themeClassName = hotThemeManager.getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
+    }
   }
 };
 </script>
