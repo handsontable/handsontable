@@ -9,6 +9,7 @@ react:
   id: eyatgywe
   metaTitle: Conditional formatting - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Conditional formatting
@@ -32,11 +33,11 @@ This demo shows how to use the cell type renderer feature to make some condition
 
 ::: only-for javascript
 
-::: example #example1 --css 1 --js 2
+::: example #example1 --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-features/conditional-formatting/javascript/example1.css)
-
 @[code](@/content/guides/cell-features/conditional-formatting/javascript/example1.js)
+@[code](@/content/guides/cell-features/conditional-formatting/javascript/example1.ts)
 
 :::
 
@@ -44,11 +45,11 @@ This demo shows how to use the cell type renderer feature to make some condition
 
 ::: only-for react
 
-::: example #example1 :react --css 1 --js 2
+::: example #example1 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-features/conditional-formatting/react/example1.css)
-
 @[code](@/content/guides/cell-features/conditional-formatting/react/example1.jsx)
+@[code](@/content/guides/cell-features/conditional-formatting/react/example1.tsx)
 
 :::
 

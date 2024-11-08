@@ -1,8 +1,8 @@
 const { getParameters } = require('codesandbox/lib/api/define');
 const { getBody } = require('../../code-structure-builder/getBody');
 
-const codesandbox = (id, html, js, css, docsVersion, preset) => {
-  const body = getBody(id, html, js, css, docsVersion, preset);
+const codesandbox = (id, html, js, css, docsVersion, preset, lang) => {
+  const body = getBody({ id, html, js, css, docsVersion, preset, lang });
   const parameters = getParameters(body);
 
   return `
@@ -15,7 +15,7 @@ const codesandbox = (id, html, js, css, docsVersion, preset) => {
     <input type="hidden" name="parameters" value="${parameters}" />
 
     <div class="js-codesandbox-link">
-      <button type="submit" aria-label="Edit codesandbox">
+      <button type="submit" aria-label="Edit in CodeSandbox">
         <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" 
         width="15" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 296" class="icon outbound">
           <path fill="currentColor" d="M115.498 261.088v-106.61L23.814 101.73v60.773l41.996 

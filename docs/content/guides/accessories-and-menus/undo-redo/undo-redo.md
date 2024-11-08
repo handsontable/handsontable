@@ -17,6 +17,7 @@ react:
   id: me8uxp3w
   metaTitle: Undo and redo - React Data Grid | Handsontable
 searchCategory: Guides
+category: Accessories and menus
 ---
 
 # Undo and redo
@@ -39,9 +40,10 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**C
 
 ::: only-for javascript
 
-::: example #example
+::: example #example --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/undo-redo/javascript/example.js)
+@[code](@/content/guides/accessories-and-menus/undo-redo/javascript/example.ts)
 
 :::
 
@@ -50,9 +52,10 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**C
 
 ::: only-for react
 
-::: example #example :react
+::: example #example :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/undo-redo/react/example.jsx)
+@[code](@/content/guides/accessories-and-menus/undo-redo/react/example.tsx)
 
 :::
 

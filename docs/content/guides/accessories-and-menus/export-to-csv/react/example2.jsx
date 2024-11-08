@@ -1,5 +1,5 @@
-import { useRef, useEffect } from 'react';
-import { HotTable } from '@handsontable/react';
+import { useRef } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -8,31 +8,30 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
+  const buttonClickCallback = () => {
+    const hot = hotRef.current?.hotInstance;
+    const exportPlugin = hot?.getPlugin('exportFile');
+    const exportedBlob = exportPlugin?.exportAsBlob('csv', {
+      bom: false,
+      columnDelimiter: ',',
+      columnHeaders: false,
+      exportHiddenColumns: true,
+      exportHiddenRows: true,
+      mimeType: 'text/csv',
+      rowDelimiter: '\r\n',
+      rowHeaders: true,
+    });
 
-  let buttonClickCallback;
-
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
-    const exportPlugin = hot.getPlugin('exportFile');
-
-    buttonClickCallback = () => {
-      const exportedBlob = exportPlugin.exportAsBlob('csv', {
-        bom: false,
-        columnDelimiter: ',',
-        columnHeaders: false,
-        exportHiddenColumns: true,
-        exportHiddenRows: true,
-        mimeType: 'text/csv',
-        rowDelimiter: '\r\n',
-        rowHeaders: true
-      });
-
-      console.log(exportedBlob);
-    };
-  });
+    console.log(exportedBlob);
+  };
 
   return (
     <>
+      <div className="controls">
+        <button id="export-blob" onClick={() => buttonClickCallback()}>
+          Export as a Blob
+        </button>
+      </div>
       <HotTable
         ref={hotRef}
         data={[
@@ -53,9 +52,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button id="export-blob" onClick={(...args) => buttonClickCallback(...args)}>Export as a Blob</button>
-      </div>
     </>
   );
 };

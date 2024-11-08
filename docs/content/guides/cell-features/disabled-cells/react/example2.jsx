@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -10,9 +10,9 @@ const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {
-    const hot = hotRef.current.hotInstance;
+    const hot = hotRef.current?.hotInstance;
 
-    hot.updateSettings({
+    hot?.updateSettings({
       cells(row, col) {
         const cellProperties = {};
 
@@ -21,7 +21,7 @@ const ExampleComponent = () => {
         }
 
         return cellProperties;
-      }
+      },
     });
   });
 
@@ -32,7 +32,7 @@ const ExampleComponent = () => {
         { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
         { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
         { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
-        { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
+        { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' },
       ]}
       colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
       height="auto"

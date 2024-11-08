@@ -1,3 +1,25 @@
+const specContext = {};
+
+beforeEach(function() {
+  specContext.spec = this;
+});
+afterEach(() => {
+  specContext.spec = null;
+});
+
+beforeAll(() => {
+  // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').hide();
+  }
+});
+afterAll(() => {
+  // After the test are finished show the test suite dots
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').show();
+  }
+});
+
 /**
  * @param {number} [delay=100] The delay in ms after which the Promise is resolved.
  * @returns {Promise}
@@ -53,19 +75,20 @@ export function handsontableMethodFactory(method) {
 
 export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthFromSettings');
 export const addHook = handsontableMethodFactory('addHook');
+export const addHookOnce = handsontableMethodFactory('addHookOnce');
 export const alter = handsontableMethodFactory('alter');
 export const clear = handsontableMethodFactory('clear');
 export const colToProp = handsontableMethodFactory('colToProp');
+export const countColHeaders = handsontableMethodFactory('countColHeaders');
 export const countCols = handsontableMethodFactory('countCols');
 export const countEmptyCols = handsontableMethodFactory('countEmptyCols');
 export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
+export const countRenderedCols = handsontableMethodFactory('countRenderedCols');
+export const countRenderedRows = handsontableMethodFactory('countRenderedRows');
+export const countRowHeaders = handsontableMethodFactory('countRowHeaders');
 export const countRows = handsontableMethodFactory('countRows');
 export const countSourceCols = handsontableMethodFactory('countSourceCols');
 export const countSourceRows = handsontableMethodFactory('countSourceRows');
-export const countRenderedRows = handsontableMethodFactory('countRenderedRows');
-export const countRenderedCols = handsontableMethodFactory('countRenderedCols');
-export const countRowHeaders = handsontableMethodFactory('countRowHeaders');
-export const countColHeaders = handsontableMethodFactory('countColHeaders');
 export const countVisibleCols = handsontableMethodFactory('countVisibleCols');
 export const deselectCell = handsontableMethodFactory('deselectCell');
 export const destroy = handsontableMethodFactory('destroy');
@@ -80,6 +103,7 @@ export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
 export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
 export const getCellValidator = handsontableMethodFactory('getCellValidator');
 export const getColHeader = handsontableMethodFactory('getColHeader');
+export const getColumnMeta = handsontableMethodFactory('getColumnMeta');
 export const getColWidth = handsontableMethodFactory('getColWidth');
 export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
@@ -91,8 +115,20 @@ export const getDataAtProp = handsontableMethodFactory('getDataAtProp');
 export const getDataAtRow = handsontableMethodFactory('getDataAtRow');
 export const getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 export const getDataType = handsontableMethodFactory('getDataType');
+export const getFirstFullyVisibleColumn = handsontableMethodFactory('getFirstFullyVisibleColumn');
+export const getFirstFullyVisibleRow = handsontableMethodFactory('getFirstFullyVisibleRow');
+export const getFirstPartiallyVisibleColumn = handsontableMethodFactory('getFirstPartiallyVisibleColumn');
+export const getFirstPartiallyVisibleRow = handsontableMethodFactory('getFirstPartiallyVisibleRow');
+export const getFirstRenderedVisibleColumn = handsontableMethodFactory('getFirstRenderedVisibleColumn');
+export const getFirstRenderedVisibleRow = handsontableMethodFactory('getFirstRenderedVisibleRow');
 export const getFocusManager = handsontableMethodFactory('getFocusManager');
 export const getInstance = handsontableMethodFactory('getInstance');
+export const getLastFullyVisibleColumn = handsontableMethodFactory('getLastFullyVisibleColumn');
+export const getLastFullyVisibleRow = handsontableMethodFactory('getLastFullyVisibleRow');
+export const getLastPartiallyVisibleColumn = handsontableMethodFactory('getLastPartiallyVisibleColumn');
+export const getLastPartiallyVisibleRow = handsontableMethodFactory('getLastPartiallyVisibleRow');
+export const getLastRenderedVisibleColumn = handsontableMethodFactory('getLastRenderedVisibleColumn');
+export const getLastRenderedVisibleRow = handsontableMethodFactory('getLastRenderedVisibleRow');
 export const getPlugin = handsontableMethodFactory('getPlugin');
 export const getRowHeader = handsontableMethodFactory('getRowHeader');
 export const getRowHeight = handsontableMethodFactory('getRowHeight');
@@ -109,6 +145,7 @@ export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCel
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
 export const getValue = handsontableMethodFactory('getValue');
+export const hasHook = handsontableMethodFactory('hasHook');
 export const isListening = handsontableMethodFactory('isListening');
 export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
@@ -117,10 +154,11 @@ export const propToCol = handsontableMethodFactory('propToCol');
 export const redo = handsontableMethodFactory('redo');
 export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
+export const removeHook = handsontableMethodFactory('removeHook');
 export const render = handsontableMethodFactory('render');
-export const updateData = handsontableMethodFactory('updateData');
-export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
+export const runHooks = handsontableMethodFactory('runHooks');
 export const scrollToFocusedCell = handsontableMethodFactory('scrollToFocusedCell');
+export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
 export const selectAll = handsontableMethodFactory('selectAll');
 export const selectCell = handsontableMethodFactory('selectCell');
 export const selectCells = handsontableMethodFactory('selectCells');
@@ -135,32 +173,11 @@ export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const toVisualRow = handsontableMethodFactory('toVisualRow');
 export const undo = handsontableMethodFactory('undo');
+export const unlisten = handsontableMethodFactory('unlisten');
+export const updateData = handsontableMethodFactory('updateData');
 export const updateSettings = handsontableMethodFactory('updateSettings');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
-export const unlisten = handsontableMethodFactory('unlisten');
-
-const specContext = {};
-
-beforeEach(function() {
-  specContext.spec = this;
-});
-afterEach(() => {
-  specContext.spec = null;
-});
-
-beforeAll(() => {
-  // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
-  if (!process.env.JEST_WORKER_ID) {
-    $('.jasmine_html-reporter').hide();
-  }
-});
-afterAll(() => {
-  // After the test are finished show the test suite dots
-  if (!process.env.JEST_WORKER_ID) {
-    $('.jasmine_html-reporter').show();
-  }
-});
 
 /**
  * @returns {object} Returns the spec object for currently running test.

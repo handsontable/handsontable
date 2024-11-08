@@ -2,7 +2,6 @@ import Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
-// tslint:disable-next-line:no-null-undefined-union
 declare function oneOf<T extends Array<string | number | boolean | undefined | null | object>>(...args: T): T[number];
 declare const true_or_false: true | false;
 
@@ -14,6 +13,8 @@ enum SortDirection { asc = 'asc', desc = 'desc' }
 const contextMenuDemo: Handsontable.plugins.ContextMenu.Settings = {
   callback(key, selection, clickEvent) { },
   items: {
+    sep1: '---------',
+    row_above: 'row_above',
     item: {
       name() {
         return '';
@@ -204,6 +205,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   ]),
   data: oneOf([{}, {}, {}], [[], [], []]),
+  dataDotNotation: oneOf(true),
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
   datePickerConfig: {
@@ -268,6 +270,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     },
   ),
   fragmentSelection: oneOf(true, 'cell'),
+  headerClassName: 'htCenter test',
   height: oneOf(500, () => 500),
   hiddenColumns: true,
   hiddenRows: true,
@@ -369,6 +372,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ),
   viewportColumnRenderingOffset: oneOf(100, 'auto'),
   viewportRowRenderingOffset: oneOf(100, 'auto'),
+  viewportColumnRenderingThreshold: oneOf(100, 'auto'),
+  viewportRowRenderingThreshold: oneOf(100, 'auto'),
   visibleRows: 123,
   width: oneOf(500, () => 500),
   wordWrap: true,
@@ -425,7 +430,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterContextMenuHide: (context) => {},
   afterContextMenuShow: (context) => {},
   afterCopy: (data, coords) => {},
-  afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
+  afterCopyLimit: (selectedRows, selectedColumns, copyRowsLimit, copyColumnsLimit) => {},
   afterCreateCol: (index, amount, source) => {},
   afterCreateRow: (index, amount, source) => {},
   afterCut: (data, coords) => {},
@@ -433,7 +438,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterDestroy: () => {},
   afterDetachChild: (parent, element) => {},
   afterDocumentKeyDown: (event) => {},
-  afterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {},
+  afterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {
+    const _currentRow: number = currentRow;
+    const _currentColumn: number = currentColumn;
+    const _cornersOfSelection: number[] = cornersOfSelection;
+    const _layerLevel: number | undefined = layerLevel;
+  },
   afterDropdownMenuDefaultOptions: (predefinedItems) => {},
   afterDropdownMenuHide: (instance) => {},
   afterDropdownMenuShow: (instance) => {},
@@ -563,7 +573,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeDrawBorders: (corners, borderClassName) => {},
   beforeDropdownMenuSetItems: (menuItems) => {},
   beforeDropdownMenuShow: (instance) => {},
-  beforeFilter: (conditionsStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
+  beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
@@ -626,7 +636,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeSetRangeEnd: (coords) => {},
   beforeSetRangeStart: (coords) => {},
   beforeSetRangeStartOnly: (coords) => {},
-  beforeStretchingColumnWidth: (stretchedWidth, column) => {},
+  beforeStretchingColumnWidth: (stretchedWidth, column) => {
+    const _stretchedWidth: number = stretchedWidth;
+    const _column: number = column;
+  },
   beforeTouchScroll: () => {},
   beforeTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
   beforeUndo: (action) => {},
@@ -653,17 +666,43 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyColHeader: (column) => {},
   modifyColumnHeaderHeight: () => {},
   modifyColumnHeaderValue: (headerValue, visualColumnIndex, headerLevel) => {},
-  modifyColWidth: (width) => {},
+  modifyColWidth: (width, column, source) => {
+    const _width: number = width;
+    const _column: number = column;
+    const _source: string | undefined = source;
+  },
   modifyCopyableRange: (copyableRanges) => {},
   modifyFiltersMultiSelectValue: (value, meta) => '123',
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
   modifyData: () => {},
   modifyFocusOnTabNavigation: (tabActivationDir, visualCoords) => {},
-  modifyGetCellCoords: (row, column, topmost) => {},
+  modifyGetCellCoords: (row, column, topmost, source) => {
+    const _row: number = row;
+    const _column: number = column;
+    const _topmost: boolean = topmost;
+    const _source: string = source ?? '';
+
+    return [_row, _column, _row + 1, _column + 1];
+  },
+  modifyGetCoordsElement: (row, column) => {
+    const _row: number = row;
+    const _column: number = column;
+
+    return [_row, _column];
+  },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},
-  modifyRowHeight: (height, row) => {},
+  modifyRowHeight: (height, row, source) => {
+    const _height: number = height;
+    const _row: number = row;
+    const _source: string | undefined = source;
+  },
+  modifyRowHeightByOverlayName: (height, row, overlayType) => {
+    const _height: number = height;
+    const _row: number = row;
+    const _overlayType: string = overlayType;
+  },
   modifyTransformEnd: (delta) => {
     const rowDelta: number = delta.row;
     const colDelta: number = delta.row;

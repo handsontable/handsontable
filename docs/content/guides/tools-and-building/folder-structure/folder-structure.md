@@ -16,6 +16,7 @@ react:
   id: 29dbr0lt
   metaTitle: Folder structure - React Data Grid | Handsontable
 searchCategory: Guides
+category: Tools and building
 ---
 
 # Folder structure
@@ -41,6 +42,7 @@ Handsontable's source files are stored on GitHub, in a monorepo.
 └── wrappers                                # Wrapper files
     ├── angular                             # Wrapper for Angular
     ├── react                               # Wrapper for React
+    ├── react-wrapper                       # Wrapper for React (functional components)
     └── vue                                 # Wrapper for Vue 2
     └── vue3                                # Wrapper for Vue 3
 ```

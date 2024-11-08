@@ -10,6 +10,7 @@ const extendPageDataPlugin = require('./plugins/extend-page-data');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
+const headerAnchor = require('./plugins/markdown-it-header-anchor');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const includeCodeSnippet = require('./plugins/markdown-it-include-code-snippet');
 const {
@@ -21,11 +22,9 @@ const {
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
 } = require('./helpers');
-const {
-  getPermalinkHrefMethod,
-} = require('./plugins/markdown-it-conditional-container/onlyForContainerHelpers');
 
-const uniqueSlugs = new Set();
+require('dotenv').config();
+
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction
@@ -42,6 +41,25 @@ const environmentHead = isProduction
       })(window,document,'script','dataLayer','GTM-55L5D3');
     `,
     ],
+    // HotJar, an extra element within the `ssr.html` file.
+    [
+      'script',
+      {},
+      `
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      `,
+    ],
   ]
   : [];
 
@@ -50,6 +68,14 @@ const environmentHead = isProduction
 createSymlinks();
 
 module.exports = {
+  // by default this always returns true, this is a issue as it preloads every documentation pages content
+  shouldPrefetch: (_, type) => {
+    if (type === 'script') {
+      return false;
+    }
+
+    return true;
+  },
   define: {
     GA_ID: 'UA-33932793-7',
   },
@@ -64,7 +90,16 @@ module.exports = {
       'link',
       {
         rel: 'icon',
-        href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png',
+        media: '(prefers-color-scheme: light)',
+        href: `${getDocsBaseFullUrl()}/img/favicon.png`,
+      },
+    ],
+    [
+      'link',
+      {
+        rel: 'icon',
+        media: '(prefers-color-scheme: dark)',
+        href: `${getDocsBaseFullUrl()}/img/favicon-dark.png`,
       },
     ],
     [
@@ -87,6 +122,7 @@ module.exports = {
       `
       window.sentryOnLoad = function () {
         Sentry.init({
+          environment: '${buildMode || 'testing'}',
           tracesSampleRate: 0,
           profilesSampleRate: 0,
           replaysSessionSampleRate: 0,
@@ -110,6 +146,7 @@ module.exports = {
         id: 'Sentry.io',
         src: 'https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js',
         crossorigin: 'anonymous',
+        defer: true,
       },
     ],
     // Cookiebot - cookie consent popup
@@ -119,6 +156,16 @@ module.exports = {
         id: 'Cookiebot',
         src: 'https://consent.cookiebot.com/uc.js',
         'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646',
+        defer: true,
+      },
+    ],
+    // Headwayapp
+    [
+      'script',
+      {
+        id: 'Headwayapp',
+        src: 'https://cdn.headwayapp.co/widget.js',
+        defer: true,
       },
     ],
     ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
@@ -127,12 +174,13 @@ module.exports = {
       {},
       `
       (function(w, d) {
-        const osColorScheme = () => w.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
-        const preferredScheme = colorScheme ? colorScheme : osColorScheme();
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
 
         if (preferredScheme === 'dark') {
           d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
         }
 
         w.SELECTED_COLOR_SCHEME = preferredScheme;
@@ -145,27 +193,10 @@ module.exports = {
     toc: {
       includeLevel: [2, 3],
       containerHeaderHtml:
-        '<div class="toc-container-header">In this article</div>',
+        '<div class="toc-container-header"><i class="ico i-toc"></i>On this page</div>',
     },
     anchor: {
-      permalinkSymbol: '',
-      permalinkHref: getPermalinkHrefMethod(uniqueSlugs),
-      permalinkAttrs: () => ({
-        tabindex: '-1',
-        'aria-hidden': 'true',
-      }),
-      callback(token, slugInfo) {
-        // The map is filled in before by a legacy `permalinkHref` method.
-        if (['h1', 'h2', 'h3'].includes(token.tag)) {
-          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrGet('id'));
-          const slugWithoutNumber = duplicatedSlugsMatch?.[1];
-
-          if (slugWithoutNumber && uniqueSlugs.has(slugWithoutNumber)) {
-            token.attrSet('id', slugWithoutNumber);
-            slugInfo.slug = slugWithoutNumber;
-          }
-        }
-      },
+      permalink: false,
     },
     externalLinks: {
       target: '_blank',
@@ -174,7 +205,8 @@ module.exports = {
     extendMarkdown(md) {
       md.use(includeCodeSnippet)
         .use(conditionalContainer)
-        .use(firstHeaderInjection);
+        .use(firstHeaderInjection)
+        .use(headerAnchor);
     },
   },
   configureWebpack: {
@@ -328,64 +360,58 @@ module.exports = {
     ],
   ],
   themeConfig: {
-    nextLinks: true,
-    prevLinks: true,
+    nextLinks: false,
+    prevLinks: false,
     repo: 'handsontable/handsontable',
     docsRepo: 'handsontable/handsontable',
     docsDir: 'docs/content',
     docsBranch: 'develop',
     editLinks: true,
-    editLinkText: 'Suggest edits',
-    lastUpdated: true,
+    editLinkText: 'Edit on GitHub',
+    lastUpdated: false,
     smoothScroll: false,
     nav: [
       // Guide & API Reference has been defined in theme/components/NavLinks.vue
-      { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
-      {
-        text: 'Support',
+      // { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
+      { text: 'Support',
         items: [
+          {
+            text: 'Developers Forum',
+            link: 'https://forum.handsontable.com',
+          },
+          {
+            text: 'GitHub Discussions',
+            link: 'https://github.com/handsontable/handsontable/discussions',
+          },
+          {
+            text: 'StackOverflow',
+            link: 'https://stackoverflow.com/tags/handsontable',
+          },
           {
             text: 'Contact support',
             link: 'https://handsontable.com/contact?category=technical_support',
           },
-          {
-            text: 'Report an issue',
-            link: 'https://github.com/handsontable/handsontable/issues/new/choose',
-          },
-          {
-            text: 'Handsontable forum',
-            link: 'https://forum.handsontable.com',
-          },
-          {
-            text: 'Ask on Stack Overflow',
-            link: 'https://stackoverflow.com/questions/tagged/handsontable',
-          },
-          { text: 'Blog', link: 'https://handsontable.com/blog' },
         ],
       },
     ],
     displayAllHeaders: true, // collapse other pages
     activeHeaderLinks: true,
     sidebarDepth: 0,
-    search: true,
-    searchOptions: {
-      placeholder: 'Search...',
-      categoryPriorityList: [
-        {
-          name: 'Guides',
-          domainPriority: [],
-          maxSuggestions: 5,
-        },
-        {
-          name: 'API Reference',
-          // The "domainPriority" list modifies the search results position. When the search phrase matches
-          // the page titles, the search suggestions are placed before the rest results. The pages declared
-          // in the array at the beginning have the highest display priority.
-          domainPriority: ['Configuration options', 'Core', 'Hooks'],
-          maxSuggestions: 10,
-        },
+    organization: {
+      name: 'Handsontable',
+      author: 'Handsontable Team',
+      url: 'https://handsontable.com',
+      socialMedia: [
+        'https://twitter.com/handsontable',
+        'https://www.linkedin.com/company/handsontable',
       ],
-      fuzzySearchDomains: ['Core', 'Hooks', 'Configuration options'],
+      image: `${getDocsBaseFullUrl()}/img/handsonable-docs-cover.png`
     },
+    searchPlaceholder: 'Search...',
+    algolia: {
+      indexName: 'handsontable',
+      apiKey: 'c2430302c91e0162df988d4b383c9d8b',
+      appId: 'MMN6OTJMGX'
+    }
   },
 };

@@ -78,7 +78,7 @@ import * as dom from './helpers/dom';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
 import EventManager from './eventManager';
-import { Hooks } from './pluginHooks';
+import { Hooks, Events } from './core/hooks';
 // plugins
 import {
   AutoColumnSize as _AutoColumnSize,
@@ -220,6 +220,9 @@ import {
   SearchCallback,
   SearchQueryMethod,
 } from './plugins/search';
+import {
+  Settings as StretchColumnsSettings,
+} from './plugins/stretchColumns';
 import {
   TouchScroll as _TouchScroll,
   Settings as TouchScrollSettings,
@@ -523,6 +526,10 @@ declare namespace Handsontable {
       export { SearchQueryMethod };
     }
 
+    export namespace StretchColumns {
+      export { StretchColumnsSettings as Settings };
+    }
+
     export namespace TouchScroll {
       export { TouchScrollSettings as Settings };
     }
@@ -547,5 +554,6 @@ declare class Handsontable extends Core {
 export {
   CellCoords,
   CellRange,
+  Events,
 };
 export default Handsontable;

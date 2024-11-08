@@ -1,6 +1,5 @@
-import { isDefined, stringify } from '../../helpers/mixed';
+import { stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
-import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
@@ -9,7 +8,6 @@ import {
   hasHorizontalScrollbar,
   outerWidth,
   outerHeight,
-  getComputedStyle,
 } from '../../helpers/dom/element';
 
 export const EDITOR_TYPE = 'base';
@@ -19,8 +17,6 @@ export const EDITOR_STATE = Object.freeze({
   WAITING: 'STATE_WAITING', // waiting for async validation
   FINISHED: 'STATE_FINISHED'
 });
-
-export const SHORTCUTS_GROUP_EDITOR = 'baseEditor';
 
 /**
  * @class BaseEditor
@@ -172,7 +168,7 @@ export class BaseEditor {
     this.prop = prop;
     this.originalValue = value;
     this.cellProperties = cellProperties;
-    this.state = EDITOR_STATE.VIRGIN;
+    this.state = this.isOpened() ? this.state : EDITOR_STATE.VIRGIN;
   }
 
   /**
@@ -209,41 +205,11 @@ export class BaseEditor {
       [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = [this.row, this.col, null, null];
     }
 
-    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRowFrom, visualColumnFrom);
+    const modifiedCellCoords = this.hot
+      .runHooks('modifyGetCellCoords', visualRowFrom, visualColumnFrom, false, 'meta');
 
     if (Array.isArray(modifiedCellCoords)) {
       [visualRowFrom, visualColumnFrom] = modifiedCellCoords;
-    }
-
-    const shortcutManager = this.hot.getShortcutManager();
-    const editorContext = shortcutManager.getContext('editor');
-    const contextConfig = {
-      runOnlyIf: () => isDefined(this.hot.getSelected()),
-      group: SHORTCUTS_GROUP_EDITOR,
-    };
-
-    if (this.isInFullEditMode()) {
-      editorContext.addShortcuts([{
-        keys: [['ArrowUp']],
-        callback: () => {
-          this.hot.selection.transformStart(-1, 0);
-        },
-      }, {
-        keys: [['ArrowDown']],
-        callback: () => {
-          this.hot.selection.transformStart(1, 0);
-        },
-      }, {
-        keys: [['ArrowLeft']],
-        callback: () => {
-          this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
-        },
-      }, {
-        keys: [['ArrowRight']],
-        callback: () => {
-          this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
-        },
-      }], contextConfig);
     }
 
     // Saving values using the modified coordinates.
@@ -267,26 +233,36 @@ export class BaseEditor {
     const renderableRowIndex = hotInstance.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col);
 
-    hotInstance.view.scrollViewport(hotInstance._createCellCoords(renderableRowIndex, renderableColumnIndex));
-    this.state = EDITOR_STATE.EDITING;
+    const openEditor = () => {
+      this.state = EDITOR_STATE.EDITING;
 
-    // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
-    // otherwise IME (editor for Asia users) doesn't work.
-    if (this.isInFullEditMode()) {
-      const stringifiedInitialValue = typeof newInitialValue === 'string' ?
-        newInitialValue : stringify(this.originalValue);
+      // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
+      // otherwise IME (editor for Asia users) doesn't work.
+      if (this.isInFullEditMode()) {
+        const stringifiedInitialValue = typeof newInitialValue === 'string' ?
+          newInitialValue : stringify(this.originalValue);
 
-      this.setValue(stringifiedInitialValue);
+        this.setValue(stringifiedInitialValue);
+      }
+
+      this.open(event);
+      this._opened = true;
+      this.focus();
+
+      // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
+      hotInstance.view.render();
+      hotInstance.runHooks('afterBeginEditing', this.row, this.col);
+    };
+
+    this.hot.addHookOnce('afterScroll', openEditor);
+
+    const wasScroll = hotInstance.view
+      .scrollViewport(hotInstance._createCellCoords(renderableRowIndex, renderableColumnIndex));
+
+    if (!wasScroll) {
+      this.hot.removeHook('afterScroll', openEditor);
+      openEditor();
     }
-
-    this.open(event);
-    this._opened = true;
-    this.focus();
-
-    // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
-    hotInstance.view.render();
-
-    hotInstance.runHooks('afterBeginEditing', this.row, this.col);
   }
 
   /**
@@ -315,12 +291,6 @@ export class BaseEditor {
     if (this.isWaiting()) {
       return;
     }
-
-    const shortcutManager = this.hot.getShortcutManager();
-    const editorContext = shortcutManager.getContext('editor');
-
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_NAVIGATION);
 
     if (this.state === EDITOR_STATE.VIRGIN) {
       this.hot._registerTimeout(() => {
@@ -557,7 +527,7 @@ export class BaseEditor {
       cellStartOffset += firstColumnOffset - horizontalScrollPosition;
     }
 
-    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
+    const cellComputedStyle = rootWindow.getComputedStyle(this.TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
     const inlineStartBorderCompensation = parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
     const topBorderCompensation = parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;

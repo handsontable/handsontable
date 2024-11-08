@@ -20,10 +20,11 @@ defaults:
     working-directory: ./docs/
 jobs:
   run-tests:
+    name: Visual tests for ${{ github.event.inputs.test_env }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env: # Or as an environment variable
-      PASS_COOKIE: ${{ secrets.PassCookie }}
+    timeout-minutes: 60
+    env: 
+      PASS_COOKIE: ${{ secrets.PASS_COOKIE }}
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
@@ -51,6 +52,11 @@ jobs:
         if: ${{inputs.test_env == 'http://localhost:8080/docs'}} 
         run: |
           npm run docs:api
+      
+      - name: Build documentation
+        if: ${{inputs.test_env == 'http://localhost:8080/docs'}} 
+        run: |
+          npm run docs:build       
 
       - name: Set up cache
         id: cache
@@ -59,13 +65,23 @@ jobs:
           key: plawyright-cache/${{github.repository}}/${{github.ref}}
           restore-keys: plawyright-cache/${{github.repository}}/refs/heads/develop
           path: '**/test-artifacts/**'
-      
+
+      - name: Check if cache was restored
+        id: check-cache
+        run: |
+          if [[ -n "$(find . -name 'test-artifacts' -type d -not -path '*/node_modules/*' -print0 | xargs -0 -I {} find {} -type f -print -quit)" ]]; then
+            echo "cache-restored=true" >> $GITHUB_ENV
+          else
+            echo "cache-restored=false" >> $GITHUB_ENV
+          fi
+
       - name: Initialize snapshots
-        if: ${{steps.cache.outputs.cache-hit != 'true' || inputs.update-snapshots == 'true'}}
-        run: BASE_URL=${{ inputs.test_env }} npx playwright test --update-snapshots
+        if: ${{env.cache-restored != 'true' || github.event.inputs.update-snapshots == 'true'}}
+        run: BASE_URL=${{ github.event.inputs.test_env }} npx playwright test --update-snapshots
 
       - name: Test
-        run: BASE_URL=${{ inputs.test_env }} npx playwright test
+        if: ${{env.cache-restored == 'true' && github.event.inputs.update-snapshots != 'true'}}
+        run: BASE_URL=${{ github.event.inputs.test_env }} npx playwright test
 
       - name: Upload test report
         if: always()

@@ -3,7 +3,6 @@ import EventManager from '../../eventManager';
 import { isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
-  getComputedStyle,
   isThisHotChild,
   setCaretPosition,
   hasClass,
@@ -13,12 +12,9 @@ import {
 import { rangeEach } from '../../helpers/number';
 import { createInputElementResizer } from '../../utils/autoResize';
 import { isDefined } from '../../helpers/mixed';
-import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
-import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 import { updateCaretPosition } from './caretPositioner';
 import {
-  A11Y_HIDDEN,
-  A11Y_TABINDEX
+  A11Y_TABINDEX,
 } from '../../helpers/a11y';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
@@ -163,13 +159,13 @@ export class TextEditor extends BaseEditor {
         allowInvalid,
       } = cellProperties;
 
-      if (allowInvalid) {
+      if (allowInvalid && !this.isOpened()) {
         // Remove an empty space from textarea (added by copyPaste plugin to make copy/paste
         // functionality work with IME)
         this.TEXTAREA.value = '';
       }
 
-      if (previousState !== EDITOR_STATE.FINISHED) {
+      if (previousState !== EDITOR_STATE.FINISHED && !this.isOpened()) {
         this.hideEditableElement();
       }
     }
@@ -215,12 +211,6 @@ export class TextEditor extends BaseEditor {
       ['data-hot-input', ''],
       A11Y_TABINDEX(-1),
     ]);
-
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TEXTAREA, [
-        A11Y_HIDDEN(),
-      ]);
-    }
 
     addClass(this.TEXTAREA, 'handsontableInput');
 
@@ -355,13 +345,13 @@ export class TextEditor extends BaseEditor {
     this.textareaParentStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
     this.showEditableElement();
 
-    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
+    const cellComputedStyle = this.hot.rootWindow.getComputedStyle(this.TD);
 
     this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
     this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
     this.TEXTAREA.style.backgroundColor = this.TD.style.backgroundColor;
 
-    const textareaComputedStyle = getComputedStyle(this.TEXTAREA);
+    const textareaComputedStyle = this.hot.rootWindow.getComputedStyle(this.TEXTAREA);
 
     const horizontalPadding = parseInt(textareaComputedStyle.paddingLeft, 10) +
       parseInt(textareaComputedStyle.paddingRight, 10);
@@ -438,7 +428,6 @@ export class TextEditor extends BaseEditor {
   registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
-    const gridContext = shortcutManager.getContext('grid');
     const contextConfig = {
       runOnlyIf: () => isDefined(this.hot.getSelected()),
       group: SHORTCUTS_GROUP,
@@ -449,15 +438,6 @@ export class TextEditor extends BaseEditor {
     };
 
     editorContext.addShortcuts([{
-      keys: [
-        ['Tab'],
-        ['Shift', 'Tab'],
-        ['PageUp'],
-        ['PageDown']
-      ],
-      forwardToContext: gridContext,
-      callback: () => {},
-    }, {
       keys: [['Control', 'Enter']],
       callback: () => {
         insertNewLine();
@@ -504,8 +484,6 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_NAVIGATION);
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
   }
 }

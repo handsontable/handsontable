@@ -68,7 +68,6 @@ class Table {
    * @type {boolean}
    */
   isTableVisible = false;
-
   tableOffset = 0;
   holderOffset = 0;
   /**
@@ -288,8 +287,9 @@ class Table {
     let runFastDraw = fastDraw;
 
     if (this.isMaster) {
+      wtOverlays.beforeDraw();
       this.holderOffset = offset(this.holder);
-      runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
+      runFastDraw = wtViewport.createCalculators(runFastDraw);
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
         const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
@@ -303,17 +303,8 @@ class Table {
       }
     }
 
-    if (this.isMaster) {
-      wtOverlays.beforeDraw();
-    }
-
     if (runFastDraw) {
       if (this.isMaster) {
-        // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
-        wtViewport.createVisibleCalculators();
-        wtViewport.createPartiallyVisibleCalculators();
-      }
-      if (wtOverlays) {
         wtOverlays.refresh(true);
       }
     } else {
@@ -351,15 +342,12 @@ class Table {
         this.resetOversizedRows();
 
         this.tableRenderer
+          .setActiveOverlayName(this.name)
           .setViewportSize(this.getRenderedRowsCount(), this.getRenderedColumnsCount())
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
 
-        let workspaceWidth;
-
         if (this.isMaster) {
-          workspaceWidth = this.dataAccessObject.workspaceWidth;
-          wtViewport.containerWidth = null;
           this.markOversizedColumnHeaders();
         }
 
@@ -370,26 +358,12 @@ class Table {
         }
 
         if (this.isMaster) {
-          wtViewport.createVisibleCalculators();
-          wtViewport.createPartiallyVisibleCalculators();
+          if (!this.wtSettings.getSetting('externalRowCalculator')) {
+            wtViewport.createVisibleCalculators();
+          }
+
           wtOverlays.refresh(false);
           wtOverlays.applyToDOM();
-
-          const hiderWidth = outerWidth(this.hider);
-          const tableWidth = outerWidth(this.TABLE);
-
-          if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
-            // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
-            this.columnUtils.calculateWidths();
-            this.tableRenderer.renderer.colGroup.render();
-          }
-
-          if (workspaceWidth !== wtViewport.getWorkspaceWidth()) {
-            // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
-            wtViewport.containerWidth = null;
-            this.columnUtils.calculateWidths();
-            this.tableRenderer.renderer.colGroup.render();
-          }
 
           this.wtSettings.getSetting('onDraw', true);
 
@@ -552,7 +526,8 @@ class Table {
   getCell(coords) {
     let row = coords.row;
     let column = coords.col;
-    const hookResult = this.wtSettings.getSetting('onModifyGetCellCoords', row, column);
+    const hookResult = this.wtSettings
+      .getSetting('onModifyGetCellCoords', row, column, !this.isMaster, 'render');
 
     if (hookResult && Array.isArray(hookResult)) {
       [row, column] = hookResult;
@@ -617,10 +592,9 @@ class Table {
       } else {
         return parentElement.childNodes[renderedRowIndex];
       }
-
-    } else {
-      return false;
     }
+
+    return false;
   }
 
   /**
@@ -751,6 +725,13 @@ class Table {
 
     } else {
       col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
+    }
+
+    const hookResult = this.wtSettings
+      .getSetting('onModifyGetCoordsElement', row, col);
+
+    if (hookResult && Array.isArray(hookResult)) {
+      [row, col] = hookResult;
     }
 
     return this.wot.createCellCoords(row, col);
@@ -1048,14 +1029,6 @@ class Table {
    */
   getColumnWidth(sourceColumn) {
     return this.columnUtils.getWidth(sourceColumn);
-  }
-
-  /**
-   * @param {number} sourceColumn The physical column index.
-   * @returns {number}
-   */
-  getStretchedColumnWidth(sourceColumn) {
-    return this.columnUtils.getStretchedColumnWidth(sourceColumn);
   }
 
   /**

@@ -1,0 +1,62 @@
+.page {
+    .breadcrumbs {
+        max-width: 720px
+        margin: 0 auto
+        padding: 28px 0 0 0 !important
+        display: flex
+        flex-wrap: wrap
+        gap: 4px
+        position: relative
+        box-sizing: border-box
+        
+        a, span {
+            font-size: $font-size-xs
+            line-height: $line-height-xs
+            display: inline-block
+            vertical-align: baseline
+        }
+        a {
+            color: $text2Color
+            margin:0 !important
+            transition: all $ts ease-in-out 
+
+            i { 
+                display: inline-block
+                position absolute
+                top: 30px
+                left: 0
+                opacity .64
+            }
+
+            @media (hover: hover) {
+                &:hover {
+                    color: $accentColor
+                }
+            }
+        }
+
+        a:first-child {
+            padding-left: 26px
+        }
+
+        a:last-child span:last-child:after {
+            content: ''
+        }
+
+        span { 
+            //color: $text2Color
+        }
+        a, span {
+            &:not(:last-child):after, > span span:after { 
+                content: "/"
+                display: inline-block
+                padding-left: 8px
+                padding-right: 4px
+                color: $text2Color !important
+            }
+        }
+        a span span:after { 
+            padding-right: 8px
+        }
+    }
+}

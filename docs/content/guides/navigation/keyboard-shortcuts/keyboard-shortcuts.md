@@ -19,6 +19,7 @@ react:
   id: ddjw4zt88
   metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
 searchCategory: Guides
+category: Navigation
 ---
 
 # Keyboard shortcuts
@@ -43,10 +44,11 @@ These keyboard shortcuts work when you navigate the grid. They come from Handson
 | <kbd>**Ctrl**</kbd>+<kbd>**↓**</kbd>         | <kbd>**Cmd**</kbd>+<kbd>**↓**</kbd>         | Move to the last cell of the current column                                                     | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd>         | <kbd>**Cmd**</kbd>+<kbd>**←**</kbd>         | Move to the leftmost cell of the current row                                                    | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd>         | <kbd>**Cmd**</kbd>+<kbd>**→**</kbd>         | Move to the rightmost cell of the current row                                                   | &check; | &check; |
+| <kbd>**F2**</kbd>                            | <kbd>**F2**</kbd>                           | Enter the editing mode of the active cell                                                       | &check; | &check; |
 | <kbd>**Enter**</kbd>                         | <kbd>**Enter**</kbd>                        | Enter the editing mode of the active cell                                                       | &cross; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>    | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>   | Enter the editing mode of the active cell                                                       | &cross; | &check; |
-| <kbd>**F2**</kbd>                            | <kbd>**F2**</kbd>                           | Enter the editing mode of the active cell                                                       | &check; | &check; |
-| Alphanumeric keys                            | Alphanumeric keys                           | Enter the editing mode of the active cell, and enter the pressed key's value into the cell      | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | Save and close editor                                         | &check; | &check; |
+| Alphanumeric keys                            | Alphanumeric keys                           | Enter the editing mode of the active cell and enter the pressed key's value into the cell      | &check; | &check; |
 | <kbd>**Tab**</kbd>                           | <kbd>**Tab**</kbd>                          | Move to the next cell<sup>\*</sup> (if there's only one column available, move one cell down)   | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>      | <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>     | Move to the previous cell<sup>\*</sup> (if there's only one column available, move one cell up) | &check; | &check; |
 | <kbd>**Home**</kbd>                          | <kbd>**Home**</kbd>                         | Move to the first non-frozen cell of the current row<sup>\*</sup>                               | &check; | &check; |
@@ -66,7 +68,6 @@ These keyboard shortcuts help you select cells. They come from Handsontable's [`
 | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**A**</kbd>  | Select all cells                                                      | &check; | &check; |
 |<kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> |<kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> | Select all cells and headers                                                      | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>  | Save and close editor                                                    | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                                                              | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                                                            | Select the entire column                                                          | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                                                             | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                                                           | Select the entire row                                                             | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd>                                             | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd>                                            | Extend the selection to the first cell of the current column<sup>\*\*</sup>       | &check; | &check; |
@@ -252,8 +253,12 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 
 Didn't find what you need? Try this:
 
+<div class="boxes-list gray">
+
 - [View related topics](https://github.com/handsontable/handsontable/issues) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
 - [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
 - [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+
+</div>

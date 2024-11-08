@@ -401,8 +401,7 @@ export default () => {
      * | `true`    | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin with the default configuration |
      * | An object | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin and modify the plugin options  |
      *
-     * To give Handsontable's [scrollbar](https://handsontable.com/docs/8.0.0/demo-scrolling.html)
-     * a proper size, set the `autoRowSize` option to `true`.
+     * To give Handsontable's scrollbar a proper size, set the `autoRowSize` option to `true`.
      *
      * If you set the `autoRowSize` option to an object, you can set the following [`AutoRowSize`](@/api/autoRowSize.md) plugin options:
      *
@@ -1574,6 +1573,45 @@ export default () => {
 
     /**
      * @description
+     * If `true`, Handsontable will interpret the dots in the columns mapping as a nested object path. If your dataset contains
+     * the dots in the object keys and you don't want Handsontable to interpret them as a nested object path, set this option to `false`.
+     *
+     * The option only works when defined in the global table settings.
+     *
+     * @since 14.4.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // All dots are interpreted as nested object paths
+     * dataDotNotation: true,
+     * data: [
+     *   { id: 1, name: { first: 'Ted', last: 'Right' }, user: { address: '1234 Any Street' } },
+     * ],
+     * columns={[
+     *   { data: 'name.first' },
+     *   { data: 'user.address' },
+     * ]},
+     * ```
+     * ```js
+     * // All dots are interpreted as simple object keys
+     * dataDotNotation: false,
+     * data: [
+     *   { id: 1, 'name.first': 'Ted', 'user.address': '1234 Any Street' },
+     * ],
+     * columns={[
+     *   { data: 'name.first' },
+     *   { data: 'user.address' },
+     * ]},
+     * ```
+     */
+    dataDotNotation: true,
+
+    /**
+     * @description
      * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects)
      * (or is empty), the `dataSchema` option defines the structure of new rows.
      *
@@ -1641,6 +1679,36 @@ export default () => {
      * ```
      */
     dateFormat: 'DD/MM/YYYY',
+
+    /**
+     * The `timeFormat` option configures the time format accepted by [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells.
+     *
+     * You can set the `timeFormat` option to a string with a proper time format. The default value is: `'h:mm:ss a'`.
+     *
+     * To automatically correct times whose format doesn't match the `timeFormat` setting, use the [`correctFormat`](#correctFormat) option.
+     *
+     * Read more:
+     * - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
+     * - [`correctFormat`](#correctFormat)
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'h:mm:ss a'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *   // set the `type` of each cell in this column to `time`
+     *   type: 'time',
+     *   // for every `time` cell of this column, set the time format to `h:mm:ss a`
+     *   timeFormat: 'h:mm:ss a',
+     *   },
+     * ],
+     * ```
+     */
+    timeFormat: 'h:mm:ss a',
 
     /**
      * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.2).
@@ -2332,6 +2400,32 @@ export default () => {
     fragmentSelection: false,
 
     /**
+     * The `headerClassName` option allows adding one or more class names to the column headers' inner `div` element.
+     * It can be used to align the labels in the column headers to left, center or right by setting this option to
+     * `htLeft`, `htCenter`, or `htRight` respectively.
+     *
+     * @since 14.5.0
+     * @memberof Options#
+     * @type {string}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // Adding class names to all column headers
+     * headerClassName: 'htRight my-class',
+     *
+     * columns: [
+     *  {
+     *    // Adding class names to the column header of a single column
+     *    headerClassName: 'htRight my-class',
+     *  }
+     * ]
+     * ```
+     */
+    headerClassName: undefined,
+
+    /**
      * The `height` option configures the height of your grid.
      *
      * You can set `height` option to one of the following:
@@ -2891,10 +2985,10 @@ export default () => {
      * manualRowMove: true,
      *
      * // enable the `ManualRowMove` plugin
-     * // at initialization, move row 0 to 1
-     * // at initialization, move row 1 to 4
-     * // at initialization, move row 2 to 6
-     * manualColumnMove: [1, 4, 6],
+     * // at initialization, move row 1 to 0
+     * // at initialization, move row 4 to 1
+     * // at initialization, move row 6 to 2
+     * manualRowMove: [1, 4, 6],
      * ```
      */
     manualRowMove: undefined,
@@ -4715,7 +4809,7 @@ export default () => {
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
      * @memberof Options#
-     * @type {number|string}
+     * @type {number|'auto'}
      * @default 'auto'
      * @category Core
      *
@@ -4746,7 +4840,7 @@ export default () => {
      * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
      *
      * @memberof Options#
-     * @type {number|string}
+     * @type {number|'auto'}
      * @default 'auto'
      * @category Core
      *
@@ -4757,6 +4851,74 @@ export default () => {
      * ```
      */
     viewportRowRenderingOffset: 'auto',
+
+    /**
+     * @description
+     * The `viewportColumnRenderingThreshold` option configures what column number starting from the left or right
+     * (depends on the scroll direction) should trigger the rendering of columns outside of the grid's viewport.
+     *
+     * You can set the `viewportColumnRenderingThreshold` option to one of the following:
+     *
+     * | Setting            | Description                                             |
+     * | ------------------ | ------------------------------------------------------- |
+     * | `auto`             | Triggers rendering at half the offset defined by [`viewportColumnRenderingOffset`](#viewportColumnRenderingOffset) option |
+     * | A number           | Sets the offset manually (`0` is a default)             |
+     *
+     * The `viewportColumnRenderingThreshold` setting is ignored when [`renderAllColumn`](#renderAllColumn) is set to `true`.
+     *
+     * Read more:
+     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
+     *
+     * @memberof Options#
+     * @since 1.14.7
+     * @type {number|'auto'}
+     * @default 0
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // render 12 columns outside of the grid's viewport
+     * viewportColumnRenderingOffset: 12,
+     * // the columns outside of the viewport will be rendered when the user scrolls to the 8th column from/to
+     * viewportColumnRenderingThreshold: 8,
+     * ```
+     */
+    viewportColumnRenderingThreshold: 0,
+
+    /**
+     * @description
+     * The `viewportRowRenderingThreshold` option configures what row number starting from the top or bottom
+     * (depends on the scroll direction) should trigger the rendering of rows outside of the grid's viewport.
+     *
+     * You can set the `viewportRowRenderingThreshold` option to one of the following:
+     *
+     * | Setting            | Description                                             |
+     * | ------------------ | ------------------------------------------------------- |
+     * | `auto`             | Triggers rendering at half the offset defined by [`viewportRowRenderingOffset`](#viewportRowRenderingOffset) option |
+     * | A number           | Sets the offset manually (`0` is a default)             |
+     *
+     * The `viewportRowRenderingThreshold` setting is ignored when [`renderAllRows`](#renderAllRows) is set to `true`.
+     *
+     * Read more:
+     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
+     *
+     * @memberof Options#
+     * @since 1.14.7
+     * @type {number|'auto'}
+     * @default 0
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // render 12 rows outside of the grid's viewport
+     * viewportRowRenderingOffset: 12,
+     * // the rows outside of the viewport will be rendered when the user scrolls to the 8th row from/to
+     * viewportRowRenderingThreshold: 8,
+     * ```
+     */
+    viewportRowRenderingThreshold: 0,
 
     /**
      * The `visibleRows` option sets the height of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)

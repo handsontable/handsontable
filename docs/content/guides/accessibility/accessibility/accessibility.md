@@ -21,6 +21,7 @@ react:
   id: x82phf34
   metaTitle: Accessibility - React Data Grid | Handsontable
 searchCategory: Guides
+category: Accessibility
 ---
 
 # Accessibility
@@ -43,11 +44,18 @@ Most global standards and regulations are created in accordance with WCAG (Web C
 Handsontable meets requirements outlined in the [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/) guidelines,
 which makes it compatible with most local standards, such as:
 
-| <div style="width:365px">Region</div> | Standards                                                                                                                                                                                        |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| USA                                   | [Section 508 of the US Rehabilitation Act](https://www.section508.gov/)<br>[Americans with Disabilities Act (ADA)](https://www.ada.gov/resources/web-guidance/)                                  |
-| Europe                                | [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202)<br>[Web Accessibility Directive (WAD)](https://eur-lex.europa.eu/legal-content/EN/LSU/?uri=CELEX:32016L2102) |
-| Canada                                | [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601)                                                                                                         |
+### Region
+
+#### USA
+- [Section 508 of the US Rehabilitation Act](https://www.section508.gov/)
+- [Americans with Disabilities Act (ADA)](https://www.ada.gov/resources/web-guidance/) 
+
+#### Europe
+- [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202)
+- [Web Accessibility Directive (WAD)](https://eur-lex.europa.eu/legal-content/EN/LSU/?uri=CELEX:32016L2102)
+
+#### Canada
+- [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601) 
 
 ## Keyboard navigation
 
@@ -100,13 +108,12 @@ Check out the interactive demo below to see how various Handsontable settings im
 
 ::: only-for javascript angular vue
 
-::: example #example1 --html 1 --css 2 --js 3
+::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.html)
-
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.css)
-
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.js)
+@[code](@/content/guides/accessibility/accessibility/javascript/example1.ts)
 
 :::
 
@@ -114,11 +121,11 @@ Check out the interactive demo below to see how various Handsontable settings im
 
 ::: only-for react
 
-::: example #example2 :react --css 1 --js 2
+::: example #example2 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/accessibility/accessibility/react/example2.css)
-
 @[code](@/content/guides/accessibility/accessibility/react/example2.jsx)
+@[code](@/content/guides/accessibility/accessibility/react/example2.tsx)
 
 :::
 

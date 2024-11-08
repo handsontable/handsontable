@@ -1,4 +1,4 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -24,12 +24,12 @@ const ExampleComponent = () => {
       height="auto"
       rowHeaders={true}
       colHeaders={true}
-      cells={(row) => {
+      cells={(row, col) => {
         if (row === 1 || row === 4) {
-          return {
-            readOnly: true,
-          };
+          return { readOnly: true };
         }
+
+        return {};
       }}
     />
   );

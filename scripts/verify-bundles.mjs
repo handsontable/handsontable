@@ -33,6 +33,9 @@ const packagesInfo = {
   '@handsontable/react': {
     className: 'HotTable'
   },
+  '@handsontable/react-wrapper': {
+    className: 'HotTable'
+  },
   '@handsontable/vue': {
     className: 'HotTable'
   },
@@ -55,7 +58,7 @@ for (const packagesLocation of workspacePackages) {
 
   for (const subdir of subdirs) {
     const packageJsonLocation = `../${subdir}/package.json`;
-    const { default: packageJson } = await import(packageJsonLocation, { assert: { type: 'json' } });
+    const { default: packageJson } = await import(packageJsonLocation, { with: { type: 'json' } });
     const packageName = packageJson.name;
 
     if (packagesInfo[packageName]) {

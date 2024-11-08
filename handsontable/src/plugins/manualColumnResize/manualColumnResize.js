@@ -139,11 +139,9 @@ export class ManualColumnResize extends BasePlugin {
     this.#columnWidthsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.columnIndexMapper.registerMap(this.pluginName, this.#columnWidthsMap);
 
-    this.addHook('modifyColWidth', (width, col) => this.#onModifyColWidth(width, col));
-    this.addHook('beforeStretchingColumnWidth',
-      (stretchedWidth, column) => this.#onBeforeStretchingColumnWidth(stretchedWidth, column));
-    this.addHook('beforeColumnResize',
-      (newSize, column, isDoubleClick) => this.#onBeforeColumnResize(newSize, column, isDoubleClick));
+    this.addHook('modifyColWidth', (...args) => this.#onModifyColWidth(...args), 1);
+    this.addHook('beforeStretchingColumnWidth', (...args) => this.#onBeforeStretchingColumnWidth(...args), 1);
+    this.addHook('beforeColumnResize', (...args) => this.#onBeforeColumnResize(...args));
 
     this.bindEvents();
 
@@ -475,12 +473,7 @@ export class ManualColumnResize extends BasePlugin {
         this.#newSize = hookNewSize;
       }
 
-      if (this.hot.getSettings().stretchH === 'all') {
-        this.clearManualSize(column);
-      } else {
-        this.setManualSize(column, this.#newSize); // double click sets by auto row size plugin
-      }
-
+      this.setManualSize(column, this.#newSize); // double click sets by auto row size plugin
       this.saveManualColumnWidths();
 
       this.hot.runHooks('afterColumnResize', this.#newSize, column, true);
@@ -665,13 +658,13 @@ export class ManualColumnResize extends BasePlugin {
    * @returns {number}
    */
   #onBeforeStretchingColumnWidth(stretchedWidth, column) {
-    let width = this.#columnWidthsMap.getValueAtIndex(column);
+    const width = this.#columnWidthsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
-    if (width === null) {
-      width = stretchedWidth;
+    if (typeof width === 'number') {
+      return width;
     }
 
-    return width;
+    return stretchedWidth;
   }
 
   /**

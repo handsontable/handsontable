@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -11,12 +11,15 @@ const ExampleComponent = () => {
   let lastChange = null;
 
   useEffect(() => {
-    const hot = hotRef.current.hotInstance;
+    const hot = hotRef.current?.hotInstance;
 
-    hot.updateSettings({
+    hot?.updateSettings({
       beforeKeyDown(e) {
-        const selection = hot.getSelected()[0];
-        console.log(selection)
+        const selection = hot?.getSelected()?.[0];
+
+        if (!selection) return;
+        console.log(selection);
+
         // BACKSPACE or DELETE
         if (e.keyCode === 8 || e.keyCode === 46) {
           e.stopImmediatePropagation();
@@ -27,7 +30,11 @@ const ExampleComponent = () => {
         // ENTER
         else if (e.keyCode === 13) {
           // if last change affected a single cell and did not change it's values
-          if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) {
+          if (
+            lastChange &&
+            lastChange.length === 1 &&
+            lastChange[0][2] == lastChange[0][3]
+          ) {
             e.stopImmediatePropagation();
             hot.spliceCol(selection[1], selection[0], 0, '');
             // add new cell
@@ -37,7 +44,7 @@ const ExampleComponent = () => {
         }
 
         lastChange = null;
-      }
+      },
     });
   });
 
@@ -47,7 +54,7 @@ const ExampleComponent = () => {
         ['Tesla', 2017, 'black', 'black'],
         ['Nissan', 2018, 'blue', 'blue'],
         ['Chrysler', 2019, 'yellow', 'black'],
-        ['Volvo', 2020, 'yellow', 'gray']
+        ['Volvo', 2020, 'yellow', 'gray'],
       ]}
       colHeaders={true}
       rowHeaders={true}

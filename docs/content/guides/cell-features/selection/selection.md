@@ -12,6 +12,7 @@ react:
   id: k88lznt8
   metaTitle: Selection - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Selection
@@ -42,10 +43,11 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2
+::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-features/selection/javascript/example1.html)
 @[code](@/content/guides/cell-features/selection/javascript/example1.js)
+@[code](@/content/guides/cell-features/selection/javascript/example1.ts)
 
 :::
 
@@ -53,9 +55,10 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/selection/react/example1.jsx)
+@[code](@/content/guides/cell-features/selection/react/example1.tsx)
 
 :::
 
@@ -67,10 +70,11 @@ To retrieve the selected cells as an array of arrays, you use the [`getSelected(
 
 ::: only-for javascript
 
-::: example #example2 --html 1 --js 2
+::: example #example2 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-features/selection/javascript/example2.html)
 @[code](@/content/guides/cell-features/selection/javascript/example2.js)
+@[code](@/content/guides/cell-features/selection/javascript/example2.ts)
 
 :::
 
@@ -78,9 +82,10 @@ To retrieve the selected cells as an array of arrays, you use the [`getSelected(
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/selection/react/example2.jsx)
+@[code](@/content/guides/cell-features/selection/react/example2.tsx)
 
 :::
 
@@ -92,11 +97,12 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 
 ::: only-for javascript
 
-::: example #example3 --html 1 --css 2 --js 3
+::: example #example3 --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/cell-features/selection/javascript/example3.html)
 @[code](@/content/guides/cell-features/selection/javascript/example3.css)
 @[code](@/content/guides/cell-features/selection/javascript/example3.js)
+@[code](@/content/guides/cell-features/selection/javascript/example3.ts)
 
 :::
 
@@ -104,10 +110,11 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 
 ::: only-for react
 
-::: example #example3 :react --css 1 --js 2
+::: example #example3 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-features/selection/react/example3.css)
 @[code](@/content/guides/cell-features/selection/react/example3.jsx)
+@[code](@/content/guides/cell-features/selection/react/example3.tsx)
 
 :::
 
@@ -147,7 +154,8 @@ To jump across a horizontal edge:
 
 | Windows                                                       | macOS                                                        | Action                                                                           |  Excel  | Sheets  |
 | ------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd>                        | <kbd>**Cmd**</kbd>+<kbd>**A**</kbd>                        | Select all cells and headers                                                     | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd>                        | <kbd>**Cmd**</kbd>+<kbd>**A**</kbd>                        | Select all cells | &check; | &check; |
+|<kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> |<kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> | Select all cells and headers                                                      | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                    | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                   | Select the entire column                                                         | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                   | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                  | Select the entire row                                                            | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd> | Extend the selection to the first cell of the current column<sup>**</sup>        | &check; | &check; |

@@ -11,6 +11,7 @@ react:
   id: c8onyes4
   metaTitle: Bundle size - React Data Grid | Handsontable
 searchCategory: Guides
+category: Optimization
 ---
 
 # Bundle size
@@ -44,7 +45,7 @@ new Handsontable(container, {
 
 ```js
 import Handsontable from 'handsontable/base';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerPlugin, ContextMenu } from 'handsontable/plugins';
 
 registerPlugin(ContextMenu);
@@ -105,7 +106,7 @@ new Handsontable(container, {
 ::: only-for react
 ```js
 import Handsontable from 'handsontable/base';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerCellType, DateCellType } from 'handsontable/cellTypes';
 
 // explicitly import Moment.js

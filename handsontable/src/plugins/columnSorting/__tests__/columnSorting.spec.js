@@ -991,6 +991,7 @@ describe('ColumnSorting', () => {
         { values: ['23:15', '20:44', '21:00', '14:12'], timeFormat: 'HH:mm' },
         { values: ['11:15 PM', '08:44 PM', '09:00 PM', '02:12 PM'], timeFormat: 'hh:mm A' },
         { values: ['11:15 pm', '08:44 pm', '09:00 pm', '02:12 pm'], timeFormat: 'hh:mm a' },
+        { values: ['08:44 pm', '11:15 am', '02:12 pm', '09:00 am'], timeFormat: 'hh:mm a' }, // mix pm/am
         { values: ['23:15:22:33', '20:44:11:11', '21:00:11:11', '14:12:11:11'], timeFormat: 'HH:mm:mm:ss' },
         { values: ['23:15:3:4', '20:44:1:1', '21:00:1:1', '14:12:1:1'], timeFormat: 'H:m:m:s' },
         {
@@ -2855,6 +2856,33 @@ describe('ColumnSorting', () => {
 
       expect(getDataAtCol(0)).toEqual(['Mary', 'Henry', 'Ann', 'Robert', 'Ann', 'David', 'John', 'Mary', 'Robert']);
     });
+
+    it('should wait before sorting until the edited cell is validated and saved, if the cell has a validator and its' +
+      ' editor is open while clicking on a sortable header', async() => {
+      const hot = handsontable({
+        data: [
+          { a: 9, b: 9 },
+          { a: 8, b: 8 },
+          { a: 7, b: 7 },
+        ],
+        colHeaders: true,
+        columnSorting: true,
+        columns: [
+          { data: 'a' },
+          { data: 'b', type: 'numeric' }
+        ]
+      });
+
+      selectCell(2, 1);
+      hot._getEditorManager().openEditor();
+      getActiveEditor().setValue('444');
+
+      spec().sortByClickOnColumnHeader(1);
+
+      await sleep(50);
+
+      expect(getDataAtCol(1)).toEqual([8, 9, 444]);
+    });
   });
 
   describe('rendering headers', () => {
@@ -3016,6 +3044,68 @@ describe('ColumnSorting', () => {
       ['A3', 'B3', 'C3'],
       [null, null, null],
     ]);
+  });
+
+  describe('undo/redo', () => {
+    it('should be able to undo the sorting action', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        columnSorting: true
+      });
+
+      hot.getPlugin('columnSorting').sort({
+        column: 0,
+        sortOrder: 'desc'
+      });
+
+      expect(getData()).toEqual([
+        ['A3', 'B3', 'C3'],
+        ['A2', 'B2', 'C2'],
+        ['A1', 'B1', 'C1']
+      ]);
+
+      hot.undo();
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3']
+      ]);
+    });
+
+    it('should be able to redo the sorting action', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        columnSorting: true
+      });
+
+      hot.getPlugin('columnSorting').sort({
+        column: 0,
+        sortOrder: 'desc'
+      });
+
+      expect(getData()).toEqual([
+        ['A3', 'B3', 'C3'],
+        ['A2', 'B2', 'C2'],
+        ['A1', 'B1', 'C1']
+      ]);
+
+      hot.undo();
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3']
+      ]);
+
+      hot.redo();
+
+      expect(getData()).toEqual([
+        ['A3', 'B3', 'C3'],
+        ['A2', 'B2', 'C2'],
+        ['A1', 'B1', 'C1']
+      ]);
+    });
   });
 
   describe('cooperation with alter actions', () => {

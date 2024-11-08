@@ -13,6 +13,7 @@ react:
   id: rib1rhmf
   metaTitle: Saving data - React Data Grid | Handsontable
 searchCategory: Guides
+category: Getting started
 ---
 
 # Saving data
@@ -29,10 +30,11 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2
+::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.html)
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.js)
+@[code](@/content/guides/getting-started/saving-data/javascript/example1.ts)
 
 :::
 
@@ -40,9 +42,10 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/saving-data/react/example1.jsx)
+@[code](@/content/guides/getting-started/saving-data/react/example1.tsx)
 
 :::
 

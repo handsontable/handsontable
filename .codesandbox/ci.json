@@ -1,22 +1,24 @@
 {
-  "buildCommand": "build:codesandbox",
+  "buildCommand": "build",
   "packages": [
-    "handsontable",
     "wrappers/angular",
-    "wrappers/react",
-    "wrappers/vue"
+    "handsontable",
+    "wrappers/react-wrapper",
+    "wrappers/vue",
+    "wrappers/vue3"
   ],
   "publishDirectory": {
     "handsontable": "handsontable/tmp",
     "@handsontable/angular": "wrappers/angular/dist/hot-table",
-    "@handsontable/react": "wrappers/react",
-    "@handsontable/vue": "wrappers/vue"
+    "@handsontable/react-wrapper": "wrappers/react-wrapper",
+    "@handsontable/vue": "wrappers/vue",
+    "@handsontable/vue3": "wrappers/vue3"
+
   },
   "sandboxes": [
-    "github/handsontable/examples/tree/master/vanilla/pull-request",
-    "github/handsontable/examples/tree/master/angular/pull-request",
-    "github/handsontable/examples/tree/master/react/pull-request",
-    "github/handsontable/examples/tree/master/vue/pull-request"
+    "github/handsontable/handsontable/tree/develop/examples/prs/js/",
+    "github/handsontable/handsontable/tree/develop/examples/prs/ts/",
+    "github/handsontable/handsontable/tree/develop/examples/prs/react/"
   ],
-  "node": "14"
+  "node": "18"
 }

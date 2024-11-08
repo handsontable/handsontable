@@ -1,5 +1,5 @@
 import Core from '../../core';
-import { Events } from '../../pluginHooks';
+import { Events } from '../../core/hooks';
 
 export class BasePlugin {
   readonly hot: Core;
@@ -19,7 +19,7 @@ export class BasePlugin {
   enablePlugin(): void;
   disablePlugin(): void;
   updatePlugin(): void;
-  addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
+  addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, orderIndex?: number): void;
   removeHooks(name: keyof Events): void;
   clearHooks(): void;
   callOnPluginsReady(callback: () => void): void;

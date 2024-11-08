@@ -1,15 +1,14 @@
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example1');
-const searchField = document.querySelector('#search_field');
 const data = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
   ['Chrysler', 2019, 'yellow', 'black'],
-  ['Volvo', 2020, 'yellow', 'gray']
+  ['Volvo', 2020, 'yellow', 'gray'],
 ];
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data,
   colHeaders: true,
@@ -18,8 +17,10 @@ const hot = new Handsontable(container, {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
+
+const searchField = document.querySelector('#search_field');
 
 // add a search input listener
 searchField.addEventListener('keyup', (event) => {
@@ -29,6 +30,5 @@ searchField.addEventListener('keyup', (event) => {
   const queryResult = search.query(event.target.value);
 
   console.log(queryResult);
-
   hot.render();
 });

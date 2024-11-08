@@ -217,22 +217,11 @@ export class SelectEditor extends BaseEditor {
   registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
-    const gridContext = shortcutManager.getContext('grid');
     const contextConfig = {
       group: SHORTCUTS_GROUP,
     };
 
-    // The `TAB`-related shortcuts should work both in full and fast edit modes.
-    editorContext.addShortcuts([{
-      keys: [
-        ['Tab'],
-        ['Shift', 'Tab'],
-      ],
-      forwardToContext: gridContext,
-      callback: () => { },
-    }], contextConfig);
-
-    if (this.isInFullEditMode() === true) {
+    if (this.isInFullEditMode()) {
       // The arrow-related shortcuts should work only in full edit mode.
       editorContext.addShortcuts([{
         keys: [['ArrowUp']],

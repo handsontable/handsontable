@@ -15,16 +15,15 @@
     "start": "cross-env SKIP_PREFLIGHT_CHECK=true BROWSER=none PORT=8080 react-app-rewired start",
     "serve": "node server.js",
     "build": "cross-env BUILD_PATH=dist SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build",
-    "eject": "react-app-rewired eject",
-    "test": "node spec/support/jasmine.config.js"
+    "eject": "react-app-rewired eject"
   },
   "dependencies": {
     "@handsontable/react": "latest",
     "connect-history-api-fallback": "^2.0.0",
     "express": "^4.19.2",
     "handsontable": "latest",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-scripts": "5.0.1"
   },
   "devDependencies": {

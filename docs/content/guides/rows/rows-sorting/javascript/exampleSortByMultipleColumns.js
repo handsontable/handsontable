@@ -2,7 +2,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleSortByMultipleColumns');
-const handsontableInstance = new Handsontable(container, {
+
+new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -88,7 +89,6 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-
   // enable sorting by multiple columns, for all columns
   multiColumnSorting: true,
   height: 'auto',

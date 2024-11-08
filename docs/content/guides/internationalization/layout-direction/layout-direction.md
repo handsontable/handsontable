@@ -20,6 +20,7 @@ react:
   id: g4mu790t
   metaTitle: Layout direction - React Data Grid | Handsontable
 searchCategory: Guides
+category: Internationalization
 ---
 
 # Layout direction
@@ -51,9 +52,10 @@ To try out Handsontable's RTL support, check out the demo below:
 
 ::: only-for javascript
 
-::: example #example1 :hot-lang
+::: example #example1 :hot-lang --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example1.js)
+@[code](@/content/guides/internationalization/layout-direction/javascript/example1.ts)
 
 :::
 
@@ -61,9 +63,10 @@ To try out Handsontable's RTL support, check out the demo below:
 
 ::: only-for react
 
-::: example #example1 :react-languages
+::: example #example1 :react-languages  --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/react/example1.jsx)
+@[code](@/content/guides/internationalization/layout-direction/react/example1.tsx)
 
 :::
 
@@ -107,10 +110,11 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 ::: only-for javascript
 
-::: example #example2 --html 1 --js 2
+::: example #example2 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example2.html)
 @[code](@/content/guides/internationalization/layout-direction/javascript/example2.js)
+@[code](@/content/guides/internationalization/layout-direction/javascript/example2.ts)
 
 :::
 
@@ -118,9 +122,10 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/react/example2.jsx)
+@[code](@/content/guides/internationalization/layout-direction/react/example2.tsx)
 
 :::
 
@@ -135,9 +140,10 @@ and set it to `'rtl'`:
 
 ::: only-for javascript
 
-::: example #example3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example3.js)
+@[code](@/content/guides/internationalization/layout-direction/javascript/example3.ts)
 
 :::
 
@@ -145,9 +151,10 @@ and set it to `'rtl'`:
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/react/example3.jsx)
+@[code](@/content/guides/internationalization/layout-direction/react/example3.tsx)
 
 :::
 
@@ -162,9 +169,10 @@ and set it to `'ltr'`:
 
 ::: only-for javascript
 
-::: example #example4
+::: example #example4 --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example4.js)
+@[code](@/content/guides/internationalization/layout-direction/javascript/example4.ts)
 
 :::
 
@@ -172,9 +180,10 @@ and set it to `'ltr'`:
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/react/example4.jsx)
+@[code](@/content/guides/internationalization/layout-direction/react/example4.tsx)
 
 :::
 
@@ -188,9 +197,10 @@ In the example below, some columns are explicitly aligned to the left, center, o
 
 ::: only-for javascript
 
-::: example #example5
+::: example #example5 --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/javascript/example5.js)
+@[code](@/content/guides/internationalization/layout-direction/javascript/example5.ts)
 
 :::
 
@@ -198,9 +208,10 @@ In the example below, some columns are explicitly aligned to the left, center, o
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #example5 :react --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/layout-direction/react/example5.jsx)
+@[code](@/content/guides/internationalization/layout-direction/react/example5.tsx)
 
 :::
 
@@ -217,9 +228,13 @@ You can apply the horizontal text alignment settings to:
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Language](@/guides/internationalization/language/language.md)
 - [Locale](@/guides/internationalization/locale/locale.md)
 - [IME support](@/guides/internationalization/ime-support/ime-support.md)
+
+</div>
 
 ### Related API reference
 

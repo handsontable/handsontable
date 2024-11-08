@@ -18,6 +18,7 @@ const allowedE2EModules = [
   './helpers/jasmine-helpers',
   './asciiTable',
   '../../../../../test/helpers/asciiTable',
+  './__mocks__/*',
   './MemoryLeakTest',
   '../MemoryLeakTest',
 ];

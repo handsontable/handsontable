@@ -1,4 +1,4 @@
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { arrayMap, arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { inherit, deepClone } from '../../helpers/object';
@@ -171,8 +171,8 @@ function UndoRedo(instance) {
     plugin.done(() => new UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment));
   });
 
-  instance.addHook('beforeFilter', (conditionsStack) => {
-    plugin.done(() => new UndoRedo.FiltersAction(conditionsStack));
+  instance.addHook('beforeFilter', (conditionsStack, previousConditionsStack) => {
+    plugin.done(() => new UndoRedo.FiltersAction(conditionsStack, previousConditionsStack));
   });
 
   instance.addHook('beforeRowMove', (rows, finalIndex) => {
@@ -205,6 +205,14 @@ function UndoRedo(instance) {
     }
 
     plugin.done(() => new UndoRedo.UnmergeCellsAction(instance, cellRange));
+  });
+
+  instance.addHook('beforeColumnSort', (currentSortConfig, destinationSortConfigs, sortPossible) => {
+    if (!sortPossible) {
+      return;
+    }
+
+    plugin.done(() => new UndoRedo.ColumnSortAction(currentSortConfig, destinationSortConfigs));
   });
 
   // TODO: Why this callback is needed? One test doesn't pass after calling method right after plugin creation (outside the callback).
@@ -503,8 +511,8 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
   if (selectedLast !== undefined) {
     const [changedRow, changedColumn] = data[0];
     const [selectedRow, selectedColumn] = selectedLast;
-    const firstFullyVisibleRow = instance.view.getFirstFullyVisibleRow();
-    const firstFullyVisibleColumn = instance.view.getFirstFullyVisibleColumn();
+    const firstFullyVisibleRow = instance.getFirstFullyVisibleRow();
+    const firstFullyVisibleColumn = instance.getFirstFullyVisibleColumn();
     const isInVerticalViewPort = changedRow >= firstFullyVisibleRow;
     const isInHorizontalViewPort = changedColumn >= firstFullyVisibleColumn;
     const isInViewport = isInVerticalViewPort && isInHorizontalViewPort;
@@ -781,9 +789,11 @@ UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback)
  * Filters action.
  *
  * @private
- * @param {Array} conditionsStack An array of the filter condition.
+ * @param {Array} conditionsStack An array of the filter conditions.
+ * @param {Array} previousConditionsStack An array of the previous filter conditions.
  */
-UndoRedo.FiltersAction = function(conditionsStack) {
+UndoRedo.FiltersAction = function(conditionsStack, previousConditionsStack) {
+  this.previousConditionsStack = previousConditionsStack;
   this.conditionsStack = conditionsStack;
   this.actionType = 'filter';
 };
@@ -794,7 +804,10 @@ UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
 
   instance.addHookOnce('afterViewRender', undoneCallback);
 
-  filters.conditionCollection.importAllConditions(this.conditionsStack.slice(0, this.conditionsStack.length - 1));
+  if (this.previousConditionsStack) {
+    filters.conditionCollection.importAllConditions(this.previousConditionsStack);
+  }
+
   filters.filter();
 };
 UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
@@ -973,6 +986,44 @@ UndoRedo.ColumnMoveAction.prototype.redo = function(instance, redoneCallback) {
 
   instance.deselectCell();
   instance.selectColumns(this.finalColumnIndex, this.finalColumnIndex + this.columns.length - 1);
+};
+
+/**
+ * ColumnSort action.
+ *
+ * @private
+ * @param {Array} currentSortState The current sort state.
+ * @param {Array} newSortState The new sort state.
+ */
+UndoRedo.ColumnSortAction = function(currentSortState, newSortState) {
+  this.previousSortState = currentSortState;
+  this.nextSortState = newSortState;
+};
+inherit(UndoRedo.ColumnSortAction, UndoRedo.Action);
+
+UndoRedo.ColumnSortAction.prototype.undo = function(instance, undoneCallback) {
+  const sortPlugin = instance.getPlugin('columnSorting');
+  const multiSortPlugin = instance.getPlugin('multiColumnSorting');
+  const enabledSortPlugin = multiSortPlugin.isEnabled() ? multiSortPlugin : sortPlugin;
+
+  if (this.previousSortState.length) {
+    enabledSortPlugin.sort(this.previousSortState);
+
+  } else {
+    enabledSortPlugin.clearSort();
+  }
+
+  undoneCallback();
+};
+
+UndoRedo.ColumnSortAction.prototype.redo = function(instance, redoneCallback) {
+  const sortPlugin = instance.getPlugin('columnSorting');
+  const multiSortPlugin = instance.getPlugin('multiColumnSorting');
+  const enabledSortPlugin = multiSortPlugin.isEnabled() ? multiSortPlugin : sortPlugin;
+
+  enabledSortPlugin.sort(this.nextSortState);
+
+  redoneCallback();
 };
 
 /**

@@ -9,6 +9,7 @@ react:
   id: 5i86kjqu
   metaTitle: Dropdown cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Dropdown cell type
@@ -39,9 +40,11 @@ Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" st
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example1.js)
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example1.css)
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example1.ts)
 
 :::
 
@@ -49,9 +52,11 @@ Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" st
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/cell-types/dropdown-cell-type/react/example1.jsx)
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example1.css)
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example1.tsx)
 
 :::
 
@@ -61,9 +66,13 @@ Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" st
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
+
+</div>
 
 ### Related API reference
 

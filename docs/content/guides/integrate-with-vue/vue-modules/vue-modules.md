@@ -9,6 +9,7 @@ react:
   id: ijlm2nkx
   metaTitle: Modules - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
+category: Integrate with Vue 2
 ---
 
 # Modules in Vue 2
@@ -94,5 +95,9 @@ new Vue({
 
 ## Related guides
 
+<div class="boxes-list gray">
+
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
+
+</div>

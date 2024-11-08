@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -9,37 +9,34 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponentContent = () => {
-  const hotSettings = useSelector(state => state);
+  const hotSettings = useSelector((state) => state);
   const dispatch = useDispatch();
   const hotTableComponentRef = useRef(null);
-
   const hotData = hotSettings.data;
   const isHotData = Array.isArray(hotData);
-
-  const onBeforeHotChange = changes => {
+  const onBeforeHotChange = (changes) => {
     dispatch({
       type: 'updateData',
-      dataChanges: changes
+      dataChanges: changes,
     });
 
     return false;
-  }
+  };
 
-  const toggleReadOnly = event => {
+  const toggleReadOnly = (event) => {
     dispatch({
       type: 'updateReadOnly',
-      readOnly: event.target.checked
+      readOnly: event.target.checked,
     });
-  }
+  };
 
   return (
     <div className="dump-example-container">
       <div id="example-container">
-
         <div id="example-preview">
           <div className="controls">
             <label>
-              <input onClick={toggleReadOnly} type="checkbox"/>
+              <input onClick={toggleReadOnly} type="checkbox" />
               Toggle <code>readOnly</code> for the entire table
             </label>
           </div>
@@ -52,20 +49,20 @@ const ExampleComponentContent = () => {
             {...hotSettings}
           />
         </div>
-
-        <div id="redux-preview" className="table-container">
-          <h3>Redux store dump</h3>
-
+        <h3>Redux store dump</h3>
+        <pre id="redux-preview" className="table-container">
           {isHotData && (
             <div>
               <strong>data:</strong>
               <table style={{ border: '1px solid #d6d6d6' }}>
                 <tbody>
                   {hotData.map((row, i) => (
-                      <tr key={i}>
-                        {row.map((cell, i) => <td key={i}>{cell}</td>)}
-                      </tr>
-                    ))}
+                    <tr key={i}>
+                      {row.map((cell, i) => (
+                        <td key={i}>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -73,16 +70,20 @@ const ExampleComponentContent = () => {
 
           <table>
             <tbody>
-              {Object.entries(hotSettings).map(([name, value]) => name !== 'data' && (
-                <tr key={`${name}${value}`}>
-                  <td><strong>{name}:</strong></td>
-                  <td>{value.toString()}</td>
-                </tr>
-              ))}
+              {Object.entries(hotSettings).map(
+                ([name, value]) =>
+                  name !== 'data' && (
+                    <tr key={`${name}${value}`}>
+                      <td>
+                        <strong>{name}:</strong>
+                      </td>
+                      <td>{value.toString()}</td>
+                    </tr>
+                  )
+              )}
             </tbody>
           </table>
-        </div>
-
+        </pre>
       </div>
     </div>
   );
@@ -100,7 +101,7 @@ const initialReduxStoreState = {
   rowHeaders: true,
   readOnly: false,
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 };
 
 const updatesReducer = (state = initialReduxStoreState, action) => {
@@ -110,30 +111,27 @@ const updatesReducer = (state = initialReduxStoreState, action) => {
 
       action.dataChanges.forEach(([row, column, oldValue, newValue]) => {
         newData[row][column] = newValue;
-      })
+      });
 
       return {
         ...state,
-        data: newData
-      }
-
+        data: newData,
+      };
     case 'updateReadOnly':
       return {
         ...state,
-        readOnly: action.readOnly
+        readOnly: action.readOnly,
       };
-
     default:
       return state;
   }
 };
 
 const reduxStore = createStore(updatesReducer);
-
 const ExampleComponent = () => (
   <Provider store={reduxStore}>
     <ExampleComponentContent />
   </Provider>
-)
+);
 
 export default ExampleComponent;

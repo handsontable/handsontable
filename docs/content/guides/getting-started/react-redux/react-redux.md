@@ -16,6 +16,7 @@ react:
     - state management
 searchCategory: Guides
 onlyFor: react
+category: Getting started
 ---
 
 # Integration with Redux
@@ -32,13 +33,14 @@ Before using any state management library, make sure you know how Handsontable h
 
 :::
 
-The following example implements the `@handsontable/react` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Redux state manager.
+The following example implements the `@handsontable/react-wrapper` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Redux state manager.
 
 ## Simple example
 
-::: example #example1 :react-redux
+::: example #example1 :react-redux --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/react-redux/react/example1.jsx)
+@[code](@/content/guides/getting-started/react-redux/react/example1.tsx)
 
 :::
 
@@ -50,8 +52,9 @@ This example shows:
 
 The editor component changes the behavior of the renderer component, by passing information through Redux (and the `connect()` method of `react-redux`).
 
-::: example #example6 :react-advanced --tab preview
+::: example #example6 :react-advanced --tab preview --js 1 --ts 2
 
 @[code](@/content/guides/getting-started/react-redux/react/example6.jsx)
+@[code](@/content/guides/getting-started/react-redux/react/example6.tsx)
 
 :::

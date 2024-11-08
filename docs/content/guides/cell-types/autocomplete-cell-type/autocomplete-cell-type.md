@@ -9,6 +9,7 @@ react:
   id: vnnvp396
   metaTitle: Autocomplete cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Autocomplete cell type
@@ -30,9 +31,11 @@ This example uses the `autocomplete` feature in the default flexible mode. In th
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example1.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example1.css)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example1.ts)
 
 :::
 
@@ -40,9 +43,11 @@ This example uses the `autocomplete` feature in the default flexible mode. In th
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/react/example1.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example1.css)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example1.tsx)
 
 :::
 
@@ -62,9 +67,11 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example2.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example2.css)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example2.ts)
 
 :::
 
@@ -72,9 +79,11 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/react/example2.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example2.css)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example2.tsx)
 
 :::
 
@@ -86,9 +95,11 @@ Autocomplete can also be used with Ajax data sources. In the example below, sugg
 
 ::: only-for javascript
 
-::: example #example3
+::: example #example3 --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example3.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example3.css)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example3.ts)
 
 :::
 
@@ -96,9 +107,11 @@ Autocomplete can also be used with Ajax data sources. In the example below, sugg
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --css 2 --ts 3
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/react/example3.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example3.css)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example3.tsx)
 
 :::
 

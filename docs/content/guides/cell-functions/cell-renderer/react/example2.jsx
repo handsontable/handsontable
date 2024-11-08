@@ -1,13 +1,15 @@
-import React, { useState, useContext } from 'react';
-import { HotTable, HotColumn } from '@handsontable/react';
+import { useState, useContext, createContext } from 'react';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // a component
-const HighlightContext = React.createContext();
+const HighlightContext = createContext(false);
 
 // a renderer component
 function CustomRenderer(props) {
   const darkMode = useContext(HighlightContext);
+
+  if (!props.TD) return;
 
   if (darkMode) {
     props.TD.className = 'dark';
@@ -20,7 +22,6 @@ function CustomRenderer(props) {
 
 const ExampleComponent = () => {
   const [darkMode, setDarkMode] = useState(false);
-
   const toggleDarkMode = (event) => {
     setDarkMode(event.target.checked);
   };
@@ -28,7 +29,9 @@ const ExampleComponent = () => {
   return (
     <HighlightContext.Provider value={darkMode}>
       <div className="controls">
-        <label><input type="checkbox" onClick={toggleDarkMode}/> Dark mode</label>
+        <label>
+          <input type="checkbox" onClick={toggleDarkMode} /> Dark mode
+        </label>
       </div>
       <HotTable
         data={[
@@ -44,12 +47,12 @@ const ExampleComponent = () => {
           ['A10'],
         ]}
         rowHeaders={true}
-        licenseKey={"non-commercial-and-evaluation"}
+        autoRowSize={false}
+        autoColumnSize={false}
+        height="auto"
+        licenseKey={'non-commercial-and-evaluation'}
       >
-        <HotColumn>
-          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-          <CustomRenderer hot-renderer />
-        </HotColumn>
+        <HotColumn renderer={CustomRenderer} />
       </HotTable>
     </HighlightContext.Provider>
   );

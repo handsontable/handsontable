@@ -13,6 +13,7 @@ react:
   metaTitle: Demo - React Data Grid | Handsontable
   description: Play around with a demo of Handsontable in React.
 searchCategory: Guides
+category: Getting started
 ---
 
 # Demo
@@ -39,11 +40,15 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 ## Find the code on GitHub
 
-- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/js/demo/)
-- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/ts/demo/)
-- [Angular demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/angular/demo/)
-- [React demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/react/demo/)
-- [Vue demo app](https://github.com/handsontable/handsontable/tree/prod-docs/14.2/examples/next/docs/vue/demo/)
+<div class="boxes-list gray">
+
+- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/js/demo/`">JavaScript demo app</Link>
+- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/ts/demo/`">TypeScript demo app</Link>
+- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/angular/demo/`">Angular demo app</Link>
+- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/react/demo/`">React demo app</Link>
+- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/vue/demo/`">Vue demo app</Link>
+
+</div>
 
 ## Try out the demo's features
 

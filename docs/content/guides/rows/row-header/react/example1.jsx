@@ -1,4 +1,4 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -9,10 +9,9 @@ const ExampleComponent = () => {
   //  Generate an array of arrays with a dummy data
   const generateData = (rows = 3, columns = 7, additionalRows = true) => {
     let counter = 0;
-
-    const array2d = [...new Array(rows)]
-      .map(_ => [...new Array(columns)]
-        .map(_ => counter++));
+    const array2d = [...new Array(rows)].map((_) =>
+      [...new Array(columns)].map((_) => counter++)
+    );
 
     if (additionalRows) {
       array2d.push([]);

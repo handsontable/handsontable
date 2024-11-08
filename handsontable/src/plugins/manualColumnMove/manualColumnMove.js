@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, hasClass, outerWidth } from '../../helpers/dom/element';
 import { offsetRelativeTo } from '../../helpers/dom/event';
@@ -314,15 +314,13 @@ export class ManualColumnMove extends BasePlugin {
     let columnsWidth = 0;
 
     for (let visualColumnIndex = fromColumn; visualColumnIndex <= toColumn; visualColumnIndex += 1) {
-      // We can't use just `getColWidth` (even without indexes translation) as it doesn't return proper values
-      // when column is stretched.
       const renderableIndex = columnMapper.getRenderableFromVisualIndex(visualColumnIndex);
 
       if (visualColumnIndex < 0) {
         columnsWidth += this.hot.view._wt.wtViewport.getRowHeaderWidth() || 0;
 
       } else if (renderableIndex !== null) {
-        columnsWidth += this.hot.view._wt.wtTable.getStretchedColumnWidth(renderableIndex) || 0;
+        columnsWidth += this.hot.view._wt.wtTable.getColumnWidth(renderableIndex) || 0;
       }
     }
 

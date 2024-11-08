@@ -1,4 +1,4 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -9,10 +9,9 @@ const ExampleComponent = () => {
   //  generate an array of arrays with dummy numeric data
   const generateData = (rows = 3, columns = 7, additionalRows = true) => {
     let counter = 0;
-
-    const array2d = [...new Array(rows)]
-      .map(_ => [...new Array(columns)]
-        .map(_ => counter++));
+    const array2d = [...new Array(rows)].map((_) =>
+      [...new Array(columns)].map((_) => counter++)
+    );
 
     if (additionalRows) {
       array2d.push([]);
@@ -40,18 +39,24 @@ const ExampleComponent = () => {
           destinationColumn: 5,
           reversedRowCoords: true,
           // add your custom summary function
-          customFunction: function(endpoint) {
+          customFunction(endpoint) {
             // implement a function that counts the number of even values in the column
             const hotInstance = this.hot;
             let evenCount = 0;
-
             // a helper function
-            const checkRange = rowRange => {
+            const checkRange = (rowRange) => {
               let i = rowRange[1] || rowRange[0];
               let counter = 0;
 
               do {
-                if (parseInt(hotInstance.getDataAtCell(i, endpoint.sourceColumn), 10) % 2 === 0) {
+                if (
+                  parseInt(
+                    hotInstance.getDataAtCell(i, endpoint.sourceColumn),
+                    10
+                  ) %
+                    2 ===
+                  0
+                ) {
                   counter++;
                 }
 
@@ -59,7 +64,7 @@ const ExampleComponent = () => {
               } while (i >= rowRange[0]);
 
               return counter;
-            }
+            };
 
             // go through all declared ranges
             for (const r in endpoint.ranges) {
@@ -70,8 +75,8 @@ const ExampleComponent = () => {
 
             return evenCount;
           },
-          forceNumeric: true
-        }
+          forceNumeric: true,
+        },
       ]}
     />
   );

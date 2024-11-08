@@ -1,0 +1,30 @@
+{
+  "name": "vue3-basic-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "preview": "vite preview",
+    "build": "vite build",
+    "type-check": "vue-tsc --build --force"
+  },
+  "dependencies": {
+    "vue": "^3.5.8",
+    "@handsontable/vue3": "latest",
+    "handsontable": "latest"
+  },
+  "devDependencies": {
+    "@tsconfig/node20": "^20.1.2",
+    "@types/node": "^20.11.28",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "@vue/tsconfig": "^0.5.1",
+    "npm-run-all2": "^6.1.2",
+    "typescript": "~5.4.0",
+    "vite": "^5.1.6",
+    "vue-tsc": "^2.0.6",
+    "jasmine": "5.3.0",
+    "jasmine-console-reporter": "3.1.0",
+    "puppeteer": "23.4.0"
+  }
+}

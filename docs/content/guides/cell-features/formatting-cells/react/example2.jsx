@@ -1,4 +1,4 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer, registerRenderer } from 'handsontable/renderers';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -9,7 +9,6 @@ registerAllModules();
 const ExampleComponent = () => {
   registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
     textRenderer(hotInstance, TD, ...rest);
-
     TD.style.fontWeight = 'bold';
     TD.style.color = 'green';
     TD.style.background = '#d7f1e1';

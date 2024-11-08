@@ -4,10 +4,9 @@ import 'handsontable/dist/handsontable.full.min.css';
 // Generate an array of arrays with a dummy data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
-
-  const array2d = [...new Array(rows)]
-    .map(_ => [...new Array(columns)]
-      .map(_ => counter++));
+  const array2d = [...new Array(rows)].map((_) =>
+    [...new Array(columns)].map((_) => counter++)
+  );
 
   if (additionalRows) {
     array2d.push([]);
@@ -18,7 +17,8 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 };
 
 const container = document.querySelector('#example1');
-const hot = new Handsontable(container, {
+
+new Handsontable(container, {
   data: generateData(),
   colHeaders: true,
   rowHeaders: true,
@@ -28,5 +28,5 @@ const hot = new Handsontable(container, {
   bindRowsWithHeaders: 'strict',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

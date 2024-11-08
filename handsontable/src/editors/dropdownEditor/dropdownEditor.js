@@ -1,5 +1,5 @@
 import { AutocompleteEditor } from '../autocompleteEditor';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 
 export const EDITOR_TYPE = 'dropdown';
 
@@ -28,12 +28,16 @@ export class DropdownEditor extends AutocompleteEditor {
 }
 
 Hooks.getSingleton().add('beforeValidate', function(value, row, col) {
-  const cellMeta = this.getCellMeta(row, this.propToCol(col));
+  const visualColumnIndex = this.propToCol(col);
 
-  if (cellMeta.editor === DropdownEditor) {
-    if (cellMeta.strict === undefined) {
-      cellMeta.filter = false;
-      cellMeta.strict = true;
+  if (Number.isInteger(visualColumnIndex)) {
+    const cellMeta = this.getCellMeta(row, visualColumnIndex);
+
+    if (cellMeta.editor === DropdownEditor) {
+      if (cellMeta.strict === undefined) {
+        cellMeta.filter = false;
+        cellMeta.strict = true;
+      }
     }
   }
 });

@@ -4,13 +4,13 @@ import 'handsontable/dist/handsontable.full.min.css';
 const triggerBtn = document.querySelector('#triggerBtn');
 const example = document.querySelector('#example');
 const exampleParent = document.querySelector('#exampleParent');
-
 // generate an array of arrays with dummy data
 const data = new Array(100) // number of rows
-  .fill()
-  .map((_, row) => new Array(50) // number of columns
-    .fill()
-    .map((_, column) => `${row}, ${column}`)
+  .fill(null)
+  .map((_, row) =>
+    new Array(50) // number of columns
+      .fill(null)
+      .map((_, column) => `${row}, ${column}`)
   );
 
 const hot = new Handsontable(example, {
@@ -23,7 +23,7 @@ const hot = new Handsontable(example, {
   colWidths: 100,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 triggerBtn.addEventListener('click', () => {

@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { useRef } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -8,26 +8,25 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-
-  const copyBtnClickCallback = function() {
+  const copyBtnClickCallback = function () {
     document.execCommand('copy');
   };
-  const cutBtnClickCallback = function() {
+
+  const cutBtnClickCallback = function () {
     document.execCommand('cut');
   };
-  let copyBtnMousedownCallback;
-  let cutBtnMousedownCallback;
 
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
+  const copyBtnMousedownCallback = () => {
+    const hot = hotRef.current?.hotInstance;
 
-    copyBtnMousedownCallback = function() {
-      hot.selectCell(1, 1);
-    };
-    cutBtnMousedownCallback = function() {
-      hot.selectCell(1, 1);
-    };
-  });
+    hot?.selectCell(1, 1);
+  };
+
+  const cutBtnMousedownCallback = () => {
+    const hot = hotRef.current?.hotInstance;
+
+    hot?.selectCell(1, 1);
+  };
 
   return (
     <>
@@ -51,15 +50,15 @@ const ExampleComponent = () => {
       <div className="controls">
         <button
           id="copy"
-          onMouseDown={(...args) => copyBtnMousedownCallback(...args)}
-          onClick={(...args) => copyBtnClickCallback(...args)}
+          onMouseDown={() => copyBtnMousedownCallback()}
+          onClick={() => copyBtnClickCallback()}
         >
           Select and copy cell B2
         </button>
         <button
           id="cut"
-          onMouseDown={(...args) => cutBtnMousedownCallback(...args)}
-          onClick={(...args) => cutBtnClickCallback(...args)}
+          onMouseDown={() => cutBtnMousedownCallback()}
+          onClick={() => cutBtnClickCallback()}
         >
           Select and cut cell B2
         </button>

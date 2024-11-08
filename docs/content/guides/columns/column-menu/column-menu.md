@@ -11,6 +11,7 @@ react:
   id: uc7w8gu1
   metaTitle: Column menu - React Data Grid | Handsontable
 searchCategory: Guides
+category: Columns
 ---
 
 # Column menu
@@ -30,9 +31,10 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-menu/javascript/example1.js)
+@[code](@/content/guides/columns/column-menu/javascript/example1.ts)
 
 :::
 
@@ -40,9 +42,10 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-menu/react/example1.jsx)
+@[code](@/content/guides/columns/column-menu/react/example1.tsx)
 
 :::
 
@@ -54,9 +57,10 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-menu/javascript/example2.js)
+@[code](@/content/guides/columns/column-menu/javascript/example2.ts)
 
 :::
 
@@ -64,9 +68,10 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-menu/react/example2.jsx)
+@[code](@/content/guides/columns/column-menu/react/example2.tsx)
 
 :::
 

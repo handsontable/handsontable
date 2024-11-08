@@ -1,5 +1,5 @@
-import { useRef, useEffect, useState } from 'react';
-import { HotTable } from '@handsontable/react';
+import { useRef, useState } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -9,40 +9,51 @@ registerAllModules();
 const ExampleComponent = () => {
   const hot4Ref = useRef(null);
   const [resultCount, setResultCounter] = useState(0);
-
   const data = [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
     ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray']
+    ['Volvo', 2020, 'white', 'gray'],
   ];
 
   //  define your custom callback function
-  function searchResultCounter(instance, row, col, value, result) {
-    const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
+  function searchResultCounter(_instance, _row, _col, _value, result) {
+    const DEFAULT_CALLBACK = function (instance, row, col, _data, testResult) {
       instance.getCellMeta(row, col).isSearchResult = testResult;
     };
 
     DEFAULT_CALLBACK.apply(this, arguments);
 
     if (result) {
-      setResultCounter(count => count + 1);
+      setResultCounter((count) => count + 1);
     }
   }
 
   const handleKeyUp = (event) => {
     setResultCounter(0);
-    const search = hot4Ref.current.hotInstance.getPlugin('search');
-    const queryResult = search.query(event.target.value);
-    hot4Ref.current.hotInstance.render();
-  }
+
+    const search = hot4Ref.current?.hotInstance?.getPlugin('search');
+    const queryResult = search?.query(event.currentTarget.value);
+
+    console.log(queryResult);
+    hot4Ref.current?.hotInstance?.render();
+  };
 
   return (
     <>
-      <div className="controls">
-        <input id="search_field4" type="search" placeholder="Search" onKeyUp={handleKeyUp}/>
+      <div className="example-controls-container">
+        <div className="controls">
+          <input
+            id="search_field4"
+            type="search"
+            placeholder="Search"
+            onKeyUp={handleKeyUp}
+          />
+        </div>
+        <output className="console" id="output">
+          {resultCount} results
+        </output>
       </div>
-      <output className="console" id="output">{resultCount} results</output>
       <HotTable
         ref={hot4Ref}
         data={data}
@@ -50,7 +61,7 @@ const ExampleComponent = () => {
         // enable the `Search` plugin
         search={{
           // add your custom callback function
-          callback: searchResultCounter
+          callback: searchResultCounter,
         }}
         height="auto"
         autoWrapRow={true}

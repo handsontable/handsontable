@@ -4,34 +4,31 @@ import 'handsontable/dist/handsontable.full.min.css';
 const container = document.querySelector('#example4');
 const data = [
   { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
-  { id: 2, address: '' }, // Handsontable will create missing properties on demand
-  { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
+  { id: 2, address: '' },
+  { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' },
 ];
 
-const hot = new Handsontable(container, {
+new Handsontable(container, {
   data,
   colHeaders: true,
   height: 'auto',
   width: 'auto',
   columns(column) {
-    let columnMeta = {};
-
-    if (column === 0) {
-      columnMeta.data = 'id';
-    } else if (column === 1) {
-      columnMeta.data = 'name.first';
-    } else if (column === 2) {
-      columnMeta.data = 'name.last';
-    } else if (column === 3) {
-      columnMeta.data = 'address';
-    } else {
-      columnMeta = null;
+    switch (column) {
+      case 0:
+        return { data: 'id' };
+      case 1:
+        return { data: 'name.first' };
+      case 2:
+        return { data: 'name.last' };
+      case 3:
+        return { data: 'address' };
+      default:
+        return {};
     }
-
-    return columnMeta;
   },
   minSpareRows: 1,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

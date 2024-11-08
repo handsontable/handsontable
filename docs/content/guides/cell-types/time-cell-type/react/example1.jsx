@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -10,9 +10,9 @@ const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {
-    const hot = hotRef.current.hotInstance;
+    const hot = hotRef.current?.hotInstance;
 
-    hot.validateCells();
+    hot?.validateCells();
   });
 
   return (
@@ -23,7 +23,7 @@ const ExampleComponent = () => {
         ['Citroen', 'C4 Coupe', '10 30', 8330],
         ['Audi', 'A4 Avant', '8:00 PM', 33900],
         ['Opel', 'Astra', 1332284400000, 7000],
-        ['BMW', '320i Coupe', 1332284400000, 30500]
+        ['BMW', '320i Coupe', 1332284400000, 30500],
       ]}
       colHeaders={['Car', 'Model', 'Registration time', 'Price']}
       columnSorting={true}
@@ -31,7 +31,8 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      columns={[{
+      columns={[
+        {
           type: 'text',
         },
         {
@@ -40,14 +41,14 @@ const ExampleComponent = () => {
         {
           type: 'time',
           timeFormat: 'h:mm:ss a',
-          correctFormat: true
+          correctFormat: true,
         },
         {
           type: 'numeric',
           numericFormat: {
-            pattern: '$ 0,0.00'
-          }
-        }
+            pattern: '$ 0,0.00',
+          },
+        },
       ]}
     />
   );

@@ -9,6 +9,7 @@ react:
   id: 6i8ttta0
   metaTitle: Cell editor - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell functions
 ---
 
 # Cell editor
@@ -28,32 +29,61 @@ This tutorial will give you a comprehensive understanding of how the whole proce
 
 ## Component-based editors
 
-You can use React components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/react`.
+You can use React components to create custom editors. To do so, you'll need to create a functional component using the `useHotEditor` hook.
 
-This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close`, and `focus` methods, which are abstract in the `BaseEditor`. For more info, check the section on [creating custom editors from scratch](#how-to-create-a-custom-editor).
+In the simplest case:
+```js
+import { useHotEditor } from "@handsontable/react-wrapper";
+
+const EditorComponent = () => {
+  const { value, setValue, finishEditing } = useHotEditor({
+    onOpen: () => {
+      // Open logic
+    },
+    onClose: () => {
+      // Close logic
+    },
+  });
+
+  // Component logic here
+
+  // Any elements that should be rendered within the editor
+  return (
+    <div>
+      <button onClick={finishEditing}>Apply</button>
+    </div>
+  );
+};
+
+// ...
+
+<HotTable
+  editor={ EditorComponent }
+/>
+```
 
 It's also worth noting that by default, the editors in Handsontable will close after clicking on them if the `outsideClickDeselects` option is enabled.
 To prevent that, the `mousedown` event on the editor container must call `event.stopPropagation()`.
 
 If you are using React 17 and newer, `event.stopPropagation()` should work for you as expected. See the [React 17 release notes](https://reactjs.org/blog/2020/08/10/react-v17-rc.html#changes-to-event-delegation) for details about event delegation.
 
-Note that in case of React 16 and older, it wouldn't work out of the box because of the way how React used to handle events. [This article by Eric Clemmons](https://medium.com/@ericclemmons/react-event-preventdefault-78c28c950e46) sums it up pretty well and presents a solution ([react-native-listener](https://www.npmjs.com/package/react-native-listener)).
-
-::: example #example1 :react --tab preview
+::: example #example1 :react --js 1 --ts 2 --tab preview 
 
 @[code](@/content/guides/cell-functions/cell-editor/react/example1.jsx)
+@[code](@/content/guides/cell-functions/cell-editor/react/example1.tsx)
 
 :::
 
 ## Class-based editors
 
-You can also declare a custom editor for the `HotTable` component by declaring it as a class and passing it to the Handsontable options.
+You can also declare a custom editor for the `HotTable` component by declaring it as a class and passing it to the Handsontable options as `hotEditor` (or simply `editor` when used in a `columns` config array).
 
-The following example implements the `@handsontable/react` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
+The following example implements the `@handsontable/react-wrapper` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
 
-::: example #example2 :react 
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-editor/react/example2.jsx)
+@[code](@/content/guides/cell-functions/cell-editor/react/example2.tsx)
 
 :::
 
@@ -1221,10 +1251,14 @@ const hot = new Handsontable(container, {
 ## Related articles
 
 ### Related guides
+<div class="boxes-list gray">
+
 - [Custom editor in React](@/react/guides/cell-functions/cell-editor/cell-editor.md)
 - [Custom editor in Angular](@/guides/integrate-with-angular/angular-custom-editor-example/angular-custom-editor-example.md)
 - [Custom editor in Vue 2](@/guides/integrate-with-vue/vue-custom-editor-example/vue-custom-editor-example.md)
 - [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md)
+
+</div>
 
 ### Related API reference
 

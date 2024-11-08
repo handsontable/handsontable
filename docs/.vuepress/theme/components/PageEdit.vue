@@ -1,23 +1,41 @@
 <template>
-  <footer class="page-edit">
-    <div
-      v-if="editLink"
-      class="edit-link"
-    >
-      <a
+  <footer class="footer">
+    <a
+        v-if="editLink"
+        class="edit-link"
         :href="editLink"
         target="_blank"
         rel="noopener noreferrer"
-      >{{ editLinkText }}</a>
-      <OutboundLink />
+      >{{ editLinkText }} <i class="ico i-external"></i>
+    </a>
+
+    <div class="footer-links">
+      <div class="socail-links">
+        <a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github">
+          <i class="ico i-github"></i>
+        </a>
+        <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin">
+          <i class="ico i-linkedin"></i>
+        </a>
+        <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X">
+          <i class="ico i-twitter"></i>
+        </a>
+      </div>
+
+      <div class="hot-links">
+        <a href="https://handsontable.com/privacy">Privacy policy</a>
+        <a href="https://handsontable.com/terms-of-use">Terms of use</a>
+        <a href="https://handsontable.com/team">Team</a>
+        <a href="https://handsontable.com/contact?category=technical_support">Contact</a>
+
+        <a href="https://handsontable.com/blog/">Blog</a>
+        <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a>
+      </div>
     </div>
 
-    <div
-      v-if="lastUpdated"
-      class="last-updated"
-    >
-      <span class="prefix">{{ lastUpdatedText }}:</span>
-      <span class="time">{{ lastUpdated }}</span>
+    <div class="copyright">
+      <p>© 2012 - {{ new Date().getFullYear() }} Handsoncode</p>
+      <ThemeSwitcher />
     </div>
   </footer>
 </template>
@@ -25,9 +43,13 @@
 <script>
 import isNil from 'lodash/isNil';
 import { endingSlashRE, outboundRE } from '@vuepress/theme-default/util';
+import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 
 export default {
   name: 'PageEdit',
+  components: {
+    ThemeSwitcher
+  },
 
   computed: {
     lastUpdated() {
@@ -74,7 +96,7 @@ export default {
       return (
         this.$themeLocaleConfig.editLinkText
         || this.$site.themeConfig.editLinkText
-        || 'Edit this page'
+        || 'Improve this page'
       );
     }
   },
@@ -118,37 +140,3 @@ export default {
   }
 };
 </script>
-
-<style lang="stylus">
-.page-edit
-  max-width $contentWidth
-  margin 0 auto
-  padding 2rem 2.5rem
-  @media (max-width: $large)
-    padding 2rem
-  @media (max-width: $small)
-    padding 1.5rem  padding-top 1rem
-
-  padding-bottom 1rem
-  overflow auto
-
-  .edit-link
-    display inline-block
-    a
-      margin-right 0.25rem
-      font-size 0.9rem
-      font-weight 400
-  .last-updated
-    float right
-    font-size 0.9em
-
-@media (max-width: $medium)
-  .page-edit
-    .edit-link
-      margin-bottom 0.5rem
-    .last-updated
-      font-size 0.8em
-      float none
-      text-align left
-
-</style>

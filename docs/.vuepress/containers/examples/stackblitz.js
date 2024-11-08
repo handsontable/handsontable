@@ -1,7 +1,7 @@
 const { getBody } = require('../../code-structure-builder/getBody');
 
-const stackblitz = (id, html, js, css, docsVersion, preset) => {
-  const body = getBody(id, html, js, css, docsVersion, preset, 'stackblitz');
+const stackblitz = (id, html, js, css, docsVersion, preset, lang) => {
+  const body = getBody({ id, html, js, css, docsVersion, preset, sandbox: 'stackblitz', lang });
 
   const projects = body?.files
     ? Object.entries(body?.files).map(([key, value]) => (
@@ -10,13 +10,15 @@ const stackblitz = (id, html, js, css, docsVersion, preset) => {
 
   const addReactDependencies = preset.includes('react')
     // eslint-disable-next-line max-len
-    ? ', "@handsontable/react": "latest", "react": "latest", "react-dom": "latest", "redux": "latest", "react-redux": "latest", "react-colorful": "latest", "react-star-rating-component": "latest"'
+    ? ', "@handsontable/react-wrapper": "latest", "react": "latest", "react-dom": "latest", "redux": "latest", "react-redux": "latest", "react-colorful": "latest", "react-star-rating-component": "latest", "@types/react": "latest", "@types/react-dom": "latest"'
     : '';
 
   const getTemplate = () => {
     if (preset.includes('react')) return 'create-react-app';
 
-    if (preset.includes('hot')) return 'javascript';
+    if (preset.includes('hot') && lang === 'JavaScript') return 'javascript';
+
+    if (preset.includes('hot') && lang === 'TypeScript') return 'typescript';
 
     return 'node';
   };
@@ -37,7 +39,7 @@ const stackblitz = (id, html, js, css, docsVersion, preset) => {
     <input type="hidden" name="project[template]" value="${getTemplate()}"/>
     
     <div class="js-stackblitz-link">
-      <button type="submit" aria-label="Edit stackblitz">
+      <button type="submit" aria-label="Edit in StackBlitz">
         <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"
         width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound">
           <path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"/>

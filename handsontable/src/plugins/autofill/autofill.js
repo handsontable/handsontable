@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { isEmpty } from '../../helpers/mixed';
@@ -308,7 +308,7 @@ export class Autofill extends BasePlugin {
 
     } else {
       // reset to avoid some range bug
-      this.hot._refreshBorders();
+      this.hot.view.render();
     }
 
     return true;

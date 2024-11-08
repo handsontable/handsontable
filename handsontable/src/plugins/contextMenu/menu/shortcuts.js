@@ -93,7 +93,7 @@ export function createKeyboardShortcutsCtrl(menu, customKeyboardShortcuts = []) 
   /**
    * Makes the specified context active.
    *
-   * @param {string} contextName The context name.
+   * @param {string} [contextName] The context name.
    */
   function listen(contextName) {
     menu.hotMenu.getShortcutManager().setActiveContextName(_getContextName(contextName));

@@ -15,8 +15,7 @@
     "ng": "ng",
     "serve": "node server.js",
     "start": "ng serve --port 8080",
-    "build": "ng build",
-    "test": "node spec/support/jasmine.config.js"
+    "build": "ng build"
   },
   "dependencies": {
     "@angular/animations": "latest",
@@ -33,7 +32,7 @@
     "handsontable": "latest",
     "rxjs": "6.6.7",
     "tslib": "2.1.0",
-    "zone.js": "0.14.0"
+    "zone.js": "~0.14.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "latest",
@@ -49,7 +48,7 @@
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "14.3.0",
     "ts-node": "8.3.0",
-    "typescript": "5.2.2"
+    "typescript": "5.4.5"
   },
   "license": "SEE LICENSE IN LICENSE.txt"
 }

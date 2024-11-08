@@ -2,7 +2,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#exampleFilterOnInitialization');
-const handsontableInstance = new Handsontable(container, {
+
+new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -96,7 +97,7 @@ const handsontableInstance = new Handsontable(container, {
   afterInit() {
     const handsontableInstance = this;
     // get the `Filters` plugin, so you can use its API
-    const filters = handsontableInstance.getPlugin('Filters');
+    const filters = handsontableInstance.getPlugin('filters');
 
     // filter data by the 'Price' column (column at index 2)
     // to display only items that are less than ('lt') $200

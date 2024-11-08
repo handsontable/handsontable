@@ -9,6 +9,7 @@ react:
   id: m60w87tn
   metaTitle: Cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Cell type
@@ -425,9 +426,10 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/cell-type/javascript/example1.js)
+@[code](@/content/guides/cell-types/cell-type/javascript/example1.ts)
 
 :::
 
@@ -435,9 +437,10 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/cell-type/react/example1.jsx)
+@[code](@/content/guides/cell-types/cell-type/react/example1.tsx)
 
 :::
 
@@ -456,9 +459,10 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/cell-type/javascript/example2.js)
+@[code](@/content/guides/cell-types/cell-type/javascript/example2.ts)
 
 :::
 
@@ -480,10 +484,14 @@ Empty cells may be treated differently in different contexts, for example, the [
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Cell function](@/guides/cell-functions/cell-function/cell-function.md)
 - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
 - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
 - [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)
+
+</div>
 
 ### Related API reference
 

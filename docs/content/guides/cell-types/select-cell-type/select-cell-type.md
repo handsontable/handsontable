@@ -9,6 +9,7 @@ react:
   id: xmdreeu3
   metaTitle: Select cell type - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell types
 ---
 
 # Select cell type
@@ -27,9 +28,10 @@ The select editor should be considered an example of how to write editors rather
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/select-cell-type/javascript/example1.js)
+@[code](@/content/guides/cell-types/select-cell-type/javascript/example1.ts)
 
 :::
 
@@ -37,9 +39,10 @@ The select editor should be considered an example of how to write editors rather
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/select-cell-type/react/example1.jsx)
+@[code](@/content/guides/cell-types/select-cell-type/react/example1.tsx)
 
 :::
 
@@ -49,9 +52,13 @@ The select editor should be considered an example of how to write editors rather
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
+
+</div>
 
 ### Related API reference
 

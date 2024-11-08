@@ -1,8 +1,6 @@
 describe('TextEditor', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`)
+    this.$container = $('<div id="testContainer" style="width: 300px; height: 200px; overflow: hidden;"></div>')
       .appendTo('body');
   });
 
@@ -1249,8 +1247,8 @@ describe('TextEditor', () => {
       .not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
   });
 
-  it('should open editor after selecting cell in another table and hitting enter', function() {
-    spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
+  it('should open editor after selecting cell in another table and hitting enter', () => {
+    spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
 
     const hot1 = handsontable();
     const hot2 = handsontable2.call(this);
@@ -1350,11 +1348,11 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toBe(true);
   });
 
-  it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', () => {
+  it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(20, 20),
       width: 100,
-      height: 50
+      height: 50,
     });
 
     selectCell(0, 0);
@@ -1363,12 +1361,13 @@ describe('TextEditor', () => {
     expect(getCell(19, 19)).toBeNull();
 
     hot.view.scrollViewport({ row: 19, col: 19 });
-    hot.render();
+    render();
 
     expect(getCell(0, 0)).toBeNull();
     expect(getCell(19, 19)).not.toBeNull();
 
     keyDownUp('enter');
+    await sleep(50);
 
     expect(getCell(0, 0)).not.toBeNull();
     expect(getCell(19, 19)).toBeNull();
@@ -2083,6 +2082,206 @@ describe('TextEditor', () => {
     const editableElement = getActiveEditor().TEXTAREA;
 
     expect(editableElement.getAttribute('dir')).toBeNull();
+  });
+
+  it('should be possible to continue editing while the new row above the cell is added', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().setValue('test');
+
+    alter('insert_row_above', 0, 2);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 3,1']);
+    expect(getActiveEditor().isOpened()).toBe(true);
+
+    keyDownUp('enter');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 4,1 from: 4,1 to: 4,1']);
+    expect(getDataAtCell(3, 1)).toBe('test');
+    expect(getActiveEditor().isOpened()).toBe(false);
+  });
+
+  it('should be possible to continue editing while the new row below the cell is added', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().setValue('test');
+
+    alter('insert_row_below', 1, 2);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    expect(getActiveEditor().isOpened()).toBe(true);
+
+    keyDownUp('enter');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 2,1 to: 2,1']);
+    expect(getDataAtCell(1, 1)).toBe('test');
+    expect(getActiveEditor().isOpened()).toBe(false);
+  });
+
+  it('should be possible to continue editing while the row above the edited cell is deleted', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().setValue('test');
+
+    alter('remove_row', 0);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
+    expect(getActiveEditor().isOpened()).toBe(true);
+
+    keyDownUp('enter');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    expect(getDataAtCell(0, 1)).toBe('test');
+    expect(getActiveEditor().isOpened()).toBe(false);
+  });
+
+  it('should be possible to continue editing while the row below the edited cell is deleted', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().setValue('test');
+
+    alter('remove_row', 2);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    expect(getActiveEditor().isOpened()).toBe(true);
+
+    keyDownUp('enter');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    expect(getDataAtCell(1, 1)).toBe('test');
+    expect(getActiveEditor().isOpened()).toBe(false);
+  });
+
+  it('should close the editor and do not accept the new value when the row of the edited cell is deleted', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().setValue('test');
+
+    alter('remove_row', 1);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
+    expect(getActiveEditor().isOpened()).toBe(false);
+    expect(getDataAtCell(0, 1)).toBe('B1');
+  });
+
+  it('should be possible to continue editing while the new column on the left of the cell is added', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().setValue('test');
+
+    alter('insert_col_start', 0, 2);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,3']);
+    expect(getActiveEditor().isOpened()).toBe(true);
+
+    keyDownUp('enter');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: 2,3 to: 2,3']);
+    expect(getDataAtCell(1, 3)).toBe('test');
+    expect(getActiveEditor().isOpened()).toBe(false);
+  });
+
+  it('should be possible to continue editing while the new column on the right of the cell is added', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().setValue('test');
+
+    alter('insert_col_end', 1, 2);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    expect(getActiveEditor().isOpened()).toBe(true);
+
+    keyDownUp('enter');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 2,1 to: 2,1']);
+    expect(getDataAtCell(1, 1)).toBe('test');
+    expect(getActiveEditor().isOpened()).toBe(false);
+  });
+
+  it('should be possible to continue editing while the column on the left of the edited cell is removed', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().setValue('test');
+
+    alter('remove_col', 0);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
+    expect(getActiveEditor().isOpened()).toBe(true);
+
+    keyDownUp('enter');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 2,0']);
+    expect(getDataAtCell(1, 0)).toBe('test');
+    expect(getActiveEditor().isOpened()).toBe(false);
+  });
+
+  it('should be possible to continue editing while the column on the right of the edited cell is removed', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().setValue('test');
+
+    alter('remove_col', 2);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    expect(getActiveEditor().isOpened()).toBe(true);
+
+    keyDownUp('enter');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 2,1 to: 2,1']);
+    expect(getDataAtCell(1, 1)).toBe('test');
+    expect(getActiveEditor().isOpened()).toBe(false);
+  });
+
+  it('should close the editor and do not accept the new value when the column of the edited cell is deleted', () => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+    getActiveEditor().setValue('test');
+
+    alter('remove_col', 1);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
+    expect(getActiveEditor().isOpened()).toBe(false);
+    expect(getDataAtCell(1, 0)).toBe('A2');
   });
 
   describe('IME support', () => {

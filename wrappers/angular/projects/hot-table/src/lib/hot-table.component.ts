@@ -68,6 +68,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() currentRowClassName: Handsontable.GridSettings['currentRowClassName'];
   @Input() customBorders: Handsontable.GridSettings['customBorders'];
   @Input() data: Handsontable.GridSettings['data'];
+  @Input() dataDotNotation: Handsontable.GridSettings['dataDotNotation'];
   @Input() dataSchema: Handsontable.GridSettings['dataSchema'];
   @Input() dateFormat: Handsontable.GridSettings['dateFormat'];
   @Input() datePickerConfig: Handsontable.GridSettings['datePickerConfig'];
@@ -89,6 +90,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() fixedRowsTop: Handsontable.GridSettings['fixedRowsTop'];
   @Input() formulas: Handsontable.GridSettings['formulas'];
   @Input() fragmentSelection: Handsontable.GridSettings['fragmentSelection'];
+  @Input() headerClassName: Handsontable.GridSettings['headerClassName'];
   @Input() height: Handsontable.GridSettings['height'];
   @Input() hiddenColumns: Handsontable.GridSettings['hiddenColumns'];
   @Input() hiddenRows: Handsontable.GridSettings['hiddenRows'];
@@ -353,10 +355,12 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() modifyData: Handsontable.GridSettings['modifyData'];
   @Input() modifyFocusOnTabNavigation: Handsontable.GridSettings['modifyFocusOnTabNavigation'];
   @Input() modifyGetCellCoords: Handsontable.GridSettings['modifyGetCellCoords'];
+  @Input() modifyGetCoordsElement: Handsontable.GridSettings['modifyGetCoordsElement'];
   @Input() modifyRowData: Handsontable.GridSettings['modifyRowData'];
   @Input() modifyRowHeader: Handsontable.GridSettings['modifyRowHeader'];
   @Input() modifyRowHeaderWidth: Handsontable.GridSettings['modifyRowHeaderWidth'];
   @Input() modifyRowHeight: Handsontable.GridSettings['modifyRowHeight'];
+  @Input() modifyRowHeightByOverlayName: Handsontable.GridSettings['modifyRowHeightByOverlayName'];
   @Input() modifySourceData: Handsontable.GridSettings['modifySourceData'];
   @Input() modifyTransformEnd: Handsontable.GridSettings['modifyTransformEnd'];
   @Input() modifyTransformFocus: Handsontable.GridSettings['modifyTransformFocus'];

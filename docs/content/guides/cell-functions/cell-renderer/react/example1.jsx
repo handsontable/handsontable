@@ -1,4 +1,4 @@
-import { HotTable, HotColumn } from '@handsontable/react';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // your renderer component
@@ -11,13 +11,13 @@ const RendererComponent = (props) => {
   // - `cellProperties` (the `cellProperties` object for the edited cell)
   return (
     <>
-      <i style={{ color: "#a9a9a9" }}>
+      <i style={{ color: '#a9a9a9' }}>
         Row: {props.row}, column: {props.col},
-      </i>{" "}
+      </i>{' '}
       value: {props.value}
     </>
   );
-}
+};
 
 const hotData = [
   ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -33,14 +33,16 @@ const hotData = [
 
 const ExampleComponent = () => {
   return (
-    <HotTable data={hotData}
+    <HotTable
+      data={hotData}
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation">
-      <HotColumn width={250}>
-        {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-        <RendererComponent hot-renderer />
-      </HotColumn>
+      autoRowSize={false}
+      autoColumnSize={false}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    >
+      <HotColumn width={250} renderer={RendererComponent} />
     </HotTable>
   );
 };

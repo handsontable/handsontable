@@ -15,6 +15,7 @@ react:
   id: zhv7fs29
   metaTitle: Disabled cells - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Disabled cells
@@ -40,9 +41,10 @@ You can make the entire grid read-only by setting [`readOnly`](@/api/options.md#
 
 ::: only-for javascript
 
-::: example #exampleReadOnlyGrid
+::: example #exampleReadOnlyGrid --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/disabled-cells/javascript/exampleReadOnlyGrid.js)
+@[code](@/content/guides/cell-features/disabled-cells/javascript/exampleReadOnlyGrid.ts)
 
 :::
 
@@ -50,9 +52,10 @@ You can make the entire grid read-only by setting [`readOnly`](@/api/options.md#
 
 ::: only-for react
 
-::: example #exampleReadOnlyGrid :react
+::: example #exampleReadOnlyGrid :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/disabled-cells/react/exampleReadOnlyGrid.jsx)
+@[code](@/content/guides/cell-features/disabled-cells/react/exampleReadOnlyGrid.tsx)
 
 :::
 
@@ -66,9 +69,10 @@ To make a column read-only, declare it in the [`columns`](@/api/options.md#colum
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/disabled-cells/javascript/example1.js)
+@[code](@/content/guides/cell-features/disabled-cells/javascript/example1.ts)
 
 :::
 
@@ -76,9 +80,10 @@ To make a column read-only, declare it in the [`columns`](@/api/options.md#colum
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/disabled-cells/react/example1.jsx)
+@[code](@/content/guides/cell-features/disabled-cells/react/example1.tsx)
 
 :::
 
@@ -90,9 +95,10 @@ This example makes cells that contain the word "Nissan" read-only. It forces all
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/disabled-cells/javascript/example2.js)
+@[code](@/content/guides/cell-features/disabled-cells/javascript/example2.ts)
 
 :::
 
@@ -100,9 +106,10 @@ This example makes cells that contain the word "Nissan" read-only. It forces all
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/disabled-cells/react/example2.jsx)
+@[code](@/content/guides/cell-features/disabled-cells/react/example2.tsx)
 
 :::
 
@@ -118,9 +125,10 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 
 ::: only-for javascript
 
-::: example #example3
+::: example #example3 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/disabled-cells/javascript/example3.js)
+@[code](@/content/guides/cell-features/disabled-cells/javascript/example3.ts)
 
 :::
 
@@ -128,9 +136,10 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 
 ::: only-for react
 
-::: example #example3 :react
+::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/disabled-cells/react/example3.jsx)
+@[code](@/content/guides/cell-features/disabled-cells/react/example3.tsx)
 
 :::
 
@@ -142,9 +151,10 @@ The following example shows the table with non-editable cells containing the wor
 
 ::: only-for javascript
 
-::: example #example4
+::: example #example4 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/disabled-cells/javascript/example4.js)
+@[code](@/content/guides/cell-features/disabled-cells/javascript/example4.ts)
 
 :::
 
@@ -152,9 +162,10 @@ The following example shows the table with non-editable cells containing the wor
 
 ::: only-for react
 
-::: example #example4 :react
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/disabled-cells/react/example4.jsx)
+@[code](@/content/guides/cell-features/disabled-cells/react/example4.tsx)
 
 :::
 

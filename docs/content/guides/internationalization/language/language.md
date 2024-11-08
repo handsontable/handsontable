@@ -15,6 +15,7 @@ react:
   id: qz0qgi9f
   metaTitle: Language - React Data Grid | Handsontable
 searchCategory: Guides
+category: Internationalization
 ---
 
 # Language
@@ -83,7 +84,7 @@ To properly use the internationalization feature, you need to load the language 
 1. **ES modules (ESM)**
   ```js
   import Handsontable from 'handsontable/base';
-  import { HotTable } from '@handsontable/react';
+  import { HotTable } from '@handsontable/react-wrapper';
   import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 
   registerLanguageDictionary(deDE);
@@ -123,9 +124,10 @@ Language files were loaded after loading Handsontable.
 
 ::: only-for javascript
 
-::: example #example1 :hot-lang
+::: example #example1 :hot-lang --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/language/javascript/example1.js)
+@[code](@/content/guides/internationalization/language/javascript/example1.ts)
 
 :::
 
@@ -133,21 +135,16 @@ Language files were loaded after loading Handsontable.
 
 ::: only-for react
 
-::: example #example1 :react-languages
+::: example #example1 :react-languages --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/language/react/example1.jsx)
+@[code](@/content/guides/internationalization/language/react/example1.tsx)
 
 :::
 
 :::
 
 ::: only-for react
-
-::: tip
-
-Note that the `language` property is bound to the component separately using `language={language}`, but it could be included in the `settings` property just as well.
-
-:::
 
 ::: example #example2 :react-languages
 
@@ -348,9 +345,13 @@ Contains: `Object`
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
 - [Locale](@/guides/internationalization/locale/locale.md)
 - [IME support](@/guides/internationalization/ime-support/ime-support.md)
+
+</div>
 
 ### Related API reference
 

@@ -130,6 +130,12 @@ export class Filters extends BasePlugin {
    * @type {MenuFocusNavigator|undefined}
    */
   #menuFocusNavigator;
+  /**
+   * Traces the new menu instances to apply the focus navigation to the latest one.
+   *
+   * @type {WeakSet<Menu>}
+   */
+  #dropdownMenuTraces = new WeakSet();
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -234,8 +240,8 @@ export class Filters extends BasePlugin {
 
     this.components.forEach(component => component.show());
 
-    this.addHook('afterDropdownMenuDefaultOptions',
-      defaultOptions => this.#onAfterDropdownMenuDefaultOptions(defaultOptions));
+    this.addHook('afterDropdownMenuDefaultOptions', (...args) => this.#onAfterDropdownMenuDefaultOptions(...args));
+    this.addHook('beforeDropdownMenuShow', () => this.#onBeforeDropdownMenuShow());
     this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.#onAfterChange(changes));
@@ -247,16 +253,16 @@ export class Filters extends BasePlugin {
     }
 
     if (!this.#menuFocusNavigator && this.dropdownMenuPlugin.enabled) {
-      const mainMenu = this.dropdownMenuPlugin.menu;
       const focusableItems = [
         // A fake menu item that once focused allows escaping from the focus navigation (using Tab keys)
         // to the menu navigation using arrow keys.
         {
           focus: () => {
-            const menuNavigator = mainMenu.getNavigator();
+            const menu = this.#menuFocusNavigator.getMenu();
+            const menuNavigator = menu.getNavigator();
             const lastSelectedMenuItem = this.#menuFocusNavigator.getLastMenuPage();
 
-            mainMenu.focus();
+            menu.focus();
 
             if (lastSelectedMenuItem > 0) {
               menuNavigator.setCurrentPage(lastSelectedMenuItem);
@@ -270,7 +276,7 @@ export class Filters extends BasePlugin {
           .flat(),
       ];
 
-      this.#menuFocusNavigator = createMenuFocusController(mainMenu, focusableItems);
+      this.#menuFocusNavigator = createMenuFocusController(this.dropdownMenuPlugin.menu, focusableItems);
 
       const forwardToFocusNavigation = (event) => {
         this.#menuFocusNavigator.listen();
@@ -515,7 +521,11 @@ export class Filters extends BasePlugin {
     let visibleVisualRows = [];
 
     const conditions = this.conditionCollection.exportAllConditions();
-    const allowFiltering = this.hot.runHooks('beforeFilter', conditions);
+    const allowFiltering = this.hot.runHooks(
+      'beforeFilter',
+      conditions,
+      this.conditionCollection.previousConditionStack
+    );
 
     if (allowFiltering !== false) {
       if (needToFilter) {
@@ -548,6 +558,8 @@ export class Filters extends BasePlugin {
     }
 
     this.hot.runHooks('afterFilter', conditions);
+
+    this.conditionCollection.setPreviousConditionStack(null);
 
     this.hot.view.adjustElementsSize();
     this.hot.render();
@@ -659,7 +671,11 @@ export class Filters extends BasePlugin {
    * After dropdown menu show listener.
    */
   #onAfterDropdownMenuShow() {
+    const menu = this.dropdownMenuPlugin.menu;
+
     this.restoreComponents(Array.from(this.components.values()));
+
+    menu.updateMenuDimensions();
   }
 
   /**
@@ -668,6 +684,19 @@ export class Filters extends BasePlugin {
   #onAfterDropdownMenuHide() {
     this.components.get('filter_by_condition').getSelectElement().closeOptions();
     this.components.get('filter_by_condition2').getSelectElement().closeOptions();
+  }
+
+  /**
+   * Hooks applies the new dropdown menu instance to the focus navigator.
+   */
+  #onBeforeDropdownMenuShow() {
+    const mainMenu = this.dropdownMenuPlugin.menu;
+
+    if (!this.#dropdownMenuTraces.has(mainMenu)) {
+      this.#menuFocusNavigator.setMenu(mainMenu);
+    }
+
+    this.#dropdownMenuTraces.add(mainMenu);
   }
 
   /**

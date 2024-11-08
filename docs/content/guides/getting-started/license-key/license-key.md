@@ -9,6 +9,7 @@ react:
   id: vyfski60
   metaTitle: License key - React Data Grid | Handsontable
 searchCategory: Guides
+category: Getting started
 ---
 
 # License key
@@ -133,7 +134,11 @@ To get a commercial license key for your Handsontable copy, contact our [Sales T
 
 ### Related guides
 
+<div class="boxes-list gray">
+ 
 - [Software license](@/guides/technical-specification/software-license/software-license.md)
+
+</div>
 
 ### Related API reference
 

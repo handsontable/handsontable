@@ -1,17 +1,19 @@
 import {
   getScrollbarWidth,
-  getStyle,
   offset,
   outerHeight,
   outerWidth,
 } from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
 import {
-  RENDER_TYPE,
-  FULLY_VISIBLE_TYPE,
-  PARTIALLY_VISIBLE_TYPE,
-  RenderAllColumnsCalculator,
-  RenderAllRowsCalculator,
+  FullyVisibleColumnsCalculationType,
+  FullyVisibleRowsCalculationType,
+  PartiallyVisibleColumnsCalculationType,
+  PartiallyVisibleRowsCalculationType,
+  RenderedAllColumnsCalculationType,
+  RenderedAllRowsCalculationType,
+  RenderedColumnsCalculationType,
+  RenderedRowsCalculationType,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
@@ -39,10 +41,21 @@ class Viewport {
     this.oversizedColumnHeaders = [];
     this.hasOversizedColumnHeadersMarked = {};
     this.clientHeight = 0;
-    this.containerWidth = NaN;
     this.rowHeaderWidth = NaN;
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
+    this.rowsCalculatorTypes = new Map([
+      ['rendered', () => (this.wtSettings.getSetting('renderAllRows') ?
+        new RenderedAllRowsCalculationType() : new RenderedRowsCalculationType())],
+      ['fullyVisible', () => new FullyVisibleRowsCalculationType()],
+      ['partiallyVisible', () => new PartiallyVisibleRowsCalculationType()],
+    ]);
+    this.columnsCalculatorTypes = new Map([
+      ['rendered', () => (this.wtSettings.getSetting('renderAllColumns') ?
+        new RenderedAllColumnsCalculationType() : new RenderedColumnsCalculationType())],
+      ['fullyVisible', () => new FullyVisibleColumnsCalculationType()],
+      ['partiallyVisible', () => new PartiallyVisibleColumnsCalculationType()],
+    ]);
 
     this.eventManager = eventManager;
     this.eventManager.addEventListener(this.domBindings.rootWindow, 'resize', () => {
@@ -71,57 +84,74 @@ class Viewport {
     return height;
   }
 
+  /**
+   * @returns {number}
+   */
+  getViewportHeight() {
+    let containerHeight = this.getWorkspaceHeight();
+
+    if (containerHeight === Infinity) {
+      return containerHeight;
+    }
+
+    const columnHeaderHeight = this.getColumnHeaderHeight();
+
+    if (columnHeaderHeight > 0) {
+      containerHeight -= columnHeaderHeight;
+    }
+
+    return containerHeight;
+  }
+
+  /**
+   * Gets the width of the table workspace (in pixels). The workspace size in the current
+   * implementation returns the width of the table holder element including scrollbar width when
+   * the table has defined size and the width of the window excluding scrollbar width when
+   * the table has no defined size (the window is a scrollable container).
+   *
+   * This is a bug, as the method should always return stable values, always without scrollbar width.
+   * Changing this behavior would break the column calculators, which would also need to be adjusted.
+   *
+   * @returns {number}
+   */
   getWorkspaceWidth() {
-    const { wtSettings } = this;
     const { rootDocument, rootWindow } = this.domBindings;
     const trimmingContainer = this.dataAccessObject.inlineStartOverlayTrimmingContainer;
-    const docOffsetWidth = rootDocument.documentElement.offsetWidth;
-    const totalColumns = wtSettings.getSetting('totalColumns');
-    const preventOverflow = wtSettings.getSetting('preventOverflow');
-    const isRtl = wtSettings.getSetting('rtlMode');
-    const tableRect = this.wtTable.TABLE.getBoundingClientRect();
-    const inlineStart = isRtl ? tableRect.right - docOffsetWidth : tableRect.left;
-    const tableOffset = docOffsetWidth - inlineStart;
     let width;
-    let overflow;
 
-    if (preventOverflow) {
-      return outerWidth(this.wtTable.wtRootElement);
-    }
+    if (trimmingContainer === rootWindow) {
+      const totalColumns = this.wtSettings.getSetting('totalColumns');
 
-    if (wtSettings.getSetting('freezeOverlays')) {
-      width = Math.min(tableOffset, docOffsetWidth);
-    } else {
-      width = Math.min(this.getContainerFillWidth(), tableOffset, docOffsetWidth);
-    }
+      width = this.wtTable.holder.offsetWidth;
 
-    if (trimmingContainer === rootWindow && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
-      // in case sum of column widths is higher than available stylesheet width, let's assume using the whole window
-      // otherwise continue below, which will allow stretching
-      // this is used in `scroll_window.html`
-      // TODO test me
-      return rootDocument.documentElement.clientWidth;
-    }
-
-    if (trimmingContainer !== rootWindow) {
-      overflow = getStyle(this.dataAccessObject.inlineStartOverlayTrimmingContainer, 'overflow', rootWindow);
-
-      if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
-        // this is used in `scroll.html`
-        // TODO test me
-        return Math.max(width, trimmingContainer.clientWidth);
+      if (this.getRowHeaderWidth() + this.sumColumnWidths(0, totalColumns) > width) {
+        width = rootDocument.documentElement.clientWidth;
       }
+
+    } else {
+      width = trimmingContainer.clientWidth;
     }
 
-    const stretchSetting = wtSettings.getSetting('stretchH');
-
-    if (stretchSetting === 'none' || !stretchSetting) {
-      // if no stretching is used, return the maximum used workspace width
-      return Math.max(width, outerWidth(this.wtTable.TABLE));
-    }
-
-    // if stretching is used, return the actual container width, so the columns can fit inside it
     return width;
+  }
+
+  /**
+   * @returns {number}
+   */
+  getViewportWidth() {
+    const containerWidth = this.getWorkspaceWidth();
+
+    if (containerWidth === Infinity) {
+      return containerWidth;
+    }
+
+    const rowHeaderWidth = this.getRowHeaderWidth();
+
+    if (rowHeaderWidth > 0) {
+      return containerWidth - rowHeaderWidth;
+    }
+
+    return containerWidth;
   }
 
   /**
@@ -140,6 +170,24 @@ class Viewport {
    */
   hasHorizontalScroll() {
     return this.wtTable.hider.offsetWidth > this.getWorkspaceWidth();
+  }
+
+  /**
+   * Checks if the table uses the window as a viewport and if there is a vertical scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isVerticallyScrollableByWindow() {
+    return this.dataAccessObject.topOverlayTrimmingContainer === this.domBindings.rootWindow;
+  }
+
+  /**
+   * Checks if the table uses the window as a viewport and if there is a horizontal scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isHorizontallyScrollableByWindow() {
+    return this.dataAccessObject.inlineStartOverlayTrimmingContainer === this.domBindings.rootWindow;
   }
 
   /**
@@ -162,29 +210,6 @@ class Viewport {
   /**
    * @returns {number}
    */
-  getContainerFillWidth() {
-    if (this.containerWidth) {
-      return this.containerWidth;
-    }
-
-    const mainContainer = this.wtTable.holder;
-    const dummyElement = this.domBindings.rootDocument.createElement('div');
-
-    dummyElement.style.width = '100%';
-    dummyElement.style.height = '1px';
-    mainContainer.appendChild(dummyElement);
-
-    const fillWidth = dummyElement.offsetWidth;
-
-    this.containerWidth = fillWidth;
-    mainContainer.removeChild(dummyElement);
-
-    return fillWidth;
-  }
-
-  /**
-   * @returns {number}
-   */
   getWorkspaceOffset() {
     return offset(this.wtTable.TABLE);
   }
@@ -202,25 +227,6 @@ class Viewport {
     }
 
     return this.columnHeaderHeight;
-  }
-
-  /**
-   * @returns {number}
-   */
-  getViewportHeight() {
-    let containerHeight = this.getWorkspaceHeight();
-
-    if (containerHeight === Infinity) {
-      return containerHeight;
-    }
-
-    const columnHeaderHeight = this.getColumnHeaderHeight();
-
-    if (columnHeaderHeight > 0) {
-      containerHeight -= columnHeaderHeight;
-    }
-
-    return containerHeight;
   }
 
   /**
@@ -268,41 +274,16 @@ class Viewport {
   }
 
   /**
-   * @returns {number}
-   */
-  getViewportWidth() {
-    const containerWidth = this.getWorkspaceWidth();
-
-    if (containerWidth === Infinity) {
-      return containerWidth;
-    }
-
-    const rowHeaderWidth = this.getRowHeaderWidth();
-
-    if (rowHeaderWidth > 0) {
-      return containerWidth - rowHeaderWidth;
-    }
-
-    return containerWidth;
-  }
-
-  /**
-   * Creates:
-   * - rowsRenderCalculator (before draw, to qualify rows for rendering)
-   * - rowsVisibleCalculator (after draw, to measure which rows are actually visible).
+   * Creates rows calculators. The type of the calculations can be chosen from the list:
+   *  - 'rendered' Calculates rows that should be rendered within the current table's viewport;
+   *  - 'fullyVisible' Calculates rows that are fully visible (used mostly for scrolling purposes);
+   *  - 'partiallyVisible' Calculates rows that are partially visible (used mostly for scrolling purposes).
    *
-   * @param {number} calculationType The render type ID, which determines for what type of
-   *                                 calculation calculator is created.
+   * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
    * @returns {ViewportRowsCalculator}
    */
-  createRowsCalculator(calculationType = RENDER_TYPE) {
+  createRowsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
-
-    if (wtSettings.getSetting('renderAllRows') && calculationType === RENDER_TYPE) {
-      return new RenderAllRowsCalculator({
-        totalRows: wtSettings.getSetting('totalRows'),
-      });
-    }
 
     let height = this.getViewportHeight();
     let scrollbarHeight;
@@ -335,33 +316,27 @@ class Viewport {
     }
 
     return new ViewportRowsCalculator({
+      calculationTypes: calculatorTypes.map(type => [type, this.rowsCalculatorTypes.get(type)()]),
       viewportHeight: height,
       scrollOffset: pos,
       totalRows: wtSettings.getSetting('totalRows'),
       rowHeightFn: sourceRow => wtTable.getRowHeight(sourceRow),
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
-      calculationType,
       horizontalScrollbarHeight: scrollbarHeight,
     });
   }
 
   /**
-   * Creates:
-   * - columnsRenderCalculator (before draw, to qualify columns for rendering)
-   * - columnsVisibleCalculator (after draw, to measure which columns are actually visible).
+   * Creates columns calculators. The type of the calculations can be chosen from the list:
+   *  - 'rendered' Calculates columns that should be rendered within the current table's viewport;
+   *  - 'fullyVisible' Calculates columns that are fully visible (used mostly for scrolling purposes);
+   *  - 'partiallyVisible' Calculates columns that are partially visible (used mostly for scrolling purposes).
    *
-   * @param {number} calculationType The render type ID, which determines for what type of
-   *                                 calculation calculator is created.
+   * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
    * @returns {ViewportColumnsCalculator}
    */
-  createColumnsCalculator(calculationType = RENDER_TYPE) {
+  createColumnsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
-
-    if (wtSettings.getSetting('renderAllColumns') && calculationType === RENDER_TYPE) {
-      return new RenderAllColumnsCalculator({
-        totalColumns: wtSettings.getSetting('totalColumns'),
-      });
-    }
 
     let width = this.getViewportWidth();
     let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
@@ -381,12 +356,12 @@ class Viewport {
     }
 
     return new ViewportColumnsCalculator({
+      calculationTypes: calculatorTypes.map(type => [type, this.columnsCalculatorTypes.get(type)()]),
       viewportWidth: width,
       scrollOffset: pos,
       totalColumns: wtSettings.getSetting('totalColumns'),
       columnWidthFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
-      calculationType,
       inlineStartOffset: this.dataAccessObject.inlineStartParentOffset
     });
   }
@@ -399,49 +374,48 @@ class Viewport {
    *                           If `false` or `undefined`, will perform a full redraw.
    * @returns {boolean} The fastDraw value, possibly modified.
    */
-  createRenderCalculators(fastDraw = false) {
+  createCalculators(fastDraw = false) {
     const { wtSettings } = this;
+    const rowsCalculator = this.createRowsCalculator();
+    const columnsCalculator = this.createColumnsCalculator();
 
     if (fastDraw && !wtSettings.getSetting('renderAllRows')) {
-      const proposedRowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
+      const proposedRowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
 
       fastDraw = this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator);
     }
 
     if (fastDraw && !wtSettings.getSetting('renderAllColumns')) {
-      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
+      const proposedColumnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
 
       fastDraw = this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator);
     }
 
     if (!fastDraw) {
-      this.rowsRenderCalculator = this.createRowsCalculator(RENDER_TYPE);
-      this.columnsRenderCalculator = this.createColumnsCalculator(RENDER_TYPE);
+      this.rowsRenderCalculator = rowsCalculator.getResultsFor('rendered');
+      this.columnsRenderCalculator = columnsCalculator.getResultsFor('rendered');
     }
 
-    // delete temporarily to make sure that renderers always use rowsRenderCalculator, not rowsVisibleCalculator
-    this.rowsVisibleCalculator = null;
-    this.columnsVisibleCalculator = null;
+    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
+    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
+    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
+    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
 
     return fastDraw;
   }
 
   /**
-   * Creates rowsVisibleCalculator and columnsVisibleCalculator (after draw, to determine what are
-   * the actually fully visible rows and columns).
+   * Creates rows and columns calculators (after draw, to determine what are
+   * the actually fully visible and partially visible rows and columns).
    */
   createVisibleCalculators() {
-    this.rowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
-    this.columnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
-  }
+    const rowsCalculator = this.createRowsCalculator(['fullyVisible', 'partiallyVisible']);
+    const columnsCalculator = this.createColumnsCalculator(['fullyVisible', 'partiallyVisible']);
 
-  /**
-   * Creates rowsPartiallyVisibleCalculator and columnsPartiallyVisibleCalculator (after draw, to determine what are
-   * the actually partially visible rows and columns).
-   */
-  createPartiallyVisibleCalculators() {
-    this.rowsPartiallyVisibleCalculator = this.createRowsCalculator(PARTIALLY_VISIBLE_TYPE);
-    this.columnsPartiallyVisibleCalculator = this.createColumnsCalculator(PARTIALLY_VISIBLE_TYPE);
+    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
+    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
+    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
+    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
   }
 
   /**
@@ -469,13 +443,29 @@ class Viewport {
       endRow = this.rowsPartiallyVisibleCalculator.endRow;
     }
 
-    const { startRow: renderedStartRow, endRow: renderedEndRow } = this.rowsRenderCalculator;
+    const {
+      startRow: renderedStartRow,
+      endRow: renderedEndRow,
+      rowStartOffset,
+      rowEndOffset,
+    } = this.rowsRenderCalculator;
+
+    const totalRows = this.wtSettings.getSetting('totalRows') - 1;
+    const renderingThreshold = this.wtSettings.getSetting('viewportRowRenderingThreshold');
+
+    if (Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
+      startRow = Math.max(0, startRow - Math.min(rowStartOffset, renderingThreshold));
+      endRow = Math.min(totalRows, endRow + Math.min(rowEndOffset, renderingThreshold));
+
+    } else if (renderingThreshold === 'auto') {
+      startRow = Math.max(0, startRow - Math.ceil(rowStartOffset / 2));
+      endRow = Math.min(totalRows, endRow + Math.ceil(rowEndOffset / 2));
+    }
 
     if (startRow < renderedStartRow || (startRow === renderedStartRow && startRow > 0)) {
       return false;
 
-    } else if (endRow > renderedEndRow ||
-              (endRow === renderedEndRow && endRow < this.wtSettings.getSetting('totalRows') - 1)) {
+    } else if (endRow > renderedEndRow || (endRow === renderedEndRow && endRow < totalRows)) {
       return false;
     }
 
@@ -507,14 +497,29 @@ class Viewport {
       endColumn = this.columnsPartiallyVisibleCalculator.endColumn;
     }
 
-    const { startColumn: renderedStartColumn, endColumn: renderedEndColumn } = this.columnsRenderCalculator;
+    const {
+      startColumn: renderedStartColumn,
+      endColumn: renderedEndColumn,
+      columnStartOffset,
+      columnEndOffset,
+    } = this.columnsRenderCalculator;
+
+    const totalColumns = this.wtSettings.getSetting('totalColumns') - 1;
+    const renderingThreshold = this.wtSettings.getSetting('viewportColumnRenderingThreshold');
+
+    if (Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
+      startColumn = Math.max(0, startColumn - Math.min(columnStartOffset, renderingThreshold));
+      endColumn = Math.min(totalColumns, endColumn + Math.min(columnEndOffset, renderingThreshold));
+
+    } else if (renderingThreshold === 'auto') {
+      startColumn = Math.max(0, startColumn - Math.ceil(columnStartOffset / 2));
+      endColumn = Math.min(totalColumns, endColumn + Math.ceil(columnEndOffset / 2));
+    }
 
     if (startColumn < renderedStartColumn || (startColumn === renderedStartColumn && startColumn > 0)) {
       return false;
 
-    } else if (endColumn > renderedEndColumn ||
-              (endColumn === renderedEndColumn && endColumn < this.wtSettings.getSetting('totalColumns') - 1)) {
-
+    } else if (endColumn > renderedEndColumn || (endColumn === renderedEndColumn && endColumn < totalColumns)) {
       return false;
     }
 

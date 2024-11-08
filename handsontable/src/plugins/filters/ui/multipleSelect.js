@@ -106,10 +106,7 @@ export class MultipleSelectUI extends BaseUI {
    */
   setItems(items) {
     this.#items = items;
-
-    if (this.#itemsBox) {
-      this.#itemsBox.loadData(this.#items);
-    }
+    this.#itemsBox?.loadData(this.#items);
   }
 
   /**
@@ -205,11 +202,10 @@ export class MultipleSelectUI extends BaseUI {
       if (!this._element) {
         return;
       }
-      if (this.#itemsBox) {
-        this.#itemsBox.destroy();
-      }
 
+      this.#itemsBox?.destroy();
       addClass(wrapper, 'htUIMultipleSelectHot');
+
       // Constructs and initializes a new Handsontable instance
       this.#itemsBox = new this.hot.constructor(wrapper, {
         data: this.#items,
@@ -230,16 +226,7 @@ export class MultipleSelectUI extends BaseUI {
         beforeOnCellMouseUp: () => {
           this.#itemsBox.listen();
         },
-        modifyColWidth: (width) => {
-          const minWidth = this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument);
-
-          if (width !== undefined && width < minWidth) {
-            return minWidth;
-          }
-
-          return width;
-        },
-        hiddenRows: true,
+        colWidths: () => this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument),
         maxCols: 1,
         autoWrapCol: true,
         height: 110,
@@ -314,9 +301,7 @@ export class MultipleSelectUI extends BaseUI {
    * Destroy instance.
    */
   destroy() {
-    if (this.#itemsBox) {
-      this.#itemsBox.destroy();
-    }
+    this.#itemsBox?.destroy();
     this.#searchInput.destroy();
     this.#clearAllUI.destroy();
     this.#selectAllUI.destroy();
@@ -336,19 +321,16 @@ export class MultipleSelectUI extends BaseUI {
    */
   #onInput(event) {
     const value = event.target.value.toLocaleLowerCase(this.getLocale());
-    const hiddenRows = this.#itemsBox.getPlugin('hiddenRows');
+    let filteredItems;
 
-    hiddenRows.showRows(hiddenRows.getHiddenRows());
-    this.#items.forEach((item, index) => {
-      item.checked = `${item.value}`.toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0;
+    if (value === '') {
+      filteredItems = [...this.#items];
+    } else {
+      filteredItems = this.#items
+        .filter(item => (`${item.value}`).toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0);
+    }
 
-      if (!item.checked) {
-        hiddenRows.hideRow(index);
-      }
-    });
-
-    this.#itemsBox.view.adjustElementsSize();
-    this.#itemsBox.render();
+    this.#itemsBox.loadData(filteredItems);
   }
 
   /**

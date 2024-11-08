@@ -35,6 +35,7 @@ jobs:
       test-handsontable-e2e-min: ${{ steps.path-filter.outputs.test-handsontable-e2e-min }}
       test-angular: ${{ steps.path-filter.outputs.test-angular }}
       test-react: ${{ steps.path-filter.outputs.test-react }}
+      test-react-wrapper: ${{ steps.path-filter.outputs.test-react-wrapper }}
       test-vue: ${{ steps.path-filter.outputs.test-vue }}
       test-vue3: ${{ steps.path-filter.outputs.test-vue3 }}
       test-visual: ${{ steps.path-filter.outputs.test-visual }}
@@ -93,6 +94,9 @@ jobs:
             test-react:
               - *hot-shared
               - 'wrappers/react/**'
+            test-react-wrapper:
+              - *hot-shared
+              - 'wrappers/react-wrapper/**'
             test-vue:
               - *hot-shared
               - 'wrappers/vue/**'
@@ -288,6 +292,83 @@ jobs:
           cd handsontable
           npm run test:production.dump && npm run test:e2e.puppeteer
 
+  test-handsontable-esm-e2e:
+    name: "[TEST] Handsontable: ESM"
+    runs-on: ubuntu-latest
+    needs: [ build-handsontable-es-cjs, build-handsontable-umd ]
+    if: needs.check-scope.outputs.run-all == 'true'
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+
+      - name: Download the Handsontable UMD build artifact and only extract CSS files
+        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
+        with:
+          name: handsontable-build-umd
+          path: ./
+      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' && rm dist.tar.gz
+
+      - name: Build UMD from ESM
+        run: |
+          cd handsontable
+          npm run build:umd-from-esm
+      - name: Test
+        run: |
+          cd handsontable
+          npm run test:e2e.dump.esm-cjs && npm run test:e2e.puppeteer
+
+  test-handsontable-cjs-e2e:
+    name: "[TEST] Handsontable: CJS"
+    runs-on: ubuntu-latest
+    needs: [ build-handsontable-es-cjs, build-handsontable-umd ]
+    if: needs.check-scope.outputs.run-all == 'true'
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+
+      - name: Download the Handsontable UMD build artifact and only extract CSS files
+        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
+        with:
+          name: handsontable-build-umd
+          path: ./
+      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' && rm dist.tar.gz
+
+      - name: Build UMD from CJS
+        run: |
+          cd handsontable
+          npm run build:umd-from-cjs 
+
+      - name: Test
+        run: |
+          cd handsontable
+          npm run test:e2e.dump.esm-cjs && npm run test:e2e.puppeteer
+
   test-angular:
     name: "[TEST] Wrapper: Angular"
     runs-on: ubuntu-latest
@@ -360,6 +441,42 @@ jobs:
           path: react.tar.gz
       - name: Test
         run: npm run in react test
+
+  test-react-wrapper:
+    name: "[TEST] Wrapper: React (functional)"
+    runs-on: ubuntu-latest
+    needs: [ check-scope, build-handsontable-es-cjs ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-react-wrapper == 'true'
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
+      - run: npm run swap-package-links
+      - run: npm run in react-wrapper build
+      - run: tar --exclude='node_modules' -zcf react-wrapper.tar.gz ./wrappers/react-wrapper
+
+      - name: Upload the React build artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # https://github.com/actions/upload-artifact/releases/tag/v4.3.1
+        with:
+          name: react-wrapper-build
+          path: react-wrapper.tar.gz
+      - name: Test
+        run: npm run in react-wrapper test
 
   test-vue:
     name: "[TEST] Wrapper: Vue"
@@ -441,6 +558,7 @@ jobs:
       - test-handsontable-e2e-min
       - test-angular
       - test-react
+      - test-react-wrapper
       - test-vue
       - test-vue3
     if: |
@@ -449,6 +567,7 @@ jobs:
         needs.test-handsontable-e2e-min.result == 'success' ||
         needs.test-angular.result == 'success' ||
         needs.test-react.result == 'success' ||
+        needs.test-react-wrapper.result == 'success' ||
         needs.test-vue.result == 'success' ||
         needs.test-vue3.result == 'success' ||
         needs.check-scope.outputs.test-visual == 'true'
@@ -497,8 +616,11 @@ jobs:
       - name: Build wrappers and test examples
         run: npm run build -- -e handsontable
 
-      - name: Run tests
+      - name: Run visual multi-framework tests
         run: npm run in visual-tests test
+
+      - name: Run visual cross-browser tests
+        run: npm run in visual-tests test:cross-browser
 
       - name: Upload the screenshot to Argos CI
         env:

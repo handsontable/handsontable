@@ -9,6 +9,7 @@ react:
   id: ulndkavi
   metaTitle: Merge cells - React Data Grid | Handsontable
 searchCategory: Guides
+category: Cell features
 ---
 
 # Merge cells
@@ -45,9 +46,10 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/merge-cells/javascript/example1.js)
+@[code](@/content/guides/cell-features/merge-cells/javascript/example1.ts)
 
 :::
 
@@ -55,9 +57,62 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-features/merge-cells/react/example1.jsx)
+@[code](@/content/guides/cell-features/merge-cells/react/example1.tsx)
+
+:::
+
+:::
+
+## Optimizing rendering of the wide/tall merged cells
+
+When cells span thousands of rows or columns, scrolling may feel slower compared to unmerged cells. To improve performance, consider enabling the dedicated virtualization feature for merged cells, which is disabled by default.
+
+To enable the merged cells virtualization mode, enable the `virtualized` option:
+
+::: only-for javascript
+
+```js
+mergeCells: {
+  virtualized: true,
+  cells: [{ row: 1, col: 1, rowspan: 200, colspan: 2 }]
+}
+```
+
+:::
+
+::: only-for react
+
+```jsx
+mergeCells={{
+  virtualized: true,
+  cells: [{ row: 1, col: 1, rowspan: 200, colspan: 2 }]
+}}
+```
+
+:::
+
+The example below uses virtualized merged cells. It's also recommended to increase the buffer of rendered rows/columns to minimize the flickering effects.
+
+::: only-for javascript
+
+::: example #example2 --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/merge-cells/javascript/example2.js)
+@[code](@/content/guides/cell-features/merge-cells/javascript/example2.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/merge-cells/react/example2.jsx)
+@[code](@/content/guides/cell-features/merge-cells/react/example2.tsx)
 
 :::
 
@@ -73,6 +128,10 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 - Configuration options:
   - [`mergeCells`](@/api/options.md#mergecells)
+  - [`viewportColumnRenderingThreshold`](@/api/options.md#viewportcolumnrenderingthreshold)
+  - [`viewportRowRenderingThreshold`](@/api/options.md#viewportrowrenderingthreshold)
+  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
 - Hooks:
   - [`afterMergeCells`](@/api/hooks.md#aftermergecells)
   - [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)

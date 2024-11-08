@@ -20,6 +20,7 @@
 - [ ] `handsontable`
 - [ ] `@handsontable/angular`
 - [ ] `@handsontable/react`
+- [ ] `@handsontable/react-wrapper`
 - [ ] `@handsontable/vue`
 - [ ] `@handsontable/vue3`
 

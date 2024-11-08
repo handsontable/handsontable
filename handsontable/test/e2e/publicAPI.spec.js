@@ -190,7 +190,6 @@ describe('Public API', () => {
       expect(Handsontable.dom.fastInnerHTML).toBeFunction();
       expect(Handsontable.dom.fastInnerText).toBeFunction();
       expect(Handsontable.dom.getCaretPosition).toBeFunction();
-      expect(Handsontable.dom.getComputedStyle).toBeFunction();
       expect(Handsontable.dom.getCssTransform).toBeFunction();
       expect(Handsontable.dom.getParent).toBeFunction();
       expect(Handsontable.dom.getScrollLeft).toBeFunction();

@@ -13,6 +13,7 @@ react:
   id: prlcpqk8
   metaTitle: Row headers - React Data Grid | Handsontable
 searchCategory: Guides
+category: Rows
 ---
 
 # Row headers
@@ -41,9 +42,10 @@ To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowsw
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-header/javascript/example1.js)
+@[code](@/content/guides/rows/row-header/javascript/example1.ts)
 
 :::
 
@@ -51,9 +53,10 @@ To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowsw
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/rows/row-header/react/example1.jsx)
+@[code](@/content/guides/rows/row-header/react/example1.tsx)
 
 :::
 
@@ -67,7 +70,11 @@ A tree grid enables you to represent the nested data structures within the data 
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Row parent-child](@/guides/rows/row-parent-child/row-parent-child.md)
+
+</div>
 
 ### Related API reference
 

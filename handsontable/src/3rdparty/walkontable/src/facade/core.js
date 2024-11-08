@@ -74,6 +74,9 @@ export default class WalkontableFacade {
   set drawn(value) {
     this._wot.drawn = value;
   }
+  get activeOverlayName() {
+    return this._wot.activeOverlayName;
+  }
   get drawInterrupted() {
     return this._wot.drawInterrupted;
   }
@@ -147,6 +150,10 @@ export default class WalkontableFacade {
 
   getOverlayName() {
     return this._wot.cloneOverlay ? this._wot.cloneOverlay.type : 'master';
+  }
+
+  getOverlayByName(overlayName) {
+    return this._wot.getOverlayByName(overlayName);
   }
 
   exportSettingsAsClassNames() {

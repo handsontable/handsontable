@@ -61,7 +61,7 @@ export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
 
       if (isObject(sourceHeaderSettings)) {
         const {
-          label, colspan,
+          label, colspan, headerClassName
         } = sourceHeaderSettings;
 
         headerSettings.label = stringify(label);
@@ -70,6 +70,11 @@ export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
           headerSettings.colspan = colspan;
           headerSettings.origColspan = colspan;
         }
+
+        if (typeof headerClassName === 'string') {
+          headerSettings.headerClassNames = [...headerClassName.split(' ')];
+        }
+
       } else {
         headerSettings.label = stringify(sourceHeaderSettings);
       }

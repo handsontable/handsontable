@@ -4,7 +4,7 @@ import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
-import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
+import { EDITOR_EDIT_GROUP } from '../../shortcutContexts';
 
 const SHORTCUTS_GROUP = 'handsontableEditor';
 
@@ -46,6 +46,11 @@ export class HandsontableEditor extends TextEditor {
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
     this.refreshDimensions();
+
+    this.htEditor.updateSettings({
+      width: this.getWidth(),
+      height: this.getHeight(),
+    });
   }
 
   /**
@@ -162,6 +167,26 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
+   * Calculates and return the internal Handsontable's height.
+   *
+   * @private
+   * @returns {number}
+   */
+  getHeight() {
+    return this.htEditor.view.getTableHeight();
+  }
+
+  /**
+   * Calculates and return the internal Handsontable's width.
+   *
+   * @private
+   * @returns {number}
+   */
+  getWidth() {
+    return this.htEditor.view.getTableWidth();
+  }
+
+  /**
    * Assigns afterDestroy callback to prevent memory leaks.
    *
    * @private
@@ -187,7 +212,7 @@ export class HandsontableEditor extends TextEditor {
 
     const contextConfig = {
       group: SHORTCUTS_GROUP,
-      relativeToGroup: SHORTCUTS_GROUP_NAVIGATION,
+      relativeToGroup: EDITOR_EDIT_GROUP,
       position: 'before',
     };
 

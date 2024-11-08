@@ -43,6 +43,19 @@ const hot = new Handsontable(document.createElement('div'), {
     },
   ],
 });
+const hot2 = new Handsontable(document.createElement('div'), {
+  columnSummary() {
+    return [
+      {
+        sourceColumn: 0,
+        type: 'sum',
+        destinationRow: this.hot.countRows() - 1,
+        destinationColumn: this.hot.countCols() - 1,
+        forceNumeric: true
+      },
+    ];
+  }
+});
 const columnSummary = hot.getPlugin('columnSummary');
 const endpoint: Endpoint = {
   destinationRow: 0,
@@ -81,3 +94,7 @@ const max: number | string = columnSummary.calculateMinMax(endpoint, 'max');
 const avr: number = columnSummary.calculateAverage(endpoint);
 const empty: number = columnSummary.countEmpty([[1, 1, 2, 2]], 2);
 const entries: number = columnSummary.countEntries(endpoint);
+const cellValue: number = columnSummary.getCellValue(2, 2);
+const partialMin: number = columnSummary.getPartialMinMax([[1, 1, 2, 2]], 2, 'min');
+const partialMax: number = columnSummary.getPartialMinMax([[1, 1, 2, 2]], 2, 'max');
+const partialSum: number = columnSummary.getPartialSum([[1, 1, 2, 2]], 2);

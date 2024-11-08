@@ -13,6 +13,7 @@ react:
   id: 3xqdvk3u
   metaTitle: Batch operations - React Data Grid | Handsontable
 searchCategory: Guides
+category: Optimization
 ---
 
 # Batch operations
@@ -192,10 +193,11 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2
+::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/optimization/batch-operations/javascript/example1.html)
 @[code](@/content/guides/optimization/batch-operations/javascript/example1.js)
+@[code](@/content/guides/optimization/batch-operations/javascript/example1.ts)
 
 :::
 
@@ -203,9 +205,10 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 ::: only-for react
 
-::: example #example1 :react
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/optimization/batch-operations/react/example1.jsx)
+@[code](@/content/guides/optimization/batch-operations/react/example1.tsx)
 
 :::
 
@@ -215,11 +218,19 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 ### Related guides
 
+<div class="boxes-list gray">
+
 - [Performance](@/guides/optimization/performance/performance.md)
+
+</div>
 
 ### Related blog articles
 
+<div class="boxes-list">
+
 - [Handsontable 8.3.0 has been released](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
+
+</div>
 
 ### Related API reference
 

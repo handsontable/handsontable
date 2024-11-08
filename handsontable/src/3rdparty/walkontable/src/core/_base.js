@@ -29,6 +29,14 @@ export default class CoreAbstract {
   drawn = false;
 
   /**
+   * The name of the overlay that currently renders the table.
+   *
+   * @public
+   * @type {string}
+   */
+  activeOverlayName = 'master';
+
+  /**
    * The DOM bindings.
    *
    * @public
@@ -115,7 +123,7 @@ export default class CoreAbstract {
   draw(fastDraw = false) {
     this.drawInterrupted = false;
 
-    if (!fastDraw && !this.wtTable.isVisible()) {
+    if (!this.wtTable.isVisible()) {
       // draw interrupted because TABLE is not visible
       this.drawInterrupted = true;
     } else {

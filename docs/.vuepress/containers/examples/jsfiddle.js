@@ -3,7 +3,7 @@ const JSFIDDLE_ENDPOINT = 'https://jsfiddle.net/api/post/library/pure/';
 
 const { getDependencies } = require('../../handsontable-manager');
 
-const jsfiddle = (id, html, code, css, version, preset) => {
+const jsfiddle = (_id, html, code, css, version, preset, lang) => {
   const isBabelPanel = preset.includes('react') || preset.includes('vue') || preset.includes('hot');
   const isAngularPanel = preset.includes('angular');
   const imports = getDependencies(version, preset).reduce(
@@ -29,11 +29,11 @@ ${html}
       </textarea>
       <textarea class="hidden" name="css" readOnly v-pre>${css}</textarea>
       <input type="hidden" name="panel_css" value="1" readOnly> <!-- enables SCSS panel -->
-      ${isBabelPanel ? '<input type="hidden" name="panel_js" value="3" readOnly>' : ''}
-      ${isAngularPanel ? '<input type="hidden" name="panel_js" value="4" readOnly>' : ''}
+      ${isBabelPanel && lang === 'JavaScript' ? '<input type="hidden" name="panel_js" value="3" readOnly>' : ''}
+      ${isAngularPanel || lang === 'TypeScript' ? '<input type="hidden" name="panel_js" value="4" readOnly>' : ''}
 
       <div class="js-fiddle-link">
-      <button type="submit" aria-label="Edit jsfiddle">
+      <button type="submit" aria-label="Edit in JSFiddle">
         <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" 
         width="15" height="15" viewBox="0 0 64 64" class="icon outbound">
           <path 

@@ -11,6 +11,7 @@ react:
   id: 1e7f39og
   metaTitle: Supported browsers - React Data Grid | Handsontable
 searchCategory: Guides
+category: Technical specification
 ---
 
 # Supported browsers
@@ -21,9 +22,7 @@ Handsontable supports all the most popular desktop and mobile browsers.
 
 ## Overview
 
-Handsontable supports Chrome, Safari, Firefox, Edge, Opera, Samsung Internet, and others.
-
-We carefully test our code on the **two latest versions** of every modern browser, on both mobile and desktop devices. In addition to running unit and end-to-end tests, we focus on two factors that are crucial for all users: performance and accuracy of the user interface.
+We carefully test our code on the **two latest versions** of most-popular modern browser, on both mobile and desktop devices. In addition to running unit and end-to-end tests, we focus on two factors that are crucial for all users: performance and accuracy of the user interface.
 
 ## Testing compatibility
 
@@ -34,8 +33,6 @@ Tests are run in [BrowserStack](https://www.browserstack.com/) as well as on a l
 | Desktop Browsers | Mobile Browsers     |
 | :--------------- | :------------------ |
 | Chrome           | Chrome              |
-| Firefox          | Firefox for Android |
-| Safari           | Firefox for iOS     |
-| Edge             | Safari iOS          |
-| Opera            | Opera               |
-| QQ browser       | Samsung Internet    |
+| Firefox          | Safari iOS          |
+| Safari           |                     |
+| Edge             |                     |

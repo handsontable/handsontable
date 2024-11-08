@@ -1,4 +1,4 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -31,7 +31,7 @@ const ExampleComponent = () => {
       hiddenRows={{
         rows: [3, 5, 9],
         // show UI indicators to mark hidden rows
-        indicators: true
+        indicators: true,
       }}
     />
   );

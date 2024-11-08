@@ -3,7 +3,7 @@ import EventManager from '../../eventManager';
 import { empty, addClass, setAttribute } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 
@@ -181,6 +181,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
+      runOnlyIf: () => hotInstance.getSelectedRangeLast()?.highlight.isCell(),
     }, {
       keys: [['enter']],
       callback: () => {
@@ -188,7 +189,13 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: () => hotInstance.getSettings().enterBeginsEditing && hotInstance.getSelectedRangeLast()?.isSingle(),
+      runOnlyIf: () => {
+        const range = hotInstance.getSelectedRangeLast();
+
+        return hotInstance.getSettings().enterBeginsEditing &&
+          range?.highlight.isCell() &&
+          !hotInstance.selection.isMultiple();
+      },
     }, {
       keys: [['delete'], ['backspace']],
       callback: () => {
@@ -196,6 +203,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
+      runOnlyIf: () => hotInstance.getSelectedRangeLast()?.highlight.isCell(),
     }], config);
   }
 
@@ -208,6 +216,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
   function changeSelectedCheckboxesState(uncheckCheckbox = false) {
     const selRange = hotInstance.getSelectedRange();
     const changesPerSubSelection = [];
+    const nonCheckboxChanges = new Map();
     let changes = [];
     let changeCounter = 0;
 
@@ -222,13 +231,34 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
           const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+
+          /* eslint-disable no-continue */
+          if (cachedCellProperties.hidden) {
+            continue;
+          }
+
           const templates = {
             checkedTemplate: cachedCellProperties.checkedTemplate,
             uncheckedTemplate: cachedCellProperties.uncheckedTemplate,
           };
 
+          // TODO: In the future it'd be better if non-checkbox changes were handled by the non-checkbox
+          //  `delete` keypress logic.
+          /* eslint-disable no-continue */
           if (cachedCellProperties.type !== 'checkbox') {
-            return;
+            if (uncheckCheckbox === true && !cachedCellProperties.readOnly) {
+              if (nonCheckboxChanges.has(changesPerSubSelection.length)) {
+                nonCheckboxChanges.set(changesPerSubSelection.length, [
+                  ...nonCheckboxChanges.get(changesPerSubSelection.length),
+                  [visualRow, visualColumn, null]
+                ]);
+
+              } else {
+                nonCheckboxChanges.set(changesPerSubSelection.length, [[visualRow, visualColumn, null]]);
+              }
+            }
+
+            continue;
           }
 
           /* eslint-disable no-continue */
@@ -276,8 +306,15 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
     if (changes.length > 0) {
       // TODO: This is workaround for handsontable/dev-handsontable#1747 not being a breaking change.
       // Technically, the changes don't need to be split into chunks when sent to `setDataAtCell`.
-      changesPerSubSelection.forEach((changesCount) => {
-        const changesChunk = changes.splice(0, changesCount);
+      changesPerSubSelection.forEach((changesCount, sectionCount) => {
+        let changesChunk = changes.splice(0, changesCount);
+
+        if (nonCheckboxChanges.size && nonCheckboxChanges.has(sectionCount)) {
+          changesChunk = [
+            ...changesChunk,
+            ...nonCheckboxChanges.get(sectionCount)
+          ];
+        }
 
         hotInstance.setDataAtCell(changesChunk);
       });
@@ -304,10 +341,6 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
           const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
-
-          if (cachedCellProperties.type !== 'checkbox') {
-            return false;
-          }
 
           const cell = hotInstance.getCell(visualRow, visualColumn);
 

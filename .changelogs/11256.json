@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added missing \"name\" attribute to the focus catcher",
+  "type": "fixed",
+  "issueOrPR": 11256,
+  "breaking": false,
+  "framework": "none"
+}

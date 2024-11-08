@@ -20,6 +20,7 @@ import {
   getParentWindow,
   hasClass,
   setAttribute,
+  outerHeight,
 } from '../../../helpers/dom/element';
 import { isRightClick } from '../../../helpers/dom/event';
 import { debounce, isFunction } from '../../../helpers/function';
@@ -117,6 +118,27 @@ export class Menu {
    * @type {KeyboardShortcutsMenuController}
    */
   #shortcutsCtrl;
+  /**
+   * The border width of the table used in the menu.
+   *
+   * @type {number}
+   */
+  #tableBorderWidth;
+
+  /**
+   * Getter for the table border width.
+   * This getter retrieves the border width of the table used in the menu.
+   *
+   * @returns {number} The border width of the table in pixels.
+   */
+  get tableBorderWidth() {
+    if (this.#tableBorderWidth === undefined && this.hotMenu) {
+      this.#tableBorderWidth = parseInt(this.hotMenu.rootWindow
+        .getComputedStyle(this.hotMenu.view._wt.wtTable.TABLE).borderWidth, 10);
+    }
+
+    return this.#tableBorderWidth;
+  }
 
   /**
    * @param {Core} hotInstance Handsontable instance.
@@ -155,6 +177,7 @@ export class Menu {
 
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
+      this.eventManager.addEventListener(frame.document, 'touchstart', event => this.onDocumentMouseDown(event));
       this.eventManager.addEventListener(frame.document, 'contextmenu', event => this.onDocumentContextMenu(event));
 
       frame = getParentWindow(frame);
@@ -288,7 +311,7 @@ export class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
+      rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : undefined),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
 
@@ -591,6 +614,32 @@ export class Menu {
   }
 
   /**
+   * Updates the dimensions of the menu based on its content.
+   * This method calculates the real height of the menu by summing up the heights of its items,
+   * and adjusts the width and height of the menu's holder and hider elements accordingly.
+   */
+  updateMenuDimensions() {
+    const { wtTable } = this.hotMenu.view._wt;
+    const data = this.hotMenu.getSettings().data;
+    const hiderStyle = wtTable.hider.style;
+    const holderStyle = wtTable.holder.style;
+    const currentHiderWidth = parseInt(hiderStyle.width, 10);
+
+    const realHeight = arrayReduce(data,
+      (accumulator, value, index) => {
+        const itemCell = this.hotMenu.getCell(index, 0);
+        const currentRowHeight = itemCell ? outerHeight(this.hotMenu.getCell(index, 0)) : 0;
+
+        return accumulator + (value.name === SEPARATOR ? 1 : currentRowHeight);
+      }, 0);
+
+    // Additional 3px to menu's size because of additional border around its `table.htCore`.
+    holderStyle.width = `${currentHiderWidth + 3}px`;
+    holderStyle.height = `${realHeight + 3}px`;
+    hiderStyle.height = holderStyle.height;
+  }
+
+  /**
    * Create container/wrapper for handsontable.
    *
    * @private
@@ -641,18 +690,7 @@ export class Menu {
    * @private
    */
   onAfterInit() {
-    const { wtTable } = this.hotMenu.view._wt;
-    const data = this.hotMenu.getSettings().data;
-    const hiderStyle = wtTable.hider.style;
-    const holderStyle = wtTable.holder.style;
-    const currentHiderWidth = parseInt(hiderStyle.width, 10);
-
-    const realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
-
-    // Additional 3px to menu's size because of additional border around its `table.htCore`.
-    holderStyle.width = `${currentHiderWidth + 3}px`;
-    holderStyle.height = `${realHeight + 3}px`;
-    hiderStyle.height = holderStyle.height;
+    this.updateMenuDimensions();
 
     // Replace the default accessibility tags with the context menu's
     if (this.hot.getSettings().ariaTags) {

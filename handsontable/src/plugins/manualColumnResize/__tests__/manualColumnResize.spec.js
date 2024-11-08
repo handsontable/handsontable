@@ -277,7 +277,7 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(33);
+    expect($columnHeaders.eq(1).width()).toBe(34);
     expect($columnHeaders.eq(2).width()).toBe(34);
     expect($columnHeaders.eq(3).width()).toBe(34);
   });
@@ -341,7 +341,7 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(154);
+    expect($columnHeaders.eq(1).width()).toBe(155);
     expect($columnHeaders.eq(2).width()).toBe(155);
     expect($columnHeaders.eq(3).width()).toBe(155);
   });
@@ -375,11 +375,11 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect($columnHeaders.eq(0).width()).toBe(180);
-    expect($columnHeaders.eq(1).width()).toBe(181);
-    expect($columnHeaders.eq(2).width()).toBe(181);
-    expect($columnHeaders.eq(3).width()).toBe(181);
-    expect($columnHeaders.eq(4).width()).toBe(181);
+    expect($columnHeaders.eq(0).width()).toBe(221);
+    expect($columnHeaders.eq(1).width()).toBe(19);
+    expect($columnHeaders.eq(2).width()).toBe(222);
+    expect($columnHeaders.eq(3).width()).toBe(222);
+    expect($columnHeaders.eq(4).width()).toBe(220);
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async() => {
@@ -394,8 +394,8 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(0).width()).toBe(63);
-    expect($columnHeaders.eq(1).width()).toBe(48);
+    expect($columnHeaders.eq(0).width()).toBe(64);
+    expect($columnHeaders.eq(1).width()).toBe(49);
     expect($columnHeaders.eq(2).width()).toBe(49);
     expect($columnHeaders.eq(3).width()).toBe(49);
     expect($columnHeaders.eq(4).width()).toBe(694);
@@ -412,7 +412,7 @@ describe('manualColumnResize', () => {
     await sleep(1000);
 
     expect($columnHeaders.eq(0).width()).toBeAroundValue(19);
-    expect($columnHeaders.eq(1).width()).toBe(48);
+    expect($columnHeaders.eq(1).width()).toBe(49);
     expect($columnHeaders.eq(2).width()).toBe(49);
     expect($columnHeaders.eq(3).width()).toBe(49);
     expect($columnHeaders.eq(4).width()).toBeAroundValue(738);
@@ -448,8 +448,8 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(24);
-      expect($columnHeaders.eq(1).width()).toBe(118);
+      expect($columnHeaders.eq(0).width()).toBe(25);
+      expect($columnHeaders.eq(1).width()).toBe(119);
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
       expect($columnHeaders.eq(4).width()).toBe(79);
@@ -466,8 +466,8 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(24);
-      expect($columnHeaders.eq(1).width()).toBe(69);
+      expect($columnHeaders.eq(0).width()).toBe(25);
+      expect($columnHeaders.eq(1).width()).toBe(70);
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
       expect($columnHeaders.eq(4).width()).toBe(79);
@@ -776,7 +776,7 @@ describe('manualColumnResize', () => {
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
   });
 
-  it('should resize proper row after resizing element adjacent to a selection', () => {
+  it('should resize the correct column after resizing element adjacent to a selection', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       rowHeaders: true,

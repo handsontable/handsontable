@@ -1,6 +1,6 @@
 // you need `useRef` to call Handsontable's instance methods
 import { useRef } from 'react';
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -10,11 +10,15 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotTableComponentRef = useRef(null);
   const exclude = () => {
-    let hotInstance = hotTableComponentRef.current.hotInstance;
-    let filtersRowsMap = hotInstance.getPlugin('filters').filtersRowsMap;
+    const hotInstance = hotTableComponentRef.current?.hotInstance;
+    // @ts-ignore
+    const filtersRowsMap = hotInstance?.getPlugin('filters').filtersRowsMap;
 
     filtersRowsMap.setValueAtIndex(0, false);
-    filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
+    filtersRowsMap.setValueAtIndex(
+      filtersRowsMap.indexedValues.length - 1,
+      false
+    );
   };
 
   return (
