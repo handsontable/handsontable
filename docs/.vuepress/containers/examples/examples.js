@@ -104,15 +104,14 @@ module.exports = function(docsVersion, base) {
         preset = preset ? preset.substring(1) : 'hot';
         args = args || '';
 
-        const themeClassName = '$parent.$parent.themeClassName';
         const htmlPos = args.match(/--html (\d*)/)?.[1];
         const htmlIndex = htmlPos ? index + Number.parseInt(htmlPos, 10) : 0;
         const htmlToken = htmlPos ? tokens[htmlIndex] : undefined;
         const htmlContent = htmlToken
           ? htmlToken.content
-          : `<div id="${id}" :class="['hot', '${klass}', ${themeClassName}]"></div>`;
-        const htmlContentExternal = `<div id="${id}" class="hot ${klass} ht-theme-main-dark-auto"></div>`;
-        const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}">${htmlContent}</div>`;
+          : `<div id="${id}" class="hot ${klass}"></div>`;
+        // eslint-disable-next-line max-len
+        const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}" class="ht-theme-main-dark-auto">${htmlContent}</div>`;
 
         const cssPos = args.match(/--css (\d*)/)?.[1];
         const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
@@ -177,7 +176,7 @@ module.exports = function(docsVersion, base) {
           <div class="example-container">
             <template v-if="${isActive}">
               <style v-pre>${cssContent}</style>
-              <div>${htmlContentRoot}</div>
+              <div v-pre>${htmlContentRoot}</div>
               <ScriptLoader code="${encodedCode}"></ScriptLoader>
             </template>
           </div>
@@ -191,7 +190,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit
     ? stackblitz(
       id,
-      htmlContentExternal,
+      htmlContent,
       codeToCompileSandbox,
       cssContent,
       docsVersion,
@@ -202,7 +201,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit
     ? jsfiddle(
       id,
-      htmlContentExternal,
+      htmlContent,
       codeForPreset,
       cssContent,
       docsVersion,
@@ -215,7 +214,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit
     ? stackblitz(
       id,
-      htmlContentExternal,
+      htmlContent,
       tsCodeToCompileSandbox,
       cssContent,
       docsVersion,
@@ -226,7 +225,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit && !isReact
     ? jsfiddle(
       id,
-      htmlContentExternal,
+      htmlContent,
       tsCodeForPreset,
       cssContent,
       docsVersion,

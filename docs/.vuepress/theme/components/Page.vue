@@ -11,7 +11,7 @@
 </template>
 
 <script>
-/* global instanceRegister */
+/* global instanceRegister, hotThemeManager */
 import PageEdit from '@theme/components/PageEdit.vue';
 import Breadcrumbs from '@theme/components/Breadcrumbs.vue';
 
@@ -176,16 +176,6 @@ export default {
         '_blank'
       );
     },
-    getThemeClassName(colorScheme) {
-      switch (colorScheme) {
-        case 'dark':
-          return 'ht-theme-main-dark';
-        case 'light':
-          return 'ht-theme-main';
-        default:
-          return 'ht-theme-main-dark-auto';
-      }
-    },
     detectClickOutsideButton(e) {
       const buttons = document.querySelectorAll('.select-type-button');
 
@@ -198,7 +188,7 @@ export default {
   },
   mounted() {
     this.selectedLang = localStorage?.getItem('selected_lang') ?? 'JavaScript';
-    this.themeClassName = this.getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
+    this.themeClassName = hotThemeManager.getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
 
     this.checkSectionInView();
     window.addEventListener('click', this.detectClickOutsideButton);
@@ -210,7 +200,7 @@ export default {
   },
   watch: {
     $route() {
-      this.themeClassName = this.getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
+      this.themeClassName = hotThemeManager.getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
     }
   }
 };

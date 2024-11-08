@@ -125,36 +125,15 @@ function createRegister() {
     destroyAll();
   };
 
-  const switchExamplesTheme = () => {
-    const version = localStorage.getItem('handsontable/docs::color-scheme');
-
-    register.forEach((instanceResource) => {
-      const instanceRes = instanceResource();
-      const currentThemeName = instanceRes.hotInstance.getCurrentThemeName();
-
-      // Remove the '-auto' suffix from the theme name.
-      const newThemeName = currentThemeName.replace('-auto', '');
-      const isCurrentlyDark = newThemeName.includes('dark');
-
-      switch (version) {
-        case 'dark':
-          instanceRes.hotInstance.useTheme(isCurrentlyDark ? newThemeName : `${newThemeName}-dark`);
-          break;
-        case 'light':
-          instanceRes.hotInstance.useTheme(isCurrentlyDark ? newThemeName.replace('-dark', '') : newThemeName);
-          break;
-        default:
-      }
-
-      instanceRes.hotInstance.render();
-    });
-  };
-
   const getAbortSignal = () => {
     const controllers = Array.from(abortControllers);
 
     return controllers[controllers.length - 1].signal;
   };
+
+  const getAllHotInstances =
+    () =>
+      Array.from(register.values()).map(instanceResource => instanceResource().hotInstance);
 
   return {
     initPage,
@@ -162,7 +141,7 @@ function createRegister() {
     destroyAll,
     destroyExample,
     getAbortSignal,
-    switchExamplesTheme,
+    getAllHotInstances,
   };
 }
 
