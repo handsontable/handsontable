@@ -11,17 +11,17 @@ const getThemeClassName = (colorScheme) => {
 
 const ensureCorrectHotThemes = () => {
   if (typeof Handsontable !== 'undefined') {
-    const themeName = getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
+    // eslint-disable-next-line no-undef
+    Handsontable.hooks.add('afterInit', function() {
+      const themeName = getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
 
-    if (themeName) {
-      // eslint-disable-next-line no-undef
-      Handsontable.hooks.add('afterInit', function() {
+      if (themeName) {
         if (this.getCurrentThemeName() !== themeName) {
           this.useTheme(themeName);
           this.render();
         }
-      });
-    }
+      }
+    });
   }
 };
 
