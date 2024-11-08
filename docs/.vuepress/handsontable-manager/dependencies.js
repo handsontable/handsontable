@@ -55,10 +55,10 @@ const getPackageUrls = (packageName, version, fileSelection) => {
 
   const mappedVersion = formatVersion(version);
 
-  if(Array.isArray(urlSet[fileSelection])) {
-    return urlSet[fileSelection].map(file => `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${file}`)
+  if (Array.isArray(urlSet[fileSelection])) {
+    return urlSet[fileSelection].map(file => `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${file}`);
   }
-  
+
   return urlSet[fileSelection] ?
     `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${urlSet.subDir || 'dist/'}${urlSet[fileSelection]}` :
     `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${fileSelection}`;
