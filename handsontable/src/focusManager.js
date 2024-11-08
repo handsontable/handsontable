@@ -127,10 +127,9 @@ export class FocusManager {
   getRefocusElement() {
     if (typeof this.#refocusElementGetter === 'function') {
       return this.#refocusElementGetter();
-
-    } else {
-      return this.#hot.getActiveEditor()?.TEXTAREA;
     }
+
+    return this.#hot.getActiveEditor()?.TEXTAREA;
   }
 
   /**
@@ -178,17 +177,14 @@ export class FocusManager {
    * @param {number} [delay] Delay in milliseconds.
    */
   refocusToEditorTextarea(delay = this.#refocusDelay) {
-    const refocusElement = this.getRefocusElement();
-
     // Re-focus on the editor's `TEXTAREA` element (or a predefined element) if the `imeFastEdit` option is enabled.
     if (
       this.#hot.getSettings().imeFastEdit &&
-      !this.#hot.getActiveEditor()?.isOpened() &&
-      !!refocusElement
+      !this.#hot.getActiveEditor()?.isOpened()
     ) {
       if (!this.#debouncedSelect.has(delay)) {
         this.#debouncedSelect.set(delay, debounce(() => {
-          refocusElement.select();
+          this.getRefocusElement()?.select();
         }, delay));
       }
 
