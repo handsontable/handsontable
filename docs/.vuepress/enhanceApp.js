@@ -1,7 +1,5 @@
 /* global GA_ID, ga */
 
-import { nextTick } from 'vue';
-
 const { applyToWindow, instanceRegister } = require('./handsontable-manager');
 
 applyToWindow();
@@ -81,9 +79,26 @@ export default async({ router, siteData, isServer }) => {
     page.versionsWithPatches = new Map(docsData.versionsWithPatches);
   });
 
+  router.options.afterEach(() => {
+    window.scrollTo(0, 0)
+  });
+
   router.options.scrollBehavior = async(to, from, savedPosition) => {
     // disable autoscrolling
-    return undefined;
+    // return undefined
+    console.log('selector', to);
+
+    // Check if the route has a hash (e.g., #section)
+    if (to.hash) {
+      return {
+        selector: to.hash,
+        behavior: 'smooth'
+      };
+    }
+
+    // Default scroll behavior: scroll to the top
+    return { top: 0 };
+
     // delay
     // return new Promise((resolve, reject) => {
     //   setTimeout(() => {
