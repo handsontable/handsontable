@@ -48,10 +48,12 @@ export class DateEditor extends TextEditor {
       this.destroyElements();
     });
 
-    this.hot.addHook('afterSetTheme', (themeName) => {
-      removeClass(this.datePicker, /ht-theme-.*/g);
+    this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+      if (!firstRun) {
+        removeClass(this.datePicker, /ht-theme-.*/g);
 
-      addClass(this.datePicker, themeName);
+        addClass(this.datePicker, themeName);
+      }
     });
   }
 

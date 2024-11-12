@@ -23,24 +23,24 @@ describe('Hook', () => {
 
       // Initial theme setup.
       expect(afterSetThemeSpy.calls.count()).toBe(1);
-      expect(afterSetThemeSpy.calls.mostRecent().args).toEqual(['ht-theme-sth']);
+      expect(afterSetThemeSpy.calls.mostRecent().args).toEqual(['ht-theme-sth', true]);
 
       useTheme('ht-theme-sth2');
 
       expect(afterSetThemeSpy.calls.count()).toBe(2);
-      expect(afterSetThemeSpy.calls.mostRecent().args).toEqual(['ht-theme-sth2']);
+      expect(afterSetThemeSpy.calls.mostRecent().args).toEqual(['ht-theme-sth2', false]);
 
       useTheme();
 
       expect(afterSetThemeSpy.calls.count()).toBe(3);
-      expect(afterSetThemeSpy.calls.mostRecent().args).toEqual([]);
+      expect(afterSetThemeSpy.calls.mostRecent().args).toEqual([undefined, false]);
 
       updateSettings({
         themeName: 'ht-theme-sth3',
       });
 
       expect(afterSetThemeSpy.calls.count()).toBe(4);
-      expect(afterSetThemeSpy.calls.mostRecent().args).toEqual(['ht-theme-sth3']);
+      expect(afterSetThemeSpy.calls.mostRecent().args).toEqual(['ht-theme-sth3', false]);
     });
   });
 });

@@ -4973,7 +4973,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.useTheme = (themeName) => {
     this.view.getStylesHandler().useTheme(themeName);
 
-    this.runHooks('afterSetTheme', themeName);
+    this.runHooks('afterSetTheme', themeName, !!firstRun);
   };
 
   /**

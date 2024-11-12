@@ -180,7 +180,7 @@ export default class Core {
   unlisten(): void;
   updateData(data: CellValue[][] | RowObject[], source?: string): void;
   updateSettings(settings: GridSettings, init?: boolean): void;
-  useTheme(themeName: string|undefined): void;
+  useTheme(themeName: string|boolean|undefined): void;
   validateCell(value: any, cellProperties: CellProperties, callback: (valid: boolean) => void, source: string): void;
   validateCells(callback?: (valid: boolean) => void): void;
   validateColumns(columns: number[], callback?: (valid: boolean) => void): void;

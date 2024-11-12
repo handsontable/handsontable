@@ -166,8 +166,10 @@ export class Menu {
         (...args) => this.parentMenu.runLocalHooks('afterSelectionChange', ...args));
     }
 
-    this.hot.addHook('afterSetTheme', (themeName) => {
-      this.hotMenu?.useTheme(themeName);
+    this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+      if (!firstRun) {
+        this.hotMenu?.useTheme(themeName);
+      }
     });
   }
 

@@ -928,6 +928,7 @@ export const REGISTERED_HOOKS = [
    * @since 15.0.0
    * @event Hooks#afterSetTheme
    * @param {string|boolean|undefined} themeName The theme name.
+   * @param {boolean} firstRun `true` if it's the initial setting of the theme, `false` otherwise.
    */
   'afterSetTheme',
 

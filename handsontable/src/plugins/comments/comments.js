@@ -213,7 +213,7 @@ export class Comments extends BasePlugin {
     this.addHook('afterScroll', () => this.#onAfterScroll());
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
-    this.addHook('afterSetTheme', () => this.#updateEditorThemeClassName());
+    this.addHook('afterSetTheme', (...args) => this.#updateEditorThemeClassName(...args));
 
     this.#displaySwitch.addLocalHook('hide', () => this.hide());
     this.#displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
