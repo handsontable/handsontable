@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 08/11/2024 13:43:21)
+ * Release date: 17/10/2024 (built at 12/11/2024 14:52:23)
  */
 .handsontable {
   position: relative;
@@ -55,6 +55,18 @@
 .handsontable .htCore {
   background-color: var(--ht-background-color, #ffffff);
 }
+.handsontable tr.ht__row_even th {
+  background-color: var(--ht-row-header-even-background-color, #ffffff);
+}
+.handsontable tr.ht__row_even td {
+  background-color: var(--ht-row-cell-even-background-color, #ffffff);
+}
+.handsontable tr.ht__row_odd th {
+  background-color: var(--ht-row-header-odd-background-color, #ffffff);
+}
+.handsontable tr.ht__row_odd td {
+  background-color: var(--ht-row-cell-odd-background-color, #ffffff);
+}
 .handsontable th,
 .handsontable td {
   height: var(--ht-row-height, 28px);
@@ -65,7 +77,6 @@
   border-inline-end-width: 1px;
   border-bottom-width: 1px;
   border-style: solid;
-  border-color: var(--ht-border-color);
   font-size: var(--ht-font-size, 14px);
   line-height: var(--ht-line-height, 20px);
   white-space: pre-wrap;
@@ -75,7 +86,10 @@
   empty-cells: show;
   box-sizing: border-box;
   color: var(--ht-foreground-color);
-  background-color: var(--ht-background-color, #ffffff);
+  border-top-color: var(--ht-cell-vertical-border-color);
+  border-bottom-color: var(--ht-cell-vertical-border-color);
+  border-inline-start-color: var(--ht-cell-horizontal-border-color);
+  border-inline-end-color: var(--ht-cell-horizontal-border-color);
 }
 .handsontable th.invisibleSelection,
 .handsontable td.invisibleSelection {
@@ -87,6 +101,9 @@
 }
 .handsontable td:first-of-type {
   border-inline-start-width: 1px;
+}
+.handsontable tbody tr td:last-child {
+  border-inline-end-color: var(--ht-border-color);
 }
 .handsontable th {
   position: relative;
@@ -134,35 +151,41 @@
 .handsontable th.ht__active_highlight:before {
   background-color: var(--ht-header-active-background-color);
 }
-.handsontable thead th {
+.handsontable thead tr th {
   padding: 0;
 }
-.handsontable thead th .relative {
+.handsontable thead tr th .relative {
   padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
   overflow: hidden;
 }
-.handsontable thead th .relative .colHeader {
+.handsontable thead tr th .relative .colHeader {
   text-overflow: ellipsis;
   overflow: hidden;
   vertical-align: top;
   max-width: calc(100% + 1px);
 }
-.handsontable thead th .relative:has(.collapsibleIndicator, .changeType) .colHeader {
+.handsontable thead tr th .relative:has(.collapsibleIndicator, .changeType) .colHeader {
   max-width: calc(100% - (var(--ht-icon-size) + var(--ht-gap-size)));
 }
 .handsontable thead tr:not(:last-child) th {
   /* Fix for - nested columns with hidden column  */
   overflow: hidden;
 }
-.handsontable tbody th {
+.handsontable tbody tr.ht__row_odd th.ht__highlight, .handsontable tbody tr.ht__row_even th.ht__highlight {
+  background-color: var(--ht-header-highlighted-background-color);
+}
+.handsontable tbody tr.ht__row_odd th.ht__active_highlight, .handsontable tbody tr.ht__row_even th.ht__active_highlight {
+  background-color: var(--ht-header-active-background-color, #1a42e8);
+}
+.handsontable tbody tr th {
   background-color: var(--ht-header-row-background-color, #f7f7f9);
 }
-.handsontable tbody th.ht__highlight:before {
+.handsontable tbody tr th.ht__highlight:before {
   width: var(--ht-header-highlighted-shadow-size);
   height: auto;
   inset: 0 -1px -1px auto;
 }
-.handsontable tbody th.ht__active_highlight {
+.handsontable tbody tr th.ht__active_highlight {
   box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #1a42e8);
 }
 .handsontable .hide {
@@ -255,6 +278,11 @@
 .handsontable tr:first-child th,
 .handsontable tr:first-child td {
   border-top-width: 1px;
+  border-top-color: var(--ht-border-color);
+}
+.handsontable tr:last-child th,
+.handsontable tr:last-child td {
+  border-bottom-color: var(--ht-border-color);
 }
 .handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable tbody tr th, .handsontable .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
   border-inline-end-width: 0;
@@ -294,11 +322,12 @@
   overflow: auto;
 }
 
-tr.ht__row_even td {
-  background-color: var(--ht-row-even-background-color, #ffffff);
+[dir=rtl].handsontable td[dir=ltr] {
+  border-inline-end-width: 0;
+  border-inline-start-width: 1px;
 }
-tr.ht__row_odd td {
-  background-color: var(--ht-row-odd-background-color, #ffffff);
+[dir=rtl].handsontable tbody tr td[dir=ltr]:last-child {
+  border-inline-start-color: var(--ht-border-color);
 }
 
 .handsontable.mobile {
@@ -532,7 +561,7 @@ tr.ht__row_odd td {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   font-size: 0;
-  float: inline-end;
+  float: right;
   top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
   margin-inline-start: calc(var(--ht-gap-size) * 2);
 }
@@ -543,6 +572,10 @@ tr.ht__row_odd td {
   top: 0;
   left: 0;
   opacity: 0.6;
+}
+
+[dir=rtl].handsontable .htAutocompleteArrow {
+  float: left;
 }
 
 .handsontable .htCheckboxRendererInput {
@@ -1187,7 +1220,7 @@ tr.ht__row_odd td {
   /* hide text */
   text-indent: -100px;
   font-size: 0;
-  float: inline-end;
+  float: right;
 }
 .handsontable .collapsibleIndicator:before,
 .handsontable .ht_nestingButton:before {
@@ -1261,6 +1294,11 @@ tr.ht__row_odd td {
 .handsontable th.ht__active_highlight .ht_nestingButton.expanded:hover:before,
 .handsontable th.ht__active_highlight .ht_nestingButton.ht_nestingCollapse:hover:before {
   color: var(--ht-collapse-button-open-hover-icon-active-color);
+}
+
+[dir=rtl].handsontable .collapsibleIndicator,
+[dir=rtl].handsontable .ht_nestingButton {
+  float: left;
 }
 
 .handsontable thead th.hiddenHeader:not(:first-of-type) {
@@ -1362,7 +1400,7 @@ tr.ht__row_odd td {
   background-color: var(--ht-icon-button-background-color);
   order: 1;
   z-index: 1;
-  float: inline-end;
+  float: right;
   top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
   margin-inline-start: var(--ht-gap-size);
 }
@@ -1376,18 +1414,21 @@ tr.ht__row_odd td {
 }
 .handsontable .changeType:hover {
   cursor: pointer;
+  box-shadow: 0 0 0 1px var(--ht-icon-button-hover-border-color);
   background-color: var(--ht-icon-button-hover-background-color);
 }
 .handsontable .changeType:hover:before {
   color: var(--ht-icon-button-hover-icon-color);
 }
 .handsontable .ht__active_highlight .changeType {
+  box-shadow: 0 0 0 1px var(--ht-icon-active-button-border-color);
   background-color: var(--ht-icon-active-button-background-color);
 }
 .handsontable .ht__active_highlight .changeType:before {
   color: var(--ht-icon-active-button-icon-color);
 }
 .handsontable .ht__active_highlight .changeType:hover {
+  box-shadow: 0 0 0 1px var(--ht-icon-active-button-hover-border-color);
   background-color: var(--ht-icon-active-button-hover-background-color);
 }
 .handsontable .ht__active_highlight .changeType:hover:before {
@@ -1568,6 +1609,10 @@ tr.ht__row_odd td {
 [dir=rtl].handsontable.htDropdownMenu table tbody tr td .htItemWrapper span.selected:after, [dir=rtl].handsontable.htContextMenu table tbody tr td .htItemWrapper span.selected:after, [dir=rtl].handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected:after {
   left: calc(4 * var(--ht-gap-size));
   right: auto;
+}
+
+[dir=rtl].handsontable .changeType {
+  float: left;
 }
 
 .handsontable.htFiltersConditionsMenu:not(.htGhostTable) {
@@ -1837,6 +1882,79 @@ tr.ht__row_odd td {
 }
 .handsontable .ht_clone_top_inline_start_corner th.ht__active_highlight {
   box-shadow: none;
+}
+.handsontable .ht_clone_top_inline_start_corner th:not(.handsontable .ht_clone_top_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_top_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_top th.ht__active_highlight,
+.handsontable .ht_clone_top td.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_bottom th.ht__active_highlight,
+.handsontable .ht_clone_bottom td.ht__active_highlight),
+.handsontable .ht_clone_top_inline_start_corner td:not(.handsontable .ht_clone_top_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_top_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_top th.ht__active_highlight,
+.handsontable .ht_clone_top td.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_bottom th.ht__active_highlight,
+.handsontable .ht_clone_bottom td.ht__active_highlight),
+.handsontable .ht_clone_top th:not(.handsontable .ht_clone_top_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_top_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_top th.ht__active_highlight,
+.handsontable .ht_clone_top td.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_bottom th.ht__active_highlight,
+.handsontable .ht_clone_bottom td.ht__active_highlight),
+.handsontable .ht_clone_top td:not(.handsontable .ht_clone_top_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_top_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_top th.ht__active_highlight,
+.handsontable .ht_clone_top td.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_bottom th.ht__active_highlight,
+.handsontable .ht_clone_bottom td.ht__active_highlight),
+.handsontable .ht_clone_bottom_inline_start_corner th:not(.handsontable .ht_clone_top_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_top_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_top th.ht__active_highlight,
+.handsontable .ht_clone_top td.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_bottom th.ht__active_highlight,
+.handsontable .ht_clone_bottom td.ht__active_highlight),
+.handsontable .ht_clone_bottom_inline_start_corner td:not(.handsontable .ht_clone_top_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_top_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_top th.ht__active_highlight,
+.handsontable .ht_clone_top td.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_bottom th.ht__active_highlight,
+.handsontable .ht_clone_bottom td.ht__active_highlight),
+.handsontable .ht_clone_bottom th:not(.handsontable .ht_clone_top_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_top_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_top th.ht__active_highlight,
+.handsontable .ht_clone_top td.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_bottom th.ht__active_highlight,
+.handsontable .ht_clone_bottom td.ht__active_highlight),
+.handsontable .ht_clone_bottom td:not(.handsontable .ht_clone_top_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_top_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_top th.ht__active_highlight,
+.handsontable .ht_clone_top td.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner th.ht__active_highlight,
+.handsontable .ht_clone_bottom_inline_start_corner td.ht__active_highlight,
+.handsontable .ht_clone_bottom th.ht__active_highlight,
+.handsontable .ht_clone_bottom td.ht__active_highlight) {
+  border-color: var(--ht-border-color);
+}
+.handsontable .ht_clone_inline_start th:not(.handsontable .ht_clone_inline_start th.ht__active_highlight,
+.handsontable .ht_clone_inline_start td.ht__active_highlight),
+.handsontable .ht_clone_inline_start td:not(.handsontable .ht_clone_inline_start th.ht__active_highlight,
+.handsontable .ht_clone_inline_start td.ht__active_highlight) {
+  border-inline-start-color: var(--ht-border-color);
+  border-inline-end-color: var(--ht-border-color);
 }
 
 .handsontable .manualColumnResizer {

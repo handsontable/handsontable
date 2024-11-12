@@ -33,6 +33,29 @@
       background-color: var(--ht-background-color, #ffffff);
     }
 
+    // Row even & odd
+    tr {
+      &.ht__row_even {
+        th {
+          background-color: var(--ht-row-header-even-background-color, #ffffff);
+        }
+
+        td {
+          background-color: var(--ht-row-cell-even-background-color, #ffffff);
+        }
+      }
+
+      &.ht__row_odd {
+        th {
+          background-color: var(--ht-row-header-odd-background-color, #ffffff);
+        }
+
+        td {
+          background-color: var(--ht-row-cell-odd-background-color, #ffffff);
+        }
+      }
+    }
+
     // Cell and Header
     th,
     td {
@@ -45,7 +68,6 @@
       border-inline-end-width: 1px;
       border-bottom-width: 1px;
       border-style: solid;
-      border-color: var(--ht-border-color);
       font-size: var(--ht-font-size, 14px);
       line-height: var(--ht-line-height, 20px);
       white-space: pre-wrap;
@@ -55,7 +77,10 @@
       empty-cells: show;
       box-sizing: border-box;
       color: var(--ht-foreground-color);
-      background-color: var(--ht-background-color, #ffffff);
+      border-top-color: var(--ht-cell-vertical-border-color);
+      border-bottom-color: var(--ht-cell-vertical-border-color);
+      border-inline-start-color: var(--ht-cell-horizontal-border-color);
+      border-inline-end-color: var(--ht-cell-horizontal-border-color);
 
       &.invisibleSelection {
         outline: none;
@@ -70,6 +95,16 @@
     td {
       &:first-of-type {
         border-inline-start-width: 1px;
+      }
+    }
+
+    tbody {
+      tr {
+        td {
+          &:last-child {
+            border-inline-end-color: var(--ht-border-color);
+          }
+        }
       }
     }
 
@@ -130,24 +165,28 @@
     }
 
     // Header in Col
-    thead th {
-      padding: 0;
+    thead tr {
+      th {
+        padding: 0;
 
-      .relative {
-        padding: var(--ht-cell-vertical-padding, 4px)
-          var(--ht-cell-horizontal-padding, 8px);
-        overflow: hidden;
-
-        .colHeader {
-          text-overflow: ellipsis;
+        .relative {
+          padding: var(--ht-cell-vertical-padding, 4px)
+            var(--ht-cell-horizontal-padding, 8px);
           overflow: hidden;
-          vertical-align: top;
-          max-width: calc(100% + 1px);
-        }
 
-        &:has(.collapsibleIndicator, .changeType) {
           .colHeader {
-            max-width: calc(100% - (var(--ht-icon-size) + var(--ht-gap-size)));
+            text-overflow: ellipsis;
+            overflow: hidden;
+            vertical-align: top;
+            max-width: calc(100% + 1px);
+          }
+
+          &:has(.collapsibleIndicator, .changeType) {
+            .colHeader {
+              max-width: calc(
+                100% - (var(--ht-icon-size) + var(--ht-gap-size))
+              );
+            }
           }
         }
       }
@@ -159,19 +198,34 @@
     }
 
     // Header in Row
-    tbody th {
-      background-color: var(--ht-header-row-background-color, #f7f7f9);
+    tbody tr {
+      &.ht__row_odd,
+      &.ht__row_even {
+        th {
+          &.ht__highlight {
+            background-color: var(--ht-header-highlighted-background-color);
+          }
 
-      &.ht__highlight {
-        &:before {
-          width: var(--ht-header-highlighted-shadow-size);
-          height: auto;
-          inset: 0 -1px -1px auto;
+          &.ht__active_highlight {
+            background-color: var(--ht-header-active-background-color, #1a42e8);
+          }
         }
       }
 
-      &.ht__active_highlight {
-        box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #1a42e8);
+      th {
+        background-color: var(--ht-header-row-background-color, #f7f7f9);
+
+        &.ht__highlight {
+          &:before {
+            width: var(--ht-header-highlighted-shadow-size);
+            height: auto;
+            inset: 0 -1px -1px auto;
+          }
+        }
+
+        &.ht__active_highlight {
+          box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #1a42e8);
+        }
       }
     }
 
@@ -287,6 +341,14 @@
       th,
       td {
         border-top-width: 1px;
+        border-top-color: var(--ht-border-color);
+      }
+    }
+
+    tr:last-child {
+      th,
+      td {
+        border-bottom-color: var(--ht-border-color);
       }
     }
 
@@ -341,17 +403,19 @@
     overflow: auto;
   }
 
-  // Row even & odd
-  tr {
-    &.ht__row_even {
-      td {
-        background-color: var(--ht-row-even-background-color, #ffffff);
-      }
+  [dir="rtl"].handsontable {
+    td[dir="ltr"] {
+      border-inline-end-width: 0;
+      border-inline-start-width: 1px;
     }
 
-    &.ht__row_odd {
-      td {
-        background-color: var(--ht-row-odd-background-color, #ffffff);
+    tbody {
+      tr {
+        td[dir="ltr"] {
+          &:last-child {
+            border-inline-start-color: var(--ht-border-color);
+          }
+        }
       }
     }
   }

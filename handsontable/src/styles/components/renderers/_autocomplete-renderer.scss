@@ -11,7 +11,7 @@
       width: var(--ht-icon-size);
       height: var(--ht-icon-size);
       font-size: 0;
-      float: inline-end;
+      float: right;
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
       margin-inline-start: calc(var(--ht-gap-size) * 2);
 
@@ -22,6 +22,12 @@
         left: 0;
         opacity: 0.6;
       }
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    .htAutocompleteArrow {
+      float: left;
     }
   }
 }

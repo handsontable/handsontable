@@ -23,7 +23,7 @@
       /* hide text */
       text-indent: -100px;
       font-size: 0;
-      float: inline-end;
+      float: right;
 
       &:before {
         @include mixins.pseudo;
@@ -109,6 +109,13 @@
           }
         }
       }
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    .collapsibleIndicator,
+    .ht_nestingButton {
+      float: left;
     }
   }
 }
