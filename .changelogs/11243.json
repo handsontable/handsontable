@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed copying values when fast IME edit was enabled",
+  "type": "fixed",
+  "issueOrPR": 11243,
+  "breaking": false,
+  "framework": "none"
+}
