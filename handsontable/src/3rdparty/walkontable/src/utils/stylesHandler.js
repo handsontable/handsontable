@@ -123,10 +123,10 @@ export class StylesHandler {
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
-    const cssVarRowHeightValue = this.getCSSVariableValue('row-height');
+    const calculatedRowHeight = this.#calculateRowHeight();
 
-    if (!cssVarRowHeightValue) {
-      warn(`The "${this.#themeName}" theme is enabled, but its stylesheets are missing. \
+    if (!calculatedRowHeight) {
+      warn(`The "${this.#themeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
 Import the correct CSS files in order to use that theme.`);
 
       this.#isClassicTheme = true;
@@ -135,7 +135,7 @@ Import the correct CSS files in order to use that theme.`);
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
-    return cssVarRowHeightValue;
+    return calculatedRowHeight;
   }
 
   /**
@@ -194,6 +194,27 @@ Import the correct CSS files in order to use that theme.`);
   }
 
   /**
+   * Calculates the row height based on the current theme and CSS variables.
+   *
+   * @returns {number|null} The calculated row height, or `null` if any required CSS variable is not found.
+   */
+  #calculateRowHeight() {
+    const lineHeightVarValue = this.getCSSVariableValue('line-height');
+    const verticalPaddingVarValue = this.getCSSVariableValue('cell-vertical-padding');
+    const bottomBorderWidth = Math.ceil(parseFloat(this.getStyleForTD('border-bottom-width')));
+
+    if (
+      lineHeightVarValue === null ||
+      verticalPaddingVarValue === null ||
+      isNaN(bottomBorderWidth)
+    ) {
+      return null;
+    }
+
+    return lineHeightVarValue + (2 * verticalPaddingVarValue) + bottomBorderWidth;
+  }
+
+  /**
    * Applies the necessary class names to the root element.
    */
   #applyClassNames() {
@@ -212,12 +233,14 @@ Import the correct CSS files in order to use that theme.`);
 
     const stylesForTD = this.#getStylesForTD([
       'box-sizing',
+      'border-bottom-width',
     ]);
 
     this.#computedStyles.td = {
       ...this.#computedStyles.td,
       ...{
         'box-sizing': stylesForTD['box-sizing'],
+        'border-bottom-width': stylesForTD['border-bottom-width'],
       },
     };
   }
@@ -273,7 +296,7 @@ Import the correct CSS files in order to use that theme.`);
       return null;
     }
 
-    const parsedValue = parseInt(this.#rootComputedStyle.getPropertyValue(property), 10);
+    const parsedValue = Math.ceil(parseFloat(this.#rootComputedStyle.getPropertyValue(property)));
 
     return Number.isNaN(parsedValue) ? null : parsedValue;
   }

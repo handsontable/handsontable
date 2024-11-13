@@ -91,7 +91,8 @@ describe('StylesHandler', () => {
     });
 
     it('should calculate the default row height for non-classic theme', () => {
-      spec().rootElement.style.setProperty('--ht-row-height', '31px');
+      spec().rootElement.style.setProperty('--ht-line-height', '20px');
+      spec().rootElement.style.setProperty('--ht-cell-vertical-padding', '5px');
 
       spec().wotInstance.destroy();
       walkontable({

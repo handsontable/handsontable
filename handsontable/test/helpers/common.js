@@ -1086,7 +1086,8 @@ export function simulateTouch(target) {
 export function simulateModernThemeStylesheet(container) {
   const element = container instanceof $ ? container.get(0) : container;
 
-  element.style.setProperty('--ht-row-height', '28px');
+  element.style.setProperty('--ht-line-height', '17px');
+  element.style.setProperty('--ht-cell-vertical-padding', '5px');
 }
 
 /**
@@ -1097,7 +1098,8 @@ export function simulateModernThemeStylesheet(container) {
 export function clearModernThemeStylesheetMock(container) {
   const element = container instanceof $ ? container.get(0) : container;
 
-  element.style.removeProperty('--ht-row-height');
+  element.style.removeProperty('--ht-line-height');
+  element.style.removeProperty('--ht-cell-vertical-padding');
 }
 
 /**
