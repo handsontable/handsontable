@@ -79,21 +79,16 @@ export default async({ router, siteData, isServer }) => {
     page.versionsWithPatches = new Map(docsData.versionsWithPatches);
   });
 
-  router.afterEach(() => {
-    window.scrollTo(0, 0);
-  });
-
-  router.options.scrollBehavior = async(to) => {
+  router.afterEach((to) => {
     // Check if the route has a hash (e.g., #section)
     if (to.hash) {
-      return {
-        selector: to.hash,
-        behavior: 'smooth',
-        top: 75,
-        left: 0,
-      };
+      return window.scrollTo(0, 75);
     }
 
+    return window.scrollTo(0, 0);
+  });
+
+  router.options.scrollBehavior = async() => {
     return { top: 0 };
   };
   if (typeof window.ga === 'function') {
