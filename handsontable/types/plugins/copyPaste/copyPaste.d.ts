@@ -9,6 +9,7 @@ export interface DetailedSettings {
   copyColumnHeaders?: boolean;
   copyColumnGroupHeaders?: boolean;
   copyColumnHeadersOnly?: boolean;
+  uiContainer?: HTMLElement;
 }
 
 export type Settings = boolean | DetailedSettings;

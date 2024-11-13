@@ -3,6 +3,11 @@ import Handsontable from 'handsontable';
 const hot = new Handsontable(document.createElement('div'), {
   manualColumnResize: true
 });
+
+new Handsontable(document.createElement('div'), {
+  manualColumnResize: [100, 40],
+});
+
 const manualColumnResize = hot.getPlugin('manualColumnResize');
 
 manualColumnResize.saveManualColumnWidths();

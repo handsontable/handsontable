@@ -192,7 +192,9 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
       runOnlyIf: () => {
         const range = hotInstance.getSelectedRangeLast();
 
-        return hotInstance.getSettings().enterBeginsEditing && range?.isSingle() && range.highlight.isCell();
+        return hotInstance.getSettings().enterBeginsEditing &&
+          range?.highlight.isCell() &&
+          !hotInstance.selection.isMultiple();
       },
     }, {
       keys: [['delete'], ['backspace']],
@@ -229,6 +231,12 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
           const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+
+          /* eslint-disable no-continue */
+          if (cachedCellProperties.hidden) {
+            continue;
+          }
+
           const templates = {
             checkedTemplate: cachedCellProperties.checkedTemplate,
             uncheckedTemplate: cachedCellProperties.uncheckedTemplate,
