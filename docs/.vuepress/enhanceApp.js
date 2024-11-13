@@ -79,36 +79,22 @@ export default async({ router, siteData, isServer }) => {
     page.versionsWithPatches = new Map(docsData.versionsWithPatches);
   });
 
-  router.afterEach((to, from) => {
-    console.log(`Navigated from ${from.fullPath} to ${to.fullPath}`);
+  router.afterEach(() => {
     window.scrollTo(0, 0);
   });
-  router.options.scrollBehavior = async(to) => {
-    // disable autoscrolling
-    // return undefined
-    console.log('selector', to);
 
+  router.options.scrollBehavior = async(to) => {
     // Check if the route has a hash (e.g., #section)
     if (to.hash) {
       return {
         selector: to.hash,
-        behavior: 'smooth'
+        behavior: 'smooth',
+        top: 75,
+        left: 0,
       };
     }
 
-    // Default scroll behavior: scroll to the top
     return { top: 0 };
-
-    // delay
-    // return new Promise((resolve, reject) => {
-    //   setTimeout(() => {
-    //     resolve({
-    //       left: 0,
-    //       top: 0,
-    //       behavior: 'smooth'
-    //      })
-    //   }, 3000)
-    // })
   };
   if (typeof window.ga === 'function') {
     router.afterEach((to) => {
