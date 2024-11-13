@@ -332,17 +332,13 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
-          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
-
+          const cellMeta = hotInstance.getCellMeta(visualRow, visualColumn);
           const cell = hotInstance.getCell(visualRow, visualColumn);
 
-          if (cell === null || cell === undefined) {
-            return true;
-
-          } else {
+          if (cell instanceof HTMLElement) {
             const checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
-            if (checkboxes.length > 0 && !cachedCellProperties.readOnly) {
+            if (checkboxes.length > 0 && !cellMeta.readOnly) {
               return true;
             }
           }
