@@ -751,6 +751,7 @@ class Table {
     const borderBoxSizing = this.wot.stylesHandler.areCellsBorderBox();
     const rowHeightFn = borderBoxSizing ? outerHeight : innerHeight;
     const borderCompensation = borderBoxSizing ? 0 : 1;
+    const firstRowBorderCompensation = borderBoxSizing ? 1 : 0;
     let previousRowHeight;
     let rowCurrentHeight;
     let sourceRowIndex;
@@ -769,6 +770,8 @@ class Table {
       currentTr = this.getTrForRow(sourceRowIndex);
       rowHeader = currentTr.querySelector('th');
 
+      const topBorderCompensation = sourceRowIndex === 0 ? firstRowBorderCompensation : 0;
+
       if (rowHeader) {
         rowCurrentHeight = rowHeightFn(rowHeader);
 
@@ -776,8 +779,10 @@ class Table {
         rowCurrentHeight = rowHeightFn(currentTr) - borderCompensation;
       }
 
-      if (!previousRowHeight && this.dataAccessObject.stylesHandler.getDefaultRowHeight() < rowCurrentHeight ||
-          previousRowHeight < rowCurrentHeight
+      if (
+        !previousRowHeight &&
+        this.dataAccessObject.stylesHandler.getDefaultRowHeight() < rowCurrentHeight - topBorderCompensation ||
+        previousRowHeight < rowCurrentHeight
       ) {
         if (!borderBoxSizing) {
           rowCurrentHeight += 1;
