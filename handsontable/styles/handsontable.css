@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 14.6.1
- * Release date: 17/10/2024 (built at 12/11/2024 14:52:23)
+ * Release date: 17/10/2024 (built at 13/11/2024 13:43:43)
  */
 .handsontable {
   position: relative;
@@ -69,7 +69,7 @@
 }
 .handsontable th,
 .handsontable td {
-  height: var(--ht-row-height, 28px);
+  height: calc(var(--ht-cell-vertical-padding, 4px) * 2 + var(--ht-line-height, 20px) + 1px);
   padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
   vertical-align: top;
   border-top-width: 0;

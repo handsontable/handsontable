@@ -59,7 +59,10 @@
     // Cell and Header
     th,
     td {
-      height: var(--ht-row-height, 28px);
+      height: calc(
+        var(--ht-cell-vertical-padding, 4px) * 2 + var(--ht-line-height, 20px) +
+          1px
+      );
       padding: var(--ht-cell-vertical-padding, 4px)
         var(--ht-cell-horizontal-padding, 8px);
       vertical-align: top;
