@@ -601,6 +601,8 @@ jobs:
             npm run in handsontable build:es
             npm run in handsontable build:commonjs
             npm run in handsontable build:languages.es
+            npm run build:themes && npm run build:legacy-css
+            npm run build:themes.min && npm run build:legacy-css.min
           fi
           npm run in handsontable postbuild
       - run: |
