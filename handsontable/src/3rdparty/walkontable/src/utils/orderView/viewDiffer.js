@@ -1,6 +1,7 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
 import { WORKING_SPACE_BOTTOM } from './constants';
 
-export default class ViewDiffer {
+export class ViewDiffer {
   constructor(sizeSet) {
     this.sizeSet = sizeSet;
   }
@@ -124,12 +125,25 @@ export default class ViewDiffer {
   }
 }
 
+/**
+ * Creates a function which returns an element from the array based on the index.
+ *
+ * @param {Array} arr An array from which the element should be returned.
+ * @returns {function(): Array}
+ */
 function createSafeArrayGetter(arr) {
   return function(index) {
     return index < arr.length ? arr[index] : void 0;
   };
 }
 
+/**
+ * Creates an array of numbers starting from `from` and ending at `from + length`.
+ *
+ * @param {number} from The first number in the range.
+ * @param {number} length The length of the range.
+ * @returns {Array}
+ */
 function createRange(from, length) {
   const range = [];
 

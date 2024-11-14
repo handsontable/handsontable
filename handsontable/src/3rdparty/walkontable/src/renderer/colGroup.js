@@ -1,7 +1,7 @@
-import BaseRenderer from './_base';
-import { warn } from './../../../../helpers/console';
-import { toSingleLine } from './../../../../helpers/templateLiteralTag';
-import { addClass } from './../../../../helpers/dom/element';
+import { BaseRenderer } from './_base';
+import { warn } from '../../../../helpers/console';
+import { toSingleLine } from '../../../../helpers/templateLiteralTag';
+import { addClass } from '../../../../helpers/dom/element';
 
 let performanceWarningAppeared = false;
 
@@ -17,7 +17,7 @@ let performanceWarningAppeared = false;
  *
  * @class {ColGroupRenderer}
  */
-export default class ColGroupRenderer extends BaseRenderer {
+export class ColGroupRenderer extends BaseRenderer {
   constructor(rootNode) {
     super(null, rootNode); // NodePool is not implemented for this renderer yet
   }

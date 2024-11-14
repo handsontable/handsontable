@@ -1,6 +1,6 @@
-import SharedOrderView from 'walkontable/utils/orderView/sharedView';
-import ViewSizeSet from 'walkontable/utils/orderView/viewSizeSet';
-import ViewDiffer from 'walkontable/utils/orderView/viewDiffer';
+import { SharedOrderView } from 'walkontable/utils/orderView/sharedView';
+import { ViewSizeSet } from 'walkontable/utils/orderView/viewSizeSet';
+import { ViewDiffer } from 'walkontable/utils/orderView/viewDiffer';
 
 function createOrderView() {
   const rootNode = document.createElement('tr');

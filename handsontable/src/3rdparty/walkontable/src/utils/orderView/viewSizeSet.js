@@ -1,4 +1,4 @@
-import ViewSize from './viewSize';
+import { ViewSize } from './viewSize';
 import { WORKING_SPACE_ALL, WORKING_SPACE_TOP, WORKING_SPACE_BOTTOM } from './constants';
 
 /**
@@ -17,7 +17,7 @@ import { WORKING_SPACE_ALL, WORKING_SPACE_TOP, WORKING_SPACE_BOTTOM } from './co
  *
  * @class {ViewSizeSet}
  */
-export default class ViewSizeSet {
+export class ViewSizeSet {
   /**
    * Holder for current and next view size and offset.
    *

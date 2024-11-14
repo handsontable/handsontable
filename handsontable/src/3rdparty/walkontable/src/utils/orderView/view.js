@@ -1,5 +1,5 @@
-import ViewSizeSet from './viewSizeSet';
-import ViewDiffer from './viewDiffer';
+import { ViewSizeSet } from './viewSizeSet';
+import { ViewDiffer } from './viewDiffer';
 
 /**
  * Executive model for each table renderer. It's responsible for injecting DOM nodes in a
@@ -9,7 +9,7 @@ import ViewDiffer from './viewDiffer';
  *
  * @class {OrderView}
  */
-export default class OrderView {
+export class OrderView {
   /**
    * The root node to manage with.
    *
@@ -45,7 +45,7 @@ export default class OrderView {
    */
   viewDiffer = new ViewDiffer(this.sizeSet);
   /**
-   * @type {Number[]}
+   * @type {number[]}
    */
   staleNodeIndexes = [];
   /**
@@ -85,8 +85,8 @@ export default class OrderView {
   }
 
   /**
-   * @param {Number} sourceIndex
-   * @returns {Boolean}
+   * @param {number} sourceIndex The source index.
+   * @returns {boolean}
    */
   hasStaleContent(sourceIndex) {
     return this.staleNodeIndexes.includes(sourceIndex);
@@ -148,7 +148,7 @@ export default class OrderView {
   }
 
   /**
-   * @param {Array} command
+   * @param {Array} command The command to apply.
    */
   applyCommand(command) {
     const { rootNode, collectedNodes } = this;

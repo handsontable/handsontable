@@ -1,5 +1,5 @@
-import ViewDiffer from 'walkontable/utils/orderView/viewDiffer';
-import ViewSizeSet from 'walkontable/utils/orderView/viewSizeSet';
+import { ViewDiffer } from 'walkontable/utils/orderView/viewDiffer';
+import { ViewSizeSet } from 'walkontable/utils/orderView/viewSizeSet';
 
 describe('ViewDiffer', () => {
   it('should generate leads filled with "append" type when previous order wasn\'t exist', () => {

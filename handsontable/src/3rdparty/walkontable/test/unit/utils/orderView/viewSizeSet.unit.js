@@ -1,5 +1,5 @@
-import ViewSizeSet from 'walkontable/utils/orderView/viewSizeSet';
-import ViewSize from 'walkontable/utils/orderView/viewSize';
+import { ViewSizeSet } from 'walkontable/utils/orderView/viewSizeSet';
+import { ViewSize } from 'walkontable/utils/orderView/viewSize';
 import { WORKING_SPACE_ALL, WORKING_SPACE_TOP, WORKING_SPACE_BOTTOM } from 'walkontable/utils/orderView/constants';
 
 describe('ViewSizeSet', () => {

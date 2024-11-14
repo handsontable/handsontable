@@ -1,4 +1,4 @@
-import NodesPool from 'walkontable/utils/nodesPool';
+import { NodesPool } from 'walkontable/utils/nodesPool';
 
 describe('NodesPool', () => {
   it('should be correctly constructed', () => {

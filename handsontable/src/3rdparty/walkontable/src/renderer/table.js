@@ -42,7 +42,7 @@
  *
  * @class {RowsRenderer}
  */
-export default class TableRenderer {
+export class TableRenderer {
   /**
    * Table element which will be used to render the children element.
    *
