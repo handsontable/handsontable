@@ -2,24 +2,24 @@
 @use "utils/horizon/icons";
 
 @mixin light {
-  --ht-font-size: 14px;
+  --ht-font-size: 12px;
   --ht-line-height: 20px;
   --ht-font-weight: 400;
   --ht-gap-size: 6px;
   --ht-icon-size: 16px;
   --ht-table-transition: 0.2s;
-  --ht-border-color: #e5e5e9;
-  --ht-accent-color: #37bc6c;
+  --ht-border-color: #f3f3f3;
+  --ht-accent-color: #652bd5;
   --ht-foreground-color: #353535;
   --ht-background-color: #ffffff;
   --ht-placeholder-color: #868686;
   --ht-read-only-color: #353535;
   --ht-disabled-color: #aeaeae;
-  --ht-cell-horizontal-border-color: #e5e5e9;
-  --ht-cell-vertical-border-color: #e5e5e9;
+  --ht-cell-horizontal-border-color: #f3f3f3;
+  --ht-cell-vertical-border-color: #f3f3f3;
   --ht-wrapper-border-width: 1px;
   --ht-wrapper-border-radius: 12px;
-  --ht-wrapper-border-color: #e5e5e9;
+  --ht-wrapper-border-color: #f3f3f3;
   --ht-row-header-odd-background-color: rgba(35, 35, 38, 0);
   --ht-row-header-even-background-color: rgba(35, 35, 38, 0.04);
   --ht-row-cell-odd-background-color: rgba(35, 35, 38, 0);
@@ -27,26 +27,25 @@
   --ht-cell-horizontal-padding: 12px;
   --ht-cell-vertical-padding: 8px;
   --ht-cell-editor-border-width: 2px;
-  --ht-cell-editor-border-color: #37bc6c;
   --ht-cell-editor-foreground-color: #000000;
   --ht-cell-editor-background-color: #ffffff;
-  --ht-cell-editor-shadow-blur-radius: 8px;
-  --ht-cell-editor-shadow-color: #37bc6c;
+  --ht-cell-editor-shadow-blur-radius: 0px;
+  --ht-cell-editor-shadow-color: #652bd5;
   --ht-cell-success-background-color: rgba(55, 188, 108, 0.30);
   --ht-cell-error-background-color: rgba(250, 77, 50, 0.30);
-  --ht-cell-selection-border-color: #37bc6c;
-  --ht-cell-selection-background-color: #37bc6c;
+  --ht-cell-selection-border-color: #652bd5;
+  --ht-cell-selection-background-color: #652bd5;
   --ht-cell-autofill-size: 6px;
   --ht-cell-autofill-border-width: 1px;
   --ht-cell-autofill-border-radius: 4px;
   --ht-cell-autofill-border-color: #ffffff;
-  --ht-cell-autofill-background-color: #37bc6c;
+  --ht-cell-autofill-background-color: #652bd5;
   --ht-resize-indicator-color: #868686;
   --ht-move-backlight-color: rgba(7, 6, 4, 0.08);
   --ht-move-indicator-color: #37bc6c;
   --ht-hidden-indicator-color: #868686;
   --ht-scrollbar-border-radius: 8px;
-  --ht-scrollbar-track-color: #f7f7f9;
+  --ht-scrollbar-track-color: #ffffff;
   --ht-scrollbar-thumb-color: #868686;
   --ht-checkbox-size: 16px;
   --ht-checkbox-border-radius: 6px;
@@ -56,15 +55,15 @@
   --ht-checkbox-focus-border-color: #aeaea4;
   --ht-checkbox-focus-background-color: #ffffff;
   --ht-checkbox-focus-icon-color: rgba(255, 255, 255, 0);
-  --ht-checkbox-focus-ring-color: #37bc6c;
+  --ht-checkbox-focus-ring-color: #652bd5;
   --ht-checkbox-disabled-border-color: #aeaea4;
   --ht-checkbox-disabled-background-color: #e0e0e0;
   --ht-checkbox-disabled-icon-color: rgba(255, 255, 255, 0);
-  --ht-checkbox-checked-border-color: #57c784;
-  --ht-checkbox-checked-background-color: #37bc6c;
+  --ht-checkbox-checked-border-color: #652bd5;
+  --ht-checkbox-checked-background-color: #652bd5;
   --ht-checkbox-checked-icon-color: #ffffff;
   --ht-checkbox-checked-focus-border-color: #ffffff;
-  --ht-checkbox-checked-focus-background-color: #37bc6c;
+  --ht-checkbox-checked-focus-background-color: #652bd5;
   --ht-checkbox-checked-focus-icon-color: #ffffff;
   --ht-checkbox-checked-disabled-border-color: #aeaea4;
   --ht-checkbox-checked-disabled-background-color: #e0e0e0;
@@ -115,60 +114,60 @@
   --ht-button-vertical-padding: 8px;
   --ht-primary-button-border-color: rgba(255, 255, 255, 0);
   --ht-primary-button-foreground-color: #ffffff;
-  --ht-primary-button-background-color: #37bc6c;
+  --ht-primary-button-background-color: #652bd5;
   --ht-primary-button-disabled-border-color: rgba(255, 255, 255, 0);
   --ht-primary-button-disabled-foreground-color: #aeaeae;
   --ht-primary-button-disabled-background-color: #dae5df;
   --ht-primary-button-hover-border-color: rgba(255, 255, 255, 0);
   --ht-primary-button-hover-foreground-color: #ffffff;
-  --ht-primary-button-hover-background-color: #32a961;
+  --ht-primary-button-hover-background-color: #1a42e8;
   --ht-primary-button-focus-border-color: #ffffff;
   --ht-primary-button-focus-foreground-color: #ffffff;
-  --ht-primary-button-focus-background-color: #37bc6c;
-  --ht-secondary-button-border-color: #e5e5e9;
-  --ht-secondary-button-foreground-color: #37bc6c;
+  --ht-primary-button-focus-background-color: #652bd5;
+  --ht-secondary-button-border-color: #f3f3f3;
+  --ht-secondary-button-foreground-color: #652bd5;
   --ht-secondary-button-background-color: #ffffff;
-  --ht-secondary-button-disabled-border-color: #e5e5e9;
+  --ht-secondary-button-disabled-border-color: #f3f3f3;
   --ht-secondary-button-disabled-foreground-color: #aeaeae;
   --ht-secondary-button-disabled-background-color: rgba(218, 229, 223, 0.40);
-  --ht-secondary-button-hover-border-color: #e5e5e9;
-  --ht-secondary-button-hover-foreground-color: #37bc6c;
+  --ht-secondary-button-hover-border-color: #f3f3f3;
+  --ht-secondary-button-hover-foreground-color: #652bd5;
   --ht-secondary-button-hover-background-color: #ededef;
-  --ht-secondary-button-focus-border-color: #e5e5e9;
-  --ht-secondary-button-focus-foreground-color: #37bc6c;
+  --ht-secondary-button-focus-border-color: #f3f3f3;
+  --ht-secondary-button-focus-foreground-color: #652bd5;
   --ht-secondary-button-focus-background-color: #ffffff;
   --ht-comments-textarea-horizontal-padding: 12px;
   --ht-comments-textarea-vertical-padding: 8px;
   --ht-comments-indicator-size: 6px;
-  --ht-comments-indicator-color: #37bc6c;
+  --ht-comments-indicator-color: #652bd5;
   --ht-comments-textarea-border-width: 1px;
   --ht-comments-textarea-border-color: rgba(255, 255, 255, 0);
   --ht-comments-textarea-foreground-color: #353535;
-  --ht-comments-textarea-background-color: #f7f7f9;
+  --ht-comments-textarea-background-color: #ffffff;
   --ht-comments-textarea-focus-border-width: 1px;
-  --ht-comments-textarea-focus-border-color: #37bc6c;
+  --ht-comments-textarea-focus-border-color: #652bd5;
   --ht-comments-textarea-focus-foreground-color: #353535;
   --ht-comments-textarea-focus-background-color: #ffffff;
   --ht-license-horizontal-padding: 16px;
   --ht-license-vertical-padding: 16px;
   --ht-license-foreground-color: #353535;
-  --ht-license-background-color: #f7f7f9;
-  --ht-link-color: #37bc6c;
-  --ht-link-hover-color: #23a858;
+  --ht-license-background-color: #ffffff;
+  --ht-link-color: #652bd5;
+  --ht-link-hover-color: #652bd5;
   --ht-input-border-width: 1px;
   --ht-input-border-radius: 6px;
   --ht-input-horizontal-padding: 16px;
   --ht-input-vertical-padding: 8px;
-  --ht-input-border-color: #e5e5e9;
+  --ht-input-border-color: #f3f3f3;
   --ht-input-foreground-color: #353535;
   --ht-input-background-color: #f7f7f9;
-  --ht-input-hover-border-color: #e5e5e9;
+  --ht-input-hover-border-color: #f3f3f3;
   --ht-input-hover-foreground-color: #353535;
   --ht-input-hover-background-color: #ffffff;
-  --ht-input-disabled-border-color: #e5e5e9;
+  --ht-input-disabled-border-color: #f3f3f3;
   --ht-input-disabled-foreground-color: #aeaeae;
   --ht-input-disabled-background-color: #ffffff;
-  --ht-input-focus-border-color: #37bc6c;
+  --ht-input-focus-border-color: #652bd5;
   --ht-input-focus-foreground-color: #353535;
   --ht-input-focus-background-color: #ffffff;
   --ht-menu-border-width: 0px;
@@ -180,64 +179,63 @@
   --ht-menu-shadow-x: 0px;
   --ht-menu-shadow-y: 8px;
   --ht-menu-shadow-blur: 16px;
-  --ht-menu-border-color: #e5e5e9;
+  --ht-menu-border-color: #f3f3f3;
   --ht-menu-shadow-color: rgba(0, 0, 0, 0.08);
-  --ht-menu-item-hover-color: rgba(55, 188, 108, 0.05);
-  --ht-menu-item-active-color: rgba(55, 188, 108, 0.10);
+  --ht-menu-item-hover-color: rgba(243, 243, 243, 0.05);
+  --ht-menu-item-active-color: #f3f3f3;
 }
 
 @mixin dark {
-  --ht-border-color: #222222;
-  --ht-accent-color: #f1b93e;
+  --ht-border-color: #242423;
+  --ht-accent-color: #1f31ff;
   --ht-foreground-color: #b5b5b9;
   --ht-background-color: #070604;
   --ht-placeholder-color: #5d5d5d;
   --ht-read-only-color: #b5b5b9;
   --ht-disabled-color: #727272;
-  --ht-cell-horizontal-border-color: #222222;
-  --ht-cell-vertical-border-color: #222222;
-  --ht-wrapper-border-color: #222222;
+  --ht-cell-horizontal-border-color: #242423;
+  --ht-cell-vertical-border-color: #242423;
+  --ht-wrapper-border-color: #242423;
   --ht-row-header-odd-background-color: rgba(209, 209, 255, 0);
   --ht-row-header-even-background-color: rgba(209, 209, 255, 0.06);
   --ht-row-cell-odd-background-color: rgba(209, 209, 255, 0);
   --ht-row-cell-even-background-color: rgba(209, 209, 255, 0.06);
-  --ht-cell-editor-border-color: #f1b93e;
   --ht-cell-editor-foreground-color: #ffffff;
   --ht-cell-editor-background-color: #070604;
   --ht-cell-editor-shadow-color: rgba(255, 243, 215, 0.80);
   --ht-cell-success-background-color: rgba(68, 200, 121, 0.30);
   --ht-cell-error-background-color: rgba(251, 98, 75, 0.30);
-  --ht-cell-selection-border-color: #f1b93e;
-  --ht-cell-selection-background-color: #f1b93e;
+  --ht-cell-selection-border-color: #1f31ff;
+  --ht-cell-selection-background-color: #1f31ff;
   --ht-cell-autofill-border-color: #070604;
-  --ht-cell-autofill-background-color: #f1b93e;
+  --ht-cell-autofill-background-color: #1f31ff;
   --ht-resize-indicator-color: #acacac;
   --ht-move-backlight-color: rgba(247, 247, 249, 0.08);
   --ht-move-indicator-color: #f1b93e;
   --ht-hidden-indicator-color: #acacac;
-  --ht-scrollbar-track-color: #19191c;
-  --ht-scrollbar-thumb-color: #4b4b4b;
+  --ht-scrollbar-track-color: #070604;
+  --ht-scrollbar-thumb-color: #565656;
   --ht-checkbox-border-color: rgba(83, 83, 85, 0.64);
   --ht-checkbox-background-color: #070604;
   --ht-checkbox-focus-border-color: #535355;
   --ht-checkbox-focus-background-color: #070604;
-  --ht-checkbox-focus-ring-color: #f1b93e;
+  --ht-checkbox-focus-ring-color: #1f31ff;
   --ht-checkbox-disabled-border-color: #535355;
   --ht-checkbox-disabled-background-color: #363636;
-  --ht-checkbox-checked-border-color: #deaa39;
-  --ht-checkbox-checked-background-color: #f1b93e;
-  --ht-checkbox-checked-icon-color: #0f0f10;
+  --ht-checkbox-checked-border-color: #1f31ff;
+  --ht-checkbox-checked-background-color: #1f31ff;
+  --ht-checkbox-checked-icon-color: #070604;
   --ht-checkbox-checked-focus-border-color: #070604;
-  --ht-checkbox-checked-focus-background-color: #f1b93e;
+  --ht-checkbox-checked-focus-background-color: #1f31ff;
   --ht-checkbox-checked-focus-icon-color: #070604;
   --ht-checkbox-checked-disabled-border-color: #535355;
   --ht-checkbox-checked-disabled-background-color: #363636;
   --ht-checkbox-checked-disabled-icon-color: #727272;
   --ht-header-foreground-color: #b5b5b9;
   --ht-header-background-color: #19191c;
-  --ht-header-active-border-color: #d7a52a;
+  --ht-header-active-border-color: #1f31ff;
   --ht-header-active-foreground-color: #070604;
-  --ht-header-active-background-color: #f1b93e;
+  --ht-header-active-background-color: #1f31ff;
   --ht-header-highlighted-foreground-color: #b5b5b9;
   --ht-header-highlighted-background-color: #2d2d30;
   --ht-header-filter-background-color: rgba(68, 200, 121, 0.30);
@@ -248,11 +246,11 @@
   --ht-icon-button-hover-border-color: #222225;
   --ht-icon-button-hover-background-color: #222225;
   --ht-icon-button-hover-icon-color: rgba(181, 181, 185, 0.60);
-  --ht-icon-active-button-border-color: #f1b93e;
-  --ht-icon-active-button-background-color: #f1b93e;
+  --ht-icon-active-button-border-color: #1f31ff;
+  --ht-icon-active-button-background-color: #1f31ff;
   --ht-icon-active-button-icon-color: #070604;
   --ht-icon-active-button-hover-border-color: #070604;
-  --ht-icon-active-button-hover-background-color: #deaa39;
+  --ht-icon-active-button-hover-background-color: #476af7;
   --ht-icon-active-button-hover-icon-color: #070604;
   --ht-collapse-button-open-border-color: rgba(0, 0, 0, 0);
   --ht-collapse-button-open-background-color: rgba(0, 0, 0, 0);
@@ -268,73 +266,73 @@
   --ht-collapse-button-close-hover-icon-color: rgba(255, 255, 255, 0.40);
   --ht-collapse-button-close-hover-icon-active-color: #070604;
   --ht-primary-button-foreground-color: #070604;
-  --ht-primary-button-background-color: #f1b93e;
+  --ht-primary-button-background-color: #1f31ff;
   --ht-primary-button-disabled-foreground-color: #727272;
   --ht-primary-button-disabled-background-color: #262624;
   --ht-primary-button-hover-foreground-color: #070604;
-  --ht-primary-button-hover-background-color: #f2c051;
+  --ht-primary-button-hover-background-color: #476af7;
   --ht-primary-button-focus-border-color: #070604;
   --ht-primary-button-focus-foreground-color: #070604;
-  --ht-primary-button-focus-background-color: #f1b93e;
-  --ht-secondary-button-border-color: #222222;
-  --ht-secondary-button-foreground-color: #f1b93e;
+  --ht-primary-button-focus-background-color: #1f31ff;
+  --ht-secondary-button-border-color: #242423;
+  --ht-secondary-button-foreground-color: #1f31ff;
   --ht-secondary-button-background-color: #070604;
-  --ht-secondary-button-disabled-border-color: #222222;
+  --ht-secondary-button-disabled-border-color: #242423;
   --ht-secondary-button-disabled-foreground-color: #727272;
   --ht-secondary-button-disabled-background-color: rgba(68, 68, 68, 0.40);
-  --ht-secondary-button-hover-border-color: #222222;
-  --ht-secondary-button-hover-foreground-color: #f1b93e;
+  --ht-secondary-button-hover-border-color: #242423;
+  --ht-secondary-button-hover-foreground-color: #1f31ff;
   --ht-secondary-button-hover-background-color: #2d2d30;
-  --ht-secondary-button-focus-border-color: #222222;
-  --ht-secondary-button-focus-foreground-color: #f1b93e;
+  --ht-secondary-button-focus-border-color: #242423;
+  --ht-secondary-button-focus-foreground-color: #1f31ff;
   --ht-secondary-button-focus-background-color: #070604;
-  --ht-comments-indicator-color: #f1b93e;
+  --ht-comments-indicator-color: #1f31ff;
   --ht-comments-textarea-foreground-color: #b5b5b9;
-  --ht-comments-textarea-background-color: #19191c;
-  --ht-comments-textarea-focus-border-color: #f1b93e;
+  --ht-comments-textarea-background-color: #070604;
+  --ht-comments-textarea-focus-border-color: #1f31ff;
   --ht-comments-textarea-focus-foreground-color: #b5b5b9;
   --ht-comments-textarea-focus-background-color: #070604;
   --ht-license-foreground-color: #b5b5b9;
-  --ht-license-background-color: #19191c;
-  --ht-link-color: #f1b93e;
-  --ht-link-hover-color: #dda52a;
-  --ht-input-border-color: #222222;
+  --ht-license-background-color: #070604;
+  --ht-link-color: #1f31ff;
+  --ht-link-hover-color: #1f31ff;
+  --ht-input-border-color: #242423;
   --ht-input-foreground-color: #b5b5b9;
   --ht-input-background-color: #19191c;
-  --ht-input-hover-border-color: #222222;
+  --ht-input-hover-border-color: #242423;
   --ht-input-hover-foreground-color: #b5b5b9;
   --ht-input-hover-background-color: #070604;
-  --ht-input-disabled-border-color: #222222;
+  --ht-input-disabled-border-color: #242423;
   --ht-input-disabled-foreground-color: #727272;
   --ht-input-disabled-background-color: #070604;
-  --ht-input-focus-border-color: #f1b93e;
+  --ht-input-focus-border-color: #1f31ff;
   --ht-input-focus-foreground-color: #b5b5b9;
   --ht-input-focus-background-color: #070604;
-  --ht-menu-border-color: #222222;
+  --ht-menu-border-color: #242423;
   --ht-menu-shadow-color: rgba(0, 0, 0, 0.80);
-  --ht-menu-item-hover-color: rgba(241, 185, 62, 0.05);
-  --ht-menu-item-active-color: rgba(241, 185, 62, 0.10);
+  --ht-menu-item-hover-color: rgba(19, 19, 19, 0.05);
+  --ht-menu-item-active-color: rgba(19, 19, 19, 0.10);
 }
 
-.ht-theme-horizon,
-.ht-theme-horizon-dark,
-.ht-theme-horizon-dark-auto {
+.ht-theme-tablebase,
+.ht-theme-tablebase-dark,
+.ht-theme-tablebase-dark-auto {
   @include light();
 }
 
 /* Dark mode */
-.ht-theme-horizon-dark {
+.ht-theme-tablebase-dark {
   @include dark();
 }
 
 /* Auto dark mode */
 @media (prefers-color-scheme: dark) {
-  .ht-theme-horizon-dark-auto {
+  .ht-theme-tablebase-dark-auto {
     @include dark();
   }
 }
 
 /* Icons */
-[class*=ht-theme-horizon] {
+[class*=ht-theme-tablebase] {
   @include icons.output();
 }
