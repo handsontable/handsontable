@@ -159,6 +159,8 @@ jobs:
           cd handsontable
           npm run build:es && npm run build:languages.es
           npm run build:commonjs
+          npm run build:themes && npm run build:legacy-css
+          npm run build:themes.min && npm run build:legacy-css.min
           npm run postbuild
       - run: tar -zcf tmp.tar.gz ./handsontable/tmp
 
