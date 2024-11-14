@@ -43,7 +43,7 @@ const hot = new Handsontable(document.createElement('div'), {
     },
   ],
 });
-const hot2 = new Handsontable(document.createElement('div'), {
+new Handsontable(document.createElement('div'), {
   columnSummary() {
     return [
       {

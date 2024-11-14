@@ -1,6 +1,36 @@
 import Handsontable from 'handsontable';
 
-const hot = new Handsontable(document.createElement('div'), {});
+const hot = new Handsontable(document.createElement('div'), {
+  copyPaste: true,
+});
+
+new Handsontable(document.createElement('div'), {
+  copyPaste: {
+    pasteMode: 'overwrite',
+    rowsLimit: 10,
+    columnsLimit: 20,
+    copyColumnHeaders: true,
+    copyColumnGroupHeaders: true,
+    copyColumnHeadersOnly: true,
+    uiContainer: document.body,
+  },
+});
+
+new Handsontable(document.createElement('div'), {
+  copyPaste: {
+    pasteMode: 'shift_down',
+    copyColumnHeaders: true,
+    copyColumnGroupHeaders: true,
+    copyColumnHeadersOnly: true,
+  },
+});
+
+new Handsontable(document.createElement('div'), {
+  copyPaste: {
+    pasteMode: 'shift_right',
+  },
+});
+
 const copyPaste = hot.getPlugin('copyPaste');
 
 copyPaste.columnsLimit = 10;

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Updated typings for dropdown and context menu options",
+  "type": "changed",
+  "issueOrPR": 11237,
+  "breaking": false,
+  "framework": "none"
+}
