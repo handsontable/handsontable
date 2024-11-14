@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added ability to cache cell renderers",
+  "type": "added",
+  "issueOrPR": 11264,
+  "breaking": false,
+  "framework": "none"
+}
