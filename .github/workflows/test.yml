@@ -601,9 +601,9 @@ jobs:
             npm run in handsontable build:es
             npm run in handsontable build:commonjs
             npm run in handsontable build:languages.es
-            npm run in handsontable build:themes && npm run in handsontable build:legacy-css
-            npm run in handsontable build:themes.min && npm run in handsontable build:legacy-css.min
           fi
+          npm run in handsontable build:themes && npm run in handsontable build:legacy-css
+          npm run in handsontable build:themes.min && npm run in handsontable build:legacy-css.min
           npm run in handsontable postbuild
       - run: |
           if test -f "handsontable-build-umd/dist.tar.gz"; then
