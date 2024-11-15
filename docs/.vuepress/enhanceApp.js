@@ -100,6 +100,10 @@ export default async({ router, siteData, isServer }) => {
           behavior: 'smooth', // Smooth scrolling
           block: 'start', // Align the element at the start of the viewport
         });
+
+        if (!window.location.hash || window.location.hash !== to.hash) {
+          router.push({ hash: to.hash }).catch(() => {}); // Avoid duplicate navigation error
+        }
       }
 
       return;
@@ -115,11 +119,6 @@ export default async({ router, siteData, isServer }) => {
       scrollbarPosition = savedPosition; // Save position for back/forward navigation
     } else {
       scrollbarPosition = null; // Reset for new navigation
-    }
-
-    // Enable Vue Router's default hash scrolling
-    if (to.hash) {
-      return { el: to.hash, behavior: 'smooth' };
     }
 
     return false; // Disable Vue Router's default scroll behavior
