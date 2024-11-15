@@ -42,7 +42,6 @@ const buildRegisterCleaner = register => (to, from) => {
  * route changes, the event is triggered manually.
  */
 let isFirstPageGALoaded = true;
-// const isPageLoaded = false;
 
 export default async({ router, siteData, isServer }) => {
   if (isServer) {
@@ -82,10 +81,11 @@ export default async({ router, siteData, isServer }) => {
   router.afterEach((to) => {
     // Check if the route has a hash (e.g., #section)
     if (to.hash) {
-      return window.scrollTo(0, 75);
+      console.log('debugScrollbar::hashed',to )
+      return window.scrollTo(0, 0);
     }
-
-    return window.scrollTo(0, 0);
+    console.log('debugScrollbar::nonhased',to )
+    return window.scrollTo(0, 75);
   });
 
   router.options.scrollBehavior = async() => {
