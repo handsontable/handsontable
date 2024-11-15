@@ -52,19 +52,19 @@
   }
 
   th.beforeHiddenColumn:before {
-    @include icon($icons, "caret-hidden-left");
-  }
-
-  th.afterHiddenColumn:after {
     @include icon($icons, "caret-hidden-right");
   }
 
-  th.beforeHiddenRow::before {
-    @include icon($icons, "caret-hidden-up");
+  th.afterHiddenColumn:after {
+    @include icon($icons, "caret-hidden-left");
+  }
+
+  th.beforeHiddenRow:before {
+    @include icon($icons, "caret-hidden-down");
   }
 
   th.afterHiddenRow:after {
-    @include icon($icons, "caret-hidden-down");
+    @include icon($icons, "caret-hidden-up");
   }
 
   .collapsibleIndicator,

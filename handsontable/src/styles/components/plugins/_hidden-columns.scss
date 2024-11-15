@@ -11,7 +11,6 @@
 
         &::before,
         &:after {
-          @include mixins.pseudo;
           position: absolute;
           top: 50%;
           width: 10px !important;
@@ -22,11 +21,13 @@
       }
 
       &.beforeHiddenColumn:before {
-        right: -2px;
+        @include mixins.pseudo;
+        left: -2px;
       }
 
       &.afterHiddenColumn:after {
-        left: -2px;
+        @include mixins.pseudo;
+        right: -2px;
       }
 
       &.ht__active_highlight {
@@ -44,14 +45,14 @@
   [dir="rtl"].handsontable {
     th {
       &.beforeHiddenColumn:before {
-        right: initial;
-        left: -2px;
+        right: -2px;
+        left: initial;
         transform: translateY(-50%) rotate(180deg);
       }
 
       &.afterHiddenColumn:after {
-        right: -2px;
-        left: initial;
+        right: initial;
+        left: -2px;
         transform: translateY(-50%) rotate(180deg);
       }
     }
