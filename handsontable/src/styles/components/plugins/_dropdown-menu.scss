@@ -214,6 +214,10 @@
           display: none;
         }
 
+        &:has(.htItemWrapper .selected) {
+          background-color: var(--ht-menu-item-active-color);
+        }
+
         .htItemWrapper {
           margin-inline: calc(2 * var(--ht-gap-size, 4px));
 
@@ -235,13 +239,6 @@
               );
               color: var(--ht-accent-color);
               transform: translateY(-50%);
-            }
-
-            &::before {
-              @include mixins.pseudo;
-              position: absolute;
-              inset: 0;
-              background-color: var(--ht-menu-item-active-color);
             }
           }
         }
