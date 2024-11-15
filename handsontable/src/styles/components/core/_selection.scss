@@ -53,7 +53,7 @@
 
       &.fill {
         z-index: 6;
-        background-color: var(--ht-read-only-color, #68696c) !important;
+        background-color: var(--ht-cell-autofill-fill-border-color, #68696c) !important;
       }
 
       // Fill handle
