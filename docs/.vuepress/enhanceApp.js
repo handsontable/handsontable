@@ -78,32 +78,39 @@ export default async({ router, siteData, isServer }) => {
     page.versionsWithPatches = new Map(docsData.versionsWithPatches);
   });
 
-  router.afterEach((to) => {
+  const scrollbarPosition = null;
 
+  router.afterEach((to) => {
+    if (scrollbarPosition) {
+      return window.scrollTo(savedPosition.left, savedPosition.top);
+    }
+    // Check if the route has a hash (e.g., #section)
     if (to.hash) {
       console.log('debugScrollbar::hashed', to);
-
-      const element = document.querySelector(to.hash);
+      // return window.scrollTo(0, 0);
+      const element = document.querySelector(to.hash); // Find the element with the hash
 
       if (element) {
-        const offset = 75;
-        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-
-        // Scroll to the element with the offset
-        return window.scrollTo({
-          top: elementPosition - offset,
-          behavior: 'smooth',
+        return element.scrollIntoView({
+          behavior: 'smooth', // Smooth scrolling
+          block: 'start', // Align the element at the start of the viewport
         });
       }
     }
+
     console.log('debugScrollbar::nonhased', to);
 
-    return window.scrollTo(0, 0);
+    return window.scrollTo(0, 75);
   });
 
-  // router.options.scrollBehavior = async(to, from) => {
-  //   return { top: 0 };
-  // };
+  router.options.scrollBehavior = async(to, from, savedPosition) => {
+    if (savedPosition) {
+      scrollbarPosition = savedPosition;
+    }
+    scrollbarPosition = null;
+
+    return undefined;
+  };
   if (typeof window.ga === 'function') {
     router.afterEach((to) => {
       if (!isFirstPageGALoaded) {
