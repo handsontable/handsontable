@@ -51,7 +51,7 @@
     @include icon($icons, "checkbox");
   }
 
-  th.beforeHiddenColumn:after {
+  th.beforeHiddenColumn:before {
     @include icon($icons, "caret-hidden-left");
   }
 
@@ -59,7 +59,7 @@
     @include icon($icons, "caret-hidden-right");
   }
 
-  th.beforeHiddenRow:after {
+  th.beforeHiddenRow::before {
     @include icon($icons, "caret-hidden-up");
   }
 

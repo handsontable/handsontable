@@ -9,6 +9,7 @@
       &.afterHiddenRow {
         position: relative;
 
+        &:before,
         &:after {
           @include mixins.pseudo;
           position: absolute;
@@ -20,7 +21,7 @@
         }
       }
 
-      &.beforeHiddenRow:after {
+      &.beforeHiddenRow:before {
         bottom: -2px;
       }
 
@@ -31,6 +32,7 @@
       &.ht__active_highlight {
         &.beforeHiddenRow,
         &.afterHiddenRow {
+          &:before,
           &:after {
             color: var(--ht-icon-active-button-icon-color);
           }
