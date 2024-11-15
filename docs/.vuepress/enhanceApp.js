@@ -83,36 +83,42 @@ export default async({ router, siteData, isServer }) => {
   router.afterEach((to) => {
     if (scrollbarPosition) {
       console.log('debugScrollbar::savedPosition', to);
+      window.scrollTo(scrollbarPosition.left, scrollbarPosition.top);
+      scrollbarPosition = null; // Reset after use
 
-      return window.scrollTo(scrollbarPosition.left, scrollbarPosition.top);
+      return;
     }
-    // Check if the route has a hash (e.g., #section)
+
+    // Check if the route has a hash
     if (to.hash) {
       console.log('debugScrollbar::hashed', to);
-      // return window.scrollTo(0, 0);
-      const element = document.querySelector(to.hash); // Find the element with the hash
+      const element = document.querySelector(to.hash);
 
       if (element) {
-        return element.scrollIntoView({
-          behavior: 'smooth', // Smooth scrolling
-          block: 'start', // Align the element at the start of the viewport
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
         });
       }
+
+      return;
     }
 
-    console.log('debugScrollbar::nonhased', to);
-
-    return window.scrollTo(0, 75);
+    console.log('debugScrollbar::nonhashed', to);
+    window.scrollTo(0, 75);
   });
 
+  // ScrollBehavior Function
   router.options.scrollBehavior = async(to, from, savedPosition) => {
     if (savedPosition) {
       scrollbarPosition = savedPosition;
+    } else {
+      scrollbarPosition = null;
     }
-    scrollbarPosition = null;
 
-    return false;
+    return false; // Disable Vue Router's default scroll behavior
   };
+
   if (typeof window.ga === 'function') {
     router.afterEach((to) => {
       if (!isFirstPageGALoaded) {
