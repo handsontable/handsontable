@@ -145,7 +145,7 @@
       &.ht__highlight {
         color: var(--ht-header-highlighted-foreground-color);
         background-color: var(--ht-header-highlighted-background-color);
-        box-shadow: 0 1px 0 0 var(--ht-accent-color);
+        box-shadow: 0 var(--ht-header-highlighted-shadow-size) 0 0 var(--ht-accent-color);
       }
 
       &.ht__active_highlight {
@@ -212,7 +212,7 @@
         background-color: var(--ht-header-row-background-color, #f7f7f9);
 
         &.ht__highlight {
-          box-shadow: 1px 0 0 0 var(--ht-accent-color);
+          box-shadow: var(--ht-header-highlighted-shadow-size) 0 0 0 var(--ht-accent-color);
         }
 
         &.ht__active_highlight {
