@@ -79,28 +79,31 @@ export default async({ router, siteData, isServer }) => {
   });
 
   router.afterEach((to) => {
-    // Check if the route has a hash (e.g., #section)
+
     if (to.hash) {
       console.log('debugScrollbar::hashed', to);
-      // return window.scrollTo(0, 0);
-      const element = document.querySelector(to.hash); // Find the element with the hash
+
+      const element = document.querySelector(to.hash);
 
       if (element) {
-        element.scrollIntoView({
-          behavior: 'smooth', // Smooth scrolling
-          block: 'start', // Align the element at the start of the viewport
+        const offset = 75;
+        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+
+        // Scroll to the element with the offset
+        window.scrollTo({
+          top: elementPosition - offset,
+          behavior: 'smooth',
         });
       }
     }
-
     console.log('debugScrollbar::nonhased', to);
 
-    return window.scrollTo(0, 75);
+    return window.scrollTo(0, 0);
   });
 
-  router.options.scrollBehavior = async() => {
-    return { top: 0 };
-  };
+  // router.options.scrollBehavior = async(to, from) => {
+  //   return { top: 0 };
+  // };
   if (typeof window.ga === 'function') {
     router.afterEach((to) => {
       if (!isFirstPageGALoaded) {
