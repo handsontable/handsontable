@@ -80,6 +80,7 @@ export default async({ router, siteData, isServer }) => {
 
   let scrollbarPosition = null;
 
+  // AfterEach Hook
   router.afterEach((to) => {
     if (scrollbarPosition) {
       console.log('debugScrollbar::savedPosition', to);
@@ -96,8 +97,8 @@ export default async({ router, siteData, isServer }) => {
 
       if (element) {
         element.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
+          behavior: 'smooth', // Smooth scrolling
+          block: 'start', // Align the element at the start of the viewport
         });
       }
 
@@ -111,9 +112,14 @@ export default async({ router, siteData, isServer }) => {
   // ScrollBehavior Function
   router.options.scrollBehavior = async(to, from, savedPosition) => {
     if (savedPosition) {
-      scrollbarPosition = savedPosition;
+      scrollbarPosition = savedPosition; // Save position for back/forward navigation
     } else {
-      scrollbarPosition = null;
+      scrollbarPosition = null; // Reset for new navigation
+    }
+
+    // Enable Vue Router's default hash scrolling
+    if (to.hash) {
+      return { el: to.hash, behavior: 'smooth' };
     }
 
     return false; // Disable Vue Router's default scroll behavior
