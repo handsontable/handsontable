@@ -90,7 +90,7 @@ export default async({ router, siteData, isServer }) => {
         const elementPosition = element.getBoundingClientRect().top + window.scrollY;
 
         // Scroll to the element with the offset
-        window.scrollTo({
+        return window.scrollTo({
           top: elementPosition - offset,
           behavior: 'smooth',
         });
