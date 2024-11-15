@@ -1,14 +1,23 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
-import { WORKING_SPACE_BOTTOM } from './constants';
+import { WORKING_SPACE_BOTTOM } from '../constants';
+import { ViewOrder } from './viewOrder';
 
+/**
+ * A class which is responsible for generating commands/leads which has to be executed
+ * to achieve new DOM nodes order.
+ *
+ * @class {ViewDiffer}
+ */
 export class ViewDiffer {
+  sizeSet;
+
   constructor(sizeSet) {
     this.sizeSet = sizeSet;
   }
 
   /**
-   * A method which generates commands/leads which has to be executed to achieve new DOM nodes order based on new
-   * offset and view size.
+   * A method which generates commands/leads which has to be executed to achieve new DOM
+   * nodes order based on new offset and view size.
    *
    * For example, if current order looks like this (offset = 0, viewSize = 1):
    *   <body> (root node)
@@ -33,33 +42,39 @@ export class ViewDiffer {
   diff() {
     const { sizeSet } = this;
     const {
-      currentOffset,
       currentSize: currentViewSize,
-      nextOffset,
       nextSize: nextViewSize,
     } = sizeSet.getViewSize();
 
-    // @TODO(perf-tip): Creating an array (createRange) is not necessary it would be enought to generate
-    // commands based on numeric values.
-    const currentOrder = createRange(currentOffset, currentViewSize);
-    const nextOrder = createRange(nextOffset, nextViewSize);
-    const nextOrderGetter = createSafeArrayGetter(nextOrder);
-    const currentOrderGetter = createSafeArrayGetter(currentOrder);
-    const leads = [];
     let maxSize = Math.max(nextViewSize, currentViewSize);
 
+    if (maxSize === 0) {
+      return [];
+    }
+
+    const {
+      currentOffset,
+      nextOffset,
+    } = sizeSet.getViewSize();
+
+    // @TODO(perf-tip): Creating an array (createRange) is not necessary it would be enough to generate
+    // commands based on numeric values.
+    const currentViewOrder = new ViewOrder(currentOffset, currentViewSize);
+    const nextViewOrder = new ViewOrder(nextOffset, nextViewSize);
+    const leads = [];
+
     for (let i = 0; i < maxSize; i++) {
-      const nextIndex = nextOrderGetter(i);
-      const currentIndex = currentOrderGetter(i);
+      const currentIndex = currentViewOrder.get(i);
+      const nextIndex = nextViewOrder.get(i);
 
       // Current index exceeds the next DOM index so it is necessary to generate a "remove" command
       // to achieve new order.
-      if (nextIndex === void 0) {
+      if (nextIndex === -1) {
         leads.push(['remove', currentIndex]);
 
       // Next index exceeds the current DOM index so it is necessary to generate a "append" command
       // to achieve new order.
-      } else if (currentIndex === void 0) {
+      } else if (currentIndex === -1) {
         // Check what command should be generated (depends on if this work as a shared root node
         // and in what position or not)
         if (!sizeSet.isShared() || sizeSet.isShared() && sizeSet.isPlaceOn(WORKING_SPACE_BOTTOM)) {
@@ -94,27 +109,24 @@ export class ViewDiffer {
         }
 
       } else if (nextIndex > currentIndex) {
-        const indexSinceLastOrder = currentOrder.indexOf(nextIndex);
-
         // This emulates DOM behavior when we try to append (or replace) an element which is already
         // mounted. The old index in the array has to be popped out indicating that an element was
         // moved to a different position.
-        if (indexSinceLastOrder > -1) {
-          currentOrder.splice(indexSinceLastOrder, 1);
+        if (currentViewOrder.has(nextIndex)) {
+          currentViewOrder.remove(nextIndex);
 
           // Decrease loop size to prevent generating "remove" leads. "remove" leads are necessary only for nodes
           // which are not mounted in current DOM order.
-          if (nextViewSize <= currentOrder.length) {
+          if (nextViewSize <= currentViewOrder.length) {
             maxSize -= 1;
           }
         }
         leads.push(['replace', nextIndex, currentIndex]);
 
       } else if (nextIndex < currentIndex) {
-        currentOrder.unshift(nextIndex);
-        // The last index indicates the index which should be removed after inserting the new element.
-        // This keeps nodes size constant.
-        leads.push(['insert_before', nextIndex, currentIndex, currentOrder.pop()]);
+        const indexToRemove = currentViewOrder.prepend(nextIndex);
+
+        leads.push(['insert_before', nextIndex, currentIndex, indexToRemove]);
 
       } else { // for the same current and next indexes do nothing.
         leads.push(['none', nextIndex]);
@@ -123,33 +135,4 @@ export class ViewDiffer {
 
     return leads;
   }
-}
-
-/**
- * Creates a function which returns an element from the array based on the index.
- *
- * @param {Array} arr An array from which the element should be returned.
- * @returns {function(): Array}
- */
-function createSafeArrayGetter(arr) {
-  return function(index) {
-    return index < arr.length ? arr[index] : void 0;
-  };
-}
-
-/**
- * Creates an array of numbers starting from `from` and ending at `from + length`.
- *
- * @param {number} from The first number in the range.
- * @param {number} length The length of the range.
- * @returns {Array}
- */
-function createRange(from, length) {
-  const range = [];
-
-  for (let i = 0; i < length; i++) {
-    range.push(from + i);
-  }
-
-  return range;
 }
