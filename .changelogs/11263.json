@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed data deletion for checkbox cell types",
+  "type": "fixed",
+  "issueOrPR": 11263,
+  "breaking": false,
+  "framework": "none"
+}
