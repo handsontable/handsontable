@@ -81,10 +81,20 @@ export default async({ router, siteData, isServer }) => {
   router.afterEach((to) => {
     // Check if the route has a hash (e.g., #section)
     if (to.hash) {
-      console.log('debugScrollbar::hashed',to )
-      return window.scrollTo(0, 0);
+      console.log('debugScrollbar::hashed', to);
+      // return window.scrollTo(0, 0);
+      const element = document.querySelector(to.hash); // Find the element with the hash
+
+      if (element) {
+        element.scrollIntoView({
+          behavior: 'smooth', // Smooth scrolling
+          block: 'start', // Align the element at the start of the viewport
+        });
+      }
     }
-    console.log('debugScrollbar::nonhased',to )
+
+    console.log('debugScrollbar::nonhased', to);
+
     return window.scrollTo(0, 75);
   });
 
