@@ -78,11 +78,13 @@ export default async({ router, siteData, isServer }) => {
     page.versionsWithPatches = new Map(docsData.versionsWithPatches);
   });
 
-  const scrollbarPosition = null;
+  let scrollbarPosition = null;
 
   router.afterEach((to) => {
     if (scrollbarPosition) {
-      return window.scrollTo(savedPosition.left, savedPosition.top);
+      console.log('debugScrollbar::savedPosition', to);
+
+      return window.scrollTo(scrollbarPosition.left, scrollbarPosition.top);
     }
     // Check if the route has a hash (e.g., #section)
     if (to.hash) {
@@ -109,7 +111,7 @@ export default async({ router, siteData, isServer }) => {
     }
     scrollbarPosition = null;
 
-    return undefined;
+    return false;
   };
   if (typeof window.ga === 'function') {
     router.afterEach((to) => {
