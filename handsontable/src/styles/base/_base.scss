@@ -210,6 +210,7 @@
       }
 
       th {
+        color: var(--ht-header-row-foreground-color);
         background-color: var(--ht-header-row-background-color, #f7f7f9);
 
         &.ht__highlight {
