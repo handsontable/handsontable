@@ -79,6 +79,37 @@ describe('CheckboxRenderer', () => {
         .toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit');
     });
 
+    it('should delete non-checkbox cell content when selected area is out of the table viewport (#dev-2106)', async() => {
+      handsontable({
+        data: createSpreadsheetData(100, 4).map(rowData => [...rowData, Math.random() > 0.5]),
+        width: 400,
+        height: 200,
+        columns: [
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'checkbox' },
+        ]
+      });
+
+      selectCells([[1, 1, 3, 3]]);
+      scrollViewportTo({
+        row: countRows() - 1,
+        col: countCols() - 1,
+      });
+
+      await sleep(20);
+
+      keyDownUp(key);
+
+      expect(getData(1, 1, 3, 3)).toEqual([
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+    });
+
     it('should not change checkbox state when the column header is selected', () => {
       handsontable({
         data: [[true], [false], [true]],
