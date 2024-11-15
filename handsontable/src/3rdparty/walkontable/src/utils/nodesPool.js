@@ -18,7 +18,7 @@ export class NodesPool {
   pool = new Map();
 
   constructor(nodeType) {
-    this.nodeType = nodeType;
+    this.nodeType = nodeType.toUpperCase();
   }
 
   /**
