@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - 'prod-docs/**'
-      - '!prod-docs/latest'
   workflow_dispatch:
 
 defaults:
@@ -18,6 +17,7 @@ defaults:
 jobs:
   docker:
     name: Build and push Docker image
+    if: ${{ github.ref != 'refs/heads/prod-docs-latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
