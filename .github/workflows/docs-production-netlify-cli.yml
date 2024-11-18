@@ -8,10 +8,12 @@ env:
 on:
   create:
     branches:
-      - 'prod-docs/[0-9]+\\.[0-9]+'
+      - 'prod-docs/**'
+      - '!prod-docs/latest'
   push:
     branches:
-      - 'prod-docs/[0-9]+\\.[0-9]+'
+      - 'prod-docs/**'
+      - '!prod-docs/latest'
   workflow_dispatch:
 
 defaults:
