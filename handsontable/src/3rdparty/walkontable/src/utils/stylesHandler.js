@@ -125,7 +125,7 @@ export class StylesHandler {
 
     const calculatedRowHeight = this.#calculateRowHeight();
 
-    if (!calculatedRowHeight) {
+    if (!calculatedRowHeight && hasClass(this.#rootElement, 'ht-wrapper')) {
       warn(`The "${this.#themeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
 Import the correct CSS files in order to use that theme.`);
 
