@@ -83,7 +83,6 @@ export default async({ router, siteData, isServer }) => {
   // AfterEach Hook
   router.afterEach((to) => {
     if (scrollbarPosition) {
-      console.log('debugScrollbar::savedPosition', to);
       window.scrollTo(scrollbarPosition.left, scrollbarPosition.top);
       scrollbarPosition = null; // Reset after use
 
@@ -92,7 +91,6 @@ export default async({ router, siteData, isServer }) => {
 
     // Check if the route has a hash
     if (to.hash) {
-      console.log('debugScrollbar::hashed', to);
       const element = document.querySelector(to.hash);
 
       if (element) {
@@ -108,8 +106,6 @@ export default async({ router, siteData, isServer }) => {
 
       return;
     }
-
-    console.log('debugScrollbar::nonhashed', to);
     window.scrollTo(0, 75);
   });
 

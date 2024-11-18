@@ -12,7 +12,6 @@ on:
   push:
     branches:
       - 'prod-docs/[0-9]+\\.[0-9]+'
-      - feature/dev-issue-1790
   workflow_dispatch:
 
 defaults:
@@ -49,13 +48,12 @@ jobs:
       - name: Check if branch matches the latest version
         id: check-branch
         run: |
-          FEATURE_BRANCH="feature/dev-issue-1790"
-          if [[ "$GITHUB_REF_NAME" != "$DOCS_LATEST_VERSION" && "$GITHUB_REF_NAME" != "$FEATURE_BRANCH" ]]; then
+          if [[ "$GITHUB_REF_NAME" != "$DOCS_LATEST_VERSION" ]]; then
             echo "The current branch is not the latest version and will not be deployed to Netlify"
             echo "continue=false" >> $GITHUB_OUTPUT
             exit 0
           else
-            echo "Branch matches the latest version or is a feature branch."
+            echo "Branch matches the latest version"
             echo "continue=true" >> $GITHUB_OUTPUT
           fi
 
@@ -83,11 +81,6 @@ jobs:
           git checkout origin/prod-docs/${DOCS_LATEST_VERSION}
           git checkout -b prod-docs/latest
           git push --force --set-upstream origin prod-docs/latest
-      - name: Branch Patch
-        working-directory: ./
-        run: |
-          git fetch origin feature/dev-issue-1790
-          git checkout feature/dev-issue-1790 ./docs/netlify ./docs/package.json ./docs/package-lock.json docs/.vuepress/theme/components/FrameworksDropdown.vue docs/.vuepress/helpers.js docs/netlify.toml docs/.vuepress/enhanceApp.js docs/.vuepress/config.js
 
       - name: Preserve the dist directory
         run: |
