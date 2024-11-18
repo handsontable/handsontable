@@ -1,4 +1,5 @@
 /* global GA_ID, ga */
+
 const { applyToWindow, instanceRegister } = require('./handsontable-manager');
 
 applyToWindow();
@@ -41,7 +42,6 @@ const buildRegisterCleaner = register => (to, from) => {
  * route changes, the event is triggered manually.
  */
 let isFirstPageGALoaded = true;
-let isPageLoaded = false;
 
 export default async({ router, siteData, isServer }) => {
   if (isServer) {
@@ -78,50 +78,46 @@ export default async({ router, siteData, isServer }) => {
     page.versionsWithPatches = new Map(docsData.versionsWithPatches);
   });
 
-  router.options.scrollBehavior = function(to, from, savedPosition) {
-    if (this.app.$vuepress.$get('disableScrollBehavior')) {
-      return false;
+  let scrollbarPosition = null;
+
+  // AfterEach Hook
+  router.afterEach((to) => {
+    if (scrollbarPosition) {
+      window.scrollTo(scrollbarPosition.left, scrollbarPosition.top);
+      scrollbarPosition = null; // Reset after use
+
+      return;
     }
 
-    let scrollPosition = { x: 0, y: 0 }; // page without hash
-
-    if (savedPosition) {
-      scrollPosition = savedPosition; // page from the browser navigation (back/forward)
-    }
-
-    if (from.hash) {
-      scrollPosition = { x: 0, y: 0 };
-    }
-
+    // Check if the route has a hash
     if (to.hash) {
-      scrollPosition = {
-        selector: to.hash,
-        // top offset that matches to the "scroll-padding-top" (.vuepress/theme/styles/index.styl@34)
-        // mostly it's the height of the top header plus some margin
-        offset: { x: 0, y: 75 }
-      };
-    }
+      const element = document.querySelector(to.hash);
 
-    let scrollResolver;
+      if (element) {
+        element.scrollIntoView({
+          behavior: 'smooth', // Smooth scrolling
+          block: 'start', // Align the element at the start of the viewport
+        });
 
-    const scrollPromise = new Promise((resolve) => {
-      scrollResolver = resolve;
-    });
-
-    if (isPageLoaded) {
-      if (to.path === from.path) {
-        scrollResolver(scrollPosition);
-      } else {
-        setTimeout(() => scrollResolver(scrollPosition));
+        if (!window.location.hash || window.location.hash !== to.hash) {
+          router.push({ hash: to.hash }).catch(() => {}); // Avoid duplicate navigation error
+        }
       }
+
+      return;
+    }
+    window.scrollTo(0, 75);
+  });
+
+  // ScrollBehavior Function
+  router.options.scrollBehavior = async(to, from, savedPosition) => {
+    if (savedPosition) {
+      scrollbarPosition = savedPosition; // Save position for back/forward navigation
     } else {
-      window.onload = () => {
-        isPageLoaded = true;
-        scrollResolver(scrollPosition);
-      };
+      scrollbarPosition = null; // Reset for new navigation
     }
 
-    return scrollPromise;
+    return false; // Disable Vue Router's default scroll behavior
   };
 
   if (typeof window.ga === 'function') {

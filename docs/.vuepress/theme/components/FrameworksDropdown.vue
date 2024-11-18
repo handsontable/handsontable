@@ -20,15 +20,10 @@ import DropdownLink from '@theme/components/DropdownLink.vue';
  */
 function setCookie(name, value) {
   const hostname = window.location.hostname;
-  const urlParts = hostname.split('.');
-  let domainWithoutSubdomain = hostname;
 
-  if (urlParts.length > 2) {
-    domainWithoutSubdomain = urlParts.slice(1).join('.');
-  }
   let str = `${name}=${value}`;
 
-  str += `; Domain=${domainWithoutSubdomain}`;
+  str += `; Domain=${hostname}`;
   str += '; Path=/docs';
   str += `; Expires=${new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString()}`; // 1 year
 
