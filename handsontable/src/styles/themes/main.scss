@@ -72,7 +72,6 @@
   --ht-checkbox-checked-disabled-icon-color: #a3a3a3;
   --ht-header-font-weight: 400;
   --ht-header-foreground-color: #222222;
-  --ht-header-row-foreground-color: #222222;
   --ht-header-background-color: #f7f7f9;
   --ht-header-active-border-color: #2e56fc;
   --ht-header-active-foreground-color: #ffffff;
@@ -81,7 +80,12 @@
   --ht-header-highlighted-foreground-color: #000000;
   --ht-header-highlighted-background-color: #ebebed;
   --ht-header-filter-background-color: rgba(55, 188, 108, 0.20);
+  --ht-header-row-foreground-color: #222222;
   --ht-header-row-background-color: #f7f7f9;
+  --ht-header-row-highlighted-foreground-color: #000000;
+  --ht-header-row-highlighted-background-color: #ebebed;
+  --ht-header-row-active-foreground-color: #ffffff;
+  --ht-header-row-active-background-color: #1a42e8;
   --ht-icon-button-border-radius: 2px;
   --ht-icon-button-border-color: #f7f7f9;
   --ht-icon-button-background-color: #f7f7f9;
@@ -236,7 +240,6 @@
   --ht-checkbox-checked-disabled-background-color: #36373a;
   --ht-checkbox-checked-disabled-icon-color: #68696c;
   --ht-header-foreground-color: #c7c7c7;
-  --ht-header-row-foreground-color: #c7c7c7;
   --ht-header-background-color: #1e1e1f;
   --ht-header-active-border-color: #4767e5;
   --ht-header-active-foreground-color: #0f0f10;
@@ -244,7 +247,12 @@
   --ht-header-highlighted-foreground-color: #f3f3f3;
   --ht-header-highlighted-background-color: #262627;
   --ht-header-filter-background-color: rgba(66, 190, 101, 0.30);
+  --ht-header-row-foreground-color: #c7c7c7;
   --ht-header-row-background-color: #1e1e1f;
+  --ht-header-row-highlighted-foreground-color: #f3f3f3;
+  --ht-header-row-highlighted-background-color: #262627;
+  --ht-header-row-active-foreground-color: #0f0f10;
+  --ht-header-row-active-background-color: #476af7;
   --ht-icon-button-border-color: #1e1e1f;
   --ht-icon-button-background-color: #1e1e1f;
   --ht-icon-button-icon-color: rgba(255, 255, 255, 0.40);

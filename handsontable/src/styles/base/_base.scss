@@ -200,11 +200,13 @@
       &.ht__row_even {
         th {
           &.ht__highlight {
-            background-color: var(--ht-header-highlighted-background-color);
+            color: var(--ht-header-row-highlighted-foreground-color);
+            background-color: var(--ht-header-row-highlighted-background-color);
           }
 
           &.ht__active_highlight {
-            background-color: var(--ht-header-active-background-color, #1a42e8);
+            color: var(--ht-header-row-active-foreground-color);
+            background-color: var(--ht-header-row-active-background-color, #1a42e8);
           }
         }
       }
