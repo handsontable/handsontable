@@ -8,7 +8,8 @@ export interface SeparatorObject {
 
 export interface DetailedSettings {
   callback?: (key: string, selection: Selection[], clickEvent: MouseEvent) => void;
-  items: PredefinedMenuItemKey[] | MenuConfig;
+  uiContainer?: HTMLElement,
+  items?: PredefinedMenuItemKey[] | MenuConfig;
 }
 
 export type Settings = boolean | PredefinedMenuItemKey[] | DetailedSettings;

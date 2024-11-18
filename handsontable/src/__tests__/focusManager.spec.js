@@ -127,4 +127,29 @@ describe('Focus Manager', () => {
       expect(document.activeElement).toEqual(getCell(1, 1, true));
     });
   });
+
+  describe('`refocusToEditorTextarea` method', () => {
+    it('should focus the current editor element valid for the time when it is focused (#dev-2094)', async() => {
+      handsontable({
+        columns: [
+          { type: 'text' },
+          { type: 'numeric' },
+        ],
+        imeFastEdit: true,
+      });
+
+      getFocusManager().setRefocusDelay(50);
+      selectCell(0, 0);
+
+      await sleep(100);
+
+      expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
+
+      selectCell(0, 1);
+
+      await sleep(100);
+
+      expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
+    });
+  });
 });

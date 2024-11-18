@@ -3,7 +3,7 @@ import { HotTableProps } from './types';
 
 export class SettingsMapper {
   /**
-   * Parse component settings into Handosntable-compatible settings.
+   * Parse component settings into Handsontable-compatible settings.
    *
    * @param {Object} properties Object containing properties from the HotTable object.
    * @param {Object} additionalSettings Additional settings.

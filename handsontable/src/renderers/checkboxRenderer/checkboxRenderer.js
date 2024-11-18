@@ -192,7 +192,9 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
       runOnlyIf: () => {
         const range = hotInstance.getSelectedRangeLast();
 
-        return hotInstance.getSettings().enterBeginsEditing && range?.isSingle() && range.highlight.isCell();
+        return hotInstance.getSettings().enterBeginsEditing &&
+          range?.highlight.isCell() &&
+          !hotInstance.selection.isMultiple();
       },
     }, {
       keys: [['delete'], ['backspace']],
@@ -229,6 +231,12 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
           const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+
+          /* eslint-disable no-continue */
+          if (cachedCellProperties.hidden) {
+            continue;
+          }
+
           const templates = {
             checkedTemplate: cachedCellProperties.checkedTemplate,
             uncheckedTemplate: cachedCellProperties.uncheckedTemplate,
@@ -332,17 +340,19 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
-          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+          const cellMeta = hotInstance.getCellMeta(visualRow, visualColumn);
+
+          /* eslint-disable no-continue */
+          if (cellMeta.readOnly) {
+            continue;
+          }
 
           const cell = hotInstance.getCell(visualRow, visualColumn);
 
-          if (cell === null || cell === undefined) {
-            return true;
-
-          } else {
+          if (cell instanceof HTMLElement) {
             const checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
-            if (checkboxes.length > 0 && !cachedCellProperties.readOnly) {
+            if (checkboxes.length > 0) {
               return true;
             }
           }
