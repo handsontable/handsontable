@@ -124,6 +124,7 @@
       label {
         vertical-align: middle;
         cursor: pointer;
+        color: inherit;
 
         &:before {
           @include mixins.pseudo;
