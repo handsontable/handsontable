@@ -49,6 +49,9 @@ jobs:
       - name: Check if branch matches the latest version
         id: check-branch
         run: |
+          echo "The current branch: $GITHUB_REF_NAME"
+          GITHUB_REF_VERSION_ONLY=$(echo $GITHUB_REF_NAME | sed 's|.*/prod-docs/||')
+          echo "The current version: $GITHUB_REF_VERSION_ONLY"
           if [[ "$GITHUB_REF_NAME" != "$DOCS_LATEST_VERSION" ]]; then
             echo "The current branch is not the latest version and will not be deployed to Netlify"
             echo "continue=false" >> $GITHUB_OUTPUT
