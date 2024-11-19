@@ -1,0 +1,139 @@
+name: Docs Production Deployment - Netlify CLI
+
+env:
+  NODE_VERSION: 20
+  DOCSEARCH_API_KEY: ${{ secrets.DOCSEARCH_API_KEY }}
+  DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
+
+on:
+  create:
+    branches:
+      - 'prod-docs/**'
+  push:
+    branches:
+      - 'prod-docs/**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./docs/
+
+jobs:
+  check-version:
+    name: Check Docs Version and Branch
+    if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
+    runs-on: ubuntu-latest
+    outputs:
+      continue: ${{ steps.check-branch.outputs.continue }}
+      docs_latest_version: ${{ steps.set-docs-version.outputs.docs_latest_version }}
+
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
+      - name: Obtain the docs latest version
+        working-directory: ./
+        id: set-docs-version
+        run: |
+          docs_latest_version=$(git ls-remote --heads origin | grep 'prod-docs/[0-9]\+\.[0-9]\+' | sed 's|.*/prod-docs/||' | sort -V | tail -n 1)
+          echo "The docs latest version: $docs_latest_version"
+          echo "DOCS_LATEST_VERSION=$docs_latest_version" >> $GITHUB_ENV
+          echo "docs_latest_version=$docs_latest_version" >> $GITHUB_OUTPUT
+
+      - name: Validate Docs version
+        run: |
+          if [ -z "$DOCS_LATEST_VERSION" ]; then
+            echo "Docs version is empty";
+            exit 1;
+          fi
+
+      - name: Check if branch matches the latest version
+        id: check-branch
+        run: |
+          echo "The current branch: $GITHUB_REF_NAME"
+          GITHUB_REF_VERSION_ONLY=$(echo $GITHUB_REF_NAME | sed 's|.*/prod-docs/||')
+          echo "The current version: $GITHUB_REF_VERSION_ONLY"
+          if [[ "$GITHUB_REF_VERSION_ONLY" != "$DOCS_LATEST_VERSION" ]]; then
+            echo "The current branch is not the latest version and will not be deployed to Netlify"
+            echo "continue=false" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            echo "Branch matches the latest version"
+            echo "continue=true" >> $GITHUB_OUTPUT
+          fi
+
+  netlify-deploy:
+    name: Build Docs
+    needs: check-version
+    if: needs.check-version.outputs.continue == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    env:
+      DOCS_LATEST_VERSION: ${{ needs.check-version.outputs.docs_latest_version }}
+
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
+      - name: Remove local branch if it exists
+        run: |
+          git branch -D prod-docs/latest || true
+
+      - name: Recreate the docs latest branch
+        run: |
+          git fetch origin prod-docs/${DOCS_LATEST_VERSION}
+          git checkout origin/prod-docs/${DOCS_LATEST_VERSION}
+          git checkout -b prod-docs/latest
+          git push --force --set-upstream origin prod-docs/latest
+
+      - name: Preserve the dist directory
+        run: |
+          echo "!/.vuepress/dist" >> .gitignore
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Docs dependencies
+        run: npm ci
+
+      - name: Docs build
+        working-directory: ./docs/
+        run: npm run docs:build:production:netlify
+
+      - name: Add changes to the commit
+        run: git add .
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # stefanzweifel/git-auto-commit-action@v5.0.1
+        with:
+          commit_message: "Docs: build production"
+          commit_user_name: "Docs Deployment"
+          commit_user_email: "docs-deployment@handsontable.com"
+
+      - name: Deploy to Netlify
+        run: |
+          npx netlify env:set DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION --context production
+          npx netlify deploy --prod --prodIfUnlocked --dir .vuepress/dist/docs/ --site $NETLIFY_SITE_ID
+
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+
+      - name: Update Environment Variables on Netlify
+        run: |
+          curl -X PATCH "https://api.netlify.com/api/v1/accounts/${NETLIFY_ACCOUNT_ID}/env/DOCS_LATEST_VERSION?site_id=${NETLIFY_SITE_ID}" \
+            -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "context": "production",
+              "value": "'"${DOCS_LATEST_VERSION}"'"
+            }'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          DOCS_LATEST_VERSION: ${{ env.DOCS_LATEST_VERSION }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_ACCOUNT_ID: handsontable-team
