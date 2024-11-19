@@ -80,8 +80,6 @@ export class CellsRenderer extends BaseRenderer {
       const orderView = this.obtainOrderView(TR);
       const rowHeadersView = rowHeaders.obtainOrderView(TR);
 
-      // @TODO(perf-tip): For cells other than "visual 0" generating diff leads/commands can be skipped. New order view
-      // should share state between next orderViews.
       orderView
         .prependView(rowHeadersView)
         .setSize(columnsToRender)

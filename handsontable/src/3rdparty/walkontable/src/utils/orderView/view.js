@@ -29,12 +29,6 @@ export class OrderView {
    */
   sizeSet = new ViewSizeSet();
   /**
-   * The visual index of currently processed row.
-   *
-   * @type {number}
-   */
-  visualIndex = 0;
-  /**
    * The list of DOM elements which are rendered for this render cycle.
    *
    * @type {HTMLElement[]}
@@ -184,12 +178,8 @@ export class OrderView {
    * This method has to be called only once (at the start) for the render cycle.
    */
   start() {
-    // @TODO(perf-tip): If view axis position doesn't change (scroll in a different direction) this can be
-    // optimized by reusing previously collected nodes.
     this.collectedNodes.length = 0;
-    this.visualIndex = 0;
     this.staleNodeIndexes.length = 0;
-    // @TODO: Try to reuse generated leads for the next rows
     this.leads = this.viewDiffer.diff();
   }
 

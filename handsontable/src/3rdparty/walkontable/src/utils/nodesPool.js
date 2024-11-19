@@ -38,8 +38,6 @@ export class NodesPool {
    * @returns {HTMLElement}
    */
   obtain(rowIndex, columnIndex) {
-    // @TODO (perf-tip) This can be optimized to make smaller pool of available nodes.
-    // To be considered implementing LRU or similar cache strategy? or spatial hash map?
     const hasColumnIndex = typeof columnIndex === 'number';
     const key = hasColumnIndex ? `${rowIndex}x${columnIndex}` : rowIndex.toString();
 
