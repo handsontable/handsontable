@@ -443,9 +443,12 @@ export class NestedHeaders extends BasePlugin {
    * indexes are used.
    *
    * @param {number} visualColumn A visual column index to which the viewport will be scrolled.
+   * @param {{ value: 'auto' | 'start' | 'end' }} snapping If `'start'`, viewport is scrolled to show
+   * the cell on the left of the table. If `'end'`, viewport is scrolled to show the cell on the right of
+   * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
    * @returns {number}
    */
-  #onBeforeViewportScrollHorizontally(visualColumn) {
+  #onBeforeViewportScrollHorizontally(visualColumn, snapping) {
     const selection = this.hot.getSelectedRangeLast();
 
     if (!selection) {
@@ -464,9 +467,24 @@ export class NestedHeaders extends BasePlugin {
     const mostLeftColumnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
     const mostRightColumnIndex = this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
 
-    // do not scroll the viewport when the header is wider than the viewport
+    // scroll the viewport always to the left when the header is wider than the viewport
     if (mostLeftColumnIndex < firstColumn && mostRightColumnIndex > lastColumn) {
-      return visualColumn;
+      return mostLeftColumnIndex;
+    }
+
+    if (this.hot.selection.isSelectedByColumnHeader()) {
+      let scrollColumnIndex = null;
+
+      if (mostLeftColumnIndex >= firstColumn && mostRightColumnIndex > lastColumn) {
+        snapping.value = 'start';
+        scrollColumnIndex = mostLeftColumnIndex;
+
+      } if (mostLeftColumnIndex < firstColumn && mostRightColumnIndex <= lastColumn) {
+        snapping.value = 'end';
+        scrollColumnIndex = mostRightColumnIndex;
+      }
+
+      return scrollColumnIndex;
     }
 
     return mostLeftColumnIndex < firstColumn ? mostLeftColumnIndex : mostRightColumnIndex;
