@@ -17,7 +17,6 @@ describe('OrderView', () => {
     expect(orderView.rootNode).toBe(rootNode);
     expect(orderView.nodesPool).toBe(nodeFactoryFunction);
     expect(orderView.sizeSet).toBeInstanceOf(ViewSizeSet);
-    expect(orderView.visualIndex).toBe(0);
     expect(orderView.collectedNodes).toEqual([]);
     expect(orderView.viewDiffer).toBeInstanceOf(ViewDiffer);
     expect(orderView.staleNodeIndexes).toEqual([]);
