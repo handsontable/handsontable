@@ -146,9 +146,9 @@ export class OrderView {
 
     // @TODO(perf-tip): Only nodes which are first time rendered (hasn't any inner content) can be marked as stale
     // e.q `name !== 'none' && !node.firstChild`.
-    // if (name !== 'none') {
-    //   this.staleNodeIndexes.push(nodeIndex);
-    // }
+    if (name !== 'none') {
+      this.staleNodeIndexes.push(nodeIndex);
+    }
 
     switch (name) {
       case 'prepend':

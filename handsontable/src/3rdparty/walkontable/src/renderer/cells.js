@@ -89,14 +89,18 @@ export class CellsRenderer extends BaseRenderer {
       for (let visibleColumnIndex = 0; visibleColumnIndex < columnsToRender; visibleColumnIndex++) {
         orderView.render();
 
-        const TD = orderView.getCurrentNode();
         const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
+
+        // if (!orderView.hasStaleContent(sourceColumnIndex)) {
+        //   continue;
+        // }
+
+        const TD = orderView.getCurrentNode();
 
         if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
           TD.className = '';
         }
 
-        // if (orderView.hasStaleContent(sourceColumnIndex)) {
         TD.removeAttribute('style');
         TD.removeAttribute('dir');
 
@@ -116,7 +120,6 @@ export class CellsRenderer extends BaseRenderer {
             A11Y_COLINDEX(sourceColumnIndex + (this.table.rowUtils?.dataAccessObject?.rowHeaders.length ?? 0) + 1),
           ]);
         }
-        // }
       }
 
       orderView.end();
