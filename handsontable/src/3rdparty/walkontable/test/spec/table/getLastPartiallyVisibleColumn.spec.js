@@ -121,7 +121,7 @@ describe('WalkontableTable', () => {
       });
 
       wt.draw();
-      wt.scrollViewport({ row: 0, col: 7 }, true, false, true, false);
+      wt.scrollViewport({ row: 0, col: 7 }, 'start', 'top');
       wt.draw();
 
       expect(wt.wtTable.getLastPartiallyVisibleColumn()).toBe(10);

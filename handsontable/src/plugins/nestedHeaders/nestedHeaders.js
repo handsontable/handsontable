@@ -462,32 +462,44 @@ export class NestedHeaders extends BasePlugin {
       return visualColumn;
     }
 
-    const firstColumn = this.hot.view.getFirstFullyVisibleColumn();
-    const lastColumn = this.hot.view.getLastFullyVisibleColumn();
+    const firstVisibleColumn = this.hot.getFirstFullyVisibleColumn();
+    const lastVisibleColumn = this.hot.getLastFullyVisibleColumn();
+    const viewportWidth = lastVisibleColumn - firstVisibleColumn + 1;
     const mostLeftColumnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
     const mostRightColumnIndex = this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
+    const headerWidth = mostRightColumnIndex - mostLeftColumnIndex + 1;
 
     // scroll the viewport always to the left when the header is wider than the viewport
-    if (mostLeftColumnIndex < firstColumn && mostRightColumnIndex > lastColumn) {
+    if (mostLeftColumnIndex < firstVisibleColumn && mostRightColumnIndex > lastVisibleColumn) {
       return mostLeftColumnIndex;
     }
 
     if (this.hot.selection.isSelectedByColumnHeader()) {
       let scrollColumnIndex = null;
 
-      if (mostLeftColumnIndex >= firstColumn && mostRightColumnIndex > lastColumn) {
-        snapping.value = 'start';
-        scrollColumnIndex = mostLeftColumnIndex;
+      if (mostLeftColumnIndex >= firstVisibleColumn && mostRightColumnIndex > lastVisibleColumn) {
+        if (headerWidth > viewportWidth) {
+          snapping.value = 'start';
+          scrollColumnIndex = mostLeftColumnIndex;
+        } else {
+          snapping.value = 'end';
+          scrollColumnIndex = mostRightColumnIndex;
+        }
 
-      } if (mostLeftColumnIndex < firstColumn && mostRightColumnIndex <= lastColumn) {
-        snapping.value = 'end';
-        scrollColumnIndex = mostRightColumnIndex;
+      } else if (mostLeftColumnIndex < firstVisibleColumn && mostRightColumnIndex <= lastVisibleColumn) {
+        if (headerWidth > viewportWidth) {
+          snapping.value = 'end';
+          scrollColumnIndex = mostRightColumnIndex;
+        } else {
+          snapping.value = 'start';
+          scrollColumnIndex = mostLeftColumnIndex;
+        }
       }
 
       return scrollColumnIndex;
     }
 
-    return mostLeftColumnIndex < firstColumn ? mostLeftColumnIndex : mostRightColumnIndex;
+    return mostLeftColumnIndex < firstVisibleColumn ? mostLeftColumnIndex : mostRightColumnIndex;
   }
 
   /**

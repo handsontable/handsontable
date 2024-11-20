@@ -41,10 +41,16 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewport(coords, horizontalSnap, verticalSnap) {
-    const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, horizontalSnap);
-    const scrolledVertically = this.scrollViewportVertically(coords.row, verticalSnap);
+    let isScrolled = false;
 
-    return scrolledHorizontally || scrolledVertically;
+    if (coords.col > 0) {
+      isScrolled = this.scrollViewportHorizontally(coords.col, horizontalSnap);
+    }
+    if (coords.row > 0) {
+      isScrolled = this.scrollViewportVertically(coords.row, verticalSnap) || isScrolled;
+    }
+
+    return isScrolled;
   }
 
   /**
@@ -61,12 +67,17 @@ class Scroll {
       drawn,
       totalColumns
     } = this.dataAccessObject;
+
+    if (!drawn) {
+      return false;
+    }
+
     const snappingObject = createObjectPropListener(snapping);
 
     column = this.dataAccessObject.wtSettings
       .getSetting('onBeforeViewportScrollHorizontally', column, snappingObject);
 
-    if (!drawn || !Number.isInteger(column) || column < 0 || column > totalColumns) {
+    if (!Number.isInteger(column) || column < 0 || column > totalColumns) {
       return false;
     }
 
@@ -78,8 +89,7 @@ class Scroll {
     } = this.dataAccessObject;
     const autoSnapping = snapping === 'auto';
 
-    // for auto-snapping (both snap* arguments are undefined) do not scroll the viewport
-    // when the columns points to the overlays
+    // for auto-snapping do not scroll the viewport when the columns points to the overlays
     if (autoSnapping && column < fixedColumnsStart) {
       return false;
     }
@@ -113,12 +123,17 @@ class Scroll {
       drawn,
       totalRows
     } = this.dataAccessObject;
+
+    if (!drawn) {
+      return false;
+    }
+
     const snappingObject = createObjectPropListener(snapping);
 
     row = this.dataAccessObject.wtSettings
       .getSetting('onBeforeViewportScrollVertically', row, snappingObject);
 
-    if (!drawn || !Number.isInteger(row) || row < 0 || row > totalRows) {
+    if (!Number.isInteger(row) || row < 0 || row > totalRows) {
       return false;
     }
 
@@ -131,8 +146,7 @@ class Scroll {
     } = this.dataAccessObject;
     const autoSnapping = snapping === 'auto';
 
-    // for auto-snapping (both snap* arguments are undefined) do not scroll the viewport
-    // when the rows points to the overlays
+    // for auto-snapping do not scroll the viewport when the rows points to the overlays
     if (autoSnapping && (row < fixedRowsTop || row > totalRows - fixedRowsBottom - 1)) {
       return false;
     }
