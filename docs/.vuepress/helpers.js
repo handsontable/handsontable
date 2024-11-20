@@ -56,10 +56,19 @@ function getPrettyFrameworkName(framework) {
  * @returns {string}
  */
 function getThisDocsVersion() {
+  const { DOCS_LATEST_VERSION } = process.env;
+
+  if (DOCS_LATEST_VERSION) {
+    docsVersion = DOCS_LATEST_VERSION;
+
+    return DOCS_LATEST_VERSION;
+  }
+
   if (docsVersion === null) {
+
     const branchName = execa.sync('git rev-parse --abbrev-ref HEAD', { shell: true }).stdout;
 
-    if (versionFromBranchRegExp.test(branchName)) {
+    if (versionFromBranchRegExp.test(branchName) === true) {
       docsVersion = branchName.match(versionFromBranchRegExp)[1];
     } else {
       docsVersion = 'next';
