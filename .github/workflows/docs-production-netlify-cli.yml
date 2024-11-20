@@ -6,9 +6,8 @@ env:
   DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
 
 on:
+  # Branch filtering is not supported with `on: create`.
   create:
-    branches:
-      - 'prod-docs/**'
   push:
     branches:
       - 'prod-docs/**'
@@ -22,7 +21,7 @@ jobs:
   check-version:
     name: Check Docs Version and Branch
     # Exclude the prod-docs-latest branch from triggering the workflow.
-    # "The prod-docs/ prefix must be validated within the workflow itself, as on: create does not support branch filtering."
+    # The prod-docs/ prefix must be validated within the workflow itself, as on: create does not support branch filtering.
     if: startsWith(github.ref, 'refs/heads/prod-docs/') && github.ref != 'refs/heads/prod-docs/latest'
     runs-on: ubuntu-latest
     outputs:
@@ -78,7 +77,7 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
       - name: Remove local branch if it exists
-        run: |
+            run: |
           git branch -D prod-docs/latest || true
 
       - name: Recreate the docs latest branch
