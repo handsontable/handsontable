@@ -77,7 +77,7 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
       - name: Remove local branch if it exists
-            run: |
+        run: |
           git branch -D prod-docs/latest || true
 
       - name: Recreate the docs latest branch
