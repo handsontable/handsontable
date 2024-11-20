@@ -41,16 +41,14 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewport(coords, horizontalSnap, verticalSnap) {
-    let isScrolled = false;
-
-    if (coords.col > 0) {
-      isScrolled = this.scrollViewportHorizontally(coords.col, horizontalSnap);
-    }
-    if (coords.row > 0) {
-      isScrolled = this.scrollViewportVertically(coords.row, verticalSnap) || isScrolled;
+    if (coords.col < 0 || coords.row < 0) {
+      return false;
     }
 
-    return isScrolled;
+    const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, horizontalSnap);
+    const scrolledVertically = this.scrollViewportVertically(coords.row, verticalSnap);
+
+    return scrolledHorizontally || scrolledVertically;
   }
 
   /**

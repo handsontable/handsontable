@@ -499,7 +499,7 @@ export class NestedHeaders extends BasePlugin {
       return scrollColumnIndex;
     }
 
-    return mostLeftColumnIndex < firstVisibleColumn ? mostLeftColumnIndex : mostRightColumnIndex;
+    return mostLeftColumnIndex <= firstVisibleColumn ? mostLeftColumnIndex : mostRightColumnIndex;
   }
 
   /**
