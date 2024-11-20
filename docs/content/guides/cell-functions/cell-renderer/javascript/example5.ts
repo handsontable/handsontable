@@ -13,7 +13,7 @@ const customRenderer: BaseRenderer = (instance, td, ...rest) => {
   if (isChecked) {
     td.style.backgroundColor = 'yellow';
   } else {
-    td.style.backgroundColor = 'white';
+    td.style.backgroundColor = 'rgba(255,255,255,0.1)';
   }
 };
 

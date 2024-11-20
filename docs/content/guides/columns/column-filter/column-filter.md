@@ -58,7 +58,6 @@ this behavior, set
 ::: example #exampleFilterBasicDemo --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterBasicDemo.html)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterBasicDemo.js)
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterBasicDemo.ts)
 
@@ -113,6 +112,8 @@ const configurationOptions = {
 
 :::
 
+<span style="display: none;"></span>
+
 By default, the column menu presents the filtering interface along with other default items such as
 **Insert column left**. To display only the filtering interface, pass an array of filter items in
 the configuration.
@@ -122,7 +123,6 @@ the configuration.
 ::: example #exampleShowFilterItemsOnly --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleShowFilterItemsOnly.html)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleShowFilterItemsOnly.js)
 @[code](@/content/guides/columns/column-filter/javascript/exampleShowFilterItemsOnly.ts)
 
@@ -153,7 +153,6 @@ useful items in the menu such as **Clear column**.
 ::: example #exampleEnableFilterInColumns --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleEnableFilterInColumns.html)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleEnableFilterInColumns.js)
 @[code](@/content/guides/columns/column-filter/javascript/exampleEnableFilterInColumns.ts)
 
@@ -184,7 +183,6 @@ each data type.
 ::: example #exampleFilterDifferentTypes --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterDifferentTypes.html)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterDifferentTypes.js)
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterDifferentTypes.ts)
 
@@ -226,7 +224,6 @@ with a pre-applied filter to display only items priced less than $200.
 ::: example #exampleFilterOnInitialization --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterOnInitialization.html)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterOnInitialization.js)
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterOnInitialization.ts)
 
@@ -283,7 +280,7 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 ## Customize the filter button
 
 The default button that opens the column menu can be styled with CSS by modifying
-`button.changeType` and its `::before` pseudoclass that contains an HTML entity displaying an arrow
+`button.changeType` variables and its `::before` pseudoclass that contains svg mask-image displaying an arrow
 down icon.
 
 ::: only-for javascript
@@ -291,10 +288,8 @@ down icon.
 ::: example #exampleCustomFilterButton --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton.html)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton.js)
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton.ts)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleCustomFilterButton.css)
 
 :::
@@ -365,7 +360,6 @@ filtering doesn't affect them.
 ::: example #exampleExcludeRowsFromFiltering --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleExcludeRowsFromFiltering.html)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleExcludeRowsFromFiltering.js)
 @[code](@/content/guides/columns/column-filter/javascript/exampleExcludeRowsFromFiltering.ts)
 
@@ -405,7 +399,6 @@ filters is logged to the console.
 ::: example #exampleServerSideFilter --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleServerSideFilter.html)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleServerSideFilter.js)
 @[code](@/content/guides/columns/column-filter/javascript/exampleServerSideFilter.ts)
 
@@ -550,7 +543,6 @@ Mind that before you apply new filter conditions, you need to clear the previous
 ::: example #exampleFilterThroughAPI1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterThroughAPI1.html)
-
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterThroughAPI1.js)
 @[code](@/content/guides/columns/column-filter/javascript/exampleFilterThroughAPI1.ts)
 

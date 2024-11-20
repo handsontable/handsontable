@@ -55,11 +55,15 @@ The light and dark modes ignore the parent container's color scheme and remain e
 
 Here's a summary of each available theme, mode, and their corresponding file names.
 
-| File name                                         | Root CSS class                                                       | Description                                                                                                                                                                        |
-| ----------------------------------------------    | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ht-theme-main.css<br>ht-theme-main.min.css        | ht-theme-main<br>ht-theme-main-dark<br>ht-theme-main-dark-auto       | The main theme resembles spreadsheet software, featuring soft colors primarily from a white and grey palette, with blue accents.                                                   |
-| ht-theme-horizon.css<br>ht-theme-horizon.min.css    | ht-theme-horizon<br>ht-theme-horizon-dark<br>ht-theme-horizon-dark-auto | A sleek and elegant theme designed to feel like an enterprise data grid, optimized for improved data readability in internal applications.                                         |
-| handsontable.css<br>handsontable.min.css          | Not required                                                         | The classic theme, available only in light mode. While it will continue to be supported and tested in future Handsontable releases, it is not recommended for use in new projects. |
+<div class="table-small">
+
+| File name                                         | Root CSS class                                                                       | Description                                                                                                                                                                        |
+| ----------------------------------------------    | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ht-theme-main.css<br>ht-theme-main.min.css        | <span>ht-theme-main<br>ht-theme-main-dark<br>ht-theme-main-dark-auto</span>          | The main theme resembles spreadsheet software, featuring soft colors primarily from a white and grey palette, with blue accents.                                                   |
+| ht-theme-horizon.css<br>ht-theme-horizon.min.css  | <span>ht-theme-horizon<br>ht-theme-horizon-dark<br>ht-theme-horizon-dark-auto</span> | A sleek and elegant theme designed to feel like an enterprise data grid, optimized for improved data readability in internal applications.                                         |
+| handsontable.css<br>handsontable.min.css          | Not required                                                                         | The classic theme, available only in light mode. While it will continue to be supported and tested in future Handsontable releases, it is not recommended for use in new projects. |
+
+</div>
 
 ## Load CSS files
 

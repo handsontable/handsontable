@@ -115,7 +115,7 @@ new Handsontable(container, {
   filters: true,
   // enable the column menu
   dropdownMenu: true,
-  height: 142,
+  height: 175,
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',

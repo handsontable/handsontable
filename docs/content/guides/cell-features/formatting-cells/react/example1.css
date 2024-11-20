@@ -4,5 +4,5 @@ td.custom-cell {
 }
 .custom-table thead th:nth-child(even),
 .custom-table tbody tr:nth-child(odd) th {
-  background-color: #d7f1e1;
+  background-color: #d7f1e1a1;
 }
