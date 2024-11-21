@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem where the Filters' dropdown container did not match the dropdown content size.",
+  "type": "fixed",
+  "issueOrPR": 11273,
+  "breaking": false,
+  "framework": "none"
+}
