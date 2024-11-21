@@ -13,9 +13,6 @@ on:
       - 'release/**'
   workflow_dispatch:
 
-env:
-  NODE_VERSION: 20
-
 jobs:
   check-scope:
     name: Check the scope
@@ -120,7 +117,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -150,7 +147,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -181,7 +178,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -203,7 +200,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -225,7 +222,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -247,7 +244,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -276,7 +273,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -303,7 +300,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -341,7 +338,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -382,7 +379,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -419,7 +416,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -455,7 +452,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -491,7 +488,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -527,7 +524,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -580,7 +577,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
