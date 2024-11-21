@@ -1636,7 +1636,7 @@ describe('Filters UI', () => {
   });
 
   it('should inherit the actual layout direction option from the root Handsontable instance to the multiple ' +
-    'select component', async() => {
+    'select component', () => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       colHeaders: true,
@@ -1668,4 +1668,33 @@ describe('Filters UI', () => {
 
     expect(onErrorSpy).not.toHaveBeenCalled();
   });
+
+  it('should adjust the dropdown height to the currently displayed content', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    dropdownMenu(0);
+
+    const initialDropdownHeight = dropdownMenuRootElement().offsetHeight;
+
+    simulateClick(dropdownMenuRootElement().querySelectorAll('.htUISelect')[0]);
+    selectDropdownByConditionMenuOption('Greater than');
+
+    await sleep(100);
+
+    expect(dropdownMenuRootElement().offsetHeight).toBeGreaterThan(initialDropdownHeight);
+
+    simulateClick(dropdownMenuRootElement().querySelectorAll('.htUISelect')[0]);
+    selectDropdownByConditionMenuOption('None');
+
+    await sleep(100);
+
+    expect(dropdownMenuRootElement().offsetHeight).toBe(initialDropdownHeight);
+  })
 });
