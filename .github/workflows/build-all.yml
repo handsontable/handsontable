@@ -45,9 +45,6 @@ jobs:
     name: Build all packages in windows-latest
     runs-on: windows-latest
     timeout-minutes: 60
-    defaults:
-      run:
-        working-directory: C:/handsontable
     steps:
       # on C drive there is more free space left to do this job (https://github.com/actions/runner-images/issues/1341#issuecomment-667478747)
       - name: Checkout
@@ -58,7 +55,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: 'C:/handsontable/.nvmrc'
 
       - name: Install the dependencies
         working-directory: C:/handsontable
