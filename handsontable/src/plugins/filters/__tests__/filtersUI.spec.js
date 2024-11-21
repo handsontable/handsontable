@@ -1696,5 +1696,5 @@ describe('Filters UI', () => {
     await sleep(100);
 
     expect(dropdownMenuRootElement().offsetHeight).toBe(initialDropdownHeight);
-  })
+  });
 });
