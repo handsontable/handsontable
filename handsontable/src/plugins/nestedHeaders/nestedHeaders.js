@@ -100,6 +100,14 @@ export class NestedHeaders extends BasePlugin {
    */
   #isColumnsSelectionInProgress = false;
   /**
+   * Keeps the last highlight position made by column selection. The coords are necessary to scroll
+   * the viewport to the correct position when the nested header is clicked when the `navigableHeaders`
+   * option is disabled.
+   *
+   * @type {CellCoords | null}
+   */
+  #recentlyHighlightCoords = null;
+  /**
    * Custom helper for getting widths of the nested headers.
    *
    * @private
@@ -456,17 +464,30 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const { highlight } = selection;
-    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
+    let highlightRow = highlight.row;
+    let highlightColumn = highlight.col;
+    let isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
 
     if (!isNestedHeadersRange) {
-      return visualColumn;
+      isNestedHeadersRange = this.#recentlyHighlightCoords?.isHeader() &&
+        this.#recentlyHighlightCoords?.col >= 0;
+
+      if (!isNestedHeadersRange) {
+        this.#recentlyHighlightCoords = null;
+
+        return visualColumn;
+      }
+
+      highlightRow = this.#recentlyHighlightCoords.row;
+      highlightColumn = this.#recentlyHighlightCoords.col;
+      this.#recentlyHighlightCoords = null;
     }
 
     const firstVisibleColumn = this.hot.getFirstFullyVisibleColumn();
     const lastVisibleColumn = this.hot.getLastFullyVisibleColumn();
     const viewportWidth = lastVisibleColumn - firstVisibleColumn + 1;
-    const mostLeftColumnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
-    const mostRightColumnIndex = this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
+    const mostLeftColumnIndex = this.#stateManager.findLeftMostColumnIndex(highlightRow, highlightColumn);
+    const mostRightColumnIndex = this.#stateManager.findRightMostColumnIndex(highlightRow, highlightColumn);
     const headerWidth = mostRightColumnIndex - mostLeftColumnIndex + 1;
 
     // scroll the viewport always to the left when the header is wider than the viewport
@@ -801,8 +822,9 @@ export class NestedHeaders extends BasePlugin {
    *
    * @param {CellCoords} from The coords object where the selection starts.
    * @param {CellCoords} to The coords object where the selection ends.
+   * @param {CellCoords} highlight The coords object where the focus is.
    */
-  #onBeforeSelectColumns(from, to) {
+  #onBeforeSelectColumns(from, to, highlight) {
     const headerLevel = from.row;
     const startNodeData = this._getHeaderTreeNodeDataByCoords({
       row: headerLevel,
@@ -812,6 +834,8 @@ export class NestedHeaders extends BasePlugin {
       row: headerLevel,
       col: to.col,
     });
+
+    this.#recentlyHighlightCoords = highlight.clone();
 
     if (to.col < from.col) { // Column selection from right to left
       if (startNodeData) {
