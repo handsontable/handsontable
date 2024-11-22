@@ -464,23 +464,16 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const { highlight } = selection;
-    let highlightRow = highlight.row;
-    let highlightColumn = highlight.col;
-    let isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
+    const { navigableHeaders } = this.hot.getSettings();
+    const isSelectedByColumnHeader = this.hot.selection.isSelectedByColumnHeader();
+    const highlightRow = navigableHeaders ? highlight.row : this.#recentlyHighlightCoords?.row;
+    const highlightColumn = isSelectedByColumnHeader ? visualColumn : highlight.col;
+    const isNestedHeadersRange = highlightRow < 0 && highlightColumn >= 0;
+
+    this.#recentlyHighlightCoords = null;
 
     if (!isNestedHeadersRange) {
-      isNestedHeadersRange = this.#recentlyHighlightCoords?.isHeader() &&
-        this.#recentlyHighlightCoords?.col >= 0;
-
-      if (!isNestedHeadersRange) {
-        this.#recentlyHighlightCoords = null;
-
-        return visualColumn;
-      }
-
-      highlightRow = this.#recentlyHighlightCoords.row;
-      highlightColumn = this.#recentlyHighlightCoords.col;
-      this.#recentlyHighlightCoords = null;
+      return visualColumn;
     }
 
     const firstVisibleColumn = this.hot.getFirstFullyVisibleColumn();
@@ -495,7 +488,7 @@ export class NestedHeaders extends BasePlugin {
       return mostLeftColumnIndex;
     }
 
-    if (this.hot.selection.isSelectedByColumnHeader()) {
+    if (isSelectedByColumnHeader) {
       let scrollColumnIndex = null;
 
       if (mostLeftColumnIndex >= firstVisibleColumn && mostRightColumnIndex > lastVisibleColumn) {
