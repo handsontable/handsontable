@@ -13,14 +13,14 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent, // Declare AppComponent
-    DataGridComponent,
-    ScenarioGridComponent,
   ],
   imports: [
     BrowserModule,
     RouterModule.forRoot(routes),
-    HotTableModule
+    HotTableModule,
+    AppComponent,
+    DataGridComponent,
+    ScenarioGridComponent,
   ],
   providers: [],
   bootstrap: [AppComponent] // Use AppComponent as the bootstrap component
