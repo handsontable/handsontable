@@ -494,15 +494,17 @@ Different versions of Handsontable support different versions of HyperFormula.
 
 To find out which HyperFormula version to use, see the table below:
 
-| Handsontable version                                                                    | HyperFormula version                                                                                           |
-| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [`8.x.x`](https://github.com/handsontable/handsontable/releases/tag/8.0.0) and lower    | No HyperFormula support
-| [`9.x.x`](https://github.com/handsontable/handsontable/releases/tag/9.0.0)              | [`0.6.2`](https://github.com/handsontable/hyperformula/releases/tag/0.6.2)                                     |
-| [`10.x.x`](https://github.com/handsontable/handsontable/releases/tag/10.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
-| [`11.x.x`](https://github.com/handsontable/handsontable/releases/tag/11.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
-| [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0)            | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0)                                    |
-| [`13.x.x`](https://github.com/handsontable/handsontable/releases/tag/13.0.0)            | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0)                                    |
-| [`14.x.x`](https://github.com/handsontable/handsontable/releases/tag/14.0.0) and higher | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0)                                    |
+| Handsontable version                                                                    | HyperFormula version                                                        |
+|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| [`8.x.x`](https://github.com/handsontable/handsontable/releases/tag/8.0.0) and lower    | No HyperFormula support                                                     
+| [`9.x.x`](https://github.com/handsontable/handsontable/releases/tag/9.0.0)              | [`0.6.2`](https://github.com/handsontable/hyperformula/releases/tag/0.6.2)  |
+| [`10.x.x`](https://github.com/handsontable/handsontable/releases/tag/10.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0) |
+| [`11.x.x`](https://github.com/handsontable/handsontable/releases/tag/11.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0) |
+| [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0)            | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0) |
+| [`13.x.x`](https://github.com/handsontable/handsontable/releases/tag/13.0.0)            | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0) |
+| [`14.x.x`](https://github.com/handsontable/handsontable/releases/tag/14.0.0)            | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0) |
+| [`14.3.x - 14.6.x`](https://github.com/handsontable/handsontable/releases/tag/14.3.0)   | [`^2.6.2`](https://github.com/handsontable/hyperformula/releases/tag/2.6.2) |
+| [`15.x.x`](https://github.com/handsontable/handsontable/releases/tag/15.0.0) and higher | [`^2.6.2`](https://github.com/handsontable/hyperformula/releases/tag/2.6.2) |
 
 ::: tip
 
