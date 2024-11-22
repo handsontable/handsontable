@@ -8,6 +8,7 @@
       position: relative;
 
       &.sortAction {
+        padding-inline-start: var(--ht-icon-size, 16px);
         padding-inline-end: var(--ht-icon-size, 16px);
         min-width: calc(var(--ht-icon-size, 16px) + 8px);
         max-width: calc(100% - calc(var(--ht-icon-size, 16px) * 2) - 4px);
@@ -25,6 +26,14 @@
           right: 2px;
           transform: translateY(-50%);
           text-align: right;
+        }
+      }
+    }
+
+    .htLeft {
+      .columnSorting {
+        &.sortAction {
+          padding-inline-start: 0;
         }
       }
     }

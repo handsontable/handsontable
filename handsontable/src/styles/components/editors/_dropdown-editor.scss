@@ -18,6 +18,10 @@
         overflow: auto;
       }
 
+      .wtHider {
+        border-radius: 0 !important;
+      }
+
       table {
         overflow: hidden;
 
@@ -33,6 +37,7 @@
         td {
           white-space: nowrap;
           text-overflow: ellipsis;
+          border-radius: 0 !important;
         }
 
         td {

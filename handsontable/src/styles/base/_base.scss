@@ -26,11 +26,11 @@
         border-radius: var(--ht-wrapper-border-radius);
         z-index: 999;
         pointer-events: none;
+        overflow: hidden;
       }
     }
 
-    .ht_master,
-    .htCore {
+    .wtHolder {
       background-color: var(--ht-background-color, #ffffff);
     }
 
@@ -146,8 +146,14 @@
       &.ht__highlight {
         color: var(--ht-header-highlighted-foreground-color);
         background-color: var(--ht-header-highlighted-background-color);
-        box-shadow: inset 0 calc(var(--ht-header-highlighted-shadow-size) * -1)
-          0 0 var(--ht-accent-color);
+
+        .relative {
+          &:after {
+            @include mixins.pseudo;
+            position: absolute;
+            background-color: var(--ht-accent-color);
+          }
+        }
       }
 
       &.ht__active_highlight {
@@ -155,10 +161,6 @@
         background-color: var(--ht-header-active-background-color, #1a42e8);
         border-color: var(--ht-header-active-border-color, #e5e5e9);
         box-shadow: -1px 0 0 0 var(--ht-header-active-border-color, #1a42e8);
-
-        &:before {
-          background-color: var(--ht-header-active-background-color);
-        }
       }
     }
 
@@ -170,7 +172,13 @@
         .relative {
           padding: var(--ht-cell-vertical-padding, 4px)
             var(--ht-cell-horizontal-padding, 8px);
-          overflow: hidden;
+
+          &:after {
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            height: var(--ht-header-highlighted-shadow-size);
+          }
 
           .colHeader {
             text-overflow: ellipsis;
@@ -207,18 +215,29 @@
 
           &.ht__active_highlight {
             color: var(--ht-header-row-active-foreground-color);
-            background-color: var(--ht-header-row-active-background-color, #1a42e8);
+            background-color: var(
+              --ht-header-row-active-background-color,
+              #1a42e8
+            );
           }
         }
       }
 
       th {
+        padding: 0;
         color: var(--ht-header-row-foreground-color);
         background-color: var(--ht-header-row-background-color, #f7f7f9);
 
-        &.ht__highlight {
-          box-shadow: inset calc(var(--ht-header-highlighted-shadow-size) * -1)
-            0 0 0 var(--ht-accent-color);
+        .relative {
+          padding: var(--ht-cell-vertical-padding, 4px)
+            var(--ht-cell-horizontal-padding, 8px);
+
+          &:after {
+            top: -1px;
+            right: -1px;
+            bottom: -1px;
+            width: var(--ht-header-highlighted-shadow-size);
+          }
         }
 
         &.ht__active_highlight {
@@ -339,7 +358,6 @@
       th,
       td {
         border-top-width: 1px;
-        border-top-color: var(--ht-border-color);
       }
     }
 

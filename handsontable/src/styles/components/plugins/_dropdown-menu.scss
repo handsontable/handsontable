@@ -68,19 +68,6 @@
       &.htFiltersActive {
         background-color: var(--ht-header-filter-background-color);
 
-        .changeType {
-          &:after {
-            @include mixins.pseudo;
-            position: absolute;
-            right: 2px;
-            bottom: 2px;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background-color: var(--ht-accent-color);
-          }
-        }
-
         &.ht__active_highlight {
           background-color: color-mix(
             in srgb,
@@ -109,6 +96,7 @@
         overflow: hidden;
         padding: var(--ht-menu-vertical-padding, 8px)
           var(--ht-menu-horizontal-padding, 0px);
+        background-color: var(--ht-background-color, #ffffff);
       }
 
       &:not(.htGhostTable) {
