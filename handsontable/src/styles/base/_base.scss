@@ -30,8 +30,17 @@
       }
     }
 
-    .wtHolder {
-      background-color: var(--ht-background-color, #ffffff);
+    & > :not(.ht_clone_top, .ht_clone_inline_start) {
+      .wtHolder {
+        background-color: var(--ht-background-color, #ffffff);
+      }
+    }
+
+    .ht_clone_top,
+    .ht_clone_inline_start {
+      .htCore {
+        background-color: var(--ht-background-color, #ffffff);
+      }
     }
 
     // Row even & odd
