@@ -165,6 +165,7 @@ async function proxyRequestToOvh(request: Request, version: string, baseUrl: str
  * @returns {Promise<Response | URL | void>} - A promise that resolves to the appropriate response or rewrite URL.
  */
 export default async function handler(request: Request, context: Context): Promise<Response | URL | void> {
+  console.log(request.url, request, context);
   try {
     const currentUrl = new URL(request.url);
     const baseUrl = currentUrl.origin;
