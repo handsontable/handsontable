@@ -1,0 +1,10 @@
+[build]
+    edge_functions = "netlify/edge-functions"
+    command = "echo no build"
+
+[[redirects]]
+    from = "/docs/*"
+    to = "/docs/:splat"
+    status = 200
+    force = true
+

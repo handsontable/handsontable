@@ -802,11 +802,15 @@ export class Filters extends BasePlugin {
    * @param {object} command Menu item object (command).
    */
   #onComponentChange(component, command) {
+    const menu = this.dropdownMenuPlugin.menu;
+
     this.updateDependentComponentsVisibility();
 
     if (component.constructor === ConditionComponent && !command.inputsCount) {
       this.setListeningDropdownMenu();
     }
+
+    menu.updateMenuDimensions();
   }
 
   /**
