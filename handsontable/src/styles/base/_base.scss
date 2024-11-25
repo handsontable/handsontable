@@ -424,8 +424,15 @@
     }
   }
 
+  .ht_clone_top_inline_start_corner {
+    .htCore thead tr:first-child th:first-child {
+      border-top-left-radius: var(--ht-wrapper-border-radius);
+    }
+  }
+
   .ht_master .wtHolder {
     overflow: auto;
+    border-radius: var(--ht-wrapper-border-radius);
   }
 
   [dir="rtl"].handsontable {
