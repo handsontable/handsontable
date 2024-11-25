@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Removed check marks from alignment submenu.",
+  "type": "removed",
+  "issueOrPR": 11278,
+  "breaking": true,
+  "framework": "none"
+}
