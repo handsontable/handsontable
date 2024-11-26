@@ -10,7 +10,7 @@ export const getCornerStyle = (wot) => {
       borderColor: '#FFF',
     });
   }
-  
+
   const cornerSizeFromVar = stylesHandler.getCSSVariableValue('cell-autofill-size');
   const cornerBorderWidthFromVar = stylesHandler.getCSSVariableValue('cell-autofill-border-width');
   const cornerColorFromVar = stylesHandler.getCSSVariableValue('cell-autofill-border-color');
