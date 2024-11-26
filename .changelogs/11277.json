@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error that thrown on hiding already selected columns",
+  "type": "fixed",
+  "issueOrPR": 11277,
+  "breaking": false,
+  "framework": "none"
+}
