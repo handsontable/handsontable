@@ -87,7 +87,12 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
     // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is
     // produced when unfinished character is entering using the IME editor. It is fired on macOS,
     // Windows and linux (ubuntu) with installed ibus-pinyin package.
-    if (event.keyCode === 229 || result === false || isImmediatePropagationStopped(event)) {
+    if (
+      result === false ||
+      event.keyCode === 229 ||
+      typeof event.key !== 'string' ||
+      isImmediatePropagationStopped(event)
+    ) {
       return;
     }
 
@@ -117,7 +122,7 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
    * @param {KeyboardEvent} event The event object
    */
   const onkeydownForModKeys = (event) => {
-    if (event.key) {
+    if (typeof event.key === 'string') {
       const pressedKey = normalizeEventKey(event);
 
       if (isModifierKey(pressedKey)) {
@@ -133,7 +138,7 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
    * @param {KeyboardEvent} event The event object
    */
   const onkeyupForModKeys = (event) => {
-    if (event.key) {
+    if (typeof event.key === 'string') {
       const pressedKey = normalizeEventKey(event);
 
       if (isModifierKey(pressedKey)) {
