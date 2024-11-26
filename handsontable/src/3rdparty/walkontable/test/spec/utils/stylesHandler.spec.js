@@ -51,7 +51,7 @@ describe('StylesHandler', () => {
   });
 
   describe('getCSSVariableValue', () => {
-    it('should return the correct CSS variable value', () => {
+    it('should return the correct numeric CSS variable value', () => {
       spec().rootElement.style.setProperty('--ht-cell-vertical-padding', '10px');
 
       spec().wotInstance.destroy();
@@ -65,6 +65,22 @@ describe('StylesHandler', () => {
       spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
 
       expect(spec().wotInstance.stylesHandler.getCSSVariableValue('cell-vertical-padding')).toBe(10);
+    });
+
+    it('should return the correct non-numeric CSS variable value', () => {
+      spec().rootElement.style.setProperty('--ht-cell-vertical-border-color', 'red');
+
+      spec().wotInstance.destroy();
+      walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      // `getCSSVariableValue` requires a non-classic theme to be enabled.
+      spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
+
+      expect(spec().wotInstance.stylesHandler.getCSSVariableValue('cell-vertical-border-color')).toBe('red');
     });
 
     it('should return undefined for non-existent CSS variable', () => {

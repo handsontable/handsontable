@@ -94,7 +94,9 @@ export class StylesHandler {
       return this.#cssVars[`--ht-${variableName}`];
     }
 
-    const acquiredValue = this.#getParsedCSSValue(`--ht-${variableName}`);
+    const acquiredValue =
+      this.#getParsedNumericCSSValue(`--ht-${variableName}`) ??
+      this.#getCSSValue(`--ht-${variableName}`);
 
     if (acquiredValue !== null) {
       this.#cssVars[`--ht-${variableName}`] = acquiredValue;
@@ -286,19 +288,27 @@ Import the correct CSS files in order to use that theme.`);
   }
 
   /**
-   * Parses the value of a specified CSS property from the root element's computed style.
+   * Parses the numeric value of a specified CSS property from the root element's computed style.
    *
    * @param {string} property - The CSS property to retrieve and parse.
-   * @returns {number|null} The parsed value of the CSS property.
+   * @returns {number|null} The parsed value of the CSS property or `null` if non-existent.
    */
-  #getParsedCSSValue(property) {
-    if (this.#isClassicTheme) {
-      return null;
-    }
-
-    const parsedValue = Math.ceil(parseFloat(this.#rootComputedStyle.getPropertyValue(property)));
+  #getParsedNumericCSSValue(property) {
+    const parsedValue = Math.ceil(parseFloat(this.#getCSSValue(property)));
 
     return Number.isNaN(parsedValue) ? null : parsedValue;
+  }
+
+  /**
+   * Retrieves the non-numeric value of a specified CSS property from the root element's computed style.
+   *
+   * @param {string} property - The CSS property to retrieve.
+   * @returns {string|null} The value of the specified CSS property or `null` if non-existent.
+   */
+  #getCSSValue(property) {
+    const acquiredValue = this.#rootComputedStyle.getPropertyValue(property);
+
+    return acquiredValue === '' ? null : acquiredValue;
   }
 
   /**
