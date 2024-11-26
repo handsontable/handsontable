@@ -132,16 +132,16 @@ export default class WalkontableFacade {
     return this._wot.getCell(coords, topmost);
   }
 
-  scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
-    return this._wot.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+  scrollViewport(coords, horizontalSnap, verticalSnap) {
+    return this._wot.scrollViewport(coords, horizontalSnap, verticalSnap);
   }
 
-  scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    return this._wot.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+  scrollViewportHorizontally(column, snapping) {
+    return this._wot.scrollViewportHorizontally(column, snapping);
   }
 
-  scrollViewportVertically(row, snapToTop, snapToBottom) {
-    return this._wot.scrollViewportVertically(row, snapToTop, snapToBottom);
+  scrollViewportVertically(row, snapping) {
+    return this._wot.scrollViewportVertically(row, snapping);
   }
 
   getViewport() {

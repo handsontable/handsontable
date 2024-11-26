@@ -196,7 +196,7 @@ describe('WalkontableScroll', () => {
       wt.draw();
       wt.scrollViewport(new Walkontable.CellCoords(0, getTotalColumns() - 1));
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(0, 10), undefined, true, undefined, false); // snap K1 to the right
+      wt.scrollViewport(new Walkontable.CellCoords(0, 10), 'end', 'auto'); // snap K1 to the right
       wt.draw();
 
       const firstRow = getTableMaster().find('tbody tr:first');
@@ -263,7 +263,7 @@ describe('WalkontableScroll', () => {
       });
 
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(0, 10), undefined, false, undefined, true); // snap K1 to the left
+      wt.scrollViewport(new Walkontable.CellCoords(0, 10), 'start', 'auto'); // snap K1 to the left
       wt.draw();
 
       const firstRow = getTableMaster().find('tbody tr:first');
@@ -326,7 +326,7 @@ describe('WalkontableScroll', () => {
       });
 
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(20, 0), false, undefined, true, undefined); // snap A21 to the bottom
+      wt.scrollViewport(new Walkontable.CellCoords(20, 0), 'auto', 'bottom'); // snap A21 to the bottom
       wt.draw();
 
       const firstRow = getTableMaster().find('tbody tr:first');
@@ -396,7 +396,7 @@ describe('WalkontableScroll', () => {
       wt.draw();
       wt.scrollViewport(new Walkontable.CellCoords(getTotalRows() - 1, 0));
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(20, 0), true, undefined, false, undefined); // snap A21 to the top
+      wt.scrollViewport(new Walkontable.CellCoords(20, 0), 'auto', 'top'); // snap A21 to the top
       wt.draw();
 
       const firstRow = getTableMaster().find('tbody tr:first');
