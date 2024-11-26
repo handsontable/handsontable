@@ -1203,9 +1203,8 @@ export const data = [
     '106',
     1,
     4,
-  ]
+  ],
 ];
-
 const example = document.getElementById('exampleTheme');
 
 new Handsontable(example, {
@@ -1256,5 +1255,5 @@ new Handsontable(example, {
   headerClassName: 'htLeft',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
