@@ -27,7 +27,28 @@ describe('Hook', () => {
 
       scrollViewportTo({ row: 40 });
 
-      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(40);
+      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(40, jasmine.objectContaining({
+        value: 'auto',
+      }));
+    });
+
+    it('should be fired when the viewport is scrolled vertically with snapping option', () => {
+      const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
+
+      handsontable({
+        data: createSpreadsheetData(100, 50),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+        beforeViewportScrollVertically,
+      });
+
+      scrollViewportTo({ row: 3, verticalSnap: 'end' });
+
+      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(3, jasmine.objectContaining({
+        value: 'end',
+      }));
     });
 
     it('should be fired when the viewport is tried to scroll vertically (the row is already within the viewport)', () => {
@@ -44,7 +65,9 @@ describe('Hook', () => {
 
       scrollViewportTo({ row: 3 });
 
-      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(3);
+      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(3, jasmine.objectContaining({
+        value: 'auto',
+      }));
     });
 
     it('should not be fired when the viewport is scrolled horizontally', () => {
@@ -79,6 +102,29 @@ describe('Hook', () => {
       scrollViewportTo({ col: 3 });
 
       expect(beforeViewportScrollVertically).not.toHaveBeenCalledWith();
+    });
+
+    it('should be possible to change the snapping option', () => {
+      const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically')
+        .and
+        .callFake((row, snapping) => {
+          snapping.value = 'start';
+        });
+
+      handsontable({
+        data: createSpreadsheetData(100, 50),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+        beforeViewportScrollVertically,
+      });
+
+      scrollViewportTo({ row: 10 });
+
+      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(10, jasmine.objectContaining({
+        value: 'start',
+      }));
     });
 
     it('should be possible to change row to which the viewport is scrolled', () => {
@@ -123,7 +169,9 @@ describe('Hook', () => {
 
       scrollViewportTo({ row: 20 });
 
-      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(20);
+      expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(20, jasmine.objectContaining({
+        value: 'auto',
+      }));
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(157);
     });

@@ -100,6 +100,14 @@ export class NestedHeaders extends BasePlugin {
    */
   #isColumnsSelectionInProgress = false;
   /**
+   * Keeps the last highlight position made by column selection. The coords are necessary to scroll
+   * the viewport to the correct position when the nested header is clicked when the `navigableHeaders`
+   * option is disabled.
+   *
+   * @type {CellCoords | null}
+   */
+  #recentlyHighlightCoords = null;
+  /**
    * Custom helper for getting widths of the nested headers.
    *
    * @private
@@ -443,9 +451,12 @@ export class NestedHeaders extends BasePlugin {
    * indexes are used.
    *
    * @param {number} visualColumn A visual column index to which the viewport will be scrolled.
+   * @param {{ value: 'auto' | 'start' | 'end' }} snapping If `'start'`, viewport is scrolled to show
+   * the cell on the left of the table. If `'end'`, viewport is scrolled to show the cell on the right of
+   * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
    * @returns {number}
    */
-  #onBeforeViewportScrollHorizontally(visualColumn) {
+  #onBeforeViewportScrollHorizontally(visualColumn, snapping) {
     const selection = this.hot.getSelectedRangeLast();
 
     if (!selection) {
@@ -453,23 +464,56 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const { highlight } = selection;
-    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
+    const { navigableHeaders } = this.hot.getSettings();
+    const isSelectedByColumnHeader = this.hot.selection.isSelectedByColumnHeader();
+    const highlightRow = navigableHeaders ? highlight.row : this.#recentlyHighlightCoords?.row;
+    const highlightColumn = isSelectedByColumnHeader ? visualColumn : highlight.col;
+    const isNestedHeadersRange = highlightRow < 0 && highlightColumn >= 0;
+
+    this.#recentlyHighlightCoords = null;
 
     if (!isNestedHeadersRange) {
       return visualColumn;
     }
 
-    const firstColumn = this.hot.view.getFirstFullyVisibleColumn();
-    const lastColumn = this.hot.view.getLastFullyVisibleColumn();
-    const mostLeftColumnIndex = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
-    const mostRightColumnIndex = this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
+    const firstVisibleColumn = this.hot.getFirstFullyVisibleColumn();
+    const lastVisibleColumn = this.hot.getLastFullyVisibleColumn();
+    const viewportWidth = lastVisibleColumn - firstVisibleColumn + 1;
+    const mostLeftColumnIndex = this.#stateManager.findLeftMostColumnIndex(highlightRow, highlightColumn);
+    const mostRightColumnIndex = this.#stateManager.findRightMostColumnIndex(highlightRow, highlightColumn);
+    const headerWidth = mostRightColumnIndex - mostLeftColumnIndex + 1;
 
-    // do not scroll the viewport when the header is wider than the viewport
-    if (mostLeftColumnIndex < firstColumn && mostRightColumnIndex > lastColumn) {
-      return visualColumn;
+    // scroll the viewport always to the left when the header is wider than the viewport
+    if (mostLeftColumnIndex < firstVisibleColumn && mostRightColumnIndex > lastVisibleColumn) {
+      return mostLeftColumnIndex;
     }
 
-    return mostLeftColumnIndex < firstColumn ? mostLeftColumnIndex : mostRightColumnIndex;
+    if (isSelectedByColumnHeader) {
+      let scrollColumnIndex = null;
+
+      if (mostLeftColumnIndex >= firstVisibleColumn && mostRightColumnIndex > lastVisibleColumn) {
+        if (headerWidth > viewportWidth) {
+          snapping.value = 'start';
+          scrollColumnIndex = mostLeftColumnIndex;
+        } else {
+          snapping.value = 'end';
+          scrollColumnIndex = mostRightColumnIndex;
+        }
+
+      } else if (mostLeftColumnIndex < firstVisibleColumn && mostRightColumnIndex <= lastVisibleColumn) {
+        if (headerWidth > viewportWidth) {
+          snapping.value = 'end';
+          scrollColumnIndex = mostRightColumnIndex;
+        } else {
+          snapping.value = 'start';
+          scrollColumnIndex = mostLeftColumnIndex;
+        }
+      }
+
+      return scrollColumnIndex;
+    }
+
+    return mostLeftColumnIndex <= firstVisibleColumn ? mostLeftColumnIndex : mostRightColumnIndex;
   }
 
   /**
@@ -771,8 +815,9 @@ export class NestedHeaders extends BasePlugin {
    *
    * @param {CellCoords} from The coords object where the selection starts.
    * @param {CellCoords} to The coords object where the selection ends.
+   * @param {CellCoords} highlight The coords object where the focus is.
    */
-  #onBeforeSelectColumns(from, to) {
+  #onBeforeSelectColumns(from, to, highlight) {
     const headerLevel = from.row;
     const startNodeData = this._getHeaderTreeNodeDataByCoords({
       row: headerLevel,
@@ -782,6 +827,8 @@ export class NestedHeaders extends BasePlugin {
       row: headerLevel,
       col: to.col,
     });
+
+    this.#recentlyHighlightCoords = highlight.clone();
 
     if (to.col < from.col) { // Column selection from right to left
       if (startNodeData) {

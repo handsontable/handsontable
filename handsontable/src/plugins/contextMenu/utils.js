@@ -175,15 +175,3 @@ export function getAlignmentComparatorByClass(htClassName) {
     return (className && className.indexOf(htClassName) !== -1);
   };
 }
-
-/**
- * @param {object} hot Handsontable instance.
- * @param {string} htClassName The class name to check.
- * @returns {boolean} Returns true if at least one cell has the provided class name.
- */
-export function hasSelectionAClass(hot, htClassName) {
-  return checkSelectionConsistency(
-    hot.getSelectedRange(),
-    getAlignmentComparatorByClass(htClassName).bind(hot)
-  );
-}

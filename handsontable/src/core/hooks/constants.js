@@ -580,6 +580,10 @@ export const REGISTERED_HOOKS = [
    * @since 14.0.0
    * @event Hooks#beforeViewportScrollVertically
    * @param {number} visualRow Visual row index.
+   * @param {'auto' | 'top' | 'bottom'} [snapping='auto'] If `'top'`, viewport is scrolled to show
+   * the cell on the top of the table. If `'bottom'`, viewport is scrolled to show the cell on
+   * the bottom of the table. When `'auto'`, the viewport is scrolled only when the row is outside of
+   * the viewport.
    * @returns {number | boolean} Returns modified row index (or the same as passed in the method argument) to which
    * the viewport will be scrolled. If the returned value is `false`, the scrolling will be canceled.
    */
@@ -592,6 +596,9 @@ export const REGISTERED_HOOKS = [
    * @since 14.0.0
    * @event Hooks#beforeViewportScrollHorizontally
    * @param {number} visualColumn Visual column index.
+   * @param {'auto' | 'start' | 'end'} [snapping='auto'] If `'start'`, viewport is scrolled to show
+   * the cell on the left of the table. If `'end'`, viewport is scrolled to show the cell on the right of
+   * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
    * @returns {number | boolean} Returns modified column index (or the same as passed in the method argument) to which
    * the viewport will be scrolled. If the returned value is `false`, the scrolling will be canceled.
    */

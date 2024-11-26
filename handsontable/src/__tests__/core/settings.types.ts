@@ -509,10 +509,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeUpdateData: (sourceData, firstTime, source) => {},
   beforeValidate: (value, row, prop, source) => {},
   beforeValueRender: (value) => {},
-  beforeViewportScrollVertically: (visualRow) => {
+  beforeViewportScrollVertically: (visualRow, snapping) => {
+    const _snapping: 'auto' | 'top' | 'bottom' = snapping;
+
     return visualRow === 0 ? visualRow + 1 : false;
   },
-  beforeViewportScrollHorizontally: (visualColumn) => {
+  beforeViewportScrollHorizontally: (visualColumn, snapping) => {
+    const _snapping: 'auto' | 'start' | 'end' = snapping;
+
     return visualColumn === 0 ? visualColumn + 1 : false;
   },
   beforeViewportScroll: () => {},

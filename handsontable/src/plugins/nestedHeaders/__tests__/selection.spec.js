@@ -22,7 +22,7 @@ describe('NestedHeaders', () => {
   describe('selection', () => {
     it('should generate class names based on "currentHeaderClassName" and "activeHeaderClassName" settings', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         currentHeaderClassName: 'my-current-header',
         activeHeaderClassName: 'my-active-header',
@@ -95,7 +95,7 @@ describe('NestedHeaders', () => {
 
     it('should highlight column header for selected cells', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 10),
+        data: createSpreadsheetData(3, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
@@ -155,7 +155,7 @@ describe('NestedHeaders', () => {
 
     it('should highlight column header for selected cells in-between nested headers', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 10),
+        data: createSpreadsheetData(3, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
@@ -203,7 +203,7 @@ describe('NestedHeaders', () => {
 
     it('should highlight column header for non-contiguous selected cells', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 10),
+        data: createSpreadsheetData(3, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
@@ -239,7 +239,7 @@ describe('NestedHeaders', () => {
 
     it('should active highlight column header for selected column headers', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 10),
+        data: createSpreadsheetData(3, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A', { label: 'B', colspan: 8 }, 'C'],
@@ -304,7 +304,7 @@ describe('NestedHeaders', () => {
 
     it('should active highlight column header for non-contiguous header selection', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 10),
+        data: createSpreadsheetData(3, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
@@ -377,7 +377,7 @@ describe('NestedHeaders', () => {
 
     it('should select every column header under the nested headers, when changing the selection by dragging the cursor', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 10),
+        data: createSpreadsheetData(3, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A', { label: 'B', colspan: 8 }, 'C'],
@@ -918,7 +918,7 @@ describe('NestedHeaders', () => {
 
     it('should select all column headers (on all levels) after clicking the corner header', function() {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 10),
+        data: createSpreadsheetData(3, 10),
         colHeaders: true,
         rowHeaders: true,
         nestedHeaders: [
@@ -950,7 +950,7 @@ describe('NestedHeaders', () => {
 
     it('should add selection borders in the expected positions, when selecting multi-columned headers', function() {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 10),
+        data: createSpreadsheetData(4, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A', { label: 'B', colspan: 8 }, 'C'],
@@ -988,7 +988,7 @@ describe('NestedHeaders', () => {
 
     it('should not change the header selection when the header within selection range is clicked using RMB', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A', { label: 'B', colspan: 8 }, 'C'],
@@ -1012,7 +1012,7 @@ describe('NestedHeaders', () => {
 
     it('should be possible to select the column header with RMB when no column is selected', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A', { label: 'B', colspan: 8 }, 'C'],
@@ -1027,9 +1027,189 @@ describe('NestedHeaders', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,5 from: -1,5 to: 9,6']);
     });
 
+    it('should scroll the viewport to the left edge of the clicked nested header when its right index extends beyond ' +
+       'the table\'s viewport and is wider than table width', () => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 200,
+        height: 200,
+        colHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+        ]
+      });
+
+      simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
+    });
+
+    it('should scroll the viewport to the right edge of the clicked nested header when its left index extends beyond ' +
+       'the table\'s viewport and is wider than table width', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 200,
+        height: 200,
+        colHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+        ]
+      });
+
+      scrollViewportTo(0, 9);
+
+      await sleep(20);
+
+      simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(265);
+    });
+
+    it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
+        'the table\'s viewport and is narrower than the table width', () => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 200,
+        height: 200,
+        colHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+        ]
+      });
+
+      simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(65);
+    });
+
+    it('should scroll the viewport to the left edge of the clicked nested header when its left index extends beyond ' +
+        'the table\'s viewport and is narrower than the table width', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 200,
+        height: 200,
+        colHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+        ]
+      });
+
+      scrollViewportTo(0, 9);
+
+      await sleep(20);
+
+      simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(250);
+    });
+
+    it('should scroll the viewport to the left edge of the clicked nested header when its right index extends beyond ' +
+       'the table\'s viewport and is wider than table width (navigableHeaders: true)', () => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 200,
+        height: 200,
+        colHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+        ]
+      });
+
+      simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
+    });
+
+    it('should scroll the viewport to the right edge of the clicked nested header when its left index extends beyond ' +
+       'the table\'s viewport and is wider than table width (navigableHeaders: true)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 200,
+        height: 200,
+        colHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+        ]
+      });
+
+      scrollViewportTo(0, 9);
+
+      await sleep(20);
+
+      simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(265);
+    });
+
+    it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
+        'the table\'s viewport and is narrower than the table width (navigableHeaders: true)', () => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 200,
+        height: 200,
+        colHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+        ]
+      });
+
+      simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(65);
+    });
+
+    it('should scroll the viewport to the left edge of the clicked nested header when its left index extends beyond ' +
+        'the table\'s viewport and is narrower than the table width (navigableHeaders: true)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 200,
+        height: 200,
+        colHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+        ]
+      });
+
+      scrollViewportTo(0, 9);
+
+      await sleep(20);
+
+      simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(250);
+    });
+
     it('should be possible to back to the single column selection, when it was modified by the SHIFT key', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 13),
+        data: createSpreadsheetData(3, 13),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -1077,7 +1257,7 @@ describe('NestedHeaders', () => {
     it('should select every column header under the nested headers, when changing the selection using the SHIFT key ' +
        '(expanding the column selection from the left to the right)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 13),
+        data: createSpreadsheetData(3, 13),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -1157,7 +1337,7 @@ describe('NestedHeaders', () => {
     it('should select every column header under the nested headers, when changing the selection using the SHIFT key ' +
        '(expanding the column selection from the right to the left)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 13),
+        data: createSpreadsheetData(3, 13),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
