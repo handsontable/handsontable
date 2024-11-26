@@ -4,7 +4,6 @@
  * @type {RegExp}
  */
 const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
-const Token = require('markdown-it/lib/token');
 const { buildCode } = require('./code-builder');
 const { addCodeForPreset } = require('./add-code-for-preset');
 const { jsfiddle } = require('./jsfiddle');
@@ -13,11 +12,18 @@ const { stackblitz } = require('./stackblitz');
 const tab = (tabName, token, id) => {
   if (!token) return [];
 
-  const openTSDivToken = new Token('html_block', '', 1);
-  const closeDivToken = new Token('html_block', '', -1);
-
-  openTSDivToken.content = `<tab id="${tabName.toLowerCase()}-tab-${id}" name="${tabName}">`;
-  closeDivToken.content = '</tab>';
+  const openTSDivToken = {
+    type: 'html_block',
+    tag: '',
+    nesting: 1,
+    content: `<tab id="${tabName.toLowerCase()}-tab-${id}" name="${tabName}">`
+  };
+  const closeDivToken = {
+    type: 'html_block',
+    tag: '',
+    nesting: -1,
+    content: '</tab>'
+  };
 
   return [
     openTSDivToken,
@@ -63,15 +69,34 @@ const parseCodeSandbox = (content) => {
 };
 
 const getCodeToken = (jsToken, tsToken) => {
-  const code = new Token('inline', '', 1);
-  const openJSDivToken = new Token('container_div_open', 'div', 1);
-  const openTSDivToken = new Token('container_div_open', 'div', 1);
-  const closeDivToken = new Token('container_div_close', 'div', -1);
-
-  openJSDivToken.attrSet('class', 'tab-content-js');
-  openJSDivToken.attrSet('v-if', '$parent.$parent.selectedLang === \'JavaScript\'');
-  openTSDivToken.attrSet('class', 'tab-content-ts');
-  openTSDivToken.attrSet('v-if', '$parent.$parent.selectedLang === \'TypeScript\'');
+  const code = {
+    type: 'inline',
+    tag: '',
+    nesting: 1
+  };
+  const openJSDivToken = {
+    type: 'container_div_open',
+    tag: 'div',
+    nesting: 1,
+    attrs: [ 
+      [ 'class', 'tab-content-js' ],
+      [ 'v-if', '$parent.$parent.selectedLang === \'JavaScript\'' ]
+    ]
+  };
+  const openTSDivToken = {
+    type: 'container_div_open',
+    tag: 'div',
+    nesting: 1,
+    attrs: [ 
+      [ 'class', 'tab-content-ts' ],
+      [ 'v-if', '$parent.$parent.selectedLang === \'TypeScript\'' ]
+    ]
+  };
+  const closeDivToken = {
+    type: 'container_div_close',
+    tag: 'div',
+    nesting: -1
+  };
 
   code.children = [
     openJSDivToken,
