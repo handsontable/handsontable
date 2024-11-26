@@ -19,6 +19,7 @@ const getPackageUrls = (packageName, version, fileSelection) => {
       css: [
         'styles/handsontable.min.css',
         'styles/ht-theme-main.css',
+        'styles/ht-theme-horizon.css',
       ]
     },
     '@handsontable/react': {

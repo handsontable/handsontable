@@ -1,3 +1,5 @@
+@use "sass:map";
+
 // Z-index map
 
 $z-indexes: (
@@ -12,7 +14,7 @@ $z-indexes: (
 );
 
 @mixin apply-z-index($class) {
-  z-index: map-get($z-indexes, $class);
+  z-index: map.get($z-indexes, $class);
 }
 
 @mixin output {

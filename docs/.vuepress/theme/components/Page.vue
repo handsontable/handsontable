@@ -26,7 +26,7 @@ export default {
       inActiveElementId: '',
       isButtonInactive: false,
       selectedLang: 'JavaScript',
-      themeClassName: null,
+      themeName: 'ht-theme-main',
     };
   },
   computed: {
@@ -188,8 +188,6 @@ export default {
   },
   mounted() {
     this.selectedLang = localStorage?.getItem('selected_lang') ?? 'JavaScript';
-    this.themeClassName = hotThemeManager.getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
-
     this.checkSectionInView();
     window.addEventListener('click', this.detectClickOutsideButton);
     window.addEventListener('scroll', this.checkSectionInView);
@@ -199,9 +197,11 @@ export default {
     window.removeEventListener('click', this.detectClickOutsideButton);
   },
   watch: {
-    $route() {
-      this.themeClassName = hotThemeManager.getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
-    }
-  }
+    themeName(name) {
+      instanceRegister.getAllHotInstances().forEach((hotInstance) => {
+        hotThemeManager.switchExampleTheme(hotInstance, name);
+      });
+    },
+  },
 };
 </script>

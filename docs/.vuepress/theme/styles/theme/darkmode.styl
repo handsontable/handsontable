@@ -108,9 +108,13 @@ html.theme-dark {
 
         .info-box { 
             background: $gradient2
+            border: 1px solid $borderColor
 
             span { 
-                background-color: $accentColor
+                &:before {
+                    background-color: $accentColor
+                    opacity: 0.8
+                }
                 
                 i { 
                     //filter: hue-rotate(190deg) invert(1); /* 190 degrees shifts the hue towards #27C2FF */
@@ -795,6 +799,14 @@ html.theme-dark {
                     background: $borderColor 
                     border: 1px solid $accentColor
                 }
+            }
+        }
+
+        .theme-examples .theme-examples-controls .color-box {
+            background: var(--color-gray-600)
+
+            .color {
+                border: 1px solid var(--color-gray-700)
             }
         }
     }

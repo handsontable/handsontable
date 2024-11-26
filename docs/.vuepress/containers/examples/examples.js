@@ -78,18 +78,18 @@ const getCodeToken = (jsToken, tsToken) => {
     type: 'container_div_open',
     tag: 'div',
     nesting: 1,
-    attrs: [ 
-      [ 'class', 'tab-content-js' ],
-      [ 'v-if', '$parent.$parent.selectedLang === \'JavaScript\'' ]
+    attrs: [
+      ['class', 'tab-content-js'],
+      ['v-if', '$parent.$parent.selectedLang === \'JavaScript\'']
     ]
   };
   const openTSDivToken = {
     type: 'container_div_open',
     tag: 'div',
     nesting: 1,
-    attrs: [ 
-      [ 'class', 'tab-content-ts' ],
-      [ 'v-if', '$parent.$parent.selectedLang === \'TypeScript\'' ]
+    attrs: [
+      ['class', 'tab-content-ts'],
+      ['v-if', '$parent.$parent.selectedLang === \'TypeScript\'']
     ]
   };
   const closeDivToken = {

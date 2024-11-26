@@ -1,8 +1,10 @@
+@use "sass:map";
+
 @mixin icon($icons, $name) {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
-  -webkit-mask-image: url(map-get($icons, $name));
+  -webkit-mask-image: url(map.get($icons, $name));
   background-color: currentColor;
 }
 

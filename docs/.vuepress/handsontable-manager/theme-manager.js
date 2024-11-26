@@ -15,7 +15,11 @@ const ensureCorrectHotThemes = () => {
     Handsontable.hooks.add('afterInit', function() {
       const themeName = getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
 
-      if (themeName) {
+      if (
+        themeName
+        && this.rootElement.classList.contains('ht-wrapper')
+        && !this.rootElement.classList.contains('disable-auto-theme')
+      ) {
         if (this.getCurrentThemeName() !== themeName) {
           this.useTheme(themeName);
           this.render();
@@ -30,6 +34,8 @@ const switchExamplesTheme = (hotInstances) => {
 
   hotInstances.forEach((hotInstance) => {
     const currentThemeName = hotInstance.getCurrentThemeName();
+
+    if (hotInstance.rootElement.classList.contains('disable-auto-theme')) return;
 
     // Remove the '-auto' suffix from the theme name.
     const newThemeName = currentThemeName.replace('-auto', '');
@@ -49,10 +55,16 @@ const switchExamplesTheme = (hotInstances) => {
   });
 };
 
+const switchExampleTheme = (hotInstance, themeName) => {
+  hotInstance.useTheme(themeName);
+  hotInstance.render();
+};
+
 module.exports = {
   themeManager: {
     ensureCorrectHotThemes,
     switchExamplesTheme,
     getThemeClassName,
+    switchExampleTheme
   }
 };
