@@ -737,6 +737,32 @@ describe('Comments', () => {
     expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
   });
 
+  it('should be possible to edit a cell (trigger fast edit mode) when a comment is shown', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
+      rowHeaders: true,
+      colHeaders: true,
+      comments: {
+        displayDelay: 10
+      },
+      cell: [
+        { row: 1, col: 1, comment: { value: 'Hello world!' } }
+      ],
+    });
+
+    selectCell(1, 1);
+    $(getCell(1, 1)).simulate('mouseover', {
+      clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
+      clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
+    });
+
+    await sleep(50);
+
+    keyDownUp(['m']); // typing printable characters should trigger cell editor
+
+    expect(getActiveEditor().isOpened()).toBe(true);
+  });
+
   describe('Using the Context Menu', () => {
     it('should open the comment editor when clicking the "Add comment" entry', () => {
       const hot = handsontable({
