@@ -58,18 +58,11 @@
 
       // Fill handle
       &.corner {
-        width: var(--ht-cell-autofill-size, 6px) !important;
-        height: var(--ht-cell-autofill-size, 6px) !important;
-        border: var(--ht-cell-autofill-border-width, 1px) solid
-          var(--ht-cell-autofill-border-color, #fff) !important;
         border-radius: var(--ht-cell-autofill-border-radius) !important;
         background-color: var(
           --ht-cell-autofill-background-color,
           #1a42e8
         ) !important;
-        margin-top: 4px;
-        margin-left: 4px;
-        transform: translate(-50%, -50%);
         font-size: 0;
         cursor: crosshair;
         z-index: 10;
