@@ -4418,25 +4418,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const {
       row,
       col,
-      verticalSnap,
-      horizontalSnap,
       considerHiddenIndexes
     } = options ?? {};
-
-    let snapToTop;
-    let snapToBottom;
-    let snapToInlineStart;
-    let snapToInlineEnd;
-
-    if (verticalSnap !== undefined) {
-      snapToTop = verticalSnap === 'top';
-      snapToBottom = !snapToTop;
-    }
-
-    if (horizontalSnap !== undefined) {
-      snapToInlineStart = horizontalSnap === 'start';
-      snapToInlineEnd = !snapToInlineStart;
-    }
 
     let renderableRow = row;
     let renderableColumn = col;
@@ -4464,19 +4447,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (isRowInteger && renderableRow >= 0 && isColumnInteger && renderableColumn >= 0) {
       return instance.view.scrollViewport(
         instance._createCellCoords(renderableRow, renderableColumn),
-        snapToTop,
-        snapToInlineEnd,
-        snapToBottom,
-        snapToInlineStart
+        options.horizontalSnap,
+        options.verticalSnap,
       );
     }
 
     if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
-      return instance.view.scrollViewportVertically(renderableRow, snapToTop, snapToBottom);
+      return instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
     }
 
     if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
-      return instance.view.scrollViewportHorizontally(renderableColumn, snapToInlineEnd, snapToInlineStart);
+      return instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
     }
 
     return false;
