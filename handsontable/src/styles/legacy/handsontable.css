@@ -158,14 +158,14 @@
 }
 
 .handsontable th:last-child {
-  /* Foundation framework fi x */
+  /* Foundation framework fix */
   border-left: none;
   border-right: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
 }
 
 [dir=rtl].handsontable th:last-child {
-  /* Foundation framework fi x */
+  /* Foundation framework fix */
   border-right: none;
   border-left: 1px solid #ccc;
 }
@@ -361,7 +361,7 @@ innerBorderBottom - Property controlled by bottom overlay
 }
 
 .handsontable td.htInvalid {
-  /* gives priority over td.area selection backgroun d */
+  /* gives priority over td.area selection background */
   background-color: #ffbeba !important;
 }
 
@@ -405,7 +405,7 @@ innerBorderBottom - Property controlled by bottom overlay
 }
 
 /* plugins */
-/* row + column resize r */
+/* row + column resizer */
 .handsontable .manualColumnResizer {
   position: absolute;
   top: 0;
@@ -555,13 +555,13 @@ innerBorderBottom - Property controlled by bottom overlay
   font-size: inherit;
   box-shadow: 0 0 0 2px #5292F7 inset;
   resize: none;
-  /* below are needed to overwrite stuff added by jQuery UI Bootstrap them e */
+  /* below are needed to overwrite stuff added by jQuery UI Bootstrap theme */
   display: block;
   color: #000;
   border-radius: 0;
   background-color: #FFF;
   box-sizing: border-box !important;
-  /* overwrite styles potentionally made by a framewor k */
+  /* overwrite styles potentionally made by a framework */
 }
 
 .handsontableInput:focus {
