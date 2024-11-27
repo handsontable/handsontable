@@ -161,6 +161,10 @@
         }
 
         td {
+          &:first-child {
+            border-inline-start-color: var(--ht-border-color);
+          }
+
           &:last-child {
             border-inline-end-color: var(--ht-border-color);
           }
@@ -421,12 +425,6 @@
 
     .wtHolder {
       overflow: hidden;
-    }
-  }
-
-  .ht_clone_top_inline_start_corner {
-    .htCore thead tr:first-child th:first-child {
-      border-top-left-radius: var(--ht-wrapper-border-radius);
     }
   }
 
