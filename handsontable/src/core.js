@@ -1004,7 +1004,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 // when 'value' is array and 'orgValue' is null, set 'orgValue' to
                 // an empty array so that the null value can be compared to 'value'
                 // as an empty value for the array context
-                if (Array.isArray(value) && orgValue === null) orgValue = [];
+                if (Array.isArray(value) && orgValue === null) {
+                  orgValue = [];
+                }
 
                 if (orgValue === null || typeof orgValue !== 'object') {
                   pushData = false;

@@ -10,7 +10,9 @@ const { jsfiddle } = require('./jsfiddle');
 const { stackblitz } = require('./stackblitz');
 
 const tab = (tabName, token, id) => {
-  if (!token) return [];
+  if (!token) {
+    return [];
+  }
 
   const openTSDivToken = {
     type: 'html_block',
@@ -33,7 +35,9 @@ const tab = (tabName, token, id) => {
 };
 
 const parsePreview = (content) => {
-  if (!content) return '';
+  if (!content) {
+    return '';
+  }
 
   return content
     // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
@@ -46,7 +50,9 @@ const parsePreview = (content) => {
 };
 
 const parseCode = (content) => {
-  if (!content) return '';
+  if (!content) {
+    return '';
+  }
 
   return content
     // Remove the all "/* start:skip-in-preview */" and "/* end:skip-in-preview */" comments
@@ -59,7 +65,9 @@ const parseCode = (content) => {
 };
 
 const parseCodeSandbox = (content) => {
-  if (!content) return '';
+  if (!content) {
+    return '';
+  }
 
   return content
     // Remove the all "/* start:skip-in-preview */" and "/* end:skip-in-preview */" comments
@@ -162,9 +170,13 @@ module.exports = function(docsVersion, base) {
         const tsCodeToPreview = parsePreview(tsTokenWithBasePath);
 
         // Replace token content
-        if (jsToken) jsToken.content = codeToPreview;
+        if (jsToken) {
+          jsToken.content = codeToPreview;
+        }
 
-        if (tsToken) tsToken.content = tsCodeToPreview;
+        if (tsToken) {
+          tsToken.content = tsCodeToPreview;
+        }
 
         [htmlIndex, jsIndex, tsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
           tokens.splice(x, 1);
