@@ -10,7 +10,7 @@
         position: relative;
 
         &::before,
-        &:after {
+        &::after {
           position: absolute;
           top: 50%;
           width: 10px !important;
@@ -20,13 +20,15 @@
         }
       }
 
-      &.beforeHiddenColumn:before {
+      &.beforeHiddenColumn::before {
         @include mixins.pseudo;
+
         left: -2px;
       }
 
-      &.afterHiddenColumn:after {
+      &.afterHiddenColumn::after {
         @include mixins.pseudo;
+
         right: -2px;
       }
 
@@ -34,7 +36,7 @@
         &.beforeHiddenColumn,
         &.afterHiddenColumn {
           &::before,
-          &:after {
+          &::after {
             color: var(--ht-icon-active-button-icon-color);
           }
         }
@@ -44,13 +46,13 @@
 
   [dir="rtl"].handsontable {
     th {
-      &.beforeHiddenColumn:before {
+      &.beforeHiddenColumn::before {
         right: -2px;
         left: initial;
         transform: translateY(-50%) rotate(180deg);
       }
 
-      &.afterHiddenColumn:after {
+      &.afterHiddenColumn::after {
         right: initial;
         left: -2px;
         transform: translateY(-50%) rotate(180deg);

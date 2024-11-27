@@ -15,8 +15,9 @@
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
       margin-inline-start: calc(var(--ht-gap-size) * 2);
 
-      &:after {
+      &::after {
         @include mixins.pseudo;
+
         position: absolute;
         top: 0;
         left: 0;

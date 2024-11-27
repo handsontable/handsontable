@@ -17,7 +17,7 @@
   --ht-disabled-color: #a3a3a3;
   --ht-cell-horizontal-border-color: #e7e7e9;
   --ht-cell-vertical-border-color: #e7e7e9;
-  --ht-wrapper-border-width: 0px;
+  --ht-wrapper-border-width: 0;
   --ht-wrapper-border-radius: 4px;
   --ht-wrapper-border-color: #e7e7e9;
   --ht-row-header-odd-background-color: #f7f7f9;
@@ -30,7 +30,7 @@
   --ht-cell-editor-border-color: #1a42e8;
   --ht-cell-editor-foreground-color: #000000;
   --ht-cell-editor-background-color: #ffffff;
-  --ht-cell-editor-shadow-blur-radius: 0px;
+  --ht-cell-editor-shadow-blur-radius: 0;
   --ht-cell-editor-shadow-color: rgba(17, 61, 201, 0.60);
   --ht-cell-success-background-color: rgba(55, 188, 108, 0.20);
   --ht-cell-error-background-color: rgba(250, 77, 50, 0.20);
@@ -76,7 +76,7 @@
   --ht-header-active-border-color: #2e56fc;
   --ht-header-active-foreground-color: #ffffff;
   --ht-header-active-background-color: #1a42e8;
-  --ht-header-highlighted-shadow-size: 0px;
+  --ht-header-highlighted-shadow-size: 0;
   --ht-header-highlighted-foreground-color: #000000;
   --ht-header-highlighted-background-color: #ebebed;
   --ht-header-filter-background-color: rgba(55, 188, 108, 0.20);
@@ -179,11 +179,11 @@
   --ht-input-focus-background-color: #ffffff;
   --ht-menu-border-width: 1px;
   --ht-menu-border-radius: 4px;
-  --ht-menu-horizontal-padding: 0px;
+  --ht-menu-horizontal-padding: 0;
   --ht-menu-vertical-padding: 8px;
   --ht-menu-item-horizontal-padding: 12px;
   --ht-menu-item-vertical-padding: 4px;
-  --ht-menu-shadow-x: 0px;
+  --ht-menu-shadow-x: 0;
   --ht-menu-shadow-y: 8px;
   --ht-menu-shadow-blur: 16px;
   --ht-menu-border-color: #e7e7e9;

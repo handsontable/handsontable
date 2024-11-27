@@ -4,10 +4,12 @@
 
 @mixin output {
   .pika-single {
+    @include mixins.font-family;
+    @include mixins.menu-box-shadow;
+
     position: relative;
     display: block;
     padding: 10px;
-    @include mixins.font-family;
     font-size: var(--ht-font-size);
     line-height: var(--ht-line-height);
     font-weight: var(--ht-font-weight);
@@ -16,7 +18,6 @@
     border: var(--ht-menu-border-width, 1px) solid
       var(--ht-menu-border-color, #e5e5e9);
     border-radius: var(--ht-menu-border-radius);
-    @include mixins.menu-box-shadow;
     z-index: 9999;
 
     &.is-hidden {

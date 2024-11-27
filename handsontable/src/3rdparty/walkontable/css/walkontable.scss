@@ -16,7 +16,7 @@
 
 .handsontable .wtSpreader {
   position: relative;
-  /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
+  /* must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
   width: 0;
   height: auto;
 }
@@ -90,7 +90,7 @@
 }
 
 .handsontable th:last-child {
-  /*Foundation framework fix*/
+  /* Foundation framework fix */
   border-inline-start: none;
   border-inline-end: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
@@ -150,6 +150,7 @@ innerBorderBottom - Property controlled by bottom overlay
 .handsontable th.active {
   background-color: #ccc;
 }
+
 .handsontable thead th .relative {
   padding: 2px 4px;
 }
@@ -164,6 +165,7 @@ innerBorderBottom - Property controlled by bottom overlay
   position: absolute;
   font-size: 0;
 }
+
 .handsontable .wtBorder.hidden {
   display: none !important;
 }
@@ -172,9 +174,11 @@ innerBorderBottom - Property controlled by bottom overlay
 .handsontable .wtBorder.current {
   z-index: 10;
 }
+
 .handsontable .wtBorder.area {
   z-index: 8;
 }
+
 .handsontable .wtBorder.fill {
   z-index: 6;
 }

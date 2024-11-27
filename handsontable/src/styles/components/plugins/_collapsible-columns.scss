@@ -25,8 +25,9 @@
       font-size: 0;
       float: right;
 
-      &:before {
+      &::before {
         @include mixins.pseudo;
+
         position: absolute;
         top: 0;
         left: 0;
@@ -38,7 +39,7 @@
         background-color: var(--ht-collapse-button-open-background-color);
         box-shadow: 0 0 0 1px var(--ht-collapse-button-open-border-color); // border
 
-        &:before {
+        &::before {
           color: var(--ht-collapse-button-open-icon-color);
         }
 
@@ -49,7 +50,7 @@
           box-shadow: 0 0 0 1px
             var(--ht-collapse-button-open-hover-border-color); // border
 
-          &:before {
+          &::before {
             color: var(--ht-collapse-button-open-hover-icon-color);
           }
         }
@@ -60,7 +61,7 @@
         background-color: var(--ht-collapse-button-close-background-color);
         box-shadow: 0 0 0 1px var(--ht-collapse-button-close-border-color); // border
 
-        &:before {
+        &::before {
           color: var(--ht-collapse-button-close-icon-color);
         }
 
@@ -71,7 +72,7 @@
           box-shadow: 0 0 0 1px
             var(--ht-collapse-button-close-hover-border-color); // border
 
-          &:before {
+          &::before {
             color: var(--ht-collapse-button-close-hover-icon-color);
           }
         }
@@ -84,12 +85,12 @@
         .ht_nestingButton {
           &.collapsed,
           &.ht_nestingExpand {
-            &:before {
+            &::before {
               color: var(--ht-collapse-button-close-icon-active-color);
             }
 
             &:hover {
-              &:before {
+              &::before {
                 color: var(--ht-collapse-button-close-hover-icon-active-color);
               }
             }
@@ -97,12 +98,12 @@
 
           &.expanded,
           &.ht_nestingCollapse {
-            &:before {
+            &::before {
               color: var(--ht-collapse-button-open-icon-active-color);
             }
 
             &:hover {
-              &:before {
+              &::before {
                 color: var(--ht-collapse-button-open-hover-icon-active-color);
               }
             }

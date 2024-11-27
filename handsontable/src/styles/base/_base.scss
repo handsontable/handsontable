@@ -4,8 +4,9 @@
 
 @mixin output {
   .handsontable {
-    position: relative;
     @include mixins.font-family;
+
+    position: relative;
     font-size: var(--ht-font-size, 14px);
     line-height: var(--ht-line-height, 18px);
     font-weight: var(--ht-font-weight);
@@ -14,11 +15,17 @@
     /* Miscellaneous */
     touch-action: manipulation;
 
+    // Scrollbars
+    scrollbar-width: thin;
+    scrollbar-color: var(--ht-scrollbar-thumb-color)
+    var(--ht-scrollbar-track-color);
+
     &.ht-wrapper {
       border-radius: var(--ht-wrapper-border-radius);
 
-      &:before {
-        @include mixins.pseudo;
+      &::before {
+        @include mixins.pseudo();
+
         position: absolute;
         inset: 0;
         border: var(--ht-wrapper-border-width) solid
@@ -113,6 +120,46 @@
 
     tbody {
       tr {
+        &.ht__row_odd,
+        &.ht__row_even {
+          th {
+            &.ht__highlight {
+              color: var(--ht-header-row-highlighted-foreground-color);
+              background-color: var(--ht-header-row-highlighted-background-color);
+            }
+
+            &.ht__active_highlight {
+              color: var(--ht-header-row-active-foreground-color);
+              background-color: var(
+                              --ht-header-row-active-background-color,
+                              #1a42e8
+              );
+            }
+          }
+        }
+
+        th {
+          padding: 0;
+          color: var(--ht-header-row-foreground-color);
+          background-color: var(--ht-header-row-background-color, #f7f7f9);
+
+          .relative {
+            padding: var(--ht-cell-vertical-padding, 4px)
+            var(--ht-cell-horizontal-padding, 8px);
+
+            &::after {
+              top: -1px;
+              right: -1px;
+              bottom: -1px;
+              width: var(--ht-header-highlighted-shadow-size);
+            }
+          }
+
+          &.ht__active_highlight {
+            box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #1a42e8);
+          }
+        }
+
         td {
           &:last-child {
             border-inline-end-color: var(--ht-border-color);
@@ -157,8 +204,9 @@
         background-color: var(--ht-header-highlighted-background-color);
 
         .relative {
-          &:after {
+          &::after {
             @include mixins.pseudo;
+
             position: absolute;
             background-color: var(--ht-accent-color);
           }
@@ -182,7 +230,7 @@
           padding: var(--ht-cell-vertical-padding, 4px)
             var(--ht-cell-horizontal-padding, 8px);
 
-          &:after {
+          &::after {
             left: -1px;
             right: -1px;
             bottom: -1px;
@@ -210,49 +258,6 @@
     thead tr:not(:last-child) th {
       /* Fix for - nested columns with hidden column  */
       overflow: hidden;
-    }
-
-    // Header in Row
-    tbody tr {
-      &.ht__row_odd,
-      &.ht__row_even {
-        th {
-          &.ht__highlight {
-            color: var(--ht-header-row-highlighted-foreground-color);
-            background-color: var(--ht-header-row-highlighted-background-color);
-          }
-
-          &.ht__active_highlight {
-            color: var(--ht-header-row-active-foreground-color);
-            background-color: var(
-              --ht-header-row-active-background-color,
-              #1a42e8
-            );
-          }
-        }
-      }
-
-      th {
-        padding: 0;
-        color: var(--ht-header-row-foreground-color);
-        background-color: var(--ht-header-row-background-color, #f7f7f9);
-
-        .relative {
-          padding: var(--ht-cell-vertical-padding, 4px)
-            var(--ht-cell-horizontal-padding, 8px);
-
-          &:after {
-            top: -1px;
-            right: -1px;
-            bottom: -1px;
-            width: var(--ht-header-highlighted-shadow-size);
-          }
-        }
-
-        &.ht__active_highlight {
-          box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #1a42e8);
-        }
-      }
     }
 
     // Base classes
@@ -302,6 +307,7 @@
     div {
       box-sizing: content-box;
     }
+
     input,
     textarea {
       min-height: initial;
@@ -396,12 +402,6 @@
       }
     }
 
-    // Scroll bar
-    & {
-      scrollbar-width: thin;
-      scrollbar-color: var(--ht-scrollbar-thumb-color)
-        var(--ht-scrollbar-track-color);
-    }
     &::-webkit-scrollbar-track {
       border-radius: var(--ht-scrollbar-border-radius);
     }

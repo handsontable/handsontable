@@ -15,7 +15,7 @@
       appearance: none;
 
       // Box
-      &:before {
+      &::before {
         content: "";
         display: inline-block;
         width: var(--ht-checkbox-size);
@@ -29,8 +29,9 @@
       }
 
       // Icon
-      &:after {
+      &::after {
         @include mixins.pseudo;
+
         position: absolute;
         top: 0;
         left: 0;
@@ -40,19 +41,19 @@
 
       &:checked {
         // Box
-        &:before {
+        &::before {
           border-color: var(--ht-checkbox-checked-border-color);
           background-color: var(--ht-checkbox-checked-background-color);
         }
 
         // Icon
-        &:after {
+        &::after {
           color: var(--ht-checkbox-checked-icon-color);
         }
 
         &:disabled {
           // Box
-          &:before {
+          &::before {
             border-color: var(--ht-checkbox-checked-disabled-border-color);
             background-color: var(
               --ht-checkbox-checked-disabled-background-color
@@ -60,21 +61,21 @@
           }
 
           // Icon
-          &:after {
+          &::after {
             color: var(--ht-checkbox-checked-disabled-icon-color);
           }
         }
 
         &:focus {
           // Box
-          &:before {
+          &::before {
             border-color: var(--ht-checkbox-checked-focus-border-color);
             background-color: var(--ht-checkbox-checked-focus-background-color);
             outline: 1px solid var(--ht-checkbox-checked-focus-ring-color);
           }
 
           // Icon
-          &:after {
+          &::after {
             color: var(--ht-checkbox-checked-focus-icon-color);
           }
         }
@@ -82,14 +83,14 @@
 
       &:focus {
         // Box
-        &:before {
+        &::before {
           border-color: var(--ht-checkbox-focus-border-color);
           background-color: var(--ht-checkbox-focus-background-color);
           outline: 1px solid var(--ht-checkbox-focus-ring-color);
         }
 
         // Icon
-        &:after {
+        &::after {
           color: var(--ht-checkbox-focus-icon-color);
         }
       }
@@ -98,13 +99,13 @@
         cursor: initial;
 
         // Box
-        &:before {
+        &::before {
           border-color: var(--ht-checkbox-disabled-border-color);
           background-color: var(--ht-checkbox-disabled-background-color);
         }
 
         // Icon
-        &:after {
+        &::after {
           color: var(--ht-checkbox-disabled-icon-color);
         }
       }

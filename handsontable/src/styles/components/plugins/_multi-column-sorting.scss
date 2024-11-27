@@ -9,8 +9,9 @@
     // Column's number position
     .colHeader {
       &.columnSorting {
-        &:after {
+        &::after {
           @include mixins.pseudo;
+
           width: 8px;
           position: absolute;
           top: 50%;
@@ -39,8 +40,8 @@
     .htRight {
       .colHeader {
         &.columnSorting {
-          &:after {
-            left: 0px;
+          &::after {
+            left: 0;
             right: auto;
             text-align: left;
           }
@@ -54,8 +55,8 @@
       // Column's number position
       .colHeader {
         &.columnSorting {
-          &:after {
-            left: 0px;
+          &::after {
+            left: 0;
             right: auto;
             text-align: left;
           }
@@ -65,7 +66,7 @@
       .htLeft {
         .colHeader {
           &.columnSorting {
-            &:after {
+            &::after {
               left: auto;
               right: 0;
               text-align: right;

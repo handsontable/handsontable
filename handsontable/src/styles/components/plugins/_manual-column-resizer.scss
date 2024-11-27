@@ -17,6 +17,7 @@
       &::before,
       &::after {
         @include mixins.pseudo;
+
         position: absolute;
         top: 50%;
         left: 1px;

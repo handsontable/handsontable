@@ -9,8 +9,8 @@
       &.afterHiddenRow {
         position: relative;
 
-        &:before,
-        &:after {
+        &::before,
+        &::after {
           position: absolute;
           left: 50%;
           width: 10px !important;
@@ -20,21 +20,23 @@
         }
       }
 
-      &.beforeHiddenRow:before {
+      &.beforeHiddenRow::before {
         @include mixins.pseudo;
+
         top: -2px;
       }
 
-      &.afterHiddenRow:after {
+      &.afterHiddenRow::after {
         @include mixins.pseudo;
+
         bottom: -2px;
       }
 
       &.ht__active_highlight {
         &.beforeHiddenRow,
         &.afterHiddenRow {
-          &:before,
-          &:after {
+          &::before,
+          &::after {
             color: var(--ht-icon-active-button-icon-color);
           }
         }
