@@ -28,8 +28,9 @@
         cursor: pointer;
 
         // Circle overlay
-        &:before {
+        &::before {
           @include mixins.pseudo;
+
           position: absolute;
           inset: 0;
           border-radius: calc(0.5 * var(--ht-checkbox-size));
@@ -38,20 +39,21 @@
         }
 
         // Circle
-        &:after {
+        &::after {
           @include mixins.pseudo;
+
           position: absolute;
           color: var(--ht-checkbox-background-color);
         }
 
         &:checked {
           // Circle overlay
-          &:before {
+          &::before {
             border-color: var(--ht-checkbox-checked-border-color);
           }
 
           // Circle
-          &:after {
+          &::after {
             color: var(--ht-checkbox-checked-background-color);
           }
 
@@ -59,50 +61,26 @@
             cursor: initial;
 
             // Circle overlay
-            &:before {
+            &::before {
               border-color: var(--ht-checkbox-checked-disabled-border-color);
             }
 
             // Circle
-            &:after {
+            &::after {
               color: var(--ht-checkbox-checked-disabled-background-color);
             }
           }
 
           &:focus {
             // Circle overlay
-            &:before {
+            &::before {
               border-color: var(--ht-checkbox-checked-focus-background-color);
             }
 
             // Circle
-            &:after {
+            &::after {
               color: var(--ht-checkbox-checked-focus-background-color);
             }
-          }
-        }
-
-        &:disabled {
-          // Circle overlay
-          &:before {
-            border-color: var(--ht-checkbox-disabled-border-color);
-          }
-
-          // Circle
-          &:after {
-            color: var(--ht-checkbox-disabled-background-color);
-          }
-        }
-
-        &:focus {
-          // Circle overlay
-          &:before {
-            border-color: var(--ht-checkbox-focus-background-color);
-          }
-
-          // Circle
-          &:after {
-            color: var(--ht-checkbox-focus-background-color);
           }
         }
 
@@ -110,13 +88,25 @@
           cursor: initial;
 
           // Circle overlay
-          &:before {
+          &::before {
             border-color: var(--ht-checkbox-disabled-border-color);
           }
 
           // Circle
-          &:after {
+          &::after {
             color: var(--ht-checkbox-disabled-background-color);
+          }
+        }
+
+        &:focus {
+          // Circle overlay
+          &::before {
+            border-color: var(--ht-checkbox-focus-background-color);
+          }
+
+          // Circle
+          &::after {
+            color: var(--ht-checkbox-focus-background-color);
           }
         }
       }
@@ -126,8 +116,9 @@
         cursor: pointer;
         color: inherit;
 
-        &:before {
+        &::before {
           @include mixins.pseudo;
+
           position: absolute;
           inset: 0;
         }

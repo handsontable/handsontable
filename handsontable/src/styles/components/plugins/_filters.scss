@@ -65,28 +65,27 @@
     .htUISelectionControls {
       padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
       padding-bottom: var(--ht-gap-size, 2px) !important;
-    }
-
-    .htUISelectionControls {
       margin: 0 calc(var(--ht-gap-size, 2px) * -1);
     }
 
     .htUIMultipleSelectHot {
+      --ht-cell-vertical-padding: calc(
+              var(--ht-menu-item-horizontal-padding, 2px) +
+              var(--ht-gap-size, 2px) * 2);
+
       overflow: initial !important;
       width: calc(
         100% + var(--ht-menu-item-horizontal-padding, 2px) * 2 +
           var(--ht-gap-size, 2px) * 4
       );
-      margin: 0
-        calc(
-          (
-              var(--ht-menu-item-horizontal-padding, 2px) +
-                var(--ht-gap-size, 2px) * 2
-            ) * -1
-        );
+      margin: 0 calc(
+              (var(--ht-menu-item-horizontal-padding, 2px) +
+              var(--ht-gap-size, 2px) * 2) * -1
+      );
 
       &::before {
         @include mixins.pseudo;
+
         position: absolute;
         top: -1px;
         left: 0;
@@ -106,12 +105,7 @@
 
         td {
           height: auto;
-          padding: 0;
-          padding: 4px
-            calc(
-              var(--ht-menu-item-horizontal-padding, 2px) +
-                var(--ht-gap-size, 2px) * 2
-            );
+          padding: 4px var(--ht-cell-vertical-padding);
         }
       }
     }

@@ -145,7 +145,10 @@ function simpleEqual(objectA, objectB) {
 
       return function(key, value) {
         if (typeof value === 'object' && value !== null) {
-          if (seen.has(value)) return;
+          if (seen.has(value)) {
+            return;
+          }
+
           seen.add(value);
         }
 

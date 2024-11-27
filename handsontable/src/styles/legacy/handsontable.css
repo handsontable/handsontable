@@ -63,9 +63,6 @@
 .handsontable .table-striped > tbody > tr:nth-of-type(even) {
   background-color: #FFF;
 }
-.handsontable {
-  position: relative;
-}
 
 .handsontable .hide {
   display: none;
@@ -76,12 +73,13 @@
 }
 
 .handsontable .wtHider {
+  position: relative;
   width: 0;
 }
 
 .handsontable .wtSpreader {
   position: relative;
-  /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
+  /* must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
   width: 0;
   height: auto;
 }
@@ -160,14 +158,14 @@
 }
 
 .handsontable th:last-child {
-  /*Foundation framework fix*/
+  /* Foundation framework fix */
   border-left: none;
   border-right: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
 }
 
 [dir=rtl].handsontable th:last-child {
-  /*Foundation framework fix*/
+  /* Foundation framework fix */
   border-right: none;
   border-left: 1px solid #ccc;
 }
@@ -339,8 +337,11 @@ innerBorderBottom - Property controlled by bottom overlay
 .ht_clone_bottom .wtHolder {
   overflow: hidden;
 }
+
 @charset "UTF-8";
+
 .handsontable {
+  position: relative;
   touch-action: manipulation;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
   font-size: 13px;
@@ -360,7 +361,7 @@ innerBorderBottom - Property controlled by bottom overlay
 }
 
 .handsontable td.htInvalid {
-  /*gives priority over td.area selection background*/
+  /* gives priority over td.area selection background */
   background-color: #ffbeba !important;
 }
 
@@ -404,7 +405,7 @@ innerBorderBottom - Property controlled by bottom overlay
 }
 
 /* plugins */
-/* row + column resizer*/
+/* row + column resizer */
 .handsontable .manualColumnResizer {
   position: absolute;
   top: 0;
@@ -479,14 +480,14 @@ innerBorderBottom - Property controlled by bottom overlay
   position: relative;
 }
 
-.handsontable td.area:before,
-.handsontable td.area-1:before,
-.handsontable td.area-2:before,
-.handsontable td.area-3:before,
-.handsontable td.area-4:before,
-.handsontable td.area-5:before,
-.handsontable td.area-6:before,
-.handsontable td.area-7:before {
+.handsontable td.area::before,
+.handsontable td.area-1::before,
+.handsontable td.area-2::before,
+.handsontable td.area-3::before,
+.handsontable td.area-4::before,
+.handsontable td.area-5::before,
+.handsontable td.area-6::before,
+.handsontable td.area-7::before {
   content: "";
   position: absolute;
   top: 0;
@@ -496,35 +497,35 @@ innerBorderBottom - Property controlled by bottom overlay
   background: #005eff;
 }
 
-.handsontable td.area:before {
+.handsontable td.area::before {
   opacity: 0.1;
 }
 
-.handsontable td.area-1:before {
+.handsontable td.area-1::before {
   opacity: 0.2;
 }
 
-.handsontable td.area-2:before {
+.handsontable td.area-2::before {
   opacity: 0.27;
 }
 
-.handsontable td.area-3:before {
+.handsontable td.area-3::before {
   opacity: 0.35;
 }
 
-.handsontable td.area-4:before {
+.handsontable td.area-4::before {
   opacity: 0.41;
 }
 
-.handsontable td.area-5:before {
+.handsontable td.area-5::before {
   opacity: 0.47;
 }
 
-.handsontable td.area-6:before {
+.handsontable td.area-6::before {
   opacity: 0.54;
 }
 
-.handsontable td.area-7:before {
+.handsontable td.area-7::before {
   opacity: 0.58;
 }
 
@@ -554,13 +555,13 @@ innerBorderBottom - Property controlled by bottom overlay
   font-size: inherit;
   box-shadow: 0 0 0 2px #5292F7 inset;
   resize: none;
-  /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
+  /* below are needed to overwrite stuff added by jQuery UI Bootstrap theme */
   display: block;
   color: #000;
   border-radius: 0;
   background-color: #FFF;
   box-sizing: border-box !important;
-  /*overwrite styles potentionally made by a framework*/
+  /* overwrite styles potentionally made by a framework */
 }
 
 .handsontableInput:focus {
@@ -604,7 +605,7 @@ TextRenderer readOnly cell
   position: relative;
 }
 
-.handsontable .htSubmenu :after {
+.handsontable .htSubmenu ::after {
   content: "▶";
   color: #777;
   position: absolute;
@@ -612,11 +613,11 @@ TextRenderer readOnly cell
   font-size: 9px;
 }
 
-[dir=rtl].handsontable .htSubmenu :after {
+[dir=rtl].handsontable .htSubmenu ::after {
   content: "";
 }
 
-[dir=rtl].handsontable .htSubmenu :before {
+[dir=rtl].handsontable .htSubmenu ::before {
   content: "◀";
   color: #777;
   position: absolute;
@@ -806,10 +807,6 @@ AutocompleteRenderer down arrow
 /*
 CheckboxRenderer
 */
-.handsontable .htCheckboxRendererInput {
-  display: inline-block;
-}
-
 .handsontable .htCheckboxRendererInput.noValue {
   opacity: 0.5;
 }
@@ -824,6 +821,7 @@ CheckboxRenderer
 .handsontable .htCheckboxRendererLabel.fullWidth {
   width: 100%;
 }
+
 .handsontable .collapsibleIndicator {
   position: absolute;
   top: 50%;
@@ -857,6 +855,7 @@ CheckboxRenderer
 .handsontable[dir=rtl] thead th:has(.collapsibleIndicator) div.htLeft span.colHeader {
   margin-left: 20px;
 }
+
 .handsontable .columnSorting {
   position: relative;
 }
@@ -937,11 +936,12 @@ CheckboxRenderer
   we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
   padding-right: 20px;
 }
+
 .handsontable .htCommentCell {
   position: relative;
 }
 
-.handsontable .htCommentCell:after {
+.handsontable .htCommentCell::after {
   content: "";
   position: absolute;
   top: 0;
@@ -952,7 +952,7 @@ CheckboxRenderer
   border-top: 6px solid black;
 }
 
-[dir=rtl].handsontable .htCommentCell:after {
+[dir=rtl].handsontable .htCommentCell::after {
   left: 0;
   right: unset;
   border-right: 6px solid transparent;
@@ -978,7 +978,7 @@ CheckboxRenderer
   height: 90px;
   font-size: 12px;
   padding: 5px;
-  outline: 0px !important;
+  outline: 0 !important;
   -webkit-appearance: none;
 }
 
@@ -1115,6 +1115,7 @@ CheckboxRenderer
 .htContextMenu .ht_master .wtHolder {
   overflow: hidden;
 }
+
 textarea.HandsontableCopyPaste {
   position: fixed !important;
   top: 0 !important;
@@ -1123,7 +1124,9 @@ textarea.HandsontableCopyPaste {
   opacity: 0;
   outline: 0 none !important;
 }
+
 @charset "UTF-8";
+
 /*!
  * Handsontable DropdownMenu
  */
@@ -1147,7 +1150,7 @@ textarea.HandsontableCopyPaste {
   margin: 3px 5px 0 1px;
 }
 
-.handsontable .changeType:before {
+.handsontable .changeType::before {
   content: "▼ ";
 }
 
@@ -1271,7 +1274,9 @@ textarea.HandsontableCopyPaste {
 .htDropdownMenu .ht_master .wtHolder {
   overflow: hidden;
 }
+
 @charset "UTF-8";
+
 /*!
  * Handsontable Filters
  */
@@ -1449,6 +1454,7 @@ textarea.HandsontableCopyPaste {
 }
 
 .handsontable .htCheckboxRendererInput {
+  display: inline-block;
   margin-top: 0;
   margin-right: 5px;
   margin-bottom: 0;
@@ -1551,7 +1557,7 @@ textarea.HandsontableCopyPaste {
   border: 1px solid #b9b9b9;
 }
 
-.handsontable .htUISelectDropdown:after {
+.handsontable .htUISelectDropdown::after {
   content: "▲";
   font-size: 7px;
   position: absolute;
@@ -1559,7 +1565,7 @@ textarea.HandsontableCopyPaste {
   top: 0;
 }
 
-.handsontable .htUISelectDropdown:before {
+.handsontable .htUISelectDropdown::before {
   content: "▼";
   font-size: 7px;
   position: absolute;
@@ -1615,7 +1621,9 @@ textarea.HandsontableCopyPaste {
 .handsontable .htFiltersMenuOperators {
   padding-bottom: 5px;
 }
+
 @charset "UTF-8";
+
 /*
  * Handsontable HiddenColumns
  */
@@ -1673,7 +1681,9 @@ textarea.HandsontableCopyPaste {
   left: initial;
   content: "◀"; /* left arrow */
 }
+
 @charset "UTF-8";
+
 /*!
  * Handsontable HiddenRows
  */
@@ -1701,8 +1711,8 @@ textarea.HandsontableCopyPaste {
   top: 2px;
 }
 
-.handsontable.ht__selection--rows tbody th.beforeHiddenRow.ht__highlight:before,
-.handsontable.ht__selection--rows tbody th.afterHiddenRow.ht__highlight:after {
+.handsontable.ht__selection--rows tbody th.beforeHiddenRow.ht__highlight::before,
+.handsontable.ht__selection--rows tbody th.afterHiddenRow.ht__highlight::after {
   color: #eee;
 }
 
@@ -1710,12 +1720,10 @@ textarea.HandsontableCopyPaste {
 .handsontable th.afterHiddenRow.firstVisibleRow {
   border-top: 1px solid #CCC;
 }
+
 .htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone_top_inline_start_corner th:nth-child(2),
 .htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone_inline_start td:first-of-type {
   border-left: 0 none;
-}
-.handsontable .wtHider {
-  position: relative;
 }
 
 .handsontable.ht__manualColumnMove.after-selection--columns thead th.ht__highlight {
@@ -1765,9 +1773,6 @@ textarea.HandsontableCopyPaste {
 .handsontable.on-moving--columns .ht__manualColumnMove--backlight {
   display: block;
 }
-.handsontable .wtHider {
-  position: relative;
-}
 
 .handsontable.ht__manualRowMove.after-selection--rows tbody th.ht__highlight {
   cursor: move;
@@ -1815,45 +1820,47 @@ textarea.HandsontableCopyPaste {
 .handsontable.on-moving--rows .ht__manualRowMove--backlight {
   display: block;
 }
-.handsontable tbody td[rowspan][class*=area][class*=highlight]:not([class*=fullySelectedMergedCell]):before {
+
+.handsontable tbody td[rowspan][class*=area][class*=highlight]:not([class*=fullySelectedMergedCell])::before {
   opacity: 0;
 }
 
-.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-multiple]:before {
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-multiple]::before {
   opacity: 0.1;
 }
 
-.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-0]:before {
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-0]::before {
   opacity: 0.1;
 }
 
-.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-1]:before {
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-1]::before {
   opacity: 0.2;
 }
 
-.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-2]:before {
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-2]::before {
   opacity: 0.27;
 }
 
-.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-3]:before {
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-3]::before {
   opacity: 0.35;
 }
 
-.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-4]:before {
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-4]::before {
   opacity: 0.41;
 }
 
-.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-5]:before {
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-5]::before {
   opacity: 0.47;
 }
 
-.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-6]:before {
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-6]::before {
   opacity: 0.54;
 }
 
-.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-7]:before {
+.handsontable tbody td[rowspan][class*=area][class*=highlight][class*=fullySelectedMergedCell-7]::before {
   opacity: 0.58;
 }
+
 .handsontable[dir=ltr] div.htRight span[class*=sort-] {
   margin-right: 15px;
   margin-left: -15px;
@@ -1890,8 +1897,6 @@ textarea.HandsontableCopyPaste {
   font-size: 8px;
   height: 8px;
   line-height: 1.1;
-  /* Workaround for IE9 - IE11 */
-  text-decoration: underline;
 }
 
 [dir=rtl].handsontable span.colHeader.columnSorting::after {
@@ -1900,11 +1905,6 @@ textarea.HandsontableCopyPaste {
   /* For purpose of continuous mouse over experience, when moving between the `::before` and the `::after` elements */
   padding-right: 5px;
   padding-left: unset;
-}
-
-/* Workaround for IE9 - IE11, https://stackoverflow.com/a/21902566, https://stackoverflow.com/a/32120247 */
-.handsontable span.colHeader.columnSorting::after {
-  text-decoration: none;
 }
 
 /* We support up to 7 numeric indicators, describing order of column in sorted columns queue */
@@ -1945,10 +1945,13 @@ textarea.HandsontableCopyPaste {
 .htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {
   padding-right: 5px;
 }
+
 .handsontable thead th.hiddenHeader:not(:first-of-type) {
   display: none;
 }
+
 @charset "UTF-8";
+
 .handsontable th.ht_nestingLevels {
   text-align: left;
   padding-left: 7px;

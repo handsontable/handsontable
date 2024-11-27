@@ -35,7 +35,9 @@ const switchExamplesTheme = (hotInstances) => {
   hotInstances.forEach((hotInstance) => {
     const currentThemeName = hotInstance.getCurrentThemeName();
 
-    if (hotInstance.rootElement.classList.contains('disable-auto-theme')) return;
+    if (hotInstance.rootElement.classList.contains('disable-auto-theme')) {
+      return;
+    }
 
     // Remove the '-auto' suffix from the theme name.
     const newThemeName = currentThemeName.replace('-auto', '');

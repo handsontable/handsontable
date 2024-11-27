@@ -21,13 +21,13 @@
 @mixin area-styles {
   position: relative;
 
-  &:before {
+  &::before {
     content: "";
     position: absolute;
     inset: 0;
     background: var(
       --ht-cell-selection-background-color,
-      #1a42e8 
+      #1a42e8
     );
   }
 }

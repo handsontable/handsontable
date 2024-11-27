@@ -7,8 +7,9 @@
     .htCommentCell {
       position: relative;
 
-      &:after {
+      &::after {
         @include mixins.pseudo;
+
         position: absolute;
         top: 0;
         inset-inline-end: 0;
@@ -30,9 +31,11 @@
     }
 
     .htCommentTextArea {
+      @include mixins.font-family;
+      @include mixins.menu-box-shadow;
+
       width: 240px;
       height: 88px;
-      @include mixins.font-family;
       font-size: var(--ht-font-size);
       line-height: var(--ht-line-height);
       font-weight: var(--ht-font-weight);
@@ -45,8 +48,7 @@
         var(--ht-comments-textarea-border-color, #1a42e8);
       color: var(--ht-comments-textarea-foreground-color);
       background-color: var(--ht-comments-textarea-background-color, #ffffff);
-      @include mixins.menu-box-shadow;
-      outline: 0px !important;
+      outline: 0 !important;
       box-sizing: border-box;
       -webkit-appearance: none;
 

@@ -25,8 +25,9 @@
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
       margin-inline-start: var(--ht-gap-size);
 
-      &:before {
+      &::before {
         @include mixins.pseudo;
+
         position: absolute;
         top: 0;
         left: 0;
@@ -38,7 +39,7 @@
         box-shadow: 0 0 0 1px var(--ht-icon-button-hover-border-color);
         background-color: var(--ht-icon-button-hover-background-color);
 
-        &:before {
+        &::before {
           color: var(--ht-icon-button-hover-icon-color);
         }
       }
@@ -49,7 +50,7 @@
         box-shadow: 0 0 0 1px var(--ht-icon-active-button-border-color);
         background-color: var(--ht-icon-active-button-background-color);
 
-        &:before {
+        &::before {
           color: var(--ht-icon-active-button-icon-color);
         }
 
@@ -57,7 +58,7 @@
           box-shadow: 0 0 0 1px var(--ht-icon-active-button-hover-border-color);
           background-color: var(--ht-icon-active-button-hover-background-color);
 
-          &:before {
+          &::before {
             color: var(--ht-icon-active-button-hover-icon-color);
           }
         }
@@ -76,7 +77,7 @@
           );
 
           .changeType {
-            &:after {
+            &::after {
               background-color: var(--ht-header-active-foreground-color);
             }
           }
@@ -89,13 +90,14 @@
     &.htContextMenu,
     &.htFiltersConditionsMenu {
       & > .ht_master {
+        @include mixins.menu-box-shadow;
+
         border: var(--ht-menu-border-width, 1px) solid
           var(--ht-menu-border-color, #e5e5e9);
         border-radius: var(--ht-menu-border-radius);
-        @include mixins.menu-box-shadow;
         overflow: hidden;
         padding: var(--ht-menu-vertical-padding, 8px)
-          var(--ht-menu-horizontal-padding, 0px);
+          var(--ht-menu-horizontal-padding, 0);
         background-color: var(--ht-background-color, #ffffff);
       }
 
@@ -169,8 +171,9 @@
               2 * var(--ht-gap-size, 4px) + var(--ht-icon-size)
             );
 
-            &:after {
+            &::after {
               @include mixins.pseudo;
+
               position: absolute;
               top: 50%;
               right: calc(
@@ -209,7 +212,7 @@
         .htItemWrapper {
           margin-inline: calc(2 * var(--ht-gap-size, 4px));
 
-          &:before {
+          &::before {
             vertical-align: text-bottom;
             margin-right: 12px;
           }
@@ -218,8 +221,9 @@
             font-size: 0;
             inset: 0;
 
-            &:after {
+            &::after {
               @include mixins.pseudo;
+
               position: absolute;
               top: 50%;
               right: calc(
@@ -238,6 +242,7 @@
 
         .htUIButton {
           width: calc(50% - var(--ht-gap-size));
+
           input {
             width: 100%;
           }
@@ -276,16 +281,17 @@
       table tbody tr td {
         &.htSubmenu {
           .htItemWrapper {
-            &:after {
+            &::after {
               left: calc(4 * var(--ht-gap-size));
               right: auto;
               transform: translateY(-50%) rotate(180deg);
             }
           }
         }
+
         .htItemWrapper {
           span.selected {
-            &:after {
+            &::after {
               left: calc(4 * var(--ht-gap-size));
               right: auto;
             }
@@ -293,9 +299,7 @@
         }
       }
     }
-  }
 
-  [dir="rtl"].handsontable {
     .changeType {
       float: left;
     }

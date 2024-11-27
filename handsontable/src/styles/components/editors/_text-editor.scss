@@ -16,16 +16,17 @@
       line-height: inherit !important;
       color: var(--ht-cell-editor-foreground-color);
       background-color: var(--ht-cell-editor-background-color, #ffffff);
-      box-shadow: inset 0px 0px 0px var(--ht-cell-editor-border-width, 2px)
+      box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
           var(--ht-cell-editor-border-color, #1a42e8),
-        0px 0px var(--ht-cell-editor-shadow-blur-radius, 0px) 0px
+        0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
           var(--ht-cell-editor-shadow-color, transparent);
       border: none;
       -webkit-appearance: none !important;
       box-sizing: border-box;
       /* Miscellaneous */
       outline-width: 0;
-      /*overwrite styles potentially made by a framework*/
+
+      /* overwrite styles potentially made by a framework */
       &:focus {
         outline: none;
       }
