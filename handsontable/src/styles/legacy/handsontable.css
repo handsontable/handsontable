@@ -1897,8 +1897,6 @@ textarea.HandsontableCopyPaste {
   font-size: 8px;
   height: 8px;
   line-height: 1.1;
-  /* Workaround for IE9 - IE11, https://stackoverflow.com/a/21902566, https://stackoverflow.com/a/32120247 */
-  text-decoration: none;
 }
 
 [dir=rtl].handsontable span.colHeader.columnSorting::after {
