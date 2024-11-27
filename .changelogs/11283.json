@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed input width calculation for password cell type",
+  "type": "fixed",
+  "issueOrPR": 11283,
+  "breaking": false,
+  "framework": "none"
+}
