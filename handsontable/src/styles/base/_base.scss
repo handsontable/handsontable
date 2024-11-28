@@ -42,6 +42,7 @@
     scrollbar-width: thin;
     scrollbar-color: var(--ht-scrollbar-thumb-color)
       var(--ht-scrollbar-track-color);
+
     &::-webkit-scrollbar-track {
       border-radius: var(--ht-scrollbar-border-radius);
     }
@@ -65,16 +66,16 @@
     }
 
     // Background
-    & > :not(.ht_clone_top, .ht_clone_inline_start) {
-      .wtHolder {
-        background-color: var(--ht-background-color);
-      }
+    .htCore {
+      background-color: var(--ht-background-color);
     }
 
-    .ht_clone_top,
-    .ht_clone_inline_start {
-      .htCore {
-        background-color: var(--ht-background-color);
+    &.htHasScrollX,
+    &.htHasScrollY {
+      .ht_master {
+        .wtHolder {
+          background-color: var(--ht-background-color);
+        }
       }
     }
 

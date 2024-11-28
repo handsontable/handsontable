@@ -159,6 +159,19 @@ class TableView {
       }
 
       this._wt.draw(!this.hot.forceFullRender);
+
+      if (this.hasVerticalScroll()) {
+        addClass(this.hot.rootElement, 'htHasScrollY');
+      } else {
+        removeClass(this.hot.rootElement, 'htHasScrollY');
+      }
+
+      if (this.hasHorizontalScroll()) {
+        addClass(this.hot.rootElement, 'htHasScrollX');
+      } else {
+        removeClass(this.hot.rootElement, 'htHasScrollX');
+      }
+
       this.hot.runHooks('afterRender', this.hot.forceFullRender);
       this.hot.forceFullRender = false;
       this.hot.renderCall = false;
