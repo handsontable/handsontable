@@ -92,10 +92,13 @@ export function keyTriggerFactory(type, key, { extend, target, ime }) {
   const ev = {};
 
   if (ime) {
-    // emulates the event that happens while using IME
-    ev.keyCode = 229;
-  } else {
-    ev.keyCode = KEY_CODES_MAP.has(key) ? KEY_CODES_MAP.get(key) : key.codePointAt(0);
+    ev.keyCode = 229; // emulates the event that happens while using IME
+
+  } else if (KEY_CODES_MAP.has(key)) {
+    ev.keyCode = KEY_CODES_MAP.get(key);
+
+  } else if (typeof key === 'string') {
+    ev.keyCode = key.codePointAt(0);
   }
 
   ev.key = key;
