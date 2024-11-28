@@ -1539,7 +1539,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changeSource = column;
     }
 
-    const processedChanges = processChanges(changes, source);
+    const processedChanges = processChanges(changes, changeSource);
 
     instance.runHooks('afterSetDataAtCell', processedChanges, changeSource);
 
