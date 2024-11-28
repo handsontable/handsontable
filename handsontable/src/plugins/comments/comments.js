@@ -270,7 +270,7 @@ export class Comments extends BasePlugin {
         });
       },
       stopPropagation: true,
-      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell() && !this.#editor.isVisible(),
+      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell(),
       group: SHORTCUTS_GROUP,
     });
 
@@ -752,7 +752,7 @@ export class Comments extends BasePlugin {
    * @param {Event} event The keydown event.
    */
   #onAfterDocumentKeyDown(event) {
-    if (this.#editor.isVisible()) {
+    if (this.#editor.isFocused()) {
       stopImmediatePropagation(event);
     }
   }
