@@ -42,6 +42,7 @@
     scrollbar-width: thin;
     scrollbar-color: var(--ht-scrollbar-thumb-color)
       var(--ht-scrollbar-track-color);
+
     &::-webkit-scrollbar-track {
       border-radius: var(--ht-scrollbar-border-radius);
     }
