@@ -37,23 +37,20 @@
       // A layer order of the selection types
       &.current {
         z-index: 10;
-        background-color: var(
-          --ht-cell-selection-border-color,
-          #1a42e8
-        ) !important;
+        background-color: var(--ht-cell-selection-border-color) !important;
       }
 
       &.area {
         z-index: 8;
-        background-color: var(
-          --ht-cell-selection-border-color,
-          #1a42e8
-        ) !important;
+        background-color: var(--ht-cell-selection-border-color) !important;
       }
 
       &.fill {
         z-index: 6;
-        background-color: var(--ht-cell-autofill-fill-border-color, #68696c) !important;
+        background-color: var(
+          --ht-cell-autofill-fill-border-color,
+          #68696c
+        ) !important;
       }
 
       // Fill handle

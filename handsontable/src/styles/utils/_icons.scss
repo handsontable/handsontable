@@ -53,20 +53,20 @@
     @include icon($icons, "checkbox");
   }
 
-  th.beforeHiddenColumn::before {
-    @include icon($icons, "caret-hidden-right");
-  }
-
-  th.afterHiddenColumn::after {
+  th.beforeHiddenColumn::after {
     @include icon($icons, "caret-hidden-left");
   }
 
-  th.beforeHiddenRow::before {
-    @include icon($icons, "caret-hidden-down");
+  th.afterHiddenColumn::before {
+    @include icon($icons, "caret-hidden-right");
   }
 
-  th.afterHiddenRow::after {
+  th.beforeHiddenRow::after {
     @include icon($icons, "caret-hidden-up");
+  }
+
+  th.afterHiddenRow::before {
+    @include icon($icons, "caret-hidden-down");
   }
 
   .collapsibleIndicator,

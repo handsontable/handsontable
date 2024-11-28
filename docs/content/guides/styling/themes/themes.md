@@ -50,6 +50,7 @@ Below is a demo featuring two built-in themes and a custom theme inspired by Dou
         <option value="ht-theme-horizon">Horizon Light</option>
         <option value="ht-theme-main-dark">Main Dark</option>
         <option value="ht-theme-horizon-dark">Horizon Dark</option>
+        <option value="ht-no-theme">No theme</option>
       </select>
       <div class="color-box">
         <span class="color" style="background: var(--ht-foreground-color);"></span>

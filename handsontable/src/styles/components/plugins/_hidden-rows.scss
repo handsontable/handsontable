@@ -20,16 +20,16 @@
         }
       }
 
-      &.beforeHiddenRow::before {
-        @include mixins.pseudo;
-
-        top: -2px;
-      }
-
-      &.afterHiddenRow::after {
+      &.beforeHiddenRow::after {
         @include mixins.pseudo;
 
         bottom: -2px;
+      }
+
+      &.afterHiddenRow::before {
+        @include mixins.pseudo;
+
+        top: -2px;
       }
 
       &.ht__active_highlight {
