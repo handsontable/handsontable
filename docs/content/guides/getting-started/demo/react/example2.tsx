@@ -1262,16 +1262,16 @@ const App = () => {
         'Country',
       ]}
       contextMenu={[
-        "cut",
-        "copy",
-        "---------",
-        "row_above",
-        "row_below",
-        "remove_row",
-        "---------",
-        "alignment",
-        "make_read_only",
-        "clear_column",
+        'cut',
+        'copy',
+        '---------',
+        'row_above',
+        'row_below',
+        'remove_row',
+        '---------',
+        'alignment',
+        'make_read_only',
+        'clear_column',
       ]}
       dropdownMenu={true}
       hiddenColumns={{

@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import { PredefinedMenuItemKey } from "handsontable/plugins/contextMenu";
+import { PredefinedMenuItemKey } from 'handsontable/plugins/contextMenu';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 
@@ -1249,27 +1249,27 @@ const example = document.getElementById('example')!;
 new Handsontable(example, {
   data,
   height: 450,
-  colWidths: [140, 220, 140, 90, 90, 120, 140],
+  colWidths: [180, 220, 140, 120, 120, 120, 140],
   colHeaders: [
     'Company Name',
     'Name',
     'Sell date',
     'In stock',
-    'Qty',
+    'Quantity',
     'Order ID',
     'Country',
   ],
   contextMenu: [
-    "cut",
-    "copy",
-    "---------",
-    "row_above",
-    "row_below",
-    "remove_row",
-    "---------",
-    "alignment",
-    "make_read_only",
-    "clear_column",
+    'cut',
+    'copy',
+    '---------',
+    'row_above',
+    'row_below',
+    'remove_row',
+    '---------',
+    'alignment',
+    'make_read_only',
+    'clear_column',
   ] as PredefinedMenuItemKey[],
   columns: [
     { data: 1, type: 'text' },
