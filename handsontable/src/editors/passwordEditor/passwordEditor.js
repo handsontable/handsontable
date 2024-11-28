@@ -1,4 +1,5 @@
 import { TextEditor } from '../textEditor';
+import { createInputElementResizer } from '../../utils/autoResize';
 import { empty } from '../../helpers/dom/element';
 
 export const EDITOR_TYPE = 'password';
@@ -8,6 +9,17 @@ export const EDITOR_TYPE = 'password';
  * @class PasswordEditor
  */
 export class PasswordEditor extends TextEditor {
+  /**
+   * Autoresize instance for resizing the editor to the size of the entered text. Its overwrites the default
+   * resizer of the TextEditor.
+   *
+   * @private
+   * @type {Function}
+   */
+  autoResize = createInputElementResizer(this.hot.rootDocument, {
+    textContent: element => '•'.repeat(element.value.length)
+  });
+
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
