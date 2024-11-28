@@ -1247,15 +1247,27 @@ const example = document.getElementById('example');
 new Handsontable(example, {
   data,
   height: 450,
-  colWidths: [140, 200, 130, 90, 90, 120, 140],
+  colWidths: [180, 220, 140, 120, 120, 120, 140],
   colHeaders: [
     'Company Name',
     'Name',
     'Sell date',
     'In stock',
-    'Qty',
+    'Quantity',
     'Order ID',
     'Country',
+  ],
+  contextMenu: [
+    "cut",
+    "copy",
+    "---------",
+    "row_above",
+    "row_below",
+    "remove_row",
+    "---------",
+    "alignment",
+    "make_read_only",
+    "clear_column",
   ],
   columns: [
     { data: 1, type: 'text' },
@@ -1284,7 +1296,6 @@ new Handsontable(example, {
   hiddenColumns: {
     indicators: true,
   },
-  contextMenu: true,
   multiColumnSorting: true,
   filters: true,
   rowHeaders: true,
@@ -1293,6 +1304,9 @@ new Handsontable(example, {
   beforeRenderer: addClassesToRows,
   autoWrapRow: true,
   autoWrapCol: true,
+  manualRowResize: true,
+  manualColumnResize: true,
+  navigableHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 console.log(

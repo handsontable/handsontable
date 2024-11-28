@@ -3,12 +3,35 @@
 // Handsontable Base Row and Col
 
 @mixin output {
+  // Required variables for bare theme
+  .ht-wrapper:not([class*="ht-theme"]) {
+    --ht-cell-horizontal-padding: 8px;
+    --ht-cell-vertical-padding: 4px;
+    --ht-font-size: 14px;
+    --ht-line-height: 20px;
+    --ht-border-color: #222222;
+    --ht-foreground-color: #222222;
+    --ht-background-color: #ffffff;
+    --ht-header-foreground-color: #222222;
+    --ht-header-background-color: #f7f7f9;
+    --ht-header-row-foreground-color: #222222;
+    --ht-header-row-background-color: #f7f7f9;
+    --ht-cell-horizontal-border-color: #222222;
+    --ht-cell-vertical-border-color: #222222;
+    --ht-header-active-border-color: #1a42e8;
+    --ht-header-active-foreground-color: #ffffff;
+    --ht-header-active-background-color: #1a42e8;
+    --ht-header-row-active-foreground-color: #fff;
+    --ht-header-row-active-background-color: #1a42e8;
+    --ht-cell-selection-border-color: #1a42e8;
+  }
+
   .handsontable {
     @include mixins.font-family;
 
     position: relative;
-    font-size: var(--ht-font-size, 14px);
-    line-height: var(--ht-line-height, 18px);
+    font-size: var(--ht-font-size);
+    line-height: var(--ht-line-height);
     font-weight: var(--ht-font-weight);
     letter-spacing: 0;
     color: var(--ht-foreground-color);
@@ -18,10 +41,14 @@
     // Scrollbars
     scrollbar-width: thin;
     scrollbar-color: var(--ht-scrollbar-thumb-color)
-    var(--ht-scrollbar-track-color);
+      var(--ht-scrollbar-track-color);
+    &::-webkit-scrollbar-track {
+      border-radius: var(--ht-scrollbar-border-radius);
+    }
 
+    // Wrapper
     &.ht-wrapper {
-      border-radius: var(--ht-wrapper-border-radius);
+      border-radius: var(--ht-wrapper-border-radius, 0);
 
       &::before {
         @include mixins.pseudo();
@@ -30,23 +57,24 @@
         inset: 0;
         border: var(--ht-wrapper-border-width) solid
           var(--ht-wrapper-border-color);
-        border-radius: var(--ht-wrapper-border-radius);
+        border-radius: var(--ht-wrapper-border-radius, 0);
         z-index: 999;
         pointer-events: none;
         overflow: hidden;
       }
     }
 
+    // Background
     & > :not(.ht_clone_top, .ht_clone_inline_start) {
       .wtHolder {
-        background-color: var(--ht-background-color, #ffffff);
+        background-color: var(--ht-background-color);
       }
     }
 
     .ht_clone_top,
     .ht_clone_inline_start {
       .htCore {
-        background-color: var(--ht-background-color, #ffffff);
+        background-color: var(--ht-background-color);
       }
     }
 
@@ -54,21 +82,21 @@
     tr {
       &.ht__row_even {
         th {
-          background-color: var(--ht-row-header-even-background-color, #ffffff);
+          background-color: var(--ht-row-header-even-background-color);
         }
 
         td {
-          background-color: var(--ht-row-cell-even-background-color, #ffffff);
+          background-color: var(--ht-row-cell-even-background-color);
         }
       }
 
       &.ht__row_odd {
         th {
-          background-color: var(--ht-row-header-odd-background-color, #ffffff);
+          background-color: var(--ht-row-header-odd-background-color);
         }
 
         td {
-          background-color: var(--ht-row-cell-odd-background-color, #ffffff);
+          background-color: var(--ht-row-cell-odd-background-color);
         }
       }
     }
@@ -77,11 +105,9 @@
     th,
     td {
       height: calc(
-        var(--ht-cell-vertical-padding, 4px) * 2 + var(--ht-line-height, 20px) +
-          1px
+        var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px
       );
-      padding: var(--ht-cell-vertical-padding, 4px)
-        var(--ht-cell-horizontal-padding, 8px);
+      padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
       vertical-align: top;
       border-top-width: 0;
       border-inline-start-width: 0;
@@ -118,60 +144,6 @@
       }
     }
 
-    tbody {
-      tr {
-        &.ht__row_odd,
-        &.ht__row_even {
-          th {
-            &.ht__highlight {
-              color: var(--ht-header-row-highlighted-foreground-color);
-              background-color: var(--ht-header-row-highlighted-background-color);
-            }
-
-            &.ht__active_highlight {
-              color: var(--ht-header-row-active-foreground-color);
-              background-color: var(
-                              --ht-header-row-active-background-color,
-                              #1a42e8
-              );
-            }
-          }
-        }
-
-        th {
-          padding: 0;
-          color: var(--ht-header-row-foreground-color);
-          background-color: var(--ht-header-row-background-color, #f7f7f9);
-
-          .relative {
-            padding: var(--ht-cell-vertical-padding, 4px)
-            var(--ht-cell-horizontal-padding, 8px);
-
-            &::after {
-              top: -1px;
-              right: -1px;
-              bottom: -1px;
-              width: var(--ht-header-highlighted-shadow-size);
-            }
-          }
-
-          &.ht__active_highlight {
-            box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color, #1a42e8);
-          }
-        }
-
-        td {
-          &:first-child {
-            border-inline-start-color: var(--ht-border-color);
-          }
-
-          &:last-child {
-            border-inline-end-color: var(--ht-border-color);
-          }
-        }
-      }
-    }
-
     // Header
     th {
       position: relative;
@@ -180,7 +152,7 @@
       font-weight: var(--ht-header-font-weight);
       white-space: nowrap;
       color: var(--ht-header-foreground-color);
-      background-color: var(--ht-header-background-color, #f7f7f9);
+      background-color: var(--ht-header-background-color);
 
       &:last-child {
         /* Foundation framework fix */
@@ -200,7 +172,7 @@
 
       &.active {
         color: var(--ht-header-active-foreground-color);
-        background-color: var(--ht-header-active-background-color, #1a42e8);
+        background-color: var(--ht-header-active-background-color);
       }
 
       &.ht__highlight {
@@ -218,41 +190,98 @@
       }
 
       &.ht__active_highlight {
-        color: var(--ht-header-active-foreground-color, #ffffff);
-        background-color: var(--ht-header-active-background-color, #1a42e8);
-        border-color: var(--ht-header-active-border-color, #e5e5e9);
-        box-shadow: -1px 0 0 0 var(--ht-header-active-border-color, #1a42e8);
+        color: var(--ht-header-active-foreground-color);
+        background-color: var(--ht-header-active-background-color);
+        border-color: var(--ht-header-active-border-color);
+        box-shadow: -1px 0 0 0 var(--ht-header-active-border-color);
+      }
+    }
+
+    // Header in Row
+    tbody {
+      tr {
+        &.ht__row_odd,
+        &.ht__row_even {
+          th {
+            &.ht__highlight {
+              color: var(--ht-header-row-highlighted-foreground-color);
+              background-color: var(
+                --ht-header-row-highlighted-background-color
+              );
+            }
+
+            &.ht__active_highlight {
+              color: var(--ht-header-row-active-foreground-color);
+              background-color: var(--ht-header-row-active-background-color);
+            }
+          }
+        }
+
+        th {
+          padding: 0;
+          color: var(--ht-header-row-foreground-color);
+          background-color: var(--ht-header-row-background-color);
+
+          .relative {
+            padding: var(--ht-cell-vertical-padding)
+              var(--ht-cell-horizontal-padding);
+            height: 100%;
+
+            &::after {
+              top: -1px;
+              right: -1px;
+              bottom: -1px;
+              width: var(--ht-header-highlighted-shadow-size);
+            }
+          }
+
+          &.ht__active_highlight {
+            box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color);
+          }
+        }
+
+        td {
+          &:first-child {
+            border-inline-start-color: var(--ht-border-color);
+          }
+
+          &:last-child {
+            border-inline-end-color: var(--ht-border-color);
+          }
+        }
       }
     }
 
     // Header in Col
-    thead tr {
-      th {
-        padding: 0;
+    thead {
+      tr {
+        th {
+          padding: 0;
 
-        .relative {
-          padding: var(--ht-cell-vertical-padding, 4px)
-            var(--ht-cell-horizontal-padding, 8px);
+          .relative {
+            padding: var(--ht-cell-vertical-padding)
+              var(--ht-cell-horizontal-padding);
 
-          &::after {
-            left: -1px;
-            right: -1px;
-            bottom: -1px;
-            height: var(--ht-header-highlighted-shadow-size);
-          }
+            &::after {
+              left: -1px;
+              right: -1px;
+              bottom: -1px;
+              height: var(--ht-header-highlighted-shadow-size);
+            }
 
-          .colHeader {
-            text-overflow: ellipsis;
-            overflow: hidden;
-            vertical-align: top;
-            max-width: calc(100% + 1px);
-          }
-
-          &:has(.collapsibleIndicator, .changeType) {
             .colHeader {
-              max-width: calc(
-                100% - (var(--ht-icon-size) + var(--ht-gap-size))
-              );
+              text-overflow: ellipsis;
+              overflow: hidden;
+              vertical-align: top;
+              max-width: calc(100% + 1px);
+            }
+
+            &:has(.collapsibleIndicator, .changeType) {
+              .colHeader {
+                max-width: calc(
+                  100% - (var(--ht-icon-size) + var(--ht-gap-size))
+                );
+              }
             }
           }
         }
@@ -305,10 +334,7 @@
 
     table,
     tbody,
-    thead,
-    input,
-    textarea,
-    div {
+    thead {
       box-sizing: content-box;
     }
 
@@ -406,10 +432,6 @@
       }
     }
 
-    &::-webkit-scrollbar-track {
-      border-radius: var(--ht-scrollbar-border-radius);
-    }
-
     .ht_master table.htCore > thead,
     .ht_master table.htCore > tbody > tr > th,
     .ht_clone_inline_start table.htCore > thead {
@@ -430,7 +452,6 @@
 
   .ht_master .wtHolder {
     overflow: auto;
-    border-radius: var(--ht-wrapper-border-radius);
   }
 
   [dir="rtl"].handsontable {

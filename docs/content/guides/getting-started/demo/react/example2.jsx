@@ -1250,21 +1250,32 @@ const App = () => {
     <HotTable
       data={data}
       height={450}
-      colWidths={[140, 200, 130, 90, 90, 120, 140]}
+      colWidths={[180, 220, 140, 120, 120, 120, 140]}
       colHeaders={[
         'Company Name',
         'Name',
         'Sell date',
         'In stock',
-        'Qty',
+        'Quantity',
         'Order ID',
         'Country',
+      ]}
+      contextMenu={[
+        "cut",
+        "copy",
+        "---------",
+        "row_above",
+        "row_below",
+        "remove_row",
+        "---------",
+        "alignment",
+        "make_read_only",
+        "clear_column",
       ]}
       dropdownMenu={true}
       hiddenColumns={{
         indicators: true,
       }}
-      contextMenu={true}
       multiColumnSorting={true}
       filters={true}
       rowHeaders={true}
@@ -1273,6 +1284,9 @@ const App = () => {
       manualRowMove={true}
       autoWrapRow={true}
       autoWrapCol={true}
+      manualRowResize={true}
+      manualColumnResize={true}
+      navigableHeaders={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />

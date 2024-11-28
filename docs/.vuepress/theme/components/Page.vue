@@ -26,7 +26,7 @@ export default {
       inActiveElementId: '',
       isButtonInactive: false,
       selectedLang: 'JavaScript',
-      themeName: 'ht-theme-main',
+      themeName: 'ht-theme-horizon-dark',
     };
   },
   computed: {
