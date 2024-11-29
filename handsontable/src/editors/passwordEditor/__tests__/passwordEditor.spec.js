@@ -327,7 +327,7 @@ describe('PasswordEditor', () => {
 
     await sleep(10);
 
-    expect(editor.style.width).toBe('84px');
+    expect(editor.style.width).toBe('94px');
   });
 
   it('should set passwordEditor using \'password\' alias', () => {

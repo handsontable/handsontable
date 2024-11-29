@@ -1304,6 +1304,7 @@ new Handsontable(example, {
   beforeRenderer: addClassesToRows,
   autoWrapRow: true,
   autoWrapCol: true,
+  autoRowSize: true,
   manualRowResize: true,
   manualColumnResize: true,
   navigableHeaders: true,
