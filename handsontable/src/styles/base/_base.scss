@@ -66,10 +66,6 @@
     }
 
     // Background
-    .htCore {
-      background-color: var(--ht-background-color);
-    }
-
     &.htHasScrollX,
     &.htHasScrollY {
       .ht_master {
@@ -353,6 +349,7 @@
       outline-width: 0;
       table-layout: fixed;
       cursor: default;
+      background-color: var(--ht-background-color);
     }
 
     col {
