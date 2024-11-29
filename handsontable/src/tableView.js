@@ -159,6 +159,9 @@ class TableView {
       }
 
       this._wt.draw(!this.hot.forceFullRender);
+
+      this.#updateScrollbarClassNames();
+
       this.hot.runHooks('afterRender', this.hot.forceFullRender);
       this.hot.forceFullRender = false;
       this.hot.renderCall = false;
@@ -1859,6 +1862,29 @@ class TableView {
     const colCount = this.#getAriaColcount() + delta;
 
     setAttribute(this.hot.rootElement, ...A11Y_COLCOUNT(colCount));
+  }
+
+  /**
+   * Updates the class names on the root element based on the presence of scrollbars.
+   *
+   * This method checks if the table has vertical and/or horizontal scrollbars and
+   * adds or removes the corresponding class names (`htHasScrollY` and `htHasScrollX`)
+   * to/from the root element.
+   */
+  #updateScrollbarClassNames() {
+    const rootElement = this.hot.rootElement;
+
+    if (this.hasVerticalScroll()) {
+      addClass(rootElement, 'htHasScrollY');
+    } else {
+      removeClass(rootElement, 'htHasScrollY');
+    }
+
+    if (this.hasHorizontalScroll()) {
+      addClass(rootElement, 'htHasScrollX');
+    } else {
+      removeClass(rootElement, 'htHasScrollX');
+    }
   }
 
   /**
