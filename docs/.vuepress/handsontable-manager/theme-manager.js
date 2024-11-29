@@ -12,7 +12,7 @@ const getThemeClassName = (colorScheme) => {
 const ensureCorrectHotThemes = () => {
   if (typeof Handsontable !== 'undefined') {
     // eslint-disable-next-line no-undef
-    Handsontable.hooks.add('afterInit', function () {
+    Handsontable.hooks.add('afterInit', function() {
       const themeName = getThemeClassName(localStorage.getItem('handsontable/docs::color-scheme'));
 
       if (
