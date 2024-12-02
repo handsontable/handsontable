@@ -144,7 +144,12 @@ module.exports = function(docsVersion, base) {
           ? htmlToken.content
           : `<div id="${id}" class="hot ${klass}"></div>`;
         // eslint-disable-next-line max-len
-        const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}" class="ht-theme-main-dark-auto">${htmlContent}</div>`;
+        const htmlContentRoot = `<div 
+          data-preset-type="${preset}" 
+          data-example-id="${id}" 
+          class="${!klass?.includes('disable-auto-theme') ? 'ht-theme-main-dark-auto' : ''}">
+          ${htmlContent}
+        </div>`;
 
         const cssPos = args.match(/--css (\d*)/)?.[1];
         const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;

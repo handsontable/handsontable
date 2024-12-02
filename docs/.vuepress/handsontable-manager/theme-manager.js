@@ -19,6 +19,7 @@ const ensureCorrectHotThemes = () => {
         themeName
         && this.rootElement.classList.contains('ht-wrapper')
         && !this.rootElement.classList.contains('disable-auto-theme')
+        && !this.rootElement?.parentNode.classList.contains('disable-auto-theme')
       ) {
         if (this.getCurrentThemeName() !== themeName) {
           this.useTheme(themeName);
@@ -35,7 +36,10 @@ const switchExamplesTheme = (hotInstances) => {
   hotInstances.forEach((hotInstance) => {
     const currentThemeName = hotInstance.getCurrentThemeName();
 
-    if (hotInstance.rootElement.classList.contains('disable-auto-theme')) {
+    if (
+      hotInstance.rootElement.classList.contains('disable-auto-theme')
+      || hotInstance.rootElement?.parentNode.classList.contains('disable-auto-theme')
+    ) {
       return;
     }
 

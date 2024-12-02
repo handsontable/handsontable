@@ -255,7 +255,7 @@ For more information on `@handsontable/react`, see the [14.6 documentation](http
 
 :::
 
-## Preview the result
+### Preview the result
 
 ::: example #example :react --js 1 --ts 2
 

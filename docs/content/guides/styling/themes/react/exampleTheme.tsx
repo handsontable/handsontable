@@ -1,9 +1,10 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
 
 // constants.ts
 export const data = [
@@ -1208,44 +1209,8 @@ export const data = [
     4,
   ],
 ];
-export const SELECTED_CLASS = 'selected';
-export const ODD_ROW_CLASS = 'odd';
 
-export function addClassesToRows(
-  TD,
-  row,
-  column,
-  _prop,
-  _value,
-  cellProperties
-) {
-  // Adding classes to `TR` just while rendering first visible `TD` element
-  if (column !== 0) {
-    return;
-  }
-
-  const parentElement = TD.parentElement;
-
-  if (parentElement === null) {
-    return;
-  }
-
-  // Add class to selected rows
-  if (cellProperties.instance.getDataAtRowProp(row, '0')) {
-    Handsontable.dom.addClass(parentElement, SELECTED_CLASS);
-  } else {
-    Handsontable.dom.removeClass(parentElement, SELECTED_CLASS);
-  }
-
-  // Add class to odd TRs
-  if (row % 2 === 0) {
-    Handsontable.dom.addClass(parentElement, ODD_ROW_CLASS);
-  } else {
-    Handsontable.dom.removeClass(parentElement, ODD_ROW_CLASS);
-  }
-}
-
-const App = () => {
+const ExampleComponent = () => {
   return (
     <HotTable
       data={data}
@@ -1280,7 +1245,6 @@ const App = () => {
       filters={true}
       rowHeaders={true}
       headerClassName="htLeft"
-      beforeRenderer={addClassesToRows}
       manualRowMove={true}
       autoWrapRow={true}
       autoWrapCol={true}
@@ -1301,9 +1265,4 @@ const App = () => {
   );
 };
 
-const rootElement = document.getElementById('example2');
-
-ReactDOM.createRoot(rootElement).render(<App />);
-console.log(
-  `Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`
-);
+export default ExampleComponent;

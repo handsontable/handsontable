@@ -61,10 +61,22 @@ Below is a demo featuring two built-in themes and a custom theme inspired by Dou
   </div>
 </div>
 
-::: example-without-tabs #exampleTheme
-@[code](@/content/guides/styling/themes/javascript/exampleTheme.html)
-@[code](@/content/guides/styling/themes/javascript/exampleTheme.css)
+::: only-for javascript
+
+::: example #exampleTheme .disable-auto-theme --js 1 --ts 2
 @[code](@/content/guides/styling/themes/javascript/exampleTheme.js)
+@[code](@/content/guides/styling/themes/javascript/exampleTheme.ts)
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleTheme .disable-auto-theme :react --js 1 --ts 2
+@[code](@/content/guides/styling/themes/react/exampleTheme.jsx)
+@[code](@/content/guides/styling/themes/react/exampleTheme.tsx)
+:::
+
 :::
 
 </div>

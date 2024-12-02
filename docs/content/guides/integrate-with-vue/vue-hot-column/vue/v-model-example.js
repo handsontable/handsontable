@@ -21,7 +21,7 @@ const CustomRenderer = {
   },
   computed: {
     bgColor() {
-      return this.$root.highlightedRows.includes(this.row) ? '#40b882' : '#fff';
+      return this.$root.highlightedRows.includes(this.row) ? '#40b882' : 'transparent';
     }
   }
 };
