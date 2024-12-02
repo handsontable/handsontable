@@ -1262,33 +1262,28 @@ export class MergeCells extends BasePlugin {
   /**
    * The `modifyAutofillRange` hook callback.
    *
-   * @param {Array} drag The drag area coordinates.
-   * @param {Array} select The selection information.
+   * @param {Array} fullArea The drag + base area coordinates.
+   * @param {Array} baseArea The selection information.
    * @returns {Array} The new drag area.
    */
-  #onModifyAutofillRange(drag, select) {
-    this.autofillCalculations.correctSelectionAreaSize(select);
-    const dragDirection = this.autofillCalculations.getDirection(select, drag);
-    let dragArea = drag;
+  #onModifyAutofillRange(fullArea, baseArea) {
+    const dragDirection = this.autofillCalculations.getDirection(baseArea, fullArea);
 
-    if (this.autofillCalculations.dragAreaOverlapsCollections(select, dragArea, dragDirection)) {
-      dragArea = select;
-
-      return dragArea;
+    if (this.autofillCalculations.dragAreaOverlapsCollections(baseArea, fullArea, dragDirection)) {
+      return fullArea;
     }
 
-    const from = this.hot._createCellCoords(select[0], select[1]);
-    const to = this.hot._createCellCoords(select[2], select[3]);
+    const from = this.hot._createCellCoords(baseArea[0], baseArea[1]);
+    const to = this.hot._createCellCoords(baseArea[2], baseArea[3]);
     const range = this.hot._createCellRange(from, from, to);
     const mergedCellsWithinSelectionArea = this.mergedCellsCollection.getWithinRange(range);
 
     if (mergedCellsWithinSelectionArea.length === 0) {
-      return dragArea;
+      return fullArea;
     }
 
-    dragArea = this.autofillCalculations.snapDragArea(select, dragArea, dragDirection, mergedCellsWithinSelectionArea);
-
-    return dragArea;
+    return this.autofillCalculations
+      .snapDragArea(baseArea, fullArea, dragDirection, mergedCellsWithinSelectionArea);
   }
 
   /**
