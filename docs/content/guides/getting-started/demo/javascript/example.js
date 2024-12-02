@@ -1283,7 +1283,7 @@ new Handsontable(example, {
       type: 'checkbox',
       className: 'htCenter',
     },
-    { data: 7, type: 'numeric'},
+    { data: 7, type: 'numeric' },
     { data: 5, type: 'text' },
     { data: 2, type: 'text' },
   ],
