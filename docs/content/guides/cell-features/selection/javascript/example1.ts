@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.querySelector('#example1')!;
 
@@ -18,7 +19,6 @@ const hot = new Handsontable(container, {
   width: 'auto',
   height: 'auto',
   colWidths: 100,
-  rowHeights: 23,
   rowHeaders: true,
   colHeaders: true,
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',

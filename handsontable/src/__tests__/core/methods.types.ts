@@ -203,6 +203,7 @@ hot.unlisten();
 hot.updateData([[1, 2, 3], [1, 2, 3]]);
 hot.updateData([{ a: 'a', b: 2, c: '' }, { a: 'a', b: 2, c: '' }]);
 hot.updateSettings({}, true);
+hot.useTheme('ht-theme-sth');
 hot.validateCell('test', cellProperties, (valid: boolean) => {}, 'sourceString');
 hot.validateCells((valid: boolean) => {});
 hot.validateColumns([1, 2, 3], (valid: boolean) => {});
@@ -211,6 +212,7 @@ hot.validateRows([1, 2, 3], (valid: boolean) => {});
 const isDestroyed: boolean = hot.isDestroyed;
 const testToHTMLTableElement: HTMLTableElement = hot.toTableElement();
 const testToHTML: string = hot.toHTML();
+const currentThemeName: string|undefined = hot.getCurrentThemeName();
 
 const autoColumnSize = hot.getPlugin('autoColumnSize');
 

@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // Generate an array of arrays with a dummy data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {

@@ -165,6 +165,12 @@ export class Menu {
       this.addLocalHook('afterSelectionChange',
         (...args) => this.parentMenu.runLocalHooks('afterSelectionChange', ...args));
     }
+
+    this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+      if (!firstRun) {
+        this.hotMenu?.useTheme(themeName);
+      }
+    });
   }
 
   /**
@@ -301,6 +307,7 @@ export class Menu {
       disableVisualSelection: 'area',
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
+      themeName: this.hot.getCurrentThemeName(),
       beforeOnCellMouseOver: (event, coords) => {
         this.#navigator.setCurrentPage(coords.row);
       },
@@ -633,9 +640,8 @@ export class Menu {
         return accumulator + (value.name === SEPARATOR ? 1 : currentRowHeight);
       }, 0);
 
-    // Additional 3px to menu's size because of additional border around its `table.htCore`.
-    holderStyle.width = `${currentHiderWidth + 3}px`;
-    holderStyle.height = `${realHeight + 3}px`;
+    holderStyle.width = `${currentHiderWidth}px`;
+    holderStyle.height = `${realHeight}px`;
     hiderStyle.height = holderStyle.height;
   }
 

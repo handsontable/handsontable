@@ -120,9 +120,9 @@
       } else if (key === 'vue-class-component') {
         ns = 'VueClassComponent';
 
-      } else if (/^handsontable\/dist\/.+\.css$/.test(key)) { // ignore CSS imports
+      } else if (/^handsontable\/dist|styles\/.+\.css$/.test(key)) { // ignore CSS imports
         ns = '';
-
+        
       } else if (key === 'numbro') {
         ns = 'numbro';
 

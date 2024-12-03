@@ -73,7 +73,9 @@ module.exports = function includeCodeSnippet(markdown, options) {
     const maximum = state.eMarks[startLine];
 
     // Early return for indented blocks
-    if (state.sCount[startLine] - state.blkIndent >= 4) return false;
+    if (state.sCount[startLine] - state.blkIndent >= 4) {
+      return false;
+    }
 
     if (!state.src.startsWith(fenceMarker, position)) {
       // Early return if fence marker is not present

@@ -101,7 +101,7 @@ describe('ContextMenu', () => {
       await sleep(300);
 
       expect($menu.find('.wtHider').width()).toEqual(215);
-      expect($menu.width()).toEqual(218);
+      expect($menu.width()).toEqual(215);
     });
 
     it('should expand menu when one of items is wider then default width of the menu', async() => {
@@ -527,7 +527,7 @@ describe('ContextMenu', () => {
 
       const rect = $('.htContextMenu')[0].getBoundingClientRect();
       const x = parseInt(rect.left + (rect.width / 2), 10);
-      const y = parseInt(rect.top + rect.height, 10);
+      const y = parseInt(rect.top + rect.height, 10) + 3;
 
       mouseDown(document.elementFromPoint(x, y));
 

@@ -6,8 +6,6 @@ import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
-import './manualRowMove.css';
-
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
 
@@ -298,7 +296,7 @@ export class ManualRowMove extends BasePlugin {
       const renderableIndex = rowMapper.getRenderableFromVisualIndex(visualRowIndex);
 
       if (renderableIndex !== null) {
-        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex) || 23;
+        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex) || this.hot.view.getDefaultRowHeight();
       }
     }
 

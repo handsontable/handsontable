@@ -854,7 +854,7 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).toBe(290);
-    expect(container.clientHeight).toBe(167);
+    expect(container.clientHeight).toBe(168);
   });
 
   it('should open editor with the correct size after other handsontable editor was open beforehand (#dev-2112)', async() => {
@@ -891,6 +891,6 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).toBe(290);
-    expect(container.clientHeight).toBe(167);
+    expect(container.clientHeight).toBe(168);
   });
 });

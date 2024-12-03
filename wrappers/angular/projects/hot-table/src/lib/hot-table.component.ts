@@ -246,6 +246,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() afterSetDataAtCell: Handsontable.GridSettings['afterSetDataAtCell'];
   @Input() afterSetDataAtRowProp: Handsontable.GridSettings['afterSetDataAtRowProp'];
   @Input() afterSetSourceDataAtCell: Handsontable.GridSettings['afterSetSourceDataAtCell'];
+  @Input() afterSetTheme: Handsontable.GridSettings['afterSetTheme'];
   @Input() afterSheetAdded: Handsontable.GridSettings['afterSheetAdded'];
   @Input() afterSheetRenamed: Handsontable.GridSettings['afterSheetRenamed'];
   @Input() afterSheetRemoved: Handsontable.GridSettings['afterSheetRemoved'];

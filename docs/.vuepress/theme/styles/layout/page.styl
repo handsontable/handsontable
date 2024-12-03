@@ -42,7 +42,13 @@
             color: $text2Color
         }
 
-       .instalationPage h2 code:first-child  {
+        .instalationPage {
+            counter-reset: title-counter;
+        }
+
+        .instalationPage h2:not(#overview):before  {
+            counter-increment: title-counter;
+            content: ""counter(title-counter)"";
             font-size:  $font-size-s
             line-height: 32px
             display: inline-block
@@ -51,7 +57,7 @@
             text-align: center
             border-radius: $radius
             margin-right: 8px
-            border: 1px solid $text2Color
+            border: 1px solid $borderColor
             position: relative
             top: -2px
             margin-left: -48px
@@ -423,6 +429,73 @@
                     margin: 22px 0 0
                 }
             }
+        }
+    }
+    .theme-examples {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+
+        .theme-examples-controls {
+            .example-container {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .color-select {
+                display: inline-flex
+                gap: 10px
+
+                &:after {
+                    position: absolute
+                    top: 50%
+                    transform: translateY(-50%) rotate(45deg)
+                    right: 20px
+                }
+
+                select {
+                    padding-right: 100px
+                }
+            }
+
+            .color-box {
+                position: absolute
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                top: 50%
+                transform: translateY(-50%)
+                right: 40px
+                border-radius: 12px;
+                background: var(--color-gray-300)
+                padding: 5px
+                pointer-events: none
+
+                .color {
+                    width: 10px;
+                    height: 10px;
+                    background-color: grey;
+                    border-radius: 50%;
+                    border: 1px solid var(--color-gray-200)
+                }
+            }
+        }
+
+        .theme-example {
+            &.hide {
+                display: none;
+            }
+        }
+    }
+
+    .table-small {
+        table td {
+            font-size: 14px;
+        }
+
+        span {
+            white-space: nowrap;
         }
     }
 }

@@ -67,7 +67,7 @@ To prevent that, the `mousedown` event on the editor container must call `event.
 
 If you are using React 17 and newer, `event.stopPropagation()` should work for you as expected. See the [React 17 release notes](https://reactjs.org/blog/2020/08/10/react-v17-rc.html#changes-to-event-delegation) for details about event delegation.
 
-::: example #example1 :react --js 1 --ts 2 --tab preview 
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-editor/react/example1.jsx)
 @[code](@/content/guides/cell-functions/cell-editor/react/example1.tsx)

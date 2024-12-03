@@ -60,11 +60,8 @@ Double click on a cell to open the editor and preview the formula.
 ::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.html)
-
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.css)
-
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.js)
-
 @[code](@/content/guides/formulas/formula-calculation/javascript/example1.ts)
 
 :::

@@ -1,0 +1,60 @@
+@use "../../utils/mixins";
+
+// Handsontable Row Resizer
+
+@mixin output {
+  .handsontable {
+    .manualRowResizer {
+      position: absolute;
+      left: 0;
+      z-index: 210;
+      height: 10px;
+      margin: 0;
+      cursor: row-resize;
+      background: none;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+
+      &::before,
+      &::after {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: 1px;
+        left: 50%;
+        width: calc(100% - 12px);
+        max-width: 16px;
+        height: 2px;
+        background: var(--ht-resize-indicator-color);
+        border-radius: 2px;
+        transform: translateX(-50%);
+      }
+
+      &::after {
+        top: auto;
+        bottom: 0;
+      }
+
+      &:hover,
+      &.active {
+        opacity: 1;
+      }
+    }
+
+    .manualRowResizerGuide {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 0;
+      margin-top: 4px;
+      display: none;
+      border-bottom: 1px solid var(--ht-accent-color);
+      border-top: none;
+    }
+
+    .manualRowResizerGuide.active {
+      display: block;
+      z-index: 209;
+    }
+  }
+}

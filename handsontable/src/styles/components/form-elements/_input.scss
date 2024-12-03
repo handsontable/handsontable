@@ -1,0 +1,55 @@
+// Handsontable Input
+//  Used in Dropdown Menu
+
+@mixin output {
+  .handsontable {
+    .htFiltersMenuCondition .htUIInput input,
+    .htFiltersMenuValue .htUIMultipleSelectSearch input {
+      width: 100%;
+      padding: var(--ht-input-vertical-padding)
+        var(--ht-input-horizontal-padding);
+      font-family: inherit;
+      font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height);
+      font-weight: var(--ht-font-weight);
+      border-radius: var(--ht-input-border-radius);
+      box-sizing: border-box;
+      cursor: pointer;
+      outline: none !important;
+      border: var(--ht-input-border-width) solid var(--ht-input-border-color);
+      color: var(--ht-input-foreground-color);
+      background-color: var(--ht-input-background-color);
+      transition: var(--ht-table-transition) all ease-in-out;
+
+      &:hover {
+        border-color: var(--ht-input-hover-border-color);
+        color: var(--ht-input-hover-foreground-color);
+        background-color: var(--ht-input-hover-background-color);
+      }
+
+      &:disabled {
+        border-color: var(--ht-input-disabled-border-color);
+        color: var(--ht-input-disabled-foreground-color);
+        background-color: var(--ht-input-disabled-background-color);
+      }
+
+      &:focus {
+        border-color: var(--ht-input-focus-border-color);
+        color: var(--ht-input-focus-foreground-color);
+        background-color: var(--ht-input-focus-background-color);
+      }
+    }
+
+    // Input
+    .htUIInput {
+      position: relative;
+      padding: 0;
+      outline: none !important;
+      text-align: center;
+    }
+
+    .htUIInputIcon {
+      position: absolute;
+    }
+  }
+}

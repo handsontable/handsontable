@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
@@ -17,7 +18,6 @@ const hot = new Handsontable(container, {
   width: 'auto',
   height: 'auto',
   colWidths: 100,
-  rowHeights: 23,
   rowHeaders: true,
   colHeaders: true,
   outsideClickDeselects: false,

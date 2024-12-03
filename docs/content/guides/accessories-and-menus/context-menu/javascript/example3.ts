@@ -3,7 +3,8 @@ import {
   DetailedSettings,
   MenuItemConfig,
 } from 'handsontable/plugins/contextMenu';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 const contextMenuSettings: DetailedSettings = {
   callback(key, selection, clickEvent) {
