@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 registerAllModules();
 
@@ -481,7 +482,7 @@ const countries = data.reduce((acc, curr) => {
 const hotOptions = {
   data,
   height: 464,
-  colWidths: [140, 165, 100, 100, 100, 110, 178],
+  colWidths: [160, 165, 130, 100, 100, 110, 216],
   autoRowSize: true,
   colHeaders: [
     'Company name',

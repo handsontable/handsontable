@@ -8,8 +8,6 @@ import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 import { HidingMap } from '../../translations';
 
-import './hiddenColumns.scss';
-
 Hooks.getSingleton().register('beforeHideColumns');
 Hooks.getSingleton().register('afterHideColumns');
 Hooks.getSingleton().register('beforeUnhideColumns');

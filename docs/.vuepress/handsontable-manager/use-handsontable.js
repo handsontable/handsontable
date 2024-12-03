@@ -1,4 +1,5 @@
 const { register } = require('./register');
+const { themeManager } = require('./theme-manager');
 const {
   buildDependencyGetter,
   presetMap,
@@ -65,7 +66,15 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
 
       _document.head.appendChild(script);
 
-      if (cssUrl) {
+      if (Array.isArray(cssUrl)) {
+        cssUrl.forEach((cssUrlItem, index) => {
+          _document.head.insertAdjacentHTML(
+            'beforeend',
+            // eslint-disable-next-line max-len
+            `<link type="text/css" data-hot-version="${version}" rel="stylesheet" id="css-${id}-${index}" href="${cssUrlItem}"/>`
+          );
+        });
+      } else if (cssUrl) {
         _document.head.insertAdjacentHTML(
           'beforeend',
           `<link type="text/css" data-hot-version="${version}" rel="stylesheet" id="css-${id}" href="${cssUrl}"/>`
@@ -78,12 +87,14 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
       setTimeout(() => {
         abortSignal.removeEventListener('abort', abortHandler);
         register.listen();
+        themeManager.ensureCorrectHotThemes();
         resolve();
       });
     } else {
       script.addEventListener('load', () => {
         abortSignal.removeEventListener('abort', abortHandler);
         register.listen();
+        themeManager.ensureCorrectHotThemes();
         resolve();
       });
     }

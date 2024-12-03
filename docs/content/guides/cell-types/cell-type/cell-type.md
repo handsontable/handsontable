@@ -470,9 +470,10 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 
 ::: only-for react
 
-::: example #example2 :react
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-types/cell-type/react/example2.jsx)
+@[code](@/content/guides/cell-types/cell-type/react/example2.tsx)
 
 :::
 

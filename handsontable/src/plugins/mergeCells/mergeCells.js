@@ -9,7 +9,6 @@ import { arrayEach } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { warn } from '../../helpers/console';
 import { rangeEach, clamp } from '../../helpers/number';
-import './mergeCells.css';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
 import { FocusOrder } from './focusOrder';
@@ -1505,7 +1504,7 @@ export class MergeCells extends BasePlugin {
    * @returns {number}
    */
   #sumCellsHeights(row, rowspan) {
-    const defaultHeight = this.hot.view._wt.wtSettings.getSettingPure('defaultRowHeight');
+    const defaultHeight = this.hot.view.getDefaultRowHeight();
     const autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
     let height = 0;
 

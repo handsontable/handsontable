@@ -1,0 +1,46 @@
+@use "../../utils/mixins";
+
+// Handsontable HiddenRows
+
+@mixin output {
+  .handsontable {
+    th {
+      &.beforeHiddenRow,
+      &.afterHiddenRow {
+        position: relative;
+
+        &::before,
+        &::after {
+          position: absolute;
+          left: 50%;
+          width: 10px !important;
+          height: 10px !important;
+          transform: translateX(-50%);
+          color: var(--ht-hidden-indicator-color);
+        }
+      }
+
+      &.beforeHiddenRow::after {
+        @include mixins.pseudo;
+
+        bottom: -2px;
+      }
+
+      &.afterHiddenRow::before {
+        @include mixins.pseudo;
+
+        top: -2px;
+      }
+
+      &.ht__active_highlight {
+        &.beforeHiddenRow,
+        &.afterHiddenRow {
+          &::before,
+          &::after {
+            color: var(--ht-icon-active-button-icon-color);
+          }
+        }
+      }
+    }
+  }
+}

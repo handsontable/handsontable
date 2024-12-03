@@ -113,7 +113,6 @@ the following example, only columns **Model**, **Date** and **In stock** are sor
 ::: example #exampleEnableSortingForColumns --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleEnableSortingForColumns.html)
-
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleEnableSortingForColumns.js)
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleEnableSortingForColumns.ts)
 
@@ -263,7 +262,6 @@ To try out sorting by multiple columns, see the following demo:
 ::: example #exampleSortByMultipleColumns --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByMultipleColumns.html)
-
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByMultipleColumns.js)
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByMultipleColumns.ts)
 
@@ -665,7 +663,6 @@ For example, if you [freeze](@/guides/rows/row-freezing/row-freezing.md) a row a
 ::: example #exampleExcludeRowsFromSorting --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.html)
-
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.js)
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.ts)
 
@@ -853,7 +850,6 @@ To see how it works, try out the following demo:
 ::: example #exampleSortByAPI --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPI.html)
-
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPI.js)
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPI.ts)
 
@@ -950,7 +946,6 @@ To see how it works, try out the following demo:
 ::: example #exampleSortByAPIMultipleColumns --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPIMultipleColumns.html)
-
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPIMultipleColumns.js)
 @[code](@/content/guides/rows/rows-sorting/javascript/exampleSortByAPIMultipleColumns.ts)
 
@@ -983,7 +978,8 @@ To use sorting, you need only the following modules:
 import Handsontable from 'handsontable/base';
 
 // import Handsontable's CSS
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // import the ColumnSorting plugin (or the MultiColumnSorting plugin)
 import { registerPlugin, ColumnSorting } from 'handsontable/plugins';

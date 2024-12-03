@@ -14,11 +14,17 @@ const stackblitz = (id, html, js, css, docsVersion, preset, lang) => {
     : '';
 
   const getTemplate = () => {
-    if (preset.includes('react')) return 'create-react-app';
+    if (preset.includes('react')) {
+      return 'create-react-app';
+    }
 
-    if (preset.includes('hot') && lang === 'JavaScript') return 'javascript';
+    if (preset.includes('hot') && lang === 'JavaScript') {
+      return 'javascript';
+    }
 
-    if (preset.includes('hot') && lang === 'TypeScript') return 'typescript';
+    if (preset.includes('hot') && lang === 'TypeScript') {
+      return 'typescript';
+    }
 
     return 'node';
   };

@@ -1,5 +1,6 @@
 import { fastInnerText } from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
+
 /**
  * @todo Describe options.
  * @typedef SettingsPure
@@ -12,7 +13,6 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} currentRowClassName Option `currentRowClassName`.
  * @property {Option} data Option `data`.
  * @property {Option} defaultColumnWidth Option `defaultColumnWidth`.
- * @property {Option} defaultRowHeight Option `defaultRowHeight`.
  * @property {Option} externalRowCalculator Option `externalRowCalculator`.
  * @property {Option} fixedColumnsStart Option `fixedColumnsStart`.
  * @property {Option} fixedRowsBottom Option `fixedRowsBottom`.
@@ -189,7 +189,6 @@ export default class Settings {
       rowHeightByOverlayName() {
         // return undefined means use default size for the rendered cell content
       },
-      defaultRowHeight: 23,
       defaultColumnWidth: 50,
       selections: null,
       hideBorderOnMouseDownOver: false,

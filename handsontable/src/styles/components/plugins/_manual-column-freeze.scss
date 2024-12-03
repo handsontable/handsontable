@@ -1,0 +1,44 @@
+@use "../../utils/mixins";
+
+// Handsontable Column Freeze
+
+@mixin output {
+  .handsontable {
+    .htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone {
+      &_top_inline_start_corner th:nth-child(2),
+      &_inline_start td:first-of-type {
+        border-left: 0 none;
+      }
+    }
+
+    .ht_clone_top_inline_start_corner {
+      th {
+        &.ht__active_highlight {
+          box-shadow: none;
+        }
+      }
+    }
+
+    .ht_clone_top_inline_start_corner,
+    .ht_clone_top,
+    .ht_clone_bottom_inline_start_corner,
+    .ht_clone_bottom {
+      th,
+      td {
+        &:not(&.ht__active_highlight) {
+          border-color: var(--ht-border-color);
+        }
+      }
+    }
+
+    .ht_clone_inline_start {
+      th,
+      td {
+        &:not(&.ht__active_highlight) {
+          border-inline-start-color: var(--ht-border-color);
+          border-inline-end-color: var(--ht-border-color);
+        }
+      }
+    }
+  }
+}

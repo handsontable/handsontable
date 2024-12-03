@@ -12,7 +12,7 @@ import {
 } from '../../../../helpers/dom/element';
 import InlineStartOverlayTable from '../table/inlineStart';
 import { Overlay } from './_base';
-import { CORNER_DEFAULT_STYLE } from '../selection';
+import { getCornerStyle } from '../selection';
 import {
   CLONE_INLINE_START,
 } from './constants';
@@ -154,18 +154,17 @@ export class InlineStartOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const { wtTable } = this.wot;
+    const { wtTable, wtViewport } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
-    const scrollbarHeight = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'vertical') {
-      let height = this.wot.wtViewport.getWorkspaceHeight();
+      let height = wtViewport.getWorkspaceHeight();
 
-      if (this.wot.wtOverlays.hasScrollbarBottom) {
-        height -= scrollbarHeight;
+      if (wtViewport.hasHorizontalScroll()) {
+        height -= getScrollbarWidth(rootDocument);
       }
 
       height = Math.min(height, wtTable.wtRootElement.scrollHeight);
@@ -187,8 +186,9 @@ export class InlineStartOverlay extends Overlay {
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
+    const cornerStyle = getCornerStyle(this.wot);
     const selectionCornerOffset = this.wot.selectionManager
-      .getFocusSelection() ? parseInt(CORNER_DEFAULT_STYLE.width, 10) / 2 : 0;
+      .getFocusSelection() ? parseInt(cornerStyle.width, 10) / 2 : 0;
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     holder.style.height = holder.parentNode.style.height;

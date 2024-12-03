@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 import { BaseRenderer } from 'handsontable/renderers';
 
 let isChecked = false;
@@ -12,7 +13,7 @@ const customRenderer: BaseRenderer = (instance, td, ...rest) => {
   if (isChecked) {
     td.style.backgroundColor = 'yellow';
   } else {
-    td.style.backgroundColor = 'white';
+    td.style.backgroundColor = 'rgba(255,255,255,0.1)';
   }
 };
 

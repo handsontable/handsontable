@@ -19,7 +19,7 @@ describe('settings', () => {
 
       const info = spec().$container[0].nextSibling;
 
-      expect(info.className).toBe('hot-display-license-info');
+      expect(info.className).toBe('handsontable hot-display-license-info');
       expect(info.innerText).toBe([
         'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
         'Alternatively, you can activate Handsontable to use for non-commercial purposes ',

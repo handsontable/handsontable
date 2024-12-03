@@ -1,5 +1,6 @@
 import {
   addClass,
+  removeClass,
   clearTextSelection,
   empty,
   fastInnerHTML,
@@ -158,6 +159,9 @@ class TableView {
       }
 
       this._wt.draw(!this.hot.forceFullRender);
+
+      this.#updateScrollbarClassNames();
+
       this.hot.runHooks('afterRender', this.hot.forceFullRender);
       this.hot.forceFullRender = false;
       this.hot.renderCall = false;
@@ -637,6 +641,52 @@ class TableView {
     }
 
     return count;
+  }
+
+  /**
+   * Retrieves the styles handler from the Walkontable instance.
+   *
+   * @returns {StylesHandler} The styles handler instance.
+   */
+  getStylesHandler() {
+    return this._wt.stylesHandler;
+  }
+
+  /**
+   * Returns the default row height.
+   *
+   * This method retrieves the default row height from the Walkontable styles handler.
+   *
+   * @returns {number} The default row height.
+   */
+  getDefaultRowHeight() {
+    return this._wt.stylesHandler.getDefaultRowHeight();
+  }
+
+  /**
+   * Add a class name to the license information element.
+   *
+   * @param {string} className The class name to add.
+   */
+  addClassNameToLicenseElement(className) {
+    const licenseInfoElement = this.hot.rootElement.parentNode?.querySelector('.hot-display-license-info');
+
+    if (licenseInfoElement) {
+      addClass(licenseInfoElement, className);
+    }
+  }
+
+  /**
+   * Remove a class name from the license information element.
+   *
+   * @param {string} className The class name to remove.
+   */
+  removeClassNameFromLicenseElement(className) {
+    const licenseInfoElement = this.hot.rootElement.parentNode?.querySelector('.hot-display-license-info');
+
+    if (licenseInfoElement) {
+      removeClass(licenseInfoElement, className);
+    }
   }
 
   /**
@@ -1812,6 +1862,29 @@ class TableView {
     const colCount = this.#getAriaColcount() + delta;
 
     setAttribute(this.hot.rootElement, ...A11Y_COLCOUNT(colCount));
+  }
+
+  /**
+   * Updates the class names on the root element based on the presence of scrollbars.
+   *
+   * This method checks if the table has vertical and/or horizontal scrollbars and
+   * adds or removes the corresponding class names (`htHasScrollY` and `htHasScrollX`)
+   * to/from the root element.
+   */
+  #updateScrollbarClassNames() {
+    const rootElement = this.hot.rootElement;
+
+    if (this.hasVerticalScroll()) {
+      addClass(rootElement, 'htHasScrollY');
+    } else {
+      removeClass(rootElement, 'htHasScrollY');
+    }
+
+    if (this.hasHorizontalScroll()) {
+      addClass(rootElement, 'htHasScrollX');
+    } else {
+      removeClass(rootElement, 'htHasScrollX');
+    }
   }
 
   /**
