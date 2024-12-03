@@ -1,59 +1,55 @@
 <div align="center">
-
-<div align="center">
-    <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-dark-theme.svg?raw=true"/>
-        <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-light-theme.svg?raw=true"/>
-        <img width="640" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-light-theme.svg?raw=true"/>
-    </picture>
-</div>
-
-<p>
-Handsontable is a JavaScript data grid for building user interfaces with a spreadsheet-like feel. It supports frameworks like [React](https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper), [Angular](https://github.com/handsontable/handsontable/tree/master/wrappers/angular) and [Vue](https://github.com/handsontable/handsontable/tree/master/wrappers/vue).
-</p>
-<p>
-Handsontable is perfect for data-rich internal applications, allowing users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, and data modeling applications.
-</p>
-
-![NPM Version](https://img.shields.io/npm/v/handsontable)
-[![Handsontable total downloads](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
-[![Handsontable monthly downloads](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
-[![Handsontable contributors](https://img.shields.io/github/contributors/handsontable/handsontable)](https://npmjs.com/package/handsontable)
-[![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
-
----
-#### Get Started with Handsontable
-
-<table border="0">
-  <tr>
-    <td>
-      <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> <strong>React</strong></a>&nbsp;
-    </td>
-    <td>
-      <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"> <strong>Angular</strong></a>&nbsp;
-    </td>
-    <td>
-      <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue"> <strong>Vue</strong></a>&nbsp;
-    </td>
-    <td>
-      <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
-      <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"> <strong>Vue 3</strong></a>&nbsp;
-    </td>
-    <td>
-      <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="14" height="14">&nbsp;
-      <a href="#installation"> <strong>JavaScript</strong></a>&nbsp;
-    </td>
-  </tr>
-</table>
-
----
-
-<a href="https://handsontable.com/demo"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid" width="805"/></a>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-dark-theme.svg?raw=true"/>
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-light-theme.svg?raw=true"/>
+    <img width="600" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-light-theme.svg?raw=true"/>
+  </picture>
+  <p>
+  Handsontable is a JavaScript data grid for building user interfaces with a spreadsheet-like feel. It supports frameworks like [React](https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper), [Angular](https://github.com/handsontable/handsontable/tree/master/wrappers/angular) and [Vue](https://github.com/handsontable/handsontable/tree/master/wrappers/vue).
+  </p>
+  <p>
+  Handsontable is perfect for data-rich internal applications, allowing users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, and data modeling applications.
+  </p>
+  
+  ![NPM Version](https://img.shields.io/npm/v/handsontable)
+  [![Handsontable total downloads](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
+  [![Handsontable monthly downloads](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
+  [![Handsontable contributors](https://img.shields.io/github/contributors/handsontable/handsontable)](https://npmjs.com/package/handsontable)
+  [![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
+  [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
+  [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
+  
+  ---
+  #### Get Started with Handsontable
+  
+  <table border="0">
+    <tr>
+      <td>
+        <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="14" height="14">
+        <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> <strong>React</strong></a>&nbsp;
+      </td>
+      <td>
+        <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="14" height="14">
+        <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"> <strong>Angular</strong></a>&nbsp;
+      </td>
+      <td>
+        <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
+        <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue"> <strong>Vue</strong></a>&nbsp;
+      </td>
+      <td>
+        <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
+        <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"> <strong>Vue 3</strong></a>&nbsp;
+      </td>
+      <td>
+        <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="14" height="14">&nbsp;
+        <a href="#installation"> <strong>JavaScript</strong></a>&nbsp;
+      </td>
+    </tr>
+  </table>
+  
+  ---
+  
+  <a href="https://handsontable.com/demo"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid" width="805"/></a>
 
 </div>
 
