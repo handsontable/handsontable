@@ -12,6 +12,10 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
 ];
 
+const stylingItems = [
+  { path: 'guides/styling/themes/themes' }
+];
+
 const integrateWithAngularItems = [
   { path: 'guides/integrate-with-angular/angular-installation/angular-installation' },
   { path: 'guides/integrate-with-angular/angular-simple-example/angular-simple-example' },
@@ -188,6 +192,7 @@ const upgradeAndMigrationItems = [
 module.exports = {
   sidebar: [
     { title: 'Getting started', children: gettingStartedItems },
+    { title: 'Styling', children: stylingItems },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
     { title: 'Cell features', children: cellFeaturesItems },

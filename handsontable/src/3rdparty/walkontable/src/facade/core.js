@@ -113,6 +113,9 @@ export default class WalkontableFacade {
   get eventManager() {
     return this._wot.eventManager;
   }
+  get stylesHandler() {
+    return this._wot.stylesHandler;
+  }
 
   createCellCoords(row, column) {
     return this._wot.createCellCoords(row, column);

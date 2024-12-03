@@ -29,7 +29,6 @@ Each of them will be applied to the root Handsontable element, allowing further 
 ::: example #example1 :vue --html 1 --js 2
 
 @[code](@/content/guides/integrate-with-vue/vue-custom-id-class-style/vue/example1.html)
-
 @[code](@/content/guides/integrate-with-vue/vue-custom-id-class-style/vue/example1.js)
 
 :::

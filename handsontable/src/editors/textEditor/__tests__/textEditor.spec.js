@@ -43,7 +43,7 @@ describe('TextEditor', () => {
     selectCell(0, 0);
     keyDownUp('enter');
 
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
 
     document.body.style.display = '';
   });
@@ -62,7 +62,7 @@ describe('TextEditor', () => {
     selectCell(0, 0);
     keyDownUp('enter');
 
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
 
     document.body.style.display = '';
   });
@@ -82,7 +82,7 @@ describe('TextEditor', () => {
     selectCell(0, 0);
     keyDownUp('enter');
 
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
 
     document.body.style.display = '';
     document.body.style.flexDirection = '';
@@ -578,8 +578,8 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-    expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
+    expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
   it('should render textarea editor in specified size at cell 1, 0 without headers', async() => {
@@ -590,7 +590,7 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 with headers', async() => {
@@ -604,8 +604,8 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(getActiveEditor().TEXTAREA.style.height).toBe('23px');
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(getActiveEditor().TEXTAREA.style.height).toBe('24px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 when headers are selected', async() => {
@@ -620,8 +620,8 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(getActiveEditor().TEXTAREA.style.height).toBe('23px');
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(getActiveEditor().TEXTAREA.style.height).toBe('24px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', async() => {
@@ -647,8 +647,8 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(41, 1);
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(51, 1);
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
     expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
   });
 
@@ -729,7 +729,7 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
   });
 
   it('should render textarea editor in specified height (multi line)', async() => {
@@ -742,7 +742,7 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('64px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('65px');
   });
 
   it('should render number in textarea', () => {
@@ -1857,7 +1857,7 @@ describe('TextEditor', () => {
 
     await sleep(150);
 
-    expect($editorInput.height()).toBe(84);
+    expect($editorInput.height()).toBe(83);
   });
 
   it('allow scrolling the editor if its content exceeds the viewport height', async() => {

@@ -134,6 +134,7 @@ export interface Events {
   afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
+  afterSetTheme?: (themeName: string|boolean|undefined, firstRun: boolean) => void;
   afterSheetAdded?: (addedSheetDisplayName: string) => void;
   afterSheetRemoved?: (removedSheetDisplayName: string, changes: ExportedChange[]) => void;
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;

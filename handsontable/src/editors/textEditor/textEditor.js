@@ -351,24 +351,12 @@ export class TextEditor extends BaseEditor {
     this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
     this.TEXTAREA.style.backgroundColor = this.TD.style.backgroundColor;
 
-    const textareaComputedStyle = this.hot.rootWindow.getComputedStyle(this.TEXTAREA);
-
-    const horizontalPadding = parseInt(textareaComputedStyle.paddingLeft, 10) +
-      parseInt(textareaComputedStyle.paddingRight, 10);
-    const verticalPadding = parseInt(textareaComputedStyle.paddingTop, 10) +
-      parseInt(textareaComputedStyle.paddingBottom, 10);
-
-    const finalWidth = width - horizontalPadding;
-    const finalHeight = height - verticalPadding;
-    const finalMaxWidth = maxWidth - horizontalPadding;
-    const finalMaxHeight = maxHeight - verticalPadding;
-
     this.autoResize.init(this.TEXTAREA, {
-      minWidth: Math.min(finalWidth, finalMaxWidth),
-      minHeight: Math.min(finalHeight, finalMaxHeight),
+      minWidth: Math.min(width, maxWidth),
+      minHeight: Math.min(height, maxHeight),
       // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
-      maxWidth: finalMaxWidth,
-      maxHeight: finalMaxHeight,
+      maxWidth,
+      maxHeight,
     }, true);
   }
 

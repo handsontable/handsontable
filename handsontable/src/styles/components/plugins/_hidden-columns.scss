@@ -1,0 +1,62 @@
+@use "../../utils/mixins";
+
+// Handsontable HiddenColumns
+
+@mixin output {
+  .handsontable {
+    th {
+      &.beforeHiddenColumn,
+      &.afterHiddenColumn {
+        position: relative;
+
+        &::before,
+        &::after {
+          position: absolute;
+          top: 50%;
+          width: 10px !important;
+          height: 10px !important;
+          transform: translateY(-50%);
+          color: var(--ht-hidden-indicator-color);
+        }
+      }
+
+      &.beforeHiddenColumn::after {
+        @include mixins.pseudo;
+
+        right: -2px;
+      }
+
+      &.afterHiddenColumn::before {
+        @include mixins.pseudo;
+
+        left: -2px;
+      }
+
+      &.ht__active_highlight {
+        &.beforeHiddenColumn,
+        &.afterHiddenColumn {
+          &::before,
+          &::after {
+            color: var(--ht-icon-active-button-icon-color);
+          }
+        }
+      }
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    th {
+      &.beforeHiddenColumn::after {
+        right: initial;
+        left: -2px;
+        transform: translateY(-50%) rotate(180deg);
+      }
+
+      &.afterHiddenColumn::before {
+        right: -2px;
+        left: initial;
+        transform: translateY(-50%) rotate(180deg);
+      }
+    }
+  }
+}

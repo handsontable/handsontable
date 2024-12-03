@@ -7,6 +7,7 @@ import {
   removeClass,
 } from '../../helpers/dom/element';
 import { objectEach } from '../../helpers/object';
+import { A11Y_HIDDEN } from '../../helpers/a11y';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const SHORTCUTS_GROUP = 'selectEditor';
@@ -26,13 +27,28 @@ export class SelectEditor extends BaseEditor {
    * Initializes editor instance, DOM Element and mount hooks.
    */
   init() {
+    this.selectWrapper = this.hot.rootDocument.createElement('div');
     this.select = this.hot.rootDocument.createElement('select');
     this.select.setAttribute('data-hot-input', 'true');
-    this.select.style.display = 'none';
+    this.selectWrapper.style.display = 'none';
 
-    addClass(this.select, 'htSelectEditor');
+    const ARROW = this.hot.rootDocument.createElement('DIV');
+    const isAriaEnabled = this.hot.getSettings().ariaTags;
 
-    this.hot.rootElement.appendChild(this.select);
+    ARROW.className = 'htAutocompleteArrow';
+
+    if (isAriaEnabled) {
+      ARROW.setAttribute(...A11Y_HIDDEN());
+    }
+
+    ARROW.appendChild(this.hot.rootDocument.createTextNode(String.fromCharCode(9660)));
+
+    addClass(this.selectWrapper, 'htSelectEditor');
+    this.selectWrapper.appendChild(this.select);
+
+    this.selectWrapper.insertBefore(ARROW, this.selectWrapper.firstChild);
+
+    this.hot.rootElement.appendChild(this.selectWrapper);
     this.registerHooks();
   }
 
@@ -60,7 +76,7 @@ export class SelectEditor extends BaseEditor {
   open() {
     this._opened = true;
     this.refreshDimensions();
-    this.select.style.display = '';
+    this.selectWrapper.style.display = '';
 
     const shortcutManager = this.hot.getShortcutManager();
 
@@ -74,10 +90,10 @@ export class SelectEditor extends BaseEditor {
    */
   close() {
     this._opened = false;
-    this.select.style.display = 'none';
+    this.selectWrapper.style.display = 'none';
 
-    if (hasClass(this.select, EDITOR_VISIBLE_CLASS_NAME)) {
-      removeClass(this.select, EDITOR_VISIBLE_CLASS_NAME);
+    if (hasClass(this.selectWrapper, EDITOR_VISIBLE_CLASS_NAME)) {
+      removeClass(this.selectWrapper, EDITOR_VISIBLE_CLASS_NAME);
     }
 
     this.unregisterShortcuts();
@@ -198,7 +214,7 @@ export class SelectEditor extends BaseEditor {
       width,
       height,
     } = this.getEditedCellRect();
-    const selectStyle = this.select.style;
+    const selectStyle = this.selectWrapper.style;
 
     selectStyle.height = `${height}px`;
     selectStyle.width = `${width}px`;
@@ -206,7 +222,7 @@ export class SelectEditor extends BaseEditor {
     selectStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
     selectStyle.margin = '0px';
 
-    addClass(this.select, EDITOR_VISIBLE_CLASS_NAME);
+    addClass(this.selectWrapper, EDITOR_VISIBLE_CLASS_NAME);
   }
 
   /**

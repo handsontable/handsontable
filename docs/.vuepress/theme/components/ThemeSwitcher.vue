@@ -9,6 +9,7 @@
 </template>
 
 <script>
+/* global instanceRegister, hotThemeManager */
 const CLASS_THEME_DARK = 'theme-dark';
 const STORAGE_KEY = 'handsontable/docs::color-scheme';
 // The "SELECTED_COLOR_SCHEME" const is defined in the script that is injected in the VuePress config.js file.
@@ -31,6 +32,8 @@ export default {
         document.documentElement.classList.remove(CLASS_THEME_DARK);
         document.documentElement.setAttribute('data-theme', 'light');
       }
+
+      hotThemeManager.switchExamplesTheme(instanceRegister.getAllHotInstances());
     },
   },
   data() {

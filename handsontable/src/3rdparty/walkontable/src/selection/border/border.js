@@ -12,7 +12,7 @@ import {
 import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
 import { objectEach } from '../../../../../helpers/object';
 import { isMobileBrowser } from '../../../../../helpers/browser';
-import { CORNER_DEFAULT_STYLE } from './constants';
+import { getCornerStyle } from './utils';
 
 /**
  *
@@ -46,9 +46,9 @@ class Border {
     this.startStyle = null;
     this.endStyle = null;
 
-    this.cornerDefaultStyle = CORNER_DEFAULT_STYLE;
+    this.cornerDefaultStyle = getCornerStyle(this.instance);
     // Offset to moving the corner to be centered relative to the grid.
-    this.cornerCenterPointOffset = -(parseInt(this.cornerDefaultStyle.width, 10) / 2);
+    this.cornerCenterPointOffset = -Math.ceil((parseInt(this.cornerDefaultStyle.width, 10) / 2));
     this.corner = null;
     this.cornerStyle = null;
 
@@ -193,10 +193,10 @@ class Border {
     this.corner = this.main.childNodes[4];
     this.corner.className += ' corner';
     this.cornerStyle = this.corner.style;
-    this.cornerStyle.width = this.cornerDefaultStyle.width;
-    this.cornerStyle.height = this.cornerDefaultStyle.height;
+    this.cornerStyle.width = `${this.cornerDefaultStyle.width}px`;
+    this.cornerStyle.height = `${this.cornerDefaultStyle.height}px`;
     this.cornerStyle.border = [
-      this.cornerDefaultStyle.borderWidth,
+      `${this.cornerDefaultStyle.borderWidth}px`,
       this.cornerDefaultStyle.borderStyle,
       this.cornerDefaultStyle.borderColor
     ].join(' ');
@@ -534,9 +534,13 @@ class Border {
       this.cornerStyle.display = 'none';
 
     } else {
-      this.cornerStyle.top = `${top + height + this.cornerCenterPointOffset - 1}px`;
-      this.cornerStyle[inlinePosProperty] = `${inlineStartPos + width + this.cornerCenterPointOffset - 1}px`;
-      this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
+      this.cornerStyle.top = `${top + height + this.cornerCenterPointOffset - this.cornerDefaultStyle.borderWidth}px`;
+      this.cornerStyle[inlinePosProperty] = `${
+        inlineStartPos + width + this.cornerCenterPointOffset - this.cornerDefaultStyle.borderWidth
+      }px`;
+      this.cornerStyle.borderRightWidth = `${this.cornerDefaultStyle.borderWidth}px`;
+      this.cornerStyle.borderLeftWidth = `${this.cornerDefaultStyle.borderWidth}px`;
+      this.cornerStyle.borderBottomWidth = `${this.cornerDefaultStyle.borderWidth}px`;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
 
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
@@ -549,8 +553,11 @@ class Border {
         trimmingContainer = rootDocument.documentElement;
       }
 
-      const cornerHalfWidth = parseInt(this.cornerDefaultStyle.width, 10) / 2;
-      const cornerHalfHeight = parseInt(this.cornerDefaultStyle.height, 10) / 2;
+      // -1 was initially removed from the base position to compansate for the table border. We need to exclude it from
+      // the corner width.
+      const cornerBorderCompensation = parseInt(this.cornerDefaultStyle.borderWidth, 10) - 1;
+      const cornerHalfWidth = Math.ceil(parseInt(this.cornerDefaultStyle.width, 10) / 2);
+      const cornerHalfHeight = Math.ceil(parseInt(this.cornerDefaultStyle.height, 10) / 2);
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
         const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
@@ -567,8 +574,9 @@ class Border {
         }
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle[inlinePosProperty] = `${Math
-            .floor(inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth)}px`;
+          this.cornerStyle[inlinePosProperty] = `${Math.floor(
+            inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
+          )}px`;
           this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
         }
       }
@@ -579,7 +587,9 @@ class Border {
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.top = `${Math.floor(top + height + this.cornerCenterPointOffset - cornerHalfHeight)}px`;
+          this.cornerStyle.top = `${Math.floor(
+            top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation
+          )}px`;
           this.cornerStyle.borderBottomWidth = 0;
         }
       }

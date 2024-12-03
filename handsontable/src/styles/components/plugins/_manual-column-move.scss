@@ -1,0 +1,60 @@
+@use "../../utils/mixins";
+
+// Handsontable Column Move
+
+@mixin output {
+  .handsontable {
+    .wtHider {
+      position: relative;
+    }
+
+    .ht__manualColumnMove,
+    &.ht__manualColumnMove {
+      &.after-selection--columns thead th.ht__highlight {
+        @include mixins.cursor-grab;
+      }
+
+      &.on-moving--columns {
+        & *,
+        thead th.ht__highlight {
+          @include mixins.cursor-grabbing;
+        }
+
+        .manualColumnResizer {
+          display: none;
+        }
+      }
+
+      &--guideline,
+      &--backlight {
+        position: absolute;
+        height: 100%;
+        display: none;
+      }
+
+      &--guideline {
+        width: 1px;
+        top: 0;
+        margin-inline-start: -0.5px;
+        margin-inline-end: 0;
+        z-index: 205;
+        background: var(--ht-move-indicator-color, #1a42e8);
+      }
+
+      &--backlight {
+        display: none;
+        z-index: 205;
+        pointer-events: none;
+        background: var(--ht-move-backlight-color);
+      }
+    }
+
+    .on-moving--columns,
+    &.on-moving--columns {
+      &.show-ui .ht__manualColumnMove--guideline,
+      .ht__manualColumnMove--backlight {
+        display: block;
+      }
+    }
+  }
+}

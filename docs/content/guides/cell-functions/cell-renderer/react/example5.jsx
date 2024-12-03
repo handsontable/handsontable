@@ -2,7 +2,8 @@ import { useRef } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -17,7 +18,7 @@ const ExampleComponent = () => {
     if (isChecked) {
       td.style.backgroundColor = 'yellow';
     } else {
-      td.style.backgroundColor = 'white';
+      td.style.backgroundColor = 'rgba(255,255,255,0.1)';
     }
   }
 

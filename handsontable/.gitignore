@@ -19,3 +19,4 @@ commonjs/
 es/
 coverage/
 tmp/
+/styles/

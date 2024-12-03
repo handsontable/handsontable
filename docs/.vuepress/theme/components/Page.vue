@@ -11,7 +11,7 @@
 </template>
 
 <script>
-/* global instanceRegister */
+/* global instanceRegister, hotThemeManager */
 import PageEdit from '@theme/components/PageEdit.vue';
 import Breadcrumbs from '@theme/components/Breadcrumbs.vue';
 
@@ -26,11 +26,14 @@ export default {
       inActiveElementId: '',
       isButtonInactive: false,
       selectedLang: 'JavaScript',
+      themeName: 'ht-theme-horizon-dark',
     };
   },
   computed: {
     docsVersion() {
-      if (this.$page.versions[0] === 'next') return this.$page.versions[1];
+      if (this.$page.versions[0] === 'next') {
+        return this.$page.versions[1];
+      }
 
       return this.$page.versions[0];
     },
@@ -139,17 +142,29 @@ export default {
     },
     openExample(path, preset, id) {
       const filename = (() => {
-        if (preset.includes('vue')) return `vue/${id}.js`;
+        if (preset.includes('vue')) {
+          return `vue/${id}.js`;
+        }
 
-        if (preset.includes('angular')) return `angular/${id}.js`;
+        if (preset.includes('angular')) {
+          return `angular/${id}.js`;
+        }
 
-        if (preset.includes('react') && this.selectedLang === 'TypeScript') return `react/${id}.tsx`;
+        if (preset.includes('react') && this.selectedLang === 'TypeScript') {
+          return `react/${id}.tsx`;
+        }
 
-        if (preset.includes('react') && this.selectedLang === 'JavaScript') return `react/${id}.jsx`;
+        if (preset.includes('react') && this.selectedLang === 'JavaScript') {
+          return `react/${id}.jsx`;
+        }
 
-        if (preset.includes('hot') && this.selectedLang === 'TypeScript') return `javascript/${id}.ts`;
+        if (preset.includes('hot') && this.selectedLang === 'TypeScript') {
+          return `javascript/${id}.ts`;
+        }
 
-        if (preset.includes('hot') && this.selectedLang === 'JavaScript') return `javascript/${id}.js`;
+        if (preset.includes('hot') && this.selectedLang === 'JavaScript') {
+          return `javascript/${id}.js`;
+        }
 
         return undefined;
       })();
@@ -194,6 +209,13 @@ export default {
   unmounted() {
     window.removeEventListener('scroll', this.checkSectionInView);
     window.removeEventListener('click', this.detectClickOutsideButton);
+  },
+  watch: {
+    themeName(name) {
+      instanceRegister.getAllHotInstances().forEach((hotInstance) => {
+        hotThemeManager.switchExampleTheme(hotInstance, name);
+      });
+    },
   },
 };
 </script>

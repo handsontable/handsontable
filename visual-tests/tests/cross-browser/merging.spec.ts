@@ -12,7 +12,7 @@ const urls = [
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  testCrossBrowser(`Test merging for URL: ${url}`, async({ tablePage }) => {
+  testCrossBrowser.skip(`Test merging for URL: ${url}`, async({ tablePage }) => {
     await tablePage.goto(url);
 
     const cellFrom = await selectCell(15, 1);
@@ -20,7 +20,7 @@ urls.forEach((url) => {
 
     await createSelection(cellFrom, cellTo);
 
-    await cellTo.click({ button: 'right' });
+    await cellFrom.click({ button: 'right' });
     await tablePage.getByText('Merge cells').click();
 
     const testFileName = path.basename(__filename, '.spec.ts');

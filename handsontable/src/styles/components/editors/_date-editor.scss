@@ -1,0 +1,138 @@
+@use "../../utils/mixins";
+
+// Pikaday
+
+@mixin output {
+  .pika-single {
+    @include mixins.font-family;
+    @include mixins.menu-box-shadow;
+
+    position: relative;
+    display: block;
+    padding: 10px;
+    font-size: var(--ht-font-size);
+    line-height: var(--ht-line-height);
+    font-weight: var(--ht-font-weight);
+    color: var(--ht-foreground-color);
+    background: var(--ht-background-color, #ffffff);
+    border: var(--ht-menu-border-width, 1px) solid
+      var(--ht-menu-border-color, #e5e5e9);
+    border-radius: var(--ht-menu-border-radius);
+    z-index: 9999;
+
+    &.is-hidden {
+      display: none;
+    }
+
+    .pika-row {
+      background-color: transparent;
+    }
+
+    .pika-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pika-label {
+      position: relative;
+      order: 2;
+      padding: 5px;
+      color: var(--ht-accent-color);
+
+      .pika-select {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+    }
+
+    .pika-prev,
+    .pika-next {
+      width: 20px;
+      height: 20px;
+      white-space: nowrap;
+      text-indent: -9999px;
+      cursor: pointer;
+      color: var(--ht-accent-color);
+      background: none;
+      border: none;
+    }
+
+    .pika-prev {
+      order: 1;
+      margin-right: auto;
+    }
+
+    .pika-next {
+      order: 3;
+      margin-left: auto;
+    }
+
+    .pika-table {
+      thead {
+        height: 50px;
+      }
+
+      th {
+        padding: 1px;
+        vertical-align: middle;
+
+        abbr {
+          text-decoration: none;
+          font-weight: normal;
+          border: none;
+          cursor: initial;
+        }
+      }
+
+      td {
+        padding: 1px;
+        vertical-align: middle;
+
+        &.is-disabled {
+          .pika-button {
+            pointer-events: none;
+            opacity: 0.5;
+          }
+        }
+
+        &.is-today {
+          .pika-button {
+            background: var(--ht-menu-item-hover-color);
+          }
+        }
+
+        &.is-selected {
+          .pika-button {
+            background: var(--ht-accent-color, #1a42e8);
+            color: var(--ht-background-color, #ffffff);
+          }
+        }
+
+        &.pika-week {
+          width: calc(100% / 8);
+          text-align: center;
+        }
+      }
+
+      .pika-button {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: transparent;
+        color: var(--ht-foreground-color);
+        border: none;
+        border-radius: var(--ht-button-border-radius);
+        margin: 0;
+        padding: 10px;
+        cursor: pointer;
+        font-size: inherit;
+
+        &:hover {
+          background: var(--ht-menu-item-hover-color);
+        }
+      }
+    }
+  }
+}
