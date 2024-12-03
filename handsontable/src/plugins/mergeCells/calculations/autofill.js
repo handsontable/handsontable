@@ -192,17 +192,25 @@ class AutofillCalculations {
    */
   getDragArea(baseArea, fullArea, direction) {
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
-    const [dragAreaStartRow, dragAreaStartColumn, dragAreaEndRow, dragAreaEndColumn] = fullArea;
+    const [fullAreaStartRow, fullAreaStartColumn, fullAreaEndRow, fullAreaEndColumn] = fullArea;
 
     switch (direction) {
       case 'up':
-        return [dragAreaStartRow, dragAreaStartColumn, baseAreaStartRow - 1, baseAreaEndColumn];
-      case 'down':
-        return [baseAreaEndRow + 1, baseAreaStartColumn, dragAreaEndRow, baseAreaEndColumn];
+        return [fullAreaStartRow, fullAreaStartColumn, baseAreaStartRow - 1, baseAreaEndColumn];
+      case 'down': {
+        const mergedCell = this.mergedCellsCollection.get(fullAreaEndRow, baseAreaEndColumn);
+        const rowShift = mergedCell ? mergedCell.rowspan - 1 : 0;
+
+        return [baseAreaEndRow + 1, baseAreaStartColumn, fullAreaEndRow + rowShift, baseAreaEndColumn];
+      }
       case 'left':
-        return [dragAreaStartRow, dragAreaStartColumn, baseAreaEndRow, baseAreaStartColumn - 1];
-      case 'right':
-        return [baseAreaStartRow, baseAreaEndColumn + 1, dragAreaEndRow, dragAreaEndColumn];
+        return [fullAreaStartRow, fullAreaStartColumn, baseAreaEndRow, baseAreaStartColumn - 1];
+      case 'right': {
+        const mergedCell = this.mergedCellsCollection.get(fullAreaEndRow, baseAreaEndColumn);
+        const columnShift = mergedCell ? mergedCell.colspan - 1 : 0;
+
+        return [baseAreaStartRow, baseAreaEndColumn + columnShift, fullAreaEndRow, fullAreaEndColumn];
+      }
       default:
         return null;
     }
@@ -311,7 +319,7 @@ class AutofillCalculations {
                 rowspan: current.rowspan,
                 col: current.col,
                 colspan: current.colspan
-              });
+              }, true);
               break;
 
             case 'down':
@@ -320,7 +328,7 @@ class AutofillCalculations {
                 rowspan: current.rowspan,
                 col: current.col,
                 colspan: current.colspan
-              });
+              }, true);
               break;
 
             case 'left':
@@ -329,7 +337,7 @@ class AutofillCalculations {
                 rowspan: current.rowspan,
                 col: current.col - fillOffset,
                 colspan: current.colspan
-              });
+              }, true);
               break;
 
             case 'right':
@@ -338,7 +346,7 @@ class AutofillCalculations {
                 rowspan: current.rowspan,
                 col: current.col + fillOffset,
                 colspan: current.colspan
-              });
+              }, true);
               break;
 
             default:
@@ -418,8 +426,23 @@ class AutofillCalculations {
     const topLeft = this.plugin.hot._createCellCoords(dragAreaStartRow, dragAreaStartColumn);
     const bottomRight = this.plugin.hot._createCellCoords(dragAreaEndRow, dragAreaEndColumn);
     const dragRange = this.plugin.hot._createCellRange(topLeft, topLeft, bottomRight);
+    const mergedCellsWithPartials = this.mergedCellsCollection.getWithinRange(dragRange, true);
 
-    return this.mergedCellsCollection.getWithinRange(dragRange, true).length > 0;
+    if (mergedCellsWithPartials.length === 0) {
+      return false;
+    }
+
+    const mergedCellsWithoutPartials = this.mergedCellsCollection.getWithinRange(dragRange, false);
+
+    if (mergedCellsWithoutPartials.length === 0) {
+      return true;
+    }
+
+    if (direction === 'up' || direction === 'down') {
+      return !mergedCellsWithoutPartials.every(({ colspan }) => colspan === dragRange.getWidth());
+    }
+
+    return !mergedCellsWithoutPartials.every(({ rowspan }) => rowspan === dragRange.getHeight());
   }
 }
 

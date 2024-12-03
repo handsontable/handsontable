@@ -1270,7 +1270,7 @@ export class MergeCells extends BasePlugin {
     const dragDirection = this.autofillCalculations.getDirection(baseArea, fullArea);
 
     if (this.autofillCalculations.dragAreaOverlapsCollections(baseArea, fullArea, dragDirection)) {
-      return fullArea;
+      return baseArea;
     }
 
     const from = this.hot._createCellCoords(baseArea[0], baseArea[1]);
