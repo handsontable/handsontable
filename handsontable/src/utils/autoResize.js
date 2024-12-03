@@ -87,7 +87,10 @@ export function createInputElementResizer(ownerDocument, initialOptions = {}) {
 
     body.appendChild(textContainer);
 
-    const width = textContainer.clientWidth + 2;
+    const paddingStart = parseInt(getComputedStyle(observedElement)?.paddingInlineStart || 0, 10);
+    const paddingEnd = parseInt(getComputedStyle(observedElement)?.paddingInlineEnd || 0, 10);
+
+    const width = textContainer.clientWidth + 2 + paddingStart + paddingEnd;
 
     body.removeChild(textContainer);
 

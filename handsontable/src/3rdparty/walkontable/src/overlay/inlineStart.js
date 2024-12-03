@@ -12,7 +12,7 @@ import {
 } from '../../../../helpers/dom/element';
 import InlineStartOverlayTable from '../table/inlineStart';
 import { Overlay } from './_base';
-import { CORNER_DEFAULT_STYLE } from '../selection';
+import { getCornerStyle } from '../selection';
 import {
   CLONE_INLINE_START,
 } from './constants';
@@ -186,8 +186,9 @@ export class InlineStartOverlay extends Overlay {
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
+    const cornerStyle = getCornerStyle(this.wot);
     const selectionCornerOffset = this.wot.selectionManager
-      .getFocusSelection() ? parseInt(CORNER_DEFAULT_STYLE.width, 10) / 2 : 0;
+      .getFocusSelection() ? parseInt(cornerStyle.width, 10) / 2 : 0;
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     holder.style.height = holder.parentNode.style.height;

@@ -29,10 +29,6 @@ a {
 	scrollbar-color: $borderColor transparent;
 	scrollbar-width:thin
 
-	.handsontable {
-		scrollbar-color: auto
-	}
-
 	pre { scrollbar-color: $lightBorderColor transparent;}
 }
 
@@ -69,7 +65,7 @@ a {
 	padding: 0
 	overflow: hidden
 	white-space: nowrap
-	position: absolute
+	position: absolute !important
 }
 
 @media (min-width: $xxxLarge) {
@@ -118,11 +114,11 @@ a {
 	position: fixed
 	pointer-events: none
 	z-index -1
-	opacity: .5
+	opacity: .1
 	zoom: 1.8;
 	filter: blur(30px) hue-rotate(45deg) saturate(4.5);
-	right: -250px;
-	bottom: -240px;
+	right: -400px;
+	bottom: -350px;
 } 
 
 

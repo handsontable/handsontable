@@ -8,6 +8,7 @@ import CoreAbstract from './_base';
 import { SelectionManager } from '../selection/manager';
 import { objectEach } from '../../../../helpers/object';
 import { addClass, removeClass } from '../../../../helpers/dom/element';
+import { StylesHandler } from '../utils/stylesHandler';
 
 /**
  * @class Walkontable
@@ -19,6 +20,8 @@ export default class Walkontable extends CoreAbstract {
    */
   constructor(table, settings) {
     super(table, new Settings(settings));
+
+    this.stylesHandler = new StylesHandler(this.domBindings);
 
     const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink. I would like to have no access to facade from the internal scope.
 

@@ -25,7 +25,6 @@ To declare column-specific settings, pass the settings as `hot-column` propertie
 ::: example #example1 :vue --html 1 --js 2
 
 @[code](@/content/guides/integrate-with-vue/vue-hot-column/vue/example1.html)
-
 @[code](@/content/guides/integrate-with-vue/vue-hot-column/vue/example1.js)
 
 :::

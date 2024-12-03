@@ -1,6 +1,7 @@
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -19,7 +20,7 @@ const ExampleComponent = () => {
     <HotTable
       data={data}
       height={320}
-      colWidths={60}
+      colWidths={100}
       rowHeaders={true}
       colHeaders={true}
       contextMenu={true}

@@ -236,6 +236,15 @@ class CommentEditor {
   }
 
   /**
+   * Get the editor element.
+   *
+   * @returns {HTMLElement} The editor element.
+   */
+  getEditorElement() {
+    return this.#editor;
+  }
+
+  /**
    * Destroy the comments editor.
    */
   destroy() {

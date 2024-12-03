@@ -130,6 +130,7 @@ class Table {
       rowUtils: this.rowUtils,
       columnUtils: this.columnUtils,
       cellRenderer: this.wtSettings.getSettingPure('cellRenderer'),
+      stylesHandler: this.dataAccessObject.stylesHandler,
     });
   }
 
@@ -420,7 +421,7 @@ class Table {
   markIfOversizedColumnHeader(col) {
     const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = this.wtSettings.getSetting('columnHeaders').length;
-    const defaultRowHeight = this.wtSettings.getSetting('defaultRowHeight');
+    const defaultRowHeight = this.dataAccessObject.stylesHandler.getDefaultRowHeight();
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
@@ -745,10 +746,14 @@ class Table {
       return;
     }
     let rowCount = this.TBODY.childNodes.length;
-    const expectedTableHeight = rowCount * this.wtSettings.getSetting('defaultRowHeight');
+    const expectedTableHeight = rowCount * this.dataAccessObject.stylesHandler.getDefaultRowHeight();
     const actualTableHeight = innerHeight(this.TBODY) - 1;
+    const borderBoxSizing = this.wot.stylesHandler.areCellsBorderBox();
+    const rowHeightFn = borderBoxSizing ? outerHeight : innerHeight;
+    const borderCompensation = borderBoxSizing ? 0 : 1;
+    const firstRowBorderCompensation = borderBoxSizing ? 1 : 0;
     let previousRowHeight;
-    let rowInnerHeight;
+    let rowCurrentHeight;
     let sourceRowIndex;
     let currentTr;
     let rowHeader;
@@ -765,16 +770,25 @@ class Table {
       currentTr = this.getTrForRow(sourceRowIndex);
       rowHeader = currentTr.querySelector('th');
 
+      const topBorderCompensation = sourceRowIndex === 0 ? firstRowBorderCompensation : 0;
+
       if (rowHeader) {
-        rowInnerHeight = innerHeight(rowHeader);
+        rowCurrentHeight = rowHeightFn(rowHeader);
+
       } else {
-        rowInnerHeight = innerHeight(currentTr) - 1;
+        rowCurrentHeight = rowHeightFn(currentTr) - borderCompensation;
       }
 
-      if ((!previousRowHeight && this.wtSettings.getSetting('defaultRowHeight') < rowInnerHeight ||
-          previousRowHeight < rowInnerHeight)) {
-        rowInnerHeight += 1;
-        this.dataAccessObject.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
+      if (
+        !previousRowHeight &&
+        this.dataAccessObject.stylesHandler.getDefaultRowHeight() < rowCurrentHeight - topBorderCompensation ||
+        previousRowHeight < rowCurrentHeight
+      ) {
+        if (!borderBoxSizing) {
+          rowCurrentHeight += 1;
+        }
+
+        this.dataAccessObject.wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;
       }
     }
   }

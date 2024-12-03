@@ -1,0 +1,46 @@
+@use "../utils/mixins";
+
+// Handsontable Mobile Text Editor stylesheets
+
+@mixin output {
+  .handsontable {
+    &.mobile {
+      @include mixins.user-select-none;
+
+      .wtHolder {
+        @include mixins.user-select-none;
+      }
+
+      .handsontableInput:focus {
+        box-shadow: inset 0 0 0 2px var(--ht-accent-color);
+        -webkit-appearance: none;
+      }
+    }
+
+    // Initial left/top coordinates - overwritten when actual position is set
+    .topSelectionHandle,
+    .topSelectionHandle-HitArea,
+    .bottomSelectionHandle,
+    .bottomSelectionHandle-HitArea {
+      inset-inline-start: -10000px;
+      inset-inline-end: unset;
+      top: -10000px;
+      z-index: 9999;
+    }
+
+    // There is no css animations - classes to verify
+    &.hide-tween {
+      -webkit-animation: opacity-hide 0.2s;
+      animation: opacity-hide 0.2s;
+      animation-fill-mode: forwards;
+      -webkit-animation-fill-mode: forwards;
+    }
+
+    &.show-tween {
+      -webkit-animation: opacity-show 0.3s;
+      animation: opacity-show 0.3s;
+      animation-fill-mode: forwards;
+      -webkit-animation-fill-mode: forwards;
+    }
+  }
+}

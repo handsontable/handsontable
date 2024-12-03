@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 import { BaseRenderer } from 'handsontable/renderers';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 const data: (string | number)[][] = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
@@ -42,7 +43,7 @@ const negativeValueRenderer: BaseRenderer = (
   }
 
   if (!value || value === '') {
-    td.style.background = '#EEE';
+    td.style.background = 'rgb(238, 238, 238, 0.4)';
   } else {
     if (instance.getDataAtCell(0, col) === 'Nissan') {
       td.style.fontStyle = 'italic';

@@ -1,4 +1,4 @@
-import { DEFAULT_COLUMN_WIDTH, DEFAULT_ROW_HEIGHT } from '../../3rdparty/walkontable/src';
+import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
 import { getScrollbarWidth } from '../../helpers/dom/element';
 import { StretchAllStrategy } from './strategies/all';
 import { StretchLastStrategy } from './strategies/last';
@@ -121,11 +121,12 @@ export class StretchCalculator {
 
     const viewportHeight = view.getViewportHeight();
     const totalRows = this.#hot.countRows();
+    const defaultRowHeight = view.getStylesHandler().getDefaultRowHeight();
     let totalHeight = 0;
     let hasVerticalScroll = false;
 
     for (let row = 0; row < totalRows; row++) {
-      totalHeight += (this.#hot.getRowHeight(row) ?? DEFAULT_ROW_HEIGHT) + (row === 0 ? 1 : 0);
+      totalHeight += (this.#hot.getRowHeight(row) ?? defaultRowHeight) + (row === 0 ? 1 : 0);
 
       if (totalHeight > viewportHeight) {
         hasVerticalScroll = true;

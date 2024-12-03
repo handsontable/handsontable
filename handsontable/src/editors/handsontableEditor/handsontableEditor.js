@@ -99,6 +99,7 @@ export class HandsontableEditor extends TextEditor {
       autoWrapCol: false,
       autoWrapRow: false,
       ariaTags: false,
+      themeName: this.hot.getCurrentThemeName(),
       afterOnCellMouseDown(_, coords) {
         const sourceValue = this.getSourceData(coords.row, coords.col);
 
@@ -179,7 +180,7 @@ export class HandsontableEditor extends TextEditor {
    * @returns {number}
    */
   getHeight() {
-    return this.htEditor.view.getTableHeight();
+    return this.htEditor.view.getTableHeight() + 1;
   }
 
   /**
@@ -201,6 +202,12 @@ export class HandsontableEditor extends TextEditor {
     this.hot.addHook('afterDestroy', () => {
       if (this.htEditor) {
         this.htEditor.destroy();
+      }
+    });
+
+    this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+      if (!firstRun) {
+        this.htEditor.useTheme(themeName);
       }
     });
   }

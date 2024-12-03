@@ -1,0 +1,85 @@
+// Handsontable Button
+//  Used in Dropdown Menu
+
+@mixin output {
+  .handsontable {
+    // Button
+    .htUIInput {
+      &.htUIButton {
+        cursor: pointer;
+        display: inline-block;
+
+        input {
+          min-width: 64px;
+          padding: var(--ht-button-vertical-padding)
+            var(--ht-button-horizontal-padding);
+          font-family: inherit;
+          font-size: var(--ht-font-size);
+          line-height: var(--ht-line-height);
+          font-weight: var(--ht-font-weight);
+          border-radius: var(--ht-button-border-radius);
+          box-sizing: border-box;
+          cursor: pointer;
+          outline: none !important;
+          border: 1px solid var(--ht-secondary-button-border-color);
+          background-color: var(--ht-secondary-button-background-color);
+          color: var(--ht-secondary-button-foreground-color);
+          transition: var(--ht-table-transition) all ease-in-out;
+
+          &:hover {
+            border-color: var(--ht-secondary-button-hover-border-color);
+            background-color: var(--ht-secondary-button-hover-background-color);
+            color: var(--ht-secondary-button-hover-foreground-color);
+          }
+
+          &:disabled {
+            border-color: var(--ht-secondary-button-disabled-border-color);
+            background-color: var(
+              --ht-secondary-button-disabled-background-color
+            );
+            color: var(--ht-secondary-button-disabled-foreground-color);
+          }
+
+          &:focus {
+            border-color: var(--ht-secondary-button-focus-border-color);
+            background-color: var(--ht-secondary-button-focus-background-color);
+            color: var(--ht-secondary-button-focus-foreground-color);
+            box-shadow: 0 0 0 1px var(--ht-accent-color);
+          }
+        }
+      }
+
+      &.htUIButtonOK {
+        margin-inline-start: 0;
+        margin-inline-end: calc(2 * var(--ht-gap-size, 2px));
+
+        input {
+          border-color: var(--ht-primary-button-border-color);
+          background-color: var(--ht-primary-button-background-color);
+          color: var(--ht-primary-button-foreground-color);
+
+          &:hover {
+            border-color: var(--ht-primary-button-hover-border-color);
+            background-color: var(--ht-primary-button-hover-background-color);
+            color: var(--ht-primary-button-hover-foreground-color);
+          }
+
+          &:disabled {
+            border-color: var(--ht-primary-button-disabled-border-color);
+            background-color: var(
+              --ht-primary-button-disabled-background-color
+            );
+            color: var(--ht-primary-button-disabled-foreground-color);
+          }
+
+          &:focus {
+            border-color: var(--ht-primary-button-focus-border-color);
+            background-color: var(--ht-primary-button-focus-background-color);
+            color: var(--ht-primary-button-focus-foreground-color);
+            box-shadow: 0 0 0 1px var(--ht-accent-color);
+          }
+        }
+      }
+    }
+  }
+}
