@@ -119,7 +119,7 @@ You can also set the alignment for a specific column by using the [`columns`](@/
 
 ::: only-for react
 
-::: example #example4 :react  --js 1 --ts 2
+::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-header/react/example4.jsx)
 @[code](@/content/guides/columns/column-header/react/example4.tsx)

@@ -25,7 +25,6 @@ The following example shows a Handsontable instance with translations set up in 
 ::: example #example1 :vue-numbro --html 1 --js 2
 
 @[code](@/content/guides/integrate-with-vue/vue-setting-up-a-language/vue/example1.html)
-
 @[code](@/content/guides/integrate-with-vue/vue-setting-up-a-language/vue/example1.js)
 
 :::

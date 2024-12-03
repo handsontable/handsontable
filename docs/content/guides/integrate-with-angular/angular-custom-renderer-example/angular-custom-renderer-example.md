@@ -25,7 +25,6 @@ The following example is an implementation of `@handsontable/angular` with a cus
 ::: example :angular --html 1 --js 2
 
 @[code](@/content/guides/integrate-with-angular/angular-custom-renderer-example/angular/example1.html)
-
 @[code](@/content/guides/integrate-with-angular/angular-custom-renderer-example/angular/example1.js)
 
 :::

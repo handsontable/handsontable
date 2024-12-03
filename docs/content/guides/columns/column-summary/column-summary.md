@@ -637,7 +637,7 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 ::: only-for javascript
 
-::: example #example11 --tab code --js 1 --ts 2
+::: example #example11 --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/javascript/example11.js)
 @[code](@/content/guides/columns/column-summary/javascript/example11.ts)
@@ -648,7 +648,7 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 ::: only-for react
 
-::: example #example11 :react --tab code --js 1 --ts 2
+::: example #example11 :react --js 1 --ts 2
 
 @[code](@/content/guides/columns/column-summary/react/example11.jsx)
 @[code](@/content/guides/columns/column-summary/react/example11.tsx)
