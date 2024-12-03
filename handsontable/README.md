@@ -1,12 +1,24 @@
 <div align="center">
 
-<a href="https://handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-blue.svg" alt="Handsontable" width="300"></a>
+<div align="center">
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="/resources/handsontable-logo-dark-theme.svg"/>
+        <source media="(prefers-color-scheme: light)" srcset="/resources/handsontable-logo-light-theme.svg"/>
+        <img width="640" alt="Handsontable logo" src="resources/handsontable-logo-light-theme.svg"/>
+    </picture>
+</div>
 
-Handsontable is a JavaScript component that combines data grid features with spreadsheet-like UX. <br>
-It provides data binding, data validation, filtering, sorting, and CRUD operations.
+<p>
+Handsontable is a JavaScript data grid for building user interfaces with a spreadsheet-like feel. It supports frameworks like [React](https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper), [Angular](https://github.com/handsontable/handsontable/tree/master/wrappers/angular) and [Vue](https://github.com/handsontable/handsontable/tree/master/wrappers/vue).
+</p>
+<p>
+Handsontable is perfect for data-rich internal applications, allowing users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, and data modeling applications.
+</p>
 
-[![npm](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
-[![npm](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
+![NPM Version](https://img.shields.io/npm/v/handsontable)
+[![Handsontable total downloads](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
+[![Handsontable monthly downloads](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
+[![Handsontable contributors](https://img.shields.io/github/contributors/handsontable/handsontable)](https://npmjs.com/package/handsontable)
 [![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
