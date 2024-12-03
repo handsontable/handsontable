@@ -179,9 +179,6 @@ class Overlays {
 
     this.initOverlays();
 
-    this.hasScrollbarBottom = false;
-    this.hasScrollbarRight = false;
-
     this.destroyed = false;
     this.keyPressed = false;
     this.spreaderLastSize = {
@@ -725,26 +722,6 @@ class Overlays {
     // we need to adjust the hider dimensions by the header border size. (https://github.com/handsontable/dev-handsontable/issues/1772)
     hiderStyle.width = `${proposedHiderWidth + rowHeaderBorderCompensation}px`;
     hiderStyle.height = `${proposedHiderHeight + columnHeaderBorderCompensation}px`;
-
-    if (this.scrollbarSize > 0) { // todo refactoring, looking as a part of logic which should be moved outside the class
-      const {
-        scrollHeight: rootElemScrollHeight,
-        scrollWidth: rootElemScrollWidth,
-      } = wtTable.wtRootElement;
-      const {
-        scrollHeight: holderScrollHeight,
-        scrollWidth: holderScrollWidth,
-      } = wtTable.holder;
-
-      this.hasScrollbarRight = rootElemScrollHeight < holderScrollHeight;
-      this.hasScrollbarBottom = rootElemScrollWidth < holderScrollWidth;
-
-      if (this.hasScrollbarRight && wtTable.hider.scrollWidth + this.scrollbarSize > rootElemScrollWidth) {
-        this.hasScrollbarBottom = true;
-      } else if (this.hasScrollbarBottom && wtTable.hider.scrollHeight + this.scrollbarSize > rootElemScrollHeight) {
-        this.hasScrollbarRight = true;
-      }
-    }
 
     this.topOverlay.adjustElementsSize();
     this.inlineStartOverlay.adjustElementsSize();

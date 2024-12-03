@@ -154,18 +154,17 @@ export class InlineStartOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const { wtTable } = this.wot;
+    const { wtTable, wtViewport } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
-    const scrollbarHeight = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'vertical') {
-      let height = this.wot.wtViewport.getWorkspaceHeight();
+      let height = wtViewport.getWorkspaceHeight();
 
-      if (this.wot.wtOverlays.hasScrollbarBottom) {
-        height -= scrollbarHeight;
+      if (wtViewport.hasHorizontalScroll()) {
+        height -= getScrollbarWidth(rootDocument);
       }
 
       height = Math.min(height, wtTable.wtRootElement.scrollHeight);
