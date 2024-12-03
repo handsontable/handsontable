@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed missing `source` argument for `setDataAtCell` method",
-  "type": "fixed",
-  "issueOrPR": 11287,
-  "breaking": false,
-  "framework": "none"
-}

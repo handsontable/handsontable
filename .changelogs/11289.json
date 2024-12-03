@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed top overlay misalignment after vertical scrollbar disappears",
-  "type": "fixed",
-  "issueOrPR": 11289,
-  "breaking": false,
-  "framework": "none"
-}

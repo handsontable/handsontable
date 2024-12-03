@@ -9,6 +9,42 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [15.0.0] - 2024-12-11
+
+### Added
+- Added support for rows/columns virtualization of the merged cells. [#11162](https://github.com/handsontable/handsontable/pull/11162)
+- Added missing typings for language files [#11236](https://github.com/handsontable/handsontable/pull/11236)
+- Added ability to cache renderers [#11264](https://github.com/handsontable/handsontable/pull/11264)
+- React: Added `@handsontable/react-wrapper` to the monorepo. [#11212](https://github.com/handsontable/handsontable/pull/11212)
+
+### Changed
+- **Breaking change**: Updated production dependencies (remove `pikaday` - using `@handsontable/pikaday` instead, bump `numbro`, and `dompurify`) [#10929](https://github.com/handsontable/handsontable/pull/10929)
+- Refactor the column stretching logic, move to the separate plugin and fix bugs related to the columns widths misalignments. [#11210](https://github.com/handsontable/handsontable/pull/11210)
+- Updated typings for dropdown and context menu options [#11237](https://github.com/handsontable/handsontable/pull/11237)
+- Use node 22 [#11265](https://github.com/handsontable/handsontable/pull/11265)
+
+### Removed
+- **Breaking change**: Removed check marks from alignment submenu. [#11278](https://github.com/handsontable/handsontable/pull/11278)
+- Removed `aria-hidden` from the TextEditor and PasswordEditor's `TEXTAREA` elements.  [#11218](https://github.com/handsontable/handsontable/pull/11218)
+
+### Fixed
+- Fixed the Autocomplete and Dropdown editor's container size counting [#11201](https://github.com/handsontable/handsontable/pull/11201)
+- Fixed focus management for dropdown menu after `updateSettings` call [#11205](https://github.com/handsontable/handsontable/pull/11205)
+- Fixed columns selection while the column is moving when the _NestedHeaders_ plugin is enabled. [#11206](https://github.com/handsontable/handsontable/pull/11206)
+- Fixed copying values when fast IME edit was enabled [#11243](https://github.com/handsontable/handsontable/pull/11243)
+- Fixed an issue with export of common lib in package.json [#11247](https://github.com/handsontable/handsontable/pull/11247)
+- Fixed checkbox switching in merged cells [#11252](https://github.com/handsontable/handsontable/pull/11252)
+- Added missing "name" attribute to the focus catcher [#11256](https://github.com/handsontable/handsontable/pull/11256)
+- Fixed data deletion for checkbox cell types [#11263](https://github.com/handsontable/handsontable/pull/11263)
+- Fixed horizontal scrolling for nested headers [#11269](https://github.com/handsontable/handsontable/pull/11269)
+- Fixed a problem where the Filters' dropdown container did not match the dropdown content size. [#11273](https://github.com/handsontable/handsontable/pull/11273)
+- Fixed an error that thrown on hiding already selected columns [#11277](https://github.com/handsontable/handsontable/pull/11277)
+- Fixed cell fast edit mode when a comment is shown. [#11280](https://github.com/handsontable/handsontable/pull/11280)
+- Fixed an error for cases where the keyboard event was triggered with `key` as `undefined`. [#11281](https://github.com/handsontable/handsontable/pull/11281)
+- Fixed input width calculation for password cell type [#11283](https://github.com/handsontable/handsontable/pull/11283)
+- Fixed missing `source` argument for `setDataAtCell` method [#11287](https://github.com/handsontable/handsontable/pull/11287)
+- Fixed top overlay misalignment after vertical scrollbar disappears [#11289](https://github.com/handsontable/handsontable/pull/11289)
+
 ## [14.6.1] - 2024-10-17
 
 ### Removed

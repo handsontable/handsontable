@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/vue3",
-  "version": "14.6.1",
+  "version": "15.0.0",
   "description": "Best Data Grid for Vue with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -53,7 +53,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "peerDependencies": {
-    "handsontable": ">=14.0.0",
+    "handsontable": ">=15.0.0",
     "vue": "^3.2.22"
   },
   "devDependencies": {
@@ -77,7 +77,7 @@
     "@vue/test-utils": "2.0.0-rc.16",
     "cross-env": "^7.0.3",
     "eslint-plugin-vue": "^8.0.3",
-    "handsontable": "^14.0.0",
+    "handsontable": "^15.0.0",
     "jest": "^26.6.3",
     "rimraf": "^3.0.2",
     "rollup": "^4.16.1",
