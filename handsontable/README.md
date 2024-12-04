@@ -31,9 +31,6 @@
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
     <img width="760" alt="JavbaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
   </picture>
-  
-  <a href="https://handsontable.com/demo"><img src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-dark-theme.png?raw=true" alt="Handsontable preview" width="760"/></a>
-  
 </div>
 
 ## Features
