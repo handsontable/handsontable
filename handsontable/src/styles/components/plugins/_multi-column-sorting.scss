@@ -9,8 +9,14 @@
     // Column's number position
     .colHeader {
       &.columnSorting {
+<<<<<<< HEAD
         &:after {
           @include mixins.pseudo;
+=======
+        &::after {
+          @include mixins.pseudo;
+
+>>>>>>> develop
           width: 8px;
           position: absolute;
           top: 50%;
@@ -39,8 +45,13 @@
     .htRight {
       .colHeader {
         &.columnSorting {
+<<<<<<< HEAD
           &:after {
             left: 0px;
+=======
+          &::after {
+            left: 0;
+>>>>>>> develop
             right: auto;
             text-align: left;
           }
@@ -54,8 +65,13 @@
       // Column's number position
       .colHeader {
         &.columnSorting {
+<<<<<<< HEAD
           &:after {
             left: 0px;
+=======
+          &::after {
+            left: 0;
+>>>>>>> develop
             right: auto;
             text-align: left;
           }
@@ -65,7 +81,11 @@
       .htLeft {
         .colHeader {
           &.columnSorting {
+<<<<<<< HEAD
             &:after {
+=======
+            &::after {
+>>>>>>> develop
               left: auto;
               right: 0;
               text-align: right;

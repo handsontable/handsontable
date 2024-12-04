@@ -37,39 +37,61 @@
       // A layer order of the selection types
       &.current {
         z-index: 10;
+<<<<<<< HEAD
         background-color: var(
           --ht-cell-selection-border-color,
           #1a42e8
         ) !important;
+=======
+        background-color: var(--ht-cell-selection-border-color) !important;
+>>>>>>> develop
       }
 
       &.area {
         z-index: 8;
+<<<<<<< HEAD
         background-color: var(
           --ht-cell-selection-border-color,
           #1a42e8
         ) !important;
+=======
+        background-color: var(--ht-cell-selection-border-color) !important;
+>>>>>>> develop
       }
 
       &.fill {
         z-index: 6;
+<<<<<<< HEAD
         background-color: var(--ht-read-only-color, #68696c) !important;
+=======
+        background-color: var(
+          --ht-cell-autofill-fill-border-color,
+          #68696c
+        ) !important;
+>>>>>>> develop
       }
 
       // Fill handle
       &.corner {
+<<<<<<< HEAD
         width: var(--ht-cell-autofill-size, 6px) !important;
         height: var(--ht-cell-autofill-size, 6px) !important;
         border: var(--ht-cell-autofill-border-width, 1px) solid
           var(--ht-cell-autofill-border-color, #fff) !important;
+=======
+>>>>>>> develop
         border-radius: var(--ht-cell-autofill-border-radius) !important;
         background-color: var(
           --ht-cell-autofill-background-color,
           #1a42e8
         ) !important;
+<<<<<<< HEAD
         margin-top: 4px;
         margin-left: 4px;
         transform: translate(-50%, -50%);
+=======
+        border-color: var(--ht-cell-autofill-border-color) !important;;
+>>>>>>> develop
         font-size: 0;
         cursor: crosshair;
         z-index: 10;

@@ -25,7 +25,6 @@ The following is an implementation of the `@handsontable/angular` component with
 ::: example :angular --html 1 --js 2
 
 @[code](@/content/guides/integrate-with-angular/angular-custom-editor-example/angular/example1.html)
-
 @[code](@/content/guides/integrate-with-angular/angular-custom-editor-example/angular/example1.js)
 
 :::

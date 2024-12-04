@@ -405,7 +405,7 @@ module.exports = {
         'https://twitter.com/handsontable',
         'https://www.linkedin.com/company/handsontable',
       ],
-      image: `${getDocsBaseFullUrl()}/img/handsonable-docs-cover.png`
+      image: `${getDocsBaseFullUrl()}/img/handsontable-docs-cover.png`
     },
     searchPlaceholder: 'Search...',
     algolia: {

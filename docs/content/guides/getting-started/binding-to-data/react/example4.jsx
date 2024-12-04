@@ -9,8 +9,8 @@ registerAllModules();
 const ExampleComponent = () => {
   const data = [
     { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
-    { id: 2, address: '' }, // Handsontable will create missing properties on demand
-    { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
+    { id: 2, address: '' },
+    { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' },
   ];
 
   return (
@@ -31,7 +31,7 @@ const ExampleComponent = () => {
         } else if (column === 3) {
           columnMeta.data = 'address';
         } else {
-          columnMeta = null;
+          columnMeta = {};
         }
 
         return columnMeta;

@@ -12,7 +12,11 @@
       }
 
       .handsontableInput:focus {
+<<<<<<< HEAD
         box-shadow: 0 0 2px var(--ht-accent-color) inset;
+=======
+        box-shadow: inset 0 0 0 2px var(--ht-accent-color);
+>>>>>>> develop
         -webkit-appearance: none;
       }
     }

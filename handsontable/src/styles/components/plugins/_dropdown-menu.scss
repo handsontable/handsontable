@@ -21,12 +21,22 @@
       background-color: var(--ht-icon-button-background-color);
       order: 1;
       z-index: 1;
+<<<<<<< HEAD
       float: inline-end;
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
       margin-inline-start: var(--ht-gap-size);
 
       &:before {
         @include mixins.pseudo;
+=======
+      float: right;
+      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+      margin-inline-start: var(--ht-gap-size);
+
+      &::before {
+        @include mixins.pseudo;
+
+>>>>>>> develop
         position: absolute;
         top: 0;
         left: 0;
@@ -35,9 +45,16 @@
 
       &:hover {
         cursor: pointer;
+<<<<<<< HEAD
         background-color: var(--ht-icon-button-hover-background-color);
 
         &:before {
+=======
+        box-shadow: 0 0 0 1px var(--ht-icon-button-hover-border-color);
+        background-color: var(--ht-icon-button-hover-background-color);
+
+        &::before {
+>>>>>>> develop
           color: var(--ht-icon-button-hover-icon-color);
         }
       }
@@ -45,16 +62,30 @@
 
     .ht__active_highlight {
       .changeType {
+<<<<<<< HEAD
         background-color: var(--ht-icon-active-button-background-color);
 
         &:before {
+=======
+        box-shadow: 0 0 0 1px var(--ht-icon-active-button-border-color);
+        background-color: var(--ht-icon-active-button-background-color);
+
+        &::before {
+>>>>>>> develop
           color: var(--ht-icon-active-button-icon-color);
         }
 
         &:hover {
+<<<<<<< HEAD
           background-color: var(--ht-icon-active-button-hover-background-color);
 
           &:before {
+=======
+          box-shadow: 0 0 0 1px var(--ht-icon-active-button-hover-border-color);
+          background-color: var(--ht-icon-active-button-hover-background-color);
+
+          &::before {
+>>>>>>> develop
             color: var(--ht-icon-active-button-hover-icon-color);
           }
         }
@@ -65,6 +96,7 @@
       &.htFiltersActive {
         background-color: var(--ht-header-filter-background-color);
 
+<<<<<<< HEAD
         .changeType {
           &:after {
             @include mixins.pseudo;
@@ -78,6 +110,8 @@
           }
         }
 
+=======
+>>>>>>> develop
         &.ht__active_highlight {
           background-color: color-mix(
             in srgb,
@@ -86,7 +120,11 @@
           );
 
           .changeType {
+<<<<<<< HEAD
             &:after {
+=======
+            &::after {
+>>>>>>> develop
               background-color: var(--ht-header-active-foreground-color);
             }
           }
@@ -99,6 +137,7 @@
     &.htContextMenu,
     &.htFiltersConditionsMenu {
       & > .ht_master {
+<<<<<<< HEAD
         border: var(--ht-menu-border-width, 1px) solid
           var(--ht-menu-border-color, #e5e5e9);
         border-radius: var(--ht-menu-border-radius);
@@ -106,6 +145,17 @@
         overflow: hidden;
         padding: var(--ht-menu-vertical-padding, 8px)
           var(--ht-menu-horizontal-padding, 0px);
+=======
+        @include mixins.menu-box-shadow;
+
+        border: var(--ht-menu-border-width, 1px) solid
+          var(--ht-menu-border-color, #e5e5e9);
+        border-radius: var(--ht-menu-border-radius);
+        overflow: hidden;
+        padding: var(--ht-menu-vertical-padding, 8px)
+          var(--ht-menu-horizontal-padding, 0);
+        background-color: var(--ht-background-color, #ffffff);
+>>>>>>> develop
       }
 
       &:not(.htGhostTable) {
@@ -178,8 +228,14 @@
               2 * var(--ht-gap-size, 4px) + var(--ht-icon-size)
             );
 
+<<<<<<< HEAD
             &:after {
               @include mixins.pseudo;
+=======
+            &::after {
+              @include mixins.pseudo;
+
+>>>>>>> develop
               position: absolute;
               top: 50%;
               right: calc(
@@ -211,10 +267,21 @@
           display: none;
         }
 
+<<<<<<< HEAD
         .htItemWrapper {
           margin-inline: calc(2 * var(--ht-gap-size, 4px));
 
           &:before {
+=======
+        &:has(.htItemWrapper .selected) {
+          background-color: var(--ht-menu-item-active-color);
+        }
+
+        .htItemWrapper {
+          margin-inline: calc(2 * var(--ht-gap-size, 4px));
+
+          &::before {
+>>>>>>> develop
             vertical-align: text-bottom;
             margin-right: 12px;
           }
@@ -223,8 +290,14 @@
             font-size: 0;
             inset: 0;
 
+<<<<<<< HEAD
             &:after {
               @include mixins.pseudo;
+=======
+            &::after {
+              @include mixins.pseudo;
+
+>>>>>>> develop
               position: absolute;
               top: 50%;
               right: calc(
@@ -233,6 +306,7 @@
               color: var(--ht-accent-color);
               transform: translateY(-50%);
             }
+<<<<<<< HEAD
 
             &::before {
               @include mixins.pseudo;
@@ -240,6 +314,8 @@
               inset: 0;
               background-color: var(--ht-menu-item-active-color);
             }
+=======
+>>>>>>> develop
           }
         }
 
@@ -250,6 +326,10 @@
 
         .htUIButton {
           width: calc(50% - var(--ht-gap-size));
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
           input {
             width: 100%;
           }
@@ -288,16 +368,27 @@
       table tbody tr td {
         &.htSubmenu {
           .htItemWrapper {
+<<<<<<< HEAD
             &:after {
+=======
+            &::after {
+>>>>>>> develop
               left: calc(4 * var(--ht-gap-size));
               right: auto;
               transform: translateY(-50%) rotate(180deg);
             }
           }
         }
+<<<<<<< HEAD
         .htItemWrapper {
           span.selected {
             &:after {
+=======
+
+        .htItemWrapper {
+          span.selected {
+            &::after {
+>>>>>>> develop
               left: calc(4 * var(--ht-gap-size));
               right: auto;
             }
@@ -305,5 +396,12 @@
         }
       }
     }
+<<<<<<< HEAD
+=======
+
+    .changeType {
+      float: left;
+    }
+>>>>>>> develop
   }
 }

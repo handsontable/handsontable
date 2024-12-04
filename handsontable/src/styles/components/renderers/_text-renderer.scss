@@ -45,7 +45,11 @@
     // TextRenderer others
     .htInvalid {
       /* gives priority over td.area selection background */
+<<<<<<< HEAD
       background-color: var(--ht-cell-error-background-color);
+=======
+      background-color: var(--ht-cell-error-background-color) !important;
+>>>>>>> develop
     }
 
     .htNoWrap {
@@ -53,7 +57,11 @@
     }
 
     .htSearchResult {
+<<<<<<< HEAD
       background: var(--ht-cell-success-background-color);
+=======
+      background: var(--ht-cell-success-background-color) !important;
+>>>>>>> develop
     }
   }
 }

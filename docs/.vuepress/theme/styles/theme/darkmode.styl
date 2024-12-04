@@ -98,7 +98,7 @@ html.theme-dark {
     
     }
     .decoration-right {
-        opacity 1
+        opacity 0.2
     }
 
     /* Sidebar 
@@ -108,9 +108,13 @@ html.theme-dark {
 
         .info-box { 
             background: $gradient2
+            border: 1px solid $borderColor
 
             span { 
-                background-color: $accentColor
+                &:before {
+                    background-color: $accentColor
+                    opacity: 0.8
+                }
                 
                 i { 
                     //filter: hue-rotate(190deg) invert(1); /* 190 degrees shifts the hue towards #27C2FF */
@@ -458,10 +462,10 @@ html.theme-dark {
                 }
             }
             
-            .instalationPage h2 code:first-child {
-                border: 1px solid $text2Color
-                background: $borderColor
-                color: $textColor
+            .instalationPage h2:before {
+                border: 1px solid $borderColor !important
+                background: $borderColor !important
+                color: $textColor !important
             }
 
             p {
@@ -795,6 +799,14 @@ html.theme-dark {
                     background: $borderColor 
                     border: 1px solid $accentColor
                 }
+            }
+        }
+
+        .theme-examples .theme-examples-controls .color-box {
+            background: var(--color-gray-600)
+
+            .color {
+                border: 1px solid var(--color-gray-700)
             }
         }
     }
@@ -1362,6 +1374,16 @@ html.theme-dark {
     
     .controls:not(button), .example-container {
 
+<<<<<<< HEAD
+=======
+        label:has(select) {
+            &:after {
+                border-bottom: 1px solid $textColor !important;
+                border-right: 1px solid $textColor !important;
+            }
+        }
+
+>>>>>>> develop
         #mainInput, select:not([data-hot-input]), input[type=text], input[type=search], .placeholder-input {
             border-radius: $radius
             border: 1px solid $lightBorderColor
@@ -1394,6 +1416,10 @@ html.theme-dark {
         h1 {
             color: $textColor
         }
+    }
+
+    .img-invert img {
+        filter: invert(1);
     }
 }
 

@@ -15,7 +15,11 @@
       appearance: none;
 
       // Box
+<<<<<<< HEAD
       &:before {
+=======
+      &::before {
+>>>>>>> develop
         content: "";
         display: inline-block;
         width: var(--ht-checkbox-size);
@@ -29,8 +33,14 @@
       }
 
       // Icon
+<<<<<<< HEAD
       &:after {
         @include mixins.pseudo;
+=======
+      &::after {
+        @include mixins.pseudo;
+
+>>>>>>> develop
         position: absolute;
         top: 0;
         left: 0;
@@ -40,19 +50,31 @@
 
       &:checked {
         // Box
+<<<<<<< HEAD
         &:before {
+=======
+        &::before {
+>>>>>>> develop
           border-color: var(--ht-checkbox-checked-border-color);
           background-color: var(--ht-checkbox-checked-background-color);
         }
 
         // Icon
+<<<<<<< HEAD
         &:after {
+=======
+        &::after {
+>>>>>>> develop
           color: var(--ht-checkbox-checked-icon-color);
         }
 
         &:disabled {
           // Box
+<<<<<<< HEAD
           &:before {
+=======
+          &::before {
+>>>>>>> develop
             border-color: var(--ht-checkbox-checked-disabled-border-color);
             background-color: var(
               --ht-checkbox-checked-disabled-background-color
@@ -60,21 +82,33 @@
           }
 
           // Icon
+<<<<<<< HEAD
           &:after {
+=======
+          &::after {
+>>>>>>> develop
             color: var(--ht-checkbox-checked-disabled-icon-color);
           }
         }
 
         &:focus {
           // Box
+<<<<<<< HEAD
           &:before {
+=======
+          &::before {
+>>>>>>> develop
             border-color: var(--ht-checkbox-checked-focus-border-color);
             background-color: var(--ht-checkbox-checked-focus-background-color);
             outline: 1px solid var(--ht-checkbox-checked-focus-ring-color);
           }
 
           // Icon
+<<<<<<< HEAD
           &:after {
+=======
+          &::after {
+>>>>>>> develop
             color: var(--ht-checkbox-checked-focus-icon-color);
           }
         }
@@ -82,14 +116,22 @@
 
       &:focus {
         // Box
+<<<<<<< HEAD
         &:before {
+=======
+        &::before {
+>>>>>>> develop
           border-color: var(--ht-checkbox-focus-border-color);
           background-color: var(--ht-checkbox-focus-background-color);
           outline: 1px solid var(--ht-checkbox-focus-ring-color);
         }
 
         // Icon
+<<<<<<< HEAD
         &:after {
+=======
+        &::after {
+>>>>>>> develop
           color: var(--ht-checkbox-focus-icon-color);
         }
       }
@@ -98,13 +140,21 @@
         cursor: initial;
 
         // Box
+<<<<<<< HEAD
         &:before {
+=======
+        &::before {
+>>>>>>> develop
           border-color: var(--ht-checkbox-disabled-border-color);
           background-color: var(--ht-checkbox-disabled-background-color);
         }
 
         // Icon
+<<<<<<< HEAD
         &:after {
+=======
+        &::after {
+>>>>>>> develop
           color: var(--ht-checkbox-disabled-icon-color);
         }
       }

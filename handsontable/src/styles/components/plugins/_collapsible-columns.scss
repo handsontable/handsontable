@@ -23,10 +23,18 @@
       /* hide text */
       text-indent: -100px;
       font-size: 0;
+<<<<<<< HEAD
       float: inline-end;
 
       &:before {
         @include mixins.pseudo;
+=======
+      float: right;
+
+      &::before {
+        @include mixins.pseudo;
+
+>>>>>>> develop
         position: absolute;
         top: 0;
         left: 0;
@@ -38,7 +46,11 @@
         background-color: var(--ht-collapse-button-open-background-color);
         box-shadow: 0 0 0 1px var(--ht-collapse-button-open-border-color); // border
 
+<<<<<<< HEAD
         &:before {
+=======
+        &::before {
+>>>>>>> develop
           color: var(--ht-collapse-button-open-icon-color);
         }
 
@@ -49,7 +61,11 @@
           box-shadow: 0 0 0 1px
             var(--ht-collapse-button-open-hover-border-color); // border
 
+<<<<<<< HEAD
           &:before {
+=======
+          &::before {
+>>>>>>> develop
             color: var(--ht-collapse-button-open-hover-icon-color);
           }
         }
@@ -60,7 +76,11 @@
         background-color: var(--ht-collapse-button-close-background-color);
         box-shadow: 0 0 0 1px var(--ht-collapse-button-close-border-color); // border
 
+<<<<<<< HEAD
         &:before {
+=======
+        &::before {
+>>>>>>> develop
           color: var(--ht-collapse-button-close-icon-color);
         }
 
@@ -71,7 +91,11 @@
           box-shadow: 0 0 0 1px
             var(--ht-collapse-button-close-hover-border-color); // border
 
+<<<<<<< HEAD
           &:before {
+=======
+          &::before {
+>>>>>>> develop
             color: var(--ht-collapse-button-close-hover-icon-color);
           }
         }
@@ -84,12 +108,20 @@
         .ht_nestingButton {
           &.collapsed,
           &.ht_nestingExpand {
+<<<<<<< HEAD
             &:before {
+=======
+            &::before {
+>>>>>>> develop
               color: var(--ht-collapse-button-close-icon-active-color);
             }
 
             &:hover {
+<<<<<<< HEAD
               &:before {
+=======
+              &::before {
+>>>>>>> develop
                 color: var(--ht-collapse-button-close-hover-icon-active-color);
               }
             }
@@ -97,12 +129,20 @@
 
           &.expanded,
           &.ht_nestingCollapse {
+<<<<<<< HEAD
             &:before {
+=======
+            &::before {
+>>>>>>> develop
               color: var(--ht-collapse-button-open-icon-active-color);
             }
 
             &:hover {
+<<<<<<< HEAD
               &:before {
+=======
+              &::before {
+>>>>>>> develop
                 color: var(--ht-collapse-button-open-hover-icon-active-color);
               }
             }
@@ -111,4 +151,14 @@
       }
     }
   }
+<<<<<<< HEAD
+=======
+
+  [dir="rtl"].handsontable {
+    .collapsibleIndicator,
+    .ht_nestingButton {
+      float: left;
+    }
+  }
+>>>>>>> develop
 }

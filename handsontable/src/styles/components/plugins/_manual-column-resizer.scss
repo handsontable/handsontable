@@ -17,13 +17,21 @@
       &::before,
       &::after {
         @include mixins.pseudo;
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
         position: absolute;
         top: 50%;
         left: 1px;
         width: 2px;
         height: calc(100% - 12px);
         max-height: 16px;
+<<<<<<< HEAD
         background: var(--ht-read-only-color);
+=======
+        background: var(--ht-resize-indicator-color);
+>>>>>>> develop
         border-radius: 2px;
         transform: translateY(-50%);
       }

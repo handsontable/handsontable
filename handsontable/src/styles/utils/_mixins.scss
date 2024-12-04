@@ -21,13 +21,21 @@
 @mixin area-styles {
   position: relative;
 
+<<<<<<< HEAD
   &:before {
+=======
+  &::before {
+>>>>>>> develop
     content: "";
     position: absolute;
     inset: 0;
     background: var(
       --ht-cell-selection-background-color,
+<<<<<<< HEAD
       #1a42e8 
+=======
+      #1a42e8
+>>>>>>> develop
     );
   }
 }

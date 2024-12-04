@@ -19,6 +19,7 @@ const getPackageUrls = (packageName, version, fileSelection) => {
       css: [
         'styles/handsontable.min.css',
         'styles/ht-theme-main.css',
+        'styles/ht-theme-horizon.css',
       ]
     },
     '@handsontable/react': {
@@ -55,10 +56,10 @@ const getPackageUrls = (packageName, version, fileSelection) => {
 
   const mappedVersion = formatVersion(version);
 
-  if(Array.isArray(urlSet[fileSelection])) {
-    return urlSet[fileSelection].map(file => `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${file}`)
+  if (Array.isArray(urlSet[fileSelection])) {
+    return urlSet[fileSelection].map(file => `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${file}`);
   }
-  
+
   return urlSet[fileSelection] ?
     `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${urlSet.subDir || 'dist/'}${urlSet[fileSelection]}` :
     `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${fileSelection}`;
@@ -103,7 +104,7 @@ const buildDependencyGetter = (version) => {
       'react-redux': ['https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.4/react-redux.min.js'],
       'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.min.js'],
       'react-star-rating-component': ['https://cdn.jsdelivr.net/npm/react-star-rating-component@1.4.1/dist/react-star-rating-component.min.js'],
-      numbro: ['https://cdn.jsdelivr.net/npm/numbro@2.1.2/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
+      numbro: ['https://cdn.jsdelivr.net/npm/numbro@2.5.0/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
       redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
       rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.js', [/* todo */]],
       'core-js': ['https://cdn.jsdelivr.net/npm/core-js@2/client/core.min.js', [/* todo */]],

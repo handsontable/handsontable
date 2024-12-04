@@ -61,7 +61,7 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 :::
 
-::: example #example1 :react --js 1 --ts 2 --tab preview
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example1.jsx)
 @[code](@/content/guides/cell-functions/cell-renderer/react/example1.tsx)
@@ -72,7 +72,7 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 In this example, React's `Context` passes information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with [editors](@/guides/cell-functions/cell-editor/cell-editor.md) as well.
 
-::: example #example2 :react --css 1 --js 2 --ts 3 --tab preview
+::: example #example2 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example2.css)
 @[code](@/content/guides/cell-functions/cell-renderer/react/example2.jsx)

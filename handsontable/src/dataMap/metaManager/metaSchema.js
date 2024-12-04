@@ -3951,7 +3951,11 @@ export default () => {
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
      *
+<<<<<<< HEAD
      * In the rendering process, the default row height is 23 px (in the classic theme: 22 px + 1 px of the row's bottom border) or what's defined as `--ht-row-height` in the used theme.
+=======
+     * In the rendering process, the default row height is 23 px (in the classic theme: 22 px + 1 px of the row's bottom border) or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
+>>>>>>> develop
      * You can change it to equal or greater than the defautl value, by setting the `rowHeights` option to one of the following:
      *
      * | Setting     | Description                                                                                         | Example                                                      |

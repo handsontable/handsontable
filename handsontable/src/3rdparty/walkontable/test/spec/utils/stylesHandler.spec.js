@@ -51,7 +51,11 @@ describe('StylesHandler', () => {
   });
 
   describe('getCSSVariableValue', () => {
+<<<<<<< HEAD
     it('should return the correct CSS variable value', () => {
+=======
+    it('should return the correct numeric CSS variable value', () => {
+>>>>>>> develop
       spec().rootElement.style.setProperty('--ht-cell-vertical-padding', '10px');
 
       spec().wotInstance.destroy();
@@ -67,6 +71,25 @@ describe('StylesHandler', () => {
       expect(spec().wotInstance.stylesHandler.getCSSVariableValue('cell-vertical-padding')).toBe(10);
     });
 
+<<<<<<< HEAD
+=======
+    it('should return the correct non-numeric CSS variable value', () => {
+      spec().rootElement.style.setProperty('--ht-cell-vertical-border-color', 'red');
+
+      spec().wotInstance.destroy();
+      walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      // `getCSSVariableValue` requires a non-classic theme to be enabled.
+      spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
+
+      expect(spec().wotInstance.stylesHandler.getCSSVariableValue('cell-vertical-border-color')).toBe('red');
+    });
+
+>>>>>>> develop
     it('should return undefined for non-existent CSS variable', () => {
       // `getCSSVariableValue` requires a non-classic theme to be enabled.
       spec().wotInstance.stylesHandler.useTheme('ht-theme-sth');
@@ -91,7 +114,12 @@ describe('StylesHandler', () => {
     });
 
     it('should calculate the default row height for non-classic theme', () => {
+<<<<<<< HEAD
       spec().rootElement.style.setProperty('--ht-row-height', '31px');
+=======
+      spec().rootElement.style.setProperty('--ht-line-height', '20px');
+      spec().rootElement.style.setProperty('--ht-cell-vertical-padding', '5px');
+>>>>>>> develop
 
       spec().wotInstance.destroy();
       walkontable({

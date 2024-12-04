@@ -94,7 +94,13 @@ export class StylesHandler {
       return this.#cssVars[`--ht-${variableName}`];
     }
 
+<<<<<<< HEAD
     const acquiredValue = this.#getParsedCSSValue(`--ht-${variableName}`);
+=======
+    const acquiredValue =
+      this.#getParsedNumericCSSValue(`--ht-${variableName}`) ??
+      this.#getCSSValue(`--ht-${variableName}`);
+>>>>>>> develop
 
     if (acquiredValue !== null) {
       this.#cssVars[`--ht-${variableName}`] = acquiredValue;
@@ -123,10 +129,17 @@ export class StylesHandler {
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
+<<<<<<< HEAD
     const cssVarRowHeightValue = this.getCSSVariableValue('row-height');
 
     if (!cssVarRowHeightValue) {
       warn(`The "${this.#themeName}" theme is enabled, but its stylesheets are missing. \
+=======
+    const calculatedRowHeight = this.#calculateRowHeight();
+
+    if (!calculatedRowHeight && hasClass(this.#rootElement, 'ht-wrapper')) {
+      warn(`The "${this.#themeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
+>>>>>>> develop
 Import the correct CSS files in order to use that theme.`);
 
       this.#isClassicTheme = true;
@@ -135,7 +148,11 @@ Import the correct CSS files in order to use that theme.`);
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
+<<<<<<< HEAD
     return cssVarRowHeightValue;
+=======
+    return calculatedRowHeight;
+>>>>>>> develop
   }
 
   /**
@@ -194,12 +211,42 @@ Import the correct CSS files in order to use that theme.`);
   }
 
   /**
+<<<<<<< HEAD
    * Applies the necessary class names to the root element.
    */
   #applyClassNames() {
     if (!hasClass(this.#rootElement, this.#themeName)) {
       addClass(this.#rootElement, this.#themeName);
     }
+=======
+   * Calculates the row height based on the current theme and CSS variables.
+   *
+   * @returns {number|null} The calculated row height, or `null` if any required CSS variable is not found.
+   */
+  #calculateRowHeight() {
+    const lineHeightVarValue = this.getCSSVariableValue('line-height');
+    const verticalPaddingVarValue = this.getCSSVariableValue('cell-vertical-padding');
+    const bottomBorderWidth = Math.ceil(parseFloat(this.getStyleForTD('border-bottom-width')));
+
+    if (
+      lineHeightVarValue === null ||
+      verticalPaddingVarValue === null ||
+      isNaN(bottomBorderWidth)
+    ) {
+      return null;
+    }
+
+    return lineHeightVarValue + (2 * verticalPaddingVarValue) + bottomBorderWidth;
+  }
+
+  /**
+   * Applies the necessary class names to the root element.
+   */
+  #applyClassNames() {
+    removeClass(this.#rootElement, /ht-theme-.*/g);
+
+    addClass(this.#rootElement, this.#themeName);
+>>>>>>> develop
   }
 
   /**
@@ -212,12 +259,20 @@ Import the correct CSS files in order to use that theme.`);
 
     const stylesForTD = this.#getStylesForTD([
       'box-sizing',
+<<<<<<< HEAD
+=======
+      'border-bottom-width',
+>>>>>>> develop
     ]);
 
     this.#computedStyles.td = {
       ...this.#computedStyles.td,
       ...{
         'box-sizing': stylesForTD['box-sizing'],
+<<<<<<< HEAD
+=======
+        'border-bottom-width': stylesForTD['border-bottom-width'],
+>>>>>>> develop
       },
     };
   }
@@ -263,6 +318,7 @@ Import the correct CSS files in order to use that theme.`);
   }
 
   /**
+<<<<<<< HEAD
    * Parses the value of a specified CSS property from the root element's computed style.
    *
    * @param {string} property - The CSS property to retrieve and parse.
@@ -274,11 +330,35 @@ Import the correct CSS files in order to use that theme.`);
     }
 
     const parsedValue = parseInt(this.#rootComputedStyle.getPropertyValue(property), 10);
+=======
+   * Parses the numeric value of a specified CSS property from the root element's computed style.
+   *
+   * @param {string} property - The CSS property to retrieve and parse.
+   * @returns {number|null} The parsed value of the CSS property or `null` if non-existent.
+   */
+  #getParsedNumericCSSValue(property) {
+    const parsedValue = Math.ceil(parseFloat(this.#getCSSValue(property)));
+>>>>>>> develop
 
     return Number.isNaN(parsedValue) ? null : parsedValue;
   }
 
   /**
+<<<<<<< HEAD
+=======
+   * Retrieves the non-numeric value of a specified CSS property from the root element's computed style.
+   *
+   * @param {string} property - The CSS property to retrieve.
+   * @returns {string|null} The value of the specified CSS property or `null` if non-existent.
+   */
+  #getCSSValue(property) {
+    const acquiredValue = this.#rootComputedStyle.getPropertyValue(property);
+
+    return acquiredValue === '' ? null : acquiredValue;
+  }
+
+  /**
+>>>>>>> develop
    * Clears the cached values.
    */
   #clearCachedValues() {

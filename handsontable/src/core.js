@@ -1004,7 +1004,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 // when 'value' is array and 'orgValue' is null, set 'orgValue' to
                 // an empty array so that the null value can be compared to 'value'
                 // as an empty value for the array context
-                if (Array.isArray(value) && orgValue === null) orgValue = [];
+                if (Array.isArray(value) && orgValue === null) {
+                  orgValue = [];
+                }
 
                 if (orgValue === null || typeof orgValue !== 'object') {
                   pushData = false;
@@ -1552,7 +1554,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changeSource = column;
     }
 
-    const processedChanges = processChanges(changes, source);
+    const processedChanges = processChanges(changes, changeSource);
 
     instance.runHooks('afterSetDataAtCell', processedChanges, changeSource);
 
@@ -4418,25 +4420,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const {
       row,
       col,
-      verticalSnap,
-      horizontalSnap,
       considerHiddenIndexes
     } = options ?? {};
-
-    let snapToTop;
-    let snapToBottom;
-    let snapToInlineStart;
-    let snapToInlineEnd;
-
-    if (verticalSnap !== undefined) {
-      snapToTop = verticalSnap === 'top';
-      snapToBottom = !snapToTop;
-    }
-
-    if (horizontalSnap !== undefined) {
-      snapToInlineStart = horizontalSnap === 'start';
-      snapToInlineEnd = !snapToInlineStart;
-    }
 
     let renderableRow = row;
     let renderableColumn = col;
@@ -4464,19 +4449,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (isRowInteger && renderableRow >= 0 && isColumnInteger && renderableColumn >= 0) {
       return instance.view.scrollViewport(
         instance._createCellCoords(renderableRow, renderableColumn),
-        snapToTop,
-        snapToInlineEnd,
-        snapToBottom,
-        snapToInlineStart
+        options.horizontalSnap,
+        options.verticalSnap,
       );
     }
 
     if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
-      return instance.view.scrollViewportVertically(renderableRow, snapToTop, snapToBottom);
+      return instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
     }
 
     if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
-      return instance.view.scrollViewportHorizontally(renderableColumn, snapToInlineEnd, snapToInlineStart);
+      return instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
     }
 
     return false;
@@ -4972,6 +4955,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.useTheme = (themeName) => {
     this.view.getStylesHandler().useTheme(themeName);
+<<<<<<< HEAD
+=======
+
+    this.runHooks('afterSetTheme', themeName, !!firstRun);
+>>>>>>> develop
   };
 
   /**

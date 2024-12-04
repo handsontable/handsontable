@@ -146,7 +146,9 @@ async function retry(fn: Function, retries: number = 3) {
 
       return;
     } catch (error) {
-      if (i === retries - 1) throw error;
+      if (i === retries - 1) {
+        throw error;
+      }
     }
   }
 }

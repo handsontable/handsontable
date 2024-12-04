@@ -1,8 +1,13 @@
 @charset "UTF-8";
+<<<<<<< HEAD
 
 @use "base";
 @use "components";
 
+=======
+@use "base";
+@use "components";
+>>>>>>> develop
 @include base.base-styles();
 @include components.core-components-styles();
 @include components.plugins-components-styles();

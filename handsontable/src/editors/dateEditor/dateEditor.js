@@ -2,7 +2,7 @@ import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
 import { EDITOR_STATE } from '../baseEditor';
 import { TextEditor } from '../textEditor';
-import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
+import { addClass, removeClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 
@@ -47,6 +47,14 @@ export class DateEditor extends TextEditor {
       this.parentDestroyed = true;
       this.destroyElements();
     });
+
+    this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+      if (!firstRun) {
+        removeClass(this.datePicker, /ht-theme-.*/g);
+
+        addClass(this.datePicker, themeName);
+      }
+    });
   }
 
   /**
@@ -67,7 +75,16 @@ export class DateEditor extends TextEditor {
     const themeClassName = this.hot.getCurrentThemeName();
 
     addClass(this.datePicker, 'htDatepickerHolder');
+<<<<<<< HEAD
     addClass(this.datePicker, themeClassName);
+=======
+
+    const themeClassName = this.hot.getCurrentThemeName();
+
+    removeClass(this.datePicker, /ht-theme-.*/g);
+    addClass(this.datePicker, themeClassName);
+
+>>>>>>> develop
     this.hot.rootDocument.body.appendChild(this.datePicker);
 
     /**

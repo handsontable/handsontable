@@ -28,8 +28,14 @@
       white-space: nowrap;
       overflow: hidden;
 
+<<<<<<< HEAD
       &:after {
         @include mixins.pseudo;
+=======
+      &::after {
+        @include mixins.pseudo;
+
+>>>>>>> develop
         position: absolute;
         right: calc(
           var(--ht-input-horizontal-padding) - var(--ht-icon-size) / 4
@@ -61,7 +67,11 @@
       cursor: pointer;
       position: relative;
       outline: none !important;
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> develop
       &:focus {
         .htUISelectCaption {
           border-color: var(--ht-input-focus-border-color);

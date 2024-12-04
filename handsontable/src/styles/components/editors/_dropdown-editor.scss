@@ -5,10 +5,18 @@
 @mixin output {
   .handsontable {
     &.listbox {
+<<<<<<< HEAD
       margin: 0;
       border: var(--ht-menu-border-width, 1px) solid
         var(--ht-menu-border-color, #e5e5e9);
       @include mixins.menu-box-shadow;
+=======
+      @include mixins.menu-box-shadow;
+
+      margin: 0;
+      border: var(--ht-menu-border-width, 1px) solid
+        var(--ht-menu-border-color, #e5e5e9);
+>>>>>>> develop
 
       .ht_master {
         overflow: hidden;
@@ -18,6 +26,13 @@
         overflow: auto;
       }
 
+<<<<<<< HEAD
+=======
+      .wtHider {
+        border-radius: 0 !important;
+      }
+
+>>>>>>> develop
       table {
         overflow: hidden;
 
@@ -33,6 +48,10 @@
         td {
           white-space: nowrap;
           text-overflow: ellipsis;
+<<<<<<< HEAD
+=======
+          border-radius: 0 !important;
+>>>>>>> develop
         }
 
         td {
@@ -72,7 +91,11 @@
           th {
             height: auto !important;
             text-align: left;
+<<<<<<< HEAD
             border-width: 0px 1px 1px;
+=======
+            border-width: 0 1px 1px;
+>>>>>>> develop
 
             > div {
               padding-top: 8px;

@@ -25,7 +25,6 @@ The following example is a basic implementation of the `@handsontable/angular` w
 ::: example :angular --html 1 --js 2
 
 @[code](@/content/guides/integrate-with-angular/angular-simple-example/angular/example1.html)
-
 @[code](@/content/guides/integrate-with-angular/angular-simple-example/angular/example1.js)
 
 :::

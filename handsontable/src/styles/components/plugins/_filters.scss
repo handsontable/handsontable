@@ -65,18 +65,29 @@
     .htUISelectionControls {
       padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
       padding-bottom: var(--ht-gap-size, 2px) !important;
+<<<<<<< HEAD
     }
 
     .htUISelectionControls {
+=======
+>>>>>>> develop
       margin: 0 calc(var(--ht-gap-size, 2px) * -1);
     }
 
     .htUIMultipleSelectHot {
+<<<<<<< HEAD
+=======
+      --ht-cell-vertical-padding: calc(
+              var(--ht-menu-item-horizontal-padding, 2px) +
+              var(--ht-gap-size, 2px) * 2);
+
+>>>>>>> develop
       overflow: initial !important;
       width: calc(
         100% + var(--ht-menu-item-horizontal-padding, 2px) * 2 +
           var(--ht-gap-size, 2px) * 4
       );
+<<<<<<< HEAD
       margin: 0
         calc(
           (
@@ -87,6 +98,16 @@
 
       &::before {
         @include mixins.pseudo;
+=======
+      margin: 0 calc(
+              (var(--ht-menu-item-horizontal-padding, 2px) +
+              var(--ht-gap-size, 2px) * 2) * -1
+      );
+
+      &::before {
+        @include mixins.pseudo;
+
+>>>>>>> develop
         position: absolute;
         top: -1px;
         left: 0;
@@ -106,12 +127,16 @@
 
         td {
           height: auto;
+<<<<<<< HEAD
           padding: 0;
           padding: 4px
             calc(
               var(--ht-menu-item-horizontal-padding, 2px) +
                 var(--ht-gap-size, 2px) * 2
             );
+=======
+          padding: 4px var(--ht-cell-vertical-padding);
+>>>>>>> develop
         }
       }
     }

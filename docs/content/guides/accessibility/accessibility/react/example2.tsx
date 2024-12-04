@@ -505,7 +505,7 @@ const countries = data.reduce<string[]>((acc, curr) => {
 const hotOptions = {
   data,
   height: 464,
-  colWidths: [140, 165, 100, 100, 100, 110, 178],
+  colWidths: [160, 165, 130, 100, 100, 110, 216],
   autoRowSize: true,
   colHeaders: [
     'Company name',

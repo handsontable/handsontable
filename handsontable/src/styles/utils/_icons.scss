@@ -1,15 +1,31 @@
+<<<<<<< HEAD
 @mixin icon($icons, $name) {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   mask-size: contain;
   mask-image: url(map-get($icons, $name));
+=======
+@use "sass:map";
+
+@mixin icon($icons, $name) {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url(map.get($icons, $name));
+>>>>>>> develop
   background-color: currentColor;
 }
 
 @mixin icons-map($icons) {
+<<<<<<< HEAD
   &.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper:after,
   &.htContextMenu table tbody tr td.htSubmenu .htItemWrapper:after,
   &.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper:after,
+=======
+  &.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+  &.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+  &.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+>>>>>>> develop
   .pika-single .pika-next {
     @include icon($icons, "arrow-right");
   }
@@ -18,6 +34,7 @@
     @include icon($icons, "arrow-left");
   }
 
+<<<<<<< HEAD
   .changeType:before {
     @include icon($icons, "menu");
   }
@@ -37,12 +54,34 @@
 
   &.htDropdownMenu table tbody tr td .htItemWrapper span.selected:after,
   &.htContextMenu table tbody tr td .htItemWrapper span.selected:after,
+=======
+  .changeType::before {
+    @include icon($icons, "menu");
+  }
+
+  .htUISelectCaption::after,
+  .htAutocompleteArrow::after {
+    @include icon($icons, "select-arrow");
+  }
+
+  .columnSorting.sortAction.ascending::before {
+    @include icon($icons, "arrow-narrow-up");
+  }
+
+  .columnSorting.sortAction.descending::before {
+    @include icon($icons, "arrow-narrow-down");
+  }
+
+  &.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after,
+  &.htContextMenu table tbody tr td .htItemWrapper span.selected::after,
+>>>>>>> develop
   &.htFiltersConditionsMenu
     table
     tbody
     tr
     td
     .htItemWrapper
+<<<<<<< HEAD
     span.selected:after {
     @include icon($icons, "check");
   }
@@ -64,23 +103,60 @@
   }
 
   th.afterHiddenRow:after {
+=======
+    span.selected::after {
+    @include icon($icons, "check");
+  }
+
+  .htCheckboxRendererInput::after {
+    @include icon($icons, "checkbox");
+  }
+
+  th.beforeHiddenColumn::after {
+    @include icon($icons, "caret-hidden-left");
+  }
+
+  th.afterHiddenColumn::before {
+    @include icon($icons, "caret-hidden-right");
+  }
+
+  th.beforeHiddenRow::after {
+    @include icon($icons, "caret-hidden-up");
+  }
+
+  th.afterHiddenRow::before {
+>>>>>>> develop
     @include icon($icons, "caret-hidden-down");
   }
 
   .collapsibleIndicator,
   .ht_nestingButton {
+<<<<<<< HEAD
     &:before {
       @include icon($icons, "collapse-off");
     }
     &.collapsed,
     &.ht_nestingExpand {
       &:before {
+=======
+    &::before {
+      @include icon($icons, "collapse-off");
+    }
+
+    &.collapsed,
+    &.ht_nestingExpand {
+      &::before {
+>>>>>>> develop
         @include icon($icons, "collapse-on");
       }
     }
   }
 
+<<<<<<< HEAD
   .htUIRadio > input[type="radio"]:after {
+=======
+  .htUIRadio > input[type="radio"]::after {
+>>>>>>> develop
     @include icon($icons, "radio");
   }
 }

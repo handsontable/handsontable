@@ -4,10 +4,19 @@
 
 @mixin output {
   .pika-single {
+<<<<<<< HEAD
     position: relative;
     display: block;
     padding: 10px;
     @include mixins.font-family;
+=======
+    @include mixins.font-family;
+    @include mixins.menu-box-shadow;
+
+    position: relative;
+    display: block;
+    padding: 10px;
+>>>>>>> develop
     font-size: var(--ht-font-size);
     line-height: var(--ht-line-height);
     font-weight: var(--ht-font-weight);
@@ -16,7 +25,10 @@
     border: var(--ht-menu-border-width, 1px) solid
       var(--ht-menu-border-color, #e5e5e9);
     border-radius: var(--ht-menu-border-radius);
+<<<<<<< HEAD
     @include mixins.menu-box-shadow;
+=======
+>>>>>>> develop
     z-index: 9999;
 
     &.is-hidden {
@@ -75,14 +87,29 @@
       }
 
       th {
+<<<<<<< HEAD
         abbr {
           text-decoration: none;
           font-weight: normal;
+=======
+        padding: 1px;
+        vertical-align: middle;
+
+        abbr {
+          text-decoration: none;
+          font-weight: normal;
+          border: none;
+          cursor: initial;
+>>>>>>> develop
         }
       }
 
       td {
         padding: 1px;
+<<<<<<< HEAD
+=======
+        vertical-align: middle;
+>>>>>>> develop
 
         &.is-disabled {
           .pika-button {

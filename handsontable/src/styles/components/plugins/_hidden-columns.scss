@@ -9,8 +9,13 @@
       &.afterHiddenColumn {
         position: relative;
 
+<<<<<<< HEAD
         &:after {
           @include mixins.pseudo;
+=======
+        &::before,
+        &::after {
+>>>>>>> develop
           position: absolute;
           top: 50%;
           width: 10px !important;
@@ -20,18 +25,35 @@
         }
       }
 
+<<<<<<< HEAD
       &.beforeHiddenColumn:after {
         right: -2px;
       }
 
       &.afterHiddenColumn:after {
+=======
+      &.beforeHiddenColumn::after {
+        @include mixins.pseudo;
+
+        right: -2px;
+      }
+
+      &.afterHiddenColumn::before {
+        @include mixins.pseudo;
+
+>>>>>>> develop
         left: -2px;
       }
 
       &.ht__active_highlight {
         &.beforeHiddenColumn,
         &.afterHiddenColumn {
+<<<<<<< HEAD
           &:after {
+=======
+          &::before,
+          &::after {
+>>>>>>> develop
             color: var(--ht-icon-active-button-icon-color);
           }
         }
@@ -41,13 +63,21 @@
 
   [dir="rtl"].handsontable {
     th {
+<<<<<<< HEAD
       &.beforeHiddenColumn:after {
+=======
+      &.beforeHiddenColumn::after {
+>>>>>>> develop
         right: initial;
         left: -2px;
         transform: translateY(-50%) rotate(180deg);
       }
 
+<<<<<<< HEAD
       &.afterHiddenColumn:after {
+=======
+      &.afterHiddenColumn::before {
+>>>>>>> develop
         right: -2px;
         left: initial;
         transform: translateY(-50%) rotate(180deg);

@@ -1,4 +1,5 @@
 const { register } = require('./register');
+const { themeManager } = require('./theme-manager');
 const {
   buildDependencyGetter,
   presetMap,
@@ -86,12 +87,14 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
       setTimeout(() => {
         abortSignal.removeEventListener('abort', abortHandler);
         register.listen();
+        themeManager.ensureCorrectHotThemes();
         resolve();
       });
     } else {
       script.addEventListener('load', () => {
         abortSignal.removeEventListener('abort', abortHandler);
         register.listen();
+        themeManager.ensureCorrectHotThemes();
         resolve();
       });
     }

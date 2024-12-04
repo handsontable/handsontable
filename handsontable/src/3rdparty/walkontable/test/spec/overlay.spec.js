@@ -775,7 +775,7 @@ describe('WalkontableOverlay', () => {
       });
 
       wt.draw();
-      wt.scrollViewport({ row: getTotalRows() - 1, col: 0 }, true, false, false, true);
+      wt.scrollViewport({ row: getTotalRows() - 1, col: 0 }, 'start', 'top');
       wt.draw();
 
       // scroll the viewport precisely 1px before the top overlay disappears
@@ -799,7 +799,7 @@ describe('WalkontableOverlay', () => {
       });
 
       wt.draw();
-      wt.scrollViewport({ row: 0, col: getTotalColumns() - 1 }, true, false, false, true);
+      wt.scrollViewport({ row: 0, col: getTotalColumns() - 1 }, 'start', 'top');
       wt.draw();
 
       // scroll the viewport precisely 1px before the left overlay disappears
@@ -822,7 +822,7 @@ describe('WalkontableOverlay', () => {
       });
 
       wt.draw();
-      wt.scrollViewport({ row: getTotalRows() - 1, col: 0 }, false, true, true, false);
+      wt.scrollViewport({ row: getTotalRows() - 1, col: 0 }, 'end', 'bottom');
       wt.draw();
 
       // scroll the viewport precisely 1px before the bottom overlay disappears

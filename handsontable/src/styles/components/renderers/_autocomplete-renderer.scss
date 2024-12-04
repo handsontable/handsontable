@@ -11,12 +11,22 @@
       width: var(--ht-icon-size);
       height: var(--ht-icon-size);
       font-size: 0;
+<<<<<<< HEAD
       float: inline-end;
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
       margin-inline-start: calc(var(--ht-gap-size) * 2);
 
       &:after {
         @include mixins.pseudo;
+=======
+      float: right;
+      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+      margin-inline-start: calc(var(--ht-gap-size) * 2);
+
+      &::after {
+        @include mixins.pseudo;
+
+>>>>>>> develop
         position: absolute;
         top: 0;
         left: 0;
@@ -24,4 +34,13 @@
       }
     }
   }
+<<<<<<< HEAD
+=======
+
+  [dir="rtl"].handsontable {
+    .htAutocompleteArrow {
+      float: left;
+    }
+  }
+>>>>>>> develop
 }

@@ -121,8 +121,8 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 
 ::: example #example4 .custom-class :react --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example4.jsx)
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example4.tsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example4.jsx)
+@[code](@/content/guides/getting-started/binding-to-data/react/example4.tsx)
 
 :::
 

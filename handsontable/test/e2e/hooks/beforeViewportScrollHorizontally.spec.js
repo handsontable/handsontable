@@ -27,7 +27,28 @@ describe('Hook', () => {
 
       scrollViewportTo({ col: 40 });
 
-      expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(40);
+      expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(40, jasmine.objectContaining({
+        value: 'auto',
+      }));
+    });
+
+    it('should be fired when the viewport is scrolled horizontally with snapping option', () => {
+      const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally');
+
+      handsontable({
+        data: createSpreadsheetData(100, 50),
+        width: 300,
+        height: 300,
+        rowHeaders: true,
+        colHeaders: true,
+        beforeViewportScrollHorizontally,
+      });
+
+      scrollViewportTo({ col: 40, horizontalSnap: 'end' });
+
+      expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(40, jasmine.objectContaining({
+        value: 'end',
+      }));
     });
 
     it('should be fired when the viewport is tried to scroll horizontally (the column is already within the viewport)', () => {
@@ -44,7 +65,9 @@ describe('Hook', () => {
 
       scrollViewportTo({ col: 3 });
 
-      expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(3);
+      expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(3, jasmine.objectContaining({
+        value: 'auto',
+      }));
     });
 
     it('should not be fired when the viewport is scrolled vertically', () => {
@@ -79,6 +102,30 @@ describe('Hook', () => {
       scrollViewportTo({ row: 3 });
 
       expect(beforeViewportScrollHorizontally).not.toHaveBeenCalledWith();
+    });
+
+    it('should be possible to change the snapping option', () => {
+      const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally')
+        .and
+        .callFake((column, snapping) => {
+          snapping.value = 'start';
+        });
+
+      handsontable({
+        data: createSpreadsheetData(100, 50),
+        width: 300,
+        height: 300,
+        colWidths: 50,
+        rowHeaders: true,
+        colHeaders: true,
+        beforeViewportScrollHorizontally,
+      });
+
+      scrollViewportTo({ col: 10 });
+
+      expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(10, jasmine.objectContaining({
+        value: 'start',
+      }));
     });
 
     it('should be possible to change column to which the viewport is scrolled', () => {
@@ -126,7 +173,9 @@ describe('Hook', () => {
 
       scrollViewportTo({ col: 20 });
 
-      expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(20);
+      expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(20, jasmine.objectContaining({
+        value: 'auto',
+      }));
 
       // 900 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
       expect(inlineStartOverlay().getScrollPosition()).toBe(666);

@@ -1,7 +1,16 @@
 import Handsontable from 'handsontable';
 
 const elem = document.createElement('div');
-const hot = new Handsontable(elem, {});
+const hot = new Handsontable(elem, {
+  collapsibleColumns: true,
+});
+
+new Handsontable(elem, {
+  collapsibleColumns: [
+    { row: -4, col: 1, collapsible: true },
+    { row: -3, col: 5, collapsible: true }
+  ],
+});
 
 const collapsibleColumns = hot.getPlugin('collapsibleColumns');
 

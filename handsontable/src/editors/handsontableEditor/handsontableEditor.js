@@ -25,12 +25,17 @@ export class HandsontableEditor extends TextEditor {
   open() {
     super.open();
 
+    const containerStyle = this.htContainer.style;
+
     if (this.htEditor) {
       this.htEditor.destroy();
+      containerStyle.width = '';
+      containerStyle.height = '';
+      containerStyle.overflow = '';
     }
 
-    if (this.htContainer.style.display === 'none') {
-      this.htContainer.style.display = '';
+    if (containerStyle.display === 'none') {
+      containerStyle.display = '';
     }
 
     // Constructs and initializes a new Handsontable instance
@@ -45,12 +50,13 @@ export class HandsontableEditor extends TextEditor {
     }
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
-    this.refreshDimensions();
 
     this.htEditor.updateSettings({
       width: this.getWidth(),
       height: this.getHeight(),
     });
+
+    this.refreshDimensions();
   }
 
   /**
@@ -196,6 +202,12 @@ export class HandsontableEditor extends TextEditor {
     this.hot.addHook('afterDestroy', () => {
       if (this.htEditor) {
         this.htEditor.destroy();
+      }
+    });
+
+    this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+      if (!firstRun) {
+        this.htEditor.useTheme(themeName);
       }
     });
   }
