@@ -25,7 +25,7 @@
 
   <br>
   
-  <a href="https://handsontable.com/demo"><img src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-github-preview-dark-theme.png" alt="Handsontable preview"/></a>
+  <a href="https://handsontable.com/demo"><img src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-dark-theme.png?raw=true" alt="Handsontable preview" width="750"/></a>
   
 </div>
 
