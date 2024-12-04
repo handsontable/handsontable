@@ -6,7 +6,7 @@
     <img width="400" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-light-theme.svg?raw=true"/>
   </picture>
   <br><br>
-  <h3>Handsontable is a JavaScript data grid for building user interfaces with a spreadsheet-like feel.</h3>
+  <h3>Handsontable is a JavaScript data grid with a spreadsheet-like look and feel.</h3>
   <p>
     It supports frameworks like 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper" target="_blank">React</a>, 
