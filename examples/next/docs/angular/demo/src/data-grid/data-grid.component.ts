@@ -1,5 +1,6 @@
-import { Component, ViewEncapsulation } from "@angular/core";
+import { Component, ViewEncapsulation, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { getData } from "./utils/constants";
+import { HotTableModule } from '@handsontable/angular';
 
 import { addClassesToRows } from "./utils/hooks-callbacks";
 
@@ -8,6 +9,8 @@ import { addClassesToRows } from "./utils/hooks-callbacks";
   selector: "data-grid",
   templateUrl: "./data-grid.component.html",
   styleUrls: ["./data-grid.scss"],
+  imports: [HotTableModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class DataGridComponent {
   dataset = getData();

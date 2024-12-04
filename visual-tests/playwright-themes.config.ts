@@ -6,6 +6,8 @@ import { PlaywrightTestConfig, devices } from '@playwright/test';
  */
 // require('dotenv').config();
 
+const VIEWPORT_SIZE = { width: 1920, height: 1100 };
+
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
@@ -53,6 +55,7 @@ const config: PlaywrightTestConfig = {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        viewport: VIEWPORT_SIZE,
         contextOptions: {
           // chromium-specific permissions
           permissions: ['clipboard-read', 'clipboard-write'],
@@ -61,12 +64,18 @@ const config: PlaywrightTestConfig = {
     },
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: {
+        ...devices['Desktop Firefox'],
+        viewport: VIEWPORT_SIZE,
+      },
     },
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: {
+        ...devices['Desktop Safari'],
+        viewport: VIEWPORT_SIZE,
+      },
     },
   ]
 };

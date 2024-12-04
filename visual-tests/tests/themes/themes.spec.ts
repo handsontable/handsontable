@@ -21,7 +21,7 @@ urls.forEach((url) => {
   const testFileName = path.basename(__filename, '.spec.ts');
   const themeName = `-${url.replace('/?theme=', '')}`;
 
-  testCrossBrowser(`Colapse nested headers in theme: ${themeName}`, async({ tablePage }) => {
+  testCrossBrowser(`Collapse nested headers in theme: ${themeName}`, async({ tablePage }) => {
     await tablePage.goto(url);
 
     await collapseNestedColumn('I');
@@ -42,7 +42,7 @@ urls.forEach((url) => {
     await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-contextMenu') });
   });
 
-  testCrossBrowser(`Sort multpiple columns in theme: ${themeName}`, async({ tablePage }) => {
+  testCrossBrowser(`Sort multiple columns in theme: ${themeName}`, async({ tablePage }) => {
     await tablePage.goto(url);
     await setColumnSorting('Age', SortDirection.Descending);
     await setAdditionalColumnSorting('Interest', SortDirection.Ascending);
