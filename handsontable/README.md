@@ -33,19 +33,20 @@
 
 The most popular features of Handsontable:
 
-&nbsp;&nbsp;✓&nbsp; Multiple column sorting <br>
-&nbsp;&nbsp;✓&nbsp; Non-contiguous selection <br>
-&nbsp;&nbsp;✓&nbsp; Filtering data <br>
-&nbsp;&nbsp;✓&nbsp; Export to file <br>
-&nbsp;&nbsp;✓&nbsp; Validating data <br>
-&nbsp;&nbsp;✓&nbsp; Conditional formatting <br>
-&nbsp;&nbsp;✓&nbsp; Merging cells <br>
-&nbsp;&nbsp;✓&nbsp; Freezing rows/columns <br>
-&nbsp;&nbsp;✓&nbsp; Moving rows/columns <br>
-&nbsp;&nbsp;✓&nbsp; Resizing rows/columns <br>
-&nbsp;&nbsp;✓&nbsp; Hiding rows/columns <br>
-&nbsp;&nbsp;✓&nbsp; Context menu <br>
-&nbsp;&nbsp;✓&nbsp; Comments <br>
+&nbsp;&nbsp;☑&nbsp; Multiple column sorting <br>
+&nbsp;&nbsp;☑&nbsp; Multiple column sorting <br>
+&nbsp;&nbsp;☑&nbsp; Non-contiguous selection <br>
+&nbsp;&nbsp;☑&nbsp; Filtering data <br>
+&nbsp;&nbsp;☑&nbsp; Export to file <br>
+&nbsp;&nbsp;☑&nbsp; Validating data <br>
+&nbsp;&nbsp;☑&nbsp; Conditional formatting <br>
+&nbsp;&nbsp;☑&nbsp; Merging cells <br>
+&nbsp;&nbsp;☑&nbsp; Freezing rows/columns <br>
+&nbsp;&nbsp;☑&nbsp; Moving rows/columns <br>
+&nbsp;&nbsp;☑&nbsp; Resizing rows/columns <br>
+&nbsp;&nbsp;☑&nbsp; Hiding rows/columns <br>
+&nbsp;&nbsp;☑&nbsp; Context menu <br>
+&nbsp;&nbsp;☑&nbsp; Comments <br>
 
 ## Documentation
 
