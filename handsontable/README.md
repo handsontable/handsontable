@@ -7,7 +7,7 @@
   </picture>
   
   <br><br>
-  <h3>Handsontable is a <a href="https://handsontable/docs/javascript-data-grid" target="_blank">JavaScript data grid</a> with a spreadsheet-like look and feel.</h3>
+  <h3>Handsontable is a highly-customizable <a href="https://handsontable/docs/javascript-data-grid" target="_blank">JavaScript data grid</a> with a spreadsheet-like look and feel.</h3>
   <p>
     It supports frameworks like 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper" target="_blank">React</a>, 
