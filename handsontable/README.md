@@ -44,12 +44,11 @@
   
   ### Install with npm
   
-  Run the following command in your terminal
-  ```
+  ```bash
   npm install handsontable
   ```
   
-  You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https://www.nuget.org/packages/Handsontable) or load the bundle directly from [jsDelivr](https://jsdelivr.com/package/npm/handsontable).
+  You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https://www.nuget.org/packages/Handsontable) or load the package from [CDN](https://jsdelivr.com/package/npm/handsontable).
   
   ### Create a placeholder
   
