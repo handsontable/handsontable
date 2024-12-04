@@ -167,6 +167,22 @@ describe('shortcutManager', () => {
     expect(callback.calls.count()).toBe(1);
   });
 
+  it('should not trigger a callback when the `key` is undefined (#dev-2096)', () => {
+    const afterDocumentKeyDown = jasmine.createSpy();
+    const hot = handsontable({
+      afterDocumentKeyDown,
+    });
+
+    hot.listen();
+
+    keyTriggerFactory('keydown', undefined, {
+      extend: {},
+      target: document.activeElement,
+    });
+
+    expect(afterDocumentKeyDown).not.toHaveBeenCalled();
+  });
+
   it('should run action for specified Command/Control modifier key depending on the operating system the table runs on', () => {
     const hot = handsontable();
     const shortcutManager = hot.getShortcutManager();

@@ -1,0 +1,128 @@
+@use "../../utils/mixins";
+
+// Handsontable Input
+//  Used in Dropdown Menu
+
+@mixin output {
+  .handsontable {
+    .htUIRadio {
+      position: relative;
+      display: inline-flex;
+      margin: 0;
+      padding: var(--ht-gap-size) calc(2 * var(--ht-gap-size));
+      padding-bottom: 0;
+      align-items: center;
+      gap: var(--ht-gap-size);
+      cursor: pointer;
+
+      &:first-child {
+        padding-inline-start: 0;
+      }
+
+      > input[type="radio"] {
+        position: relative;
+        width: var(--ht-checkbox-size);
+        height: var(--ht-checkbox-size);
+        margin: 0;
+        appearance: none;
+        cursor: pointer;
+
+        // Circle overlay
+        &::before {
+          @include mixins.pseudo;
+
+          position: absolute;
+          inset: 0;
+          border-radius: calc(0.5 * var(--ht-checkbox-size));
+          border: 1px solid var(--ht-checkbox-border-color);
+          background-color: var(--ht-checkbox-background-color);
+        }
+
+        // Circle
+        &::after {
+          @include mixins.pseudo;
+
+          position: absolute;
+          color: var(--ht-checkbox-background-color);
+        }
+
+        &:checked {
+          // Circle overlay
+          &::before {
+            border-color: var(--ht-checkbox-checked-border-color);
+          }
+
+          // Circle
+          &::after {
+            color: var(--ht-checkbox-checked-background-color);
+          }
+
+          &:disabled {
+            cursor: initial;
+
+            // Circle overlay
+            &::before {
+              border-color: var(--ht-checkbox-checked-disabled-border-color);
+            }
+
+            // Circle
+            &::after {
+              color: var(--ht-checkbox-checked-disabled-background-color);
+            }
+          }
+
+          &:focus {
+            // Circle overlay
+            &::before {
+              border-color: var(--ht-checkbox-checked-focus-background-color);
+            }
+
+            // Circle
+            &::after {
+              color: var(--ht-checkbox-checked-focus-background-color);
+            }
+          }
+        }
+
+        &:disabled {
+          cursor: initial;
+
+          // Circle overlay
+          &::before {
+            border-color: var(--ht-checkbox-disabled-border-color);
+          }
+
+          // Circle
+          &::after {
+            color: var(--ht-checkbox-disabled-background-color);
+          }
+        }
+
+        &:focus {
+          // Circle overlay
+          &::before {
+            border-color: var(--ht-checkbox-focus-background-color);
+          }
+
+          // Circle
+          &::after {
+            color: var(--ht-checkbox-focus-background-color);
+          }
+        }
+      }
+
+      label {
+        vertical-align: middle;
+        cursor: pointer;
+        color: inherit;
+
+        &::before {
+          @include mixins.pseudo;
+
+          position: absolute;
+          inset: 0;
+        }
+      }
+    }
+  }
+}

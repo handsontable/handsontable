@@ -134,6 +134,7 @@ export interface Events {
   afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
+  afterSetTheme?: (themeName: string|boolean|undefined, firstRun: boolean) => void;
   afterSheetAdded?: (addedSheetDisplayName: string) => void;
   afterSheetRemoved?: (removedSheetDisplayName: string, changes: ExportedChange[]) => void;
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
@@ -226,8 +227,8 @@ export interface Events {
   beforeUpdateData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
   beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
   beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
-  beforeViewportScrollVertically?: (visualRow: number) => number | boolean;
-  beforeViewportScrollHorizontally?: (visualColumn: number) => number | boolean;
+  beforeViewportScrollVertically?: (visualRow: number, snapping: 'auto' | 'top' | 'bottom') => number | boolean | null;
+  beforeViewportScrollHorizontally?: (visualColumn: number, snapping: 'auto' | 'start' | 'end') => number | boolean | null;
   beforeViewportScroll?: () => void;
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
   construct?: () => void;

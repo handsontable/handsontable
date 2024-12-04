@@ -16,7 +16,11 @@ const getPackageUrls = (packageName, version, fileSelection) => {
   const subDirs = {
     handsontable: {
       js: 'handsontable.full.min.js',
-      css: 'handsontable.full.min.css'
+      css: [
+        'styles/handsontable.min.css',
+        'styles/ht-theme-main.css',
+        'styles/ht-theme-horizon.css',
+      ]
     },
     '@handsontable/react': {
       js: 'react-handsontable.min.js'
@@ -39,12 +43,22 @@ const getPackageUrls = (packageName, version, fileSelection) => {
   const urlSet = subDirs[packageName];
 
   if (version === 'next' && isBrowser) {
-    return urlSet[fileSelection] ?
-      `/docs/${packageName}/${urlSet[fileSelection]}` :
-      `/docs/${packageName}/${fileSelection}`;
+    if (Array.isArray(urlSet[fileSelection])) {
+      return urlSet[fileSelection].map(file => (`/docs/${packageName}/${file}`));
+    }
+
+    if (urlSet[fileSelection]) {
+      return `/docs/${packageName}/${urlSet[fileSelection]}`;
+    }
+
+    return `/docs/${packageName}/${fileSelection}`;
   }
 
   const mappedVersion = formatVersion(version);
+
+  if (Array.isArray(urlSet[fileSelection])) {
+    return urlSet[fileSelection].map(file => `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${file}`);
+  }
 
   return urlSet[fileSelection] ?
     `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${urlSet.subDir || 'dist/'}${urlSet[fileSelection]}` :

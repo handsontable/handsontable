@@ -1,6 +1,7 @@
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -19,15 +20,13 @@ const ExampleComponent = () => {
     <HotTable
       data={data}
       height={320}
-      colWidths={60}
+      colWidths={100}
       rowHeaders={true}
       colHeaders={true}
       contextMenu={true}
       mergeCells={{
         virtualized: true,
-        cells: [
-          { row: 1, col: 1, rowspan: 3, colspan: 498 },
-        ],
+        cells: [{ row: 1, col: 1, rowspan: 3, colspan: 498 }],
       }}
       viewportColumnRenderingOffset={15}
       viewportColumnRenderingThreshold={5}

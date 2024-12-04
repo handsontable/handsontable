@@ -1,0 +1,34 @@
+@use "../../utils/mixins";
+
+// Autocomplete
+
+@mixin output {
+  .handsontable {
+    // Arrow
+    .htAutocompleteArrow {
+      position: relative;
+      cursor: default;
+      width: var(--ht-icon-size);
+      height: var(--ht-icon-size);
+      font-size: 0;
+      float: right;
+      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+      margin-inline-start: calc(var(--ht-gap-size) * 2);
+
+      &::after {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0.6;
+      }
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    .htAutocompleteArrow {
+      float: left;
+    }
+  }
+}

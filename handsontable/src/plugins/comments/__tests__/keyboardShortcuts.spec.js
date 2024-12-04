@@ -108,6 +108,38 @@ describe('Comments keyboard shortcut', () => {
       expect(document.activeElement).toBe(editor);
     });
 
+    it('should refocus the comment for the cell with already opened a comment', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: {
+          displayDelay: 10
+        },
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Hello world!' } }
+        ],
+      });
+
+      selectCell(1, 1);
+      $(getCell(1, 1)).simulate('mouseover', {
+        clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
+        clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
+      });
+
+      await sleep(50);
+
+      keyDownUp(['control', 'alt', 'm']);
+
+      await sleep(10);
+
+      const plugin = getPlugin('comments');
+      const editor = plugin.getEditorInputElement();
+
+      expect(editor.parentNode.style.display).toBe('block');
+      expect(document.activeElement).toBe(editor);
+    });
+
     it('should open the comment when the multiple cells are selected', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),

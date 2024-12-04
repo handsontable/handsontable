@@ -37,7 +37,9 @@ function convertConfToJSON(filePath) {
     line = line.trim();
 
     // Ignore comments and blank lines
-    if (line === '' || line.startsWith('#')) return;
+    if (line === '' || line.startsWith('#')) {
+      return;
+    }
 
     // Regex to extract parts of the rewrite rule
     const rewriteRegex = /^rewrite\s+(.+)\s+(.+)\s+(.+);$/;

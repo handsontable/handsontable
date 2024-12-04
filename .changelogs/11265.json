@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Use node 22",
+  "type": "changed",
+  "issueOrPR": 11265,
+  "breaking": false,
+  "framework": "none"
+}

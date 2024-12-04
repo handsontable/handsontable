@@ -1,0 +1,62 @@
+@mixin user-select-none {
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+@mixin cursor-grab {
+  cursor: move;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+
+@mixin cursor-grabbing {
+  cursor: move;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+
+@mixin area-styles {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(
+      --ht-cell-selection-background-color,
+      #1a42e8
+    );
+  }
+}
+
+@mixin pseudo {
+  content: "";
+  display: block;
+}
+
+@mixin selection-opacity($index) {
+  $opacity: 0.14 + ($index * 0.07);
+  .handsontable
+    tbody
+    td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-#{$index}"]:before {
+    opacity: $opacity;
+  }
+}
+
+// Function to return opacity values - selection [area]
+@function get-opacity($index) {
+  @return 0.14 + ($index * 0.07);
+}
+
+@mixin font-family {
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Helvetica Neue, Arial, sans-serif;
+}
+
+@mixin menu-box-shadow {
+  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0)
+    var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
+}

@@ -2,7 +2,6 @@ name: Docs Production Deployment
 
 env:
   GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation
-  NODE_VERSION: 20
 
 on:
   push:
@@ -22,10 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # https://github.com/actions/github-script/releases/tag/v6.3.3

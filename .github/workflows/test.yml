@@ -13,9 +13,6 @@ on:
       - 'release/**'
   workflow_dispatch:
 
-env:
-  NODE_VERSION: 20
-
 jobs:
   check-scope:
     name: Check the scope
@@ -117,10 +114,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -147,10 +144,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -159,6 +156,8 @@ jobs:
           cd handsontable
           npm run build:es && npm run build:languages.es
           npm run build:commonjs
+          npm run build:themes && npm run build:legacy-css
+          npm run build:themes.min && npm run build:legacy-css.min
           npm run postbuild
       - run: tar -zcf tmp.tar.gz ./handsontable/tmp
 
@@ -178,10 +177,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -200,10 +199,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -222,10 +221,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -244,10 +243,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -273,10 +272,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -300,10 +299,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -338,10 +337,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -362,7 +361,7 @@ jobs:
       - name: Build UMD from CJS
         run: |
           cd handsontable
-          npm run build:umd-from-cjs 
+          npm run build:umd-from-cjs
 
       - name: Test
         run: |
@@ -379,10 +378,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -416,10 +415,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -452,10 +451,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -488,10 +487,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -524,10 +523,10 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -577,10 +576,10 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci --no-audit
 
@@ -600,6 +599,8 @@ jobs:
             npm run in handsontable build:commonjs
             npm run in handsontable build:languages.es
           fi
+          npm run in handsontable build:themes && npm run in handsontable build:legacy-css
+          npm run in handsontable build:themes.min && npm run in handsontable build:legacy-css.min
           npm run in handsontable postbuild
       - run: |
           if test -f "handsontable-build-umd/dist.tar.gz"; then

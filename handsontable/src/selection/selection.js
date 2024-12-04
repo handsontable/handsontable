@@ -1305,10 +1305,15 @@ class Selection {
       return;
     }
 
-    const focusHighlight = this.highlight.getFocus();
     const currentLayer = this.getLayerLevel();
+    const cellRange = this.selectedRange.current();
 
-    focusHighlight.commit().syncWith(this.selectedRange.current());
+    if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
+      this.highlight
+        .getFocus()
+        .commit()
+        .syncWith(cellRange);
+    }
 
     // Rewriting rendered ranges going through all layers.
     for (let layerLevel = 0; layerLevel < this.selectedRange.size(); layerLevel += 1) {

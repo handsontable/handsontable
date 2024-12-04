@@ -5,6 +5,9 @@ import {
   getScrollTop,
   offset,
 } from '../../../helpers/dom/element';
+import {
+  createObjectPropListener,
+} from '../../../helpers/object';
 
 /**
  * @class Scroll
@@ -29,15 +32,21 @@ class Scroll {
    * Scrolls viewport to a cell.
    *
    * @param {CellCoords} coords The cell coordinates.
-   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
-   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right of the table.
-   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom of the table.
-   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left of the table.
+   * @param {'auto' | 'start' | 'end'} [horizontalSnap='auto'] If `'start'`, viewport is scrolled to show
+   * the cell on the left of the table. If `'end'`, viewport is scrolled to show the cell on the right of
+   * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
+   * @param {'auto' | 'top' | 'bottom'} [verticalSnap='auto'] If `'top'`, viewport is scrolled to show
+   * the cell on the top of the table. If `'bottom'`, viewport is scrolled to show the cell on the bottom of
+   * the table. When `'auto'`, the viewport is scrolled only when the row is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
-    const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, snapToRight, snapToLeft);
-    const scrolledVertically = this.scrollViewportVertically(coords.row, snapToTop, snapToBottom);
+  scrollViewport(coords, horizontalSnap, verticalSnap) {
+    if (coords.col < 0 || coords.row < 0) {
+      return false;
+    }
+
+    const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, horizontalSnap);
+    const scrolledVertically = this.scrollViewportVertically(coords.row, verticalSnap);
 
     return scrolledHorizontally || scrolledVertically;
   }
@@ -46,36 +55,40 @@ class Scroll {
    * Scrolls viewport to a column.
    *
    * @param {number} column Visual column index.
-   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right of the table.
-   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left of the table.
+   * @param {'auto' | 'start' | 'end'} [snapping='auto'] If `'start'`, viewport is scrolled to show
+   * the cell on the left of the table. If `'end'`, viewport is scrolled to show the cell on the right of
+   * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewportHorizontally(column, snapToRight, snapToLeft) {
+  scrollViewportHorizontally(column, snapping = 'auto') {
     const {
       drawn,
       totalColumns
     } = this.dataAccessObject;
 
-    // do not scroll the viewport when the column points to a range outside of the dataset
-    if (!drawn || !Number.isInteger(column) || column < 0 || column > totalColumns) {
+    if (!drawn) {
       return false;
     }
 
-    const autoSnapping = snapToRight === undefined && snapToLeft === undefined;
+    const snappingObject = createObjectPropListener(snapping);
+
+    column = this.dataAccessObject.wtSettings
+      .getSetting('onBeforeViewportScrollHorizontally', column, snappingObject);
+
+    if (!Number.isInteger(column) || column < 0 || column > totalColumns) {
+      return false;
+    }
+
+    snapping = snappingObject.value;
+
     const {
       fixedColumnsStart,
       inlineStartOverlay,
     } = this.dataAccessObject;
+    const autoSnapping = snapping === 'auto';
 
-    // for auto-snapping (both snap* arguments are undefined) do not scroll the viewport
-    // when the columns points to the overlays
+    // for auto-snapping do not scroll the viewport when the columns points to the overlays
     if (autoSnapping && column < fixedColumnsStart) {
-      return false;
-    }
-
-    column = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollHorizontally', column);
-
-    if (!Number.isInteger(column) || column < 0 || column > totalColumns) {
       return false;
     }
 
@@ -85,9 +98,9 @@ class Scroll {
 
     if (autoSnapping && (column < firstColumn || column > lastColumn) || !autoSnapping) {
       // if there is at least one fully visible column determine the snapping direction based on
-      // that columns or by snapToRight/snapToLeft flags, if provided.
+      // that columns or by snapping flag, if provided.
       result = inlineStartOverlay
-        .scrollTo(column, autoSnapping ? column >= this.getLastPartiallyVisibleColumn() : snapToRight);
+        .scrollTo(column, autoSnapping ? column >= this.getLastPartiallyVisibleColumn() : snapping === 'end');
     }
 
     return result;
@@ -97,37 +110,42 @@ class Scroll {
    * Scrolls viewport to a row.
    *
    * @param {number} row Visual row index.
-   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
-   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom of the table.
+   * @param {'auto' | 'top' | 'bottom'} [snapping='auto'] If `'top'`, viewport is scrolled to show
+   * the cell on the top of the table. If `'bottom'`, viewport is scrolled to show the cell on
+   * the bottom of the table. When `'auto'`, the viewport is scrolled only when the row is outside of
+   * the viewport.
    * @returns {boolean}
    */
-  scrollViewportVertically(row, snapToTop, snapToBottom) {
+  scrollViewportVertically(row, snapping = 'auto') {
     const {
       drawn,
       totalRows
     } = this.dataAccessObject;
 
-    // do not scroll the viewport when the row points to a range outside of the dataset
-    if (!drawn || !Number.isInteger(row) || row < 0 || row > totalRows) {
+    if (!drawn) {
       return false;
     }
 
-    const autoSnapping = snapToTop === undefined && snapToBottom === undefined;
+    const snappingObject = createObjectPropListener(snapping);
+
+    row = this.dataAccessObject.wtSettings
+      .getSetting('onBeforeViewportScrollVertically', row, snappingObject);
+
+    if (!Number.isInteger(row) || row < 0 || row > totalRows) {
+      return false;
+    }
+
+    snapping = snappingObject.value;
+
     const {
       fixedRowsBottom,
       fixedRowsTop,
       topOverlay,
     } = this.dataAccessObject;
+    const autoSnapping = snapping === 'auto';
 
-    // for auto-snapping (both snap* arguments are undefined) do not scroll the viewport
-    // when the rows points to the overlays
+    // for auto-snapping do not scroll the viewport when the rows points to the overlays
     if (autoSnapping && (row < fixedRowsTop || row > totalRows - fixedRowsBottom - 1)) {
-      return false;
-    }
-
-    row = this.dataAccessObject.wtSettings.getSetting('onBeforeViewportScrollVertically', row);
-
-    if (!Number.isInteger(row) || row < 0 || row > totalRows) {
       return false;
     }
 
@@ -137,8 +155,11 @@ class Scroll {
 
     if (autoSnapping && (row < firstRow || row > lastRow) || !autoSnapping) {
       // if there is at least one fully visible row determine the snapping direction based on
-      // that rows or by snapToTop/snapToBottom flags, if provided.
-      result = topOverlay.scrollTo(row, autoSnapping ? row >= this.getLastPartiallyVisibleRow() : snapToBottom);
+      // that rows or by snapping flag, if provided.
+      result = topOverlay.scrollTo(
+        row,
+        autoSnapping ? row >= this.getLastPartiallyVisibleRow() : snapping === 'bottom'
+      );
     }
 
     return result;

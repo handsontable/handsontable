@@ -1,0 +1,59 @@
+// Text - Cell Renderer
+
+@mixin output {
+  .handsontable {
+    // TextRenderer placeholder value
+    .htPlaceholder {
+      color: var(--ht-placeholder-color);
+    }
+
+    // TextRenderer placeholder value
+    .htDimmed {
+      color: var(--ht-read-only-color);
+    }
+
+    // TextRenderer horizontal alignment
+    .htLeft {
+      text-align: left;
+    }
+
+    .htCenter {
+      text-align: center;
+    }
+
+    .htRight {
+      text-align: right;
+    }
+
+    .htJustify {
+      text-align: justify;
+    }
+
+    // TextRenderer placeholder value
+    .htTop {
+      vertical-align: top;
+    }
+
+    .htMiddle {
+      vertical-align: middle;
+    }
+
+    .htBottom {
+      vertical-align: bottom;
+    }
+
+    // TextRenderer others
+    .htInvalid {
+      /* gives priority over td.area selection background */
+      background-color: var(--ht-cell-error-background-color) !important;
+    }
+
+    .htNoWrap {
+      white-space: nowrap;
+    }
+
+    .htSearchResult {
+      background: var(--ht-cell-success-background-color) !important;
+    }
+  }
+}

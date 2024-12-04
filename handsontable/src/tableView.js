@@ -1,5 +1,6 @@
 import {
   addClass,
+  removeClass,
   clearTextSelection,
   empty,
   fastInnerHTML,
@@ -158,6 +159,9 @@ class TableView {
       }
 
       this._wt.draw(!this.hot.forceFullRender);
+
+      this.#updateScrollbarClassNames();
+
       this.hot.runHooks('afterRender', this.hot.forceFullRender);
       this.hot.forceFullRender = false;
       this.hot.renderCall = false;
@@ -196,38 +200,43 @@ class TableView {
    * Scroll viewport to a cell.
    *
    * @param {CellCoords} coords Renderable cell coordinates.
-   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
-   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right side of the table.
-   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom side of the table.
-   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left side of the table.
+   * @param {'auto' | 'start' | 'end'} [horizontalSnap] If `'start'`, viewport is scrolled to show
+   * the cell on the left of the table. If `'end'`, viewport is scrolled to show the cell on the right of
+   * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
+   * @param {'auto' | 'top' | 'bottom'} [verticalSnap] If `'top'`, viewport is scrolled to show
+   * the cell on the top of the table. If `'bottom'`, viewport is scrolled to show the cell on the bottom of
+   * the table. When `'auto'`, the viewport is scrolled only when the row is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
-    return this._wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+  scrollViewport(coords, horizontalSnap, verticalSnap) {
+    return this._wt.scrollViewport(coords, horizontalSnap, verticalSnap);
   }
 
   /**
    * Scroll viewport to a column.
    *
    * @param {number} column Renderable column index.
-   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right side of the table.
-   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left side of the table.
+   * @param {'auto' | 'start' | 'end'} [snap] If `'start'`, viewport is scrolled to show
+   * the cell on the left of the table. If `'end'`, viewport is scrolled to show the cell on the right of
+   * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    return this._wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+  scrollViewportHorizontally(column, snap) {
+    return this._wt.scrollViewportHorizontally(column, snap);
   }
 
   /**
    * Scroll viewport to a row.
    *
    * @param {number} row Renderable row index.
-   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
-   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom side of the table.
+   * @param {'auto' | 'top' | 'bottom'} [snap] If `'top'`, viewport is scrolled to show
+   * the cell on the top of the table. If `'bottom'`, viewport is scrolled to show the cell on
+   * the bottom of the table. When `'auto'`, the viewport is scrolled only when the row is outside of
+   * the viewport.
    * @returns {boolean}
    */
-  scrollViewportVertically(row, snapToTop, snapToBottom) {
-    return this._wt.scrollViewportVertically(row, snapToTop, snapToBottom);
+  scrollViewportVertically(row, snap) {
+    return this._wt.scrollViewportVertically(row, snap);
   }
 
   /**
@@ -635,6 +644,52 @@ class TableView {
   }
 
   /**
+   * Retrieves the styles handler from the Walkontable instance.
+   *
+   * @returns {StylesHandler} The styles handler instance.
+   */
+  getStylesHandler() {
+    return this._wt.stylesHandler;
+  }
+
+  /**
+   * Returns the default row height.
+   *
+   * This method retrieves the default row height from the Walkontable styles handler.
+   *
+   * @returns {number} The default row height.
+   */
+  getDefaultRowHeight() {
+    return this._wt.stylesHandler.getDefaultRowHeight();
+  }
+
+  /**
+   * Add a class name to the license information element.
+   *
+   * @param {string} className The class name to add.
+   */
+  addClassNameToLicenseElement(className) {
+    const licenseInfoElement = this.hot.rootElement.parentNode?.querySelector('.hot-display-license-info');
+
+    if (licenseInfoElement) {
+      addClass(licenseInfoElement, className);
+    }
+  }
+
+  /**
+   * Remove a class name from the license information element.
+   *
+   * @param {string} className The class name to remove.
+   */
+  removeClassNameFromLicenseElement(className) {
+    const licenseInfoElement = this.hot.rootElement.parentNode?.querySelector('.hot-display-license-info');
+
+    if (licenseInfoElement) {
+      removeClass(licenseInfoElement, className);
+    }
+  }
+
+  /**
    * Checks if at least one cell than belongs to the main table is not covered by the top, left or
    * bottom overlay.
    *
@@ -922,7 +977,7 @@ class TableView {
       },
       beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
       onDraw: force => this.afterRender(force),
-      onBeforeViewportScrollVertically: (renderableRow) => {
+      onBeforeViewportScrollVertically: (renderableRow, snapping) => {
         const rowMapper = this.hot.rowIndexMapper;
         const areColumnHeadersSelected = renderableRow < 0;
         let visualRow = renderableRow;
@@ -936,7 +991,7 @@ class TableView {
           }
         }
 
-        visualRow = this.hot.runHooks('beforeViewportScrollVertically', visualRow);
+        visualRow = this.hot.runHooks('beforeViewportScrollVertically', visualRow, snapping);
         this.hot.runHooks('beforeViewportScroll');
 
         if (!areColumnHeadersSelected) {
@@ -945,7 +1000,7 @@ class TableView {
 
         return visualRow;
       },
-      onBeforeViewportScrollHorizontally: (renderableColumn) => {
+      onBeforeViewportScrollHorizontally: (renderableColumn, snapping) => {
         const columnMapper = this.hot.columnIndexMapper;
         const areRowHeadersSelected = renderableColumn < 0;
         let visualColumn = renderableColumn;
@@ -959,7 +1014,7 @@ class TableView {
           }
         }
 
-        visualColumn = this.hot.runHooks('beforeViewportScrollHorizontally', visualColumn);
+        visualColumn = this.hot.runHooks('beforeViewportScrollHorizontally', visualColumn, snapping);
         this.hot.runHooks('beforeViewportScroll');
 
         if (!areRowHeadersSelected) {
@@ -1807,6 +1862,29 @@ class TableView {
     const colCount = this.#getAriaColcount() + delta;
 
     setAttribute(this.hot.rootElement, ...A11Y_COLCOUNT(colCount));
+  }
+
+  /**
+   * Updates the class names on the root element based on the presence of scrollbars.
+   *
+   * This method checks if the table has vertical and/or horizontal scrollbars and
+   * adds or removes the corresponding class names (`htHasScrollY` and `htHasScrollX`)
+   * to/from the root element.
+   */
+  #updateScrollbarClassNames() {
+    const rootElement = this.hot.rootElement;
+
+    if (this.hasVerticalScroll()) {
+      addClass(rootElement, 'htHasScrollY');
+    } else {
+      removeClass(rootElement, 'htHasScrollY');
+    }
+
+    if (this.hasHorizontalScroll()) {
+      addClass(rootElement, 'htHasScrollX');
+    } else {
+      removeClass(rootElement, 'htHasScrollX');
+    }
   }
 
   /**

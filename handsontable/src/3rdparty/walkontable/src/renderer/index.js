@@ -11,13 +11,13 @@ import { TableRenderer } from './table';
  * @class Renderer
  */
 class Renderer {
-  constructor({ TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer } = {}) {
+  constructor({ TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer, stylesHandler } = {}) {
     /**
      * General renderer class used to render Walkontable content on screen.
      *
      * @type {TableRenderer}
      */
-    this.renderer = new TableRenderer(TABLE, { cellRenderer });
+    this.renderer = new TableRenderer(TABLE, { cellRenderer, stylesHandler });
     this.renderer.setRenderers({
       rowHeaders: new RowHeadersRenderer(),
       columnHeaders: new ColumnHeadersRenderer(THEAD),

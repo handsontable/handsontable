@@ -1,7 +1,6 @@
 import {
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
-  DEFAULT_ROW_HEIGHT,
   DEFAULT_COLUMN_WIDTH,
 } from './calculator';
 
@@ -26,7 +25,6 @@ import { NodesPool } from './utils/nodesPool';
 import { getListenersCounter } from '../../../eventManager';
 
 export {
-  DEFAULT_ROW_HEIGHT,
   DEFAULT_COLUMN_WIDTH,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,

@@ -6,9 +6,8 @@ env:
   DOCSEARCH_APP_ID: ${{ secrets.DOCSEARCH_APP_ID }}
 
 on:
+  # Branch filtering is not supported with `on: create`.
   create:
-    branches:
-      - 'prod-docs/**'
   push:
     branches:
       - 'prod-docs/**'
@@ -21,7 +20,9 @@ defaults:
 jobs:
   check-version:
     name: Check Docs Version and Branch
-    if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
+    # Exclude the prod-docs-latest branch from triggering the workflow.
+    # The prod-docs/ prefix must be validated within the workflow itself, as on: create does not support branch filtering.
+    if: startsWith(github.ref, 'refs/heads/prod-docs/') && github.ref != 'refs/heads/prod-docs/latest'
     runs-on: ubuntu-latest
     outputs:
       continue: ${{ steps.check-branch.outputs.continue }}
@@ -50,7 +51,7 @@ jobs:
         id: check-branch
         run: |
           echo "The current branch: $GITHUB_REF_NAME"
-          GITHUB_REF_VERSION_ONLY=$(echo $GITHUB_REF_NAME | sed 's|.*/prod-docs/||')
+          GITHUB_REF_VERSION_ONLY=$(echo $GITHUB_REF_NAME | sed 's|prod-docs/||')
           echo "The current version: $GITHUB_REF_VERSION_ONLY"
           if [[ "$GITHUB_REF_VERSION_ONLY" != "$DOCS_LATEST_VERSION" ]]; then
             echo "The current branch is not the latest version and will not be deployed to Netlify"
@@ -90,10 +91,10 @@ jobs:
         run: |
           echo "!/.vuepress/dist" >> .gitignore
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install Docs dependencies

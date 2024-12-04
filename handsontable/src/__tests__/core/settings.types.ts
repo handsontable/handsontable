@@ -215,6 +215,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   strict: true,
   tableClassName: oneOf('foo', ['first-class-name', 'second-class-name']),
   tabMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 2, col: 2})),
+  themeName: 'ht-theme-some-theme',
   title: 'foo',
   trimDropdown: true,
   trimRows: true,
@@ -380,6 +381,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSetDataAtCell: (changes, source) => {},
   afterSetDataAtRowProp: (changes, source) => {},
   afterSetSourceDataAtCell: (changes, source) => {},
+  afterSetTheme: (themeName, firstRun) => {},
   afterSheetAdded: (addedSheetDisplayName) => {},
   afterSheetRemoved: (removedSheetDisplayName, changes) => {},
   afterSheetRenamed: (oldDisplayName, newDisplayName) => {},
@@ -509,10 +511,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeUpdateData: (sourceData, firstTime, source) => {},
   beforeValidate: (value, row, prop, source) => {},
   beforeValueRender: (value) => {},
-  beforeViewportScrollVertically: (visualRow) => {
+  beforeViewportScrollVertically: (visualRow, snapping) => {
+    const _snapping: 'auto' | 'top' | 'bottom' = snapping;
+
     return visualRow === 0 ? visualRow + 1 : false;
   },
-  beforeViewportScrollHorizontally: (visualColumn) => {
+  beforeViewportScrollHorizontally: (visualColumn, snapping) => {
+    const _snapping: 'auto' | 'start' | 'end' = snapping;
+
     return visualColumn === 0 ? visualColumn + 1 : false;
   },
   beforeViewportScroll: () => {},

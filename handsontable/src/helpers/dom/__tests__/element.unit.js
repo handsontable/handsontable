@@ -11,6 +11,7 @@ import {
   setAttribute,
   fastInnerHTML,
   isVisible,
+  findFirstParentWithClass,
 } from 'handsontable/helpers/dom/element';
 
 describe('DomElement helper', () => {
@@ -136,6 +137,79 @@ describe('DomElement helper', () => {
 
         expect(closest(element, nodes, until)).toBe(null);
       });
+    });
+  });
+
+  //
+  // Handsontable.helper.closestDown
+  //
+  describe('findFirstParentWithClass', () => {
+    const test1 = '<div class="wrapper1"><table><tbody><tr class="ht-test-sth">' +
+      '<td>test1</td></tr></tbody></table></div>';
+    const test2 = `<div><table class="test2 test2-2"><tbody class="ht-test-sth ht-test-sth2"><tr>' +
+      '<td>test2${test1}</td></tr></tbody></table></div>`;
+
+    it('should return the closest parent with the provided class', () => {
+      const wrapper1 = document.createElement('div');
+      const wrapper2 = document.createElement('div');
+
+      wrapper1.innerHTML = test1;
+      wrapper2.innerHTML = test2;
+
+      const td1 = wrapper1.querySelector('td');
+      const td2 = wrapper2.querySelector('td');
+
+      expect(findFirstParentWithClass(td1, 'ht-test-sth').element).toBe(wrapper1.querySelector('.ht-test-sth'));
+      expect(findFirstParentWithClass(td1, 'ht-test-sth').classNames).toEqual(['ht-test-sth']);
+      expect(findFirstParentWithClass(td1, 'wrapper1').element).toBe(wrapper1.querySelector('.wrapper1'));
+      expect(findFirstParentWithClass(td1, 'wrapper1').classNames).toEqual(['wrapper1']);
+
+      expect(findFirstParentWithClass(td2, 'ht-test-sth').element).toBe(wrapper2.querySelector('.ht-test-sth'));
+      expect(findFirstParentWithClass(td2, 'ht-test-sth').classNames).toEqual(['ht-test-sth']);
+      expect(findFirstParentWithClass(td2, 'test2').element).toBe(wrapper2.querySelector('.test2'));
+      expect(findFirstParentWithClass(td2, 'test2').classNames).toEqual(['test2']);
+    });
+
+    it('should return the closest parent with a class that matches the provided regex', () => {
+      const wrapper1 = document.createElement('div');
+      const wrapper2 = document.createElement('div');
+
+      wrapper1.innerHTML = test1;
+      wrapper2.innerHTML = test2;
+
+      const td1 = wrapper1.querySelector('td');
+      const td2 = wrapper2.querySelector('td');
+
+      expect(findFirstParentWithClass(td1, /xt-test-(.*)/).element).toBe(undefined);
+      expect(findFirstParentWithClass(td1, /xt-test-(.*)/).classNames).toEqual([]);
+      expect(findFirstParentWithClass(td1, /vrapper(.*)/).element).toBe(undefined);
+      expect(findFirstParentWithClass(td1, /vrapper(.*)/).classNames).toEqual([]);
+
+      expect(findFirstParentWithClass(td2, /xt-test-(.*)/).element).toBe(undefined);
+      expect(findFirstParentWithClass(td2, /xt-test-(.*)/).classNames).toEqual([]);
+      expect(findFirstParentWithClass(td2, /xtest2(.*)/).element).toBe(undefined);
+      expect(findFirstParentWithClass(td2, /xtest2(.*)/).classNames).toEqual([]);
+    });
+
+    it('should return `undefined` as the element and an empty array as the class list array if no elements were found', () => {
+      const wrapper1 = document.createElement('div');
+      const wrapper2 = document.createElement('div');
+
+      wrapper1.innerHTML = test1;
+      wrapper2.innerHTML = test2;
+
+      const td1 = wrapper1.querySelector('td');
+      const td2 = wrapper2.querySelector('td');
+
+      expect(findFirstParentWithClass(td1, /ht-test-(.*)/).element).toBe(wrapper1.querySelector('.ht-test-sth'));
+      expect(findFirstParentWithClass(td1, /ht-test-(.*)/).classNames).toEqual(['ht-test-sth']);
+      expect(findFirstParentWithClass(td1, /wrapper(.*)/).element).toBe(wrapper1.querySelector('.wrapper1'));
+      expect(findFirstParentWithClass(td1, /wrapper(.*)/).classNames).toEqual(['wrapper1']);
+
+      expect(findFirstParentWithClass(td2, /ht-test-(.*)/).element).toBe(wrapper2.querySelector('.ht-test-sth'));
+      expect(findFirstParentWithClass(td2, /ht-test-(.*)/).classNames).toEqual(['ht-test-sth', 'ht-test-sth2']);
+      expect(findFirstParentWithClass(td2, /test2(.*)/).element).toBe(wrapper2.querySelector('.test2'));
+      expect(findFirstParentWithClass(td2, /test2(.*)/).classNames).toEqual(['test2', 'test2-2']);
     });
   });
 

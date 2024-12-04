@@ -518,6 +518,27 @@ describe('Core_view', () => {
     expect(hot.view._wt.wtTable.holder.style.width).toBe('220px');
   });
 
+  it('should correctly calculate the width of the top overlay after the vertical scrollbar disappears (#dev-954)', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      colHeaders: true,
+      width: 200,
+      height: 200,
+    });
+
+    selectColumns(1);
+
+    const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'trimming');
+
+    rowMapper.setValueAtIndex(0, true);
+    rowMapper.setValueAtIndex(1, true);
+    rowMapper.setValueAtIndex(2, true);
+    rowMapper.setValueAtIndex(3, true);
+    render();
+
+    expect(getTopClone().width()).toBe(200);
+  });
+
   describe('scroll', () => {
     it('should call preventDefault in a wheel event on fixed overlay\'s element', async() => {
       spec().$container.css({

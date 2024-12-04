@@ -25,8 +25,6 @@ import {
 } from './constants';
 import { TrimmingMap } from '../../translations';
 
-import './filters.scss';
-
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
@@ -804,11 +802,15 @@ export class Filters extends BasePlugin {
    * @param {object} command Menu item object (command).
    */
   #onComponentChange(component, command) {
+    const menu = this.dropdownMenuPlugin.menu;
+
     this.updateDependentComponentsVisibility();
 
     if (component.constructor === ConditionComponent && !command.inputsCount) {
       this.setListeningDropdownMenu();
     }
+
+    menu.updateMenuDimensions();
   }
 
   /**

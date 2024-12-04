@@ -1,9 +1,10 @@
 import {
   addClass,
+  removeClass,
   closest,
   isChildOf,
   hasClass,
-  outerHeight
+  outerHeight,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
@@ -14,8 +15,6 @@ import { SEPARATOR } from '../contextMenu/predefinedItems';
 import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
-
-import './comments.scss';
 
 export const PLUGIN_KEY = 'comments';
 export const PLUGIN_PRIORITY = 60;
@@ -214,6 +213,7 @@ export class Comments extends BasePlugin {
     this.addHook('afterScroll', () => this.#onAfterScroll());
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
+    this.addHook('afterSetTheme', (...args) => this.#updateEditorThemeClassName(...args));
 
     this.#displaySwitch.addLocalHook('hide', () => this.hide());
     this.#displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
@@ -270,7 +270,7 @@ export class Comments extends BasePlugin {
         });
       },
       stopPropagation: true,
-      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell() && !this.#editor.isVisible(),
+      runOnlyIf: () => this.hot.getSelectedRangeLast()?.highlight.isCell(),
       group: SHORTCUTS_GROUP,
     });
 
@@ -752,7 +752,7 @@ export class Comments extends BasePlugin {
    * @param {Event} event The keydown event.
    */
   #onAfterDocumentKeyDown(event) {
-    if (this.#editor.isVisible()) {
+    if (this.#editor.isFocused()) {
       stopImmediatePropagation(event);
     }
   }
@@ -764,6 +764,16 @@ export class Comments extends BasePlugin {
     if (!this.#preventEditorHiding) {
       this.hide();
     }
+  }
+
+  /**
+   * Updates the editor theme class name.
+   */
+  #updateEditorThemeClassName() {
+    const editorElement = this.#editor.getEditorElement();
+
+    removeClass(editorElement, /ht-theme-.*/g);
+    addClass(editorElement, this.hot.getCurrentThemeName());
   }
 
   /**

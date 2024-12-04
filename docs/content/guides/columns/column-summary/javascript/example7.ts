@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 import { DetailedSettings } from 'handsontable/plugins/columnSummary';
 
 // generate an array of arrays with dummy numeric data

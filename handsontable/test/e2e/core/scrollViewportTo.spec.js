@@ -948,7 +948,7 @@ describe('Core.scrollViewportTo', () => {
 
       scrollViewportTo(40, 45);
 
-      expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), true, false, false, true);
+      expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), 'start', 'top');
     });
 
     it('should scroll the viewport using bottom snapping', () => {
@@ -962,7 +962,7 @@ describe('Core.scrollViewportTo', () => {
 
       scrollViewportTo(40, 45, true, false);
 
-      expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), false, false, true, true);
+      expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), 'start', 'bottom');
     });
 
     it('should scroll the viewport using end (right) snapping', () => {
@@ -976,7 +976,7 @@ describe('Core.scrollViewportTo', () => {
 
       scrollViewportTo(40, 45, true, true);
 
-      expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), false, true, true, false);
+      expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), 'end', 'bottom');
     });
   });
 });
