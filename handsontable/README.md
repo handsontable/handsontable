@@ -16,7 +16,6 @@
   </p>
   <p>
   
-  <br>
   ![NPM Version](https://img.shields.io/npm/v/handsontable)
   [![Handsontable total downloads](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
   [![Handsontable monthly downloads](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
