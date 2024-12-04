@@ -1,16 +1,22 @@
 <div align="center">
+  <br>
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-dark-theme.svg?raw=true"/>
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-light-theme.svg?raw=true"/>
-    <img width="600" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-light-theme.svg?raw=true"/>
+    <img width="480" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-light-theme.svg?raw=true"/>
   </picture>
+  <br><br>
   <p>
-  Handsontable is a JavaScript data grid for building user interfaces with a spreadsheet-like feel. It supports frameworks like [React](https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper), [Angular](https://github.com/handsontable/handsontable/tree/master/wrappers/angular) and [Vue](https://github.com/handsontable/handsontable/tree/master/wrappers/vue).
+    Handsontable is a JavaScript data grid for building user interfaces with a spreadsheet-like feel. It supports frameworks like 
+    <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper" target="_blank">React</a>, 
+    <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular" target="_blank">Angular</a>, and 
+    <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue" target="_blank">Vue</a>. 
+    It is perfect for data-rich internal applications, allowing users to enter, edit, and validate data from various sources.
+  </p>
   </p>
   <p>
-  Handsontable is perfect for data-rich internal applications, allowing users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, and data modeling applications.
-  </p>
   
+  <br>
   ![NPM Version](https://img.shields.io/npm/v/handsontable)
   [![Handsontable total downloads](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
   [![Handsontable monthly downloads](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
