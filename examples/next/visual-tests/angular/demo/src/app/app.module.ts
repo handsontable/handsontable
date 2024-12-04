@@ -16,7 +16,7 @@ const routes: Routes = [
     BrowserModule,
     RouterModule.forRoot(routes),
     HotTableModule,
-    AppComponent, // Declare AppComponent
+    AppComponent,
     DataGridComponent,
     ScenarioGridComponent,
   ],

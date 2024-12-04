@@ -11,6 +11,7 @@ import {
 } from "./utils/hooks-callbacks";
 
 @Component({
+  standalone: true,
   encapsulation: ViewEncapsulation.None,
   selector: "data-grid",
   templateUrl: "./data-grid.component.html",

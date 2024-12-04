@@ -44,7 +44,7 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
   console.log('');
 }
 
-console.log(chalk.green(`Building "js" examples for themes...`));
+console.log(chalk.green('Building "js" examples for themes...'));
 
 await execa.command('node ./scripts/swap-package-links.mjs handsontable', {
   stdio: 'inherit',
@@ -56,7 +56,7 @@ await execa.command('npm run build', {
   cwd: `${dirs.examples}/js/themes-example`
 });
 
-console.log(chalk.green(`Finished building "js" examples for themes.`));
+console.log(chalk.green('Finished building "js" examples for themes.'));
 console.log('');
 
 console.log(chalk.green('Done.'));

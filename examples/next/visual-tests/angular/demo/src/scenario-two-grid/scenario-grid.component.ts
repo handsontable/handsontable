@@ -5,6 +5,7 @@ import { starsRenderer } from './renderers/stars';
 import { progressBarRenderer } from './renderers/progressBar';
 
 @Component({
+  standalone: true,
   encapsulation: ViewEncapsulation.None,
   selector: 'scenario-grid',
   templateUrl: './scenario-grid.component.html',
