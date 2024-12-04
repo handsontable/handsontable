@@ -10,7 +10,7 @@ import { PlaywrightTestConfig, devices } from '@playwright/test';
  * @see https://playwright.dev/docs/test-configuration
  */
 const config: PlaywrightTestConfig = {
-  testDir: './tests/cross-browser',
+  testDir: './tests/themes',
   /* Maximum time one test can run for. */
   timeout: 30 * 1000,
   expect: {
@@ -35,15 +35,15 @@ const config: PlaywrightTestConfig = {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:8082',
+    baseURL: 'http://localhost:8085',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npm run serve-example-classic',
-    port: 8082,
+    command: 'npm run serve-example-themes',
+    port: 8085,
     reuseExistingServer: !process.env.CI,
   },
 
