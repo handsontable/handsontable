@@ -1,61 +1,31 @@
 <div align="center">
-  <br>
+  <br><br>
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-dark-theme.svg?raw=true"/>
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-light-theme.svg?raw=true"/>
-    <img width="480" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-light-theme.svg?raw=true"/>
+    <img width="400" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-light-theme.svg?raw=true"/>
   </picture>
   <br><br>
+  <h3>Handsontable is a JavaScript data grid for building user interfaces with a spreadsheet-like feel.</h3>
   <p>
-    Handsontable is a JavaScript data grid for building user interfaces with a spreadsheet-like feel. It supports frameworks like 
+    It supports frameworks like 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper" target="_blank">React</a>, 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular" target="_blank">Angular</a>, and 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue" target="_blank">Vue</a>. 
-    It is perfect for data-rich internal applications, allowing users to enter, edit, and validate data from various sources.
+    It is perfect for data-rich internal applications, allowing users to enter, edit, and validate data from various sources. Common use cases include resource planning software (ERP), inventory management systems, and data modeling applications.
   </p>
-  </p>
-  <p>
   
   ![NPM Version](https://img.shields.io/npm/v/handsontable)
   [![Handsontable total downloads](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
   [![Handsontable monthly downloads](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
   [![Handsontable contributors](https://img.shields.io/github/contributors/handsontable/handsontable)](https://npmjs.com/package/handsontable)
   [![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
-  [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
   [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
-  
-  ---
-  #### Get Started with Handsontable
-  
-  <table border="0">
-    <tr>
-      <td>
-        <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="14" height="14">
-        <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> <strong>React</strong></a>&nbsp;
-      </td>
-      <td>
-        <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="14" height="14">
-        <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"> <strong>Angular</strong></a>&nbsp;
-      </td>
-      <td>
-        <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
-        <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue"> <strong>Vue</strong></a>&nbsp;
-      </td>
-      <td>
-        <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="14" height="14">
-        <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"> <strong>Vue 3</strong></a>&nbsp;
-      </td>
-      <td>
-        <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="14" height="14">&nbsp;
-        <a href="#installation"> <strong>JavaScript</strong></a>&nbsp;
-      </td>
-    </tr>
-  </table>
-  
-  ---
-  
-  <a href="https://handsontable.com/demo"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid" width="805"/></a>
+  [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
 
+  <br>
+  
+  <a href="https://handsontable.com/demo"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview-dark-theme.png" alt="Handsontable preview"/></a>
 </div>
 
 ## Features
