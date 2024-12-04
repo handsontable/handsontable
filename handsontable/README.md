@@ -31,23 +31,69 @@
   </picture>
 </div>
 
-## Features
+<div id="installation">
+
+  ## Installation
+  ### Install with npm
+  
+  Run the following command in your terminal
+  ```
+  npm install handsontable
+  ```
+  
+  You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https://www.nuget.org/packages/Handsontable) or load the bundle directly from [jsDelivr](https://jsdelivr.com/package/npm/handsontable).
+  
+  ### Create a placeholder
+  
+  Create an HTML placeholder
+  
+  ```html
+  <div id="example"></div>
+  ```
+  
+  Import Handsontable and its stylesheet
+  ```js
+  import Handsontable from "handsontable";
+  import 'handsontable/dist/handsontable.full.css';
+  ```
+  
+  ### Initialize the grid
+  
+  Now turn your placeholder into a data grid with sample data.
+  ```js
+  const data = [
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
+  ];
+  
+  const container = document.getElementById('example');
+  const hot = new Handsontable(container, {
+    data: data,
+    rowHeaders: true,
+    colHeaders: true
+  });
+  ```
+</div>
+
+## Key Features
 
 &nbsp;&nbsp;✅&nbsp; [Built-in themes](https://handsontable.com/docs/javascript-data-grid/themes/) <br>
 &nbsp;&nbsp;✅&nbsp; [Flexible API](https://handsontable.com/docs/javascript-data-grid/api/) <br>
-&nbsp;&nbsp;✅&nbsp; [Sorting](https://handsontable.com/docs/javascript-data-grid/rows-sorting/) <br>
-&nbsp;&nbsp;✅&nbsp; [Filtering](https://handsontable.com/docs/javascript-data-grid/column-filter/) <br>
+&nbsp;&nbsp;✅&nbsp; [Virtualization](https://handsontable.com/docs/javascript-data-grid/row-virtualization/) <br>
+&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/javascript-data-grid/accessibility/) <br>
+&nbsp;&nbsp;✅&nbsp; [Mutil-column sorting](https://handsontable.com/docs/javascript-data-grid/rows-sorting/) <br>
+&nbsp;&nbsp;✅&nbsp; [Data filtering](https://handsontable.com/docs/javascript-data-grid/column-filter/) <br>
 &nbsp;&nbsp;✅&nbsp; [400 built-in formulas](https://handsontable.com/docs/javascript-data-grid/formula-calculation/) <br>
-&nbsp;&nbsp;✅&nbsp; [Configurable cell selection](https://handsontable.com/docs/javascript-data-grid/selection/) <br>
-&nbsp;&nbsp;✅&nbsp; [Validating data](https://handsontable.com/docs/javascript-data-grid/cell-validator/) <br>
+&nbsp;&nbsp;✅&nbsp; [Configurable selection](https://handsontable.com/docs/javascript-data-grid/selection/) <br>
+&nbsp;&nbsp;✅&nbsp; [Data validation](https://handsontable.com/docs/javascript-data-grid/cell-validator/) <br>
 &nbsp;&nbsp;✅&nbsp; [Conditional formatting](https://handsontable.com/docs/javascript-data-grid/conditional-formatting/) <br>
-&nbsp;&nbsp;✅&nbsp; [Merging cells](https://handsontable.com/docs/javascript-data-grid/merge-cells/) <br>
-&nbsp;&nbsp;✅&nbsp; [Freezing rows](https://handsontable.com/docs/javascript-data-grid/row-freezing/) / [Freezing columns](https://handsontable.com/docs/javascript-data-grid/column-freezing/) <br>
-&nbsp;&nbsp;✅&nbsp; [Moving rows](https://handsontable.com/docs/javascript-data-grid/row-moving/) / [Moving columns](https://handsontable.com/docs/javascript-data-grid/column-moving/) <br>
-&nbsp;&nbsp;✅&nbsp; [Resizing rows](https://handsontable.com/docs/javascript-data-grid/row-height/) / [Resizing columns](https://handsontable.com/docs/javascript-data-grid/column-width/) <br>
-&nbsp;&nbsp;✅&nbsp; [Hiding rows](https://handsontable.com/docs/javascript-data-grid/row-hiding/) / [Hiding columns](https://handsontable.com/docs/javascript-data-grid/column-hiding/) <br>
-&nbsp;&nbsp;✅&nbsp; [Context menu](https://handsontable.com/docs/javascript-data-grid/context-menu/) <br>
-&nbsp;&nbsp;✅&nbsp; [Comments](https://handsontable.com/docs/javascript-data-grid/comments/) <br>
+&nbsp;&nbsp;✅&nbsp; [Merged cells](https://handsontable.com/docs/javascript-data-grid/merge-cells/) <br>
+&nbsp;&nbsp;✅&nbsp; [Pinned/frozen columns](https://handsontable.com/docs/javascript-data-grid/column-freezing/) <br>
+&nbsp;&nbsp;✅&nbsp; [Movable rows](https://handsontable.com/docs/javascript-data-grid/row-moving/) / [Moving columns](https://handsontable.com/docs/javascript-data-grid/column-moving/) <br>
+&nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/javascript-data-grid/column-hiding/) <br>
+&nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/javascript-data-grid/context-menu/) <br>
 
 ## Resources
 
@@ -60,51 +106,6 @@
 - [Blog](https://handsontable.com/blog)
 - [Contact support team](https://handsontable.com/contact)
 - [Get a quote](https://handsontable.com/get-a-quote)
-
-<div id="installation"></div>
-
-## Get Started
-### Install with npm
-
-Run the following command in your terminal
-```
-npm install handsontable
-```
-
-You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https://www.nuget.org/packages/Handsontable) or load the bundle directly from [jsDelivr](https://jsdelivr.com/package/npm/handsontable).
-
-### Create a placeholder
-
-Create an HTML placeholder
-
-```html
-<div id="example"></div>
-```
-
-Import Handsontable and its stylesheet
-```js
-import Handsontable from "handsontable";
-import 'handsontable/dist/handsontable.full.css';
-```
-
-### Initialize the grid
-
-Now turn your placeholder into a data grid with sample data.
-```js
-const data = [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
-];
-
-const container = document.getElementById('example');
-const hot = new Handsontable(container, {
-  data: data,
-  rowHeaders: true,
-  colHeaders: true
-});
-```
 
 ## Support
 
