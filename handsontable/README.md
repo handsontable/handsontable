@@ -5,7 +5,7 @@
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-black.svg?raw=true"/>
     <img width="400" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-black.svg?raw=true"/>
   </picture>
-  <br>
+  <br><br>
   <h3>Handsontable is a highly-customizable <a href="https://handsontable/docs/javascript-data-grid" target="_blank">JavaScript data grid</a> with a spreadsheet-like look and feel.</h3>
   <p>
     It supports frameworks like 
@@ -34,6 +34,14 @@
 <div id="installation">
 
   ## Installation
+  Below, you'll find the installation guide for the JavaScript component. If you're using a specific framework, refer to its dedicated project for installation instructions:
+  
+  - <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"> React functional component</a>
+  - <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React"> React class component</a>
+  - <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular"> Angular</a>
+  - <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="12" height="12"> Vue</a>
+  ---
+  
   ### Install with npm
   
   Run the following command in your terminal
