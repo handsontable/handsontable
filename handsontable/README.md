@@ -5,7 +5,6 @@
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-black.svg?raw=true"/>
     <img width="400" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-black.svg?raw=true"/>
   </picture>
-  
   <br>
   <h3>Handsontable is a highly-customizable <a href="https://handsontable/docs/javascript-data-grid" target="_blank">JavaScript data grid</a> with a spreadsheet-like look and feel.</h3>
   <p>
@@ -16,16 +15,15 @@
     It is perfect for data-rich internal applications, allowing users to enter, edit, and validate data from various sources. Common use cases include resource planning software (ERP), inventory management systems, and data modeling applications.
   </p>
   
-  ![NPM Version](https://img.shields.io/npm/v/handsontable)
-  [![Handsontable total downloads](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
-  [![Handsontable monthly downloads](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
-  [![Handsontable contributors](https://img.shields.io/github/contributors/handsontable/handsontable)](https://npmjs.com/package/handsontable)
+  ![NPM version](https://img.shields.io/npm/v/handsontable)
+  [![Total downloads](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
+  [![Monthly downloads](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
+  [![Contributors](https://img.shields.io/github/contributors/handsontable/handsontable)](https://npmjs.com/package/handsontable)
   [![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
-  [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
-  [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
+  [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
+  [![FOSSA status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
 
   <br>
-
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-dark-theme.png?raw=true"/>
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
@@ -35,31 +33,32 @@
 
 ## Features
 
-The most popular features of Handsontable:
-
-&nbsp;&nbsp;☑&nbsp; [Built-in themes](https://handsontable.com/docs/javascript-data-grid/themes/) <br>
-&nbsp;&nbsp;☑&nbsp; [Flexible API](https://handsontable.com/docs/javascript-data-grid/api/) <br>
-&nbsp;&nbsp;☑&nbsp; [Sorting](https://handsontable.com/docs/javascript-data-grid/rows-sorting/) <br>
-&nbsp;&nbsp;☑&nbsp; [Filtering](https://handsontable.com/docs/javascript-data-grid/column-filter/) <br>
-&nbsp;&nbsp;☑&nbsp; [Customizable cell selection](https://handsontable.com/docs/javascript-data-grid/selection/) <br>
-&nbsp;&nbsp;☑&nbsp; [Validating data](https://handsontable.com/docs/javascript-data-grid/cell-validator/) <br>
-&nbsp;&nbsp;☑&nbsp; [Conditional formatting](https://handsontable.com/docs/javascript-data-grid/conditional-formatting/) <br>
-&nbsp;&nbsp;☑&nbsp; [Merging cells](https://handsontable.com/docs/javascript-data-grid/merge-cells/) <br>
-&nbsp;&nbsp;☑&nbsp; [Freezing rows](https://handsontable.com/docs/javascript-data-grid/row-freezing/) / [Freezing columns](https://handsontable.com/docs/javascript-data-grid/column-freezing/) <br>
-&nbsp;&nbsp;☑&nbsp; [Moving rows](https://handsontable.com/docs/javascript-data-grid/row-moving/) / [Moving columns](https://handsontable.com/docs/javascript-data-grid/column-moving/) <br>
-&nbsp;&nbsp;☑&nbsp; [Resizing rows](https://handsontable.com/docs/javascript-data-grid/row-height/) / [Resizing columns](https://handsontable.com/docs/javascript-data-grid/column-width/) <br>
-&nbsp;&nbsp;☑&nbsp; [Hiding rows](https://handsontable.com/docs/javascript-data-grid/row-hiding/) / [Hiding columns](https://handsontable.com/docs/javascript-data-grid/column-hiding/) <br>
-&nbsp;&nbsp;☑&nbsp; [Context menu](https://handsontable.com/docs/javascript-data-grid/context-menu/) <br>
-&nbsp;&nbsp;☑&nbsp; [Comments](https://handsontable.com/docs/javascript-data-grid/comments/) <br>
-&nbsp;&nbsp;☑&nbsp; [Export to file](https://handsontable.com/docs/javascript-data-grid/export-to-csv/) <br>
+&nbsp;&nbsp;✅&nbsp; [Built-in themes](https://handsontable.com/docs/javascript-data-grid/themes/) <br>
+&nbsp;&nbsp;✅&nbsp; [Flexible API](https://handsontable.com/docs/javascript-data-grid/api/) <br>
+&nbsp;&nbsp;✅&nbsp; [Sorting](https://handsontable.com/docs/javascript-data-grid/rows-sorting/) <br>
+&nbsp;&nbsp;✅&nbsp; [Filtering](https://handsontable.com/docs/javascript-data-grid/column-filter/) <br>
+&nbsp;&nbsp;✅&nbsp; [400 built-in formulas](https://handsontable.com/docs/javascript-data-grid/formula-calculation/) <br>
+&nbsp;&nbsp;✅&nbsp; [Configurable cell selection](https://handsontable.com/docs/javascript-data-grid/selection/) <br>
+&nbsp;&nbsp;✅&nbsp; [Validating data](https://handsontable.com/docs/javascript-data-grid/cell-validator/) <br>
+&nbsp;&nbsp;✅&nbsp; [Conditional formatting](https://handsontable.com/docs/javascript-data-grid/conditional-formatting/) <br>
+&nbsp;&nbsp;✅&nbsp; [Merging cells](https://handsontable.com/docs/javascript-data-grid/merge-cells/) <br>
+&nbsp;&nbsp;✅&nbsp; [Freezing rows](https://handsontable.com/docs/javascript-data-grid/row-freezing/) / [Freezing columns](https://handsontable.com/docs/javascript-data-grid/column-freezing/) <br>
+&nbsp;&nbsp;✅&nbsp; [Moving rows](https://handsontable.com/docs/javascript-data-grid/row-moving/) / [Moving columns](https://handsontable.com/docs/javascript-data-grid/column-moving/) <br>
+&nbsp;&nbsp;✅&nbsp; [Resizing rows](https://handsontable.com/docs/javascript-data-grid/row-height/) / [Resizing columns](https://handsontable.com/docs/javascript-data-grid/column-width/) <br>
+&nbsp;&nbsp;✅&nbsp; [Hiding rows](https://handsontable.com/docs/javascript-data-grid/row-hiding/) / [Hiding columns](https://handsontable.com/docs/javascript-data-grid/column-hiding/) <br>
+&nbsp;&nbsp;✅&nbsp; [Context menu](https://handsontable.com/docs/javascript-data-grid/context-menu/) <br>
+&nbsp;&nbsp;✅&nbsp; [Comments](https://handsontable.com/docs/javascript-data-grid/comments/) <br>
 
 ## Resources
 
 - [Website](https://handsontable.com)
+- [Demo](https://handsontable.com/demo)
 - [Documentation](https://handsontable.com/docs)
+- [npm](https://www.npmjs.com/package/handsontable)
+- [CDN](https://www.jsdelivr.com/package/npm/handsontable)
 - [Forum](https://forum.handsontable.com/)
 - [Blog](https://handsontable.com/blog)
-- [Get help](https://handsontable.com/contact)
+- [Contact support team](https://handsontable.com/contact)
 - [Get a quote](https://handsontable.com/get-a-quote)
 
 <div id="installation"></div>
