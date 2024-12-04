@@ -33,27 +33,30 @@
 
 The most popular features of Handsontable:
 
-&nbsp;&nbsp;☑&nbsp; Multiple column sorting <br>
-&nbsp;&nbsp;☑&nbsp; Multiple column sorting <br>
-&nbsp;&nbsp;☑&nbsp; Non-contiguous selection <br>
-&nbsp;&nbsp;☑&nbsp; Filtering data <br>
-&nbsp;&nbsp;☑&nbsp; Export to file <br>
-&nbsp;&nbsp;☑&nbsp; Validating data <br>
-&nbsp;&nbsp;☑&nbsp; Conditional formatting <br>
-&nbsp;&nbsp;☑&nbsp; Merging cells <br>
-&nbsp;&nbsp;☑&nbsp; Freezing rows/columns <br>
-&nbsp;&nbsp;☑&nbsp; Moving rows/columns <br>
-&nbsp;&nbsp;☑&nbsp; Resizing rows/columns <br>
-&nbsp;&nbsp;☑&nbsp; Hiding rows/columns <br>
-&nbsp;&nbsp;☑&nbsp; Context menu <br>
-&nbsp;&nbsp;☑&nbsp; Comments <br>
+&nbsp;&nbsp;☑&nbsp; [Built-in themes](https://handsontable.com/docs/javascript-data-grid/themes/) <br>
+&nbsp;&nbsp;☑&nbsp; [Flexible API](https://handsontable.com/docs/javascript-data-grid/api/) <br>
+&nbsp;&nbsp;☑&nbsp; [Sorting](https://handsontable.com/docs/javascript-data-grid/rows-sorting/) <br>
+&nbsp;&nbsp;☑&nbsp; [Filtering](https://handsontable.com/docs/javascript-data-grid/column-filter/) <br>
+&nbsp;&nbsp;☑&nbsp; [Customizable cell selection](https://handsontable.com/docs/javascript-data-grid/selection/) <br>
+&nbsp;&nbsp;☑&nbsp; [Validating data](https://handsontable.com/docs/javascript-data-grid/cell-validator/) <br>
+&nbsp;&nbsp;☑&nbsp; [Conditional formatting](https://handsontable.com/docs/javascript-data-grid/conditional-formatting/) <br>
+&nbsp;&nbsp;☑&nbsp; [Merging cells](https://handsontable.com/docs/javascript-data-grid/merge-cells/) <br>
+&nbsp;&nbsp;☑&nbsp; [Freezing rows](https://handsontable.com/docs/javascript-data-grid/row-freezing/) / [Freezing columns](https://handsontable.com/docs/javascript-data-grid/column-freezing/) <br>
+&nbsp;&nbsp;☑&nbsp; [Moving rows](https://handsontable.com/docs/javascript-data-grid/row-moving/) / [Moving columns](https://handsontable.com/docs/javascript-data-grid/column-moving/) <br>
+&nbsp;&nbsp;☑&nbsp; [Resizing rows](https://handsontable.com/docs/javascript-data-grid/row-height/) / [Resizing columns](https://handsontable.com/docs/javascript-data-grid/column-width/) <br>
+&nbsp;&nbsp;☑&nbsp; [Hiding rows](https://handsontable.com/docs/javascript-data-grid/row-hiding/) / [Hiding columns](https://handsontable.com/docs/javascript-data-grid/column-hiding/) <br>
+&nbsp;&nbsp;☑&nbsp; [Context menu](https://handsontable.com/docs/javascript-data-grid/context-menu/) <br>
+&nbsp;&nbsp;☑&nbsp; [Comments](https://handsontable.com/docs/javascript-data-grid/comments/) <br>
+&nbsp;&nbsp;☑&nbsp; [Export to file](https://handsontable.com/docs/javascript-data-grid/export-to-csv/) <br>
 
-## Documentation
+## Resources
 
-- [Developer guides](https://handsontable.com/docs)
-- [API Reference](https://handsontable.com/docs/api/core/)
-- [Changelog](https://handsontable.com/docs/release-notes/)
-- [Demo](https://handsontable.com/demo)
+- [Website](https://handsontable.com)
+- [Documentation](https://handsontable.com/docs)
+- [Forum](https://forum.handsontable.com/)
+- [Blog](https://handsontable.com/blog)
+- [Get help](https://handsontable.com/contact)
+- [Get a quote](https://handsontable.com/get-a-quote)
 
 <div id="installation"></div>
 
