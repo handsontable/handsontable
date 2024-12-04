@@ -25,7 +25,8 @@
 
   <br>
   
-  <a href="https://handsontable.com/demo"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview-dark-theme.png" alt="Handsontable preview"/></a>
+  <a href="https://handsontable.com/demo"><img src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-github-preview-dark-theme.png" alt="Handsontable preview"/></a>
+  
 </div>
 
 ## Features
