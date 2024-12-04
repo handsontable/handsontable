@@ -730,11 +730,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           throw new Error(`There is no such action "${action}"`);
       }
 
-      instance.view.render();
-
       if (!keepEmptyRows) {
         grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
       }
+
+      instance.view.render();
+      instance.view.adjustElementsSize();
     },
 
     /**
@@ -783,7 +784,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         // should I add empty cols to meet minCols?
         if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
-          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // The synchronization with cell meta is not desired here. For `minCols` option,
           // we don't want to touch/shift cell meta objects.
           const colsToCreate = minCols - nrOfColumns;
 
@@ -798,14 +799,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           const emptyColsMissing = minSpareCols - emptyCols;
           const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
 
-          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // The synchronization with cell meta is not desired here. For `minSpareCols` option,
           // we don't want to touch/shift cell meta objects.
           datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
         }
-      }
-
-      if (instance.view) {
-        instance.view.adjustElementsSize();
       }
     },
 
