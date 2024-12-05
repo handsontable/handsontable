@@ -12,7 +12,7 @@
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper" target="_blank">React</a>, 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular" target="_blank">Angular</a>, and 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue" target="_blank">Vue</a>. 
-    It is perfect for data-rich internal applications, allowing users to enter, edit, and validate data from various sources. Common use cases include resource planning software (ERP), inventory management systems, and data modeling applications.
+    It is perfect for data-rich internal applications, allowing users to enter, edit, validate, and process data from various sources, including remote sources like databases and APIs, as well as HTML documents. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.
   </p>
   
   ![NPM version](https://img.shields.io/npm/v/handsontable)
@@ -22,6 +22,9 @@
   [![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
   [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
   [![FOSSA status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
+  <br>
+
+  <a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/react-data-grid/demo">Demo</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/blog">Blog</a>
 
   <br>
   <picture>
@@ -43,28 +46,28 @@
   ---
   
   ### Install with npm
+
+  You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https://www.nuget.org/packages/Handsontable) or load the package from [CDN](https://jsdelivr.com/package/npm/handsontable).
   
   ```bash
   npm install handsontable
   ```
-  
-  You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https://www.nuget.org/packages/Handsontable) or load the package from [CDN](https://jsdelivr.com/package/npm/handsontable).
-  
-  ### Create a placeholder
-  
-  Create an HTML placeholder
+
+  ### Create an HTML container
   
   ```html
-  <div id="example"></div>
+  <div id="handsontable-example" class="ht-theme-main-dark-auto"></div>
   ```
   
-  Import Handsontable and its stylesheet
+  ### Import the data grid and CSS
+  
   ```js
   import Handsontable from "handsontable";
-  import 'handsontable/dist/handsontable.full.css';
+  import 'handsontable/styles/handsontable.min.css';
+  import 'handsontable/styles/ht-theme-main.min.css';
   ```
   
-  ### Initialize the grid
+  ### Define your data
   
   Now turn your placeholder into a data grid with sample data.
   ```js
