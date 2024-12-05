@@ -130,7 +130,7 @@ jobs:
           npm run build:languages.min
           npm run build:legacy-css
           npm run build:legacy-css.min
-      - run: tar -zcf dist.tar.gz ./handsontable/dist
+      - run: tar -zcf dist.tar.gz ./handsontable/dist ./handsontable/styles
 
       - name: Upload the Handsontable UMD build artifact.
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # https://github.com/actions/upload-artifact/releases/tag/v4.3.1
@@ -597,7 +597,7 @@ jobs:
           path: ./
       - run: |
           if test -f "handsontable-build-es-cjs/tmp.tar.gz"; then
-            tar -zxf handsontable-build-es-cjs/tmp.tar.gz ./handsontable/tmp
+            tar -zxf handsontable-build-es-cjs/tmp.tar.gz
             rm -r handsontable-build-es-cjs
           else
             npm run in handsontable build:es
@@ -608,7 +608,7 @@ jobs:
           fi
       - run: |
           if test -f "handsontable-build-umd/dist.tar.gz"; then
-            tar -zxf handsontable-build-umd/dist.tar.gz ./handsontable/dist
+            tar -zxf handsontable-build-umd/dist.tar.gz
             rm -r handsontable-build-umd
           else
             npm run in handsontable build:umd
@@ -618,9 +618,6 @@ jobs:
             npm run in handsontable build:legacy-css
             npm run in handsontable build:legacy-css.min
           fi
-      - run: |
-          npm run in handsontable build:themes
-          npm run in handsontable build:themes.min
           npm run in handsontable postbuild
 
       - name: Build wrappers and test examples
