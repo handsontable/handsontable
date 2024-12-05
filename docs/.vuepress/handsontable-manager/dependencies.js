@@ -15,7 +15,7 @@ const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest
 const getPackageUrls = (packageName, version, fileSelection) => {
   const subDirs = {
     handsontable: {
-      js: 'handsontable.full.min.js',
+      js: 'dist/handsontable.full.min.js',
       css: [
         'styles/handsontable.min.css',
         'styles/ht-theme-main.css',
