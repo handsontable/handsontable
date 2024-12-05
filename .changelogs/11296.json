@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Madee the build scripts of `@handsontable/react-wrapper` place the TS type definitions in the configured directory.",
+  "type": "fixed",
+  "issueOrPR": 11296,
+  "breaking": false,
+  "framework": "react"
+}
