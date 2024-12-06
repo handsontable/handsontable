@@ -10,6 +10,7 @@ export const helpers = {
 
   selectors: {
     mainTable: '#root > .handsontable',
+    themesMainTable: '#root',
     mainTableBody: '> .ht_master.handsontable table tbody',
     cloneTopTable: '> .ht_clone_top.handsontable table thead',
     cloneInlineStartTable: '> .ht_clone_inline_start.handsontable table tbody',
@@ -85,7 +86,7 @@ export const helpers = {
     const safeUrl = url.replace(/[^\w]/g, '_');
     const screenshotPath = path.join(
       __dirname,
-      `../screenshots/cross-browser/${this.browser}`,
+      `../screenshots/${this.browser}`,
       `${testFileName}${safeUrl}${suffix}.png`
     );
 

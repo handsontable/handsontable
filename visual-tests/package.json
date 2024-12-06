@@ -9,9 +9,10 @@
     "build": "node ./scripts/build.mjs",
     "test": "node ./scripts/run-tests.mjs",
     "test:cross-browser": "npx playwright test --config playwright-cross-browser.config.ts",
-    "serve-example-e2e": "npm --prefix ../examples/next/visual-tests/js/demo run serve -- --port=8082",
+    "test:themes": "npx playwright test --config playwright-themes.config.ts",
+    "serve-example-classic": "npm --prefix ../examples/next/visual-tests/js/demo run serve -- --port=8082",
+    "serve-example-themes": "npm --prefix ../examples/next/visual-tests/js/themes-example run serve -- --port=8085",
     "upload": "node ./scripts/upload.mjs",
-    "serve-example-preview": "npm --prefix ../examples/next/visual-tests/js/demo run serve -- --port=8085",
     "install-system-dependencies": "npx --no playwright install --with-deps",
     "publish-package": "echo \"There is nothing to publish. Skipped.\"",
     "clean": "rimraf ./screenshots ./playwright-report"
