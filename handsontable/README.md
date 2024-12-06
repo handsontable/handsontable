@@ -34,7 +34,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-dark-theme.png?raw=true"/>
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
-    <img width="780" alt="JavbaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
+    <img width="780" alt="JavaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
   </picture>
 </div>
 
@@ -45,8 +45,8 @@
 &nbsp;&nbsp;✅&nbsp; [Virtualization](https://handsontable.com/docs/row-virtualization/) <br>
 &nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/accessibility/) <br>
 &nbsp;&nbsp;✅&nbsp; [Keyboard shortcuts](https://handsontable.com/docs/keyboard-shortcuts/) <br>
-&nbsp;&nbsp;✅&nbsp; [Mutil-column sorting](https://handsontable.com/docs/rows-sorting/) <br>
-&nbsp;&nbsp;✅&nbsp; [Data filtering](https://handsontable.com/docs/javascript-data-grid/column-filter/) <br>
+&nbsp;&nbsp;✅&nbsp; [Sorting data](https://handsontable.com/docs/rows-sorting/) <br>
+&nbsp;&nbsp;✅&nbsp; [Filtering data](https://handsontable.com/docs/column-filter/) <br>
 &nbsp;&nbsp;✅&nbsp; [400 built-in formulas](https://handsontable.com/docs/formula-calculation/) <br>
 &nbsp;&nbsp;✅&nbsp; [Configurable selection](https://handsontable.com/docs/selection/) <br>
 &nbsp;&nbsp;✅&nbsp; [Data validation](https://handsontable.com/docs/cell-validator/) <br>
