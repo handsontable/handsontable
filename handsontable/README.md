@@ -184,6 +184,8 @@
 - [Contact support team](https://handsontable.com/contact?category=technical_support)
 - [Get a quote](https://handsontable.com/get-a-quote)
 
+<br>
+
 ## 🛟 Support
 
 **We're here to help!**
@@ -194,6 +196,8 @@ If you're using Handsontable with a free, non-commercial license, you can:
   - Connect with other developers and find answers on our [Developer Forum](https://handsontable.com/forum).
 
 If you have a commercial license, feel free to contact us directly at [support@handsontable.com](mailto:support@handsontable.com) or use our [contact form](https://handsontable.com/contact?category=technical_support).
+
+<br>
 
 ## 📖 Licenses
 
@@ -206,6 +210,8 @@ This license is available for non-commercial purposes such as teaching, academic
 ### 2. Commercial License  
 For commercial use, a paid license is required. This license includes support and maintenance to ensure you get the most out of Handsontable. The commercial license can be purchased directly from Handsoncode or through an [authorized reseller](https://handsontable.com/resellers).  
 [See the pricing page for details.](https://handsontable.com/pricing)
+
+<br>
 
 ## 🔑 License Key
 
