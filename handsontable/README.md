@@ -6,16 +6,16 @@
     <img width="400" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-black.svg?raw=true"/>
   </picture>
   <br><br>
-  <h3>Handsontable is a highly-customizable <a href="https://handsontable/docs/javascript-data-grid" target="_blank">JavaScript data grid</a> with a spreadsheet-like look and feel.</h3>
+  <h3>Handsontable is a highly-customizable <a href="https://handsontable.com/docs" target="_blank">JavaScript data grid</a> with a spreadsheet-like look and feel.</h3>
   <p>
-    It supports frameworks like 
+    Use it with JavaScript, TypeScript, or frameworks such as 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper" target="_blank">React</a>, 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular" target="_blank">Angular</a>, and 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue" target="_blank">Vue</a>. 
     It is perfect for data-rich internal applications, allowing users to enter, edit, validate, and process data from various sources, including remote sources like databases and APIs, as well as HTML documents. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.
   </p>
 
-  <a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/demo">Demo</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> 
+  <a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> 
   &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
 
   <br>
@@ -37,6 +37,24 @@
     <img width="780" alt="JavbaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
   </picture>
 </div>
+
+## Key Features
+
+&nbsp;&nbsp;✅&nbsp; [Built-in themes](https://handsontable.com/docs/themes/) <br>
+&nbsp;&nbsp;✅&nbsp; [Flexible API](https://handsontable.com/docs/api/) <br>
+&nbsp;&nbsp;✅&nbsp; [Virtualization](https://handsontable.com/docs/row-virtualization/) <br>
+&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/accessibility/) <br>
+&nbsp;&nbsp;✅&nbsp; [Keyboard shortcuts](https://handsontable.com/docs/keyboard-shortcuts/) <br>
+&nbsp;&nbsp;✅&nbsp; [Mutil-column sorting](https://handsontable.com/docs/rows-sorting/) <br>
+&nbsp;&nbsp;✅&nbsp; [Data filtering](https://handsontable.com/docs/javascript-data-grid/column-filter/) <br>
+&nbsp;&nbsp;✅&nbsp; [400 built-in formulas](https://handsontable.com/docs/formula-calculation/) <br>
+&nbsp;&nbsp;✅&nbsp; [Configurable selection](https://handsontable.com/docs/selection/) <br>
+&nbsp;&nbsp;✅&nbsp; [Data validation](https://handsontable.com/docs/cell-validator/) <br>
+&nbsp;&nbsp;✅&nbsp; [Conditional formatting](https://handsontable.com/docs/conditional-formatting/) <br>
+&nbsp;&nbsp;✅&nbsp; [Merged cells](https://handsontable.com/docs/merge-cells/) <br>
+&nbsp;&nbsp;✅&nbsp; [Pinned/frozen columns](https://handsontable.com/docs/column-freezing/) <br>
+&nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/column-hiding/) <br>
+&nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/context-menu/) <br>
 
 <div id="installation">
 
@@ -94,78 +112,57 @@
 ## CDN-based setup
 
 <details close>
-  <summary></> Show/Hide code</summary>
-    If your environment does not support `imports`, you can use the code below to quickly set up and run a data grid with basic configuration options.
+  <summary>&nbsp; Show/Hide code</summary>
+  <br>
+  If your environment does not support `imports`, you can use the code below to quickly set up and run a data grid with basic configuration options.
+  <br><br>
   
-    ```html
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Handsontable</title>
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/handsontable@15.0.0-next-fdd4480-20241205/styles/handsontable.min.css"
-        />
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/handsontable@15.0.0-next-fdd4480-20241205/styles/ht-theme-main.min.css"
-        />
-      </head>
-      <body>
-      
-        <div id="handsontable-grid" class="ht-theme-main"></div>
-    
-        <script src="https://cdn.jsdelivr.net/gh/handsontable/handsontable@4472a6050c67dde8fb4771eb25c80c1f0b1c0ed1/handsontable/dist/handsontable.full.min.js"></script>
-        <script>
-          const element = document.getElementById("handsontable-grid")
-    
-          new Handsontable(element, {
-            data: [
-              { company: "Tagcat", country: "United Kingdom", rating: 4.5 },
-              { company: "Zoomzone", country: "Indonesia", rating: 3.8 },
-              { company: "Meeveo", country: "United States", rating: 4.2 },
-            ],
-            columns: [
-              { data: "company", title: "Company", width: 100 },
-              {
-                data: "country",
-                title: "Country",
-                width: 150,
-                type: "dropdown",
-                source: ["United Kingdom", "Indonesia", "United States"],
-              },
-              { data: "rating", title: "Rating", width: 100, type: "numeric" },
-            ],
-            rowHeaders: true,
-            navigableHeaders: true,
-            columnSorting: true,
-            headerClassName: "htLeft",
-            licenseKey: "non-commercial-and-evaluation",
-          })
-        </script>
-      </body>
-    </html>
-    ```
+  ```html
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Handsontable - JavaScript Data Grid Example</title>
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css"
+      />
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css"
+      />
+    </head>
+    <body>
+      <div id="handsontable-grid" class="ht-theme-main"></div>
+      <script src="https://cdn.jsdelivr.net/gh/handsontable/handsontable/dist/handsontable.full.min.js"></script>
+      <script>
+        const element = document.getElementById("handsontable-grid");
+  
+        new Handsontable(element, {
+          data: [
+            { company: "Tagcat", country: "United Kingdom", rating: 4.4 },
+            { company: "Zoomzone", country: "Japan", rating: 4.5 },
+            { company: "Meeveo", country: "United States", rating: 4.6 },
+          ],
+          columns: [
+            { data: "company", title: "Company", width: 100 },
+            { data: "country", title: "Country", width: 150, type: "dropdown", source: ["United Kingdom", "Japan", "United States"] },
+            { data: "rating", title: "Rating", width: 100, type: "numeric" },
+          ],
+          rowHeaders: true,
+          navigableHeaders: true,
+          tabNavigation: true,
+          multiColumnSorting: true,
+          headerClassName: "htLeft",
+          licenseKey: "non-commercial-and-evaluation",
+        });
+      </script>
+    </body>
+  </html>
+  ```
+
 </details>
-
-## Key Features
-
-&nbsp;&nbsp;✅&nbsp; [Built-in themes](https://handsontable.com/docs/javascript-data-grid/themes/) <br>
-&nbsp;&nbsp;✅&nbsp; [Flexible API](https://handsontable.com/docs/javascript-data-grid/api/) <br>
-&nbsp;&nbsp;✅&nbsp; [Virtualization](https://handsontable.com/docs/javascript-data-grid/row-virtualization/) <br>
-&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/javascript-data-grid/accessibility/) <br>
-&nbsp;&nbsp;✅&nbsp; [Mutil-column sorting](https://handsontable.com/docs/javascript-data-grid/rows-sorting/) <br>
-&nbsp;&nbsp;✅&nbsp; [Data filtering](https://handsontable.com/docs/javascript-data-grid/column-filter/) <br>
-&nbsp;&nbsp;✅&nbsp; [400 built-in formulas](https://handsontable.com/docs/javascript-data-grid/formula-calculation/) <br>
-&nbsp;&nbsp;✅&nbsp; [Configurable selection](https://handsontable.com/docs/javascript-data-grid/selection/) <br>
-&nbsp;&nbsp;✅&nbsp; [Data validation](https://handsontable.com/docs/javascript-data-grid/cell-validator/) <br>
-&nbsp;&nbsp;✅&nbsp; [Conditional formatting](https://handsontable.com/docs/javascript-data-grid/conditional-formatting/) <br>
-&nbsp;&nbsp;✅&nbsp; [Merged cells](https://handsontable.com/docs/javascript-data-grid/merge-cells/) <br>
-&nbsp;&nbsp;✅&nbsp; [Pinned/frozen columns](https://handsontable.com/docs/javascript-data-grid/column-freezing/) <br>
-&nbsp;&nbsp;✅&nbsp; [Movable rows](https://handsontable.com/docs/javascript-data-grid/row-moving/) / [Moving columns](https://handsontable.com/docs/javascript-data-grid/column-moving/) <br>
-&nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/javascript-data-grid/column-hiding/) <br>
-&nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/javascript-data-grid/context-menu/) <br>
 
 ## Resources
 
@@ -176,7 +173,7 @@
 - [CDN](https://www.jsdelivr.com/package/npm/handsontable)
 - [Forum](https://forum.handsontable.com/)
 - [Blog](https://handsontable.com/blog)
-- [Contact support team](https://handsontable.com/contact)
+- [Contact support team](https://handsontable.com/contact?category=technical_support)
 - [Get a quote](https://handsontable.com/get-a-quote)
 
 ## Support
