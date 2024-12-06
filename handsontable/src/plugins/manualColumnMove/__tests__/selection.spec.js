@@ -63,7 +63,7 @@ describe('manualColumnMove', () => {
 
     describe('should be shown properly after undo action', () => {
       it('when moving multiple columns from the left to the right', () => {
-        const hot = handsontable({
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           colHeaders: true,
           manualColumnMove: true
@@ -89,7 +89,7 @@ describe('manualColumnMove', () => {
       });
 
       it('when moving multiple columns from the right to the left', () => {
-        const hot = handsontable({
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           colHeaders: true,
           manualColumnMove: true

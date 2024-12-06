@@ -329,7 +329,7 @@ export class UndoRedo extends BasePlugin {
 
         deprecationWarns.add(methodName);
       }
-    }
+    };
 
     /**
      * {@link UndoRedo#undo}.

@@ -708,7 +708,7 @@ describe('AutoColumnSize', () => {
 
   describe('should cooperate with the `UndoRedo` plugin properly', () => {
     it('when removing single column', () => {
-      const hot = handsontable({
+      handsontable({
         data: [['Short', 'Somewhat long', 'The very very very longest one']],
         autoColumnSize: true,
       });
@@ -762,7 +762,7 @@ describe('AutoColumnSize', () => {
     });
 
     it('when inserting single column', () => {
-      const hot = handsontable({
+      handsontable({
         data: [['Short', 'Somewhat long', 'The very very very longest one']],
         autoColumnSize: true,
       });

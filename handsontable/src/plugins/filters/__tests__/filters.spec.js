@@ -729,7 +729,7 @@ describe('Filters', () => {
     });
 
     it('should undo multiple steps of filtering performed with the Filters\' UI', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
         dropdownMenu: true,

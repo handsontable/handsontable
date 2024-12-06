@@ -163,7 +163,7 @@ describe('manualRowMove', () => {
 
       describe('should be shown properly after undo action', () => {
         it('when moving multiple rows from the top to the bottom', () => {
-          const hot = handsontable({
+          handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             rowHeaders: true,
             manualRowMove: true
@@ -189,7 +189,7 @@ describe('manualRowMove', () => {
         });
 
         it('when moving multiple rows from the bottom to the top', () => {
-          const hot = handsontable({
+          handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             rowHeaders: true,
             manualRowMove: true

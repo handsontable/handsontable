@@ -537,7 +537,6 @@ describe('UndoRedo', () => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
-        const hot = getInstance();
 
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');
@@ -556,7 +555,6 @@ describe('UndoRedo', () => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
-        const hot = getInstance();
 
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');
