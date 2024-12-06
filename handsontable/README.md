@@ -38,7 +38,7 @@
   </picture>
 </div>
 
-## Key Features
+## ✨ Key Features
 
 &nbsp;&nbsp;✅&nbsp; [Built-in themes](https://handsontable.com/docs/themes/) <br>
 &nbsp;&nbsp;✅&nbsp; [Flexible API](https://handsontable.com/docs/api/) <br>
@@ -58,7 +58,7 @@
 
 <div id="installation">
 
-  ## Installation
+  ## 🪄 Installation
   Below, you'll find the installation guide for the JavaScript component. If you're using a specific framework, refer to its dedicated wrapper for installation instructions:
   
   - <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"> React functional component</a>
@@ -78,34 +78,40 @@
   ### Create an HTML container
   
   ```html
+  <!-- Set the container's ID and apply the desired theme -->
   <div id="handsontable-example" class="ht-theme-main-dark-auto"></div>
   ```
   
-  ### Import the data grid and CSS
+  ### Setup
   
   ```js
-  import Handsontable from "handsontable";
+  import Handsontable from 'handsontable';
+  // Base CSS rules
   import 'handsontable/styles/handsontable.min.css';
+  // Main theme variables
   import 'handsontable/styles/ht-theme-main.min.css';
-  ```
   
-  ### Define your data
+  const element = document.getElementById('handsontable-grid');
   
-  Now turn your placeholder into a data grid with sample data.
-  ```js
-  const data = [
-    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-    ['2019', 10, 11, 12, 13],
-    ['2020', 20, 11, 14, 13],
-    ['2021', 30, 15, 12, 13]
-  ];
-  
-  const container = document.getElementById('example');
-  const hot = new Handsontable(container, {
-    data: data,
+  new Handsontable(element, {
+    data: [
+      { company: 'Tagcat', country: 'United Kingdom', rating: 4.4 },
+      { company: 'Zoomzone', country: 'Japan', rating: 4.5 },
+      { company: 'Meeveo', country: 'United States', rating: 4.6 },
+    ],
+    columns: [
+      { data: 'company', title: 'Company', width: 100 },
+      { data: 'country', title: 'Country', width: 170, type: 'dropdown', source: ['United Kingdom', 'Japan', 'United States'] },
+      { data: 'rating', title: 'Rating', width: 100, type: 'numeric' },
+    ],
     rowHeaders: true,
-    colHeaders: true
+    navigableHeaders: true,
+    tabNavigation: true,
+    multiColumnSorting: true,
+    headerClassName: 'htLeft',
+    licenseKey: 'non-commercial-and-evaluation',
   });
+
   ```
 </div>
 
@@ -147,7 +153,7 @@
           ],
           columns: [
             { data: "company", title: "Company", width: 100 },
-            { data: "country", title: "Country", width: 150, type: "dropdown", source: ["United Kingdom", "Japan", "United States"] },
+            { data: "country", title: "Country", width: 170, type: "dropdown", source: ["United Kingdom", "Japan", "United States"] },
             { data: "rating", title: "Rating", width: 100, type: "numeric" },
           ],
           rowHeaders: true,
@@ -176,26 +182,31 @@
 - [Contact support team](https://handsontable.com/contact?category=technical_support)
 - [Get a quote](https://handsontable.com/get-a-quote)
 
-## Support
+## 🛟 Support
 
-We provide support for developers working with commercial version via [contact form](https://handsontable.com/contact?category=technical_support)</a> or at support@handsontable.com.
+**We're here to help!**
 
-If you use a non-commercial version then please ask your tagged question on [StackOverflow](https://stackoverflow.com/questions/tagged/handsontable).
+If you're using Handsontable with a free, non-commercial license, you can:
+  - Join the conversation on [GitHub Discussions](https://github.com/handsontable/handsontable/discussions) to share ideas, suggest features, or discuss changes.
+  - Report any bugs you find on our [GitHub Issue Board](https://github.com/handsontable/handsontable/issues).
+  - Connect with other developers and find answers on our [Developer Forum](https://handsontable.com/forum).
+
+If you have a commercial license, feel free to contact us directly at [support@handsontable.com](mailto:support@handsontable.com) or use our [contact form](https://handsontable.com/contact?category=technical_support).
 
 ## License
 
 Handsontable is a commercial software with two licenses available:
 
 - Free for non-commercial purposes such as teaching, academic research, and evaluation. [Read it here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
-- Commercial license with support and maintenance included. See [pricing plans](https://handsontable.com/pricing).
+- Commercial license with support and maintenance included. See [pricing](https://handsontable.com/pricing) page for more details.
 
-## License key
+## License Key
 
-If you use Handsontable in a project that supports your commercial activity, then you must purchase the license key at [handsontable.com](https://handsontable.com/pricing).
+If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing).
 
-If you use the free for non-commercial license of Handsontable, then pass the phrase `'non-commercial-and-evaluation'`, as described in [this documentation](https://handsontable.com/docs/license-key/).
+For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key. You can find more details in [our documentation](https://handsontable.com/docs/license-key/).
 
 <br>
 <br>
 
-Proudly created and maintained by the [Handsontable Team](https://handsontable.com/team).
+Created and maintained by the [Handsontable Team](https://handsontable.com/team) 👋
