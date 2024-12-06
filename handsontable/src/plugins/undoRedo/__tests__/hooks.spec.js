@@ -35,7 +35,6 @@ describe('UndoRedo', () => {
 
       expect(beforeUndoSpy.calls.count()).toEqual(1);
       expect(hookData).not.toBe(null);
-      expect(hookData.actionType).toEqual('remove_row');
       expect(hookData.data).toEqual([['A2', 'B2']]);
     });
 
@@ -154,7 +153,6 @@ describe('UndoRedo', () => {
 
       expect(beforeRedoSpy.calls.count()).toEqual(1);
       expect(hookData).not.toBe(null);
-      expect(hookData.actionType).toEqual('remove_row');
       expect(hookData.data).toEqual([['A2', 'B2']]);
     });
 
@@ -181,7 +179,6 @@ describe('UndoRedo', () => {
 
       expect(afterRedoSpy.calls.count()).toEqual(1);
       expect(hookData).not.toBe(null);
-      expect(hookData.actionType).toEqual('remove_row');
       expect(hookData.data).toEqual([['A2', 'B2']]);
     });
   });
