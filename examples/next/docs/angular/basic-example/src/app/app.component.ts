@@ -3,6 +3,7 @@ import Handsontable from 'handsontable';
 import { HotTableModule } from '@handsontable/angular';
 
 @Component({
+  standalone: true,
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
