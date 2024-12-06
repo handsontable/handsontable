@@ -1,109 +1,176 @@
 <div align="center">
   <br><br>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-white.svg?raw=true"/>
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-black.svg?raw=true"/>
-    <img width="400" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-black.svg?raw=true"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-logo-white.svg?raw=true"/>
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-logo-black.svg?raw=true"/>
+    <img width="360" alt="Logo of Handsontable data grid" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-logo-black.svg?raw=true"/>
   </picture>
   <br><br>
-  <h3>Handsontable is a highly-customizable <a href="https://handsontable/docs/javascript-data-grid" target="_blank">JavaScript data grid</a> with a spreadsheet-like look and feel.</h3>
+  <h3>Handsontable is a highly-customizable <a href="https://handsontable.com/docs" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
   <p>
-    It supports frameworks like 
+    Use it with JavaScript, TypeScript, or frameworks such as 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper" target="_blank">React</a>, 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular" target="_blank">Angular</a>, and 
-    <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue" target="_blank">Vue</a>. 
-    It is perfect for data-rich internal applications, allowing users to enter, edit, and validate data from various sources. Common use cases include resource planning software (ERP), inventory management systems, and data modeling applications.
+    <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue" target="_blank">Vue</a>. With its spreadsheet-like editing features, it’s perfect for building data-rich internal apps. It allows users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.
   </p>
-  
-  ![NPM version](https://img.shields.io/npm/v/handsontable)
-  [![Total downloads](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
-  [![Monthly downloads](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
-  [![Contributors](https://img.shields.io/github/contributors/handsontable/handsontable)](https://npmjs.com/package/handsontable)
-  [![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
-  [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
-  [![FOSSA status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
+
+<a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
 
   <br>
+
+[![NPM version](https://img.shields.io/npm/v/handsontable?style=for-the-badge)](https://npmjs.com/package/handsontable)
+[![Total downloads](https://img.shields.io/npm/dt/handsontable.svg?style=for-the-badge)](https://npmjs.com/package/handsontable)
+[![Monthly downloads](https://img.shields.io/npm/dm/handsontable.svg?style=for-the-badge)](https://npmjs.com/package/handsontable)
+[![Contributors](https://img.shields.io/github/contributors/handsontable/handsontable?style=for-the-badge)](https://github.com/handsontable/handsontable/graphs/contributors)
+<br>
+[![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
+[![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
+[![FOSSA status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
+
+  <br>
+
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-dark-theme.png?raw=true"/>
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
-    <img width="760" alt="JavbaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-preview-dark-theme.png?raw=true"/>
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-preview-light-theme.png?raw=true"/>
+    <img width="780" alt="JavaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-preview-light-theme.png?raw=true"/>
   </picture>
 </div>
+
+## ✨ Key Features
+
+&nbsp;&nbsp;✅&nbsp; [Built-in themes](https://handsontable.com/docs/themes/) <br>
+&nbsp;&nbsp;✅&nbsp; [Flexible API](https://handsontable.com/docs/api/) <br>
+&nbsp;&nbsp;✅&nbsp; [Virtualization](https://handsontable.com/docs/row-virtualization/) <br>
+&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/accessibility/) <br>
+&nbsp;&nbsp;✅&nbsp; [Keyboard shortcuts](https://handsontable.com/docs/keyboard-shortcuts/) <br>
+&nbsp;&nbsp;✅&nbsp; [Sorting data](https://handsontable.com/docs/rows-sorting/) <br>
+&nbsp;&nbsp;✅&nbsp; [Filtering data](https://handsontable.com/docs/column-filter/) <br>
+&nbsp;&nbsp;✅&nbsp; [400 built-in formulas](https://handsontable.com/docs/formula-calculation/) <br>
+&nbsp;&nbsp;✅&nbsp; [Configurable selection](https://handsontable.com/docs/selection/) <br>
+&nbsp;&nbsp;✅&nbsp; [Data validation](https://handsontable.com/docs/cell-validator/) <br>
+&nbsp;&nbsp;✅&nbsp; [Conditional formatting](https://handsontable.com/docs/conditional-formatting/) <br>
+&nbsp;&nbsp;✅&nbsp; [Merged cells](https://handsontable.com/docs/merge-cells/) <br>
+&nbsp;&nbsp;✅&nbsp; [Pinned/frozen columns](https://handsontable.com/docs/column-freezing/) <br>
+&nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/column-hiding/) <br>
+&nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/context-menu/) <br>
 
 <div id="installation">
 
-  ## Installation
-  Below, you'll find the installation guide for the JavaScript component. If you're using a specific framework, refer to its dedicated project for installation instructions:
-  
-  - <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"> React functional component</a>
-  - <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React"> React class component</a>
-  - <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular"> Angular</a>
-  - <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="12" height="12"> Vue</a>
+## 🪄 Installation
+Below, you'll find the installation guide for the JavaScript component. If you're using a specific framework, refer to its dedicated wrapper for installation instructions:
+
+- <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"> React functional component</a>
+- <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React"> React class component</a>
+- <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular"> Angular</a>
+- <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="12" height="12"> Vue</a>
   ---
-  
-  ### Install with npm
-  
-  Run the following command in your terminal
-  ```
+
+### Install with npm
+
+You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https://www.nuget.org/packages/Handsontable) or load the package from [CDN](https://jsdelivr.com/package/npm/handsontable).
+
+  ```bash
   npm install handsontable
   ```
-  
-  You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https://www.nuget.org/packages/Handsontable) or load the bundle directly from [jsDelivr](https://jsdelivr.com/package/npm/handsontable).
-  
-  ### Create a placeholder
-  
-  Create an HTML placeholder
-  
+
+### Provide an HTML container
+
   ```html
-  <div id="example"></div>
+  <!-- Set the container's ID and apply the desired theme -->
+  <div id="handsontable-example" class="ht-theme-main-dark-auto"></div>
   ```
-  
-  Import Handsontable and its stylesheet
+
+### Setup
+
   ```js
-  import Handsontable from "handsontable";
-  import 'handsontable/dist/handsontable.full.css';
-  ```
+  import Handsontable from 'handsontable';
+  // Base CSS rules
+  import 'handsontable/styles/handsontable.min.css';
+  // Main theme variables
+  import 'handsontable/styles/ht-theme-main.min.css';
   
-  ### Initialize the grid
+  const element = document.getElementById('handsontable-grid');
   
-  Now turn your placeholder into a data grid with sample data.
-  ```js
-  const data = [
-    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-    ['2019', 10, 11, 12, 13],
-    ['2020', 20, 11, 14, 13],
-    ['2021', 30, 15, 12, 13]
-  ];
-  
-  const container = document.getElementById('example');
-  const hot = new Handsontable(container, {
-    data: data,
+  new Handsontable(element, {
+    data: [
+      { company: 'Tagcat', country: 'United Kingdom', rating: 4.4 },
+      { company: 'Zoomzone', country: 'Japan', rating: 4.5 },
+      { company: 'Meeveo', country: 'United States', rating: 4.6 },
+    ],
+    columns: [
+      { data: 'company', title: 'Company', width: 100 },
+      { data: 'country', title: 'Country', width: 170, type: 'dropdown', source: ['United Kingdom', 'Japan', 'United States'] },
+      { data: 'rating', title: 'Rating', width: 100, type: 'numeric' },
+    ],
     rowHeaders: true,
-    colHeaders: true
+    navigableHeaders: true,
+    tabNavigation: true,
+    multiColumnSorting: true,
+    headerClassName: 'htLeft',
+    licenseKey: 'non-commercial-and-evaluation',
   });
+
   ```
 </div>
 
-## Key Features
+### CDN-based setup
 
-&nbsp;&nbsp;✅&nbsp; [Built-in themes](https://handsontable.com/docs/javascript-data-grid/themes/) <br>
-&nbsp;&nbsp;✅&nbsp; [Flexible API](https://handsontable.com/docs/javascript-data-grid/api/) <br>
-&nbsp;&nbsp;✅&nbsp; [Virtualization](https://handsontable.com/docs/javascript-data-grid/row-virtualization/) <br>
-&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/javascript-data-grid/accessibility/) <br>
-&nbsp;&nbsp;✅&nbsp; [Mutil-column sorting](https://handsontable.com/docs/javascript-data-grid/rows-sorting/) <br>
-&nbsp;&nbsp;✅&nbsp; [Data filtering](https://handsontable.com/docs/javascript-data-grid/column-filter/) <br>
-&nbsp;&nbsp;✅&nbsp; [400 built-in formulas](https://handsontable.com/docs/javascript-data-grid/formula-calculation/) <br>
-&nbsp;&nbsp;✅&nbsp; [Configurable selection](https://handsontable.com/docs/javascript-data-grid/selection/) <br>
-&nbsp;&nbsp;✅&nbsp; [Data validation](https://handsontable.com/docs/javascript-data-grid/cell-validator/) <br>
-&nbsp;&nbsp;✅&nbsp; [Conditional formatting](https://handsontable.com/docs/javascript-data-grid/conditional-formatting/) <br>
-&nbsp;&nbsp;✅&nbsp; [Merged cells](https://handsontable.com/docs/javascript-data-grid/merge-cells/) <br>
-&nbsp;&nbsp;✅&nbsp; [Pinned/frozen columns](https://handsontable.com/docs/javascript-data-grid/column-freezing/) <br>
-&nbsp;&nbsp;✅&nbsp; [Movable rows](https://handsontable.com/docs/javascript-data-grid/row-moving/) / [Moving columns](https://handsontable.com/docs/javascript-data-grid/column-moving/) <br>
-&nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/javascript-data-grid/column-hiding/) <br>
-&nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/javascript-data-grid/context-menu/) <br>
+<details close>
+  <summary>&nbsp; Show/Hide code</summary>
+  <br>
+  If your environment does not support `imports`, you can use the code below to quickly set up and run a data grid with basic configuration options.
+  <br><br>
 
-## Resources
+  ```html
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Handsontable - JavaScript Data Grid Example</title>
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css"
+      />
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css"
+      />
+    </head>
+    <body>
+      <div id="handsontable-grid" class="ht-theme-main"></div>
+      <script src="https://cdn.jsdelivr.net/gh/handsontable/handsontable/dist/handsontable.full.min.js"></script>
+      <script>
+        const element = document.getElementById("handsontable-grid");
+  
+        new Handsontable(element, {
+          data: [
+            { company: "Tagcat", country: "United Kingdom", rating: 4.4 },
+            { company: "Zoomzone", country: "Japan", rating: 4.5 },
+            { company: "Meeveo", country: "United States", rating: 4.6 },
+          ],
+          columns: [
+            { data: "company", title: "Company", width: 100 },
+            { data: "country", title: "Country", width: 170, type: "dropdown", source: ["United Kingdom", "Japan", "United States"] },
+            { data: "rating", title: "Rating", width: 100, type: "numeric" },
+          ],
+          rowHeaders: true,
+          navigableHeaders: true,
+          tabNavigation: true,
+          multiColumnSorting: true,
+          headerClassName: "htLeft",
+          licenseKey: "non-commercial-and-evaluation",
+        });
+      </script>
+    </body>
+  </html>
+  ```
+
+</details>
+
+<br>
+
+## 🚀 Resources
 
 - [Website](https://handsontable.com)
 - [Demo](https://handsontable.com/demo)
@@ -112,29 +179,45 @@
 - [CDN](https://www.jsdelivr.com/package/npm/handsontable)
 - [Forum](https://forum.handsontable.com/)
 - [Blog](https://handsontable.com/blog)
-- [Contact support team](https://handsontable.com/contact)
+- [Contact support team](https://handsontable.com/contact?category=technical_support)
 - [Get a quote](https://handsontable.com/get-a-quote)
 
-## Support
+<br>
 
-We provide support for developers working with commercial version via [contact form](https://handsontable.com/contact?category=technical_support)</a> or at support@handsontable.com.
+## 🛟 Support
 
-If you use a non-commercial version then please ask your tagged question on [StackOverflow](https://stackoverflow.com/questions/tagged/handsontable).
+**We're here to help!**
 
-## License
+If you're using Handsontable with a free, non-commercial license, you can:
+- Join the conversation on [GitHub Discussions](https://github.com/handsontable/handsontable/discussions) to share ideas, suggest features, or discuss changes.
+- Report any bugs you find on our [GitHub Issue Board](https://github.com/handsontable/handsontable/issues).
+- Connect with other developers and find answers on our [Developer Forum](https://handsontable.com/forum).
 
-Handsontable is a commercial software with two licenses available:
+If you have a commercial license, feel free to contact us directly at [support@handsontable.com](mailto:support@handsontable.com) or use our [contact form](https://handsontable.com/contact?category=technical_support).
 
-- Free for non-commercial purposes such as teaching, academic research, and evaluation. [Read it here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
-- Commercial license with support and maintenance included. See [pricing plans](https://handsontable.com/pricing).
+<br>
 
-## License key
+## 📖 Licenses
 
-If you use Handsontable in a project that supports your commercial activity, then you must purchase the license key at [handsontable.com](https://handsontable.com/pricing).
+Handsontable is available under two licensing options, allowing you to choose the one that best fits your needs. Each license comes with its own terms and conditions, as outlined below:
 
-If you use the free for non-commercial license of Handsontable, then pass the phrase `'non-commercial-and-evaluation'`, as described in [this documentation](https://handsontable.com/docs/license-key/).
+### ① Free license for non-commercial use, and evaluation purposes
+This license is available for non-commercial purposes such as teaching, academic research, or evaluation. It allows you to use Handsontable free of charge under the terms specified in the non-commercial license agreement.  
+[Learn more here.](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf)
+
+### ② Commercial License
+For commercial use, a paid license is required. This license includes support and maintenance to ensure you get the most out of Handsontable. The commercial license can be purchased directly from Handsoncode or through an [authorized reseller](https://handsontable.com/resellers).  
+[See the pricing page for details.](https://handsontable.com/pricing)
+
+<br>
+
+## 🔑 License Key
+
+If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing).
+
+For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key. You can find more details in [our documentation](https://handsontable.com/docs/license-key/).
 
 <br>
 <br>
 
-Proudly created and maintained by the [Handsontable Team](https://handsontable.com/team).
+Created and maintained by [Handsoncode](https://handsontable.com/team) 👋
