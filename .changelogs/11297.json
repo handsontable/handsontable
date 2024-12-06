@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed undo/redo scrolling behavior after undo data deletion.",
+  "type": "fixed",
+  "issueOrPR": 11297,
+  "breaking": false,
+  "framework": "none"
+}
