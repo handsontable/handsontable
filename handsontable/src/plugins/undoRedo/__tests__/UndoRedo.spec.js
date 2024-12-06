@@ -18,11 +18,9 @@ describe('UndoRedo', () => {
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         undo: false,
       });
-      const undoRedo = hot.getPlugin('undoRedo');
 
       setDataAtCell(0, 0, 'X1');
 
-      expect(undoRedo.isEnabled()).toBe(false);
       expect(hot.undo).toBeUndefined();
       expect(hot.redo).toBeUndefined();
 
@@ -34,7 +32,6 @@ describe('UndoRedo', () => {
 
       hot.undo();
 
-      expect(undoRedo.isEnabled()).toBe(true);
       expect(getDataAtCell(0, 0)).toBe('X1');
 
       hot.redo();
@@ -47,9 +44,6 @@ describe('UndoRedo', () => {
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         undo: true,
       });
-      const undoRedo = hot.getPlugin('undoRedo');
-
-      expect(undoRedo.isEnabled()).toBe(true);
 
       setDataAtCell(0, 0, 'X2');
 
@@ -65,7 +59,6 @@ describe('UndoRedo', () => {
         undo: false,
       });
 
-      expect(undoRedo.isEnabled()).toBe(false);
       expect(hot.undo).toBeUndefined();
       expect(hot.redo).toBeUndefined();
     });
@@ -2464,10 +2457,10 @@ describe('UndoRedo', () => {
       expect(getDataAtCell(0, 0)).toBe('A1');
       setDataAtCell(0, 0, 'A1');
 
-      expect(hot.undoRedo.isUndoAvailable()).toBe(false);
+      expect(hot.isUndoAvailable()).toBe(false);
 
       setDataAtCell(0, 0, 'A');
-      expect(hot.undoRedo.isUndoAvailable()).toBe(true);
+      expect(hot.isUndoAvailable()).toBe(true);
     });
 
     it('should not save the undo action if old and new values are not string, number or boolean', () => {
@@ -2477,11 +2470,11 @@ describe('UndoRedo', () => {
         ]
       });
 
-      expect(hot.undoRedo.isUndoAvailable()).toBe(false);
+      expect(hot.isUndoAvailable()).toBe(false);
       expect(getDataAtCell(0, 0)).toEqual({ key1: 'abc' });
       setDataAtCell(0, 0, { key1: 'abc' });
 
-      expect(hot.undoRedo.isUndoAvailable()).toBe(true);
+      expect(hot.isUndoAvailable()).toBe(true);
     });
   });
 

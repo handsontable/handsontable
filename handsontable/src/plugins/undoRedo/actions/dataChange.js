@@ -90,7 +90,7 @@ export class DataChangeAction extends BaseAction {
           emptyRowsAtTheEnd === hot.getSettings().minSpareRows) {
 
         hot.alter('remove_row', parseInt(row + 1, 10), hot.getSettings().minSpareRows);
-        hot.undoRedo.doneActions.pop();
+        hot.getPlugin('undoRedo').doneActions.pop();
       }
 
       if (hot.getSettings().minSpareCols &&
@@ -98,7 +98,7 @@ export class DataChangeAction extends BaseAction {
           emptyColsAtTheEnd === hot.getSettings().minSpareCols) {
 
         hot.alter('remove_col', parseInt(column + 1, 10), hot.getSettings().minSpareCols);
-        hot.undoRedo.doneActions.pop();
+        hot.getPlugin('undoRedo').doneActions.pop();
       }
     }
 
