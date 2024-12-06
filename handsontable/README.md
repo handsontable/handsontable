@@ -119,7 +119,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 <details close>
   <summary>&nbsp; Show/Hide code</summary>
   <br>
-  If your environment does not support `imports`, you can use the code below to quickly set up and run a data grid with basic configuration options.
+  If your environment does not support imports, you can use the code below to quickly set up and run a data grid with basic configuration options.
   <br><br>
 
   ```html
