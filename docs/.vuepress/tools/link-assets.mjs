@@ -9,11 +9,11 @@ const docsBasePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 
 const SYMLINK_PATHS = [
   { source: '../handsontable/tmp/', target: './.vuepress/public/handsontable/' },
-  { source: '../wrappers/react/dist/', target: './.vuepress/public/@handsontable/react/' },
-  { source: '../wrappers/react-wrapper/dist/', target: './.vuepress/public/@handsontable/react-wrapper/' },
-  { source: '../wrappers/angular/dist/hot-table/fesm2022', target: './.vuepress/public/@handsontable/angular/' },
-  { source: '../wrappers/vue/dist/', target: './.vuepress/public/@handsontable/vue/' },
-  { source: '../wrappers/vue3/dist/', target: './.vuepress/public/@handsontable/vue3/' },
+  { source: '../wrappers/react/', target: './.vuepress/public/@handsontable/react/' },
+  { source: '../wrappers/react-wrapper/', target: './.vuepress/public/@handsontable/react-wrapper/' },
+  { source: '../wrappers/angular/dist/hot-table/', target: './.vuepress/public/@handsontable/angular/' },
+  { source: '../wrappers/vue/', target: './.vuepress/public/@handsontable/vue/' },
+  { source: '../wrappers/vue3/', target: './.vuepress/public/@handsontable/vue3/' },
 ];
 
 if (!fs.existsSync(path.resolve('./.vuepress/public/@handsontable'))) {
