@@ -75,7 +75,7 @@
   npm install handsontable
   ```
 
-  ### Create an HTML container
+  ### Provide an HTML container
   
   ```html
   <!-- Set the container's ID and apply the desired theme -->
