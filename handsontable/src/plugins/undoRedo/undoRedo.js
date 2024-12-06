@@ -15,6 +15,8 @@ Hooks.getSingleton().register('afterUndo');
 Hooks.getSingleton().register('beforeRedo');
 Hooks.getSingleton().register('afterRedo');
 
+const deprecationWarns = new Set();
+
 /**
  * @description
  * Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
@@ -319,8 +321,15 @@ export class UndoRedo extends BasePlugin {
    * Expose the plugin API to the Core. It is for backward compatibility and it should be removed in the future.
    */
   #exposeAPIToCore() {
-    const deprecatedWarn = methodName => warn(toSingleLine`The method is deprecated. Please use the\x20
-      "${methodName}" method from the UndoRedo plugin (e.g. \`hot.getPlugin("undoRedo").${methodName}()\`).`);
+    const deprecatedWarn = (methodName) => {
+      if (!deprecationWarns.has(methodName)) {
+        warn(toSingleLine`The "${methodName}" method is deprecated and it will be removed\x20
+          from the Core API in the future. Please use the method from the UndoRedo plugin\x20
+          (e.g. \`hotInstance.getPlugin("undoRedo").${methodName}()\`).`);
+
+        deprecationWarns.add(methodName);
+      }
+    }
 
     /**
      * {@link UndoRedo#undo}.

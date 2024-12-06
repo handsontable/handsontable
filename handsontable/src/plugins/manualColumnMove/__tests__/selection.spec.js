@@ -83,7 +83,7 @@ describe('manualColumnMove', () => {
         });
         $columnHeader.simulate('mouseup');
 
-        hot.undo();
+        getPlugin('undoRedo').undo();
 
         expect(getSelected()).toEqual([[-1, 0, 9, 2]]);
       });
@@ -109,7 +109,7 @@ describe('manualColumnMove', () => {
         });
         $columnHeader.simulate('mouseup');
 
-        hot.undo();
+        getPlugin('undoRedo').undo();
 
         expect(getSelected()).toEqual([[-1, 3, 9, 5]]);
       });
@@ -137,8 +137,8 @@ describe('manualColumnMove', () => {
         });
         $columnHeader.simulate('mouseup');
 
-        hot.undo();
-        hot.redo();
+        getPlugin('undoRedo').undo();
+        hot.getPlugin('undoRedo').redo();
 
         expect(getSelected()).toEqual([[-1, 1, 9, 3]]);
       });
@@ -164,8 +164,8 @@ describe('manualColumnMove', () => {
         });
         $columnHeader.simulate('mouseup');
 
-        hot.undo();
-        hot.redo();
+        getPlugin('undoRedo').undo();
+        hot.getPlugin('undoRedo').redo();
 
         expect(getSelected()).toEqual([[-1, 1, 9, 3]]);
       });

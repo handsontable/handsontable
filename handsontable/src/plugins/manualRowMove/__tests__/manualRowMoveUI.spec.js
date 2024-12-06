@@ -183,7 +183,7 @@ describe('manualRowMove', () => {
           });
           $rowHeader.simulate('mouseup');
 
-          hot.undo();
+          getPlugin('undoRedo').undo();
 
           expect(getSelected()).toEqual([[0, -1, 2, 9]]);
         });
@@ -210,7 +210,7 @@ describe('manualRowMove', () => {
           });
           $rowHeader.simulate('mouseup');
 
-          hot.undo();
+          getPlugin('undoRedo').undo();
 
           expect(getSelected()).toEqual([[3, -1, 5, 9]]);
         });
@@ -238,8 +238,8 @@ describe('manualRowMove', () => {
           });
           $rowHeader.simulate('mouseup');
 
-          hot.undo();
-          hot.redo();
+          getPlugin('undoRedo').undo();
+          hot.getPlugin('undoRedo').redo();
 
           expect(getSelected()).toEqual([[1, -1, 3, 9]]);
         });
@@ -266,8 +266,8 @@ describe('manualRowMove', () => {
           });
           $rowHeader.simulate('mouseup');
 
-          hot.undo();
-          hot.redo();
+          getPlugin('undoRedo').undo();
+          hot.getPlugin('undoRedo').redo();
 
           expect(getSelected()).toEqual([[1, -1, 3, 9]]);
         });

@@ -1584,7 +1584,7 @@ describe('ContextMenu', () => {
 
       selectCell(0, 0);
       setDataAtCell(0, 0, 'XX');
-      undo();
+      getPlugin('undoRedo').undo();
 
       expect(getDataAtCell(0, 0)).toBe('A1');
 
@@ -1794,7 +1794,7 @@ describe('ContextMenu', () => {
       closeContextMenu();
 
       setDataAtCell(0, 0, 'foo');
-      undo();
+      getPlugin('undoRedo').undo();
 
       contextMenu();
       $menu = $(hot.getPlugin('contextMenu').menu.container).find('.ht_master .htCore');

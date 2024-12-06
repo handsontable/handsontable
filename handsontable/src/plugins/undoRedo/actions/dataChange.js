@@ -79,7 +79,6 @@ export class DataChangeAction extends BaseAction {
     }
 
     hot.addHookOnce('afterChange', undoneCallback);
-
     hot.setDataAtCell(data, null, null, 'UndoRedo.undo');
 
     for (let i = 0, len = data.length; i < len; i++) {
@@ -102,37 +101,7 @@ export class DataChangeAction extends BaseAction {
       }
     }
 
-    const selectedLast = hot.getSelectedLast();
-
-    if (selectedLast !== undefined) {
-      const [changedRow, changedColumn] = data[0];
-      const [selectedRow, selectedColumn] = selectedLast;
-      const firstFullyVisibleRow = hot.getFirstFullyVisibleRow();
-      const firstFullyVisibleColumn = hot.getFirstFullyVisibleColumn();
-      const isInVerticalViewPort = changedRow >= firstFullyVisibleRow;
-      const isInHorizontalViewPort = changedColumn >= firstFullyVisibleColumn;
-      const isInViewport = isInVerticalViewPort && isInHorizontalViewPort;
-      const isChangedSelection = selectedRow !== changedRow || selectedColumn !== changedColumn;
-
-      // Performing scroll only when selection has been changed right after editing a cell.
-      if (isInViewport === false && isChangedSelection === true) {
-        const scrollConfig = {
-          row: changedRow,
-          col: changedColumn,
-        };
-
-        if (isInVerticalViewPort === false) {
-          scrollConfig.verticalSnap = 'top';
-        }
-
-        if (isInHorizontalViewPort === false) {
-          scrollConfig.horizontalSnap = 'start';
-        }
-
-        hot.scrollViewportTo(scrollConfig);
-      }
-    }
-
+    hot.scrollToFocusedCell();
     hot.selectCells(this.selected, false, false);
   }
 
