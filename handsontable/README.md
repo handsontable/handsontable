@@ -14,30 +14,34 @@
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue" target="_blank">Vue</a>. 
     It is perfect for data-rich internal applications, allowing users to enter, edit, validate, and process data from various sources, including remote sources like databases and APIs, as well as HTML documents. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.
   </p>
-  
-  ![NPM version](https://img.shields.io/npm/v/handsontable)
-  [![Total downloads](https://img.shields.io/npm/dt/handsontable.svg)](https://npmjs.com/package/handsontable)
-  [![Monthly downloads](https://img.shields.io/npm/dm/handsontable.svg)](https://npmjs.com/package/handsontable)
-  [![Contributors](https://img.shields.io/github/contributors/handsontable/handsontable)](https://npmjs.com/package/handsontable)
+
+  <a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/demo">Demo</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> 
+  &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
+
+  <br>
+
+  [![NPM version](https://img.shields.io/npm/v/handsontable?style=for-the-badge)](https://npmjs.com/package/handsontable)
+  [![Total downloads](https://img.shields.io/npm/dt/handsontable.svg?style=for-the-badge)](https://npmjs.com/package/handsontable)
+  [![Monthly downloads](https://img.shields.io/npm/dm/handsontable.svg?style=for-the-badge)](https://npmjs.com/package/handsontable)
+  [![Contributors](https://img.shields.io/github/contributors/handsontable/handsontable?style=for-the-badge)](https://github.com/handsontable/handsontable/graphs/contributors)
+  <br>
   [![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
   [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
   [![FOSSA status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
+  
   <br>
-
-  <a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/react-data-grid/demo">Demo</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/blog">Blog</a>
-
-  <br>
+  
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-dark-theme.png?raw=true"/>
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
-    <img width="760" alt="JavbaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
+    <img width="780" alt="JavbaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-preview-light-theme.png?raw=true"/>
   </picture>
 </div>
 
 <div id="installation">
 
   ## Installation
-  Below, you'll find the installation guide for the JavaScript component. If you're using a specific framework, refer to its dedicated project for installation instructions:
+  Below, you'll find the installation guide for the JavaScript component. If you're using a specific framework, refer to its dedicated wrapper for installation instructions:
   
   - <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"> React functional component</a>
   - <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React"> React class component</a>
@@ -86,6 +90,64 @@
   });
   ```
 </div>
+
+## CDN-based setup
+
+<details close>
+  <summary></> Show/Hide code</summary>
+    If your environment does not support `imports`, you can use the code below to quickly set up and run a data grid with basic configuration options.
+  
+    ```html
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Handsontable</title>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/handsontable@15.0.0-next-fdd4480-20241205/styles/handsontable.min.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/handsontable@15.0.0-next-fdd4480-20241205/styles/ht-theme-main.min.css"
+        />
+      </head>
+      <body>
+      
+        <div id="handsontable-grid" class="ht-theme-main"></div>
+    
+        <script src="https://cdn.jsdelivr.net/gh/handsontable/handsontable@4472a6050c67dde8fb4771eb25c80c1f0b1c0ed1/handsontable/dist/handsontable.full.min.js"></script>
+        <script>
+          const element = document.getElementById("handsontable-grid")
+    
+          new Handsontable(element, {
+            data: [
+              { company: "Tagcat", country: "United Kingdom", rating: 4.5 },
+              { company: "Zoomzone", country: "Indonesia", rating: 3.8 },
+              { company: "Meeveo", country: "United States", rating: 4.2 },
+            ],
+            columns: [
+              { data: "company", title: "Company", width: 100 },
+              {
+                data: "country",
+                title: "Country",
+                width: 150,
+                type: "dropdown",
+                source: ["United Kingdom", "Indonesia", "United States"],
+              },
+              { data: "rating", title: "Rating", width: 100, type: "numeric" },
+            ],
+            rowHeaders: true,
+            navigableHeaders: true,
+            columnSorting: true,
+            headerClassName: "htLeft",
+            licenseKey: "non-commercial-and-evaluation",
+          })
+        </script>
+      </body>
+    </html>
+    ```
+</details>
 
 ## Key Features
 
