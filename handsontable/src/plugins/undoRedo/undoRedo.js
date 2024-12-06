@@ -26,7 +26,6 @@ Hooks.getSingleton().register('afterRedo');
  * ```
  * @class UndoRedo
  * @plugin UndoRedo
- * @param {Core} instance The Handsontable instance.
  */
 export class UndoRedo extends BasePlugin {
   static get PLUGIN_KEY() {
