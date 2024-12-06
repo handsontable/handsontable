@@ -1,10 +1,11 @@
 import { Component, ViewEncapsulation, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { HotTableModule } from '@handsontable/angular'
+import { HotTableModule } from '@handsontable/angular';
 import { getScenarioDataTop, getScenarioDataBottom } from './utils/constants';
 import { starsRenderer } from './renderers/stars';
 import { progressBarRenderer } from './renderers/progressBar';
 
 @Component({
+  standalone: true,
   encapsulation: ViewEncapsulation.None,
   selector: 'scenario-grid',
   templateUrl: './scenario-grid.component.html',
