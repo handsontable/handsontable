@@ -3,20 +3,18 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-white.svg?raw=true"/>
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-black.svg?raw=true"/>
-    <img width="400" alt="Handsontable logo" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-black.svg?raw=true"/>
+    <img width="360" alt="Logo of Handsontable data grid" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137/resources/handsontable-logo-black.svg?raw=true"/>
   </picture>
   <br><br>
-  <h3>Handsontable is a highly-customizable <a href="https://handsontable.com/docs" target="_blank">JavaScript data grid</a> with a spreadsheet-like look and feel.</h3>
+  <h3>Handsontable is a highly-customizable <a href="https://handsontable.com/docs" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
   <p>
     Use it with JavaScript, TypeScript, or frameworks such as 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper" target="_blank">React</a>, 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular" target="_blank">Angular</a>, and 
-    <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue" target="_blank">Vue</a>. 
-    It is perfect for data-rich internal applications, allowing users to enter, edit, validate, and process data from various sources, including remote sources like databases and APIs, as well as HTML documents. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.
+    <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue" target="_blank">Vue</a>. With its intuitive spreadsheet-like editing features, it’s perfect for building data-rich internal apps. It allows users to enter, edit, validate, and process data from various sources, including remote sources like databases and APIs, as well as HTML documents. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.
   </p>
 
-  <a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> 
-  &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
+  <a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
 
   <br>
 
