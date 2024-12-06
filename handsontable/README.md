@@ -206,7 +206,7 @@ Handsontable is available under two licensing options, allowing you to choose th
 This license is available for non-commercial purposes such as teaching, academic research, or evaluation. It allows you to use Handsontable free of charge under the terms specified in the non-commercial license agreement.  
 [Learn more here.](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf)
 
-### ② Commercial License
+### ② Commercial license
 For commercial use, a paid license is required. This license includes support and maintenance to ensure you get the most out of Handsontable. The commercial license can be purchased directly from Handsoncode or through an [authorized reseller](https://handsontable.com/resellers).  
 [See the pricing page for details.](https://handsontable.com/pricing)
 
