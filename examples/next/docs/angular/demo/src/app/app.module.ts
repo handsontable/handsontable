@@ -4,12 +4,10 @@ import { HotTableModule } from '@handsontable/angular';
 import { DataGridComponent } from '../data-grid/data-grid.component';
 
 @NgModule({
-  declarations: [
-    DataGridComponent
-  ],
   imports: [
     BrowserModule,
-    HotTableModule
+    HotTableModule,
+    DataGridComponent
   ],
   providers: [],
   bootstrap: [DataGridComponent]

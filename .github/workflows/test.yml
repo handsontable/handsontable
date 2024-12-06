@@ -124,9 +124,13 @@ jobs:
       - name: Build
         run: |
           cd handsontable
-          npm run build:umd && npm run build:languages
-          npm run build:umd.min && npm run build:languages.min
-      - run: tar -zcf dist.tar.gz ./handsontable/dist
+          npm run build:umd
+          npm run build:umd.min
+          npm run build:languages
+          npm run build:languages.min
+          npm run build:legacy-css
+          npm run build:legacy-css.min
+      - run: tar -zcf dist.tar.gz ./handsontable/dist ./handsontable/styles
 
       - name: Upload the Handsontable UMD build artifact.
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # https://github.com/actions/upload-artifact/releases/tag/v4.3.1
@@ -154,10 +158,11 @@ jobs:
       - name: Build
         run: |
           cd handsontable
-          npm run build:es && npm run build:languages.es
+          npm run build:es
           npm run build:commonjs
-          npm run build:themes && npm run build:legacy-css
-          npm run build:themes.min && npm run build:legacy-css.min
+          npm run build:languages.es
+          npm run build:legacy-css
+          npm run build:legacy-css.min
           npm run postbuild
       - run: tar -zcf tmp.tar.gz ./handsontable/tmp
 
@@ -592,25 +597,26 @@ jobs:
           path: ./
       - run: |
           if test -f "handsontable-build-es-cjs/tmp.tar.gz"; then
-            tar -zxf handsontable-build-es-cjs/tmp.tar.gz ./handsontable/tmp
+            tar -zxf handsontable-build-es-cjs/tmp.tar.gz
             rm -r handsontable-build-es-cjs
           else
             npm run in handsontable build:es
             npm run in handsontable build:commonjs
             npm run in handsontable build:languages.es
+            npm run in handsontable build:legacy-css
+            npm run in handsontable build:legacy-css.min
           fi
-          npm run in handsontable build:themes && npm run in handsontable build:legacy-css
-          npm run in handsontable build:themes.min && npm run in handsontable build:legacy-css.min
-          npm run in handsontable postbuild
       - run: |
           if test -f "handsontable-build-umd/dist.tar.gz"; then
-            tar -zxf handsontable-build-umd/dist.tar.gz ./handsontable/dist
+            tar -zxf handsontable-build-umd/dist.tar.gz
             rm -r handsontable-build-umd
           else
             npm run in handsontable build:umd
             npm run in handsontable build:umd.min
             npm run in handsontable build:languages
             npm run in handsontable build:languages.min
+            npm run in handsontable build:legacy-css
+            npm run in handsontable build:legacy-css.min
           fi
           npm run in handsontable postbuild
 
@@ -622,6 +628,9 @@ jobs:
 
       - name: Run visual cross-browser tests
         run: npm run in visual-tests test:cross-browser
+
+      - name: Run visual tests for themes
+        run: npm run in visual-tests test:themes
 
       - name: Upload the screenshot to Argos CI
         env:
