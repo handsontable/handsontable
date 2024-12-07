@@ -112,7 +112,8 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
   });
 
   ```
-</div>
+
+[![Static Badge](https://img.shields.io/badge/Live%20demo%20on%20StackBlitz-1a42e8?style=for-the-badge)](https://stackblitz.com/cool-demo-online)
 
 ### CDN-based setup
 
@@ -169,6 +170,8 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 
 </details>
 
+</div>
+
 <br>
 
 ## 🚀 Resources
@@ -204,19 +207,18 @@ Handsontable is available under two licensing options, allowing you to choose th
 
 ### ① Free license for non-commercial use, and evaluation purposes
 This license is available for non-commercial purposes such as teaching, academic research, or evaluation. It allows you to use Handsontable free of charge under the terms specified in the non-commercial license agreement.  
-[Learn more here.](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf)
+[Learn more here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
 
 ### ② Commercial license
-For commercial use, a paid license is required. This license includes support and maintenance to ensure you get the most out of Handsontable. The commercial license can be purchased directly from Handsoncode or through an [authorized reseller](https://handsontable.com/resellers).  
-[See the pricing page for details.](https://handsontable.com/pricing)
+For commercial use, a paid license is required. This license includes support and maintenance to ensure you get the most out of Handsontable. The commercial license can be purchased directly from Handsoncode or through an [authorized reseller](https://handsontable.com/resellers). See the [pricing page](https://handsontable.com/pricing) for details.
 
 <br>
 
 ## 🔑 License Key
 
-If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing).
+For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key. 
 
-For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key. You can find more details in [our documentation](https://handsontable.com/docs/license-key/).
+If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/license-key/).
 
 <br>
 <br>
