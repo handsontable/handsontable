@@ -221,4 +221,8 @@ For projects covered by the free non-commercial license, simply use the phrase `
 <br>
 <br>
 
-Created and maintained by [Handsoncode](https://handsontable.com/team) 👋
+Created and maintained by the [Handsontable Team](https://handsontable.com/team) 👋
+
+---
+
+© 2012 - 2024 Handsoncode
