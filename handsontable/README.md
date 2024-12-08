@@ -241,6 +241,12 @@ For projects covered by the free non-commercial license, simply use the phrase `
 If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/license-key/).
 
 <br>
+
+## 🙌 Contributing
+
+Contributions are welcome, but before you make them, please read the [Contributing Guide](https://github.com/handsontable/handsontable/blob/develop/CONTRIBUTING.md) and accept the [Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2).
+
+<br>
 <br>
 
 Created and maintained by the [Handsontable Team](https://handsontable.com/team) 👋
