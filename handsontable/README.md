@@ -205,7 +205,7 @@ Handsontable is a data grid component written in JavaScript, not a spreadsheet. 
 - Data binding in the form of an array of objects or arrays of arrays
 - Built-in cell editors like a date picker or dropdown list
 
-At first glance, it might seem that a data table, spreadsheet, and data grid are just different names for the same thing—an interactive table displaying data. In reality, these tools serve different purposes and offer distinct functionalities, designed to meet specific needs. Handsontable sits comfortably in the data grid category while incorporating many of the best aspects of spreadsheet software.
+At first glance, it might seem that a data table, spreadsheet, and data grid are just different names for the same thing - an interactive table displaying data. In reality, these tools serve different purposes and offer distinct functionalities, designed to meet specific needs. Handsontable sits comfortably in the data grid category while incorporating many of the best aspects of spreadsheet software.
 
 <br>
 
