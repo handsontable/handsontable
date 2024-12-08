@@ -194,7 +194,6 @@ Handsontable is a data grid component written in JavaScript, not a spreadsheet. 
 
 ### Spreadsheet-like features in Handsontable:
 
-- Looks like a spreadsheet and is cell-oriented
 - Keyboard shortcuts compliant with either Google Sheets or Excel
 - 400 spreadsheet formulas via native integration with HyperFormula
 - Keyboard navigation across headers that can be disabled, making only cells navigable
