@@ -188,13 +188,13 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 
 <br>
 
-## Is Handsontable a Data Grid or a Spreadsheet?
+## 🤔 Is Handsontable a Data Grid or a Spreadsheet?
 
 Handsontable is a data grid component written in JavaScript, not a spreadsheet. However, it brings in many features typically found in spreadsheet software. We designed it this way because spreadsheet-like patterns are often the most user-friendly when it comes to data entry and management.
 
 ### Spreadsheet-like features in Handsontable:
 
-Looks like a spreadsheet and is cell-oriented
+- Looks like a spreadsheet and is cell-oriented
 - Keyboard shortcuts compliant with either Google Sheets or Excel
 - 400 spreadsheet formulas via native integration with HyperFormula
 - Keyboard navigation across headers that can be disabled, making only cells navigable
