@@ -6,7 +6,7 @@
     <img width="360" alt="Logo of Handsontable data grid" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-logo-black.svg?raw=true"/>
   </picture>
   <br><br>
-  <h3>The official <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="16" height="16"> React class wrapper for Handsontable - a <a href="https://handsontable.com/docs/react-data-grid" target="_blank">Data Grid</a> with a spreadsheet-like look and feel.</h3>
+  <h3>The official <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="16" height="16"> React class-based wrapper for Handsontable - a <a href="https://handsontable.com/docs/react-data-grid" target="_blank">Data Grid</a> with a spreadsheet-like look and feel.</h3>
   
   <p>With its spreadsheet-like editing features, it’s perfect for building data-rich internal apps. It allows users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.</p>
 
