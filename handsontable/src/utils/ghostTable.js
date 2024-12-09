@@ -462,21 +462,12 @@ class GhostTable {
     const { rootDocument } = this.hot;
     const fragment = rootDocument.createDocumentFragment();
 
-
-
-    // const temp = rootDocument.createElement('div');
-    // rootDocument.body.appendChild(temp);
-    // const fragment = temp;
-
-
-
-
     const container = rootDocument.createElement('div');
     const containerClassName = `htGhostTable htAutoSize ${className.trim()}`;
 
     addClass(container, containerClassName);
     fragment.appendChild(container);
-// debugger;
+
     return { fragment, container };
   }
 
