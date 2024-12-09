@@ -39,7 +39,7 @@ The themes give you control over grid elements and components, allowing you to c
 
 ## Themes demo
 
-Below is a demo featuring two built-in themes and a custom theme inspired by Douglas Adams' book The Hitchhiker's Guide to the Galaxy. Use the dropdown above the grid to explore how different grid elements change with each theme.
+The demo below features our two built-in themes and a preview of the table with no theme applied. Use the dropdown above the grid to explore how different elements change with each theme.
 
 <div :class="['theme-examples', $parent.$parent.themeName]">
 <div class="theme-examples-controls">
@@ -95,17 +95,17 @@ Each theme comes with three modes:
 - Dark mode
 - Auto-dark mode
 
-The light and dark modes ignore the parent container's color scheme and remain either light or dark regardless the `prefers-color-scheme` media query value. The auto-dark mode automatically follow the preferred color of the parent container.
+The light and dark modes ignore the parent container's color scheme and remain either light or dark regardless the `prefers-color-scheme` media query value. The auto-dark mode automatically follows the preferred color scheme of the parent container.
 
 Here's a summary of each available theme, mode, and their corresponding file names.
 
 <div class="table-small">
 
-| File name                                        | Root CSS class                                                                       | Description                                                                                                                                                                        |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ht-theme-main.css<br>ht-theme-main.min.css       | <span>ht-theme-main<br>ht-theme-main-dark<br>ht-theme-main-dark-auto</span>          | The main theme resembles spreadsheet software, featuring soft colors primarily from a white and grey palette, with blue accents.                                                   |
-| ht-theme-horizon.css<br>ht-theme-horizon.min.css | <span>ht-theme-horizon<br>ht-theme-horizon-dark<br>ht-theme-horizon-dark-auto</span> | A sleek and elegant theme designed to feel like an enterprise data grid, optimized for improved data readability in internal applications.                                         |
-| handsontable.css<br>handsontable.min.css         | Not required                                                                         | The classic theme, available only in light mode. While it will continue to be supported and tested in future Handsontable releases, it is not recommended for use in new projects. |
+| File path                                                          | Root CSS class                                                                       | Description                                                                                                                                                                        |
+|--------------------------------------------------------------------| ------------------------------------------------------------------------------------ |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| styles/ht-theme-main.css<br>styles/ht-theme-main.min.css       | <span>ht-theme-main<br>ht-theme-main-dark<br>ht-theme-main-dark-auto</span>          | The main theme resembles spreadsheet software, featuring soft colors, primarily from a white and grey palette, with blue accents.                                                  |
+| styles/ht-theme-horizon.css<br>styles/ht-theme-horizon.min.css | <span>ht-theme-horizon<br>ht-theme-horizon-dark<br>ht-theme-horizon-dark-auto</span> | A sleek and elegant theme designed to feel like an enterprise data grid, optimized for improved data readability in internal applications.                                         |
+| dist/handsontable.full.css<br>dist/handsontable.full.min.css   | Not required                                                                         | The classic theme, available only in light mode. While it will continue to be supported and tested in future Handsontable releases, it is not recommended for use in new projects. |
 
 </div>
 
@@ -157,7 +157,7 @@ To use a theme in your app, you need to add the specific class name to the div c
 <div id="handsontable-example" class="ht-theme-main-dark-auto"></div>
 ```
 
-Alternatively, you can specify the theme name in the data grid's global settings object. This method will automatically inject the class name for you, overriding any class name passed in the `div` constructor.
+Alternatively, you can specify the theme name in the data grid's global settings object. This method will automatically inject the class name for you, overriding any class name passed in the `div`'s `class` attribute.
 
 Use either this method or the class name in the `div`, but not both.
 
@@ -167,13 +167,28 @@ const container = document.querySelector("#handsontable-example");
 const hot = new Handsontable(container, {
   // theme name with obligatory `ht-theme` prefix
   themeName: "ht-theme-main-dark-auto",
-  // some other options
+  // other options
 });
 ```
 
 ## Create custom theme
 
-In order to create
+You can easily create a custom theme by following these steps:
+
+### 1. Create a new CSS file
+Create a new CSS file. Let's call it `ht-theme-my-theme.css`.
+
+### 2. Choose the class name
+Choose the class name for your theme. The class should be unique, descriptive and follow Handsontable's naming convention. For example, `ht-theme-my-theme`.
+
+### 3. Customize the theme
+Customize the theme by adjusting the available CSS variables. You can use any of the built-in themes as a starting point.
+
+### 4. Load the CSS file
+Load the CSS file in your project. Remember to load it after the base Handsontable CSS file (`styles/handsontable.css`).
+
+### 5. Apply the theme
+Apply the theme by adding the theme class to the container that holds Handsontable or by specifying the theme name in the global settings object using the [`themeName`](@/api/options.md#themename) option.
 
 ## Known limitations
 
