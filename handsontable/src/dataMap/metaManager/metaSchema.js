@@ -4731,8 +4731,7 @@ export default () => {
      * | `true`  | Enable the [`UndoRedo`](@/api/undoRedo.md) plugin  |
      * | `false` | Disable the [`UndoRedo`](@/api/undoRedo.md) plugin |
      *
-     * By default, the `undo` option is set to `undefined`,
-     * but the [`UndoRedo`](@/api/undoRedo.md) plugin acts as enabled.
+     * By default, the `undo` option is set to `true`,
      * To disable the [`UndoRedo`](@/api/undoRedo.md) plugin completely,
      * set the `undo` option to `false`.
      *
@@ -4750,7 +4749,7 @@ export default () => {
      * undo: true,
      * ```
      */
-    undo: undefined,
+    undo: true,
 
     /**
      * @description
