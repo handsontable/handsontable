@@ -1,0 +1,60 @@
+@use "../../utils/mixins";
+
+// Handsontable Column Resizer
+
+@mixin output {
+  .handsontable {
+    .manualColumnResizer {
+      position: absolute;
+      top: 0;
+      width: 10px;
+      margin: 0;
+      cursor: col-resize;
+      background: none;
+      opacity: 0;
+      z-index: 210;
+
+      &::before,
+      &::after {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: 50%;
+        left: 1px;
+        width: 2px;
+        height: calc(100% - 12px);
+        max-height: 16px;
+        background: var(--ht-resize-indicator-color);
+        border-radius: 2px;
+        transform: translateY(-50%);
+      }
+
+      &::after {
+        left: auto;
+        right: 0;
+      }
+
+      &:hover,
+      &.active {
+        opacity: 1;
+      }
+    }
+
+    .manualColumnResizerGuide {
+      position: absolute;
+      inset-inline-end: unset;
+      top: 0;
+      width: 0;
+      margin-inline-start: 5px;
+      margin-inline-end: unset;
+      display: none;
+      border-inline-end: 1px solid var(--ht-accent-color);
+      border-inline-start: none;
+    }
+
+    .manualColumnResizerGuide.active {
+      display: block;
+      z-index: 209;
+    }
+  }
+}
