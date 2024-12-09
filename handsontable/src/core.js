@@ -4758,14 +4758,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {BasePlugin|undefined} The plugin instance or undefined if there is no plugin.
    */
   this.getPlugin = function(pluginName) {
-    const unifiedPluginName = toUpperCaseFirst(pluginName);
-
-    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
-    if (unifiedPluginName === 'UndoRedo') {
-      return this.undoRedo;
-    }
-
-    return pluginsRegistry.getItem(unifiedPluginName);
+    return pluginsRegistry.getItem(toUpperCaseFirst(pluginName));
   };
 
   /**
