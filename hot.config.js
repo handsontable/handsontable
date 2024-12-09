@@ -5,5 +5,5 @@ module.exports = {
   HOT_VERSION: '15.0.0',
   HOT_PACKAGE_NAME: 'handsontable',
   HOT_BUILD_DATE: moment().format('DD/MM/YYYY HH:mm:ss'),
-  HOT_RELEASE_DATE: '11/12/2024',
+  HOT_RELEASE_DATE: '12/12/2024',
 };
