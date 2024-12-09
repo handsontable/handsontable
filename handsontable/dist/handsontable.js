@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 15.0.0
- * Release date: 11/12/2024 (built at 06/12/2024 14:22:29)
+ * Release date: 11/12/2024 (built at 09/12/2024 15:06:41)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "06/12/2024 14:22:29";
+Handsontable.buildDate = "09/12/2024 15:06:41";
 Handsontable.version = "15.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -55490,8 +55490,6 @@ class GhostTable {
     if (!this.injected) {
       this.injectTable();
     }
-    const isBorderBoxSizing = this.hot.view.getStylesHandler().areCellsBorderBox();
-    const borderCompensation = isBorderBoxSizing ? 0 : 1;
     (0, _array.arrayEach)(this.rows, row => {
       // In cases when the cell's content produces the height with a decimal point, the height
       // needs to be rounded up to make sure that there will be a space for the cell's content.
@@ -55499,9 +55497,7 @@ class GhostTable {
       const {
         height
       } = row.table.getBoundingClientRect();
-
-      // -1 <- reduce border-top from table (if box-sizing is not border-box)
-      callback(row.row, Math.ceil(height) - borderCompensation);
+      callback(row.row, Math.ceil(height));
     });
   }
 

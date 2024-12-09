@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 15.0.0
- * Release date: 11/12/2024 (built at 06/12/2024 14:22:38)
+ * Release date: 11/12/2024 (built at 09/12/2024 15:06:49)
  */
 /**
  * Fix for bootstrap styles
@@ -965,6 +965,16 @@ CheckboxRenderer
   /* The multi-line header and header with longer text need more padding to not hide arrow,
   we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
   padding-right: 20px;
+}
+
+/* Force the ghost table to ignore the additional upper border 1px for the first row in the table */
+.handsontable.htGhostTable table thead th {
+  border-bottom-width: 0;
+}
+
+.handsontable.htGhostTable table tbody tr th,
+.handsontable.htGhostTable table tbody tr td {
+  border-top-width: 0;
 }
 
 .handsontable .htCommentCell {
