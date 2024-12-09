@@ -68,68 +68,107 @@ Below, you'll find the installation guide for the JavaScript component. If you'r
 
 ### Install with npm
 
-```bash
-npm install handsontable @handsontable/vue3
-```
+You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https://www.nuget.org/packages/Handsontable) or load the package from [CDN](https://jsdelivr.com/package/npm/handsontable).
 
-You can load it directly from [jsDelivr](https:jsdelivr.com/package/npm/@handsontable/vue3) as well.
+  ```bash
+  npm install handsontable
+  ```
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@handsontable/vue3/dist/vue-handsontable.min.js"></script>
+### Provide an HTML container
 
-<link href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" rel="stylesheet">
-```
+  ```html
+  <!-- Set the container's ID and apply the desired theme -->
+  <div id="handsontable-example" class="ht-theme-main-dark-auto"></div>
+  ```
 
-The component will be available as `Handsontable.vue.HotTable`.
+### Setup
 
-### Usage
-
-Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/api/options/) can be set as `HotTable` props.
-
-**Styles**
-```css
-@import '~handsontable/styles/handsontable.min.css';
-@import '~handsontable/styles/ht-theme-main.min.css';
-```
-
-**Vue 3 Component**
-```vue
-<template>
-  <hot-table :data="data" :rowHeaders="true" :colHeaders="true"></hot-table>
-</template>
-
-<script>
-  import { defineComponent } from 'vue';
-  import { HotTable } from '@handsontable/vue3';
-  import { registerAllModules } from 'handsontable/registry';
-
-  // register Handsontable's modules
-  registerAllModules();
-
-  export default defineComponent({
-    data() {
-      return {
-        data: [
-          ['', 'Ford', 'Volvo', 'Toyota', 'Honda'],
-          ['2016', 10, 11, 12, 13],
-          ['2017', 20, 11, 14, 13],
-          ['2018', 30, 15, 12, 13]
-        ],
-      };
-    },
-    components: {
-      HotTable,
-    }
+  ```js
+  import Handsontable from 'handsontable';
+  // Base CSS rules
+  import 'handsontable/styles/handsontable.min.css';
+  // Main theme variables
+  import 'handsontable/styles/ht-theme-main.min.css';
+  
+  const element = document.getElementById('handsontable-grid');
+  
+  new Handsontable(element, {
+    data: [
+      { company: 'Tagcat', country: 'United Kingdom', rating: 4.4 },
+      { company: 'Zoomzone', country: 'Japan', rating: 4.5 },
+      { company: 'Meeveo', country: 'United States', rating: 4.6 },
+    ],
+    columns: [
+      { data: 'company', title: 'Company', width: 100 },
+      { data: 'country', title: 'Country', width: 170, type: 'dropdown', source: ['United Kingdom', 'Japan', 'United States'] },
+      { data: 'rating', title: 'Rating', width: 100, type: 'numeric' },
+    ],
+    rowHeaders: true,
+    navigableHeaders: true,
+    tabNavigation: true,
+    multiColumnSorting: true,
+    headerClassName: 'htLeft',
+    licenseKey: 'non-commercial-and-evaluation',
   });
-</script>
 
-<style src="handsontable/styles/handsontable.min.css"></style>
-<style src="handsontable/styles/ht-theme-main.min.css"></style>
-```
+  ```
 
-### [View live demo](https://handsontable.com/docs/javascript-data-grid/vue3-basic-example/)
+[![Static Badge](https://img.shields.io/badge/Live%20demo%20on%20StackBlitz-1a42e8?style=for-the-badge)](https://stackblitz.com/edit/handsontable-readme-example?file=src%2Fmain.js)
+
+### CDN-based setup
+
+<details close>
+  <summary>&nbsp; Show/Hide code</summary>
+  <br>
+  If your environment does not support imports, you can use the code below to quickly set up and run a data grid with basic configuration options.
+  <br><br>
+
+  ```html
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Handsontable - JavaScript Data Grid Example</title>
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css"
+      />
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css"
+      />
+    </head>
+    <body>
+      <div id="handsontable-grid" class="ht-theme-main"></div>
+      <script src="https://cdn.jsdelivr.net/gh/handsontable/handsontable/dist/handsontable.full.min.js"></script>
+      <script>
+        const element = document.getElementById("handsontable-grid");
+  
+        new Handsontable(element, {
+          data: [
+            { company: "Tagcat", country: "United Kingdom", rating: 4.4 },
+            { company: "Zoomzone", country: "Japan", rating: 4.5 },
+            { company: "Meeveo", country: "United States", rating: 4.6 },
+          ],
+          columns: [
+            { data: "company", title: "Company", width: 100 },
+            { data: "country", title: "Country", width: 170, type: "dropdown", source: ["United Kingdom", "Japan", "United States"] },
+            { data: "rating", title: "Rating", width: 100, type: "numeric" },
+          ],
+          rowHeaders: true,
+          navigableHeaders: true,
+          tabNavigation: true,
+          multiColumnSorting: true,
+          headerClassName: "htLeft",
+          licenseKey: "non-commercial-and-evaluation",
+        });
+      </script>
+    </body>
+  </html>
+  ```
+
+</details>
 
 </div>
 

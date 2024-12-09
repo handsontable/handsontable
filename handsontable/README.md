@@ -113,7 +113,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 
   ```
 
-[![Static Badge](https://img.shields.io/badge/Live%20demo%20on%20StackBlitz-1a42e8?style=for-the-badge)](https://stackblitz.com/cool-demo-online)
+[![Static Badge](https://img.shields.io/badge/Live%20demo%20on%20StackBlitz-1a42e8?style=for-the-badge)](https://stackblitz.com/edit/handsontable-readme-example?file=src%2Fmain.js)
 
 ### CDN-based setup
 
