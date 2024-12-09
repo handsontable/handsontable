@@ -12,7 +12,7 @@
   
   <p>With its spreadsheet-like editing features, it’s perfect for building data-rich internal apps. It allows users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.</p>
 
-<a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
+<a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/javascript-data-grid/vue-installation/">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
 
   <br>
 
@@ -133,7 +133,7 @@ Use this data grid as you would any other component in your application. [Option
 
 - [Website](https://handsontable.com)
 - [Demo](https://handsontable.com/demo)
-- [Documentation](https://handsontable.com/docs/)
+- [Documentation](https://handsontable.com/docs/javascript-data-grid/vue-installation/)
 - [npm](https://www.npmjs.com/package/@handsontable/vue)
 - [CDN](https://www.jsdelivr.com/package/npm/@handsontable/vue)
 - [Forum](https://forum.handsontable.com/)
