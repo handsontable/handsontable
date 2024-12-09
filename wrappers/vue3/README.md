@@ -1,9 +1,9 @@
 <div align="center">
   <br><br>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-logo-white.svg?raw=true"/>
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-logo-black.svg?raw=true"/>
-    <img width="360" alt="Logo of Handsontable data grid" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-logo-black.svg?raw=true"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-white.svg?raw=true"/>
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
+    <img width="360" alt="Logo of Handsontable data grid" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
   </picture>
   <br><br>
   <h3>The official <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="16" height="16"> Vue 3 wrapper for Handsontable.
@@ -28,9 +28,9 @@
   <br>
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-preview-dark-theme.png?raw=true"/>
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-preview-light-theme.png?raw=true"/>
-    <img width="780" alt="Vue data grid preview" src="https://github.com/handsontable/handsontable/blob/feature/dev-issue-2137-new-base/resources/handsontable-preview-light-theme.png?raw=true"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-preview-dark-theme.png?raw=true"/>
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-preview-light-theme.png?raw=true"/>
+    <img width="780" alt="Vue data grid preview" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-preview-light-theme.png?raw=true"/>
   </picture>
 </div>
 
