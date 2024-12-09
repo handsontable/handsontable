@@ -205,9 +205,9 @@ In some cases, global styles enforced by the browser or operating system can imp
 
 - **High contrast mode in Windows**: To style the component when Windows' high contrast mode is active, use the `forced-colors` media query. This allows you to detect and adapt to forced color settings. [Read more](https://blogs.windows.com/msedgedev/2020/09/17/styling-for-windows-high-contrast-with-new-standards-for-forced-colors/)
 - **Auto dark theme in Google Chrome**: Chrome automatically applies a dark theme in some scenarios. To detect and manage this behavior, refer to the official [Chrome guide](https://developer.chrome.com/blog/auto-dark-theme)
-- Overflowing content can't yet be fully controlled with CSS themes. By default, Handsontable wraps overflowing text within cells. To override this behavior, you can apply the following CSS to a cell:
+- Overflowing content can't yet be fully controlled with CSS themes. By default, Handsontable wraps overflowing text within cells. To crop the content, you can apply the following CSS to a cell:
 
-  ```css
+  ```scss
   .handsontable {
     td {
       text-overflow: ellipsis !important;
