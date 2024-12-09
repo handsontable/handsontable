@@ -678,15 +678,15 @@ describe('Filters', () => {
 
       expect(getData().length).toEqual(2);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData().length).toEqual(3);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData().length).toEqual(36);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData().length).toEqual(39);
     });
@@ -709,27 +709,27 @@ describe('Filters', () => {
       plugin.addCondition(4, 'eq', ['green']);
       plugin.filter();
 
-      hot.undo();
-      hot.undo();
-      hot.undo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData().length).toEqual(39);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(getData().length).toEqual(36);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(getData().length).toEqual(3);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(getData().length).toEqual(2);
     });
 
     it('should undo multiple steps of filtering performed with the Filters\' UI', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
         dropdownMenu: true,
@@ -772,23 +772,23 @@ describe('Filters', () => {
       expect(getDataAtCell(4, 1).includes('!')).toBe(true);
       expect(getDataAtCell(33, 1).includes('!')).toBe(true);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData().length).toEqual(2);
       expect(getDataAtCell(0, 1).includes('!')).toBe(true);
       expect(getDataAtCell(1, 1).includes('!')).toBe(true);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getDataAtCell(0, 1).includes('!')).toBe(true);
       expect(getDataAtCell(1, 1).includes('!')).toBe(false);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getDataAtCell(0, 1).includes('!')).toBe(false);
       expect(getDataAtCell(1, 1).includes('!')).toBe(false);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData().length).toEqual(39);
       expect(getDataAtCell(0, 1).includes('!')).toBe(false);

@@ -1247,7 +1247,7 @@ describe('MergeCells', () => {
         ]
       });
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(2);
     });
@@ -1265,9 +1265,9 @@ describe('MergeCells', () => {
       plugin.mergeSelection();
 
       expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(2);
-      hot.undo();
+      getPlugin('undoRedo').undo();
       expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(1);
-      hot.undo();
+      getPlugin('undoRedo').undo();
       expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(0);
     });
 
@@ -1283,12 +1283,12 @@ describe('MergeCells', () => {
       hot.selectCell(4, 4, 7, 7);
       plugin.mergeSelection();
 
-      hot.undo();
-      hot.undo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').undo();
 
-      hot.redo();
+      hot.getPlugin('undoRedo').redo();
       expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(1);
-      hot.redo();
+      hot.getPlugin('undoRedo').redo();
       expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(2);
     });
   });

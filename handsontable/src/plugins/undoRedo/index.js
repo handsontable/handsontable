@@ -1,6 +1,5 @@
-import UndoRedo, { PLUGIN_KEY } from './undoRedo';
-
 export {
   PLUGIN_KEY,
+  PLUGIN_PRIORITY,
   UndoRedo,
-};
+} from './undoRedo';

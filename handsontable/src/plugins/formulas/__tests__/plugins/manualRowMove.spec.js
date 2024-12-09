@@ -1007,7 +1007,7 @@ describe('Formulas', () => {
       hot.getPlugin('manualRowMove').moveRows([0, 1, 2], 2);
       hot.render();
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData()).toEqual([
         [1, 2, 3, 4, 5],
@@ -1027,7 +1027,7 @@ describe('Formulas', () => {
         ['=A4+1000000', '=B4+1000000', '=C4+1000000', '=D4+1000000', '=E4+1000000'],
       ]);
 
-      hot.redo();
+      hot.getPlugin('undoRedo').redo();
 
       expect(getData()).toEqual([
         [1111, 1112, 1113, 1114, 1115],
@@ -1047,7 +1047,7 @@ describe('Formulas', () => {
         ['=A1+1000000', '=B1+1000000', '=C1+1000000', '=D1+1000000', '=E1+1000000'],
       ]);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData()).toEqual([
         [1, 2, 3, 4, 5],
@@ -1067,7 +1067,7 @@ describe('Formulas', () => {
         ['=A4+1000000', '=B4+1000000', '=C4+1000000', '=D4+1000000', '=E4+1000000'],
       ]);
 
-      hot.redo();
+      hot.getPlugin('undoRedo').redo();
 
       expect(getData()).toEqual([
         [1111, 1112, 1113, 1114, 1115],

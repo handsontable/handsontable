@@ -3585,7 +3585,7 @@ describe('MultiColumnSorting', () => {
         ['Alice', 'Brown', 'Liam']
       ]);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData()).toEqual([
         ['David', 'Lee', 'Sophia'],
@@ -3595,7 +3595,7 @@ describe('MultiColumnSorting', () => {
         ['Alice', 'Miller', 'Olivia']
       ]);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData()).toEqual([
         ['Alice', 'Smith', 'Eve'],
@@ -3634,8 +3634,8 @@ describe('MultiColumnSorting', () => {
           sortOrder: 'desc'
         }]);
 
-      hot.undo();
-      hot.undo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData()).toEqual([
         ['Alice', 'Smith', 'Eve'],
@@ -3645,7 +3645,7 @@ describe('MultiColumnSorting', () => {
         ['David', 'Lee', 'Sophia']
       ]);
 
-      hot.redo();
+      hot.getPlugin('undoRedo').redo();
 
       expect(getData()).toEqual([
         ['David', 'Lee', 'Sophia'],
@@ -3655,7 +3655,7 @@ describe('MultiColumnSorting', () => {
         ['Alice', 'Miller', 'Olivia']
       ]);
 
-      hot.redo();
+      hot.getPlugin('undoRedo').redo();
 
       expect(getData()).toEqual([
         ['David', 'Lee', 'Sophia'],
