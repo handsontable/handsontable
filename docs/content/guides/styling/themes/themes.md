@@ -36,11 +36,9 @@ Use Handsontable's built-in themes or customize its look by adjusting available 
 
 Handsontable themes manage most visual elements of the data grid and are easy to customize, thanks to over 180 CSS variables available for each theme. By default, two built-in themes are available: `main` and `horizon`. Both include dark and light modes that automatically detect your application's preferred color scheme.
 
-The themes give you control over various grid elements, allowing you to customize properties like colors, shadows and sizes.
-
 ## Themes demo
 
-The demo below showcases the two built-in themes in both dark and light modes. You can also pick "no theme" from the dropdown to see how Handsontable looks without it—but keep in mind that starting from version `15.0`, importing a theme is required. Themes include all the essential variables, without which the functionality is reduced to the bare minimum.
+The demo below showcases the two built-in themes in both dark and light modes. Keep in mind that starting from version `15.0`, importing a theme is required. Themes include all the essential variables, without which the functionality is reduced to the bare minimum.
 
 <div :class="['theme-examples', $parent.$parent.themeName]">
 <div class="theme-examples-controls">
@@ -172,44 +170,38 @@ const hot = new Handsontable(container, {
 });
 ```
 
-### Custom Theme
+## Create a custom theme
 
-Creating a custom theme is quite straightforward. Here’s how you can do it step by step:
+Creating a custom theme is straightforward. Follow these steps to set up your custom design:
 
-#### 1. Create a new CSS file
+### ① Create a new CSS file
 
-Start by creating a new CSS file. Let’s call it `ht-theme-my-theme.css`.
+Start by copying one of the CSS files provided with Handsontable, such as `ht-theme-main.css`. Rename it to something unique for your project. For this example, let’s name the new theme `falcon`, making the full file name `ht-theme-falcon.css`.
 
-#### 2. Provide a class name
+Next, customize the existing variables to match your design requirements. If you need icons, you can use the ones available in the [GitHub repository](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/utils/_icons.scss) or create your own icon set using the `@use "utils/[theme]/icons";` directive.
 
-Pick a unique and descriptive class name for your theme that follows our naming conventions with the `ht-theme-` as a prefix, for example, `ht-theme-falcon`.
+### ② Load the theme
 
-#### 3. Customize the theme
-
-Adjust the CSS variables to match your desired design. Use one of the built-in themes ,`ht-theme-main` or `ht-theme-horizon`, as a base for faster setup. You can copy icons from our [GitHub repository](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/utils/_icons.scss). Alternatively, create your own icon set with the `@use "utils/[theme]/icons";` directive.
-
-#### 4. Load the theme
-
-Include the new CSS file in your project, making sure it’s loaded after the base CSS file (`styles/handsontable.min.css`). If you're using imports, this could look like this:
+Include the new CSS file in your project, ensuring it’s loaded after the base CSS file (`styles/handsontable.min.css`). If you’re using imports, it might look like this:
 
 ```js
 import "handsontable/styles/handsontable.min.css";
 import "handsontable/styles/ht-theme-falcon.min.css";
 ```
 
-#### 5. Apply your theme
+### ③ Apply your theme
 
-You can apply the theme in two ways:
+You can apply the theme in one of two ways:
 
-- Add the theme class (e.g., `ht-theme-falcon-dark-auto`) to the container holding Handsontable.
-- Alternatively, use the `themeName` option in the Handsontable configuration:
+- Using a CSS class: Add the theme class (e.g., `ht-theme-falcon-dark-auto`) to the container element that holds the data grid.
+- Using the themeName option: Specify the theme in the configuration, as shown below:
 
-  ```js
-  const hot = new Handsontable(container, {
-    themeName: 'ht-theme-falcon',
-    // other options
-  });
-  ```
+```js
+const hot = new Handsontable(container, {
+  themeName: 'ht-theme-falcon',
+  // other options
+});
+```
   
 ## Known limitations
 
