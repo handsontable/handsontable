@@ -60,11 +60,11 @@
 ## 🪄 Installation
 Below is the installation guide for the Handsontable with Vue 3 wrapper. If you're using another framework, please refer to its dedicated wrapper for specific installation instructions.
 
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="12" height="12"> <a href="https://github.com/handsontable/handsontable"> JavaScript</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React functional component</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"> React class component</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"> Angular</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="12" height="12" alt="Vue"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"> Vue</a>
+- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/javascript-icon.svg" width="12" height="12" alt="JavaScript logo"> <a href="https://github.com/handsontable/handsontable"> JavaScript</a>
+- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React functional component</a>
+- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12" alt="React logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react"> React class component</a>
+- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular"> Angular</a>
+- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="12" height="12" alt="Vue logo"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue"> Vue 2</a>
 
 ---
 
@@ -128,7 +128,7 @@ Use this data grid as you would any other component in your application. [Option
 <style src="handsontable/styles/ht-theme-main.min.css"></style>
 ```
 
-### [View live demo](https://handsontable.com/docs/javascript-data-grid/vue3-basic-example/)
+[![Static Badge](https://img.shields.io/badge/View%20live%20demo-1a42e8?style=for-the-badge)](https://handsontable.com/docs/javascript-data-grid/vue3-basic-example/)
 
 </div>
 
@@ -139,8 +139,8 @@ Use this data grid as you would any other component in your application. [Option
 - [Website](https://handsontable.com)
 - [Demo](https://handsontable.com/demo)
 - [Documentation](https://handsontable.com/docs/)
-- [npm](https://www.npmjs.com/package/@handsontable/angular)
-- [CDN](https://www.jsdelivr.com/package/npm/@handsontable/angular)
+- [npm](https://www.npmjs.com/package/@handsontable/vue3)
+- [CDN](https://www.jsdelivr.com/package/npm/@handsontable/vue3)
 - [Forum](https://forum.handsontable.com/)
 - [Blog](https://handsontable.com/blog)
 - [Contact support team](https://handsontable.com/contact?category=technical_support)
