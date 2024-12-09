@@ -65,6 +65,26 @@
       }
     }
 
+    // Force the ghost table to ignore the additional 1px border for the first rows in the table
+    &.htGhostTable {
+      table {
+        thead {
+          th {
+            border-bottom-width: 0;
+          }
+        }
+
+        tbody {
+          tr {
+            td,
+            th {
+              border-top-width: 0;
+            }
+          }
+        }
+      }
+    }
+
     // Background
     &.htHasScrollX,
     &.htHasScrollY {

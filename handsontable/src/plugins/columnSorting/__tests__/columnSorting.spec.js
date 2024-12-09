@@ -3064,7 +3064,7 @@ describe('ColumnSorting', () => {
         ['A1', 'B1', 'C1']
       ]);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
@@ -3090,7 +3090,7 @@ describe('ColumnSorting', () => {
         ['A1', 'B1', 'C1']
       ]);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
@@ -3098,7 +3098,7 @@ describe('ColumnSorting', () => {
         ['A3', 'B3', 'C3']
       ]);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(getData()).toEqual([
         ['A3', 'B3', 'C3'],

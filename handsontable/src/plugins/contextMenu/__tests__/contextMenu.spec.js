@@ -1584,7 +1584,7 @@ describe('ContextMenu', () => {
 
       selectCell(0, 0);
       setDataAtCell(0, 0, 'XX');
-      undo();
+      getPlugin('undoRedo').undo();
 
       expect(getDataAtCell(0, 0)).toBe('A1');
 
@@ -1754,16 +1754,16 @@ describe('ContextMenu', () => {
     });
 
     it('should disable undo when there is nothing to undo ', () => {
-      const hot = handsontable({
+      handsontable({
         contextMenu: true,
         height: 100
       });
 
       contextMenu();
 
-      let $menu = $(hot.getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
+      let $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
 
-      expect(hot.undoRedo.isUndoAvailable()).toBe(false);
+      expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
       expect($menu.find('tbody td:eq(9)').text()).toEqual('Undo');
       expect($menu.find('tbody td:eq(9)').hasClass('htDisabled')).toBe(true);
 
@@ -1772,33 +1772,33 @@ describe('ContextMenu', () => {
       setDataAtCell(0, 0, 'foo');
 
       contextMenu();
-      $menu = $(hot.getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
-      expect(hot.undoRedo.isUndoAvailable()).toBe(true);
+      $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
+      expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
       expect($menu.find('tbody td:eq(9)').hasClass('htDisabled')).toBe(false);
     });
 
     it('should disable redo when there is nothing to redo ', () => {
-      const hot = handsontable({
+      handsontable({
         contextMenu: true,
         height: 100
       });
 
       contextMenu();
 
-      let $menu = $(hot.getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
+      let $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
 
-      expect(hot.undoRedo.isRedoAvailable()).toBe(false);
+      expect(getPlugin('undoRedo').isRedoAvailable()).toBe(false);
       expect($menu.find('tbody td:eq(10)').text()).toEqual('Redo');
       expect($menu.find('tbody td:eq(10)').hasClass('htDisabled')).toBe(true);
 
       closeContextMenu();
 
       setDataAtCell(0, 0, 'foo');
-      undo();
+      getPlugin('undoRedo').undo();
 
       contextMenu();
-      $menu = $(hot.getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
-      expect(hot.undoRedo.isRedoAvailable()).toBe(true);
+      $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
+      expect(getPlugin('undoRedo').isRedoAvailable()).toBe(true);
       expect($menu.find('tbody td:eq(10)').hasClass('htDisabled')).toBe(false);
     });
 
