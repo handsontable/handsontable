@@ -40,6 +40,9 @@
 &nbsp;&nbsp;✅&nbsp; [Built-in themes](https://handsontable.com/docs/react-data-grid/themes/) <br>
 &nbsp;&nbsp;✅&nbsp; [Flexible API](https://handsontable.com/docs/react-data-grid/api/) <br>
 &nbsp;&nbsp;✅&nbsp; [Virtualization](https://handsontable.com/docs/react-data-grid/row-virtualization/) <br>
+&nbsp;&nbsp;✅&nbsp; [IME support](https://handsontable.com/docs/react-data-grid/ime-support/) <br>
+&nbsp;&nbsp;✅&nbsp; [Internationalization](https://handsontable.com/docs/react-data-grid/language/) <br>
+&nbsp;&nbsp;✅&nbsp; [RTL support](https://handsontable.com/docs/react-data-grid/layout-direction/) <br>
 &nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/react-data-grid/accessibility/) <br>
 &nbsp;&nbsp;✅&nbsp; [Keyboard shortcuts](https://handsontable.com/docs/react-data-grid/keyboard-shortcuts/) <br>
 &nbsp;&nbsp;✅&nbsp; [Sorting data](https://handsontable.com/docs/react-data-grid/rows-sorting/) <br>
@@ -146,7 +149,7 @@ Handsontable is a data grid component written in JavaScript, not a spreadsheet. 
 ### Spreadsheet-like features in Handsontable:
 
 - Keyboard shortcuts compliant with either Google Sheets or Excel
-- 400 spreadsheet formulas via native integration with HyperFormula
+- 400 spreadsheet formulas via native integration with [HyperFormula](https://github.com/handsontable/hyperformula)
 - Keyboard navigation across headers that can be disabled, making only cells navigable
 - TAB navigation across cells that can be disabled
 - Built-in undo-redo functionality
