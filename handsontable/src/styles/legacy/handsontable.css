@@ -937,6 +937,16 @@ CheckboxRenderer
   padding-right: 20px;
 }
 
+/* Force the ghost table to ignore the additional upper border 1px for the first row in the table */
+.handsontable.htGhostTable table thead th {
+  border-bottom-width: 0;
+}
+
+.handsontable.htGhostTable table tbody tr th,
+.handsontable.htGhostTable table tbody tr td {
+  border-top-width: 0;
+}
+
 .handsontable .htCommentCell {
   position: relative;
 }
