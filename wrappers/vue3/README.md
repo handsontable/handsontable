@@ -65,7 +65,7 @@ Below is the installation guide for the Handsontable with Vue 3 wrapper. If you'
 
 ---
 
-```
+```bash
 npm install handsontable @handsontable/vue3
 ```
 
