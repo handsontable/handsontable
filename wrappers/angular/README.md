@@ -87,8 +87,8 @@ Use this data grid as you would any other component in your application. [Option
 
 **Styles**
 ```css
-@import '~handsontable/dist/handsontable.min.css';
-@import '~handsontable/dist/ht-theme-main.min.css';
+@import '~handsontable/styles/handsontable.min.css';
+@import '~handsontable/styles/ht-theme-main.min.css';
 ```
 
 **Angular Module**
