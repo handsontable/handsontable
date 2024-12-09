@@ -461,7 +461,6 @@ class GhostTable {
   createContainer(className = '') {
     const { rootDocument } = this.hot;
     const fragment = rootDocument.createDocumentFragment();
-
     const container = rootDocument.createElement('div');
     const containerClassName = `htGhostTable htAutoSize ${className.trim()}`;
 
