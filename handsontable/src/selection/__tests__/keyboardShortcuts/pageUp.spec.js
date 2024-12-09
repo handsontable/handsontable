@@ -279,5 +279,29 @@ describe('Selection navigation', () => {
 
       expect(hot.view.getFirstFullyVisibleRow()).toBe(0);
     });
+
+    it('should move the cell selection up for oversized row', () => {
+      handsontable({
+        width: 180,
+        height: 100,
+        rowHeights: 200,
+        navigableHeaders: false,
+        startRows: 15,
+        startCols: 3
+      });
+
+      selectCell(9, 0);
+      keyDownUp('pageup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 8,0 from: 8,0 to: 8,0']);
+
+      keyDownUp('pageup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 7,0 from: 7,0 to: 7,0']);
+
+      keyDownUp('pageup');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 6,0 from: 6,0 to: 6,0']);
+    });
   });
 });
