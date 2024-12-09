@@ -810,7 +810,7 @@ describe('DropdownMenu', () => {
     expect(cellMeta.className.includes('htRight')).toBeTruthy();
     expect(cellMeta.className.includes('htBottom')).toBeTruthy();
 
-    hot.undo();
+    getPlugin('undoRedo').undo();
     cellMeta = hot.getCellMeta(0, 7);
     expect(cellMeta.className.includes('htCenter')).toBeTruthy();
     expect(cellMeta.className.includes('htBottom')).toBeFalsy();
@@ -822,7 +822,7 @@ describe('DropdownMenu', () => {
     expect(cellMeta.className.includes('htRight')).toBeTruthy();
     expect(cellMeta.className.includes('htBottom')).toBeFalsy();
 
-    hot.undo();
+    getPlugin('undoRedo').undo();
 
     cellMeta = hot.getCellMeta(0, 0);
     expect(cellMeta.className.includes('htCenter')).toBeTruthy();
@@ -835,7 +835,7 @@ describe('DropdownMenu', () => {
     expect(cellMeta.className.includes('htRight')).toBeTruthy();
     expect(cellMeta.className.includes('htMiddle')).toBeFalsy();
 
-    hot.undo();
+    getPlugin('undoRedo').undo();
 
     cellMeta = hot.getCellMeta(7, 1);
     expect(cellMeta.className.includes('htRight')).toBeFalsy();
@@ -901,12 +901,12 @@ describe('DropdownMenu', () => {
     expect(cellMeta.className.includes('htRight')).toBeTruthy();
     expect(cellMeta.className.includes('htBottom')).toBeTruthy();
 
-    hot.undo();
-    hot.undo();
-    hot.undo();
-    hot.undo();
+    getPlugin('undoRedo').undo();
+    getPlugin('undoRedo').undo();
+    getPlugin('undoRedo').undo();
+    getPlugin('undoRedo').undo();
 
-    hot.redo();
+    getPlugin('undoRedo').redo();
     cellMeta = hot.getCellMeta(0, 0);
     expect(cellMeta.className.includes('htCenter')).toBeTruthy();
     cellMeta = hot.getCellMeta(1, 5);
@@ -914,7 +914,7 @@ describe('DropdownMenu', () => {
     cellMeta = hot.getCellMeta(2, 8);
     expect(cellMeta.className.includes('htCenter')).toBeTruthy();
 
-    hot.redo();
+    getPlugin('undoRedo').redo();
     cellMeta = hot.getCellMeta(6, 0);
     expect(cellMeta.className.includes('htRight')).toBeTruthy();
     cellMeta = hot.getCellMeta(7, 5);
@@ -922,7 +922,7 @@ describe('DropdownMenu', () => {
     cellMeta = hot.getCellMeta(8, 8);
     expect(cellMeta.className.includes('htRight')).toBeTruthy();
 
-    hot.redo();
+    getPlugin('undoRedo').redo();
     cellMeta = hot.getCellMeta(0, 0);
     expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
     expect(cellMeta.className.includes('htCenter')).toBeTruthy();
@@ -932,7 +932,7 @@ describe('DropdownMenu', () => {
     expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
     expect(cellMeta.className.includes('htRight')).toBeTruthy();
 
-    hot.redo();
+    getPlugin('undoRedo').redo();
     cellMeta = hot.getCellMeta(0, 6);
     expect(cellMeta.className.includes('htBottom')).toBeTruthy();
     expect(cellMeta.className.includes('htCenter')).toBeTruthy();

@@ -708,25 +708,25 @@ describe('AutoColumnSize', () => {
 
   describe('should cooperate with the `UndoRedo` plugin properly', () => {
     it('when removing single column', () => {
-      const hot = handsontable({
+      handsontable({
         data: [['Short', 'Somewhat long', 'The very very very longest one']],
         autoColumnSize: true,
       });
 
       alter('remove_col', 0);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
       expect(colWidth(spec().$container, 2)).toBe(173);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(92);
       expect(colWidth(spec().$container, 1)).toBe(173);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
@@ -734,55 +734,55 @@ describe('AutoColumnSize', () => {
 
       alter('remove_col', 1);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
       expect(colWidth(spec().$container, 2)).toBe(173);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(173);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       alter('remove_col', 2);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
       expect(colWidth(spec().$container, 2)).toBe(173);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
     });
 
     it('when inserting single column', () => {
-      const hot = handsontable({
+      handsontable({
         data: [['Short', 'Somewhat long', 'The very very very longest one']],
         autoColumnSize: true,
       });
 
       alter('insert_col_start', 0);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
       expect(colWidth(spec().$container, 2)).toBe(173);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(50);
       expect(colWidth(spec().$container, 2)).toBe(92);
       expect(colWidth(spec().$container, 3)).toBe(173);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
@@ -790,20 +790,20 @@ describe('AutoColumnSize', () => {
 
       alter('insert_col_start', 1);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
       expect(colWidth(spec().$container, 2)).toBe(173);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(50);
       expect(colWidth(spec().$container, 2)).toBe(92);
       expect(colWidth(spec().$container, 3)).toBe(173);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
@@ -811,20 +811,20 @@ describe('AutoColumnSize', () => {
 
       alter('insert_col_start', 2);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
       expect(colWidth(spec().$container, 2)).toBe(173);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
       expect(colWidth(spec().$container, 2)).toBe(50);
       expect(colWidth(spec().$container, 3)).toBe(173);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
@@ -832,13 +832,13 @@ describe('AutoColumnSize', () => {
 
       alter('insert_col_start', 3);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
       expect(colWidth(spec().$container, 2)).toBe(173);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(92);
@@ -863,7 +863,7 @@ describe('AutoColumnSize', () => {
 
       hot.alter('remove_row', 0);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBeAroundValue(58);
       expect(colWidth(spec().$container, 1)).toBe(92);
