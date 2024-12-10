@@ -42,7 +42,7 @@ The `main` ([source](https://github.com/handsontable/handsontable/blob/develop/h
 
 The `horizon` ([source](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/horizon.scss)) theme, on the other hand, is better suited for data display and analysis. It hides the vertical lines between columns, giving it a cleaner and more lightweight feel.
 
-Keep in mind that starting from version `15.0`, importing a theme is required. Themes include all the essential variables, without which the functionality is reduced to the bare minimum.
+Keep in mind that starting from version `15.0`, importing a theme is required, unless you're using the classic styles. Themes include all the essential variables, without which the functionality is reduced to the bare minimum.
 
 <div :class="['theme-examples', $parent.$parent.themeName]">
 <div class="theme-examples-controls">
@@ -114,9 +114,9 @@ To ensure Handsontable renders correctly, it's required to load both the base an
 
 ```js
 // Import minified base
-import "handsontable/styles/handsontable.min.css";
+import 'handsontable/styles/handsontable.min.css';
 // Import minified main theme
-import "handsontable/styles/ht-theme-main.min.css";
+import 'handsontable/styles/ht-theme-main.min.css';
 ```
 
 ### Load CSS from CDN
@@ -134,12 +134,12 @@ If you use Vite, Webpack, Parcel, or any other bundler, you can import CSS files
 
 ```js
 // ESM (ECMAScript modules)
-import "handsontable/styles/handsontable.min.css";
-import "handsontable/styles/ht-theme-main.min.css";
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-main.min.css';
 
 // CommonJS
-require("handsontable/styles/handsontable.min.css");
-require("handsontable/styles/ht-theme-main.min.css");
+require('handsontable/styles/handsontable.min.css');
+require('handsontable/styles/ht-theme-main.min.css');
 ```
 
 ## Use a theme
@@ -158,15 +158,29 @@ Alternatively, you can specify the theme name in the data grid's global settings
 
 **Use either this method or the class name in the `div`, but not both.**
 
+::: only-for javascript
+
 ```js
-const container = document.querySelector("#handsontable-example");
+const container = document.querySelector('#handsontable-example');
 
 const hot = new Handsontable(container, {
   // theme name with obligatory `ht-theme-*` prefix
-  themeName: "ht-theme-main-dark-auto",
+  themeName: 'ht-theme-main-dark-auto',
   // other options
 });
 ```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  themeName="ht-theme-main-dark-auto"
+/>
+```
+
+:::
 
 ## Create a custom theme
 
@@ -183,8 +197,8 @@ Next, customize the existing variables to match your design requirements. If you
 Include the new CSS file in your project, ensuring it’s loaded after the base CSS file (`styles/handsontable.min.css`). If you’re using imports, it might look like this:
 
 ```js
-import "handsontable/styles/handsontable.min.css";
-import "handsontable/styles/ht-theme-falcon.min.css";
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-falcon.min.css';
 ```
 
 Apply the theme in one of two ways:
@@ -192,12 +206,27 @@ Apply the theme in one of two ways:
 - Using a CSS class: Add the theme class (e.g., `ht-theme-falcon-dark-auto`) to the container element that holds the data grid.
 - Using the themeName option: Specify the theme in the configuration, like so:
 
+::: only-for javascript
+
 ```js
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-falcon',
   // other options
 });
 ```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  themeName="ht-theme-falcon"
+  // other options
+/>
+```
+
+:::
   
 ## Known limitations
 
