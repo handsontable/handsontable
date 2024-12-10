@@ -207,9 +207,9 @@
       }
 
       &.ht__active_highlight {
+        border-color: var(--ht-header-active-border-color);
         color: var(--ht-header-active-foreground-color);
         background-color: var(--ht-header-active-background-color);
-        border-color: var(--ht-header-active-border-color);
         box-shadow: -1px 0 0 0 var(--ht-header-active-border-color);
       }
     }
@@ -431,6 +431,10 @@
       th,
       td {
         border-bottom-color: var(--ht-border-color);
+
+        &.ht__active_highlight {
+          border-bottom-color: var(--ht-header-active-border-color);
+        }
       }
     }
 
