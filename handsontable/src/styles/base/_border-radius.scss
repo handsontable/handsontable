@@ -49,12 +49,16 @@
       .ht_clone_top_inline_start_corner {
         .htCore {
           thead tr:first-child th:first-child {
-            border-start-start-radius: var(--ht-wrapper-border-radius);
+            border-start-start-radius: var(
+              --ht-wrapper-border-radius
+            ) !important;
           }
 
           tbody tr:first-child td:first-child,
           tbody tr:first-child th:first-child {
-            border-start-start-radius: var(--ht-wrapper-border-radius);
+            border-start-start-radius: var(
+              --ht-wrapper-border-radius
+            ) !important;
           }
 
           &:has(thead tr th) {
@@ -69,12 +73,12 @@
       .ht_clone_bottom_inline_start_corner {
         .htCore {
           thead tr:last-child th:first-child {
-            border-end-start-radius: var(--ht-wrapper-border-radius);
+            border-end-start-radius: var(--ht-wrapper-border-radius) !important;
           }
 
           tbody tr:last-child td:first-child,
           tbody tr:last-child th:first-child {
-            border-end-start-radius: var(--ht-wrapper-border-radius);
+            border-end-start-radius: var(--ht-wrapper-border-radius) !important;
           }
 
           &:has(thead tr td) {
@@ -91,7 +95,7 @@
           thead tr:first-child th:first-child {
             border-start-start-radius: var(--ht-wrapper-border-radius);
           }
-
+          
           thead tr:first-child th:last-child {
             border-start-end-radius: var(--ht-wrapper-border-radius);
           }
