@@ -131,8 +131,8 @@
       border-inline-end-width: 1px;
       border-bottom-width: 1px;
       border-style: solid;
-      font-size: var(--ht-font-size, 14px);
-      line-height: var(--ht-line-height, 20px);
+      font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height);
       white-space: pre-wrap;
       overflow: hidden;
       outline: none;
@@ -387,9 +387,13 @@
       }
     }
 
-    span.colHeader {
-      display: inline-block;
-      line-height: var(--ht-line-height, 20px);
+    span {
+      &.colHeader,
+      &.rowHeader {
+        display: inline-block;
+        font-size: var(--ht-font-size);
+        line-height: var(--ht-line-height);
+      }
     }
 
     tr.hidden {
