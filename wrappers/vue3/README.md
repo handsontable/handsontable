@@ -9,7 +9,7 @@
   <h3>The official <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="16" height="16"> Vue 3 wrapper for Handsontable.
     <br>
     <a href="https://handsontable.com/docs" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
-  
+
   <p>With its spreadsheet-like editing features, it’s perfect for building data-rich internal apps. It allows users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.</p>
 
 <a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/javascript-data-grid/vue3-installation/">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
@@ -96,36 +96,50 @@ Use this data grid as you would any other component in your application. [Option
 **Vue 3 Component**
 ```vue
 <template>
-  <hot-table :data="data" :rowHeaders="true" :colHeaders="true"></hot-table>
+  <hot-table
+    :data="data"
+    :row-headers=true
+    :col-headers=true
+    :navigable-headers=true
+    :tab-navigation=true
+    :multi-column-sorting=true
+    header-class-name="htLeft"
+    license-key="non-commercial-and-evaluation"
+  >
+    <hot-column title="Company" data="company" width=100></hot-column>
+    <hot-column title="Country" data="country" width=170 type="dropdown" :source="['United Kingdom', 'Japan', 'United States']"></hot-column>
+    <hot-column title="Rating" data="rating" width=100 type="numeric"></hot-column>
+  </hot-table>
 </template>
 
 <script>
   import { defineComponent } from 'vue';
-  import { HotTable } from '@handsontable/vue3';
+  import { HotTable, HotColumn } from '@handsontable/vue3';
   import { registerAllModules } from 'handsontable/registry';
+  import 'handsontable/styles/handsontable.min.css';
+  import 'handsontable/styles/ht-theme-main.min.css';
 
   // register Handsontable's modules
   registerAllModules();
 
-  export default defineComponent({
+  const ExampleComponent = defineComponent({
     data() {
       return {
         data: [
-          ['', 'Ford', 'Volvo', 'Toyota', 'Honda'],
-          ['2016', 10, 11, 12, 13],
-          ['2017', 20, 11, 14, 13],
-          ['2018', 30, 15, 12, 13]
-        ],
+          { company: 'Tagcat', country: 'United Kingdom', rating: 4.4 },
+          { company: 'Zoomzone', country: 'Japan', rating: 4.5 },
+          { company: 'Meeveo', country: 'United States', rating: 4.6 },
+        ]
       };
     },
     components: {
       HotTable,
+      HotColumn,
     }
   });
-</script>
 
-<style src="handsontable/styles/handsontable.min.css"></style>
-<style src="handsontable/styles/ht-theme-main.min.css"></style>
+  export default ExampleComponent;
+</script>
 ```
 
 [![Static Badge](https://img.shields.io/badge/View%20live%20demo-1a42e8?style=for-the-badge)](https://handsontable.com/docs/javascript-data-grid/vue3-basic-example/)
@@ -186,7 +200,7 @@ If you have a commercial license, feel free to contact us directly at [support@h
 Handsontable is available under two licensing options, allowing you to choose the one that best fits your needs. Each license comes with its own terms and conditions, as outlined below:
 
 ### ① Free license for non-commercial use, and evaluation purposes
-This license is available for non-commercial purposes such as teaching, academic research, or evaluation. It allows you to use Handsontable free of charge under the terms specified in the non-commercial license agreement.  
+This license is available for non-commercial purposes such as teaching, academic research, or evaluation. It allows you to use Handsontable free of charge under the terms specified in the non-commercial license agreement.
 [Learn more here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
 
 ### ② Commercial license
@@ -196,7 +210,7 @@ For commercial use, a paid license is required. This license includes support an
 
 ## 🔑 License Key
 
-For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key. 
+For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key.
 
 If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/license-key/).
 
