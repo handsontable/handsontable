@@ -207,9 +207,9 @@
       }
 
       &.ht__active_highlight {
+        border-color: var(--ht-header-active-border-color) !important;
         color: var(--ht-header-active-foreground-color);
         background-color: var(--ht-header-active-background-color);
-        border-color: var(--ht-header-active-border-color);
         box-shadow: -1px 0 0 0 var(--ht-header-active-border-color);
       }
     }
