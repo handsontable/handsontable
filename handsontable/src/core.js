@@ -1753,7 +1753,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 0.36.0
    * @memberof Core#
    * @function getSelectedLast
-   * @returns {Array|undefined} An array of the selection's coordinates.
+   * @returns {Array[]|undefined} An array of the selection's coordinates.
    */
   this.getSelectedLast = function() {
     const selected = this.getSelected();
