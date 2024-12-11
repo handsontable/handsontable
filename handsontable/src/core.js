@@ -1741,7 +1741,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function getSelected
    * @returns {Array[]|undefined} An array of arrays of the selection's coordinates.
    */
-  this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
+  this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44
     if (selection.isSelected()) {
       return arrayMap(selection.getSelectedRange(), ({ from, to }) => [from.row, from.col, to.row, to.col]);
     }
@@ -1753,7 +1753,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 0.36.0
    * @memberof Core#
    * @function getSelectedLast
-   * @returns {Array[]|undefined} An array of the selection's coordinates.
+   * @returns {Array|undefined} An array of the selection's coordinates.
    */
   this.getSelectedLast = function() {
     const selected = this.getSelected();
@@ -1777,7 +1777,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function getSelectedRange
    * @returns {CellRange[]|undefined} Selected range object or undefined if there is no selection.
    */
-  this.getSelectedRange = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
+  this.getSelectedRange = function() { // https://github.com/handsontable/handsontable/issues/44
     if (selection.isSelected()) {
       return Array.from(selection.getSelectedRange());
     }
