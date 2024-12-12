@@ -41,6 +41,20 @@ describe('settings', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,5 from: 1,5 to: 1,5']);
     });
 
+    it('should create a spare column after removing all columns', () => {
+      handsontable({
+        data: createSpreadsheetData(1, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        minSpareCols: 1,
+      });
+
+      alter('remove_col', 0, 5);
+
+      expect(countCols()).toBe(1);
+      expect(getCell(-1, 0)).toBeInstanceOf(HTMLTableCellElement);
+    });
+
     describe('works on init', () => {
       it('should show data properly when `minSpareCols` is set to 0', () => {
         handsontable({

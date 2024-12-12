@@ -265,16 +265,13 @@ describe('MergeCells', () => {
           colspan: 4
         });
 
-        const wantedCollection = mergedCellsCollection.getByRange({
-          from: {
-            row: 12,
-            col: 12,
-          },
-          to: {
-            row: 12,
-            col: 13
-          }
-        });
+        const range = new CellRange(
+          new CellCoords(9, 10),
+          new CellCoords(9, 10),
+          new CellCoords(12, 15),
+        );
+
+        const wantedCollection = mergedCellsCollection.getByRange(range);
 
         expect(wantedCollection.row).toEqual(10);
         expect(wantedCollection.col).toEqual(11);

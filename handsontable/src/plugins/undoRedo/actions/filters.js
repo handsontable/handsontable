@@ -40,10 +40,7 @@ export class FiltersAction extends BaseAction {
 
     hot.addHookOnce('afterViewRender', undoneCallback);
 
-    if (this.previousConditionsStack) {
-      filters.conditionCollection.importAllConditions(this.previousConditionsStack);
-    }
-
+    filters.conditionCollection.importAllConditions(this.previousConditionsStack);
     filters.filter();
   }
 

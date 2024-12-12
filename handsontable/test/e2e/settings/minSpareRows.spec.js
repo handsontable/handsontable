@@ -28,6 +28,20 @@ describe('settings', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 6,0 from: 6,0 to: 6,0']);
     });
 
+    it('should create a spare row after removing all rows', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 1),
+        rowHeaders: true,
+        colHeaders: true,
+        minSpareRows: 1,
+      });
+
+      alter('remove_row', 0, 5);
+
+      expect(countRows()).toBe(1);
+      expect(getCell(0, -1)).toBeInstanceOf(HTMLTableCellElement);
+    });
+
     describe('works on init', () => {
       it('should show data properly when `minSpareRows` is set to 3', () => {
         handsontable({

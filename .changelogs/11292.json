@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed missing render call for `minSpareRows` and `minSpareCols` options",
+  "type": "fixed",
+  "issueOrPR": 11292,
+  "breaking": false,
+  "framework": "none"
+}
