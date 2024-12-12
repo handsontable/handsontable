@@ -13,13 +13,14 @@
 
       .ht_master {
         overflow: hidden;
+        background-color: var(--ht-background-color);
       }
 
       .wtHolder {
         overflow: auto;
       }
 
-      .wtHider {
+      .wtHider, .htCore {
         border-radius: 0 !important;
       }
 
