@@ -13,6 +13,7 @@ const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const headerAnchor = require('./plugins/markdown-it-header-anchor');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const includeCodeSnippet = require('./plugins/markdown-it-include-code-snippet');
+const tableWrapper = require('./plugins/markdown-it-table-wrapper');
 const {
   createSymlinks,
   getDocsBase,
@@ -206,7 +207,8 @@ module.exports = {
       md.use(includeCodeSnippet)
         .use(conditionalContainer)
         .use(firstHeaderInjection)
-        .use(headerAnchor);
+        .use(headerAnchor)
+        .use(tableWrapper);
     },
   },
   configureWebpack: {
