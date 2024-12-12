@@ -34,40 +34,24 @@ class AutofillCalculations {
   }
 
   /**
-   * Correct the provided selection area, so it's not selecting only a part of a merged cell.
-   *
-   * @param {Array} selectionArea The selection to correct.
-   */
-  correctSelectionAreaSize(selectionArea) {
-    if (selectionArea[0] === selectionArea[2] && selectionArea[1] === selectionArea[3]) {
-      const mergedCell = this.mergedCellsCollection.get(selectionArea[0], selectionArea[1]);
-
-      if (mergedCell) {
-        selectionArea[2] = selectionArea[0] + mergedCell.rowspan - 1;
-        selectionArea[3] = selectionArea[1] + mergedCell.colspan - 1;
-      }
-    }
-  }
-
-  /**
    * Get the direction of the autofill process.
    *
-   * @param {Array} selectionArea The selection area.
-   * @param {Array} finalArea The final area (base + drag).
+   * @param {Array} baseArea The selection area.
+   * @param {Array} fullArea The final area (base + drag).
    * @returns {string} `up`, `down`, `left` or `right`.
    */
-  getDirection(selectionArea, finalArea) {
+  getDirection(baseArea, fullArea) {
     let direction = null;
 
-    if (finalArea[0] === selectionArea[0] &&
-        finalArea[1] === selectionArea[1] && finalArea[3] === selectionArea[3]) {
+    if (fullArea[0] === baseArea[0] &&
+        fullArea[1] === baseArea[1] && fullArea[3] === baseArea[3]) {
       direction = 'down';
 
-    } else if (finalArea[2] === selectionArea[2] &&
-               finalArea[1] === selectionArea[1] && finalArea[3] === selectionArea[3]) {
+    } else if (fullArea[2] === baseArea[2] &&
+               fullArea[1] === baseArea[1] && fullArea[3] === baseArea[3]) {
       direction = 'up';
 
-    } else if (finalArea[1] === selectionArea[1] && finalArea[2] === selectionArea[2]) {
+    } else if (fullArea[1] === baseArea[1] && fullArea[2] === baseArea[2]) {
       direction = 'right';
 
     } else {
@@ -81,21 +65,21 @@ class AutofillCalculations {
    * Snap the drag area to the farthest merged cell, so it won't clip any of the merged cells.
    *
    * @param {Array} baseArea The base selected area.
-   * @param {Array} dragArea The drag area.
+   * @param {Array} fullArea The drag area.
    * @param {string} dragDirection The autofill drag direction.
    * @param {Array} foundMergedCells MergeCellCoords found in the base selection area.
    * @returns {Array} The new drag area.
    */
-  snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells) {
-    const newDragArea = dragArea.slice(0);
-    const fillSize = this.getAutofillSize(baseArea, dragArea, dragDirection);
+  snapDragArea(baseArea, fullArea, dragDirection, foundMergedCells) {
+    const newDragArea = fullArea.slice(0);
+    const fillSize = this.getAutofillSize(baseArea, fullArea, dragDirection);
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
     const verticalDirection = ['up', 'down'].indexOf(dragDirection) > -1;
     const fullCycle = verticalDirection ?
       baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
     const fulls = Math.floor(fillSize / fullCycle) * fullCycle;
     const partials = fillSize - fulls;
-    const farthestCollection = this.getFarthestCollection(baseArea, dragArea, dragDirection, foundMergedCells);
+    const farthestCollection = this.getFarthestCollection(baseArea, fullArea, dragDirection, foundMergedCells);
 
     if (farthestCollection) {
       if (dragDirection === 'down') {
@@ -175,13 +159,13 @@ class AutofillCalculations {
    *
    * @private
    * @param {Array} baseArea The base selection area.
-   * @param {Array} dragArea The drag area (containing the base area).
+   * @param {Array} fullArea The drag area (containing the base area).
    * @param {string} direction The drag direction.
    * @returns {number|null} The "length" (height or width, depending on the direction) of the drag.
    */
-  getAutofillSize(baseArea, dragArea, direction) {
+  getAutofillSize(baseArea, fullArea, direction) {
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
-    const [dragAreaStartRow, dragAreaStartColumn, dragAreaEndRow, dragAreaEndColumn] = dragArea;
+    const [dragAreaStartRow, dragAreaStartColumn, dragAreaEndRow, dragAreaEndColumn] = fullArea;
 
     switch (direction) {
       case 'up':
@@ -202,23 +186,31 @@ class AutofillCalculations {
    *
    * @private
    * @param {Array} baseArea The base selection area.
-   * @param {Array} dragArea The base selection area extended by the drag area.
+   * @param {Array} fullArea The base selection area extended by the drag area.
    * @param {string} direction Drag direction.
    * @returns {Array|null} Array representing the drag area coordinates.
    */
-  getDragArea(baseArea, dragArea, direction) {
+  getDragArea(baseArea, fullArea, direction) {
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
-    const [dragAreaStartRow, dragAreaStartColumn, dragAreaEndRow, dragAreaEndColumn] = dragArea;
+    const [fullAreaStartRow, fullAreaStartColumn, fullAreaEndRow, fullAreaEndColumn] = fullArea;
 
     switch (direction) {
       case 'up':
-        return [dragAreaStartRow, dragAreaStartColumn, baseAreaStartRow - 1, baseAreaEndColumn];
-      case 'down':
-        return [baseAreaEndRow + 1, baseAreaStartColumn, dragAreaEndRow, baseAreaEndColumn];
+        return [fullAreaStartRow, fullAreaStartColumn, baseAreaStartRow - 1, baseAreaEndColumn];
+      case 'down': {
+        const mergedCell = this.mergedCellsCollection.get(fullAreaEndRow, baseAreaEndColumn);
+        const rowShift = mergedCell ? mergedCell.rowspan - 1 : 0;
+
+        return [baseAreaEndRow + 1, baseAreaStartColumn, fullAreaEndRow + rowShift, baseAreaEndColumn];
+      }
       case 'left':
-        return [dragAreaStartRow, dragAreaStartColumn, baseAreaEndRow, baseAreaStartColumn - 1];
-      case 'right':
-        return [baseAreaStartRow, baseAreaEndColumn + 1, dragAreaEndRow, dragAreaEndColumn];
+        return [fullAreaStartRow, fullAreaStartColumn, baseAreaEndRow, baseAreaStartColumn - 1];
+      case 'right': {
+        const mergedCell = this.mergedCellsCollection.get(fullAreaEndRow, baseAreaEndColumn);
+        const columnShift = mergedCell ? mergedCell.colspan - 1 : 0;
+
+        return [baseAreaStartRow, baseAreaEndColumn + columnShift, fullAreaEndRow, fullAreaEndColumn];
+      }
       default:
         return null;
     }
@@ -229,17 +221,17 @@ class AutofillCalculations {
    *
    * @private
    * @param {Array} baseArea The base selection area.
-   * @param {Array} dragArea The drag area (containing the base area).
+   * @param {Array} fullArea The drag area (containing the base area).
    * @param {string} direction The drag direction.
    * @param {Array} mergedCellArray Array of the merged cells found in the base area.
    * @returns {MergedCellCoords|null}
    */
-  getFarthestCollection(baseArea, dragArea, direction, mergedCellArray) {
+  getFarthestCollection(baseArea, fullArea, direction, mergedCellArray) {
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
     const verticalDirection = ['up', 'down'].indexOf(direction) > -1;
     const baseEnd = verticalDirection ? baseAreaEndRow : baseAreaEndColumn;
     const baseStart = verticalDirection ? baseAreaStartRow : baseAreaStartColumn;
-    const fillSize = this.getAutofillSize(baseArea, dragArea, direction);
+    const fillSize = this.getAutofillSize(baseArea, fullArea, direction);
     const fullCycle = verticalDirection ?
       baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
     const fulls = Math.floor(fillSize / fullCycle) * fullCycle;
@@ -327,7 +319,7 @@ class AutofillCalculations {
                 rowspan: current.rowspan,
                 col: current.col,
                 colspan: current.colspan
-              });
+              }, true);
               break;
 
             case 'down':
@@ -336,7 +328,7 @@ class AutofillCalculations {
                 rowspan: current.rowspan,
                 col: current.col,
                 colspan: current.colspan
-              });
+              }, true);
               break;
 
             case 'left':
@@ -345,7 +337,7 @@ class AutofillCalculations {
                 rowspan: current.rowspan,
                 col: current.col - fillOffset,
                 colspan: current.colspan
-              });
+              }, true);
               break;
 
             case 'right':
@@ -354,7 +346,7 @@ class AutofillCalculations {
                 rowspan: current.rowspan,
                 col: current.col + fillOffset,
                 colspan: current.colspan
-              });
+              }, true);
               break;
 
             default:
@@ -434,8 +426,23 @@ class AutofillCalculations {
     const topLeft = this.plugin.hot._createCellCoords(dragAreaStartRow, dragAreaStartColumn);
     const bottomRight = this.plugin.hot._createCellCoords(dragAreaEndRow, dragAreaEndColumn);
     const dragRange = this.plugin.hot._createCellRange(topLeft, topLeft, bottomRight);
+    const mergedCellsWithPartials = this.mergedCellsCollection.getWithinRange(dragRange, true);
 
-    return this.mergedCellsCollection.getWithinRange(dragRange, true).length > 0;
+    if (mergedCellsWithPartials.length === 0) {
+      return false;
+    }
+
+    const mergedCellsWithoutPartials = this.mergedCellsCollection.getWithinRange(dragRange, false);
+
+    if (mergedCellsWithoutPartials.length === 0) {
+      return true;
+    }
+
+    if (direction === 'up' || direction === 'down') {
+      return !mergedCellsWithoutPartials.every(({ colspan }) => colspan === dragRange.getWidth());
+    }
+
+    return !mergedCellsWithoutPartials.every(({ rowspan }) => rowspan === dragRange.getHeight());
   }
 }
 
