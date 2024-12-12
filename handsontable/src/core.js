@@ -1772,7 +1772,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getSelectedRange
-   * @returns {CellRange[]|undefined} Selected range object or undefined if there is no selection.
+   * @returns {Array<CellRange>|undefined} Selected range object or undefined if there is no selection.
    */
   this.getSelectedRange = function() { // https://github.com/handsontable/handsontable/issues/44
     if (selection.isSelected()) {
