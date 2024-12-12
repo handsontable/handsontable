@@ -506,6 +506,15 @@
             border-inline-start-color: var(--ht-border-color);
           }
         }
+
+        th {
+          .relative {
+            &::after {
+              right: auto;
+              left: -1px;
+            }
+          }
+        }
       }
     }
   }
