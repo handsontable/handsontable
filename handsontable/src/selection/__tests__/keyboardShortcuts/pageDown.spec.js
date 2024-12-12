@@ -238,5 +238,29 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,3 from: -3,3 to: -3,3']);
     });
+
+    it('should move the cell selection down for oversized row', () => {
+      handsontable({
+        width: 180,
+        height: 100,
+        rowHeights: 200,
+        navigableHeaders: false,
+        startRows: 15,
+        startCols: 3
+      });
+
+      selectCell(0, 0);
+      keyDownUp('pagedown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
+
+      keyDownUp('pagedown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 2,0']);
+
+      keyDownUp('pagedown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,0 to: 3,0']);
+    });
   });
 });
