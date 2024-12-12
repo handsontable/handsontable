@@ -1,5 +1,4 @@
 import { getComparisonFunction } from '../../helpers/feature';
-import { arrayUnique, arrayEach } from '../../helpers/array';
 
 const sortCompare = getComparisonFunction();
 
@@ -35,9 +34,6 @@ export function toVisualValue(value, defaultEmptyValue) {
   return visualValue;
 }
 
-const SUPPORT_SET_CONSTRUCTOR = new Set([1]).has(1);
-const SUPPORT_FAST_DEDUPE = SUPPORT_SET_CONSTRUCTOR && typeof Array.from === 'function';
-
 /**
  * Create an array assertion to compare if an element exists in that array (in a more efficient way than .indexOf).
  *
@@ -45,23 +41,10 @@ const SUPPORT_FAST_DEDUPE = SUPPORT_SET_CONSTRUCTOR && typeof Array.from === 'fu
  * @returns {Function}
  */
 export function createArrayAssertion(initialData) {
-  let dataset = initialData;
-
-  if (SUPPORT_SET_CONSTRUCTOR) {
-    dataset = new Set(dataset);
-  }
+  const dataset = new Set(initialData);
 
   return function(value) {
-    let result;
-
-    if (SUPPORT_SET_CONSTRUCTOR) {
-      result = dataset.has(value);
-    } else {
-      /* eslint-disable no-bitwise */
-      result = !!~dataset.indexOf(value);
-    }
-
-    return result;
+    return dataset.has(value);
   };
 }
 
@@ -82,26 +65,19 @@ export function toEmptyString(value) {
  * @returns {Array}
  */
 export function unifyColumnValues(values) {
-  let unifiedValues = values;
+  return Array.from(new Set(values))
+    .map(value => toEmptyString(value))
+    .sort((a, b) => {
+      if (typeof a === 'number' && typeof b === 'number') {
+        return a - b;
+      }
 
-  if (SUPPORT_FAST_DEDUPE) {
-    unifiedValues = Array.from(new Set(unifiedValues));
-  } else {
-    unifiedValues = arrayUnique(unifiedValues);
-  }
-  unifiedValues = unifiedValues.sort((a, b) => {
-    if (typeof a === 'number' && typeof b === 'number') {
-      return a - b;
-    }
+      if (a === b) {
+        return 0;
+      }
 
-    if (a === b) {
-      return 0;
-    }
-
-    return a > b ? 1 : -1;
-  });
-
-  return unifiedValues;
+      return a > b ? 1 : -1;
+    });
 }
 
 /**
@@ -122,14 +98,18 @@ export function intersectValues(base, selected, defaultEmptyValue, callback) {
     selectedItemsAssertion = createArrayAssertion(selected);
   }
 
-  arrayEach(base, (value) => {
+  base.forEach((value) => {
     let checked = false;
 
     if (same || selectedItemsAssertion(value)) {
       checked = true;
     }
 
-    const item = { checked, value, visualValue: toVisualValue(value, defaultEmptyValue) };
+    const item = {
+      checked,
+      value,
+      visualValue: toVisualValue(value, defaultEmptyValue),
+    };
 
     if (callback) {
       callback(item);

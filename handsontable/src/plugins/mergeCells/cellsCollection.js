@@ -73,22 +73,28 @@ class MergedCellsCollection {
   /**
    * Get the first-found merged cell containing the provided range.
    *
-   * @param {CellRange|object} range The range to search merged cells for.
-   * @returns {MergedCellCoords|boolean}
+   * @param {CellRange} range The range to search merged cells for.
+   * @returns {MergedCellCoords | false}
    */
   getByRange(range) {
+    const { row: rowStart, col: columnStart } = range.getTopStartCorner();
+    const { row: rowEnd, col: columnEnd } = range.getBottomEndCorner();
+    const mergedCellsLength = this.mergedCells.length;
     let result = false;
 
-    arrayEach(this.mergedCells, (mergedCell) => {
-      if (mergedCell.row <= range.from.row && mergedCell.row + mergedCell.rowspan - 1 >= range.to.row &&
-        mergedCell.col <= range.from.col && mergedCell.col + mergedCell.colspan - 1 >= range.to.col) {
+    for (let i = 0; i < mergedCellsLength; i++) {
+      const mergedCell = this.mergedCells[i];
+      const { row, col, rowspan, colspan } = mergedCell;
+
+      if (
+        row >= rowStart && row + rowspan - 1 <= rowEnd &&
+        col >= columnStart && col + colspan - 1 <= columnEnd
+      ) {
         result = mergedCell;
 
-        return result;
+        break;
       }
-
-      return true;
-    });
+    }
 
     return result;
   }
@@ -203,7 +209,9 @@ class MergedCellsCollection {
       return newMergedCell;
     }
 
-    warn(MergedCellsCollection.IS_OVERLAPPING_WARNING(newMergedCell));
+    if (isOverlapping) {
+      warn(MergedCellsCollection.IS_OVERLAPPING_WARNING(newMergedCell));
+    }
 
     return false;
   }

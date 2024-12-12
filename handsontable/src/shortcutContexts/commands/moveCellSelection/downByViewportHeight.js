@@ -6,6 +6,8 @@ export const command = {
     const { row } = hot.getSelectedRangeLast().highlight;
     let rowsStep = hot.countVisibleRows() + columnHeadersCount;
 
+    rowsStep = rowsStep === 0 ? 1 : rowsStep;
+
     // if the last row is currently selected move the focus to the first row (if autoWrap is enabled)
     if (row === hot.countRows() - 1) {
       rowsStep = 1;
