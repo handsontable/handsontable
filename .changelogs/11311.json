@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed unwanted selection expanding after editor close.",
+  "type": "fixed",
+  "issueOrPR": 11311,
+  "breaking": false,
+  "framework": "none"
+}
