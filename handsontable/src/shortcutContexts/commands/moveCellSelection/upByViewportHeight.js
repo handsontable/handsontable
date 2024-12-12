@@ -4,7 +4,9 @@ export const command = {
     const { navigableHeaders } = hot.getSettings();
     const columnHeadersCount = (navigableHeaders ? hot.countColHeaders() : 0);
     const { row } = hot.getSelectedRangeLast().highlight;
-    let rowsStep = -(hot.countVisibleRows() + columnHeadersCount);
+    let rowsStep = hot.countVisibleRows() + columnHeadersCount;
+
+    rowsStep = rowsStep === 0 ? -1 : -rowsStep;
 
     // if the first row is currently selected move the focus to the last row (if autoWrap is enabled)
     if (row === -columnHeadersCount) {
