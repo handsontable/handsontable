@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [15.0.0] - 2024-12-11
+## [15.0.0] - 2024-12-16
 
 ### Added
 - Added support for row and column virtualization of merged cells. [#11162](https://github.com/handsontable/handsontable/pull/11162)
@@ -33,7 +33,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed copying values when the Fast IME Edit option was enabled. [#11243](https://github.com/handsontable/handsontable/pull/11243)
 - Fixed an issue with exporting of the common lib in `package.json`. [#11247](https://github.com/handsontable/handsontable/pull/11247)
 - Fixed the checkbox switching in merged cells. [#11252](https://github.com/handsontable/handsontable/pull/11252)
-- Added the missing "name" attribute to the Focus Catcher. [#11256](https://github.com/handsontable/handsontable/pull/11256)
+- Fixed a problem with the missing "name" attribute of the Focus Catcher. [#11256](https://github.com/handsontable/handsontable/pull/11256)
 - Fixed data deletion for the checkbox-typed cells. [#11263](https://github.com/handsontable/handsontable/pull/11263)
 - Fixed the horizontal scrolling for Nested Headers. [#11269](https://github.com/handsontable/handsontable/pull/11269)
 - Fixed a problem where the Filters' dropdown container did not match the dropdown content size. [#11273](https://github.com/handsontable/handsontable/pull/11273)
