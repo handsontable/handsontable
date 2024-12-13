@@ -1,4 +1,4 @@
-describe('autocompleteValidator', () => {
+describe('dropdownValidator', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -12,6 +12,55 @@ describe('autocompleteValidator', () => {
     }
   });
 
+  it('should validate negatively when value does not match to the source', async() => {
+    const afterValidate = jasmine.createSpy('afterValidate');
+
+    handsontable({
+      data: [
+        ['some', 'sample', 'data'],
+      ],
+      type: 'dropdown',
+      source: ['some', 'sample', 'data'],
+      afterValidate,
+    });
+
+    setDataAtCell(0, 0, 'Some');
+
+    await sleep(10);
+
+    expect(afterValidate).toHaveBeenCalledWith(false, 'Some', 0, 0);
+  });
+
+  it('should validate all cells after changing the editor type to custom one (#dev-470)', async() => {
+    const afterValidate = jasmine.createSpy('afterValidate');
+
+    handsontable({
+      data: [
+        ['some', 'sample', 'data'],
+      ],
+      type: 'dropdown',
+      editor: class CustomEditor extends Handsontable.editors.DropdownEditor {},
+      source: ['some', 'sample', 'data'],
+      afterValidate,
+    });
+
+    setDataAtCell([
+      [0, 0, 'test1'],
+      [0, 1, 'test2'],
+      [0, 2, 'test3'],
+      [0, 3, 'data'],
+      [1, 0, 'test5'],
+    ]);
+
+    await sleep(10);
+
+    expect(afterValidate.calls.argsFor(0)).toEqual([false, 'test5', 1, 0]);
+    expect(afterValidate.calls.argsFor(1)).toEqual([true, 'data', 0, 3]);
+    expect(afterValidate.calls.argsFor(2)).toEqual([false, 'test3', 0, 2]);
+    expect(afterValidate.calls.argsFor(3)).toEqual([false, 'test2', 0, 1]);
+    expect(afterValidate.calls.argsFor(4)).toEqual([false, 'test1', 0, 0]);
+  });
+
   describe('allowEmpty', () => {
     it('should validate empty cells positively (by default)', async() => {
       const afterValidate = jasmine.createSpy('afterValidate');
@@ -20,9 +69,8 @@ describe('autocompleteValidator', () => {
         data: [
           ['some', 'sample', 'data'],
         ],
-        type: 'autocomplete',
+        type: 'dropdown',
         source: ['some', 'sample', 'data'],
-        strict: true,
         afterValidate,
       });
 
@@ -40,9 +88,8 @@ describe('autocompleteValidator', () => {
         data: [
           ['some', 'sample', 'data'],
         ],
-        type: 'autocomplete',
+        type: 'dropdown',
         source: ['some', 'sample', 'data'],
-        strict: true,
         allowEmpty: true,
         afterValidate,
       });
@@ -61,9 +108,8 @@ describe('autocompleteValidator', () => {
         data: [
           ['some', 'sample', 'data'],
         ],
-        type: 'autocomplete',
+        type: 'dropdown',
         source: ['some', 'sample', 'data'],
-        strict: true,
         allowEmpty: false,
         afterValidate,
       });
@@ -84,20 +130,17 @@ describe('autocompleteValidator', () => {
         ],
         columns: [
           {
-            type: 'autocomplete',
+            type: 'dropdown',
             source: ['some', 'sample', 'data'],
-            strict: true
           },
           {
-            type: 'autocomplete',
+            type: 'dropdown',
             source: ['some', 'sample', 'data'],
-            strict: true,
             allowEmpty: false
           },
           {
-            type: 'autocomplete',
+            type: 'dropdown',
             source: ['some', 'sample', 'data'],
-            strict: true
           }
         ],
         afterValidate,
@@ -123,19 +166,16 @@ describe('autocompleteValidator', () => {
         ],
         columns: [
           {
-            type: 'autocomplete',
+            type: 'dropdown',
             source: ['some', 'sample', 'data'],
-            strict: true
           },
           {
-            type: 'autocomplete',
+            type: 'dropdown',
             source: ['some', 'sample', 'data'],
-            strict: true,
           },
           {
-            type: 'autocomplete',
+            type: 'dropdown',
             source: ['some', 'sample', 'data'],
-            strict: true
           }
         ],
         allowEmpty: false,
@@ -151,28 +191,6 @@ describe('autocompleteValidator', () => {
       expect(afterValidate.calls.argsFor(0)).toEqual([false, null, 0, 0]);
       expect(afterValidate.calls.argsFor(1)).toEqual([false, undefined, 0, 1]);
       expect(afterValidate.calls.argsFor(2)).toEqual([false, '', 0, 2]);
-    });
-  });
-
-  describe('strict mode', () => {
-    it('should validate negatively when chars have different size', async() => {
-      const afterValidate = jasmine.createSpy('afterValidate');
-
-      handsontable({
-        data: [
-          ['some', 'sample', 'data'],
-        ],
-        type: 'autocomplete',
-        source: ['some', 'sample', 'data'],
-        strict: true,
-        afterValidate,
-      });
-
-      setDataAtCell(0, 0, 'Some');
-
-      await sleep(10);
-
-      expect(afterValidate).toHaveBeenCalledWith(false, 'Some', 0, 0);
     });
   });
 });
