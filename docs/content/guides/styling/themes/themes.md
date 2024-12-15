@@ -42,7 +42,7 @@ The `main` ([source](https://github.com/handsontable/handsontable/blob/develop/h
 
 The `horizon` ([source](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/horizon.scss)) theme, on the other hand, is better suited for data display and analysis. It hides the vertical lines between columns, giving it a cleaner and more lightweight feel.
 
-Keep in mind that starting from version `15.0`, importing a theme is required, unless you're using the classic styles. Themes include all the essential variables, without which the functionality is reduced to the bare minimum.
+Keep in mind that starting from version `15.0`, importing a theme is required.
 
 <div :class="['theme-examples', $parent.$parent.themeName]">
 <div class="theme-examples-controls">
@@ -96,41 +96,11 @@ The light and dark modes ignore the parent container's color scheme and remain e
 
 Here's a summary of each available theme, mode, and their corresponding file names.
 
-<div class="table-small">
+## Use a theme
 
-| File directory and name      | Root CSS class                                                                       | Description                                                                                                                                                                           |
-|------------------------------| ------------------------------------------------------------------------------------ |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| /styles/ht-theme-main.css    | <span>ht-theme-main<br>ht-theme-main-dark<br>ht-theme-main-dark-auto</span>          | The main theme resembles spreadsheet software, featuring soft colors from a white and grey palette, with some blue accents.                                                           |
-| /styles/ht-theme-horizon.css | <span>ht-theme-horizon<br>ht-theme-horizon-dark<br>ht-theme-horizon-dark-auto</span> | An elegant theme designed to feel like an enterprise data grid, optimized for improved data readability in internal applications.                                                     |
-| /dist/handsontable.css       | Not required                                                                         | The classic CSS file. While it will continue to be supported and tested in future Handsontable releases, it is not recommended for use in new projects. |
-
-</div>
-
-## Load CSS files
+### Load CSS files
 
 To ensure Handsontable renders correctly, it's required to load both the base and theme CSS files. The base file contains structural styles, while the theme file includes colors, sizes, and other variables needed for the grid.
-
-### Import CSS files (recommended)
-
-```js
-// Import minified base
-import 'handsontable/styles/handsontable.min.css';
-// Import minified main theme
-import 'handsontable/styles/ht-theme-main.min.css';
-```
-
-### Load CSS from CDN
-
-Load the necessary files from the recommended CDNs such as [JSDelivr](https://jsdelivr.com/package/npm/handsontable) or [cdnjs](https://cdnjs.com/libraries/handsontable).
-
-```js
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
-```
-
-### Use with bundlers
-
-If you use Vite, Webpack, Parcel, or any other bundler, you can import CSS files like so:
 
 ```js
 // ESM (ECMAScript modules)
@@ -142,13 +112,20 @@ require('handsontable/styles/handsontable.min.css');
 require('handsontable/styles/ht-theme-main.min.css');
 ```
 
-## Use a theme
+Alternatively, you can import the necessary files from the recommended CDN such as [JSDelivr](https://jsdelivr.com/package/npm/handsontable) or [cdnjs](https://cdnjs.com/libraries/handsontable).
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
+```
+
+## Pass a theme name
 
 To use a theme in your app, you need to add the specific class name to the `div` container that holds Handsontable. For the `main` theme, you can choose from the following CSS classes:
 
-- `ht-theme-main`
-- `ht-theme-main-dark`
-- `ht-theme-main-dark-auto (recommended)`
+- `ht-theme-main` - light mode
+- `ht-theme-main-dark` - dark mode
+- `ht-theme-main-dark-auto (recommended)` - auto dark mode
 
 ```html
 <div id="handsontable-example" class="ht-theme-main-dark-auto"></div>
@@ -188,7 +165,7 @@ Creating a custom theme is straightforward. Follow these steps to set up your cu
 
 ### ① Create a new CSS file
 
-Start by copying one of the CSS files provided with Handsontable, such as `ht-theme-main.css`. Rename it to something unique for your project. For this example, let’s name the new theme `falcon`, making the full file name `ht-theme-falcon.css`.
+Start by copying one of the CSS files provided with Handsontable, such as [`ht-theme-main.css`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/main.scss). Rename it to something unique for your project. For this example, let’s name the new theme `falcon`, making the full file name `ht-theme-falcon.css`.
 
 Next, customize the existing variables to match your design requirements. If you need icons, you can use the ones available in the [GitHub repository](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/utils/_icons.scss) or create your own icon set using the `@use "utils/[theme]/icons";` directive.
 
@@ -204,6 +181,11 @@ import 'handsontable/styles/ht-theme-falcon.min.css';
 Apply the theme in one of two ways:
 
 - Using a CSS class: Add the theme class (e.g., `ht-theme-falcon-dark-auto`) to the container element that holds the data grid.
+
+```html
+<div id="handsontable-example" class="ht-theme-falcon-dark-auto"></div>
+```
+
 - Using the themeName option: Specify the theme in the configuration, like so:
 
 ::: only-for javascript
@@ -227,6 +209,9 @@ const hot = new Handsontable(container, {
 ```
 
 :::
+
+## The classic theme
+The classic CSS file ([`handsontable.full.min.css`](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.full.min.css)) was the default theme up until `version 15` (released in December 2024). While it will still be supported and tested in future Handsontable updates, it is no longer recommended for new projects.
   
 ## Known limitations
 
@@ -234,17 +219,15 @@ In some cases, global styles enforced by the browser or operating system can imp
 
 - **High contrast mode in Windows**: To style the component when Windows' high contrast mode is active, use the `forced-colors` media query. This allows you to detect and adapt to forced color settings. [Read more](https://blogs.windows.com/msedgedev/2020/09/17/styling-for-windows-high-contrast-with-new-standards-for-forced-colors/)
 - **Auto dark theme in Google Chrome**: Chrome automatically applies a dark theme in some scenarios. To detect and manage this behavior, refer to the official [Chrome guide](https://developer.chrome.com/blog/auto-dark-theme)
-- Overflowing content can't yet be fully controlled with CSS themes. By default, Handsontable wraps overflowing text within cells. To crop the content, you can apply the following CSS to a cell:
+- By default, Handsontable wraps overflowing text within cells. To crop the content, you can apply the following CSS targeting all cells:
 
-  ```scss
-  .handsontable {
-    td {
-      text-overflow: ellipsis !important;
-      overflow: hidden !important;
-      white-space: nowrap !important;
-    }
-  }
-  ```
+```scss
+#handsontable-example .handsontable td {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+```
   
 ## Troubleshooting
 

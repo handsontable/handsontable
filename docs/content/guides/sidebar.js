@@ -153,7 +153,6 @@ const buildingAndToolingItems = [
   { path: 'guides/tools-and-building/custom-plugins/custom-plugins' },
   { path: 'guides/tools-and-building/custom-builds/custom-builds' },
   { path: 'guides/tools-and-building/testing/testing' },
-  { path: 'guides/tools-and-building/folder-structure/folder-structure' },
 ];
 
 const optimizationItems = [
