@@ -50,9 +50,8 @@ Set together, a renderer, [editor](@/guides/cell-functions/cell-editor/cell-edit
 ## Declare a custom renderer as a component
 
 Handsontable's React wrapper lets you create custom cell renderers using React components.
-Although it's possible to use class-based react components for this purpose, we strongly suggest using functional components, as using the `state` of a class-based component would re-initialize on every Handsontable render.
 
-To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
+To use your component as a Handsontable renderer, pass it in the `renderer` prop if either `HotTable` or `HotColumn` components, as you would with any other config option.
 
 ::: tip
 
@@ -62,7 +61,7 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 :::
 
-::: example #example1 :react --js 1 --ts 2 --tab preview
+::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example1.jsx)
 @[code](@/content/guides/cell-functions/cell-renderer/react/example1.tsx)
@@ -73,7 +72,7 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 In this example, React's `Context` passes information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with [editors](@/guides/cell-functions/cell-editor/cell-editor.md) as well.
 
-::: example #example2 :react --css 1 --js 2 --ts 3 --tab preview
+::: example #example2 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example2.css)
 @[code](@/content/guides/cell-functions/cell-renderer/react/example2.jsx)
@@ -83,9 +82,10 @@ In this example, React's `Context` passes information available in the main app 
 
 ## Declare a custom renderer as a function
 
-You can also declare a custom renderer for the `HotTable` component by declaring it as a function. In the simplest scenario, you can pass the rendering function as a Handsontable setting.
+You can also declare a custom renderer for the `HotTable` component by declaring it as a function. In the simplest scenario, you can pass the rendering function as the `hotRenderer` prop into `HotTable` or `HotColumn`.
+If you need the renderer to be a part of a `columns` config array, declare it under the `renderer` key. 
 
-The following example implements `@handsontable/react` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
+The following example implements `@handsontable/react-wrapper` with a custom renderer added to one of the columns. It takes an image URL as the input and renders the image in the edited cell.
 
 ::: example #example3 :react --js 1 --ts 2
 

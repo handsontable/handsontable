@@ -1,0 +1,79 @@
+@use "../../utils/mixins";
+
+// Selection
+
+@mixin output {
+  .handsontable {
+    // Fill
+    @for $i from 0 through 7 {
+      td.area#{if($i == 0, "", "-#{$i}")} {
+        @include mixins.area-styles;
+      }
+    }
+
+    @for $i from 0 through 7 {
+      td.area#{if($i == 0, "", "-#{$i}")}:before {
+        opacity: mixins.get-opacity($i);
+      }
+    }
+
+    td.area {
+      border-color: color-mix(
+        in srgb,
+        var(--ht-border-color),
+        var(--ht-foreground-color) 10%
+      );
+    }
+
+    // Borders
+    .wtBorder {
+      position: absolute;
+      font-size: 0;
+
+      &.hidden {
+        display: none !important;
+      }
+
+      // A layer order of the selection types
+      &.current {
+        z-index: 10;
+        background-color: var(--ht-cell-selection-border-color) !important;
+      }
+
+      &.area {
+        z-index: 8;
+        background-color: var(--ht-cell-selection-border-color) !important;
+      }
+
+      &.fill {
+        z-index: 6;
+        background-color: var(
+          --ht-cell-autofill-fill-border-color,
+          #68696c
+        ) !important;
+      }
+
+      // Fill handle
+      &.corner {
+        border-radius: var(--ht-cell-autofill-border-radius) !important;
+        background-color: var(
+          --ht-cell-autofill-background-color,
+          #1a42e8
+        ) !important;
+        border-color: var(--ht-cell-autofill-border-color) !important;;
+        font-size: 0;
+        cursor: crosshair;
+        z-index: 10;
+      }
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    .wtBorder {
+      &.corner {
+        margin-left: 0;
+        margin-right: -4px;
+      }
+    }
+  }
+}

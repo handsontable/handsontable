@@ -139,9 +139,9 @@ describe('Selection', () => {
 
     hot.selectCell(1, 1, 2, 2);
 
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex)
+    expect(getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex)
       .toBe('10');
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex)
+    expect(getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex)
       .toBe('8');
   });
 
@@ -589,90 +589,6 @@ describe('Selection', () => {
     cellVerticalPosition = hot.getCell(1, 0).offsetTop;
     topBorder = $('.wtBorder.current')[0];
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-  });
-
-  it('should scroll viewport properly when selecting singe cell beyond the table boundaries (when some columns are hidden)', () => {
-    const hot = handsontable({
-      width: 200,
-      height: 200,
-      startRows: 20,
-      startCols: 20,
-      hiddenColumns: {
-        columns: [0, 1, 2]
-      }
-    });
-
-    selectCell(0, 15);
-
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
-  });
-
-  it('should scroll viewport properly when selecting multiple cells beyond the table boundaries (when some columns are hidden)', () => {
-    const hot = handsontable({
-      width: 200,
-      height: 200,
-      startRows: 20,
-      startCols: 20,
-      hiddenColumns: {
-        columns: [0, 1, 2]
-      }
-    });
-
-    selectCells([[0, 4], [0, 15]]);
-
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
-  });
-
-  it('should scroll viewport properly when selecting singe column beyond the table boundaries (when some columns are hidden)', () => {
-    const hot = handsontable({
-      width: 200,
-      height: 200,
-      startRows: 20,
-      startCols: 20,
-      hiddenColumns: {
-        columns: [0, 1, 2]
-      }
-    });
-
-    selectColumns(15);
-
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
-  });
-
-  it('selection should move down throughout the table when the last row is hidden', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
-      autoWrapCol: true,
-      autoWrapRow: true,
-      hiddenRows: {
-        rows: [2]
-      }
-    });
-
-    selectCell(0, 0); // Select cell "A1"
-
-    keyDownUp('arrowdown'); // Move selection down to the end of the table
-    keyDownUp('arrowdown'); // Move selection to the next column, to the cell "B1"
-
-    expect(getSelected()).toEqual([[0, 1, 0, 1]]);
-  });
-
-  it('selection should move to the right throughout the table when the last column is hidden', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
-      autoWrapCol: true,
-      autoWrapRow: true,
-      hiddenColumns: {
-        columns: [2]
-      }
-    });
-
-    selectCell(0, 0); // Select cell "A1"
-
-    keyDownUp('arrowright'); // Move selection to the right edge of the table
-    keyDownUp('arrowright'); // Move selection to first column, to the cell "A2"
-
-    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
 
   it('should keep viewport when removing last column', () => {

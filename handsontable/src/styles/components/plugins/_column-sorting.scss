@@ -1,0 +1,107 @@
+@use "../../utils/mixins";
+
+// Manual Column Sorting
+
+@mixin output {
+  .handsontable {
+    .columnSorting {
+      position: relative;
+
+      &.sortAction {
+        padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
+        padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
+        min-width: calc(var(--ht-icon-size, 16px) + 8px);
+        max-width: calc(100% - calc(var(--ht-icon-size, 16px) * 2) - 4px);
+
+        &:hover {
+          text-decoration: none;
+          cursor: pointer;
+        }
+
+        &::before {
+          @include mixins.pseudo;
+
+          width: var(--ht-icon-size, 16px);
+          position: absolute;
+          top: 50%;
+          right: 2px;
+          transform: translateY(-50%);
+          text-align: right;
+        }
+      }
+    }
+
+    .htLeft {
+      .columnSorting {
+        &.sortAction {
+          padding-inline-start: 0;
+        }
+      }
+    }
+
+    .htRight {
+      .columnSorting {
+        &.sortAction {
+          padding-inline-start: var(--ht-icon-size, 16px);
+          padding-inline-end: var(--ht-gap-size, 4px);
+
+          &::before {
+            left: 2px;
+            right: auto;
+            text-align: left;
+          }
+        }
+      }
+    }
+  }
+
+  [dir="rtl"] {
+    .handsontable {
+      .columnSorting {
+        &.sortAction {
+          &::before {
+            left: 2px;
+            right: auto;
+            text-align: left;
+          }
+        }
+      }
+
+      .htRight {
+        .columnSorting {
+          &.sortAction {
+            padding-inline-start: var(--ht-gap-size, 4px);
+            padding-inline-end: var(--ht-icon-size, 16px);
+          }
+        }
+      }
+
+      .htLeft {
+        .columnSorting {
+          &.sortAction {
+            padding-inline-start: var(--ht-icon-size, 16px);
+            padding-inline-end: var(--ht-gap-size, 4px);
+
+            &::before {
+              left: auto;
+              right: 2px;
+              text-align: right;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .htGhostTable
+    .htCore
+    span.colHeader.columnSorting:not(.indicatorDisabled)::before {
+    content: "*";
+    display: inline-block;
+    position: relative;
+
+    /* The multi-line header and header with longer text need more padding to not hide arrow,
+        we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */
+    padding-right: 20px;
+  }
+}

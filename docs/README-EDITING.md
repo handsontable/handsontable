@@ -137,6 +137,8 @@ To deploy the documentation locally at a `[COMMIT_HASH]` commit:
 New documentation is created automatically after the Handsontable is released. The `./scripts/release.mjs`
 takes care to create a Documentation production branch, generate API content from source code, commit, and deploy the Docs image to the production.
 
+The `docs-production-netlify-cli.yml` workflow detects whether the latest version has been released or patched, and then deploys that version to Netlify.
+
 ## Markdown links
 
 When linking to other documentation pages, **avoid using absolute links or relative URLs**.
@@ -316,10 +318,10 @@ For matters not covered here, follow the conventions of https://beta.reactjs.org
 
 - Don't gather multiple props in a single `settings={}` prop. Instead, specify individual props.
   ```jsx
-  <HotTable>
+  <HotTable
     data={data}
     height="auto"
-  <HotTable/>
+  />
   ```
 - In JSX, use double quotes (`""`). If a prop's value is a string, use double quotes without curly braces.
   ```jsx
@@ -327,12 +329,12 @@ For matters not covered here, follow the conventions of https://beta.reactjs.org
   ```
 - In JS inside of JSX, use single quotes (`''`). For example, if a React prop contains a JS object:
   ```jsx
-  <HotTable>
+  <HotTable
     licenseKey="00000-00000-00000-00000-00000"
     nestedHeaders={[
       ['A', { label: 'B', colspan: 8 }, 'C']
     ]}
-  <HotTable/>
+  />
   ```
 - Get rid of elements that are not necessary (e.g., a `<Fragment>` with a single child).
 - Use named imports:

@@ -1,12 +1,10 @@
 import { BasePlugin } from '../base';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
-
-import './manualRowMove.css';
 
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
@@ -298,7 +296,7 @@ export class ManualRowMove extends BasePlugin {
       const renderableIndex = rowMapper.getRenderableFromVisualIndex(visualRowIndex);
 
       if (renderableIndex !== null) {
-        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex) || 23;
+        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex) || this.hot.view.getDefaultRowHeight();
       }
     }
 
@@ -405,8 +403,8 @@ export class ManualRowMove extends BasePlugin {
    */
   refreshPositions() {
     const coords = this.#target.coords;
-    const firstVisible = this.hot.view.getFirstFullyVisibleRow();
-    const lastVisible = this.hot.view.getLastFullyVisibleRow();
+    const firstVisible = this.hot.getFirstFullyVisibleRow();
+    const lastVisible = this.hot.getLastFullyVisibleRow();
     const countRows = this.hot.countRows();
 
     if (this.isFixedRowTop(coords.row) && firstVisible > 0) {

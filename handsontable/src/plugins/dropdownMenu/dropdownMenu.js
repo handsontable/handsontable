@@ -6,7 +6,7 @@ import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import { hasClass, setAttribute } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import {
   COLUMN_LEFT,
   COLUMN_RIGHT,
@@ -17,7 +17,6 @@ import {
   SEPARATOR
 } from '../contextMenu/predefinedItems';
 
-import './dropdownMenu.scss';
 import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');

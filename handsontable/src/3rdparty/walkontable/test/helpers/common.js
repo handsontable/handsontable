@@ -105,6 +105,10 @@ export function walkontable(options, table) {
 
   currentSpec.wotInstance = new Walkontable.Core(options);
 
+  // Walkontable needs to have a theme initialized to properly render the table.
+  // (running `useTheme` without a theme name will use the classic theme)
+  currentSpec.wotInstance.stylesHandler.useTheme();
+
   return currentSpec.wotInstance;
 }
 
@@ -494,4 +498,30 @@ export function expectWtTable(wt, callb, name) {
   }
 
   return expect(callb(wt.wtOverlays[`${name}Overlay`].clone.wtTable)).withContext(`${name}: ${callbAsString}`);
+}
+
+/**
+ * Moves the table's viewport to the specified y scroll position.
+ *
+ * @param {number} y The scroll position.
+ */
+export function setScrollTop(y) {
+  if (wot().wtOverlays.scrollableElement === window) {
+    window.scrollTo(window.scrollX, y);
+  } else {
+    getTableMaster().find('.wtHolder')[0].scrollTop = y;
+  }
+}
+
+/**
+ * Moves the table's viewport to the specified x scroll position.
+ *
+ * @param {number} x The scroll position.
+ */
+export function setScrollLeft(x) {
+  if (wot().wtOverlays.scrollableElement === window) {
+    window.scrollTo(x, window.scrollY);
+  } else {
+    getTableMaster().find('.wtHolder')[0].scrollLeft = x;
+  }
 }

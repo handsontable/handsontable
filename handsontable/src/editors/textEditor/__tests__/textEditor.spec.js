@@ -1,8 +1,6 @@
 describe('TextEditor', () => {
-  const id = 'testContainer';
-
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`)
+    this.$container = $('<div id="testContainer" style="width: 300px; height: 200px; overflow: hidden;"></div>')
       .appendTo('body');
   });
 
@@ -45,7 +43,7 @@ describe('TextEditor', () => {
     selectCell(0, 0);
     keyDownUp('enter');
 
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
 
     document.body.style.display = '';
   });
@@ -64,7 +62,7 @@ describe('TextEditor', () => {
     selectCell(0, 0);
     keyDownUp('enter');
 
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
 
     document.body.style.display = '';
   });
@@ -84,7 +82,7 @@ describe('TextEditor', () => {
     selectCell(0, 0);
     keyDownUp('enter');
 
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
 
     document.body.style.display = '';
     document.body.style.flexDirection = '';
@@ -580,8 +578,8 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-    expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
+    expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
   it('should render textarea editor in specified size at cell 1, 0 without headers', async() => {
@@ -592,7 +590,7 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 with headers', async() => {
@@ -606,8 +604,8 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(getActiveEditor().TEXTAREA.style.height).toBe('23px');
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(getActiveEditor().TEXTAREA.style.height).toBe('24px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 when headers are selected', async() => {
@@ -622,8 +620,8 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(getActiveEditor().TEXTAREA.style.height).toBe('23px');
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(getActiveEditor().TEXTAREA.style.height).toBe('24px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', async() => {
@@ -649,8 +647,8 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(41, 1);
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(51, 1);
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
     expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
   });
 
@@ -731,7 +729,7 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
   });
 
   it('should render textarea editor in specified height (multi line)', async() => {
@@ -744,7 +742,7 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('64px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('65px');
   });
 
   it('should render number in textarea', () => {
@@ -1249,8 +1247,8 @@ describe('TextEditor', () => {
       .not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
   });
 
-  it('should open editor after selecting cell in another table and hitting enter', function() {
-    spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
+  it('should open editor after selecting cell in another table and hitting enter', () => {
+    spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
 
     const hot1 = handsontable();
     const hot2 = handsontable2.call(this);
@@ -1350,11 +1348,11 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toBe(true);
   });
 
-  it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', () => {
+  it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(20, 20),
       width: 100,
-      height: 50
+      height: 50,
     });
 
     selectCell(0, 0);
@@ -1363,12 +1361,13 @@ describe('TextEditor', () => {
     expect(getCell(19, 19)).toBeNull();
 
     hot.view.scrollViewport({ row: 19, col: 19 });
-    hot.render();
+    render();
 
     expect(getCell(0, 0)).toBeNull();
     expect(getCell(19, 19)).not.toBeNull();
 
     keyDownUp('enter');
+    await sleep(50);
 
     expect(getCell(0, 0)).not.toBeNull();
     expect(getCell(19, 19)).toBeNull();
@@ -1858,7 +1857,7 @@ describe('TextEditor', () => {
 
     await sleep(150);
 
-    expect($editorInput.height()).toBe(84);
+    expect($editorInput.height()).toBe(83);
   });
 
   it('allow scrolling the editor if its content exceeds the viewport height', async() => {

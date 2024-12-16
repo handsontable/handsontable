@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from './commandExecutor';
@@ -22,8 +22,6 @@ import {
   ALIGNMENT,
   SEPARATOR,
 } from './predefinedItems';
-
-import './contextMenu.scss';
 
 export const PLUGIN_KEY = 'contextMenu';
 export const PLUGIN_PRIORITY = 70;

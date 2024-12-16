@@ -3,11 +3,9 @@ import EventManager from '../../eventManager';
 import { empty, addClass, setAttribute } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
-
-import './checkboxRenderer.css';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -192,7 +190,9 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
       runOnlyIf: () => {
         const range = hotInstance.getSelectedRangeLast();
 
-        return hotInstance.getSettings().enterBeginsEditing && range?.isSingle() && range.highlight.isCell();
+        return hotInstance.getSettings().enterBeginsEditing &&
+          range?.highlight.isCell() &&
+          !hotInstance.selection.isMultiple();
       },
     }, {
       keys: [['delete'], ['backspace']],
@@ -229,6 +229,12 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
           const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+
+          /* eslint-disable no-continue */
+          if (cachedCellProperties.hidden) {
+            continue;
+          }
+
           const templates = {
             checkedTemplate: cachedCellProperties.checkedTemplate,
             uncheckedTemplate: cachedCellProperties.uncheckedTemplate,
@@ -332,17 +338,19 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
-          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+          const cellMeta = hotInstance.getCellMeta(visualRow, visualColumn);
+
+          /* eslint-disable no-continue */
+          if (cellMeta.readOnly) {
+            continue;
+          }
 
           const cell = hotInstance.getCell(visualRow, visualColumn);
 
-          if (cell === null || cell === undefined) {
-            return true;
-
-          } else {
+          if (cell instanceof HTMLElement) {
             const checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
-            if (checkboxes.length > 0 && !cachedCellProperties.readOnly) {
+            if (checkboxes.length > 0) {
               return true;
             }
           }

@@ -1,12 +1,9 @@
-import './css/bootstrap.css';
-import './3rdparty/walkontable/css/walkontable.scss';
-import './css/handsontable.scss';
-import './css/mobile.handsontable.scss';
+import './styles/handsontable.scss';
 
 import Core from './core';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { metaSchemaFactory } from './dataMap';
-import Hooks from './pluginHooks';
+import { Hooks } from './core/hooks';
 
 // FIXME: Bug in eslint-plugin-import: https://github.com/benmosher/eslint-plugin-import/issues/1883
 /* eslint-disable import/named */

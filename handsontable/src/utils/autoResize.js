@@ -44,6 +44,7 @@ function getComputedStyle(element) {
  * @property {number} maxWidth The maximum width of the element.
  * @property {number} minHeight The minimum height of the element.
  * @property {number} maxHeight The maximum height of the element.
+ * @property {function(HTMLElement): string} textContent The function that returns the text content to measure.
  */
 /**
  * @typedef InputElementResizer
@@ -55,14 +56,17 @@ function getComputedStyle(element) {
  * Creates an input element resizer.
  *
  * @param {Document} ownerDocument The document to create the resizer for.
+ * @param {InputElementResizerConfig} initialOptions The configuration to extend the defaults with.
  * @returns {InputElementResizer}
  */
-export function createInputElementResizer(ownerDocument) {
+export function createInputElementResizer(ownerDocument, initialOptions = {}) {
   const defaults = {
     minHeight: 200,
     maxHeight: 300,
     minWidth: 100,
     maxWidth: 300,
+    textContent: element => element.value,
+    ...initialOptions,
   };
   const body = ownerDocument.body;
   const textHolder = ownerDocument.createTextNode('');
@@ -73,7 +77,7 @@ export function createInputElementResizer(ownerDocument) {
    * Resizes the element.
    */
   function resize() {
-    textHolder.textContent = observedElement.value;
+    textHolder.textContent = defaults.textContent(observedElement);
     // Won't expand the element size for displaying body as for example, `grid`, `inline-grid` or `flex` with
     // `flex-direction` set as `column`.
     textContainer.style.position = 'absolute';
@@ -83,7 +87,10 @@ export function createInputElementResizer(ownerDocument) {
 
     body.appendChild(textContainer);
 
-    const width = textContainer.clientWidth + 2;
+    const paddingStart = parseInt(getComputedStyle(observedElement)?.paddingInlineStart || 0, 10);
+    const paddingEnd = parseInt(getComputedStyle(observedElement)?.paddingInlineEnd || 0, 10);
+
+    const width = textContainer.clientWidth + 2 + paddingStart + paddingEnd;
 
     body.removeChild(textContainer);
 

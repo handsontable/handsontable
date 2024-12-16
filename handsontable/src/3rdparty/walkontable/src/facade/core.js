@@ -74,6 +74,9 @@ export default class WalkontableFacade {
   set drawn(value) {
     this._wot.drawn = value;
   }
+  get activeOverlayName() {
+    return this._wot.activeOverlayName;
+  }
   get drawInterrupted() {
     return this._wot.drawInterrupted;
   }
@@ -110,6 +113,9 @@ export default class WalkontableFacade {
   get eventManager() {
     return this._wot.eventManager;
   }
+  get stylesHandler() {
+    return this._wot.stylesHandler;
+  }
 
   createCellCoords(row, column) {
     return this._wot.createCellCoords(row, column);
@@ -129,16 +135,16 @@ export default class WalkontableFacade {
     return this._wot.getCell(coords, topmost);
   }
 
-  scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
-    return this._wot.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+  scrollViewport(coords, horizontalSnap, verticalSnap) {
+    return this._wot.scrollViewport(coords, horizontalSnap, verticalSnap);
   }
 
-  scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    return this._wot.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+  scrollViewportHorizontally(column, snapping) {
+    return this._wot.scrollViewportHorizontally(column, snapping);
   }
 
-  scrollViewportVertically(row, snapToTop, snapToBottom) {
-    return this._wot.scrollViewportVertically(row, snapToTop, snapToBottom);
+  scrollViewportVertically(row, snapping) {
+    return this._wot.scrollViewportVertically(row, snapping);
   }
 
   getViewport() {

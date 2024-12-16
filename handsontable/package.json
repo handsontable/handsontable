@@ -1,6 +1,6 @@
 {
   "name": "handsontable",
-  "description": "Handsontable is a JavaScript Spreadsheet Component available for React, Angular and Vue.",
+  "description": "Handsontable is a JavaScript Data Grid available for React, Angular and Vue.",
   "homepage": "https://handsontable.com/",
   "repository": {
     "type": "git",
@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "14.6.1",
+  "version": "15.0.0",
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
@@ -20,8 +20,8 @@
     "clean": "rimraf commonjs es coverage tmp",
     "lint": "npm run eslint && npm run type-lint && npm run stylelint",
     "lint:fix": "npm run eslint:fix && npm run stylelint:fix && npm run type-lint:fix",
-    "stylelint": "stylelint --cache \"src/**/*.css\" \"test/**/*.css\"",
-    "stylelint:fix": "stylelint --fix \"src/**/*.css\" \"test/**/*.css\"",
+    "stylelint": "stylelint --cache \"src/**/*.{css,scss}\" \"test/**/*.{css,scss}\"",
+    "stylelint:fix": "stylelint --fix \"src/**/*.{css,scss}\" \"test/**/*.{css,scss}\"",
     "eslint": "eslint --cache src/ test/ .config/plugin scripts/",
     "eslint:fix": "eslint --fix src/ test/ .config/plugin scripts/",
     "type-lint": "cd types && eslint \"./**/*.d.ts\" --config \"./.eslintrc.js\"",
@@ -51,10 +51,14 @@
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd.min && npm run build:languages && npm run build:languages.es && npm run build:languages.min",
     "build:commonjs": "cross-env-shell BABEL_ENV=commonjs_dist env-cmd -f ../hot.config.js babel src --out-dir tmp",
     "build:es": "cross-env-shell BABEL_ENV=es env-cmd -f ../hot.config.js babel src --out-file-extension .mjs --out-dir tmp",
-    "build:umd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack ./src/index.js",
+    "build:umd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack ./src/index.js && npm run build:themes && npm run build:classic-css",
     "build:umd-from-esm": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack ./tmp/index.mjs",
     "build:umd-from-cjs": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack ./tmp/index.js",
-    "build:umd.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js webpack ./src/index.js",
+    "build:umd.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js webpack ./src/index.js && npm run build:themes.min && npm run build:classic-css.min",
+    "build:themes": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-development env-cmd -f ../hot.config.js webpack",
+    "build:themes.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-production env-cmd -f ../hot.config.js webpack",
+    "build:classic-css": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-classic-development env-cmd -f ../hot.config.js webpack",
+    "build:classic-css.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-classic-production env-cmd -f ../hot.config.js webpack",
     "build:walkontable": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js webpack ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.js",
     "build:languages": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ../hot.config.js webpack",
     "build:languages.es": "cross-env-shell BABEL_ENV=es_languages babel src/i18n/languages --out-file-extension .mjs --out-dir languages",
@@ -80,12 +84,10 @@
   ],
   "dependencies": {
     "@handsontable/pikaday": "^1.0.0",
-    "@types/pikaday": "1.7.4",
     "core-js": "^3.37.0",
-    "dompurify": "^2.1.1",
+    "dompurify": "^3.1.7",
     "moment": "2.30.1",
-    "numbro": "2.1.2",
-    "pikaday": "1.8.2"
+    "numbro": "2.5.0"
   },
   "optionalDependencies": {
     "hyperformula": "^2.6.2"
@@ -100,7 +102,6 @@
     "@babel/register": "^7.8.3",
     "@babel/runtime": "^7.11.2",
     "@babel/types": "^7.12.12",
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
     "babel-jest": "^26.6.3",
     "babel-loader": "^8.0.4",
     "babel-plugin-forbidden-imports": "^0.1.2",
@@ -143,9 +144,13 @@
     "sass-loader": "^10.4.1",
     "string-replace-loader": "^3.1.0",
     "stylelint": "^16.3.1",
+    "stylelint-config-standard": "^36.0.1",
+    "stylelint-config-standard-scss": "^13.1.0",
     "typescript": "3.8.2",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
     "webpack": "^5.88.1",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "webpack-remove-empty-scripts": "^1.0.4"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "resolutions": {
@@ -164,6 +169,7 @@
       "dist/handsontable.min.js",
       "dist/languages",
       "dist/README.md",
+      "styles",
       "languages",
       "../CHANGELOG.md",
       "../handsontable-non-commercial-license.pdf",
@@ -189,6 +195,7 @@
       "./i18n/+(index|registry)*",
       "./i18n/languages/*",
       "./dist/**/*.+(js|css)",
+      "./styles/**/*.+(css)",
       {
         ".": {
           "types": "./index.d.ts",
@@ -201,6 +208,11 @@
           "types": "./base.d.ts",
           "import": "./base.mjs",
           "require": "./base.js"
+        }
+      },
+      {
+        "./common": {
+          "types": "./common.d.ts"
         }
       },
       {

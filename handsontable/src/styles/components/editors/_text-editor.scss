@@ -1,0 +1,35 @@
+// Handsontable Input Editor
+
+@mixin output {
+  .handsontableInputHolder {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    .handsontableInput {
+      display: block;
+      margin: 0;
+      padding: calc(var(--ht-cell-vertical-padding, 4px) + 1px)
+        calc(var(--ht-cell-horizontal-padding, 8px) + 1px);
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
+      color: var(--ht-cell-editor-foreground-color);
+      background-color: var(--ht-cell-editor-background-color, #ffffff);
+      box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
+          var(--ht-cell-editor-border-color, #1a42e8),
+        0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
+          var(--ht-cell-editor-shadow-color, transparent);
+      border: none;
+      -webkit-appearance: none !important;
+      box-sizing: border-box;
+      /* Miscellaneous */
+      outline-width: 0;
+
+      /* overwrite styles potentially made by a framework */
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+}

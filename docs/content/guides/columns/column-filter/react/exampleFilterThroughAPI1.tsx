@@ -1,13 +1,14 @@
 import { useRef } from 'react';
-import { HotTable, HotTableClass } from '@handsontable/react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotTableComponentRef = useRef<HotTableClass>(null);
+  const hotTableComponentRef = useRef<HotTableRef>(null);
   const filterBelow200 = () => {
     // get the `Filters` plugin, so you can use its API
     const filters =

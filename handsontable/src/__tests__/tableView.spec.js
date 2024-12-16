@@ -416,4 +416,92 @@ describe('TableView', () => {
       expect(hot.view._wt.wtViewport.getWorkspaceHeight).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('hasVerticalScroll()', () => {
+    it('should internally call `hasVerticalScroll` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'hasVerticalScroll').and.returnValue(100);
+
+      expect(hot.view.hasVerticalScroll()).toBe(100);
+      expect(hot.view._wt.wtViewport.hasVerticalScroll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('hasHorizontalScroll()', () => {
+    it('should internally call `hasHorizontalScroll` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'hasHorizontalScroll').and.returnValue(100);
+
+      expect(hot.view.hasHorizontalScroll()).toBe(100);
+      expect(hot.view._wt.wtViewport.hasHorizontalScroll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getTableWidth()', () => {
+    it('should internally call `getTableWidth` method of the Table module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtTable, 'getWidth').and.returnValue(100);
+
+      expect(hot.view.getTableWidth()).toBe(100);
+      expect(hot.view._wt.wtTable.getWidth).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getTableHeight()', () => {
+    it('should internally call `getTableHeight` method of the Table module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtTable, 'getHeight').and.returnValue(100);
+
+      expect(hot.view.getTableHeight()).toBe(100);
+      expect(hot.view._wt.wtTable.getHeight).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getRowHeaderWidth()', () => {
+    it('should internally call `getRowHeaderWidth` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'getRowHeaderWidth').and.returnValue(100);
+
+      expect(hot.view.getRowHeaderWidth()).toBe(100);
+      expect(hot.view._wt.wtViewport.getRowHeaderWidth).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getColumnHeaderHeight()', () => {
+    it('should internally call `getColumnHeaderHeight` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'getColumnHeaderHeight').and.returnValue(100);
+
+      expect(hot.view.getColumnHeaderHeight()).toBe(100);
+      expect(hot.view._wt.wtViewport.getColumnHeaderHeight).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('isVerticallyScrollableByWindow()', () => {
+    it('should internally call `isVerticallyScrollableByWindow` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'isVerticallyScrollableByWindow').and.returnValue(true);
+
+      expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+      expect(hot.view._wt.wtViewport.isVerticallyScrollableByWindow).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('isHorizontallyScrollableByWindow()', () => {
+    it('should internally call `isHorizontallyScrollableByWindow` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'isHorizontallyScrollableByWindow').and.returnValue(true);
+
+      expect(hot.view.isHorizontallyScrollableByWindow()).toBe(true);
+      expect(hot.view._wt.wtViewport.isHorizontallyScrollableByWindow).toHaveBeenCalledTimes(1);
+    });
+  });
 });

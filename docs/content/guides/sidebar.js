@@ -12,6 +12,10 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
 ];
 
+const stylingItems = [
+  { path: 'guides/styling/themes/themes' }
+];
+
 const integrateWithAngularItems = [
   { path: 'guides/integrate-with-angular/angular-installation/angular-installation' },
   { path: 'guides/integrate-with-angular/angular-simple-example/angular-simple-example' },
@@ -149,7 +153,6 @@ const buildingAndToolingItems = [
   { path: 'guides/tools-and-building/custom-plugins/custom-plugins' },
   { path: 'guides/tools-and-building/custom-builds/custom-builds' },
   { path: 'guides/tools-and-building/testing/testing' },
-  { path: 'guides/tools-and-building/folder-structure/folder-structure' },
 ];
 
 const optimizationItems = [
@@ -175,18 +178,20 @@ const technicalSpecificationItems = [
 const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/changelog/changelog' },
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
-  { path: 'guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-9.0-to-10.0/migrating-from-9.0-to-10.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-10.0-to-11.0/migrating-from-10.0-to-11.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-11.1-to-12.0/migrating-from-11.1-to-12.0' },
-  { path: 'guides/upgrade-and-migration/migrating-from-12.4-to-13.0/migrating-from-12.4-to-13.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-13.1-to-14.0/migrating-from-13.1-to-14.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-12.4-to-13.0/migrating-from-12.4-to-13.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-11.1-to-12.0/migrating-from-11.1-to-12.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-10.0-to-11.0/migrating-from-10.0-to-11.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-9.0-to-10.0/migrating-from-9.0-to-10.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0' },
 ];
 
 module.exports = {
   sidebar: [
     { title: 'Getting started', children: gettingStartedItems },
+    { title: 'Styling', children: stylingItems },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
     { title: 'Cell features', children: cellFeaturesItems },

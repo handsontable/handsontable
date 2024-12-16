@@ -1,18 +1,12 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const data = [
-    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-    ['2019', 10, 11, 12, 13],
-    ['2020', 20, 11, 14, 13],
-    ['2021', 30, 15, 12, 13],
-  ];
-
   return (
     <HotTable
       data={[

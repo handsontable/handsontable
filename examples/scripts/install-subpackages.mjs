@@ -51,7 +51,7 @@ for (const frameworkPackage of thisPackageJson.internal.framework_dirs) {
   // examples).
   await spawnProcess([
     'node ./scripts/link-packages.mjs',
-    '--f js ts angular angular-12 angular-13 angular-14 angular-15 angular-16 angular-17 react vue',
+    '--f js ts angular angular-12 angular-13 angular-14 angular-15 angular-16 angular-17 react react-wrapper vue vue3',
     `--examples-version ${version}`,
   ].join(' '));
 }

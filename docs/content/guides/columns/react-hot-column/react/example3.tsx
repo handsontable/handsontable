@@ -1,6 +1,7 @@
-import { HotTable, HotColumn } from '@handsontable/react';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -72,14 +73,8 @@ const ExampleComponent = () => {
       {/* use the `data` prop to reference the column data */}
       <HotColumn data="id" />
       <HotColumn data="name" />
-      <HotColumn data="score">
-        {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-        <ScoreRenderer hot-renderer />
-      </HotColumn>
-      <HotColumn data="isPromoted">
-        {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-        <PromotionRenderer hot-renderer />
-      </HotColumn>
+      <HotColumn data="score" renderer={ScoreRenderer} />
+      <HotColumn data="isPromoted" renderer={PromotionRenderer} />
     </HotTable>
   );
 };

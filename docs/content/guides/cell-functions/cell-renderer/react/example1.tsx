@@ -1,6 +1,7 @@
-import { HotTable, HotColumn } from '@handsontable/react';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 type RendererProps = {
   TD?: HTMLTableCellElement;
@@ -51,10 +52,7 @@ const ExampleComponent = () => {
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     >
-      <HotColumn width={250}>
-        {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
-        <RendererComponent hot-renderer />
-      </HotColumn>
+      <HotColumn width={250} renderer={RendererComponent} />
     </HotTable>
   );
 };

@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // generate an array of arrays with dummy data
 const data = new Array(100) // number of rows
@@ -15,7 +16,7 @@ const container = document.querySelector('#example1');
 new Handsontable(container, {
   data,
   height: 320,
-  colWidths: 47,
+  colWidths: 50,
   rowHeaders: true,
   colHeaders: true,
   contextMenu: true,

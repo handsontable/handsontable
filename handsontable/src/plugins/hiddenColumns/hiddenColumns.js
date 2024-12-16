@@ -2,15 +2,11 @@ import { BasePlugin } from '../base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
-import { isObject } from '../../helpers/object';
-import { isUndefined } from '../../helpers/mixed';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 import { HidingMap } from '../../translations';
-
-import './hiddenColumns.scss';
 
 Hooks.getSingleton().register('beforeHideColumns');
 Hooks.getSingleton().register('afterHideColumns');
@@ -135,13 +131,14 @@ export class HiddenColumns extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  /**
-   * Cached plugin settings.
-   *
-   * @private
-   * @type {object}
-   */
-  #settings = {};
+  static get DEFAULT_SETTINGS() {
+    return {
+      copyPasteEnabled: true,
+      indicators: false,
+      columns: [],
+    };
+  }
+
   /**
    * Map of hidden columns by the plugin.
    *
@@ -166,16 +163,6 @@ export class HiddenColumns extends BasePlugin {
   enablePlugin() {
     if (this.enabled) {
       return;
-    }
-
-    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-
-    if (isObject(pluginSettings)) {
-      this.#settings = pluginSettings;
-
-      if (isUndefined(pluginSettings.copyPasteEnabled)) {
-        pluginSettings.copyPasteEnabled = true;
-      }
     }
 
     this.#hiddenColumnsMap = new HidingMap();
@@ -209,7 +196,6 @@ export class HiddenColumns extends BasePlugin {
    */
   disablePlugin() {
     this.hot.columnIndexMapper.unregisterMap(this.pluginName);
-    this.#settings = {};
 
     super.disablePlugin();
     this.resetCellsMeta();
@@ -379,7 +365,7 @@ export class HiddenColumns extends BasePlugin {
       return 0;
     }
 
-    if (this.#settings.indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
+    if (this.getSetting('indicators') && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
 
       // Add additional space for hidden column indicator.
       if (typeof width === 'number' && this.hot.hasColHeaders()) {
@@ -396,7 +382,7 @@ export class HiddenColumns extends BasePlugin {
    * @param {object} cellProperties Object containing the cell properties.
    */
   #onAfterGetCellMeta(row, column, cellProperties) {
-    if (this.#settings.copyPasteEnabled === false && this.isHidden(column)) {
+    if (this.getSetting('copyPasteEnabled') === false && this.isHidden(column)) {
       // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
       cellProperties.skipColumnOnPaste = true;
     }
@@ -430,7 +416,7 @@ export class HiddenColumns extends BasePlugin {
    */
   #onModifyCopyableRange(ranges) {
     // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
-    if (this.#settings.copyPasteEnabled) {
+    if (this.getSetting('copyPasteEnabled')) {
       return ranges;
     }
 
@@ -476,7 +462,7 @@ export class HiddenColumns extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   #onAfterGetColHeader(column, TH) {
-    if (!this.#settings.indicators || column < 0) {
+    if (!this.getSetting('indicators') || column < 0) {
       return;
     }
 
@@ -512,8 +498,10 @@ export class HiddenColumns extends BasePlugin {
    * On map initialized hook callback.
    */
   #onMapInit() {
-    if (Array.isArray(this.#settings.columns)) {
-      this.hideColumns(this.#settings.columns);
+    const columns = this.getSetting('columns');
+
+    if (Array.isArray(columns)) {
+      this.hideColumns(columns);
     }
   }
 
@@ -521,7 +509,6 @@ export class HiddenColumns extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.#settings = null;
     this.#hiddenColumnsMap = null;
 
     super.destroy();

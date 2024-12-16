@@ -33,7 +33,7 @@ describe('Core.getLastRenderedVisibleColumn', () => {
     columnMapper.setValueAtIndex(1, true);
     render();
 
-    expect(getLastRenderedVisibleColumn()).toBe(4);
+    expect(getLastRenderedVisibleColumn()).toBe(6);
   });
 
   it('should return last rendered column index (scrolled viewport)', () => {

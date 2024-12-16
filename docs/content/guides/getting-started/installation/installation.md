@@ -38,7 +38,7 @@ Install Handsontable through your preferred package manager, and control your gr
 
 To start using Handsontable, follow these steps:
 
-## `1` Install Handsontable
+## Install Handsontable
 
 Get Handsontable's files in your preferred way.
 
@@ -75,9 +75,10 @@ To install Handsontable locally using a package manager, run one of these comman
 To get Handsontable's files from a CDN, use the following locations:
 
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
-- [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css)
+- [https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css](https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css)
+- [https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css](https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css)
 
-## `2` Import Handsontable's JavaScript
+## Import Handsontable's JavaScript
 
 Import Handsontable's JavaScript into your application.
 
@@ -105,7 +106,7 @@ Use the `script` tag. For example, if you're loading Handsontable's JavaScript f
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 ```
 
-## `3`  Import Handsontable's CSS
+## Import Handsontable's CSS
 
 Import Handsontable's CSS into your application.
 
@@ -114,7 +115,8 @@ Import Handsontable's CSS into your application.
 If your bundler allows it, you can import Handsontable's full distribution CSS file, using an `import` statement.
 
 ```js
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-main.min.css';
 ```
 
 ### Using the `link` tag
@@ -122,10 +124,11 @@ import 'handsontable/dist/handsontable.full.min.css';
 You can also import Handsontable's CSS using a link tag:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
 ```
 
-## `4` Create a container
+## Create a container
 
 In your HTML, add an empty `div`, which serves as a container for your Handsontable instance.
 
@@ -133,7 +136,7 @@ In your HTML, add an empty `div`, which serves as a container for your Handsonta
 <div id="example"></div>
 ```
 
-## `5` Initialize your grid
+## Initialize your grid
 
 Now turn your container into a data grid with sample data.
 
@@ -169,7 +172,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-## `1` Install Handsontable
+## Install Handsontable
 
 To install Handsontable locally using a package manager, run one of these commands:
 
@@ -177,35 +180,36 @@ To install Handsontable locally using a package manager, run one of these comman
   <code-block title="npm">
 
   ```bash
-  npm install handsontable @handsontable/react
+  npm install handsontable @handsontable/react-wrapper
   ```
 
   </code-block>
   <code-block title="Yarn">
 
   ```bash
-  yarn add handsontable @handsontable/react
+  yarn add handsontable @handsontable/react-wrapper
   ```
 
   </code-block>
   <code-block title="pnpm">
 
   ```bash
-  pnpm add handsontable @handsontable/react
+  pnpm add handsontable @handsontable/react-wrapper
   ```
 
   </code-block>
 </code-group>
 
-## `2` Import Handsontable's CSS
+## Import Handsontable's CSS
 
 Import Handsontable's CSS into your application.
 
 ```jsx
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-main.min.css';
 ```
 
-## `3` Register Handsontable's modules
+## Register Handsontable's modules
 
 Import and register all of Handsontable's modules with a single function call:
 
@@ -218,12 +222,12 @@ registerAllModules();
 
 Or, to reduce the size of your JavaScript bundle, [import only the modules that you need](@/guides/tools-and-building/modules/modules.md).
 
-## `4` Use the `HotTable` component
+## Use the `HotTable` component
 
 The main Handsontable component is called `HotTable`.
 
 ```jsx
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 ```
 
 To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
@@ -245,7 +249,15 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 />
 ```
 
-## Preview the result
+::: tip
+
+`@handsontable/react-wrapper` requires at least React@18 and is built with functional editors and renderers components in mind. If you use a lower version of React or prefer to use class-based components, you can use the `@handsontable/react` package instead.
+
+For more information on `@handsontable/react`, see the [14.6 documentation](https://handsontable.com/docs/14.6/react-data-grid/installation/).
+
+:::
+
+### Preview the result
 
 ::: example #example :react --js 1 --ts 2
 

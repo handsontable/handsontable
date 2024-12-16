@@ -16,35 +16,70 @@ const getPackageUrls = (packageName, version, fileSelection) => {
   const subDirs = {
     handsontable: {
       js: 'handsontable.full.min.js',
-      css: 'handsontable.full.min.css'
+      css: [
+        'handsontable.min.css',
+        'ht-theme-main.css',
+        'ht-theme-horizon.css',
+      ],
+      subDir: 'dist/',
+      cssSubDir: 'styles/',
     },
     '@handsontable/react': {
-      js: 'react-handsontable.min.js'
+      js: 'react-handsontable.min.js',
+      subDir: 'dist/',
+    },
+    '@handsontable/react-wrapper': {
+      js: 'react-handsontable.min.js',
+      subDir: 'dist/',
     },
     '@handsontable/angular': {
       js: 'handsontable-angular.mjs',
       subDir: 'fesm2022/'
     },
     '@handsontable/vue': {
-      js: 'vue-handsontable.min.js'
+      js: 'vue-handsontable.min.js',
+      subDir: 'dist/',
     },
     '@handsontable/vue3': {
-      js: 'vue-handsontable.min.js'
+      js: 'vue-handsontable.min.js',
+      subDir: 'dist/',
     }
   };
 
   const urlSet = subDirs[packageName];
+  const fileName = urlSet[fileSelection];
+  let subDir = '';
+
+  switch (fileSelection) {
+    case 'js':
+      subDir = urlSet.subDir;
+      break;
+    case 'css':
+      subDir = urlSet.cssSubDir;
+      break;
+    default:
+  }
 
   if (version === 'next' && isBrowser) {
-    return urlSet[fileSelection] ?
-      `/docs/${packageName}/${urlSet[fileSelection]}` :
-      `/docs/${packageName}/${fileSelection}`;
+    if (Array.isArray(fileName)) {
+      return fileName.map(file => (`/docs/${packageName}/${subDir}${file}`));
+    }
+
+    if (fileName) {
+      return `/docs/${packageName}/${subDir}${fileName}`;
+    }
+
+    return `/docs/${packageName}/${fileSelection}`;
   }
 
   const mappedVersion = formatVersion(version);
 
-  return urlSet[fileSelection] ?
-    `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${urlSet.subDir || 'dist/'}${urlSet[fileSelection]}` :
+  if (Array.isArray(fileName)) {
+    return fileName.map(file => `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${subDir}${file}`);
+  }
+
+  return fileName ?
+    `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${subDir}${fileName}` :
     `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${fileSelection}`;
 };
 
@@ -81,13 +116,13 @@ const buildDependencyGetter = (version) => {
       fixer,
       helpers,
       hot: [getPackageUrls('handsontable', version, 'js'), ['Handsontable'], getPackageUrls('handsontable', version, 'css')],
-      react: ['https://cdn.jsdelivr.net/npm/react@17/umd/react.production.min.js', ['React']],
-      'react-dom': ['https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.production.min.js', ['ReactDOM']],
-      'hot-react': [getPackageUrls('@handsontable/react', version, 'js'), ['Handsontable.react']],
+      react: ['https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js', ['React']],
+      'react-dom': ['https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js', ['ReactDOM']],
+      'hot-react': [getPackageUrls('@handsontable/react-wrapper', version, 'js'), ['Handsontable.react']],
       'react-redux': ['https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.4/react-redux.min.js'],
       'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.min.js'],
       'react-star-rating-component': ['https://cdn.jsdelivr.net/npm/react-star-rating-component@1.4.1/dist/react-star-rating-component.min.js'],
-      numbro: ['https://cdn.jsdelivr.net/npm/numbro@2.1.2/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
+      numbro: ['https://cdn.jsdelivr.net/npm/numbro@2.5.0/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
       redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
       rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.js', [/* todo */]],
       'core-js': ['https://cdn.jsdelivr.net/npm/core-js@2/client/core.min.js', [/* todo */]],
@@ -109,7 +144,7 @@ const buildDependencyGetter = (version) => {
       'vue-star-rating': ['https://cdn.jsdelivr.net/npm/vue-star-rating@1/dist/VueStarRating.umd.min.js', [/* todo */]],
       vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue'],
       vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
-      languages: [getPackageUrls('handsontable', version, 'languages/all.js'), [/* todo */]],
+      languages: [getPackageUrls('handsontable', version, 'dist/languages/all.js'), [/* todo */]],
     };
     /* eslint-enable max-len */
 

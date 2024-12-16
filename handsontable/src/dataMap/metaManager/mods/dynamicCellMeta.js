@@ -1,4 +1,4 @@
-import Hooks from '../../../pluginHooks';
+import { Hooks } from '../../../core/hooks';
 import { hasOwnProperty } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';
 

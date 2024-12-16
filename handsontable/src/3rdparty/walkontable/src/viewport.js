@@ -1,6 +1,5 @@
 import {
   getScrollbarWidth,
-  getStyle,
   offset,
   outerHeight,
   outerWidth,
@@ -42,7 +41,6 @@ class Viewport {
     this.oversizedColumnHeaders = [];
     this.hasOversizedColumnHeadersMarked = {};
     this.clientHeight = 0;
-    this.containerWidth = NaN;
     this.rowHeaderWidth = NaN;
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
@@ -86,57 +84,74 @@ class Viewport {
     return height;
   }
 
+  /**
+   * @returns {number}
+   */
+  getViewportHeight() {
+    let containerHeight = this.getWorkspaceHeight();
+
+    if (containerHeight === Infinity) {
+      return containerHeight;
+    }
+
+    const columnHeaderHeight = this.getColumnHeaderHeight();
+
+    if (columnHeaderHeight > 0) {
+      containerHeight -= columnHeaderHeight;
+    }
+
+    return containerHeight;
+  }
+
+  /**
+   * Gets the width of the table workspace (in pixels). The workspace size in the current
+   * implementation returns the width of the table holder element including scrollbar width when
+   * the table has defined size and the width of the window excluding scrollbar width when
+   * the table has no defined size (the window is a scrollable container).
+   *
+   * This is a bug, as the method should always return stable values, always without scrollbar width.
+   * Changing this behavior would break the column calculators, which would also need to be adjusted.
+   *
+   * @returns {number}
+   */
   getWorkspaceWidth() {
-    const { wtSettings } = this;
     const { rootDocument, rootWindow } = this.domBindings;
     const trimmingContainer = this.dataAccessObject.inlineStartOverlayTrimmingContainer;
-    const docOffsetWidth = rootDocument.documentElement.offsetWidth;
-    const totalColumns = wtSettings.getSetting('totalColumns');
-    const preventOverflow = wtSettings.getSetting('preventOverflow');
-    const isRtl = wtSettings.getSetting('rtlMode');
-    const tableRect = this.wtTable.TABLE.getBoundingClientRect();
-    const inlineStart = isRtl ? tableRect.right - docOffsetWidth : tableRect.left;
-    const tableOffset = docOffsetWidth - inlineStart;
     let width;
-    let overflow;
 
-    if (preventOverflow) {
-      return outerWidth(this.wtTable.wtRootElement);
-    }
+    if (trimmingContainer === rootWindow) {
+      const totalColumns = this.wtSettings.getSetting('totalColumns');
 
-    if (wtSettings.getSetting('freezeOverlays')) {
-      width = Math.min(tableOffset, docOffsetWidth);
-    } else {
-      width = Math.min(this.getContainerFillWidth(), tableOffset, docOffsetWidth);
-    }
+      width = this.wtTable.holder.offsetWidth;
 
-    if (trimmingContainer === rootWindow && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
-      // in case sum of column widths is higher than available stylesheet width, let's assume using the whole window
-      // otherwise continue below, which will allow stretching
-      // this is used in `scroll_window.html`
-      // TODO test me
-      return rootDocument.documentElement.clientWidth;
-    }
-
-    if (trimmingContainer !== rootWindow) {
-      overflow = getStyle(this.dataAccessObject.inlineStartOverlayTrimmingContainer, 'overflow', rootWindow);
-
-      if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
-        // this is used in `scroll.html`
-        // TODO test me
-        return Math.max(width, trimmingContainer.clientWidth);
+      if (this.getRowHeaderWidth() + this.sumColumnWidths(0, totalColumns) > width) {
+        width = rootDocument.documentElement.clientWidth;
       }
+
+    } else {
+      width = trimmingContainer.clientWidth;
     }
 
-    const stretchSetting = wtSettings.getSetting('stretchH');
-
-    if (stretchSetting === 'none' || !stretchSetting) {
-      // if no stretching is used, return the maximum used workspace width
-      return Math.max(width, outerWidth(this.wtTable.TABLE));
-    }
-
-    // if stretching is used, return the actual container width, so the columns can fit inside it
     return width;
+  }
+
+  /**
+   * @returns {number}
+   */
+  getViewportWidth() {
+    const containerWidth = this.getWorkspaceWidth();
+
+    if (containerWidth === Infinity) {
+      return containerWidth;
+    }
+
+    const rowHeaderWidth = this.getRowHeaderWidth();
+
+    if (rowHeaderWidth > 0) {
+      return containerWidth - rowHeaderWidth;
+    }
+
+    return containerWidth;
   }
 
   /**
@@ -155,6 +170,24 @@ class Viewport {
    */
   hasHorizontalScroll() {
     return this.wtTable.hider.offsetWidth > this.getWorkspaceWidth();
+  }
+
+  /**
+   * Checks if the table uses the window as a viewport and if there is a vertical scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isVerticallyScrollableByWindow() {
+    return this.dataAccessObject.topOverlayTrimmingContainer === this.domBindings.rootWindow;
+  }
+
+  /**
+   * Checks if the table uses the window as a viewport and if there is a horizontal scrollbar.
+   *
+   * @returns {boolean}
+   */
+  isHorizontallyScrollableByWindow() {
+    return this.dataAccessObject.inlineStartOverlayTrimmingContainer === this.domBindings.rootWindow;
   }
 
   /**
@@ -177,29 +210,6 @@ class Viewport {
   /**
    * @returns {number}
    */
-  getContainerFillWidth() {
-    if (this.containerWidth) {
-      return this.containerWidth;
-    }
-
-    const mainContainer = this.wtTable.holder;
-    const dummyElement = this.domBindings.rootDocument.createElement('div');
-
-    dummyElement.style.width = '100%';
-    dummyElement.style.height = '1px';
-    mainContainer.appendChild(dummyElement);
-
-    const fillWidth = dummyElement.offsetWidth;
-
-    this.containerWidth = fillWidth;
-    mainContainer.removeChild(dummyElement);
-
-    return fillWidth;
-  }
-
-  /**
-   * @returns {number}
-   */
   getWorkspaceOffset() {
     return offset(this.wtTable.TABLE);
   }
@@ -217,25 +227,6 @@ class Viewport {
     }
 
     return this.columnHeaderHeight;
-  }
-
-  /**
-   * @returns {number}
-   */
-  getViewportHeight() {
-    let containerHeight = this.getWorkspaceHeight();
-
-    if (containerHeight === Infinity) {
-      return containerHeight;
-    }
-
-    const columnHeaderHeight = this.getColumnHeaderHeight();
-
-    if (columnHeaderHeight > 0) {
-      containerHeight -= columnHeaderHeight;
-    }
-
-    return containerHeight;
   }
 
   /**
@@ -280,25 +271,6 @@ class Viewport {
       .getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
 
     return this.rowHeaderWidth;
-  }
-
-  /**
-   * @returns {number}
-   */
-  getViewportWidth() {
-    const containerWidth = this.getWorkspaceWidth();
-
-    if (containerWidth === Infinity) {
-      return containerWidth;
-    }
-
-    const rowHeaderWidth = this.getRowHeaderWidth();
-
-    if (rowHeaderWidth > 0) {
-      return containerWidth - rowHeaderWidth;
-    }
-
-    return containerWidth;
   }
 
   /**
@@ -348,6 +320,7 @@ class Viewport {
       viewportHeight: height,
       scrollOffset: pos,
       totalRows: wtSettings.getSetting('totalRows'),
+      defaultRowHeight: this.instance.stylesHandler.getDefaultRowHeight(),
       rowHeightFn: sourceRow => wtTable.getRowHeight(sourceRow),
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       horizontalScrollbarHeight: scrollbarHeight,
@@ -471,13 +444,29 @@ class Viewport {
       endRow = this.rowsPartiallyVisibleCalculator.endRow;
     }
 
-    const { startRow: renderedStartRow, endRow: renderedEndRow } = this.rowsRenderCalculator;
+    const {
+      startRow: renderedStartRow,
+      endRow: renderedEndRow,
+      rowStartOffset,
+      rowEndOffset,
+    } = this.rowsRenderCalculator;
+
+    const totalRows = this.wtSettings.getSetting('totalRows') - 1;
+    const renderingThreshold = this.wtSettings.getSetting('viewportRowRenderingThreshold');
+
+    if (Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
+      startRow = Math.max(0, startRow - Math.min(rowStartOffset, renderingThreshold));
+      endRow = Math.min(totalRows, endRow + Math.min(rowEndOffset, renderingThreshold));
+
+    } else if (renderingThreshold === 'auto') {
+      startRow = Math.max(0, startRow - Math.ceil(rowStartOffset / 2));
+      endRow = Math.min(totalRows, endRow + Math.ceil(rowEndOffset / 2));
+    }
 
     if (startRow < renderedStartRow || (startRow === renderedStartRow && startRow > 0)) {
       return false;
 
-    } else if (endRow > renderedEndRow ||
-              (endRow === renderedEndRow && endRow < this.wtSettings.getSetting('totalRows') - 1)) {
+    } else if (endRow > renderedEndRow || (endRow === renderedEndRow && endRow < totalRows)) {
       return false;
     }
 
@@ -509,14 +498,29 @@ class Viewport {
       endColumn = this.columnsPartiallyVisibleCalculator.endColumn;
     }
 
-    const { startColumn: renderedStartColumn, endColumn: renderedEndColumn } = this.columnsRenderCalculator;
+    const {
+      startColumn: renderedStartColumn,
+      endColumn: renderedEndColumn,
+      columnStartOffset,
+      columnEndOffset,
+    } = this.columnsRenderCalculator;
+
+    const totalColumns = this.wtSettings.getSetting('totalColumns') - 1;
+    const renderingThreshold = this.wtSettings.getSetting('viewportColumnRenderingThreshold');
+
+    if (Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
+      startColumn = Math.max(0, startColumn - Math.min(columnStartOffset, renderingThreshold));
+      endColumn = Math.min(totalColumns, endColumn + Math.min(columnEndOffset, renderingThreshold));
+
+    } else if (renderingThreshold === 'auto') {
+      startColumn = Math.max(0, startColumn - Math.ceil(columnStartOffset / 2));
+      endColumn = Math.min(totalColumns, endColumn + Math.ceil(columnEndOffset / 2));
+    }
 
     if (startColumn < renderedStartColumn || (startColumn === renderedStartColumn && startColumn > 0)) {
       return false;
 
-    } else if (endColumn > renderedEndColumn ||
-              (endColumn === renderedEndColumn && endColumn < this.wtSettings.getSetting('totalColumns') - 1)) {
-
+    } else if (endColumn > renderedEndColumn || (endColumn === renderedEndColumn && endColumn < totalColumns)) {
       return false;
     }
 

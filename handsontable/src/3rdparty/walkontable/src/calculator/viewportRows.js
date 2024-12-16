@@ -1,7 +1,5 @@
 import { ViewportBaseCalculator } from './viewportBase';
 
-export const DEFAULT_HEIGHT = 23;
-
 /**
  * @typedef {object} ViewportRowsCalculatorOptions
  * @property {Map<string, ViewportBaseCalculator>} calculationTypes The calculation types to be performed.
@@ -39,11 +37,13 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     viewportHeight,
     scrollOffset,
     totalRows,
+    defaultRowHeight,
     rowHeightFn,
     overrideFn,
     horizontalScrollbarHeight,
   }) {
     super(calculationTypes);
+    this.defaultHeight = defaultRowHeight;
     this.viewportHeight = viewportHeight;
     this.scrollOffset = scrollOffset;
     this.zeroBasedScrollOffset = Math.max(scrollOffset, 0);
@@ -89,7 +89,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     const rowHeight = this.rowHeightFn(row);
 
     if (isNaN(rowHeight)) {
-      return DEFAULT_HEIGHT;
+      return this.defaultHeight;
     }
 
     return rowHeight;

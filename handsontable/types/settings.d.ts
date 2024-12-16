@@ -1,6 +1,6 @@
 import { PikadayOptions } from '@handsontable/pikaday';
 import Core from './core';
-import { Events } from './pluginHooks';
+import { Events } from './core/hooks';
 import {
   CellValue,
   ColumnDataGetterSetterFunction,
@@ -214,6 +214,7 @@ export interface GridSettings extends Events {
   strict?: boolean;
   tableClassName?: string | string[];
   tabMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
+  themeName?: string;
   title?: string;
   trimDropdown?: boolean;
   trimRows?: TrimRowsSettings;
@@ -224,6 +225,8 @@ export interface GridSettings extends Events {
   validator?: BaseValidator | RegExp | ValidatorType | string;
   viewportColumnRenderingOffset?: number | 'auto';
   viewportRowRenderingOffset?: number | 'auto';
+  viewportColumnRenderingThreshold?: number | 'auto';
+  viewportRowRenderingThreshold?: number | 'auto';
   visibleRows?: number;
   width?: number | string | (() => number | string);
   wordWrap?: boolean;

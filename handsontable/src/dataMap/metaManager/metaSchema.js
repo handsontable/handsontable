@@ -3951,8 +3951,8 @@ export default () => {
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
      *
-     * In the rendering process, the default row height is 23 px (22 px + 1 px of the row's bottom border).
-     * You can change it to equal or greater than 23px, by setting the `rowHeights` option to one of the following:
+     * In the rendering process, the default row height is 23 px (in the classic theme: 22 px + 1 px of the row's bottom border) or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
+     * You can change it to equal or greater than the defautl value, by setting the `rowHeights` option to one of the following:
      *
      * | Setting     | Description                                                                                         | Example                                                      |
      * | ----------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
@@ -3984,7 +3984,7 @@ export default () => {
      * // set the first (by visual index) row's height to 100
      * // set the second (by visual index) row's height to 120
      * // set the third (by visual index) row's height to `undefined`
-     * // set any other row's height to the default 23px
+     * // set any other row's height to the default height value
      * rowHeights: [100, 120, undefined],
      *
      * // set each row's height individually, using a function
@@ -4436,6 +4436,27 @@ export default () => {
     tableClassName: undefined,
 
     /**
+     * The `themeName` option allows enabling a theme by that name.
+     *
+     * If no `themeName` is provided, the table will use the classic theme (if the correct CSS files are imported).
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     *
+     * @memberof Options#
+     * @type {string|boolean|undefined}
+     * @default undefined
+     * @category Core
+     * @since 15.0.0
+     *
+     * @example
+     * ```js
+     * themeName: 'ht-theme-name',
+     * ```
+     */
+    themeName: undefined,
+
+    /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
      *
      * You can set the `tabMoves` option to an object with the following properties
@@ -4809,7 +4830,7 @@ export default () => {
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
      * @memberof Options#
-     * @type {number|string}
+     * @type {number|'auto'}
      * @default 'auto'
      * @category Core
      *
@@ -4840,7 +4861,7 @@ export default () => {
      * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
      *
      * @memberof Options#
-     * @type {number|string}
+     * @type {number|'auto'}
      * @default 'auto'
      * @category Core
      *
@@ -4851,6 +4872,74 @@ export default () => {
      * ```
      */
     viewportRowRenderingOffset: 'auto',
+
+    /**
+     * @description
+     * The `viewportColumnRenderingThreshold` option configures what column number starting from the left or right
+     * (depends on the scroll direction) should trigger the rendering of columns outside of the grid's viewport.
+     *
+     * You can set the `viewportColumnRenderingThreshold` option to one of the following:
+     *
+     * | Setting            | Description                                             |
+     * | ------------------ | ------------------------------------------------------- |
+     * | `auto`             | Triggers rendering at half the offset defined by [`viewportColumnRenderingOffset`](#viewportColumnRenderingOffset) option |
+     * | A number           | Sets the offset manually (`0` is a default)             |
+     *
+     * The `viewportColumnRenderingThreshold` setting is ignored when [`renderAllColumn`](#renderAllColumn) is set to `true`.
+     *
+     * Read more:
+     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
+     *
+     * @memberof Options#
+     * @since 1.14.7
+     * @type {number|'auto'}
+     * @default 0
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // render 12 columns outside of the grid's viewport
+     * viewportColumnRenderingOffset: 12,
+     * // the columns outside of the viewport will be rendered when the user scrolls to the 8th column from/to
+     * viewportColumnRenderingThreshold: 8,
+     * ```
+     */
+    viewportColumnRenderingThreshold: 0,
+
+    /**
+     * @description
+     * The `viewportRowRenderingThreshold` option configures what row number starting from the top or bottom
+     * (depends on the scroll direction) should trigger the rendering of rows outside of the grid's viewport.
+     *
+     * You can set the `viewportRowRenderingThreshold` option to one of the following:
+     *
+     * | Setting            | Description                                             |
+     * | ------------------ | ------------------------------------------------------- |
+     * | `auto`             | Triggers rendering at half the offset defined by [`viewportRowRenderingOffset`](#viewportRowRenderingOffset) option |
+     * | A number           | Sets the offset manually (`0` is a default)             |
+     *
+     * The `viewportRowRenderingThreshold` setting is ignored when [`renderAllRows`](#renderAllRows) is set to `true`.
+     *
+     * Read more:
+     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
+     *
+     * @memberof Options#
+     * @since 1.14.7
+     * @type {number|'auto'}
+     * @default 0
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // render 12 rows outside of the grid's viewport
+     * viewportRowRenderingOffset: 12,
+     * // the rows outside of the viewport will be rendered when the user scrolls to the 8th row from/to
+     * viewportRowRenderingThreshold: 8,
+     * ```
+     */
+    viewportRowRenderingThreshold: 0,
 
     /**
      * The `visibleRows` option sets the height of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)

@@ -75,6 +75,7 @@ export function handsontableMethodFactory(method) {
 
 export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthFromSettings');
 export const addHook = handsontableMethodFactory('addHook');
+export const addHookOnce = handsontableMethodFactory('addHookOnce');
 export const alter = handsontableMethodFactory('alter');
 export const clear = handsontableMethodFactory('clear');
 export const colToProp = handsontableMethodFactory('colToProp');
@@ -107,6 +108,7 @@ export const getColWidth = handsontableMethodFactory('getColWidth');
 export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
+export const getCurrentThemeName = handsontableMethodFactory('getCurrentThemeName');
 export const getData = handsontableMethodFactory('getData');
 export const getDataAtCell = handsontableMethodFactory('getDataAtCell');
 export const getDataAtCol = handsontableMethodFactory('getDataAtCol');
@@ -144,6 +146,7 @@ export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCel
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
 export const getValue = handsontableMethodFactory('getValue');
+export const hasHook = handsontableMethodFactory('hasHook');
 export const isListening = handsontableMethodFactory('isListening');
 export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
@@ -152,7 +155,9 @@ export const propToCol = handsontableMethodFactory('propToCol');
 export const redo = handsontableMethodFactory('redo');
 export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
+export const removeHook = handsontableMethodFactory('removeHook');
 export const render = handsontableMethodFactory('render');
+export const runHooks = handsontableMethodFactory('runHooks');
 export const scrollToFocusedCell = handsontableMethodFactory('scrollToFocusedCell');
 export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
 export const selectAll = handsontableMethodFactory('selectAll');
@@ -172,6 +177,7 @@ export const undo = handsontableMethodFactory('undo');
 export const unlisten = handsontableMethodFactory('unlisten');
 export const updateData = handsontableMethodFactory('updateData');
 export const updateSettings = handsontableMethodFactory('updateSettings');
+export const useTheme = handsontableMethodFactory('useTheme');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
 
@@ -1070,6 +1076,30 @@ export function simulateTouch(target) {
       $(target).simulate('click');
     }
   }
+}
+
+/**
+ * Simulates the application of modern theme styles to a Handsontable context.
+ *
+ * @param {HTMLElement|jQuery} container - The container element to which the styles will be applied.
+ */
+export function simulateModernThemeStylesheet(container) {
+  const element = container instanceof $ ? container.get(0) : container;
+
+  element.style.setProperty('--ht-line-height', '17px');
+  element.style.setProperty('--ht-cell-vertical-padding', '5px');
+}
+
+/**
+ * Clears the modern theme styles simulation applied using the `simulateModernThemeStylesheet` method.
+ *
+ * @param {HTMLElement|jQuery} container - The container element.
+ */
+export function clearModernThemeStylesheetMock(container) {
+  const element = container instanceof $ ? container.get(0) : container;
+
+  element.style.removeProperty('--ht-line-height');
+  element.style.removeProperty('--ht-cell-vertical-padding');
 }
 
 /**

@@ -209,7 +209,7 @@ describe('Handsontable.Dom', () => {
       .appendTo('body');
 
     const span = document.getElementById('testable');
-    const compStyle = Handsontable.dom.getComputedStyle(span);
+    const compStyle = getComputedStyle(span);
 
     expect(compStyle.fontSize).toBe('12px');
 
@@ -221,7 +221,7 @@ describe('Handsontable.Dom', () => {
       .appendTo('body');
 
     const div = document.getElementById('testable');
-    const compStyle = Handsontable.dom.getComputedStyle(div);
+    const compStyle = getComputedStyle(div);
 
     expect(compStyle.borderTopWidth).toBe('10px');
 

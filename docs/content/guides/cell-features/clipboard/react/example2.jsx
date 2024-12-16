@@ -1,6 +1,7 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -38,7 +39,7 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-    ></HotTable>
+    />
   );
 };
 

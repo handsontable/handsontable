@@ -1,0 +1,131 @@
+@use "../../utils/mixins";
+
+// Dropdown Editor [Listbox]
+
+@mixin output {
+  .handsontable {
+    &.listbox {
+      @include mixins.menu-box-shadow;
+
+      margin: 0;
+      border: var(--ht-menu-border-width, 1px) solid
+        var(--ht-menu-border-color, #e5e5e9);
+
+      .ht_master {
+        overflow: hidden;
+        background-color: var(--ht-background-color);
+      }
+
+      .wtHolder {
+        overflow: auto;
+      }
+
+      .wtHider, .htCore {
+        border-radius: 0 !important;
+      }
+
+      table {
+        overflow: hidden;
+
+        th,
+        tr:first-child th,
+        tr:last-child th,
+        tr:first-child td,
+        td {
+          border-color: transparent !important;
+        }
+
+        th,
+        td {
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          border-radius: 0 !important;
+        }
+
+        td {
+          &.htDimmed {
+            cursor: default;
+            font-style: inherit;
+            color: inherit;
+          }
+        }
+
+        .wtBorder {
+          visibility: hidden;
+        }
+
+        strong {
+          font-weight: var(--ht-font-weight);
+          color: inherit;
+        }
+
+        tr {
+          &:hover {
+            td {
+              background: var(--ht-menu-item-hover-color, #e5e5e9);
+              cursor: pointer;
+            }
+          }
+
+          td {
+            &:hover, &.current {
+              background: var(--ht-menu-item-hover-color, #e5e5e9);
+              cursor: pointer;
+            }
+          }
+        }
+
+        thead {
+          th {
+            height: auto !important;
+            text-align: left;
+            border-width: 0 1px 1px;
+
+            > div {
+              padding-top: 8px;
+              padding-bottom: 8px;
+            }
+
+            &:first-child {
+              padding-left: 8px;
+            }
+          }
+        }
+      }
+
+      .ht_clone_top {
+        .wtHider {
+          overflow: hidden;
+        }
+
+        table {
+          border-radius: 0;
+        }
+      }
+
+      .htBorders {
+        div {
+          background: none !important;
+        }
+      }
+    }
+
+    &.autocompleteEditor {
+      tr {
+        &.ht__row_even {
+          th,
+          td {
+            background-color: var(--ht-background-color, #ffffff);
+          }
+        }
+
+        &.ht__row_odd {
+          th,
+          td {
+            background-color: var(--ht-background-color, #ffffff);
+          }
+        }
+      }
+    }
+  }
+}

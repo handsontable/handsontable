@@ -35,10 +35,9 @@ module.exports.create = function create(envArgs) {
           test: /\.(scss|css)$/,
           use: [
             { loader: MiniCssExtractPlugin.loader },
-            { loader: 'css-loader' },
-            { loader: 'sass-loader'},
-            { loader: path.resolve(__dirname, 'loader/sass-rtl-loader.js')}
-          ]
+            { loader: 'css-loader', options: { sourceMap: false } },
+            { loader: 'sass-loader' },
+          ],
         },
         {
           test: [

@@ -11,6 +11,7 @@
     overflow: hidden
     flex-direction: column
     display: flex
+    padding-bottom: 0
 
     .mobile-nav {
         display: none
@@ -42,6 +43,7 @@
         transition all $t ease-in-out
         transition-delay: $t
         max-height: 120px
+        border: 1px solid $borderColor
 
         //&.slide-fade-enter, 
         &.slide-fade-leave-to {
@@ -60,10 +62,19 @@
             transition all $t ease-in-out
         }
 
-        span { 
-            background-color: $accentColor
+        span {
+            position: relative
             border-radius: $radius-s
             padding: 11px
+
+             &:before {
+                content: ''
+                position: absolute
+                inset: 0
+                border-radius: $radius-s
+                background-color: $accentColor
+                opacity: 1
+            }
             
             i { 
                 filter:brightness(0) invert(1) 
@@ -98,7 +109,7 @@
             > a { 
                 cursor: pointer
                 display: block
-                font-size: $font-size-xxs
+                font-size: 12px
                 line-height: $line-height-xxs
                 color: $textColor
 

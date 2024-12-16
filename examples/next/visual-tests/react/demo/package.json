@@ -15,8 +15,7 @@
     "start": "cross-env SKIP_PREFLIGHT_CHECK=true BROWSER=none PORT=8080 react-app-rewired start",
     "serve": "node server.js",
     "build": "cross-env BUILD_PATH=dist SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build",
-    "eject": "react-app-rewired eject",
-    "test": "node spec/support/jasmine.config.js"
+    "eject": "react-app-rewired eject"
   },
   "dependencies": {
     "@handsontable/react": "latest",

@@ -1,8 +1,9 @@
-import { HotTable } from '@handsontable/react';
+import { HotTable } from '@handsontable/react-wrapper';
 import Handsontable from 'handsontable';
 import { registerAllModules } from 'handsontable/registry';
 import { BaseRenderer, registerRenderer } from 'handsontable/renderers';
-import 'handsontable/dist/handsontable.full.min.css';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -48,7 +49,7 @@ const ExampleComponent = () => {
     }
 
     if (!value || value === '') {
-      td.style.background = '#EEE';
+      td.style.background = 'rgb(238, 238, 238, 0.4)';
     } else {
       if (instance.getDataAtCell(0, col) === 'Nissan') {
         td.style.fontStyle = 'italic';

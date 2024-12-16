@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: 20  
+  NODE_VERSION: 22
   PYTHON_VERSION: '3.11'
 
 jobs:
@@ -23,17 +23,17 @@ jobs:
         os: [ ubuntu-latest, macos-latest ]
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-      
+
       # should resolve node-gyp issue we have been having with builds
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1  # v4.7.0
         with:
          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install the dependencies
@@ -53,7 +53,7 @@ jobs:
           mkdir C:/handsontable
           git clone -b $env:GITHUB_REF_NAME https://github.com/handsontable/handsontable C:/handsontable --depth 1
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
           node-version: ${{ env.NODE_VERSION }}

@@ -10,7 +10,7 @@ import { isFunction } from '../../helpers/function';
 import { arrayMap } from '../../helpers/array';
 import { BasePlugin } from '../base';
 import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import { ColumnStatesManager } from './columnStatesManager';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import {
@@ -28,8 +28,6 @@ import {
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
 import { A11Y_SORT } from '../../helpers/a11y';
-
-import './columnSorting.scss';
 
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;

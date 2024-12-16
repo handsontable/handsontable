@@ -1,9 +1,7 @@
 import { BasePlugin } from '../base';
-import Hooks from '../../pluginHooks';
+import { Hooks } from '../../core/hooks';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
-
-import './manualColumnFreeze.css';
 
 Hooks.getSingleton().register('beforeColumnFreeze');
 Hooks.getSingleton().register('afterColumnFreeze');
