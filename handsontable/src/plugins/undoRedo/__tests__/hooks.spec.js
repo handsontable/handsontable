@@ -15,13 +15,14 @@ describe('UndoRedo', () => {
   describe('Hooks', () => {
     it('should fire a `beforeUndo` hook after the undo process begins', async() => {
       const beforeUndoSpy = jasmine.createSpy('beforeUndo');
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+      handsontable({
+        data: createSpreadsheetData(2, 2),
       });
       let hookData = null;
 
-      hot.addHook('beforeUndo', beforeUndoSpy);
-      hot.addHook('beforeUndo', (data) => {
+      addHook('beforeUndo', beforeUndoSpy);
+      addHook('beforeUndo', (data) => {
         hookData = data;
       });
 
@@ -29,13 +30,12 @@ describe('UndoRedo', () => {
 
       await sleep(10);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
-      await sleep(100);
+      await sleep(10);
 
       expect(beforeUndoSpy.calls.count()).toEqual(1);
       expect(hookData).not.toBe(null);
-      expect(hookData.actionType).toEqual('remove_row');
       expect(hookData.data).toEqual([['A2', 'B2']]);
     });
 
@@ -43,12 +43,13 @@ describe('UndoRedo', () => {
       'performing an action which may be undone', () => {
       const beforeUndoStackChangeSpy = jasmine.createSpy('beforeUndoStackChange');
       const afterUndoStackChangeSpy = jasmine.createSpy('afterUndoStackChange');
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+      handsontable({
+        data: createSpreadsheetData(2, 2),
       });
 
-      hot.addHook('beforeUndoStackChange', beforeUndoStackChangeSpy);
-      hot.addHook('afterUndoStackChange', afterUndoStackChangeSpy);
+      addHook('beforeUndoStackChange', beforeUndoStackChangeSpy);
+      addHook('afterUndoStackChange', afterUndoStackChangeSpy);
 
       alter('remove_row', 1);
 
@@ -59,18 +60,19 @@ describe('UndoRedo', () => {
 
     it('should not add action to undo stack while `beforeUndoStackChange` return `false` value', () => {
       const afterUndoStackChangeSpy = jasmine.createSpy('afterUndoStackChange');
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+      handsontable({
+        data: createSpreadsheetData(2, 2),
       });
 
-      hot.addHook('beforeUndoStackChange', () => false);
-      hot.addHook('afterUndoStackChange', afterUndoStackChangeSpy);
+      addHook('beforeUndoStackChange', () => false);
+      addHook('afterUndoStackChange', afterUndoStackChangeSpy);
 
       alter('remove_row', 1);
 
       expect(afterUndoStackChangeSpy).not.toHaveBeenCalled();
-      expect(hot.undoRedo.isUndoAvailable()).toBe(false);
-      expect(hot.undoRedo.isRedoAvailable()).toBe(false);
+      expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+      expect(getPlugin('undoRedo').isRedoAvailable()).toBe(false);
     });
 
     it('should fire a `beforeUndoStackChange`, `afterUndoStackChange`, `beforeRedoStackChange` and ' +
@@ -79,20 +81,21 @@ describe('UndoRedo', () => {
       const afterUndoStackChangeSpy = jasmine.createSpy('afterUndoStackChange');
       const beforeRedoStackChangeSpy = jasmine.createSpy('beforeRedoStackChange');
       const afterRedoStackChangeSpy = jasmine.createSpy('afterRedoStackChange');
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+      handsontable({
+        data: createSpreadsheetData(2, 2),
       });
 
       alter('remove_row', 1);
 
-      hot.addHook('beforeUndoStackChange', beforeUndoStackChangeSpy);
-      hot.addHook('afterUndoStackChange', afterUndoStackChangeSpy);
-      hot.addHook('beforeRedoStackChange', beforeRedoStackChangeSpy);
-      hot.addHook('afterRedoStackChange', afterRedoStackChangeSpy);
+      addHook('beforeUndoStackChange', beforeUndoStackChangeSpy);
+      addHook('afterUndoStackChange', afterUndoStackChangeSpy);
+      addHook('beforeRedoStackChange', beforeRedoStackChangeSpy);
+      addHook('afterRedoStackChange', afterRedoStackChangeSpy);
 
       const doneActionsCopy = getPlugin('undoRedo').doneActions.slice();
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(beforeUndoStackChangeSpy).toHaveBeenCalledOnceWith(
         doneActionsCopy);
@@ -107,22 +110,22 @@ describe('UndoRedo', () => {
       const afterUndoStackChangeSpy = jasmine.createSpy('afterUndoStackChange');
       const beforeRedoStackChangeSpy = jasmine.createSpy('beforeRedoStackChange');
       const afterRedoStackChangeSpy = jasmine.createSpy('afterRedoStackChange');
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+      handsontable({
+        data: createSpreadsheetData(2, 2),
       });
 
       alter('remove_row', 1);
+      getPlugin('undoRedo').undo();
 
-      hot.undo();
-
-      hot.addHook('beforeUndoStackChange', beforeUndoStackChangeSpy);
-      hot.addHook('afterUndoStackChange', afterUndoStackChangeSpy);
-      hot.addHook('beforeRedoStackChange', beforeRedoStackChangeSpy);
-      hot.addHook('afterRedoStackChange', afterRedoStackChangeSpy);
+      addHook('beforeUndoStackChange', beforeUndoStackChangeSpy);
+      addHook('afterUndoStackChange', afterUndoStackChangeSpy);
+      addHook('beforeRedoStackChange', beforeRedoStackChangeSpy);
+      addHook('afterRedoStackChange', afterRedoStackChangeSpy);
 
       const undoneActionsCopy = getPlugin('undoRedo').undoneActions.slice();
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(beforeUndoStackChangeSpy).toHaveBeenCalledOnceWith([]);
       expect(afterUndoStackChangeSpy).toHaveBeenCalledOnceWith([], undoneActionsCopy);
@@ -133,13 +136,14 @@ describe('UndoRedo', () => {
 
     it('should fire a `beforeRedo` hook before the redo process begins', async() => {
       const beforeRedoSpy = jasmine.createSpy('beforeRedo');
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+      handsontable({
+        data: createSpreadsheetData(2, 2),
       });
       let hookData = null;
 
-      hot.addHook('beforeRedo', beforeRedoSpy);
-      hot.addHook('beforeRedo', (data) => {
+      addHook('beforeRedo', beforeRedoSpy);
+      addHook('beforeRedo', (data) => {
         hookData = data;
       });
 
@@ -147,26 +151,26 @@ describe('UndoRedo', () => {
 
       await sleep(10);
 
-      hot.undo();
-      hot.redo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').redo();
 
-      await sleep(100);
+      await sleep(10);
 
       expect(beforeRedoSpy.calls.count()).toEqual(1);
       expect(hookData).not.toBe(null);
-      expect(hookData.actionType).toEqual('remove_row');
       expect(hookData.data).toEqual([['A2', 'B2']]);
     });
 
     it('should fire a `afterRedo` hook after the redo process begins', async() => {
       const afterRedoSpy = jasmine.createSpy('afterRedo');
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+      handsontable({
+        data: createSpreadsheetData(2, 2),
       });
       let hookData = null;
 
-      hot.addHook('beforeRedo', afterRedoSpy);
-      hot.addHook('beforeRedo', (data) => {
+      addHook('beforeRedo', afterRedoSpy);
+      addHook('beforeRedo', (data) => {
         hookData = data;
       });
 
@@ -174,14 +178,13 @@ describe('UndoRedo', () => {
 
       await sleep(10);
 
-      hot.undo();
-      hot.redo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').redo();
 
-      await sleep(100);
+      await sleep(10);
 
       expect(afterRedoSpy.calls.count()).toEqual(1);
       expect(hookData).not.toBe(null);
-      expect(hookData.actionType).toEqual('remove_row');
       expect(hookData.data).toEqual([['A2', 'B2']]);
     });
   });

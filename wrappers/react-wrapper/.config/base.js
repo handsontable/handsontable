@@ -6,7 +6,8 @@ import commonjs from '@rollup/plugin-commonjs';
 
 export const plugins = {
   typescript: typescript({
-    clean: true
+    clean: true,
+    useTsconfigDeclarationDir: true,
   }),
   babel: babel({
     babelHelpers: 'bundled',

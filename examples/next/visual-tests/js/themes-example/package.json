@@ -1,0 +1,29 @@
+{
+  "name": "themes-example",
+  "private": true,
+  "version": "0.0.0",
+  "homepage": "https://handsontable.com/",
+  "main": "index.js",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable/issues"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
+  "scripts": {
+    "start": "vite",
+    "serve": "vite preview",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@handsontable/pikaday": "^1.0.0",
+    "handsontable": "latest"
+  },
+  "devDependencies": {
+    "vite": "5.4.3"
+  },
+  "license": "SEE LICENSE IN LICENSE.txt"
+}

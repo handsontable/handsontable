@@ -65,6 +65,26 @@
       }
     }
 
+    // Force the ghost table to ignore the additional 1px border for the first rows in the table
+    &.htGhostTable {
+      table {
+        thead {
+          th {
+            border-bottom-width: 0;
+          }
+        }
+
+        tbody {
+          tr {
+            td,
+            th {
+              border-top-width: 0;
+            }
+          }
+        }
+      }
+    }
+
     // Background
     &.htHasScrollX,
     &.htHasScrollY {
@@ -111,8 +131,8 @@
       border-inline-end-width: 1px;
       border-bottom-width: 1px;
       border-style: solid;
-      font-size: var(--ht-font-size, 14px);
-      line-height: var(--ht-line-height, 20px);
+      font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height);
       white-space: pre-wrap;
       overflow: hidden;
       outline: none;
@@ -187,9 +207,9 @@
       }
 
       &.ht__active_highlight {
+        border-color: var(--ht-header-active-border-color);
         color: var(--ht-header-active-foreground-color);
         background-color: var(--ht-header-active-background-color);
-        border-color: var(--ht-header-active-border-color);
         box-shadow: -1px 0 0 0 var(--ht-header-active-border-color);
       }
     }
@@ -252,6 +272,16 @@
     // Header in Col
     thead {
       tr {
+        &:only-of-type {
+          th {
+            .relative {
+              &::after {
+                bottom: 0;
+              }
+            }
+          }
+        }
+        
         th {
           padding: 0;
 
@@ -367,9 +397,13 @@
       }
     }
 
-    span.colHeader {
-      display: inline-block;
-      line-height: var(--ht-line-height, 20px);
+    span {
+      &.colHeader,
+      &.rowHeader {
+        display: inline-block;
+        font-size: var(--ht-font-size);
+        line-height: var(--ht-line-height);
+      }
     }
 
     tr.hidden {
@@ -411,6 +445,10 @@
       th,
       td {
         border-bottom-color: var(--ht-border-color);
+
+        &.ht__active_highlight {
+          border-bottom-color: var(--ht-header-active-border-color);
+        }
       }
     }
 
@@ -466,6 +504,15 @@
         td[dir="ltr"] {
           &:last-child {
             border-inline-start-color: var(--ht-border-color);
+          }
+        }
+
+        th {
+          .relative {
+            &::after {
+              right: auto;
+              left: -1px;
+            }
           }
         }
       }

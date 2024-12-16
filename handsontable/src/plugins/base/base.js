@@ -139,13 +139,6 @@ export class BasePlugin {
       initializedPlugins = getPluginsNames();
     }
 
-    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
-    // Without this line the `callOnPluginsReady` callback won't be triggered after all plugin
-    // initialization.
-    if (initializedPlugins.indexOf('UndoRedo') >= 0) {
-      initializedPlugins.splice(initializedPlugins.indexOf('UndoRedo'), 1);
-    }
-
     if (initializedPlugins.indexOf(this.pluginName) >= 0) {
       initializedPlugins.splice(initializedPlugins.indexOf(this.pluginName), 1);
     }
