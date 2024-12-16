@@ -30,6 +30,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on December 16, 2024
 
 For more information about this release see:
+- [Blog post (15.0.0)](https://handsontable.com/blog/handsontable-15.0.0-introducing-themes-and-functional-react-wrapper)
 - [Documentation (15.0)](https://handsontable.com/docs/15.0)
 
 #### Added
