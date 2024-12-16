@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added support for rows/columns virtualization of the merged cells.",
-  "type": "added",
-  "issueOrPR": 11162,
-  "breaking": false,
-  "framework": "none"
-}

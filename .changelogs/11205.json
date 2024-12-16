@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed focus management for dropdown menu after `updateSettings` call",
-  "type": "fixed",
-  "issueOrPR": 11205,
-  "breaking": false,
-  "framework": "none"
-}

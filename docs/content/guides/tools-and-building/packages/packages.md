@@ -17,25 +17,51 @@ Instantly add Handsontable to your web app, using pre-built UMD packages of Java
 
 ## Full distribution (recommended)
 
-The full distribution allows you to use Handsontable by including just 2 files:
+To utilize the full distribution of Handsontable, you can choose either the classic styles or the theme-based styles. Do not mix files from both options.
+
+### Option 1: Classic Styles
+Include the following files in your project:
 ```html
 <script src="dist/handsontable.full.js"></script>
 <link href="dist/handsontable.full.css" rel="stylesheet">
 ```
-You can also use minified files:
+Alternatively, you can opt for the minified versions:
 ```html
 <script src="dist/handsontable.full.min.js"></script>
 <link href="dist/handsontable.full.min.css" rel="stylesheet">
 ```
 
-**handsontable.full.js** and **handsontable.full.css** are compiled with ___all___ the needed dependencies.
+Both **handsontable.full.js** and **handsontable.full.css** are bundled with all necessary dependencies for seamless integration.
+
+### Option 2: Theme-Based Styles
+For projects utilizing themes, include the following files in the specified order:
+```html
+<script src="dist/handsontable.full.js"></script>
+<link href="styles/handsontable.css" rel="stylesheet">
+<link href="styles/ht-theme-[name].css" rel="stylesheet">
+```
+Here, `[name]` represents the desired theme. Currently, the available themes are **main** and **horizon**. 
+
+Minified versions of these files are also available:
+```html
+<script src="dist/handsontable.full.min.js"></script>
+<link href="styles/handsontable.min.css" rel="stylesheet">
+<link href="styles/ht-theme-[name].min.css" rel="stylesheet">
+```
+
+::: tip
+
+Let's assume we're using the `main` theme for the rest of this page.
+
+If you'd rather use a different theme or classic styles, replace the `css` files accordingly.
+
+:::
 
 ## Bare distribution
 
 If you are a "Bob the Builder" kind of hacker, you will need to load Handsontable JS, CSS and their dependencies:
 ```html
 <!-- Required dependencies (as external scripts) -->
-<link href="https://cdn.jsdelivr.net/npm/@handsontable/pikaday@1.0.0/css/pikaday.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/pikaday@1.0.0/pikaday.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/numbro@2.1.2/dist/numbro.min.js"></script>
@@ -43,10 +69,11 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 
 <!-- Handsontable bare files -->
 <script src="dist/handsontable.js"></script>
-<link href="dist/handsontable.css" rel="stylesheet">
+<link href="styles/handsontable.css" rel="stylesheet">
+<link href="styles/ht-theme-main.css" rel="stylesheet">
 ```
 
-**handsontable.js** and **handsontable.css** are compiled ___without___ the needed dependencies. You will have to include `pikaday.js`, `moment.js`, `numbro.js`, and `dompurify` on your own ie. from JSDelivr CDN.
+**handsontable.js** is compiled ___without___ the needed dependencies. You will have to include `pikaday.js`, `moment.js`, `numbro.js`, and `dompurify` on your own, ie. from JSDelivr CDN.
 
 ## Internationalization
 It is possible to include files which will register languages dictionaries. They allow to translate parts of Handsontable UI. You can either use only particular languages files or include all of them at once as a single file.

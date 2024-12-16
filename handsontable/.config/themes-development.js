@@ -1,7 +1,7 @@
 const configFactory = require('./base');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
-const glob = require("glob");
+const glob = require('glob');
 const path = require('path');
 
 module.exports.create = function create(envArgs) {

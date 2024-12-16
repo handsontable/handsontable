@@ -17,38 +17,56 @@ const getPackageUrls = (packageName, version, fileSelection) => {
     handsontable: {
       js: 'handsontable.full.min.js',
       css: [
-        'styles/handsontable.min.css',
-        'styles/ht-theme-main.css',
-        'styles/ht-theme-horizon.css',
-      ]
+        'handsontable.min.css',
+        'ht-theme-main.css',
+        'ht-theme-horizon.css',
+      ],
+      subDir: 'dist/',
+      cssSubDir: 'styles/',
     },
     '@handsontable/react': {
-      js: 'react-handsontable.min.js'
+      js: 'react-handsontable.min.js',
+      subDir: 'dist/',
     },
     '@handsontable/react-wrapper': {
-      js: 'react-handsontable.min.js'
+      js: 'react-handsontable.min.js',
+      subDir: 'dist/',
     },
     '@handsontable/angular': {
       js: 'handsontable-angular.mjs',
       subDir: 'fesm2022/'
     },
     '@handsontable/vue': {
-      js: 'vue-handsontable.min.js'
+      js: 'vue-handsontable.min.js',
+      subDir: 'dist/',
     },
     '@handsontable/vue3': {
-      js: 'vue-handsontable.min.js'
+      js: 'vue-handsontable.min.js',
+      subDir: 'dist/',
     }
   };
 
   const urlSet = subDirs[packageName];
+  const fileName = urlSet[fileSelection];
+  let subDir = '';
+
+  switch (fileSelection) {
+    case 'js':
+      subDir = urlSet.subDir;
+      break;
+    case 'css':
+      subDir = urlSet.cssSubDir;
+      break;
+    default:
+  }
 
   if (version === 'next' && isBrowser) {
-    if (Array.isArray(urlSet[fileSelection])) {
-      return urlSet[fileSelection].map(file => (`/docs/${packageName}/${file}`));
+    if (Array.isArray(fileName)) {
+      return fileName.map(file => (`/docs/${packageName}/${subDir}${file}`));
     }
 
-    if (urlSet[fileSelection]) {
-      return `/docs/${packageName}/${urlSet[fileSelection]}`;
+    if (fileName) {
+      return `/docs/${packageName}/${subDir}${fileName}`;
     }
 
     return `/docs/${packageName}/${fileSelection}`;
@@ -56,12 +74,12 @@ const getPackageUrls = (packageName, version, fileSelection) => {
 
   const mappedVersion = formatVersion(version);
 
-  if (Array.isArray(urlSet[fileSelection])) {
-    return urlSet[fileSelection].map(file => `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${file}`);
+  if (Array.isArray(fileName)) {
+    return fileName.map(file => `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${subDir}${file}`);
   }
 
-  return urlSet[fileSelection] ?
-    `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${urlSet.subDir || 'dist/'}${urlSet[fileSelection]}` :
+  return fileName ?
+    `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${subDir}${fileName}` :
     `https://cdn.jsdelivr.net/npm/${packageName}@${mappedVersion}/${fileSelection}`;
 };
 
@@ -126,7 +144,7 @@ const buildDependencyGetter = (version) => {
       'vue-star-rating': ['https://cdn.jsdelivr.net/npm/vue-star-rating@1/dist/VueStarRating.umd.min.js', [/* todo */]],
       vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue'],
       vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
-      languages: [getPackageUrls('handsontable', version, 'languages/all.js'), [/* todo */]],
+      languages: [getPackageUrls('handsontable', version, 'dist/languages/all.js'), [/* todo */]],
     };
     /* eslint-enable max-len */
 
