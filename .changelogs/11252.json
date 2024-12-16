@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed checkbox switching in merged cells",
-  "type": "fixed",
-  "issueOrPR": 11252,
-  "breaking": false,
-  "framework": "none"
-}

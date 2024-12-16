@@ -45,7 +45,9 @@ const packagesInfo = {
 };
 const {
   default: mainPackageJson
-} = await import('../package.json', { assert: { type: 'json' } });
+} = await import('../package.json', {
+  with: { type: 'json' },
+});
 const workspacePackages = mainPackageJson.workspaces;
 const mismatchedVersions = [];
 

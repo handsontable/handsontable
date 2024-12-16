@@ -1,7 +1,7 @@
 {
   "name": "handsontable",
   "private": true,
-  "description": "Handsontable is a JavaScript Spreadsheet Component available for React, Angular and Vue.",
+  "description": "Handsontable is a JavaScript Data Grid available for React, Angular and Vue.",
   "homepage": "https://handsontable.com/",
   "repository": {
     "type": "git",

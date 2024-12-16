@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed cell fast edit mode when a comment is shown.",
-  "type": "fixed",
-  "issueOrPR": 11280,
-  "breaking": false,
-  "framework": "none"
-}

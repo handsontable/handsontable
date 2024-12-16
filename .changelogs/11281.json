@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an error for cases where the keyboard event was triggered with `key` as `undefined`.",
-  "type": "fixed",
-  "issueOrPR": 11281,
-  "breaking": false,
-  "framework": "none"
-}

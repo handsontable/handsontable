@@ -15,27 +15,26 @@ category: Upgrade and migration
 
 # Migrate from 14.6 to 15.0
 
-Migrate from Handsontable 14.6 to Handsontable 15.0, released on [...].
+Migrate from Handsontable 14.6 to Handsontable 15.0, released on December 16th, 2024.
 
 [[toc]]
 
-### Changes to the React wrappers.
+## Introducing the New React Wrapper
 
-Handsontable 15.0 introduces significant improvements to its React wrapper, focusing on type safety, idiomatic React usage, and developer experience.
-That's why we're introducing a new React wrapper under the name of `@handsontable/react-wrapper`.
+With Handsontable 15.0, we're rolling out a brand-new React wrapper designed for functional programming. It focuses on type safety, idiomatic React usage, and developer experience. Named `react-wrapper`, you can find it in our [GitHub monorepo](https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper) or install it directly from [npm](https://www.npmjs.com/package/@handsontable/react-wrapper).
 
-This guide will help you migrate your existing `@handsontable/react` components to `@handsontable/react-wrapper`.
+This guide will help you migrate your existing `@handsontable/react` class-based wrapper to `@handsontable/react-wrapper`.
 
-##### Key Changes
+### Key changes
 - Removal of the `settings` prop in favor of direct prop passing
 - Updated syntax for defining custom renderers and editors
 - Introduction of the `useHotEditor` hook for creating function-based custom editors
 
 ::: tip
-It's worth noting, that `@handsontable/react` remains available if you prefer to keep using class-based editor and renderer components.
+The class-based `@handsontable/react` wrapper is still around and fully supported. So if you're into class-based editor and renderer components, you can keep using it.
 :::
 
-## Warning Messages
+## Warning messages
 
 To assist you in the migration process, `@handsontable/react-wrapper` provides warning messages to help identify and update deprecated practices:
 
@@ -49,9 +48,9 @@ Providing a component-based editor using `hot-editor`-annotated component is no 
 Pass your component using `editor` prop of the `HotTable` or `HotColumn` component instead.
 ```
 
-### Migration steps
+## Migration steps
 
-#### 1. Removal of `settings` property
+### 1. Removal of `settings` property
 
 The `settings` property has been removed. Configuration options must now be passed directly to the `HotTable` component.
 
@@ -67,11 +66,11 @@ const settings = { rowHeaders: true, colHeaders: true };
 <HotTable 
   rowHeaders={true} 
   colHeaders={true}
-  // All other Handsontable options are available as props
+  // Other options are available as props
 />
 ```
 
-#### 2. Custom renderer changes
+### 2. Custom renderer changes
 
 Custom renderers should now be provided using the `renderer` prop of either HotTable or HotColumn.
 
@@ -103,14 +102,14 @@ const MyRenderer = (props: HotRendererProps) => {
 ```
 
 ::: tip
-If you're currently utilizing the `renderer` option to provide javascript function-based renderers, you can still use them. Instead of defining them under the `renderer` key, do it under `hotRenderer`.
+If you’re using the `renderer` option for JavaScript function-based renderers, don’t worry - you can still use them! Just define them under the `hotRenderer` key instead of `renderer`.
 :::
 
-#### 3. Custom editor changes
+### 3. Custom editor changes
 
-Custom editors have undergone significant changes, transitioning from class-based to function-based components using the new `useHotEditor` hook.
+Custom editors have changed a lot - they've moved from class-based to function-based components, now using the new `useHotEditor` hook.
 
-##### 3.1. Replace the class declaration with a function:
+#### 3.1. Replace the class declaration with a function:
 **`@handsontable/react`:**
 ```jsx
 class EditorComponent extends BaseEditorComponent {
@@ -125,7 +124,7 @@ const EditorComponent = () => {
 };
 ```
 
-##### 3.2. Implement the `useHotEditor` hook
+#### 3.2. Implement the `useHotEditor` hook
 Replace the `BaseEditorComponent` methods with the `useHotEditor` hook:
 ```jsx
 import { useHotEditor } from '@handsontable/react-wrapper';
@@ -144,7 +143,7 @@ const EditorComponent = () => {
 };
 ```
 
-##### 3.3. Update the component structure
+#### 3.3. Update the component structure
 Replace the `render` method with the function component's return statement:
 ```jsx
 return (
@@ -154,8 +153,8 @@ return (
 );
 ```
 
-##### 3.4. Update HotColumn usage
-Similar to renderers, custom editors should now be provided using the `editor` prop of either `HotTable` or `HotColumn`.
+#### 3.4. Update HotColumn Usage
+Just like with renderers, custom editors now need to be provided using the `editor` prop on either `HotTable` or `HotColumn`.
 
 **`@handsontable/react`:**
 ```jsx
@@ -168,6 +167,6 @@ Similar to renderers, custom editors should now be provided using the `editor` p
 <HotColumn width={250} editor={EditorComponent} />
 ```
 
-::: tip
-If you're currently utilizing the `editor` option to provide javascript class-based editors, you can still use them. Instead of defining them under the `editor` key, do it under `hotEditor`.
+::: tip  
+If you’re using the `editor` option for JavaScript class-based editors, you can still use them. Just define them under the `hotEditor` key instead of `editor`.  
 :::
