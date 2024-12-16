@@ -42,10 +42,6 @@ export class OrderView {
    */
   viewDiffer = new ViewDiffer(this.sizeSet);
   /**
-   * @type {number[]}
-   */
-  staleNodeIndexes = [];
-  /**
    * The list of render commands to execute. The command is an array with the following
    * structure: [
    *   [
@@ -93,14 +89,6 @@ export class OrderView {
   }
 
   /**
-   * @param {number} sourceIndex The source index.
-   * @returns {boolean}
-   */
-  hasStaleContent(sourceIndex) {
-    return this.staleNodeIndexes.includes(sourceIndex);
-  }
-
-  /**
    * Checks if this instance of the view shares the root node with another instance. This happens only once when
    * a row (TR) as a root node is managed by two OrderView instances. If this happens another DOM injection
    * algorithm is performed to achieve consistent order.
@@ -144,12 +132,6 @@ export class OrderView {
 
     this.collectedNodes.push(node);
 
-    // @TODO(perf-tip): Only nodes which are first time rendered (hasn't any inner content) can be marked as stale
-    // e.q `name !== 'none' && !node.firstChild`.
-    if (name !== 'none') {
-      this.staleNodeIndexes.push(nodeIndex);
-    }
-
     switch (name) {
       case 'prepend':
         rootNode.insertBefore(node, rootNode.firstChild);
@@ -179,7 +161,6 @@ export class OrderView {
    */
   start() {
     this.collectedNodes.length = 0;
-    this.staleNodeIndexes.length = 0;
     this.leads = this.viewDiffer.diff();
   }
 
