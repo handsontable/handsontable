@@ -128,8 +128,8 @@ jobs:
           npm run build:umd.min
           npm run build:languages
           npm run build:languages.min
-          npm run build:legacy-css
-          npm run build:legacy-css.min
+          npm run build:classic-css
+          npm run build:classic-css.min
       - run: tar -zcf dist.tar.gz ./handsontable/dist ./handsontable/styles
 
       - name: Upload the Handsontable UMD build artifact.
@@ -161,8 +161,8 @@ jobs:
           npm run build:es
           npm run build:commonjs
           npm run build:languages.es
-          npm run build:legacy-css
-          npm run build:legacy-css.min
+          npm run build:classic-css
+          npm run build:classic-css.min
           npm run postbuild
       - run: tar -zcf tmp.tar.gz ./handsontable/tmp
 
@@ -603,8 +603,8 @@ jobs:
             npm run in handsontable build:es
             npm run in handsontable build:commonjs
             npm run in handsontable build:languages.es
-            npm run in handsontable build:legacy-css
-            npm run in handsontable build:legacy-css.min
+            npm run in handsontable build:classic-css
+            npm run in handsontable build:classic-css.min
           fi
       - run: |
           if test -f "handsontable-build-umd/dist.tar.gz"; then
@@ -615,8 +615,8 @@ jobs:
             npm run in handsontable build:umd.min
             npm run in handsontable build:languages
             npm run in handsontable build:languages.min
-            npm run in handsontable build:legacy-css
-            npm run in handsontable build:legacy-css.min
+            npm run in handsontable build:classic-css
+            npm run in handsontable build:classic-css.min
           fi
           npm run in handsontable postbuild
 

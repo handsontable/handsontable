@@ -560,7 +560,7 @@ hot.setSourceDataAtCell(0, 'available', true) // in 8.0.0, this sets a new prope
 
 ::: only-for react
 ```js
-<HotTable>
+<HotTable
   data={[
     { model: 'Roadster', company: 'Tesla' },
     { model: 'i3', company: 'BMW' },

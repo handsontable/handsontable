@@ -1248,7 +1248,6 @@ const ExampleComponent = () => {
       manualRowMove={true}
       autoWrapRow={true}
       autoWrapCol={true}
-      autoRowSize={true}
       manualRowResize={true}
       manualColumnResize={true}
       navigableHeaders={true}

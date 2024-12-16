@@ -143,7 +143,9 @@ module.exports = function(docsVersion, base) {
         const htmlContent = htmlToken
           ? htmlToken.content
           : `<div id="${id}" class="hot ${klass}"></div>`;
-        // eslint-disable-next-line max-len
+        const htmlContentSandbox = htmlToken
+          ? htmlToken.content
+          : `<div id="${id}" class="hot ht-theme-main-dark-auto ${klass}"></div>`;
         const htmlContentRoot = `<div 
           data-preset-type="${preset}" 
           data-example-id="${id}" 
@@ -232,7 +234,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit
     ? stackblitz(
       id,
-      htmlContent,
+      htmlContentSandbox,
       codeToCompileSandbox,
       cssContent,
       docsVersion,
@@ -243,7 +245,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit
     ? jsfiddle(
       id,
-      htmlContent,
+      htmlContentSandbox,
       codeForPreset,
       cssContent,
       docsVersion,
@@ -256,7 +258,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit
     ? stackblitz(
       id,
-      htmlContent,
+      htmlContentSandbox,
       tsCodeToCompileSandbox,
       cssContent,
       docsVersion,
@@ -267,7 +269,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit && !isReact
     ? jsfiddle(
       id,
-      htmlContent,
+      htmlContentSandbox,
       tsCodeForPreset,
       cssContent,
       docsVersion,

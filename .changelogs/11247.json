@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with export of common lib in package.json",
-  "type": "fixed",
-  "issueOrPR": 11247,
-  "breaking": false,
-  "framework": "none"
-}
