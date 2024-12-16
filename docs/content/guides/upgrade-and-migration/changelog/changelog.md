@@ -36,6 +36,7 @@ For more information about this release see:
 #### Added
 - Added support for row and column virtualization of merged cells. [#11162](https://github.com/handsontable/handsontable/pull/11162)
 - Added missing typings for the language files. [#11236](https://github.com/handsontable/handsontable/pull/11236)
+- Added support for the new themes, including "main" and "horizon".  [#11144](https://github.com/handsontable/handsontable/pull/11144)
 - React: Added `@handsontable/react-wrapper` to the monorepo. [#11212](https://github.com/handsontable/handsontable/pull/11212)
 
 #### Changed
