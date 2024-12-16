@@ -26,7 +26,7 @@
         
         &:not(.custom) { 
             max-width: 720px
-            padding: 0 0 80px
+            padding: 0 0 40px
 
             @media (max-width: $medium) {
                 padding-bottom: 24px
@@ -429,13 +429,13 @@
     .theme-examples {
         display: flex;
         flex-direction: column;
-        gap: 20px;
 
         .theme-examples-controls {
             .example-container {
                 display: flex;
                 align-items: center;
                 gap: 10px;
+                margin-bottom: 10px;
             }
 
             .color-select {
@@ -501,4 +501,14 @@
 
 .page .theme-default-content a.header-link {
     color: $textColor
+}
+
+.page .ht-wrapper.docs-height-small > .ht_master,
+.page .docs-height-small .ht-wrapper > .ht_master {
+    height: 146px;
+}
+
+.page .ht-wrapper.docs-height-large > .ht_master,
+.page .docs-height-large .ht-wrapper > .ht_master  {
+    height: 168px;
 }

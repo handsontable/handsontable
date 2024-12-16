@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed columns selection while the column is moving when the _NestedHeaders_ plugin is enabled.",
-  "type": "fixed",
-  "issueOrPR": 11206,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1283,7 +1283,6 @@ new Handsontable(example, {
   headerClassName: 'htLeft',
   autoWrapRow: true,
   autoWrapCol: true,
-  autoRowSize: true,
   manualRowResize: true,
   manualColumnResize: true,
   navigableHeaders: true,

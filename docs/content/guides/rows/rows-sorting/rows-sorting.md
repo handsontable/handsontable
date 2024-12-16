@@ -462,10 +462,10 @@ const configurationOptions = {
 
 ## Add custom sort icons
 
-The default sort icons (↑↓) are encoded in Base64. You can replace them by changing `background-image` for the following pseudo-elements of Handsontable's CSS:
+The default sort icons (↑↓) are encoded `url`. You can replace them by changing `-webkit-mask-image` for the following pseudo-elements of Handsontable's CSS:
 
-- `.columnSorting.ascending::before`
-- `.columnSorting.descending::before`
+- `.columnSorting.sortAction.ascending::before`
+- `.columnSorting.sortAction.descending::before`
 
 ::: only-for javascript
 
@@ -487,33 +487,6 @@ The default sort icons (↑↓) are encoded in Base64. You can replace them by c
 @[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons.jsx)
 @[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons.css)
 @[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons.tsx)
-
-:::
-
-:::
-
-You can also replace the sort icons by changing `content` for the same pseudo-elements:
-
-::: only-for javascript
-
-::: example #exampleCustomSortIcons2 --html 1 --js 2 --ts 3 --css 4
-
-@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.html)
-@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.js)
-@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.ts)
-@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons2.css)
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #exampleCustomSortIcons2 :react --js 1 --css 2 --ts 3
-
-@[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons2.jsx)
-@[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons2.css)
-@[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons2.tsx)
 
 :::
 
