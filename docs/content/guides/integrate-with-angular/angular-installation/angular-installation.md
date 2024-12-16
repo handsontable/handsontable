@@ -31,7 +31,8 @@ npm install handsontable @handsontable/angular
 Import the Handsontable styles to your project.
 
 ```scss
-@import '~handsontable/dist/handsontable.full.css';
+@import '~handsontable/styles/handsontable.min.css';
+@import '~handsontable/styles/ht-theme-main.min.css';
 ```
 
 Import the Handsontable component in your module.
