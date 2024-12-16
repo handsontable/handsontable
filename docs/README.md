@@ -17,19 +17,23 @@ We update the documentation:
 
 To start a local Handsontable documentation server:
 
-1. From the `docs` directory, install the documentation dependencies:
+1. From the root directory, build the Handsontable and wrapper packages:
+    ```bash
+    npm run build
+    ```
+2. From the `docs` directory, install the documentation dependencies:
     ```bash
     npm install
     ```
-2. Generate the API reference:
+3. Generate the API reference:
    ```bash
    npm run docs:api
    ```
-3. Start your local documentation server:
+4. Start your local documentation server:
    ```bash
-   npm run docs:start
+   npm run docs:start:no-cache
    ```
-4. In your browser, go to: http://localhost:8080/docs/.
+5. In your browser, go to: http://localhost:8080/docs/.
 
 ## Handsontable documentation code examples
 

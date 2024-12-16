@@ -75,7 +75,8 @@ To install Handsontable locally using a package manager, run one of these comman
 To get Handsontable's files from a CDN, use the following locations:
 
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
-- [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css)
+- [https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css](https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css)
+- [https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css](https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css)
 
 ## Import Handsontable's JavaScript
 
@@ -114,8 +115,8 @@ Import Handsontable's CSS into your application.
 If your bundler allows it, you can import Handsontable's full distribution CSS file, using an `import` statement.
 
 ```js
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-main.min.css';
 ```
 
 ### Using the `link` tag
@@ -123,7 +124,8 @@ import 'handsontable/styles/ht-theme-main.css';
 You can also import Handsontable's CSS using a link tag:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
 ```
 
 ## Create a container
@@ -203,8 +205,8 @@ To install Handsontable locally using a package manager, run one of these comman
 Import Handsontable's CSS into your application.
 
 ```jsx
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-main.min.css';
 ```
 
 ## Register Handsontable's modules
