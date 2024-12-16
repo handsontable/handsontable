@@ -19,7 +19,6 @@ describe('SharedOrderView', () => {
     expect(orderView.sizeSet).toBeInstanceOf(ViewSizeSet);
     expect(orderView.collectedNodes).toEqual([]);
     expect(orderView.viewDiffer).toBeInstanceOf(ViewDiffer);
-    expect(orderView.staleNodeIndexes).toEqual([]);
     expect(orderView.leads).toEqual([]);
   });
 

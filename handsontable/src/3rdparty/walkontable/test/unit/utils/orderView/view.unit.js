@@ -19,7 +19,6 @@ describe('OrderView', () => {
     expect(orderView.sizeSet).toBeInstanceOf(ViewSizeSet);
     expect(orderView.collectedNodes).toEqual([]);
     expect(orderView.viewDiffer).toBeInstanceOf(ViewDiffer);
-    expect(orderView.staleNodeIndexes).toEqual([]);
     expect(orderView.leads).toEqual([]);
   });
 
@@ -91,23 +90,5 @@ describe('OrderView', () => {
 
       expect(orderView.getCurrentNode()).toBe(8);
     });
-  });
-
-  describe('hasStaleContent()', () => {
-    it('should return true when index exists in the `staleNodeIndexes` array', () => {
-      const { orderView } = createOrderView();
-
-      orderView.staleNodeIndexes = [1, 2, 3];
-
-      expect(orderView.hasStaleContent(0)).toBe(false);
-      expect(orderView.hasStaleContent(1)).toBe(true);
-      expect(orderView.hasStaleContent(2)).toBe(true);
-      expect(orderView.hasStaleContent(3)).toBe(true);
-      expect(orderView.hasStaleContent(9)).toBe(false);
-    });
-  });
-
-  describe('applyCommand()', () => {
-    // @TODO
   });
 });
