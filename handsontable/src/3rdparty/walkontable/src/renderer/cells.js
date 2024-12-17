@@ -90,11 +90,6 @@ export class CellsRenderer extends BaseRenderer {
         orderView.render();
 
         const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
-
-        // if (!orderView.hasStaleContent(sourceColumnIndex)) {
-        //   continue;
-        // }
-
         const TD = orderView.getCurrentNode();
 
         if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin

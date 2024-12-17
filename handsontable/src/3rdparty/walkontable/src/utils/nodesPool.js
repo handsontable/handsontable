@@ -31,7 +31,7 @@ export class NodesPool {
   }
 
   /**
-   * Obtains an element. The returned elements in the feature can be cached.
+   * Obtains an element.
    *
    * @param {number} rowIndex The row index.
    * @param {number} [columnIndex] The column index.
@@ -47,7 +47,6 @@ export class NodesPool {
 
     const node = this.rootDocument.createElement(this.nodeType);
 
-    // node.dataset.id = key; // Uncomment for debug purposes
     this.pool.set(key, node);
 
     return node;
