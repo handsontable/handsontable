@@ -40,6 +40,7 @@ describe('DropdownCellType', () => {
         getCellType('dropdown');
       }).toThrowError();
     });
+
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, DropdownCellType);
 
@@ -59,6 +60,8 @@ describe('DropdownCellType', () => {
         editor: getEditor('dropdown'),
         renderer: getRenderer('dropdown'),
         validator: getValidator('dropdown'),
+        filter: false,
+        strict: true,
       });
     });
   });

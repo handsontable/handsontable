@@ -6,7 +6,8 @@ export const CELL_TYPE = 'dropdown';
 export const DropdownCellType = {
   CELL_TYPE,
   editor: DropdownEditor,
-  // displays small gray arrow on right side of the cell
-  renderer: dropdownRenderer,
+  renderer: dropdownRenderer, // displays small gray arrow on right side of the cell
   validator: dropdownValidator,
+  filter: false,
+  strict: true,
 };

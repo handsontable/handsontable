@@ -14,6 +14,30 @@ describe('DropdownEditor', () => {
     }
   });
 
+  it('should have correct meta options set when defines as a type', () => {
+    handsontable({
+      type: 'dropdown',
+      source: choices,
+    });
+
+    selectCell(0, 0);
+
+    expect(getCellMeta(0, 0).filter).toBe(false);
+    expect(getCellMeta(0, 0).strict).toBe(true);
+  });
+
+  it('should have correct meta options set when defines as an editor', () => {
+    handsontable({
+      editor: 'dropdown',
+      source: choices,
+    });
+
+    selectCell(0, 0);
+
+    expect(getCellMeta(0, 0).filter).toBe(false);
+    expect(getCellMeta(0, 0).strict).toBe(true);
+  });
+
   it('should render an editor in specified position at cell 0, 0', () => {
     handsontable({
       columns: [
