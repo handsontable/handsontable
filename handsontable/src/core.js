@@ -1299,7 +1299,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         while (changes[i][0] > instance.countRows() - 1) {
           const {
             delta: numberOfCreatedRows
-          } = datamap.createRow(undefined, undefined, { source });
+          } = datamap.createRow(undefined, undefined, { source: 'auto' });
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1313,7 +1313,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           const {
             delta: numberOfCreatedColumns
-          } = datamap.createCol(undefined, undefined, { source });
+          } = datamap.createCol(undefined, undefined, { source: 'auto' });
 
           if (numberOfCreatedColumns === 0) {
             skipThisChange = true;

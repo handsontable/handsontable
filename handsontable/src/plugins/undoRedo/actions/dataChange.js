@@ -71,8 +71,6 @@ export class DataChangeAction extends BaseAction {
    */
   undo(hot, undoneCallback) {
     const data = deepClone(this.changes);
-    const emptyRowsAtTheEnd = hot.countEmptyRows(true);
-    const emptyColsAtTheEnd = hot.countEmptyCols(true);
 
     for (let i = 0, len = data.length; i < len; i++) {
       data[i].splice(3, 1);
@@ -81,25 +79,24 @@ export class DataChangeAction extends BaseAction {
     hot.addHookOnce('afterChange', undoneCallback);
     hot.setDataAtCell(data, null, null, 'UndoRedo.undo');
 
-    for (let i = 0, len = data.length; i < len; i++) {
-      const [row, column] = data[i];
+    const countRows = hot.countRows();
+    const countCols = hot.countCols();
+    const emptyRowsAtTheEnd = hot.countEmptyRows(true);
+    const emptyColsAtTheEnd = hot.countEmptyCols(true);
+    const {
+      minSpareRows,
+      minSpareCols,
+    } = hot.getSettings();
 
-      if (hot.getSettings().minSpareRows &&
-          row + 1 + hot.getSettings().minSpareRows === hot.countRows() &&
-          emptyRowsAtTheEnd === hot.getSettings().minSpareRows) {
+    const startRowIndex = countRows - emptyRowsAtTheEnd + minSpareRows;
+    const rowsToRemove = emptyRowsAtTheEnd - minSpareRows;
 
-        hot.alter('remove_row', parseInt(row + 1, 10), hot.getSettings().minSpareRows);
-        hot.getPlugin('undoRedo').doneActions.pop();
-      }
+    hot.alter('remove_row', startRowIndex, rowsToRemove, 'UndoRedo.undo');
 
-      if (hot.getSettings().minSpareCols &&
-          column + 1 + hot.getSettings().minSpareCols === hot.countCols() &&
-          emptyColsAtTheEnd === hot.getSettings().minSpareCols) {
+    const startColumnIndex = countCols - emptyColsAtTheEnd + minSpareCols;
+    const columnsToRemove = emptyColsAtTheEnd - minSpareCols;
 
-        hot.alter('remove_col', parseInt(column + 1, 10), hot.getSettings().minSpareCols);
-        hot.getPlugin('undoRedo').doneActions.pop();
-      }
-    }
+    hot.alter('remove_col', startColumnIndex, columnsToRemove, 'UndoRedo.undo');
 
     hot.scrollToFocusedCell();
     hot.selectCells(this.selected, false, false);
