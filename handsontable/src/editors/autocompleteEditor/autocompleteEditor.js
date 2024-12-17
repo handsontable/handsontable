@@ -289,9 +289,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
 
     if (filterSetting === false) {
-      if (orderByRelevanceLength) {
-        highlightIndex = orderByRelevance[0];
-      }
+      highlightIndex = orderByRelevanceLength > 0 ? orderByRelevance[0] : 0;
 
     } else {
       const sorted = [];

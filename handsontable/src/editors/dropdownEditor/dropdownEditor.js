@@ -1,5 +1,4 @@
 import { AutocompleteEditor } from '../autocompleteEditor';
-import { Hooks } from '../../core/hooks';
 
 export const EDITOR_TYPE = 'dropdown';
 
@@ -21,23 +20,9 @@ export class DropdownEditor extends AutocompleteEditor {
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
   prepare(row, col, prop, td, value, cellProperties) {
+    cellProperties.filter = false;
+    cellProperties.strict = true;
+
     super.prepare(row, col, prop, td, value, cellProperties);
-    this.cellProperties.filter = false;
-    this.cellProperties.strict = true;
   }
 }
-
-Hooks.getSingleton().add('beforeValidate', function(value, row, col) {
-  const visualColumnIndex = this.propToCol(col);
-
-  if (Number.isInteger(visualColumnIndex)) {
-    const cellMeta = this.getCellMeta(row, visualColumnIndex);
-
-    if (cellMeta.editor === DropdownEditor) {
-      if (cellMeta.strict === undefined) {
-        cellMeta.filter = false;
-        cellMeta.strict = true;
-      }
-    }
-  }
-});

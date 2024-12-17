@@ -831,7 +831,7 @@ describe('manualRowMove', () => {
           .simulate('mousemove')
           .simulate('mouseup');
 
-        expect(hot.view.getFirstFullyVisibleRow()).toBe(8);
+        expect(hot.view.getFirstFullyVisibleRow()).toBe(7);
       });
     });
   });
