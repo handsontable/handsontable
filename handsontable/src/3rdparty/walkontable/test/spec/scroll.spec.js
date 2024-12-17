@@ -1457,50 +1457,65 @@ describe('WalkontableScroll', () => {
           totalRows: getTotalRows,
           totalColumns: getTotalColumns,
           rowHeight: 500,
+          rowHeightByOverlayName: 500,
         });
 
         wt.draw();
         wt.scrollViewport(new Walkontable.CellCoords(1, 0));
         wt.draw();
 
-        const firstRow = getTableMaster().find('tbody tr:first');
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
 
-        expect(firstRow.find('td:first').text()).toBe('A2');
-        expect(firstRow.find('td:last').text()).toBe('E2');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(1);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(1);
+          expect(firstRow.find('td:first').text()).toBe('A2');
+          expect(firstRow.find('td:last').text()).toBe('E2');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(1);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(1);
+        }
 
         wt.scrollViewport(new Walkontable.CellCoords(2, 0));
         wt.draw();
 
-        expect(firstRow.find('td:first').text()).toBe('A3');
-        expect(firstRow.find('td:last').text()).toBe('E3');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(2);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(2);
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
+
+          expect(firstRow.find('td:first').text()).toBe('A3');
+          expect(firstRow.find('td:last').text()).toBe('E3');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(2);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(2);
+        }
 
         wt.scrollViewport(new Walkontable.CellCoords(10, 0));
         wt.draw();
 
-        expect(firstRow.find('td:first').text()).toBe('A11');
-        expect(firstRow.find('td:last').text()).toBe('E11');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(10);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(10);
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
+
+          expect(firstRow.find('td:first').text()).toBe('A11');
+          expect(firstRow.find('td:last').text()).toBe('E11');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(10);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(10);
+        }
 
         wt.scrollViewport(new Walkontable.CellCoords(getTotalRows() - 1, 0));
         wt.draw();
 
-        expect(firstRow.find('td:first').text()).toBe('A100');
-        expect(firstRow.find('td:last').text()).toBe('E100');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(99);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(99);
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
+
+          expect(firstRow.find('td:first').text()).toBe('A100');
+          expect(firstRow.find('td:last').text()).toBe('E100');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(99);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(99);
+        }
       });
 
       it('should scroll to the next cell that is above viewport when all rows are oversized', () => {
@@ -1509,6 +1524,7 @@ describe('WalkontableScroll', () => {
           totalRows: getTotalRows,
           totalColumns: getTotalColumns,
           rowHeight: 500,
+          rowHeightByOverlayName: 500,
         });
 
         wt.draw();
@@ -1517,34 +1533,44 @@ describe('WalkontableScroll', () => {
         wt.scrollViewport(new Walkontable.CellCoords(90, 0));
         wt.draw();
 
-        const firstRow = getTableMaster().find('tbody tr:first');
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
 
-        expect(firstRow.find('td:first').text()).toBe('A91');
-        expect(firstRow.find('td:last').text()).toBe('E91');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(90);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(90);
+          expect(firstRow.find('td:first').text()).toBe('A91');
+          expect(firstRow.find('td:last').text()).toBe('E91');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(90);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(90);
+        }
 
         wt.scrollViewport(new Walkontable.CellCoords(50, 0));
         wt.draw();
 
-        expect(firstRow.find('td:first').text()).toBe('A51');
-        expect(firstRow.find('td:last').text()).toBe('E51');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(50);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(50);
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
+
+          expect(firstRow.find('td:first').text()).toBe('A51');
+          expect(firstRow.find('td:last').text()).toBe('E51');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(50);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(50);
+        }
 
         wt.scrollViewport(new Walkontable.CellCoords(0, 0));
         wt.draw();
 
-        expect(firstRow.find('td:first').text()).toBe('A1');
-        expect(firstRow.find('td:last').text()).toBe('E1');
-        expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
-        expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
-        expect(wt.wtTable.getLastRenderedRow()).toBe(0);
+        {
+          const firstRow = getTableMaster().find('tbody tr:first');
+
+          expect(firstRow.find('td:first').text()).toBe('A1');
+          expect(firstRow.find('td:last').text()).toBe('E1');
+          expect(wt.wtTable.getFirstVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getLastVisibleRow()).toBe(-1);
+          expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
+          expect(wt.wtTable.getLastRenderedRow()).toBe(0);
+        }
       });
     });
   });

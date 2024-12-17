@@ -1,9 +1,10 @@
-import BaseRenderer from './_base';
-import { warn } from './../../../../helpers/console';
-import { toSingleLine } from './../../../../helpers/templateLiteralTag';
-import { OrderView } from './../utils/orderView';
+import { BaseRenderer } from './_base';
+import { warn } from '../../../../helpers/console';
+import { toSingleLine } from '../../../../helpers/templateLiteralTag';
+import { OrderView } from '../utils/orderView';
 import {
   addClass,
+  hasClass,
   removeClass,
   setAttribute
 } from '../../../../helpers/dom/element';
@@ -31,7 +32,7 @@ let performanceWarningAppeared = false;
  *
  * @class {RowsRenderer}
  */
-export default class RowsRenderer extends BaseRenderer {
+export class RowsRenderer extends BaseRenderer {
   /**
    * Cache for OrderView classes connected to specified node.
    *
@@ -45,7 +46,6 @@ export default class RowsRenderer extends BaseRenderer {
     this.orderView = new OrderView(
       rootNode,
       sourceRowIndex => this.nodesPool.obtain(sourceRowIndex),
-      this.nodeType,
     );
   }
 
@@ -57,6 +57,16 @@ export default class RowsRenderer extends BaseRenderer {
    */
   getRenderedNode(visualIndex) {
     return this.orderView.getNode(visualIndex);
+  }
+
+  /**
+   * Checks if the the row is marked as "stale" and has to be rerendered.
+   *
+   * @param {number} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
+   * @returns {boolean}
+   */
+  hasStaleContent(visualIndex) {
+    return this.orderView.hasStaleContent(visualIndex);
   }
 
   /**
@@ -97,12 +107,13 @@ export default class RowsRenderer extends BaseRenderer {
         ]);
       }
 
-      removeClass(TR, [ROW_CLASSNAMES.rowEven, ROW_CLASSNAMES.rowOdd]);
-
       if ((sourceRowIndex + 1) % 2 === 0) {
-        addClass(TR, ROW_CLASSNAMES.rowEven);
-
-      } else {
+        if (!hasClass(TR, ROW_CLASSNAMES.rowEven)) {
+          removeClass(TR, ROW_CLASSNAMES.rowOdd);
+          addClass(TR, ROW_CLASSNAMES.rowEven);
+        }
+      } else if (!hasClass(TR, ROW_CLASSNAMES.rowOdd)) {
+        removeClass(TR, ROW_CLASSNAMES.rowEven);
         addClass(TR, ROW_CLASSNAMES.rowOdd);
       }
     }

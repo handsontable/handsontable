@@ -244,15 +244,14 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       rowHeight: 2000, // the rows are wider than table viewport height
+      rowHeightByOverlayName: 2000, // the rows are wider than table viewport height
     });
 
     wt.draw();
     getTableMaster().find('.wtHolder').scrollTop(100);
 
-    const firstRow = getTableMaster().find('tbody tr:first');
-
     expect(getTableMaster().find('tbody tr').length).toBe(1);
-    expect(firstRow.find('td:first').text()).toBe('0');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('0');
 
     getTableMaster().find('.wtHolder').scrollTop(2000);
 
@@ -260,7 +259,7 @@ describe('WalkontableTable', () => {
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
-    expect(firstRow.find('td:first').text()).toBe('1');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('1');
 
     getTableMaster().find('.wtHolder').scrollTop(3814); // 1px before the 3rd row is loaded
 
@@ -268,7 +267,7 @@ describe('WalkontableTable', () => {
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
-    expect(firstRow.find('td:first').text()).toBe('1');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('1');
 
     getTableMaster().find('.wtHolder').scrollTop(3815); // the 3rd row is loaded
 
@@ -276,7 +275,7 @@ describe('WalkontableTable', () => {
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(2);
-    expect(firstRow.find('td:first').text()).toBe('1');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('1');
 
     getTableMaster().find('.wtHolder').scrollTop(3500);
 
@@ -284,7 +283,7 @@ describe('WalkontableTable', () => {
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
-    expect(firstRow.find('td:first').text()).toBe('1');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('1');
 
     getTableMaster().find('.wtHolder').scrollTop(4000);
 
@@ -292,7 +291,7 @@ describe('WalkontableTable', () => {
     await sleep(20);
 
     expect(getTableMaster().find('tbody tr').length).toBe(1);
-    expect(firstRow.find('td:first').text()).toBe('2');
+    expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('2');
   });
 
   it('should use column width function to get column width', () => {

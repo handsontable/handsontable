@@ -1,4 +1,4 @@
-import CellsRenderer from 'walkontable/renderer/cells';
+import { CellsRenderer } from 'walkontable/renderer/cells';
 
 function createRenderer() {
   const renderer = new CellsRenderer();

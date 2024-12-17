@@ -1,11 +1,11 @@
-import OrderView from './view';
+import { OrderView } from './view';
 
 /**
  * Executive model for TR root nodes.
  *
  * @class {SharedOrderView}
  */
-export default class SharedOrderView extends OrderView {
+export class SharedOrderView extends OrderView {
   /**
    * The method results in merging external order view into the current order. This happens only for order views which
    * operate on the same root node.
