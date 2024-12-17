@@ -8,8 +8,8 @@
       position: relative;
 
       &.sortAction {
-        padding-inline-start: var(--ht-icon-size, 16px);
-        padding-inline-end: var(--ht-icon-size, 16px);
+        padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
+        padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
         min-width: calc(var(--ht-icon-size, 16px) + 8px);
         max-width: calc(100% - calc(var(--ht-icon-size, 16px) * 2) - 4px);
 

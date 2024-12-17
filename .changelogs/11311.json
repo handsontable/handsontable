@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed data deletion for checkbox cell types",
+  "title": "Fixed unwanted selection expanding after editor close.",
   "type": "fixed",
-  "issueOrPR": 11263,
+  "issueOrPR": 11311,
   "breaking": false,
   "framework": "none"
 }

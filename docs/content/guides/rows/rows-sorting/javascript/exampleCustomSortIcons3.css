@@ -27,7 +27,10 @@
 }
 
 .custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting::after {
-  right: -13px;
-  top: 1px;
-  zoom: 200%;
+  width: 10px;
+  font-size: 10px;
+}
+
+.custom-sort-icon-example-3 .handsontable .columnSorting.sortAction:before {
+  right: 5px;
 }

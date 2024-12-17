@@ -1,5 +1,5 @@
-import RowsRenderer from 'walkontable/renderer/rows';
-import OrderView from 'walkontable/utils/orderView/view';
+import { RowsRenderer } from 'walkontable/renderer/rows';
+import { OrderView } from 'walkontable/utils/orderView/view';
 
 jest.mock('walkontable/utils/orderView/view');
 
@@ -19,7 +19,7 @@ describe('RowsRenderer', () => {
     const { renderer, rootNode } = createRenderer();
 
     expect(renderer.nodeType).toBe('TR');
-    expect(renderer.orderView.constructor).toHaveBeenCalledWith(rootNode, jasmine.any(Function), 'TR');
+    expect(renderer.orderView.constructor).toHaveBeenCalledWith(rootNode, jasmine.any(Function));
   });
 
   it('should get rendered node through orderView method', () => {

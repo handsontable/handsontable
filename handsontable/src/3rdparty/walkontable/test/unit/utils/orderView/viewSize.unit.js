@@ -1,4 +1,4 @@
-import ViewSize from 'walkontable/utils/orderView/viewSize';
+import { ViewSize } from 'walkontable/utils/orderView/viewSize';
 
 describe('ViewSize', () => {
   it('should be correctly constructed', () => {

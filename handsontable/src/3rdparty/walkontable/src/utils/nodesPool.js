@@ -3,13 +3,19 @@
  *
  * @class {NodesPool}
  */
-export default class NodesPool {
+export class NodesPool {
   /**
-   * Node type to generate (ew 'th', 'td').
+   * Node type to generate (e.g. 'TH', 'TD').
    *
    * @type {string}
    */
   nodeType;
+  /**
+   * The holder for all created DOM nodes (THs, TDs).
+   *
+   * @type {Map<string, HTMLElement>}
+   */
+  pool = new Map();
 
   constructor(nodeType) {
     this.nodeType = nodeType.toUpperCase();
@@ -18,18 +24,31 @@ export default class NodesPool {
   /**
    * Set document owner for this instance.
    *
-   * @param {HTMLDocument} rootDocument The document window owner.
+   * @param {Document} rootDocument The document window owner.
    */
   setRootDocument(rootDocument) {
     this.rootDocument = rootDocument;
   }
 
   /**
-   * Obtains an element. The returned elements in the feature can be cached.
+   * Obtains an element.
    *
+   * @param {number} rowIndex The row index.
+   * @param {number} [columnIndex] The column index.
    * @returns {HTMLElement}
    */
-  obtain() {
-    return this.rootDocument.createElement(this.nodeType);
+  obtain(rowIndex, columnIndex) {
+    const hasColumnIndex = typeof columnIndex === 'number';
+    const key = hasColumnIndex ? `${rowIndex}x${columnIndex}` : rowIndex.toString();
+
+    if (this.pool.has(key)) {
+      return this.pool.get(key);
+    }
+
+    const node = this.rootDocument.createElement(this.nodeType);
+
+    this.pool.set(key, node);
+
+    return node;
   }
 }

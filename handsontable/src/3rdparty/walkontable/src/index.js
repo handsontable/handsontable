@@ -21,6 +21,7 @@ import {
 } from './selection';
 import * as Renderer from './renderer';
 import { OrderView, SharedOrderView } from './utils/orderView';
+import { NodesPool } from './utils/nodesPool';
 import { getListenersCounter } from '../../../eventManager';
 
 export {
@@ -45,6 +46,7 @@ export {
   CUSTOM_SELECTION_TYPE as HIGHLIGHT_CUSTOM_SELECTION_TYPE,
 
   Renderer,
+  NodesPool,
   OrderView,
   SharedOrderView,
 

@@ -1,7 +1,7 @@
 {
   "issuesOrigin": "private",
-  "title": "Added ability to cache renderers",
-  "type": "added",
+  "title": "Changed the approach how the table is rendered.",
+  "type": "changed",
   "issueOrPR": 11264,
   "breaking": false,
   "framework": "none"

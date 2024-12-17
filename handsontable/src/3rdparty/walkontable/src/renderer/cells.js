@@ -2,9 +2,9 @@ import {
   hasClass,
   removeAttribute,
   setAttribute,
-} from './../../../../helpers/dom/element';
-import { SharedOrderView } from './../utils/orderView';
-import BaseRenderer from './_base';
+} from '../../../../helpers/dom/element';
+import { SharedOrderView } from '../utils/orderView';
+import { BaseRenderer } from './_base';
 import {
   A11Y_COLINDEX,
   A11Y_GRIDCELL,
@@ -24,7 +24,7 @@ import {
  *
  * @class {CellsRenderer}
  */
-export default class CellsRenderer extends BaseRenderer {
+export class CellsRenderer extends BaseRenderer {
   /**
    * Cache for OrderView classes connected to specified node.
    *
@@ -80,8 +80,6 @@ export default class CellsRenderer extends BaseRenderer {
       const orderView = this.obtainOrderView(TR);
       const rowHeadersView = rowHeaders.obtainOrderView(TR);
 
-      // @TODO(perf-tip): For cells other than "visual 0" generating diff leads/commands can be skipped. New order view
-      // should share state between next orderViews.
       orderView
         .prependView(rowHeadersView)
         .setSize(columnsToRender)
@@ -91,8 +89,8 @@ export default class CellsRenderer extends BaseRenderer {
       for (let visibleColumnIndex = 0; visibleColumnIndex < columnsToRender; visibleColumnIndex++) {
         orderView.render();
 
-        const TD = orderView.getCurrentNode();
         const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
+        const TD = orderView.getCurrentNode();
 
         if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
           TD.className = '';

@@ -539,6 +539,29 @@ describe('Core_view', () => {
     expect(getTopClone().width()).toBe(200);
   });
 
+  it('should not extend the selection to the cell under the mouse pointer after the viewport is moved (#dev-1479)', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    simulateClick(getCell(0, 0));
+    keyDownUp('enter');
+    getActiveEditor().TEXTAREA.value = 'AVeryLongStringThatWillBePastedInASingleCell';
+
+    // emulates behavior that is similar to the one that is caused by the bug
+    $(getCell(1, 2))
+      .simulate('mousedown');
+    $(getCell(1, 0))
+      .simulate('mouseover', {
+        clientX: 100, // coordinates of the cell 1, 2 before the column is resized
+        clientY: 24, // coordinates of the cell 1, 2 before the column is resized
+      })
+      .simulate('mouseup')
+      .simulate('click');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
+  });
+
   describe('scroll', () => {
     it('should call preventDefault in a wheel event on fixed overlay\'s element', async() => {
       spec().$container.css({

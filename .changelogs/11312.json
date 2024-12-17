@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed cell fast edit mode when a comment is shown.",
+  "title": "Fixed viewport scroll after row moving for nested rows.",
   "type": "fixed",
-  "issueOrPR": 11280,
+  "issueOrPR": 11312,
   "breaking": false,
   "framework": "none"
 }
