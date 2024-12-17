@@ -3075,11 +3075,13 @@ export default () => {
      *
      * You can set the `mergeCells` option to one of the following:
      *
-     * | Setting             | Description                                                                                         |
-     * | ------------------- | --------------------------------------------------------------------------------------------------- |
-     * | `true`              | Enable the [`MergeCells`](@/api/mergeCells.md) plugin                                               |
-     * | `false`             | Disable the [`MergeCells`](@/api/mergeCells.md) plugin                                              |
-     * | An array of objects | - Enable the [`MergeCells`](@/api/mergeCells.md) plugin<br>- Merge specific cells at initialization |
+     * | Setting               | Description                                                                                         |
+     * | --------------------- | --------------------------------------------------------------------------------------------------- |
+     * | `true`                | Enable the [`MergeCells`](@/api/mergeCells.md) plugin                                               |
+     * | `false`               | Disable the [`MergeCells`](@/api/mergeCells.md) plugin                                              |
+     * | An array of objects   | - Enable the [`MergeCells`](@/api/mergeCells.md) plugin<br>- Merge specific cells at initialization |
+     * | { virtualized: true } | Enable the [`MergeCells`](@/api/mergeCells.md) plugin with enabled virtualization mode              |
+     *
      *
      * To merge specific cells at Handsontable's initialization,
      * set the `mergeCells` option to an array of objects, with the following properties:
@@ -3114,6 +3116,20 @@ export default () => {
      *   // merge cells from cell (5,6) to cell (3,3)
      *   {row: 5, col: 6, rowspan: 3, colspan: 3}
      * ],
+     *
+     * // enable the `MergeCells` plugin with enabled virtualization mode
+     * // and merge specific cells at initialization
+     * mergeCells: {
+     *   virtualized: true,
+     *   cells: [
+     *     // merge cells from cell (1,1) to cell (3,3)
+     *     {row: 1, col: 1, rowspan: 3, colspan: 3},
+     *     // merge cells from cell (3,4) to cell (2,2)
+     *     {row: 3, col: 4, rowspan: 2, colspan: 2},
+     *     // merge cells from cell (5,6) to cell (3,3)
+     *     {row: 5, col: 6, rowspan: 3, colspan: 3}
+     *   ],
+     * },
      * ```
      */
     mergeCells: false,
