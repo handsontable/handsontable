@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed viewport scroll after row moving for nested rows.",
+  "type": "fixed",
+  "issueOrPR": 11312,
+  "breaking": false,
+  "framework": "none"
+}

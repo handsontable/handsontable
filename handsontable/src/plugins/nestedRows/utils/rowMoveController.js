@@ -267,8 +267,6 @@ export default class RowMoveController {
     const rowsLen = rows.length;
     let startRow = 0;
     let endRow = 0;
-    let selection = null;
-    let lastColIndex = null;
 
     if (this.movedToCollapsed) {
       let physicalDropIndex = null;
@@ -297,11 +295,7 @@ export default class RowMoveController {
       endRow = startRow + rowsLen - 1;
     }
 
-    selection = this.hot.selection;
-    lastColIndex = this.hot.countCols() - 1;
-
-    selection.setRangeStart(this.hot._createCellCoords(startRow, 0));
-    selection.setRangeEnd(this.hot._createCellCoords(endRow, lastColIndex), true);
+    this.hot.selectCells([[startRow, 0, endRow, this.hot.countCols() - 1]], false);
   }
 
   // TODO: Reimplementation of function which is inside the `ManualRowMove` plugin.
