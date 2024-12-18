@@ -70,4 +70,25 @@ describe('Handsontable editor theme handling', () => {
     expect($(getActiveEditor().htEditor.rootElement).hasClass('ht-theme-sth-else')).toBe(true);
     expect(getActiveEditor().htEditor.getCurrentThemeName()).toBe('ht-theme-sth-else');
   });
+
+  it('should not throw an exception after changing a theme for non-fully-initialized editor (#dev-2157)', () => {
+    simulateModernThemeStylesheet(spec().$container);
+    handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ],
+    });
+
+    selectCell(0, 0);
+
+    expect(() => {
+      updateSettings({ themeName: 'ht-theme-sth-else' });
+    }).not.toThrow();
+  });
 });
