@@ -3982,6 +3982,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countVisibleRows = function() {
 
+
     return instance.view._wt.drawn ? instance.view._wt.wtTable.getVisibleRowsCount() : -1;
   };
 
