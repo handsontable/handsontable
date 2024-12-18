@@ -2160,7 +2160,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return;
     }
 
-    const { width: lastWidth, height: lastHeight } = instance.view.getLastSize();
+    const view = instance.view;
+    const { width: lastWidth, height: lastHeight } = view.getLastSize();
     const { width, height } = instance.rootElement.getBoundingClientRect();
     const isSizeChanged = width !== lastWidth || height !== lastHeight;
     const isResizeBlocked = instance.runHooks(
@@ -2174,9 +2175,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return;
     }
 
-    if (isSizeChanged || instance.view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
-      instance.view.setLastSize(width, height);
+    if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
+      view.setLastSize(width, height);
       instance.render();
+      view.adjustElementsSize();
     }
 
     instance.runHooks(
