@@ -13,6 +13,10 @@ on:
       - 'release/**'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   check-scope:
     name: Check the scope

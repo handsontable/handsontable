@@ -14,16 +14,21 @@ on:
           - https://dev.handsontable.com/docs
           - https://handsontable.com/docs
           - http://localhost:8080/docs
-  
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.run_id }}
+  cancel-in-progress: true
+
 defaults:
   run:
     working-directory: ./docs/
+
 jobs:
   run-tests:
     name: Visual tests for ${{ github.event.inputs.test_env }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    env: 
+    env:
       PASS_COOKIE: ${{ secrets.PASS_COOKIE }}
     steps:
       - name: Checkout
@@ -42,21 +47,21 @@ jobs:
           npx playwright install --with-deps
 
       - name: Install the monorepo dependencies and build the packages
-        if: ${{inputs.test_env == 'http://localhost:8080/docs'}} 
+        if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
         run: |
           cd ..
           npm ci
           npm run all build -- --e examples visual-tests
 
       - name: Generate API refs
-        if: ${{inputs.test_env == 'http://localhost:8080/docs'}} 
+        if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
         run: |
           npm run docs:api
-      
+
       - name: Build documentation
-        if: ${{inputs.test_env == 'http://localhost:8080/docs'}} 
+        if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
         run: |
-          npm run docs:build       
+          npm run docs:build
 
       - name: Set up cache
         id: cache

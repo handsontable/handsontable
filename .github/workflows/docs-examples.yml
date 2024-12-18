@@ -6,6 +6,10 @@ on:
       - 'docs/**'
     types: [opened, synchronize, reopened]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   docs_examples:
     name: Docs Examples
