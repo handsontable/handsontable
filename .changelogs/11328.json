@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed broken scroll on overlays when batch is used",
+  "type": "fixed",
+  "issueOrPR": 11328,
+  "breaking": false,
+  "framework": "none"
+}
