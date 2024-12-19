@@ -364,16 +364,12 @@ class Overlays {
     ];
 
     overlays.forEach((overlay) => {
-      if (overlay && overlay.needFullRender) {
-        const { holder } = overlay.clone.wtTable; // todo rethink, maybe: overlay.getHolder()
-
-        this.eventManager.addEventListener(
-          holder,
-          'wheel',
-          event => this.onCloneWheel(event, preventWheel),
-          wheelEventOptions
-        );
-      }
+      this.eventManager.addEventListener(
+        overlay.clone.wtTable.holder,
+        'wheel',
+        event => this.onCloneWheel(event, preventWheel),
+        wheelEventOptions
+      );
     });
 
     let resizeTimeout;
@@ -393,13 +389,6 @@ class Overlays {
     if (!isScrollOnWindow) {
       this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
     }
-  }
-
-  /**
-   * Deregister all previously registered listeners.
-   */
-  deregisterListeners() {
-    this.eventManager.clearEvents(true);
   }
 
   /**
@@ -594,36 +583,12 @@ class Overlays {
   }
 
   /**
-   * Update the main scrollable elements for all the overlays.
-   */
-  updateMainScrollableElements() {
-    this.deregisterListeners();
-
-    this.inlineStartOverlay.updateMainScrollableElement();
-    this.topOverlay.updateMainScrollableElement();
-
-    if (this.bottomOverlay.needFullRender) {
-      this.bottomOverlay.updateMainScrollableElement();
-    }
-    const { wtTable } = this;
-    const { rootWindow } = this.domBindings;
-
-    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
-      this.scrollableElement = wtTable.holder;
-    } else {
-      this.scrollableElement = getScrollableElement(wtTable.TABLE);
-    }
-
-    this.registerListeners();
-  }
-
-  /**
    *
    */
   destroy() {
     this.resizeObserver.disconnect();
     this.eventManager.destroy();
-    // todo, probably all below `destory` calls has no sense. To analyze
+    // todo, probably all below `destroy` calls has no sense. To analyze
     this.topOverlay.destroy();
 
     if (this.bottomOverlay.clone) {

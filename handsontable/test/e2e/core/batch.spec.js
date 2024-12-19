@@ -14,7 +14,7 @@ describe('Core.batch', () => {
 
   it('should batch multi-line operations into one render and execution call', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       autoColumnSize: false,
       autoRowSize: false,
     });
@@ -76,7 +76,7 @@ describe('Core.batch', () => {
 
   it('should batch showing/hiding headers correctly', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       colHeaders: false,
       rowHeaders: false,
     });
@@ -119,7 +119,7 @@ describe('Core.batch', () => {
 
   it('should batch adjusting fixed headers correctly', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       fixedRowsTop: 0,
       fixedColumnsStart: 0,
       fixedRowsBottom: 0,
