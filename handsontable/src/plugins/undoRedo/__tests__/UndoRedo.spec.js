@@ -116,8 +116,6 @@ describe('UndoRedo', () => {
           minSpareRows: 2
         });
 
-        expect(getData()).toEqual([['A1'], ['A2'], [null], [null]]);
-
         setDataAtCell(2, 0, 'A3');
         setDataAtCell(4, 0, 'A4');
 
@@ -127,6 +125,43 @@ describe('UndoRedo', () => {
         getPlugin('undoRedo').undo();
 
         expect(getData()).toEqual([['A1'], ['A2'], [null], [null]]);
+      });
+
+      it('should undo and redo dataset change that expands the table with minSpareRows (#dev-381)', () => {
+        handsontable({
+          data: createSpreadsheetData(3, 3),
+          minSpareRows: 2,
+        });
+
+        setDataAtCell([
+          [4, 0, 'A1'], [4, 1, 'B1'],
+          [5, 0, 'A2'], [5, 1, 'B2'],
+          [6, 0, 'A3'], [6, 1, 'B3'],
+        ]);
+
+        getPlugin('undoRedo').undo();
+
+        expect(getData()).toEqual([
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+          [null, null, null],
+          [null, null, null],
+        ]);
+
+        getPlugin('undoRedo').redo();
+
+        expect(getData()).toEqual([
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+          [null, null, null],
+          ['A1', 'B1', null],
+          ['A2', 'B2', null],
+          ['A3', 'B3', null],
+          [null, null, null],
+          [null, null, null],
+        ]);
       });
 
       it('should undo removal of single row', () => {
@@ -419,14 +454,15 @@ describe('UndoRedo', () => {
           minSpareCols: 2
         });
 
-        expect(getData()).toEqual([['A1', null, null]]);
-
         setDataAtCell(0, 1, 'B1');
         setDataAtCell(0, 3, 'C1');
 
         expect(getData()).toEqual([['A1', 'B1', null, 'C1', null, null]]);
 
         getPlugin('undoRedo').undo();
+
+        expect(getData()).toEqual([['A1', 'B1', null, null]]);
+
         getPlugin('undoRedo').undo();
 
         expect(getData()).toEqual([['A1', null, null]]);
@@ -446,6 +482,35 @@ describe('UndoRedo', () => {
         expect(countCols()).toBe(3);
         expect(getData()).toEqual([
           ['A1', 'B1', null],
+        ]);
+      });
+
+      it('should undo and redo dataset change that expands the table with minSpareCols (#dev-381)', () => {
+        handsontable({
+          data: createSpreadsheetData(3, 3),
+          minSpareCols: 2,
+        });
+
+        setDataAtCell([
+          [0, 4, 'A1'], [0, 5, 'B1'],
+          [1, 4, 'A2'], [1, 5, 'B2'],
+          [2, 4, 'A3'], [2, 5, 'B3'],
+        ]);
+
+        getPlugin('undoRedo').undo();
+
+        expect(getData()).toEqual([
+          ['A1', 'B1', 'C1', null, null],
+          ['A2', 'B2', 'C2', null, null],
+          ['A3', 'B3', 'C3', null, null],
+        ]);
+
+        getPlugin('undoRedo').redo();
+
+        expect(getData()).toEqual([
+          ['A1', 'B1', 'C1', null, 'A1', 'B1', null, null],
+          ['A2', 'B2', 'C2', null, 'A2', 'B2', null, null],
+          ['A3', 'B3', 'C3', null, 'A3', 'B3', null, null],
         ]);
       });
 
@@ -1022,6 +1087,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
       });
     });
+
     describe('redo', () => {
       it('should redo single change', () => {
         handsontable({
