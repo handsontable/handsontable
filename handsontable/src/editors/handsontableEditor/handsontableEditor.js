@@ -200,14 +200,12 @@ export class HandsontableEditor extends TextEditor {
    */
   assignHooks() {
     this.hot.addHook('afterDestroy', () => {
-      if (this.htEditor) {
-        this.htEditor.destroy();
-      }
+      this.htEditor?.destroy();
     });
 
     this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
       if (!firstRun) {
-        this.htEditor.useTheme(themeName);
+        this.htEditor?.useTheme(themeName);
       }
     });
   }
