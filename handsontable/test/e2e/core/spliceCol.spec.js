@@ -91,15 +91,16 @@ describe('Core.spliceCol', () => {
   it('should trigger beforeCreateRow and afterCreateRow hook with proper arguments', () => {
     const spyAfter = jasmine.createSpy('after');
     const spyBefore = jasmine.createSpy('before');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       beforeCreateRow: spyBefore,
       afterCreateRow: spyAfter,
     });
 
-    hot.spliceCol(2, 1, 3, 'X1', 'X2', 'X3', 'X4');
+    spliceCol(2, 1, 3, 'X1', 'X2', 'X3', 'X4');
 
-    expect(spyBefore).toHaveBeenCalledWith(5, 1, 'spliceCol');
-    expect(spyAfter).toHaveBeenCalledWith(5, 1, 'spliceCol');
+    expect(spyBefore).toHaveBeenCalledWith(5, 1, 'auto');
+    expect(spyAfter).toHaveBeenCalledWith(5, 1, 'auto');
   });
 });

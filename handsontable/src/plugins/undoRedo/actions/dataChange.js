@@ -1,6 +1,5 @@
 import { BaseAction } from './_base';
 import { deepClone } from '../../../helpers/object';
-import { arrayEach } from '../../../helpers/array';
 
 /**
  * Action that tracks data changes.
@@ -17,15 +16,25 @@ export class DataChangeAction extends BaseAction {
    * @param {number[]} selected The cell selection.
    */
   selected;
+  /**
+   * @param {number} countCols The number of columns before data change.
+   */
+  countCols;
+  /**
+   * @param {number} countRows The number of rows before data change.
+   */
+  countRows;
 
-  constructor({ changes, selected }) {
+  constructor({ changes, selected, countCols, countRows }) {
     super();
     this.changes = changes;
     this.selected = selected;
+    this.countCols = countCols;
+    this.countRows = countRows;
   }
 
   static startRegisteringEvents(hot, undoRedoPlugin) {
-    hot.addHook('afterChange', function(changes, source) {
+    hot.addHook('beforeChange', function(changes, source) {
       const changesLen = changes && changes.length;
 
       if (!changesLen) {
@@ -49,7 +58,7 @@ export class DataChangeAction extends BaseAction {
           return arr;
         }, []);
 
-        arrayEach(clonedChanges, (change) => {
+        clonedChanges.forEach((change) => {
           change[1] = hot.propToCol(change[1]);
         });
 
@@ -58,6 +67,8 @@ export class DataChangeAction extends BaseAction {
         return new DataChangeAction({
           changes: clonedChanges,
           selected,
+          countCols: hot.countCols(),
+          countRows: hot.countRows(),
         });
       };
 
@@ -71,8 +82,6 @@ export class DataChangeAction extends BaseAction {
    */
   undo(hot, undoneCallback) {
     const data = deepClone(this.changes);
-    const emptyRowsAtTheEnd = hot.countEmptyRows(true);
-    const emptyColsAtTheEnd = hot.countEmptyCols(true);
 
     for (let i = 0, len = data.length; i < len; i++) {
       data[i].splice(3, 1);
@@ -81,24 +90,16 @@ export class DataChangeAction extends BaseAction {
     hot.addHookOnce('afterChange', undoneCallback);
     hot.setDataAtCell(data, null, null, 'UndoRedo.undo');
 
-    for (let i = 0, len = data.length; i < len; i++) {
-      const [row, column] = data[i];
+    const rowsToRemove = hot.countRows() - this.countRows;
 
-      if (hot.getSettings().minSpareRows &&
-          row + 1 + hot.getSettings().minSpareRows === hot.countRows() &&
-          emptyRowsAtTheEnd === hot.getSettings().minSpareRows) {
+    if (rowsToRemove > 0) {
+      hot.alter('remove_row', null, rowsToRemove, 'UndoRedo.undo');
+    }
 
-        hot.alter('remove_row', parseInt(row + 1, 10), hot.getSettings().minSpareRows);
-        hot.getPlugin('undoRedo').doneActions.pop();
-      }
+    const columnsToRemove = hot.countCols() - this.countCols;
 
-      if (hot.getSettings().minSpareCols &&
-          column + 1 + hot.getSettings().minSpareCols === hot.countCols() &&
-          emptyColsAtTheEnd === hot.getSettings().minSpareCols) {
-
-        hot.alter('remove_col', parseInt(column + 1, 10), hot.getSettings().minSpareCols);
-        hot.getPlugin('undoRedo').doneActions.pop();
-      }
+    if (columnsToRemove > 0 && hot.isColumnModificationAllowed()) {
+      hot.alter('remove_col', null, columnsToRemove, 'UndoRedo.undo');
     }
 
     hot.scrollToFocusedCell();

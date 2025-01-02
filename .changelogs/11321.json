@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed undo/redo for rows/columns with enabled min spare indexes",
+  "type": "fixed",
+  "issueOrPR": 11321,
+  "breaking": false,
+  "framework": "none"
+}

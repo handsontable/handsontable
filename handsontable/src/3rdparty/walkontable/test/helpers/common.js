@@ -113,6 +113,41 @@ export function walkontable(options, table) {
 }
 
 /**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topOverlay() {
+  return wot().wtOverlays.topOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomOverlay() {
+  return wot().wtOverlays.bottomOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function topInlineStartCornerOverlay() {
+  return wot().wtOverlays.topInlineStartCornerOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function inlineStartOverlay() {
+  return wot().wtOverlays.inlineStartOverlay;
+}
+
+/**
+ * @returns {Overlay} Returns the table's overlay instance.
+ */
+export function bottomInlineStartCornerOverlay() {
+  return wot().wtOverlays.bottomInlineStartCornerOverlay;
+}
+
+/**
  * Creates the new data into an object returned by "spec()" function.
  *
  * @param {number} [rows=100] The number of rows to generate.

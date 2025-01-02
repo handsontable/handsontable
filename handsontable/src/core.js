@@ -1299,7 +1299,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         while (changes[i][0] > instance.countRows() - 1) {
           const {
             delta: numberOfCreatedRows
-          } = datamap.createRow(undefined, undefined, { source });
+          } = datamap.createRow(undefined, undefined, { source: 'auto' });
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1313,7 +1313,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           const {
             delta: numberOfCreatedColumns
-          } = datamap.createCol(undefined, undefined, { source });
+          } = datamap.createCol(undefined, undefined, { source: 'auto' });
 
           if (numberOfCreatedColumns === 0) {
             skipThisChange = true;
@@ -2617,11 +2617,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.forceFullRender = true; // used when data was changed
       instance.view.render();
       instance.view._wt.wtOverlays.adjustElementsSize();
-    }
-
-    if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
-        currentHeight !== height) {
-      instance.view._wt.wtOverlays.updateMainScrollableElements();
     }
   };
 
