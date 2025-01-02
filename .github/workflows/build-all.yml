@@ -8,6 +8,10 @@ on:
       - 'release/**'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   NODE_VERSION: 22
   PYTHON_VERSION: '3.11'
