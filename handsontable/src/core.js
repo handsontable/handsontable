@@ -2592,7 +2592,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const currentThemeName = instance.getCurrentThemeName();
         const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
 
-        if (currentThemeName && themeNameOptionExists) {
+        if (
+          currentThemeName &&
+          themeNameOptionExists &&
+          currentThemeName !== settings.themeName
+        ) {
           instance.view.getStylesHandler().removeClassNames();
           instance.view.removeClassNameFromLicenseElement(currentThemeName);
         }
