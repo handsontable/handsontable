@@ -103,7 +103,7 @@ const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
 
 root.render(
-  <div class="ht-theme-main">
+  <div class="ht-theme-main-dark-auto">
     <ExampleComponent />
   </div>
 );`
