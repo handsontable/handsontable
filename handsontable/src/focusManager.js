@@ -244,7 +244,7 @@ export class FocusManager {
     this.#getSelectedCell((selectedCell) => {
       if (
         this.getFocusMode() === FOCUS_MODES.MIXED &&
-        selectedCell.nodeName === 'TD'
+        selectedCell?.nodeName === 'TD'
       ) {
         this.refocusToEditorTextarea();
       }
