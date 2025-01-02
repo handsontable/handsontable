@@ -570,7 +570,7 @@ jobs:
       - test-vue
       - test-vue3
     if: |
-      !failure() && (
+      !failure() && !cancelled() && (
         needs.test-handsontable-e2e.result == 'success' ||
         needs.test-handsontable-e2e-min.result == 'success' ||
         needs.test-angular.result == 'success' ||
