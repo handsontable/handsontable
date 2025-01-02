@@ -2628,6 +2628,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    *
    *
+   *
    * @memberof Core#
    * @function getValue
    * @returns {*} The value of the focused cell.
