@@ -681,6 +681,15 @@ describe('Core_updateSettings', () => {
       expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
 
+      // `updateSettings` calls with the theme name provided as the same that's currently applied should not change the theme
+      hot.updateSettings({
+        themeName: 'ht-theme-sth'
+      });
+
+      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+
       // Calling `updateSettings` with `themeName` defined to `undefined` or `false` should
       // switch HOT back to the classic theme.
       hot.updateSettings({
