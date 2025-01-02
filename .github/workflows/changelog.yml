@@ -15,6 +15,10 @@ on:
       # When a PR gets edited, as in the title, body or the base branch gets changed
       - edited
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: Check the changelog
