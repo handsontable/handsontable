@@ -2626,6 +2626,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * For column headers and row headers, returns `null`.
    *
    *
+   *
    * @memberof Core#
    * @function getValue
    * @returns {*} The value of the focused cell.
