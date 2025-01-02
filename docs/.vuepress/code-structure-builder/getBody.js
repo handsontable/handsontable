@@ -8,7 +8,7 @@ const { buildVueBody } = require('./buildVueBody');
 const getBody = ({ id, html, js, css, docsVersion, preset, sandbox, lang }) => {
   const version = formatVersion(docsVersion);
   const hyperformulaVersion = '^2.4.0';
-  const themeName = html.match(/(ht-theme-([a-zA-Z])*)/)?.[0] || '';
+  const themeName = html.match(/class="[^"]*(ht-theme-[^"\s]*)[^"]*"/)?.[1] || '';
 
   if (/hot(-.*)?/.test(preset)) {
     return buildJavascriptBody({
