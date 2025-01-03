@@ -103,9 +103,9 @@ const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
 
 root.render(
-  <div class="ht-theme-main-dark-auto">
+  <StrictMode>
     <ExampleComponent />
-  </div>
+  </StrictMode>
 );`
         },
         [`src/ExampleComponent.${lang}`]: {
