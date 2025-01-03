@@ -9,7 +9,6 @@ import {
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
 import { BasePlugin } from '../base';
-import { GRID_GROUP } from '../../shortcutContexts';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
