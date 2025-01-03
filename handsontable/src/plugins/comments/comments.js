@@ -297,19 +297,12 @@ export class Comments extends BasePlugin {
     });
 
     pluginContext.addShortcut({
-      keys: [['SHIFT', 'TAB'], ['TAB']],
-      callback: (_, keys) => {
+      keys: [['Shift', 'Tab'], ['Tab']],
+      forwardToContext: manager.getContext('grid'),
+      callback: () => {
         this.#editor.setValue(this.#commentValueBeforeSave);
         this.hide();
-
         manager.setActiveContextName('grid');
-
-        // Use the grid's default callback.
-        gridContext.getShortcuts(keys).filter(
-          shortcut => shortcut.group === GRID_GROUP,
-        ).forEach((shortcut) => {
-          shortcut.callback();
-        });
       },
       group: SHORTCUTS_GROUP,
     });
