@@ -9,6 +9,7 @@ import {
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
 import { BasePlugin } from '../base';
+import { GRID_GROUP } from '../../shortcutContexts';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
@@ -292,6 +293,23 @@ export class Comments extends BasePlugin {
         manager.setActiveContextName('grid');
       },
       runOnlyIf: () => this.#editor.isVisible() && this.#editor.isFocused(),
+      group: SHORTCUTS_GROUP,
+    });
+
+    pluginContext.addShortcut({
+      keys: [['SHIFT', 'TAB'], ['TAB']],
+      callback: (_, keys) => {
+        this.#editor.setValue(this.#commentValueBeforeSave);
+        this.hide();
+        manager.setActiveContextName('grid');
+
+        // Use the grid's default callback.
+        gridContext.getShortcuts(keys).filter(
+          shortcut => shortcut.group === GRID_GROUP,
+        ).forEach((shortcut) => {
+          shortcut.callback();
+        });
+      },
       group: SHORTCUTS_GROUP,
     });
   }
