@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `TAB` and `SHIFT + TAB` functionality to the Comments editor.",
+  "type": "added",
+  "issueOrPR": 11345,
+  "breaking": false,
+  "framework": "none"
+}

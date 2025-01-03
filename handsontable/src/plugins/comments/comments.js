@@ -301,6 +301,7 @@ export class Comments extends BasePlugin {
       callback: (_, keys) => {
         this.#editor.setValue(this.#commentValueBeforeSave);
         this.hide();
+
         manager.setActiveContextName('grid');
 
         // Use the grid's default callback.
