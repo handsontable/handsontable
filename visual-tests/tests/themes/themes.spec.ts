@@ -7,7 +7,11 @@ import {
   selectCell,
   setColumnSorting,
   setAdditionalColumnSorting,
-  SortDirection } from '../../src/page-helpers';
+  SortDirection,
+  openEditor,
+  createSelection,
+  LayoutDirection
+} from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
 const urls = [
@@ -42,10 +46,52 @@ urls.forEach((url) => {
     await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-contextMenu') });
   });
 
+  testCrossBrowser(`Open context menus in RTL mode in theme: ${themeName}`, async({ tablePage }) => {
+    await tablePage.goto(`${url}&direction=${LayoutDirection.RTL}`);
+    await openHeaderDropdownMenu(4);
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-rtl-dropDownMenu') });
+
+    const cell = await selectCell(5, 1);
+
+    await openContextMenu(cell);
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-rtl-contextMenu') });
+  });
+
   testCrossBrowser(`Sort multiple columns in theme: ${themeName}`, async({ tablePage }) => {
     await tablePage.goto(url);
     await setColumnSorting('Age', SortDirection.Descending);
     await setAdditionalColumnSorting('Interest', SortDirection.Ascending);
     await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-sorting') });
+  });
+
+  testCrossBrowser(`Selection in RTL mode in theme: ${themeName}`, async({ tablePage }) => {
+    await tablePage.goto(`${url}&direction=${LayoutDirection.RTL}`);
+
+    const cellFrom = await selectCell(3, 0);
+    const cellTo = await selectCell(5, 2);
+
+    await createSelection(cellFrom, cellTo);
+
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-rtl-selection') });
+  });
+
+  testCrossBrowser(`Open select editor in RTL mode in theme: ${themeName}`, async({ tablePage }) => {
+    await tablePage.goto(`${url}&direction=${LayoutDirection.RTL}`);
+
+    const cell = await selectCell(5, 4);
+
+    await openEditor(cell);
+
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-rtl-selectEditor') });
+  });
+
+  testCrossBrowser(`Open date editor in RTL mode in theme: ${themeName}`, async({ tablePage }) => {
+    await tablePage.goto(`${url}&direction=${LayoutDirection.RTL}`);
+
+    const cell = await selectCell(4, 8);
+
+    await openEditor(cell);
+
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-rtl-dateEditor') });
   });
 });
