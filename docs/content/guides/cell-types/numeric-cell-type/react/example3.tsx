@@ -53,18 +53,18 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     >
-      <HotColumn data="productName" type="text" width="120" />
+      <HotColumn data="productName" type="text" width="150" />
       <HotColumn
         data="JP_price"
         type="numeric"
         numericFormat={formatJP}
-        width="120"
+        width="150"
       />
       <HotColumn
         data="TR_price"
         type="numeric"
         numericFormat={formatTR}
-        width="120"
+        width="150"
       />
     </HotTable>
   );
