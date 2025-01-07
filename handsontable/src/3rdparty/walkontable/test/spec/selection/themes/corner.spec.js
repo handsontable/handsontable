@@ -74,10 +74,13 @@ describe('WalkontableBorder corner (modern themes)', () => {
     $td = spec().$table.find('tbody tr:eq(4) td:eq(4)');
     focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
     $corner = $(focusBorder.corner);
+    const borderBottomWidth = parseInt($corner.css('border-bottom-width'), 10);
 
     $td.simulate('mousedown');
 
     expect($corner.position().left).toEqual($td.position().left + $td.outerWidth() - $corner.outerWidth());
-    expect($corner.position().top).toEqual($td.position().top + $td.outerHeight() - $corner.outerHeight());
+    expect($corner.position().top).toEqual(
+      $td.position().top + $td.outerHeight() - $corner.outerHeight() + borderBottomWidth - 1
+    );
   });
 });
