@@ -69,7 +69,7 @@
     }
 
     .htUIMultipleSelectHot {
-      --ht-cell-vertical-padding: calc(
+      --ht-cell-horizontal-padding: calc(
               var(--ht-menu-item-horizontal-padding, 2px) +
               var(--ht-gap-size, 2px) * 2);
 
@@ -105,7 +105,7 @@
 
         td {
           height: auto;
-          padding: 4px var(--ht-cell-vertical-padding);
+          padding: 4px var(--ht-cell-horizontal-padding);
         }
       }
     }
