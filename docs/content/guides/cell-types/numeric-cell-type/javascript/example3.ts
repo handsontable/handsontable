@@ -44,18 +44,18 @@ new Handsontable(container, {
     {
       data: 'productName',
       type: 'text',
-      width: '120',
+      width: '150',
     },
     {
       data: 'JP_price',
       type: 'numeric',
-      width: '120',
+      width: '150',
       numericFormat: formatJP,
     },
     {
       data: 'TR_price',
       type: 'numeric',
-      width: '120',
+      width: '150',
       numericFormat: formatTR,
     },
   ],

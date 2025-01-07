@@ -2,6 +2,10 @@ name: Linter
 
 on: [push]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: JS & CSS & TS & D.TS
