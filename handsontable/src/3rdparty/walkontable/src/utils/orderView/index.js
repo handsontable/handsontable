@@ -1,5 +1,5 @@
-import OrderView from './view';
-import SharedOrderView from './sharedView';
+import { OrderView } from './view';
+import { SharedOrderView } from './sharedView';
 
 export {
   OrderView,

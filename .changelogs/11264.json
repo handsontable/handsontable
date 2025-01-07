@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the approach how the table is rendered.",
+  "type": "changed",
+  "issueOrPR": 11264,
+  "breaking": false,
+  "framework": "none"
+}

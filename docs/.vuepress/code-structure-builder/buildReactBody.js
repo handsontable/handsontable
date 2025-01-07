@@ -1,4 +1,4 @@
-const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox, lang }) => {
+const buildReactBody = ({ js, css, version, hyperformulaVersion, themeName, preset, sandbox, lang }) => {
   const addReduxDependencies = preset.includes('redux')
     ? `
     "redux": "^4.0.0",
@@ -85,7 +85,7 @@ const buildReactBody = ({ js, css, version, hyperformulaVersion, preset, sandbox
 
   <body>
     <noscript> You need to enable JavaScript to run this app. </noscript>
-    <div id="root"></div>
+    <div id="root" class="${themeName}"></div>
   </body>
 </html>
 `
@@ -170,7 +170,7 @@ ${js}`
 
   <body>
     <noscript> You need to enable JavaScript to run this app. </noscript>
-    <div id="root"></div>
+    <div id="root" class="${themeName}"></div>
   </body>
 </html>
 `
