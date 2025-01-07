@@ -322,4 +322,68 @@ describe('Comments keyboard shortcut', () => {
       expect(getCellMeta(1, 1).comment.value).toBe('Hello world!');
     });
   });
+
+  describe('"TAB"', () => {
+    it('should close the comment without saving the value and move the selection to the next cell (grid default for TAB)',
+      async() => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          rowHeaders: true,
+          colHeaders: true,
+          comments: true,
+        });
+
+        selectCell(1, 1);
+        keyDownUp(['control', 'alt', 'm']);
+
+        await sleep(50);
+
+        const plugin = getPlugin('comments');
+        const commentsInput = plugin.getEditorInputElement();
+
+        expect(commentsInput.parentNode.style.display).toEqual('block');
+        commentsInput.value = 'Test comment';
+
+        keyDownUp(['TAB']);
+
+        await sleep(50);
+
+        expect(getCellMeta(1, 1).comment).toEqual({ value: '' });
+        expect(commentsInput.parentNode.style.display).toEqual('none');
+        expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+        expect(document.activeElement).toBe(getCell(1, 2));
+      });
+  });
+
+  describe('"Shift + TAB"', () => {
+    it('should close the comment without saving the value and move the selection to the next cell (grid default for TAB)',
+      async() => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          rowHeaders: true,
+          colHeaders: true,
+          comments: true,
+        });
+
+        selectCell(1, 1);
+        keyDownUp(['control', 'alt', 'm']);
+
+        await sleep(50);
+
+        const plugin = getPlugin('comments');
+        const commentsInput = plugin.getEditorInputElement();
+
+        expect(commentsInput.parentNode.style.display).toEqual('block');
+        commentsInput.value = 'Test comment';
+
+        keyDownUp(['SHIFT', 'TAB']);
+
+        await sleep(50);
+
+        expect(getCellMeta(1, 1).comment).toEqual({ value: '' });
+        expect(commentsInput.parentNode.style.display).toEqual('none');
+        expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+        expect(document.activeElement).toBe(getCell(1, 0));
+      });
+  });
 });
