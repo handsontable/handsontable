@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix cell editor autoResize width",
+  "type": "fixed",
+  "issueOrPR": 11354,
+  "breaking": false,
+  "framework": "none"
+}
