@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed uncaught error after viewport scroll",
+  "type": "fixed",
+  "issueOrPR": 11341,
+  "breaking": false,
+  "framework": "none"
+}

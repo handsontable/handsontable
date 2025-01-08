@@ -289,5 +289,34 @@ describe('Focus handling', () => {
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
     });
+
+    it('should not throw an error after scrolling the viewport (#dev-2163)', async() => {
+      const spy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = function() {
+        spy.test();
+
+        return true;
+      };
+
+      handsontable({
+        data: createSpreadsheetData(100, 100),
+        colHeaders: true,
+        width: 100,
+        height: 100,
+        imeFastEdit: true,
+      });
+
+      selectColumns(0);
+      scrollViewportTo({ row: 99 });
+      selectColumns(90);
+
+      await sleep(50);
+
+      expect(spy.test.calls.count()).toBe(0);
+
+      window.onerror = prevError;
+    });
   });
 });

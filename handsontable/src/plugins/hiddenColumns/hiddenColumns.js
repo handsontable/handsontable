@@ -345,9 +345,7 @@ export class HiddenColumns extends BasePlugin {
    */
   resetCellsMeta() {
     arrayEach(this.hot.getCellsMeta(), (meta) => {
-      if (meta) {
-        meta.skipColumnOnPaste = false;
-      }
+      meta.skipColumnOnPaste = false;
     });
   }
 
