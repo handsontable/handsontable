@@ -26,14 +26,26 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "aot": true,
-            "styles": [
-              "../node_modules/handsontable/dist/handsontable.full.css"
-            ],
+            "styles": [],
             "scripts": [],
             "preserveSymlinks": true,
             "allowedCommonJsDependencies": [
               "core-js",
               "@handsontable/pikaday"
+            ],
+            "assets": [
+              "src/favicon.ico",
+              "src/assets",
+              {
+                "glob": "*.css",
+                "input": "node_modules/handsontable/dist/",
+                "output": "/assets/handsontable/dist/"
+              },
+              {
+                "glob": "*.css",
+                "input": "node_modules/handsontable/styles/",
+                "output": "/assets/handsontable/styles/"
+              }
             ]
           },
           "configurations": {
