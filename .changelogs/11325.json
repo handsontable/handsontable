@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed uncaught error for handsontable editor after changing the theme ",
+  "type": "fixed",
+  "issueOrPR": 11325,
+  "breaking": false,
+  "framework": "none"
+}

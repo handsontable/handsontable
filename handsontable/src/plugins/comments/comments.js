@@ -294,6 +294,17 @@ export class Comments extends BasePlugin {
       runOnlyIf: () => this.#editor.isVisible() && this.#editor.isFocused(),
       group: SHORTCUTS_GROUP,
     });
+
+    pluginContext.addShortcut({
+      keys: [['Shift', 'Tab'], ['Tab']],
+      forwardToContext: manager.getContext('grid'),
+      callback: () => {
+        this.#editor.setValue(this.#commentValueBeforeSave);
+        this.hide();
+        manager.setActiveContextName('grid');
+      },
+      group: SHORTCUTS_GROUP,
+    });
   }
 
   /**
