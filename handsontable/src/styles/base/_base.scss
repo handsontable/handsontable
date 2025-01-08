@@ -281,7 +281,7 @@
             }
           }
         }
-        
+
         th {
           padding: 0;
 
@@ -452,9 +452,11 @@
       }
     }
 
-    .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable {
+    .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) {
       tbody tr th,
-      &:not(.ht_clone_top) thead tr th:first-child {
+      thead tr th:first-child,
+      ~ .handsontable:not(.htGhostTable) tbody tr th,
+      ~ .handsontable:not(.ht_clone_top):not(.htGhostTable) thead tr th:first-child {
         border-inline-end-width: 0;
         border-inline-start-width: 1px;
       }
