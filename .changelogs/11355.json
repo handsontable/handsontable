@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Disable the \"Clear column\" option for read-only cells",
+  "type": "changed",
+  "issueOrPR": 11355,
+  "breaking": false,
+  "framework": "none"
+}
