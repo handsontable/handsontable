@@ -135,4 +135,20 @@
       }
     }
   }
+  
+  [dir=rtl].htDatepickerHolder {
+    .pika-single {
+      .pika-next {
+        transform: rotate(180deg);
+        margin-left: 0;
+        margin-right: auto;
+      }
+
+      .pika-prev {
+        transform: rotate(180deg);
+        margin-left: auto;
+        margin-right: 0;
+      }
+    }
+  }
 }
