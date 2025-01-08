@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed columns shifting after render call for new themes",
+  "type": "fixed",
+  "issueOrPR": 11352,
+  "breaking": false,
+  "framework": "none"
+}
