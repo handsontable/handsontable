@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed rows virtualization for Filter's \"by value\" component",
+  "type": "fixed",
+  "issueOrPR": 11351,
+  "breaking": false,
+  "framework": "none"
+}

@@ -340,9 +340,7 @@ export class HiddenRows extends BasePlugin {
    */
   resetCellsMeta() {
     arrayEach(this.hot.getCellsMeta(), (meta) => {
-      if (meta) {
-        meta.skipRowOnPaste = false;
-      }
+      meta.skipRowOnPaste = false;
     });
   }
 
