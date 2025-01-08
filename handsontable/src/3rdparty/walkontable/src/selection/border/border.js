@@ -588,17 +588,17 @@ class Border {
         const isClassicTheme = this.wot.stylesHandler.isClassicTheme();
 
         if (cornerOverlappingContainer) {
+          const cornerTopPosition = Math.floor(
+            top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation
+          );
+
           if (isClassicTheme) {
             // styles for classic theme
-            this.cornerStyle.top = `${Math.floor(
-              top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation
-            )}px`;
+            this.cornerStyle.top = `${cornerTopPosition}px`;
             this.cornerStyle.borderBottomWidth = 0;
           } else {
             // styles for ht-theme
-            this.cornerStyle.top = `${Math.floor(
-              top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation - 1
-            )}px`;
+            this.cornerStyle.top = `${cornerTopPosition - 1}px`;
           }
         }
       }
