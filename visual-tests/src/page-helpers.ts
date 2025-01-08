@@ -34,6 +34,12 @@ export enum FilterConditions {
   Yesterday = 'Yesterday',
 }
 
+// eslint-disable-next-line no-shadow
+export enum LayoutDirection {
+  LTR = 'ltr',
+  RTL = 'rtl',
+}
+
 /**
  * Get the page instance.
  *

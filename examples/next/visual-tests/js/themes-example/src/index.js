@@ -33,6 +33,7 @@ applyTheme(containerMain);
 new Handsontable(containerMain, {
   data: data,
   height: 800,
+  layoutDirection: getQueryParam('direction') || 'ltr',
   columns: [
     {
       data: 'isActive',

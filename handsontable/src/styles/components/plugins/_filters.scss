@@ -118,6 +118,8 @@
       margin-bottom: var(--ht-gap-size, 4px);
 
       a {
+        font-size: var(--ht-font-size);
+        line-height: var(--ht-line-height);
         color: var(--ht-link-color);
         border-radius: var(--ht-button-border-radius);
 
