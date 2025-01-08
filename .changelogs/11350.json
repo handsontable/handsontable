@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `getCellsMeta` method results ",
+  "type": "fixed",
+  "issueOrPR": 11350,
+  "breaking": false,
+  "framework": "none"
+}
