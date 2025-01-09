@@ -217,4 +217,4 @@ Created and maintained by the [Handsontable Team](https://handsontable.com/team)
 
 ---
 
-© 2012 - 2024 Handsoncode
+© 2012 - 2025 Handsoncode
