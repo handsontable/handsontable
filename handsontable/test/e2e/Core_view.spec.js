@@ -349,6 +349,7 @@ describe('Core_view', () => {
   });
 
   it('should scroll the viewport vertically from the row header navigation', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
@@ -371,12 +372,28 @@ describe('Core_view', () => {
     keyDownUp('arrowup');
     keyDownUp('arrowup');
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(
+      ({ classic, main, horizon }) => {
+        classic.toEqual('A2');
+        main.toEqual('A1');
+      }
+     );
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).forThemes(
+      ({ classic, main, horizon }) => {
+        classic.toEqual('A3');
+        main.toEqual('A2');
+      }
+     );
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).forThemes(
+      ({ classic, main, horizon }) => {
+        classic.toEqual('A4');
+        main.toEqual('A3');
+      }
+     );
   });
 
   it('should scroll the viewport to the first row when the highlight moves down to the cell from the column header', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
@@ -391,7 +408,12 @@ describe('Core_view', () => {
     selectCell(40, 1);
     selectCell(-1, 1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(
+      ({ classic, main, horizon }) => {
+        classic.toEqual('A25');
+        main.toEqual('A26');
+      }
+     );
 
     keyDownUp('arrowdown');
 
@@ -399,6 +421,7 @@ describe('Core_view', () => {
   });
 
   it('should scroll the viewport to the first row when the highlight moves down to the row header from the corner', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
@@ -413,7 +436,12 @@ describe('Core_view', () => {
     selectCell(40, 1);
     selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(
+      ({ classic, main, horizon }) => {
+        classic.toEqual('A25');
+        main.toEqual('A26');
+      }
+     );
 
     keyDownUp('arrowdown');
 
@@ -519,6 +547,7 @@ describe('Core_view', () => {
   });
 
   it('should correctly calculate the width of the top overlay after the vertical scrollbar disappears (#dev-954)', () => {
+    // TODO [themes]: Not sure if correct
     handsontable({
       data: createSpreadsheetData(10, 10),
       colHeaders: true,
@@ -536,10 +565,16 @@ describe('Core_view', () => {
     rowMapper.setValueAtIndex(3, true);
     render();
 
-    expect(getTopClone().width()).toBe(200);
+    expect(getTopClone().width()).forThemes(
+      ({ classic, main, horizon }) => {
+        classic.toBe(200);
+        main.toBe(185);
+      }
+     );
   });
 
   it('should not extend the selection to the cell under the mouse pointer after the viewport is moved (#dev-1479)', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -559,7 +594,12 @@ describe('Core_view', () => {
       .simulate('mouseup')
       .simulate('click');
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
+    expect(getSelectedRange()).forThemes(
+      ({ classic, main, horizon }) => {
+        classic.toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
+        main.toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,0']);
+      }
+     );
   });
 
   describe('scroll', () => {

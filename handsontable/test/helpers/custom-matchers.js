@@ -69,6 +69,8 @@ beforeEach(function() {
           matchersUtil.matcherConfig = currentSpec.matchersConfig[matcherName];
         }
 
+        matchersUtil.customMatchers = matchers;
+
         return matcherFactory(matchersUtil);
       };
     });
@@ -183,7 +185,7 @@ beforeEach(function() {
  and ${expected + margin})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - margin}
+            message = `Expected ${actual} to be around ${expected} (between ${expected - margin}
  and ${expected + margin})`;
           }
 
@@ -459,7 +461,7 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
         }
       };
     },
-    forThemes() {
+    forThemes(matchersUtil) {
       const createThemeHelper = (theme, expectationMatchers, classicThemeExpectationMatchers) => {
         return new Proxy({}, {
           get(_, matcher) {
@@ -514,7 +516,10 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
           }
 
           const [matcherName, ...matcherArgs ] = expectationMatcher;
-          const expectationResult = jasmine.matchers[matcherName]().compare(
+
+          const expectationResult = (
+            jasmine.matchers[matcherName] || matchersUtil.customMatchers[matcherName]
+          )(matchersUtil).compare(
             actualValue,
             ...matcherArgs,
           );

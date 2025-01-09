@@ -24,16 +24,34 @@ describe('Core.refreshDimensions', () => {
 
     refreshDimensions();
 
-    expect(beforeRefreshDimensions).toHaveBeenCalledOnceWith(
-      { width: 1265, height: 0 },
-      { width: 1265, height: 116 },
-      true,
-    );
-    expect(afterRefreshDimensions).toHaveBeenCalledOnceWith(
-      { width: 1265, height: 0 },
-      { width: 1265, height: 116 },
-      true,
-    );
+    expect(beforeRefreshDimensions).forThemes(
+      ({ classic, main, horizon }) => {
+        classic.toHaveBeenCalledOnceWith(
+          { width: 1265, height: 0 },
+          { width: 1265, height: 116 },
+          true,
+        );
+        main.toHaveBeenCalledOnceWith(
+          { width: 1265, height: 0 },
+          { width: 1265, height: 146 },
+          true,
+        );
+      }
+     );
+    expect(afterRefreshDimensions).forThemes(
+      ({ classic, main, horizon }) => {
+        classic.toHaveBeenCalledOnceWith(
+          { width: 1265, height: 0 },
+          { width: 1265, height: 116 },
+          true,
+        );
+        main.toHaveBeenCalledOnceWith(
+          { width: 1265, height: 0 },
+          { width: 1265, height: 146 },
+          true,
+        );
+      }
+     );
   });
 
   it('should trigger `render` and `adjustElementsSize` methods internally (#dev-1876)', () => {

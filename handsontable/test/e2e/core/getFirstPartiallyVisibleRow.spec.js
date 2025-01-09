@@ -37,6 +37,7 @@ describe('Core.getFirstPartiallyVisibleRow', () => {
   });
 
   it('should return first partially visible row index (scrolled viewport)', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -46,6 +47,11 @@ describe('Core.getFirstPartiallyVisibleRow', () => {
     setScrollTop(355); // row 15 (A16) is partially visible
     render();
 
-    expect(getFirstPartiallyVisibleRow()).toBe(15);
+    expect(getFirstPartiallyVisibleRow()).forThemes(
+      ({ classic, main, horizon }) => {
+        classic.toBe(15);
+        main.toBe(12);
+      }
+     );
   });
 });
