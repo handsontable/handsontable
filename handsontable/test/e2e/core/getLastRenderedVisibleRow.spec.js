@@ -18,12 +18,10 @@ describe('Core.getLastRenderedVisibleRow', () => {
       height: 200,
     });
 
-    expect(getLastRenderedVisibleRow()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toBe(9);
-        main.toBe(7);
-      }
-     );
+    expect(getLastRenderedVisibleRow()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(9);
+      main.toBe(7);
+    });
   });
 
   it('should return last rendered and not hidden row index', () => {
@@ -40,12 +38,10 @@ describe('Core.getLastRenderedVisibleRow', () => {
     rowMapper.setValueAtIndex(1, true);
     render();
 
-    expect(getLastRenderedVisibleRow()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toBe(11);
-        main.toBe(9);
-      }
-     );
+    expect(getLastRenderedVisibleRow()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(11);
+      main.toBe(9);
+    });
   });
 
   it('should return last rendered row index (scrolled viewport)', () => {
@@ -59,11 +55,9 @@ describe('Core.getLastRenderedVisibleRow', () => {
     setScrollTop(355); // row 23 (A24) is partially visible
     render();
 
-    expect(getLastRenderedVisibleRow()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(21);
-      }
-     );
+    expect(getLastRenderedVisibleRow()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(26);
+      main.toBe(21);
+    });
   });
 });

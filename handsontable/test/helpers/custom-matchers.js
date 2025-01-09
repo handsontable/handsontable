@@ -462,6 +462,7 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
       };
     },
     forThemes(matchersUtil) {
+      const currentTheme = currentSpec.loadedTheme;
       const createThemeHelper = (theme, expectationMatchers, classicThemeExpectationMatchers) => {
         return new Proxy({}, {
           get(_, matcher) {
@@ -479,8 +480,7 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
       };
       const camelCaseToSpaced = (camelCaseString) => {
         return camelCaseString.replace(/([A-Z])/g, ' $1').toLowerCase();
-      }
-      const currentTheme = currentSpec.loadedTheme;
+      };
 
       return {
         compare(actualValue, callback) {
@@ -497,13 +497,15 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
           if (classicThemeExpectationMatchers.length === 0) {
             return {
               pass: false,
-              message: 'No expectation for the classic theme was provided. Please provide an expectation for the classic theme.',
+              message: 'No expectation for the classic theme was provided. ' +
+                'Please provide an expectation for the classic theme.',
             };
 
           } else if (expectationMatchers.length > 1 || classicThemeExpectationMatchers.length > 1) {
             return {
               pass: false,
-              message: 'More than one expectation per-theme was provided. Please provide only one expectation per theme.',
+              message: 'More than one expectation per-theme was provided. ' +
+                'Please provide only one expectation per theme.',
             };
           }
 
@@ -515,7 +517,7 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
             expectationMatcher = expectationMatchers.pop();
           }
 
-          const [matcherName, ...matcherArgs ] = expectationMatcher;
+          const [matcherName, ...matcherArgs] = expectationMatcher;
 
           const expectationResult = (
             jasmine.matchers[matcherName] || matchersUtil.customMatchers[matcherName]
@@ -527,8 +529,10 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
           return {
             pass: expectationResult.pass,
             // Fallback for matchers that don't provide the `message` prop (like `toBe`).
-            message: expectationResult.message || `Expected ${actualValue} ${camelCaseToSpaced(matcherName)} ${expectationMatcher[1]}`,
-          }
+            message:
+              expectationResult.message ||
+              `Expected ${actualValue} ${camelCaseToSpaced(matcherName)} ${expectationMatcher[1]}`,
+          };
         },
       };
     },

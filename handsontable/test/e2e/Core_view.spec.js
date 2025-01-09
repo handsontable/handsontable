@@ -372,24 +372,18 @@ describe('Core_view', () => {
     keyDownUp('arrowup');
     keyDownUp('arrowup');
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toEqual('A2');
-        main.toEqual('A1');
-      }
-     );
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toEqual('A3');
-        main.toEqual('A2');
-      }
-     );
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toEqual('A4');
-        main.toEqual('A3');
-      }
-     );
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(({ classic, main, horizon }) => {
+      classic.toEqual('A2');
+      main.toEqual('A1');
+    });
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).forThemes(({ classic, main, horizon }) => {
+      classic.toEqual('A3');
+      main.toEqual('A2');
+    });
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).forThemes(({ classic, main, horizon }) => {
+      classic.toEqual('A4');
+      main.toEqual('A3');
+    });
   });
 
   it('should scroll the viewport to the first row when the highlight moves down to the cell from the column header', () => {
@@ -408,12 +402,10 @@ describe('Core_view', () => {
     selectCell(40, 1);
     selectCell(-1, 1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toEqual('A25');
-        main.toEqual('A26');
-      }
-     );
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(({ classic, main, horizon }) => {
+      classic.toEqual('A25');
+      main.toEqual('A26');
+    });
 
     keyDownUp('arrowdown');
 
@@ -436,12 +428,10 @@ describe('Core_view', () => {
     selectCell(40, 1);
     selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toEqual('A25');
-        main.toEqual('A26');
-      }
-     );
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(({ classic, main, horizon }) => {
+      classic.toEqual('A25');
+      main.toEqual('A26');
+    });
 
     keyDownUp('arrowdown');
 
@@ -565,12 +555,10 @@ describe('Core_view', () => {
     rowMapper.setValueAtIndex(3, true);
     render();
 
-    expect(getTopClone().width()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toBe(200);
-        main.toBe(185);
-      }
-     );
+    expect(getTopClone().width()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(200);
+      main.toBe(185);
+    });
   });
 
   it('should not extend the selection to the cell under the mouse pointer after the viewport is moved (#dev-1479)', () => {
@@ -594,12 +582,10 @@ describe('Core_view', () => {
       .simulate('mouseup')
       .simulate('click');
 
-    expect(getSelectedRange()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
-        main.toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,0']);
-      }
-     );
+    expect(getSelectedRange()).forThemes(({ classic, main, horizon }) => {
+      classic.toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
+      main.toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,0']);
+    });
   });
 
   describe('scroll', () => {

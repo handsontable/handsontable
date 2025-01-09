@@ -19,12 +19,10 @@ describe('Core_count', () => {
         width: 600
       });
 
-      expect(instance.countVisibleRows()).forThemes(
-        ({ classic, main, horizon }) => {
-          classic.toEqual(4);
-          main.toEqual(3);
-        }
-       );
+      expect(instance.countVisibleRows()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual(4);
+        main.toEqual(3);
+      });
     });
 
     it('should return -1 if table is not rendered', () => {
@@ -47,12 +45,10 @@ describe('Core_count', () => {
         viewportRowRenderingOffset: 0
       });
 
-      expect(instance.countRenderedRows()).forThemes(
-        ({ classic, main, horizon }) => {
-          classic.toEqual(5);
-          main.toEqual(4);
-        }
-       );;
+      expect(instance.countRenderedRows()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual(5);
+        main.toEqual(4);
+      });
     });
 
     it('should return number of rendered rows, including rows rendered becausee of viewportRowRenderingOffset', () => {
@@ -63,12 +59,10 @@ describe('Core_count', () => {
         viewportRowRenderingOffset: 20
       });
 
-      expect(instance.countRenderedRows()).forThemes(
-        ({ classic, main, horizon }) => {
-          classic.toEqual(25);
-          main.toEqual(24);
-        }
-       );
+      expect(instance.countRenderedRows()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual(25);
+        main.toEqual(24);
+      });
     });
 
     it('should return -1 if table is not rendered', () => {

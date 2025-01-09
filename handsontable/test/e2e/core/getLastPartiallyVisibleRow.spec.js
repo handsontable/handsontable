@@ -18,12 +18,10 @@ describe('Core.getLastPartiallyVisibleRow', () => {
       height: 200,
     });
 
-    expect(getLastPartiallyVisibleRow()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toBe(8);
-        main.toBe(6);
-      }
-     );
+    expect(getLastPartiallyVisibleRow()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(8);
+      main.toBe(6);
+    });
   });
 
   it('should return last partially visible and not hidden row index', () => {
@@ -40,12 +38,10 @@ describe('Core.getLastPartiallyVisibleRow', () => {
     rowMapper.setValueAtIndex(1, true);
     render();
 
-    expect(getLastPartiallyVisibleRow()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toBe(10);
-        main.toBe(8);
-      }
-     );
+    expect(getLastPartiallyVisibleRow()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(10);
+      main.toBe(8);
+    });
   });
 
   it('should return last partially visible row index (scrolled viewport)', () => {
@@ -59,11 +55,9 @@ describe('Core.getLastPartiallyVisibleRow', () => {
     setScrollTop(355); // row 23 (A24) is partially visible
     render();
 
-    expect(getLastPartiallyVisibleRow()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toBe(23);
-        main.toBe(18);
-      }
-     );
+    expect(getLastPartiallyVisibleRow()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(23);
+      main.toBe(18);
+    });
   });
 });

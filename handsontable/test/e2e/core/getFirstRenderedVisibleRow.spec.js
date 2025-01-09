@@ -47,11 +47,9 @@ describe('Core.getFirstRenderedVisibleRow', () => {
     setScrollTop(355); // row 15 (A16) is partially visible
     render();
 
-    expect(getFirstRenderedVisibleRow()).forThemes(
-      ({ classic, main, horizon }) => {
-        classic.toBe(12);
-        main.toBe(9);
-      }
-     );
+    expect(getFirstRenderedVisibleRow()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(12);
+      main.toBe(9);
+    });
   });
 });
