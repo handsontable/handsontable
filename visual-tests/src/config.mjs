@@ -5,7 +5,7 @@ export const BASE_BRANCH = 'develop';
 /**
  * The list of wrappers that are to be tested.
  */
-export const WRAPPERS = ['angular', 'react', 'vue', 'vue3'];
+export const WRAPPERS = ['angular', 'react', 'react-wrapper', 'vue', 'vue3'];
 /**
  * The framework that provides reference screenshots to compare against other frameworks.
  */

@@ -48,6 +48,7 @@ export const drawCheckboxInRowHeaders: Events["afterGetRowHeader"] = function dr
 
   input.type = "checkbox";
   input.tabIndex = -1;
+  input.classList.add("htCheckboxRendererInput");
 
   if (row >= 0 && this.getDataAtRowProp(row, "0")) {
     input.checked = true;
