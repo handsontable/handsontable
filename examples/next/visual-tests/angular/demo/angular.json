@@ -38,12 +38,12 @@
               "src/assets",
               {
                 "glob": "*.css",
-                "input": "node_modules/handsontable/dist/",
+                "input": "../node_modules/handsontable/dist/",
                 "output": "/assets/handsontable/dist/"
               },
               {
                 "glob": "*.css",
-                "input": "node_modules/handsontable/styles/",
+                "input": "../node_modules/handsontable/styles/",
                 "output": "/assets/handsontable/styles/"
               }
             ]

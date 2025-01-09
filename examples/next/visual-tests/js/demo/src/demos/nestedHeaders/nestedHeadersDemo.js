@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
-
 import { data } from './nestedHeadersData';
+import { getThemeName } from '../../utils';
 
 const root = document.getElementById('root');
 // const removeHeightBtn = document.createElement('button');
@@ -14,6 +14,7 @@ root.appendChild(container);
 export function initializeNestedHeadersDemo() {
   const hot = new Handsontable(container, {
     data: data,
+    themeName: getThemeName(),
     height: 450,
     colHeaders: true,
     nestedHeaders: [

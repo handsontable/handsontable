@@ -1,6 +1,6 @@
 import Handsontable from "handsontable/base";
 
-import { generateExampleData, isArabicDemoEnabled } from "./utils";
+import { generateExampleData, isArabicDemoEnabled, getThemeName } from "./utils";
 import { progressBarRenderer, starRenderer } from "./customRenderers";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
 
@@ -64,8 +64,9 @@ export function initializeDataGrid() {
     data: generateExampleData(),
     layoutDirection: isArabicDemoEnabled() ? "rtl" : "ltr",
     language: isArabicDemoEnabled() ? arAR.languageCode : "en-US",
+    themeName: getThemeName(),
     height: 450,
-    colWidths: [140, 192, 100, 90, 90, 110, 97, 100, 126],
+    colWidths: [140, 210, 135, 100, 90, 110, 120, 115, 140],
     colHeaders: [
       "Company name",
       "Name",

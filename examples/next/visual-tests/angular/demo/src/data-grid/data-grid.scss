@@ -4,10 +4,6 @@
   'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 400;
 
-  .collapsibleIndicator {
-    text-align: center;
-  }
-
   td .progressBar {
     background: #37bc6c;
     height: 10px;
@@ -17,19 +13,19 @@
     color: #fcb515;
   }
 
-  table.htCore tr.selected td {
+  .htCore tr.selected td {
     background: #edf3fd;
   }
 }
 
 .handsontable.ht-theme-main-dark {
-  table.htCore tr.selected td {
+  .htCore tr.selected td {
     background: #081b3d;
   }
 }
 
 .handsontable.ht-theme-horizon-dark {
-  table.htCore tr.selected td {
+  .htCore tr.selected td {
     background: #3a2901;
   }
 }

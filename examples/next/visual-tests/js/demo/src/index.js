@@ -1,6 +1,3 @@
-// Import global CSS files first
-import "handsontable/dist/handsontable.full.css";
-
 import "./styles/styles.css";
 
 // Import JavaScript modules
@@ -20,13 +17,53 @@ function loadCSS(href) {
   link.rel = 'stylesheet';
   link.href = href;
   link.className = 'dynamic-css';
-  document.head.appendChild(link);
+
+  return new Promise((resolve, reject) => {
+    link.onload = resolve;
+    link.onerror = reject;
+    document.head.appendChild(link);
+  });
 }
 
 // Function to remove dynamically loaded CSS
 function removeCSS() {
   const links = document.querySelectorAll('link.dynamic-css');
   links.forEach(link => link.remove());
+}
+
+function loadThemeCSS() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const theme = urlParams.get('theme');
+  const baseLink = document.createElement('link');
+  const themeLink = document.createElement('link');
+
+  baseLink.rel = 'stylesheet';
+  baseLink.className = 'dynamic-css';
+  themeLink.rel = 'stylesheet';
+  themeLink.className = 'dynamic-css';
+
+  if (theme === 'main' || theme === 'main-dark') {
+    baseLink.href = `/assets/handsontable/styles/handsontable.css`;
+    themeLink.href = `/assets/handsontable/styles/ht-theme-main.css`;
+
+  } else if (theme === 'horizon' || theme === 'horizon-dark') {
+    baseLink.href = `/assets/handsontable/styles/handsontable.css`;
+    themeLink.href = `/assets/handsontable/styles/ht-theme-horizon.css`;
+
+  } else {
+    baseLink.href = `/assets/handsontable/dist/handsontable.full.css`;
+  }
+
+  return new Promise((resolve, reject) => {
+    baseLink.onload = resolve;
+    baseLink.onerror = reject;
+
+    [baseLink, themeLink].forEach((link) => {
+      if (link.href) {
+        document.head.appendChild(link);
+      }
+    });
+  });
 }
 
 // Initialize the router
@@ -37,43 +74,83 @@ router
   .on({
     '/': function () {
       removeCSS();
-      loadCSS('./assets/styles.css');
-      initializeDataGrid();
+
+      Promise.all([
+        loadCSS('./assets/styles.css'),
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeDataGrid();
+      });
     },
     '/two-tables-demo': function () {
       removeCSS();
-      loadCSS('./assets/two-tables-demo.css');
-      initializeTwoTablesDemo();
+
+      Promise.all([
+        loadCSS('./assets/two-tables-demo.css'),
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeTwoTablesDemo();
+      });
     },
     '/cell-types-demo': function () {
       removeCSS();
-      loadCSS('./assets/cell-types-demo.css');
-      initializeCellTypeDemo();
+
+      Promise.all([
+        loadCSS('./assets/cell-types-demo.css'),
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeCellTypeDemo();
+      });
     },
     '/arabic-rtl-demo': function () {
       removeCSS();
-      loadCSS('./assets/arabic-rtl-demo.css');
-      initializeArabicRtlDemo();
+
+      Promise.all([
+        loadCSS('./assets/arabic-rtl-demo.css'),
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeArabicRtlDemo();
+      });
     },
     '/custom-style-demo': function () {
       removeCSS();
-      loadCSS('./assets/custom-style-demo.css');
-      initializeCustomStyleDemo();
+
+      Promise.all([
+        loadCSS('./assets/custom-style-demo.css'),
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeCustomStyleDemo();
+      });
     },
     '/merged-cells-demo': function () {
       removeCSS();
-      loadCSS('./assets/merged-cells-demo.css');
-      initializeMergedCellsDemo();
+
+      Promise.all([
+        loadCSS('./assets/merged-cells-demo.css'),
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeMergedCellsDemo();
+      });
     },
     '/nested-headers-demo': function () {
       removeCSS();
-      loadCSS('./assets/nested-headers-demo.css');
-      initializeNestedHeadersDemo();
+
+      Promise.all([
+        loadCSS('./assets/nested-headers-demo.css'),
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeNestedHeadersDemo();
+      });
     },
     '/nested-rows-demo': function () {
       removeCSS();
-      loadCSS('./assets/nested-rows-demo.css');
-      initializeNestedRowsDemo();
+
+      Promise.all([
+        loadCSS('./assets/nested-rows-demo.css'),
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeNestedRowsDemo();
+      });
     },
   })
   .resolve();

@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import { data, subData } from '././cellTypesData';
+import { getThemeName } from '../../utils';
 
 const root = document.getElementById('root');
 
@@ -59,6 +60,7 @@ export function initializeCellTypeDemo() {
       'Test result',
       'Operational Status',
     ],
+    themeName: getThemeName(),
     rowHeaders: true,
     height: 600,
     width: 1200,

@@ -29,9 +29,15 @@ function generateArabicData() {
 }
 
 export function isArabicDemoEnabled() {
-  const urlParams = new URLSearchParams(location.search.replace(/^\?/, ""));
+  const urlParams = new URLSearchParams(location.search);
 
   return urlParams.get("arabicExample") === "1";
+}
+
+export function getThemeName() {
+  const urlParams = new URLSearchParams(location.search);
+
+  return urlParams.get("theme") ? `ht-theme-${urlParams.get("theme")}` : undefined;
 }
 
 export function generateExampleData() {
