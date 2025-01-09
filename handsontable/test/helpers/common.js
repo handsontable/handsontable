@@ -2,7 +2,10 @@ const specContext = {};
 
 beforeEach(function() {
   specContext.spec = this;
+
+  this.loadedTheme = __ENV_ARGS__.HOT_THEME;
 });
+
 afterEach(() => {
   specContext.spec = null;
 });
@@ -280,6 +283,16 @@ export function setScrollLeft(x) {
 export function handsontable(options, explicitOptions = false, container = spec().$container) {
   // Add a license key to every Handsontable instance.
   if (options && !explicitOptions) {
+    const loadedTheme = spec().loadedTheme;
+
+    if (
+      !options.themeName &&
+      loadedTheme &&
+      loadedTheme !== 'classic'
+    ) {
+      options.themeName = `ht-theme-${spec().loadedTheme}`;
+    }
+
     options.licenseKey = 'non-commercial-and-evaluation';
   }
 
