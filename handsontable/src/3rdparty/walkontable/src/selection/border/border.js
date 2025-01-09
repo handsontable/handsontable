@@ -585,12 +585,21 @@ class Border {
         const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
         const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
+        const isClassicTheme = this.wot.stylesHandler.isClassicTheme();
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.top = `${Math.floor(
+          const cornerTopPosition = Math.floor(
             top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation
-          )}px`;
-          this.cornerStyle.borderBottomWidth = 0;
+          );
+
+          if (isClassicTheme) {
+            // styles for classic theme
+            this.cornerStyle.top = `${cornerTopPosition}px`;
+            this.cornerStyle.borderBottomWidth = 0;
+          } else {
+            // styles for ht-theme
+            this.cornerStyle.top = `${cornerTopPosition - 1}px`;
+          }
         }
       }
 
