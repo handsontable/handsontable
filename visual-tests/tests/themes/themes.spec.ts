@@ -94,4 +94,20 @@ urls.forEach((url) => {
 
     await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-rtl-dateEditor') });
   });
+
+  testCrossBrowser(`Highlight autocomplete in theme: ${themeName}`, async({ tablePage }) => {
+    await tablePage.goto(url);
+
+    const cell = await selectCell(4, 7);
+
+    await openEditor(cell);
+
+    const cellEditor = tablePage.locator(helpers.findCellEditor());
+
+    await cellEditor.waitFor();
+    await cellEditor.clear();
+    await cellEditor.type('to');
+
+    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, themeName, '-autoComplete') });
+  });
 });
