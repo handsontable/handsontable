@@ -372,15 +372,15 @@ describe('Core_view', () => {
     keyDownUp('arrowup');
     keyDownUp('arrowup');
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(({ classic, main, horizon }) => {
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(({ classic, main }) => {
       classic.toEqual('A2');
       main.toEqual('A1');
     });
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).forThemes(({ classic, main, horizon }) => {
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).forThemes(({ classic, main }) => {
       classic.toEqual('A3');
       main.toEqual('A2');
     });
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).forThemes(({ classic, main, horizon }) => {
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).forThemes(({ classic, main }) => {
       classic.toEqual('A4');
       main.toEqual('A3');
     });
@@ -402,7 +402,7 @@ describe('Core_view', () => {
     selectCell(40, 1);
     selectCell(-1, 1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(({ classic, main, horizon }) => {
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(({ classic, main }) => {
       classic.toEqual('A25');
       main.toEqual('A26');
     });
@@ -428,7 +428,7 @@ describe('Core_view', () => {
     selectCell(40, 1);
     selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(({ classic, main, horizon }) => {
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).forThemes(({ classic, main }) => {
       classic.toEqual('A25');
       main.toEqual('A26');
     });
@@ -555,7 +555,7 @@ describe('Core_view', () => {
     rowMapper.setValueAtIndex(3, true);
     render();
 
-    expect(getTopClone().width()).forThemes(({ classic, main, horizon }) => {
+    expect(getTopClone().width()).forThemes(({ classic, main }) => {
       classic.toBe(200);
       main.toBe(185);
     });
@@ -582,7 +582,7 @@ describe('Core_view', () => {
       .simulate('mouseup')
       .simulate('click');
 
-    expect(getSelectedRange()).forThemes(({ classic, main, horizon }) => {
+    expect(getSelectedRange()).forThemes(({ classic, main }) => {
       classic.toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
       main.toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,0']);
     });

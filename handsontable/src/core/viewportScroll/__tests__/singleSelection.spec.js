@@ -329,7 +329,10 @@ describe('Single selection scroll', () => {
 
       simulateClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).toBe(5);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(5);
+        main.toBe(94);
+      });
     });
 
     it('should scroll the viewport after double mouse click (cell editing)', async() => {
@@ -348,7 +351,10 @@ describe('Single selection scroll', () => {
 
       mouseDoubleClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
 
     it('should scroll the viewport after navigating using ArrowDown key', async() => {
@@ -368,7 +374,10 @@ describe('Single selection scroll', () => {
       selectCell(10, 0);
       keyDownUp('arrowdown');
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
 
     it('should scroll the viewport after navigating through the row headers using ArrowDown key', async() => {
@@ -389,7 +398,10 @@ describe('Single selection scroll', () => {
       selectCell(10, -1);
       keyDownUp('arrowdown');
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
 
     it('should scroll the viewport after using API', async() => {
@@ -408,7 +420,10 @@ describe('Single selection scroll', () => {
 
       selectCell(11, 0);
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
   });
 });

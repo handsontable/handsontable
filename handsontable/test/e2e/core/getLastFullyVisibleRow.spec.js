@@ -18,7 +18,7 @@ describe('Core.getLastFullyVisibleRow', () => {
       height: 200,
     });
 
-    expect(getLastFullyVisibleRow()).forThemes(({ classic, main, horizon }) => {
+    expect(getLastFullyVisibleRow()).forThemes(({ classic, main }) => {
       classic.toBe(7);
       main.toBe(5);
     });
@@ -38,7 +38,7 @@ describe('Core.getLastFullyVisibleRow', () => {
     rowMapper.setValueAtIndex(1, true);
     render();
 
-    expect(getLastFullyVisibleRow()).forThemes(({ classic, main, horizon }) => {
+    expect(getLastFullyVisibleRow()).forThemes(({ classic, main }) => {
       classic.toBe(9);
       main.toBe(7);
     });
@@ -55,7 +55,7 @@ describe('Core.getLastFullyVisibleRow', () => {
     setScrollTop(355); // row 23 (A24) is partially visible
     render();
 
-    expect(getLastFullyVisibleRow()).forThemes(({ classic, main, horizon }) => {
+    expect(getLastFullyVisibleRow()).forThemes(({ classic, main }) => {
       classic.toBe(22);
       main.toBe(17);
     });

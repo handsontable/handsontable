@@ -96,17 +96,17 @@ describe('Core.batch', () => {
     });
 
     expect(getTopClone().width()).toBe(300);
-    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
+    expect(getTopClone().height()).forThemes(({ classic, main }) => {
       classic.toBe(26);
       main.toBe(29);
     });
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+    expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
       classic.toBe(26);
       main.toBe(29);
     });
     expect(getInlineStartClone().width()).toBe(50);
-    expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+    expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
       classic.toBe(142);
       main.toBe(175);
     });
@@ -154,27 +154,27 @@ describe('Core.batch', () => {
     });
 
     expect(getTopClone().width()).toBe(250);
-    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
+    expect(getTopClone().height()).forThemes(({ classic, main }) => {
       classic.toBe(24);
       main.toBe(30);
     });
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+    expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
       classic.toBe(24);
       main.toBe(30);
     });
     expect(getInlineStartClone().width()).toBe(50);
-    expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+    expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
       classic.toBe(116);
       main.toBe(147);
     });
     expect(getBottomInlineStartClone().width()).toBe(50);
-    expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
+    expect(getBottomInlineStartClone().height()).forThemes(({ classic, main }) => {
       classic.toBe(24);
       main.toBe(30);
     });
     expect(getBottomClone().width()).toBe(250);
-    expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
+    expect(getBottomClone().height()).forThemes(({ classic, main }) => {
       classic.toBe(24);
       main.toBe(30);
     });

@@ -33,7 +33,7 @@ describe('ColHeader', () => {
     });
 
     expect(spec().$container.find('.handsontable.ht_clone_top').height())
-      .forThemes(({ classic, main, horizon }) => {
+      .forThemes(({ classic, main }) => {
         classic.toEqual(26); // THs are 25px height and have 1px border on top
         main.toEqual(29);
       });
@@ -392,7 +392,7 @@ describe('ColHeader', () => {
 
     hot.render();
 
-    expect(spec().$container.find('th').eq(0).height()).forThemes(({ classic, main, horizon }) => {
+    expect(spec().$container.find('th').eq(0).height()).forThemes(({ classic, main }) => {
       classic.toEqual(40);
       main.toEqual(39);
     });
@@ -426,7 +426,7 @@ describe('ColHeader', () => {
     hot.render();
 
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height())
-      .forThemes(({ classic, main, horizon }) => {
+      .forThemes(({ classic, main }) => {
         classic.toEqual(45);
         main.toEqual(43);
       });

@@ -19,7 +19,7 @@ describe('Core_count', () => {
         width: 600
       });
 
-      expect(instance.countVisibleRows()).forThemes(({ classic, main, horizon }) => {
+      expect(instance.countVisibleRows()).forThemes(({ classic, main }) => {
         classic.toEqual(4);
         main.toEqual(3);
       });
@@ -45,7 +45,7 @@ describe('Core_count', () => {
         viewportRowRenderingOffset: 0
       });
 
-      expect(instance.countRenderedRows()).forThemes(({ classic, main, horizon }) => {
+      expect(instance.countRenderedRows()).forThemes(({ classic, main }) => {
         classic.toEqual(5);
         main.toEqual(4);
       });
@@ -59,7 +59,7 @@ describe('Core_count', () => {
         viewportRowRenderingOffset: 20
       });
 
-      expect(instance.countRenderedRows()).forThemes(({ classic, main, horizon }) => {
+      expect(instance.countRenderedRows()).forThemes(({ classic, main }) => {
         classic.toEqual(25);
         main.toEqual(24);
       });
