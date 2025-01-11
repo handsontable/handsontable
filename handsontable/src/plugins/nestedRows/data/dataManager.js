@@ -727,7 +727,7 @@ class DataManager {
    */
   syncRowWithRawSource(rowElement) {
     let upmostParent = rowElement;
-    let tempParent = null;
+    let tempParent = upmostParent;
 
     do {
       tempParent = this.getRowParent(tempParent);
@@ -740,7 +740,7 @@ class DataManager {
 
     this.plugin.disableCoreAPIModifiers();
     this.hot.setSourceDataAtCell(
-      this.getRowIndex(upmostParent),
+      this.getRowIndexWithinParent(upmostParent),
       '__children',
       upmostParent.__children,
       'NestedRows.syncRowWithRawSource',
