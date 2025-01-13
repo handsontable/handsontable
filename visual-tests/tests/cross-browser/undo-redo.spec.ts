@@ -1,7 +1,5 @@
-import path from 'path';
-import { testCrossBrowser } from '../../src/test-runner';
+import { test } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
-
 import {
   openEditor,
   selectCell,
@@ -19,11 +17,9 @@ const urls = [
   '/nested-rows-demo',
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  testCrossBrowser(`Test undo/redo for URL: ${url}`, async({ tablePage }) => {
-    await tablePage.goto(url);
-    await tablePage.waitForLoadState('load');
+  test(`Test rows resizing for: ${url}`, async({ goto, tablePage }) => {
+    await goto(url);
 
     const table = tablePage.locator('#root > .handsontable');
 
@@ -37,20 +33,10 @@ urls.forEach((url) => {
     await cellEditor.fill('test');
     await cellEditor.press('Enter');
 
-    const testFileName = path.basename(__filename, '.spec.ts');
-
-    await tablePage.screenshot({
-      path: helpers.screenshotMultiUrlPath(testFileName, url, '-typeText'),
-    });
-
+    await tablePage.screenshot({ path: helpers.screenshotPath() });
     await undo();
-    await tablePage.screenshot({
-      path: helpers.screenshotMultiUrlPath(testFileName, url, '-undo'),
-    });
-
+    await tablePage.screenshot({ path: helpers.screenshotPath() });
     await redo();
-    await tablePage.screenshot({
-      path: helpers.screenshotMultiUrlPath(testFileName, url, '-redo'),
-    });
+    await tablePage.screenshot({ path: helpers.screenshotPath() });
   });
 });

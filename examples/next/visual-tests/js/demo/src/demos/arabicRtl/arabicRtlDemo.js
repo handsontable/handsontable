@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 import { generateArabicData } from './arabicRtlData';
-import { getThemeName } from '../../utils';
+import { getThemeNameFromURL } from '../../utils';
 
 registerLanguageDictionary(arAR);
 
@@ -14,7 +14,7 @@ export function initializeArabicRtlDemo() {
  new Handsontable(container, {
     licenseKey: 'non-commercial-and-evaluation',
     data: generateArabicData(),
-    themeName: getThemeName(),
+    themeName: getThemeNameFromURL(),
     width: 700,
     height: 500,
     columns: [

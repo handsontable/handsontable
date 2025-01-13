@@ -11,6 +11,10 @@ export const WRAPPERS = ['angular', 'react', 'react-wrapper', 'vue', 'vue3'];
  */
 export const REFERENCE_FRAMEWORK = 'js';
 /**
+ * The list of themes to test.
+ */
+export const THEMES = ['main', 'main-dark', 'horizon', 'horizon-dark'];
+/**
  * The port for the static server that serves the examples.
  */
 export const EXAMPLES_SERVER_PORT = '8082';

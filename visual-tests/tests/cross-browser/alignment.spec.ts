@@ -1,5 +1,4 @@
-import path from 'path';
-import { testCrossBrowser } from '../../src/test-runner';
+import { test } from '../../src/test-runner';
 import { setCellAlignment, selectCell } from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
@@ -10,21 +9,14 @@ const urls = [
   '/nested-rows-demo',
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  testCrossBrowser(`Test alignment for URL: ${url}`, async({ tablePage }) => {
-    await tablePage.goto(url);
-    await tablePage.waitForLoadState('load');
+  test(`Test alignment for: ${url}`, async({ goto, tablePage }) => {
+    await goto(url);
 
-    const table = tablePage.locator(helpers.selectors.mainTable);
-
-    await table.waitFor();
-    const cell = await selectCell(2, 2, table);
+    const cell = await selectCell(2, 2);
 
     await setCellAlignment('Right', cell);
 
-    const testFileName = path.basename(__filename, '.spec.ts');
-
-    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, url) });
+    await tablePage.screenshot({ path: helpers.screenshotPath() });
   });
 });

@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 import { scenarioDataBottom } from './nestedRowsData';
-import { getThemeName } from '../../utils';
+import { getThemeNameFromURL } from '../../utils';
 
 const mergeCells = [];
 let rowIndex = 0;
@@ -24,7 +24,7 @@ root.appendChild(container);
 export function initializeNestedRowsDemo() {
   const hot = new Handsontable(container, {
     data: scenarioDataBottom,
-    themeName: getThemeName(),
+    themeName: getThemeNameFromURL(),
     height: 450,
     rowHeaderWidth: 150,
     colHeaders: [

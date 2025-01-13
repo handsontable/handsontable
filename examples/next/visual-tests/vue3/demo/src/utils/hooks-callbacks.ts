@@ -67,9 +67,12 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
     input.checked = true;
   }
 
-  Handsontable.dom.empty(TH);
+  const relative = TH.querySelector(".relative .rowHeader");
 
-  TH.appendChild(input);
+  if (relative) {
+    relative.textContent = "";
+    relative.appendChild(input);
+  }
 };
 
 type ChangeCheckboxCell = (

@@ -3,51 +3,83 @@ import { test as baseTest, expect, Page } from '@playwright/test';
 import { helpers } from './helpers';
 import PageHolder from './page-holder';
 
+helpers.init();
+
 const stylesToAdd = [
   helpers.cssFiles.cookieInfo,
   helpers.cssFiles.dynamicDataFreeze
 ];
 
+const shouldImplicitlyNavigate = new WeakSet();
+
 // Define your custom fixture
-const test = baseTest.extend<{ tablePage: Page, customTitle: string }>({
-  tablePage: async({ page }, use, workerInfo) => {
-    helpers.init(workerInfo);
+const test = baseTest.extend<{ tablePage: Page, customTitle: string, goto: any }>({
+  async tablePage({ page }, use, testInfo) {
     PageHolder.getInstance().setPage(page);
 
     // Reset screenshotsCount before each test
     helpers.screenshotsCount = 0;
 
-    await page.goto('/');
+    if (shouldImplicitlyNavigate.has(page)) {
+      await use(page);
+
+      return;
+    }
+
+    if (page.url() === 'about:blank') {
+      await page.goto(
+        helpers
+          .setBaseUrl('/')
+          .setPageParams({ direction: 'ltr' })
+          .getFullUrl()
+      );
+    }
+
+    helpers.setTestDetails({
+      testFilePath: testInfo.file,
+      browser: testInfo.project.name,
+      testedPageUrl: page.url(),
+    });
+
+    await page.waitForLoadState('load');
     await expect(page).toHaveTitle(helpers.expectedPageTitle);
+
     stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
-    const table = page.locator(helpers.selectors.mainTable);
+
+    const table = page.locator(helpers.selectors.anyTable).first();
 
     await table.waitFor();
     await use(page);
   },
   // eslint-disable-next-line no-empty-pattern
-  customTitle: async({}, use, testInfo) => {
+  async customTitle({}, use, testInfo) {
     const title = helpers.testTitle(path.basename(testInfo.title));
 
     await use(title);
-  }
-});
-
-// Define your custom fixture
-const testCrossBrowser = baseTest.extend<{ tablePage: Page, customTitle: string }>({
-  tablePage: async({ page }, use, workerInfo) => {
-    helpers.init(workerInfo);
-    PageHolder.getInstance().setPage(page);
-
-    await use(page);
   },
-  // eslint-disable-next-line no-empty-pattern
-  customTitle: async({}, use, testInfo) => {
-    const title = helpers.testTitle(path.basename(testInfo.title));
+  async goto({ page }, use, testInfo) {
+    shouldImplicitlyNavigate.add(page);
 
-    await use(title);
+    await use(async(url) => {
+      await page.goto(url);
+
+      helpers.setTestDetails({
+        testFilePath: testInfo.file,
+        browser: testInfo.project.name,
+        testedPageUrl: page.url(),
+      });
+
+      await page.waitForLoadState('load');
+      await expect(page).toHaveTitle(helpers.expectedPageTitle);
+
+      stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
+
+      const table = page.locator(helpers.selectors.anyTable).first();
+
+      await table.waitFor();
+    });
   }
 });
 
 // Export the custom fixture
-export { expect, test, testCrossBrowser };
+export { expect, test };

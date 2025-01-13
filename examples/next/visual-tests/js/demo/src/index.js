@@ -10,6 +10,7 @@ import { initializeCustomStyleDemo } from './demos/customStyle/customStyleDemo';
 import { initializeMergedCellsDemo } from './demos/mergedCells/mergedCellsDemo';
 import { initializeNestedHeadersDemo } from './demos/nestedHeaders/nestedHeadersDemo';
 import { initializeNestedRowsDemo } from './demos/nestedRows/nestedRowsDemo';
+import { initializeComplexDemo } from './demos/complex/complexDemo';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -54,16 +55,22 @@ function loadThemeCSS() {
     baseLink.href = `/assets/handsontable/dist/handsontable.full.css`;
   }
 
-  return new Promise((resolve, reject) => {
+  const baseLinkPromise = new Promise((resolve, reject) => {
     baseLink.onload = resolve;
     baseLink.onerror = reject;
-
-    [baseLink, themeLink].forEach((link) => {
-      if (link.href) {
-        document.head.appendChild(link);
-      }
-    });
   });
+  const themeLinkPromise = new Promise((resolve, reject) => {
+    themeLink.onload = resolve;
+    themeLink.onerror = reject;
+  });
+
+  [baseLink, themeLink].forEach((link) => {
+    if (link.href) {
+      document.head.appendChild(link);
+    }
+  });
+
+  return Promise.all([baseLinkPromise, themeLink.href ? themeLinkPromise : null]);
 }
 
 // Initialize the router
@@ -150,6 +157,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initializeNestedRowsDemo();
+      });
+    },
+    '/complex-demo': async function () {
+      removeCSS();
+
+      return Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeComplexDemo();
       });
     },
   })
