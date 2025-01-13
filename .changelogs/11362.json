@@ -1,0 +1,8 @@
+{
+    "issuesOrigin": "private",
+    "title": "Fix nested children move bug",
+    "type": "fixed",
+    "issueOrPR": 11362,
+    "breaking": false,
+    "framework": "none"
+  }
