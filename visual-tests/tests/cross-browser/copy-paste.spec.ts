@@ -1,5 +1,9 @@
 import { test, expect } from '../../src/test-runner';
-import { selectCell, selectColumnHeaderByNameAndOpenMenu } from '../../src/page-helpers';
+import {
+  selectCell,
+  selectColumnHeaderByNameAndOpenMenu,
+  selectFromContextMenu,
+} from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
 test('Copy between tables', async({ goto, tablePage, browserName }) => {
@@ -14,7 +18,7 @@ test('Copy between tables', async({ goto, tablePage, browserName }) => {
   tableBottom.waitFor();
 
   await selectColumnHeaderByNameAndOpenMenu('OS', tableTop);
-  await tablePage.getByText('Read Only').click();
+  await selectFromContextMenu('"Read only"');
   await (await selectCell(2, 4, tableBottom)).click();
   await tablePage.keyboard.press(`${helpers.modifier}+c`);
 

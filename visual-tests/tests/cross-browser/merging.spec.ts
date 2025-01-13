@@ -3,6 +3,7 @@ import { test } from '../../src/test-runner';
 import {
   selectCell,
   createSelection,
+  selectFromContextMenu,
 } from '../../src/page-helpers';
 
 test('Test merging', async({ goto, tablePage }) => {
@@ -13,8 +14,10 @@ test('Test merging', async({ goto, tablePage }) => {
 
   await createSelection(cellFrom, cellTo);
 
+  await tablePage.waitForTimeout(1000);
   await cellFrom.click({ button: 'right' });
-  await tablePage.getByText('Merge cells').click();
+  await tablePage.waitForTimeout(1000);
+  await selectFromContextMenu('"Merge cells"');
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

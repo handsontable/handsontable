@@ -3,18 +3,19 @@ import { test, expect } from '../../src/test-runner';
 import {
   columnsCount,
   selectColumnHeaderByNameAndOpenMenu,
+  selectFromContextMenu,
 } from '../../src/page-helpers';
 
 test('Test column hiding', async({ tablePage }) => {
   expect(await columnsCount()).toBe(9);
 
   await selectColumnHeaderByNameAndOpenMenu('Name');
-  await tablePage.getByText('Hide column').click();
+  await selectFromContextMenu('"Hide column"');
 
   expect(await columnsCount()).toBe(8);
 
   await selectColumnHeaderByNameAndOpenMenu('In stock');
-  await tablePage.getByText('Hide column').click();
+  await selectFromContextMenu('"Hide column"');
 
   expect(await columnsCount()).toBe(7);
 
@@ -24,7 +25,7 @@ test('Test column hiding', async({ tablePage }) => {
 
   await selectColumnHeaderByNameAndOpenMenu('Progress');
 
-  await tablePage.getByText('Show columns').click();
+  await selectFromContextMenu('"Show columns"');
 
   expect(await columnsCount()).toBe(9);
 

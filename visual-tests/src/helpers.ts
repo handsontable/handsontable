@@ -19,6 +19,7 @@ export const helpers = {
     cloneInlineStartCornerTable:
       '> .ht_clone_top_inline_start_corner.handsontable table thead',
     dropdownMenu: '.htMenu.htDropdownMenu.handsontable',
+    contextMenu: '.htMenu.htContextMenu.handsontable',
   },
 
   cssFiles: {

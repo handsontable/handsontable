@@ -158,10 +158,10 @@ router
         initializeNestedRowsDemo();
       });
     },
-    '/complex-demo': async function () {
+    '/complex-demo': function () {
       removeCSS();
 
-      return Promise.all([
+      Promise.all([
         loadThemeCSS(),
       ]).then(() => {
         initializeComplexDemo();
