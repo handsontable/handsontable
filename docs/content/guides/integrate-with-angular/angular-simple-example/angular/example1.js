@@ -8,7 +8,6 @@ import { Component } from '@angular/core';
       <hot-table
         [data]="dataset"
         [colHeaders]="true"
-        [rowHeaders]="true"
         height="auto"
         [autoWrapRow]="true"
         [autoWrapCol]="true"
