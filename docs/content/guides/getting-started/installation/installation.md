@@ -133,7 +133,7 @@ You can also import Handsontable's CSS using a link tag:
 In your HTML, add an empty `div`, which serves as a container for your Handsontable instance.
 
 ```html
-<div id="example"></div>
+<div id="example" class="ht-theme-main-dark-auto"></div>
 ```
 
 ## Initialize your grid
@@ -233,20 +233,22 @@ import { HotTable } from '@handsontable/react-wrapper';
 To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
 
 ```jsx
-<HotTable
-  data={[
-    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-    ['2019', 10, 11, 12, 13],
-    ['2020', 20, 11, 14, 13],
-    ['2021', 30, 15, 12, 13]
-  ]}
-  rowHeaders={true}
-  colHeaders={true}
-  height="auto"
-  autoWrapRow={true}
-  autoWrapCol={true}
-  licenseKey="non-commercial-and-evaluation" // for non-commercial use only
-/>
+<div class="ht-theme-main-dark-auto">
+  <HotTable
+    data={[
+      ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+      ['2019', 10, 11, 12, 13],
+      ['2020', 20, 11, 14, 13],
+      ['2021', 30, 15, 12, 13]
+    ]}
+    rowHeaders={true}
+    colHeaders={true}
+    height="auto"
+    autoWrapRow={true}
+    autoWrapCol={true}
+    licenseKey="non-commercial-and-evaluation" // for non-commercial use only
+  />
+</div>
 ```
 
 ::: tip
