@@ -12,12 +12,16 @@ const stylesToAdd = [
 
 const shouldImplicitlyNavigate = new WeakSet();
 
+type TestParams = {
+  tablePage: Page;
+  customTitle: string;
+  goto: (url: string) => Promise<void>;
+};
+
 // Define your custom fixture
-const test = baseTest.extend<{ tablePage: Page, customTitle: string, goto: any }>({
+const test = baseTest.extend<TestParams>({
   async tablePage({ page }, use, testInfo) {
     PageHolder.getInstance().setPage(page);
-
-    // Reset screenshotsCount before each test
     helpers.screenshotsCount = 0;
 
     if (shouldImplicitlyNavigate.has(page)) {
@@ -26,23 +30,22 @@ const test = baseTest.extend<{ tablePage: Page, customTitle: string, goto: any }
       return;
     }
 
-    if (page.url() === 'about:blank') {
-      await page.goto(
-        helpers
-          .setBaseUrl('/')
-          .setPageParams({ direction: 'ltr' })
-          .getFullUrl()
-      );
-    }
+    await page.goto(
+      helpers
+        .setBaseUrl('/')
+        .setPageParams({ direction: 'ltr' })
+        .getFullUrl()
+    );
+
+    await page.waitForLoadState('load');
+    await expect(page).toHaveTitle(helpers.expectedPageTitle);
 
     helpers.setTestDetails({
+      rootDir: testInfo.config.rootDir,
       testFilePath: testInfo.file,
       browser: testInfo.project.name,
       testedPageUrl: page.url(),
     });
-
-    await page.waitForLoadState('load');
-    await expect(page).toHaveTitle(helpers.expectedPageTitle);
 
     stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
 
@@ -63,14 +66,17 @@ const test = baseTest.extend<{ tablePage: Page, customTitle: string, goto: any }
     await use(async(url) => {
       await page.goto(url);
 
+      helpers.setBaseUrl('/').setPageParams({ direction: 'ltr' });
+
+      await page.waitForLoadState('load');
+      await expect(page).toHaveTitle(helpers.expectedPageTitle);
+
       helpers.setTestDetails({
+        rootDir: testInfo.config.rootDir,
         testFilePath: testInfo.file,
         browser: testInfo.project.name,
         testedPageUrl: page.url(),
       });
-
-      await page.waitForLoadState('load');
-      await expect(page).toHaveTitle(helpers.expectedPageTitle);
 
       stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
 

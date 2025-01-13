@@ -113,7 +113,6 @@ router
       removeCSS();
 
       Promise.all([
-        loadCSS('./assets/arabic-rtl-demo.css'),
         loadThemeCSS(),
       ]).then(() => {
         initializeArabicRtlDemo();

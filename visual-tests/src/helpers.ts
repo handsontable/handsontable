@@ -55,7 +55,7 @@ export const helpers = {
 
   setTestDetails(details) {
     this.testFilePath = details.testFilePath;
-    this.screenshotDirName = path.basename(this.testFilePath).split('.spec.ts')[0];
+    this.screenshotDirName = path.relative(details.rootDir, details.testFilePath).replace(/\.spec\.ts$/, '');
     this.browser = details.browser;
     this.testedPageUrl = details.testedPageUrl;
   },
@@ -74,14 +74,14 @@ export const helpers = {
     return this;
   },
 
-  getFullUrl() {
-    return this.baseUrl + this.getSearchUrlParams();
-  },
-
   setPageParams(params: Record<string, string>) {
     this.pageParams = params;
 
     return this;
+  },
+
+  getFullUrl() {
+    return this.baseUrl + this.getSearchUrlParams();
   },
 
   findCell({ row = 0, column = 0, cellType = 'td' }) {
@@ -118,7 +118,6 @@ export const helpers = {
         this.screenshotsDirectory,
         'cross-browser',
         this.browser,
-        this.screenshotDirName,
         `${this.screenshotDirName}${safeUrl}-${this.screenshotsCount}.${this.screenshotsExtension}`,
       );
     }
@@ -127,7 +126,6 @@ export const helpers = {
       this.screenshotsDirectory,
       this.hotWrapper,
       `${this.browser}${this.hotTheme ? '-theme-' + this.hotTheme : ''}`, // eslint-disable-line prefer-template
-      this.screenshotDirName,
       `${this.screenshotDirName}-${this.screenshotsCount}.${this.screenshotsExtension}`,
     );
   },
