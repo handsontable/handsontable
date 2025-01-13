@@ -130,19 +130,22 @@ export class AppComponent  {
 **Template**
 
 ```html
-<hot-table
-  [data]="data"
-  [rowHeaders]="true"
-  [colHeaders]="true"
-  [navigableHeaders]="true"
-  [tabNavigation]="true"
-  [multiColumnSorting]="true"
-  headerClassName="htLeft"
-  licenseKey="non-commercial-and-evaluation">
+<div class="ht-theme-main-dark-auto">
+  <hot-table
+    [data]="data"
+    [rowHeaders]="true"
+    [colHeaders]="true"
+    [navigableHeaders]="true"
+    [tabNavigation]="true"
+    [multiColumnSorting]="true"
+    headerClassName="htLeft"
+    licenseKey="non-commercial-and-evaluation"
+  >
     <hot-column title="Company" data="company" width=100></hot-column>
     <hot-column title="Country" data="country" width=170 type="dropdown" [source]="['United Kingdom', 'Japan', 'United States']"></hot-column>
     <hot-column title="Rating" data="rating" width=100 type="numeric"></hot-column>
-</hot-table>
+  </hot-table>
+</div>
 ```
 
 [![Static Badge](https://img.shields.io/badge/View%20live%20demo-1a42e8?style=for-the-badge)](https://handsontable.com/docs/javascript-data-grid/angular-basic-example/)
@@ -230,4 +233,4 @@ Created and maintained by the [Handsontable Team](https://handsontable.com/team)
 
 ---
 
-© 2012 - 2024 Handsoncode
+© 2012 - 2025 Handsoncode

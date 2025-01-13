@@ -96,20 +96,22 @@ Use this data grid as you would any other component in your application. [Option
 **Vue 3 Component**
 ```vue
 <template>
-  <hot-table
-    :data="data"
-    :row-headers=true
-    :col-headers=true
-    :navigable-headers=true
-    :tab-navigation=true
-    :multi-column-sorting=true
-    header-class-name="htLeft"
-    license-key="non-commercial-and-evaluation"
-  >
-    <hot-column title="Company" data="company" width=100></hot-column>
-    <hot-column title="Country" data="country" width=170 type="dropdown" :source="['United Kingdom', 'Japan', 'United States']"></hot-column>
-    <hot-column title="Rating" data="rating" width=100 type="numeric"></hot-column>
-  </hot-table>
+  <div class="ht-theme-main-dark-auto">
+    <hot-table
+      :data="data"
+      :row-headers=true
+      :col-headers=true
+      :navigable-headers=true
+      :tab-navigation=true
+      :multi-column-sorting=true
+      header-class-name="htLeft"
+      license-key="non-commercial-and-evaluation"
+    >
+      <hot-column title="Company" data="company" width=100></hot-column>
+      <hot-column title="Country" data="country" width=170 type="dropdown" :source="['United Kingdom', 'Japan', 'United States']"></hot-column>
+      <hot-column title="Rating" data="rating" width=100 type="numeric"></hot-column>
+    </hot-table>
+  </div>
 </template>
 
 <script>
@@ -227,4 +229,4 @@ Created and maintained by the [Handsontable Team](https://handsontable.com/team)
 
 ---
 
-© 2012 - 2024 Handsoncode
+© 2012 - 2025 Handsoncode
