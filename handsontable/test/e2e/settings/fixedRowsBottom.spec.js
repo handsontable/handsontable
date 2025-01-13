@@ -212,7 +212,7 @@ describe('settings', () => {
 
       expect(getMaster().height()).forThemes(({ classic, main }) => {
         classic.toBe(50); // 25px corner + 25px added row
-        main.toBe(59)
+        main.toBe(59);
       });
       expect(getTopClone().height()).forThemes(({ classic, main }) => {
         classic.toBe(26); // 26px as rowHeaders is enabled

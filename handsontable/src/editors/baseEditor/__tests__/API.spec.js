@@ -82,12 +82,12 @@ describe('BaseEditor API', () => {
                 maxHeight: document.documentElement.clientHeight,
               });
               main.toEqual({
-                  start: 0,
-                  top: 0,
-                  width: 50,
-                  maxWidth: document.documentElement.clientWidth,
-                  height: 30,
-                  maxHeight: document.documentElement.clientHeight,
+                start: 0,
+                top: 0,
+                width: 50,
+                maxWidth: document.documentElement.clientWidth,
+                height: 30,
+                maxHeight: document.documentElement.clientHeight,
               });
             });
           });
