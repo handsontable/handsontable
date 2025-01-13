@@ -1,6 +1,6 @@
 {
     "issuesOrigin": "private",
-    "title": "Fix nested children move bug",
+    "title": "Fixing issue with NestedRows plugin duplicating rows when moving children",
     "type": "fixed",
     "issueOrPR": 11362,
     "breaking": false,
