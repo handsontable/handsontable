@@ -2115,6 +2115,7 @@ describe('MergeCells cooperation with hidden rows', () => {
   });
 
   it('should display properly high merged cell containing hidden columns', () => {
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
@@ -2210,6 +2211,7 @@ describe('MergeCells cooperation with hidden rows', () => {
   });
 
   it('should display properly high merged cell containing hidden columns (virtualized)', () => {
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,

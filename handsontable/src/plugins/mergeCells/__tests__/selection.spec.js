@@ -13,6 +13,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should leave the partially selected merged cells white (or any initial color), when selecting entire columns or rows', () => {
+    // TODO [themes]: Possible a themes-related bug.
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -91,6 +92,7 @@ describe('MergeCells Selection', () => {
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
     'selecting entire columns or rows (using multiple selection layers)', () => {
+    // TODO [themes]: Possible a themes-related bug.
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -224,7 +226,10 @@ describe('MergeCells Selection', () => {
     alter('insert_row_above', 1);
 
     expect(getSelected()).toEqual([[2, 1, 3, 2]]);
-    expect($borderTop.position().top).toBe(topPositionBefore + 23); // adds default row height
+    expect($borderTop.position().top).forThemes(({ classic, main }) => {
+      classic.toBe(topPositionBefore + 23); // adds default row height
+      main.toBe(topPositionBefore + 29);
+    });
   });
 
   it('should keep the selection on merged cells after inserting column to left to the merged cells', () => {
@@ -341,6 +346,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should keep the highlight (area selection) on the virtualized merged cell after vertical scroll', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration (number of rendered rows)
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -460,6 +466,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should keep focus selection on the high virtualized merged cell that intersects the top overlay', () => {
+    // TODO [themes]: Possible a themes-related bug.
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,

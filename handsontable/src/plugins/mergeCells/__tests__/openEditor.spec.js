@@ -134,7 +134,10 @@ describe('MergeCells open editor', () => {
       await sleep(50);
 
       expect(isEditorVisible()).toBe(true);
-      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).toEqual({ top: 49, left: 50 });
+      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 49, left: 50 });
+        main.toEqual({ top: 58, left: 50 });
+      });
     });
 
     it('should render the editor correctly after scroll for very high merged cell', async() => {
@@ -156,7 +159,10 @@ describe('MergeCells open editor', () => {
       await sleep(50);
 
       expect(isEditorVisible()).toBe(true);
-      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).toEqual({ top: 27, left: 99 });
+      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 27, left: 99 });
+        main.toEqual({ top: 30, left: 99 });
+      });
     });
   });
 });
