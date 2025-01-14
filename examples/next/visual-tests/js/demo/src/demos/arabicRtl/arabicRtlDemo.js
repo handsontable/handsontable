@@ -1,9 +1,9 @@
 import Handsontable from 'handsontable';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
+import { generateArabicData } from './arabicRtlData';
+import { getThemeNameFromURL } from '../../utils';
 
 registerLanguageDictionary(arAR);
-
-import { generateArabicData } from '././arabicRtlData';
 
 const root = document.getElementById('root');
 
@@ -14,7 +14,9 @@ export function initializeArabicRtlDemo() {
  new Handsontable(container, {
     licenseKey: 'non-commercial-and-evaluation',
     data: generateArabicData(),
-    width: 600,
+    themeName: getThemeNameFromURL(),
+    width: 700,
+    height: 500,
     columns: [
       { data: 0, type: 'checkbox', title: 'فعال' },
       { data: 1, type: 'text', title: 'اسم' },
@@ -52,7 +54,6 @@ export function initializeArabicRtlDemo() {
       'رقم 3',
     ],
     rowHeaders: true,
-    height: 300,
     layoutDirection: 'rtl',
     language: 'ar-AR',
     dropdownMenu: true,

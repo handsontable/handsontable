@@ -1,5 +1,6 @@
 import { Component, ViewEncapsulation, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
-import { HotTableModule } from '@handsontable/angular';
+import { ActivatedRoute } from "@angular/router";
+import { HotTableModule } from "@handsontable/angular";
 import { getData } from "./utils/constants";
 import { starsRenderer } from "./renderers/stars";
 import { progressBarRenderer } from "./renderers/progressBar";
@@ -40,6 +41,17 @@ export class DataGridComponent {
   hiddenColumns = {
     indicators: true
   };
-  headerClassNameValue = document.documentElement.getAttribute('dir') === 'rtl' ? 'htRight' : 'htLeft';
+  headerClassNameValue = document.documentElement.getAttribute("dir") === "rtl" ? "htRight" : "htLeft";
   licenseKey = "non-commercial-and-evaluation";
+  themeName: string | undefined = undefined;
+
+  constructor(private route: ActivatedRoute) {}
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params["theme"]) {
+        this.themeName = `ht-theme-${params["theme"]}`;
+      }
+    });
+  }
 }

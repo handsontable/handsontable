@@ -2,7 +2,7 @@ import Handsontable from 'handsontable/base';
 
 import { scenarioDataTop, scenarioDataBottom } from './twoTablesData';
 
-import { isArabicDemoEnabled } from '../../utils';
+import { getDirectionFromURL, getThemeNameFromURL } from '../../utils';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 
 // choose cell types you want to use and import them
@@ -81,8 +81,9 @@ export function initializeTwoTablesDemo() {
 
   new Handsontable(example1, {
     data: scenarioDataTop,
-    layoutDirection: isArabicDemoEnabled() ? 'rtl' : 'ltr',
-    language: isArabicDemoEnabled() ? arAR.languageCode : 'en-US',
+    layoutDirection: getDirectionFromURL(),
+    language: getDirectionFromURL() === 'rtl' ? arAR.languageCode : 'en-US',
+    themeName: getThemeNameFromURL(),
     height: 350,
     colHeaders:true,
     nestedHeaders:[
@@ -142,6 +143,7 @@ export function initializeTwoTablesDemo() {
 
   new Handsontable(example2, {
     data: scenarioDataBottom,
+    themeName: getThemeNameFromURL(),
     height: 250,
     colHeaders: [
       'Product ID',

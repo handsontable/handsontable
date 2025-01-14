@@ -12,9 +12,10 @@
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
+    "prepare-assets": "copyfiles -f ../node_modules/handsontable/dist/*.css dist/static/css/handsontable/dist && copyfiles -f ../node_modules/handsontable/styles/*.css dist/static/css/handsontable/styles",
     "start": "cross-env SKIP_PREFLIGHT_CHECK=true BROWSER=none PORT=8080 react-app-rewired start",
     "serve": "node server.js",
-    "build": "cross-env BUILD_PATH=dist SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build",
+    "build": "cross-env BUILD_PATH=dist SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build && npm run prepare-assets",
     "eject": "react-app-rewired eject"
   },
   "dependencies": {
@@ -30,6 +31,7 @@
     "@ngneat/falso": "^7.2.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "copyfiles": "^2.4.1",
     "cross-env": "7.0.3",
     "http-server": "^14.1.1",
     "jasmine": "3.7.0",

@@ -12,7 +12,6 @@ import {
  * Checks whether the selection highlights the merged cells correctly.
  */
 test(__filename, async({ tablePage }) => {
-
   const cellFrom = await selectCell(3, 0);
   const cellTo = await selectCell(5, 2);
 
