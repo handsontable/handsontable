@@ -53,8 +53,8 @@ jobs:
               - './package-lock.json'
               - './handsontable/hot.config.js'
               - './handsontable/babel.config.js'
-              - '.visual-tests/playwright.config.ts'
-              - '.visual-tests/playwright-cross-browser.config.ts'
+              - './visual-tests/playwright.config.ts'
+              - './visual-tests/playwright-cross-browser.config.ts'
             hot-definition-files: &hot-definition-files
               - './handsontable/base.d.ts'
               - './handsontable/handsontable.d.ts'
