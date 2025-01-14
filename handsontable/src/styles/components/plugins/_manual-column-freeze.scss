@@ -18,27 +18,5 @@
         }
       }
     }
-
-    .ht_clone_top_inline_start_corner,
-    .ht_clone_top,
-    .ht_clone_bottom_inline_start_corner,
-    .ht_clone_bottom {
-      th,
-      td {
-        &:not(&.ht__active_highlight) {
-          border-color: var(--ht-border-color);
-        }
-      }
-    }
-
-    .ht_clone_inline_start {
-      th,
-      td {
-        &:not(&.ht__active_highlight) {
-          border-inline-start-color: var(--ht-border-color);
-          border-inline-end-color: var(--ht-border-color);
-        }
-      }
-    }
   }
 }
