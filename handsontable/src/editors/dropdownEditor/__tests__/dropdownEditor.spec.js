@@ -81,6 +81,7 @@ describe('DropdownEditor', () => {
 
   it('should render an editor in specified position while opening an editor from top to bottom when ' +
      'top and bottom overlays are enabled', () => {
+    // TODO [themes]: Could be potentially a themes-related bug
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(8, 2),
       rowHeaders: true,
@@ -400,8 +401,14 @@ describe('DropdownEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).toBe(120);
-      expect(container.clientHeight).toBe(118);
+      expect(container.clientWidth).forThemes(({ classic, main }) => {
+        classic.toBe(120);
+        main.toBe(118);
+      });
+      expect(container.clientHeight).forThemes(({ classic, main }) => {
+        classic.toBe(118);
+        main.toBe(146);
+      });
     });
 
     it('should open editor with the correct size when there is scrollbar on the list', async() => {
@@ -423,8 +430,14 @@ describe('DropdownEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).toBe(120 + Handsontable.dom.getScrollbarWidth());
-      expect(container.clientHeight).toBe(72);
+      expect(container.clientWidth).forThemes(({ classic, main }) => {
+        classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
+        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+      });
+      expect(container.clientHeight).forThemes(({ classic, main }) => {
+        classic.toBe(72);
+        main.toBe(88);
+      });
     });
   });
 

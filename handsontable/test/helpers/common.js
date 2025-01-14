@@ -3,7 +3,9 @@ const specContext = {};
 beforeEach(function() {
   specContext.spec = this;
 
-  this.loadedTheme = __ENV_ARGS__.HOT_THEME;
+  if (typeof __ENV_ARGS__ !== 'undefined') {
+    this.loadedTheme = __ENV_ARGS__.HOT_THEME;
+  }
 });
 
 afterEach(() => {

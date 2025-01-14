@@ -77,6 +77,8 @@ describe('TextEditor (RTL mode)', () => {
 
     it('should render an editor in specified position while opening an editor from top to bottom when ' +
       'top and bottom overlays are enabled', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
+      // TODO [themes]: Could be potentially a themes-related bug
       handsontable({
         layoutDirection,
         data: Handsontable.helper.createSpreadsheetData(8, 2),

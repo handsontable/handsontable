@@ -60,7 +60,7 @@ describe('Handsontable editor theme handling', () => {
           }
         }
       ],
-    });
+    }, true);
 
     selectCell(0, 0);
     keyDown('enter');

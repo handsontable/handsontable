@@ -45,17 +45,29 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).toBe(92);
-    expect(colWidth(spec().$container, 2)).toBe(173);
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(92);
+      main.toBe(106);
+    });
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(173);
+      main.toBe(193);
+    });
 
     setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
     setDataAtRowProp(0, 'name', 'foo');
 
     await sleep(50);
 
-    expect(colWidth(spec().$container, 0)).toBe(129);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(129);
+      main.toBe(146);
+    });
     expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(173);
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(173);
+      main.toBe(193);
+    });
   });
 
   it('should correctly detect column widths with colHeaders', () => {
@@ -69,7 +81,10 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(122);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(122);
+      main.toBe(139);
+    });
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as an array', () => {
@@ -87,8 +102,14 @@ describe('AutoColumnSize', () => {
 
     updateSettings({ colHeaders: ['Identifier Longer text', 'Identifier Longer and longer text'] });
 
-    expect(colWidth(spec().$container, 0)).toBe(122);
-    expect(colWidth(spec().$container, 1)).toBeAroundValue(180);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(122);
+      main.toBe(139);
+    });
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(180);
+      main.toBeAroundValue(202);
+    });
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a string', () => {
@@ -106,8 +127,14 @@ describe('AutoColumnSize', () => {
 
     updateSettings({ colHeaders: 'Identifier Longer text' });
 
-    expect(colWidth(spec().$container, 0)).toBe(122);
-    expect(colWidth(spec().$container, 1)).toBe(122);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(122);
+      main.toBe(139);
+    });
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(122);
+      main.toBe(139);
+    });
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a function', () => {
@@ -129,8 +156,14 @@ describe('AutoColumnSize', () => {
       },
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(122);
-    expect(colWidth(spec().$container, 1)).toBeAroundValue(180);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(122);
+      main.toBe(139);
+    });
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(180);
+      main.toBeAroundValue(202);
+    });
   });
 
   it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', () => {
@@ -159,7 +192,10 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBeAroundValue(58);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(58);
+      main.toBeAroundValue(71);
+    });
   });
 
   it('should correctly detect column widths after update columns.title', () => {
@@ -177,7 +213,10 @@ describe('AutoColumnSize', () => {
       ],
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(144);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(144);
+      main.toBe(163);
+    });
   });
 
   it('should correctly detect column width when table is hidden on init (display: none) #2684', async() => {
@@ -195,7 +234,10 @@ describe('AutoColumnSize', () => {
 
     await sleep(50);
 
-    expect(colWidth(spec().$container, 0)).toBeAroundValue(58);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(58);
+      main.toBeAroundValue(71);
+    });
   });
 
   it('should not change the column width after toggling the state of the checkbox cell type', () => {
@@ -223,11 +265,17 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(123);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(123);
+      main.toBe(140);
+    });
 
     setDataAtCell(0, 0, false);
 
-    expect(colWidth(spec().$container, 0)).toBe(123);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(123);
+      main.toBe(140);
+    });
   });
 
   it('should not wrap the cell values when the whole column has values with the same length', () => {
@@ -257,12 +305,30 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(77);
-    expect(rowHeight(spec().$container, 0)).toBe(24);
-    expect(rowHeight(spec().$container, 1)).toBe(23);
-    expect(rowHeight(spec().$container, 2)).toBe(23);
-    expect(rowHeight(spec().$container, 3)).toBe(23);
-    expect(rowHeight(spec().$container, 4)).toBe(23);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(77);
+      main.toBe(90);
+    });
+    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(24);
+      main.toBe(30);
+    });
+    expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(23);
+      main.toBe(29);
+    });
+    expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(23);
+      main.toBe(29);
+    });
+    expect(rowHeight(spec().$container, 3)).forThemes(({ classic, main }) => {
+      classic.toBe(23);
+      main.toBe(29);
+    });
+    expect(rowHeight(spec().$container, 4)).forThemes(({ classic, main }) => {
+      classic.toBe(23);
+      main.toBe(29);
+    });
   });
 
   it('should be possible to disable plugin using updateSettings', () => {
@@ -547,13 +613,19 @@ describe('AutoColumnSize', () => {
 
     const cloneTopHider = spec().$container.find('.ht_clone_top .wtHider');
 
-    expect(cloneTopHider.width()).toBe(118);
+    expect(cloneTopHider.width()).forThemes(({ classic, main }) => {
+      classic.toBe(118);
+      main.toBe(130);
+    });
 
     selectCell(0, 0);
 
     await sleep(300);
 
-    expect(cloneTopHider.width()).toBe(118);
+    expect(cloneTopHider.width()).forThemes(({ classic, main }) => {
+      classic.toBe(118);
+      main.toBe(130);
+    });
   });
 
   it('should not calculate any column widths, if there are no columns in the dataset', () => {
@@ -592,58 +664,96 @@ describe('AutoColumnSize', () => {
   });
 
   it('should keep proper column widths after inserting column', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration (more readable)
     handsontable({
       autoColumnSize: true,
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
     expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(109);
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(50);
+      main.toBe(59);
+    });
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(109);
+      main.toBe(125);
+    });
 
     alter('insert_col_start', 0);
 
-    expect(colWidth(spec().$container, 0)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 0)).toBe(50); // Added new column here.
     expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(50);
-    expect(colWidth(spec().$container, 3)).toBe(109);
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(50);
+      main.toBe(59);
+    });
+    expect(colWidth(spec().$container, 3)).forThemes(({ classic, main }) => {
+      classic.toBe(109);
+      main.toBe(125);
+    });
     expect(colWidth(spec().$container, 4)).toBe(50);
 
     alter('insert_col_start', 3);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(50);
-    expect(colWidth(spec().$container, 3)).toBe(50); // Added new row here.
-    expect(colWidth(spec().$container, 4)).toBe(109);
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(50);
+      main.toBe(59);
+    });
+    expect(colWidth(spec().$container, 3)).toBe(50); // Added new column here.
+    expect(colWidth(spec().$container, 4)).forThemes(({ classic, main }) => {
+      classic.toBe(109);
+      main.toBe(125);
+    });
     expect(colWidth(spec().$container, 5)).toBe(50);
 
     alter('insert_col_start', 5);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(50);
+      main.toBe(59);
+    });
     expect(colWidth(spec().$container, 3)).toBe(50);
-    expect(colWidth(spec().$container, 4)).toBe(109);
-    expect(colWidth(spec().$container, 5)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 4)).forThemes(({ classic, main }) => {
+      classic.toBe(109);
+      main.toBe(125);
+    });
+    expect(colWidth(spec().$container, 5)).toBe(50); // Added new column here.
     expect(colWidth(spec().$container, 6)).toBe(50);
   });
 
   it('should keep proper column widths after removing column', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       autoColumnSize: true,
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
     expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(109);
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(50);
+      main.toBe(59);
+    });
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(109);
+      main.toBe(125);
+    });
     expect(colWidth(spec().$container, 3)).toBe(50);
 
     alter('remove_col', 0);
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).toBe(109);
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(50);
+      main.toBe(59);
+    });
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(109);
+      main.toBe(125);
+    });
     expect(colWidth(spec().$container, 2)).toBe(50);
   });
 
@@ -656,14 +766,26 @@ describe('AutoColumnSize', () => {
     hot.columnIndexMapper.moveIndexes(2, 1);
     render();
 
-    expect(colWidth(spec().$container, 1)).toBe(109);
-    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(109);
+      main.toBe(125);
+    });
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(50);
+      main.toBe(59);
+    });
 
     hot.columnIndexMapper.moveIndexes(1, 2);
     render();
 
-    expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(109);
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(50);
+      main.toBe(59);
+    });
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(109);
+      main.toBe(125);
+    });
   });
 
   it('should keep appropriate column size when columns order is changed and some column is cleared', () => {
@@ -676,13 +798,25 @@ describe('AutoColumnSize', () => {
     hot.columnIndexMapper.moveIndexes(2, 1);
     render();
 
-    expect(colWidth(spec().$container, 1)).toBe(109);
-    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(109);
+      main.toBe(125);
+    });
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(50);
+      main.toBe(59);
+    });
 
     hot.populateFromArray(0, 1, [[null], [null], [null], [null], [null]]); // Empty values on the second visual column.
 
-    expect(colWidth(spec().$container, 1)).toBe(109);
-    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(109);
+      main.toBe(125);
+    });
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(50);
+      main.toBe(59);
+    });
   });
 
   it('should keep the viewport position unchanged after resetting all columns widths (#dev-1888)', () => {
@@ -697,16 +831,23 @@ describe('AutoColumnSize', () => {
 
     scrollViewportTo(0, 49);
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(2217);
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(2217);
+      main.toBe(2283);
+    });
 
     selectRows(2, 2);
     listen();
     keyDownUp('delete');
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(2217);
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(2217);
+      main.toBe(2283);
+    });
   });
 
   describe('should cooperate with the `UndoRedo` plugin properly', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration (more readable)
     it('when removing single column', () => {
       handsontable({
         data: [['Short', 'Somewhat long', 'The very very very longest one']],
@@ -718,32 +859,59 @@ describe('AutoColumnSize', () => {
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).toBe(92);
-      expect(colWidth(spec().$container, 1)).toBe(173);
+      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       alter('remove_col', 1);
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').undo();
 
@@ -752,16 +920,26 @@ describe('AutoColumnSize', () => {
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
     });
 
     it('when inserting single column', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration (more readable)
       handsontable({
         data: [['Short', 'Somewhat long', 'The very very very longest one']],
         autoColumnSize: true,
@@ -772,77 +950,143 @@ describe('AutoColumnSize', () => {
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(50);
-      expect(colWidth(spec().$container, 2)).toBe(92);
-      expect(colWidth(spec().$container, 3)).toBe(173);
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 3)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       alter('insert_col_start', 1);
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
       expect(colWidth(spec().$container, 1)).toBe(50);
-      expect(colWidth(spec().$container, 2)).toBe(92);
-      expect(colWidth(spec().$container, 3)).toBe(173);
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 3)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       alter('insert_col_start', 2);
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
       expect(colWidth(spec().$container, 2)).toBe(50);
-      expect(colWidth(spec().$container, 3)).toBe(173);
+      expect(colWidth(spec().$container, 3)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       alter('insert_col_start', 3);
 
       getPlugin('undoRedo').undo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
       expect(colWidth(spec().$container, 3)).toBe(50);
     });
 
@@ -857,17 +1101,35 @@ describe('AutoColumnSize', () => {
         ]
       });
 
-      expect(colWidth(spec().$container, 0)).toBeAroundValue(58);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+        classic.toBeAroundValue(58);
+        main.toBeAroundValue(71);
+      });
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
 
       hot.alter('remove_row', 0);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBeAroundValue(58);
-      expect(colWidth(spec().$container, 1)).toBe(92);
-      expect(colWidth(spec().$container, 2)).toBe(173);
+      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+        classic.toBeAroundValue(58);
+        main.toBeAroundValue(71);
+      });
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(92);
+        main.toBe(106);
+      });
+      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(193);
+      });
     });
   });
 
@@ -889,7 +1151,10 @@ describe('AutoColumnSize', () => {
       });
 
       expect(colWidth(spec().$container, 0)).toBe(65);
-      expect(colWidth(spec().$container, 1)).toBe(188);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(188);
+        main.toBe(208);
+      });
     });
   });
 
@@ -953,7 +1218,10 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 0)).toBe(150);
+      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+        classic.toBe(150);
+        main.toBe(169);
+      });
     });
   });
 
@@ -976,7 +1244,10 @@ describe('AutoColumnSize', () => {
       setDataAtCell(0, 0, 999999999999);
       await sleep(200);
 
-      expect(colWidth(spec().$container, 1)).toBe(108);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(108);
+        main.toBe(123);
+      });
     });
 
     it('should decrease width if result become to be shorter', async() => {
@@ -992,7 +1263,10 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 1)).toBe(50);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(50);
+        main.toBe(60);
+      });
 
       setDataAtCell(0, 0, 9);
       await sleep(50);
@@ -1018,7 +1292,10 @@ describe('AutoColumnSize', () => {
       setDataAtCell(0, 0, 'not a number');
       await sleep(50);
 
-      expect(colWidth(spec().$container, 1)).toBe(64);
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(64);
+        main.toBe(76);
+      });
     });
   });
 });

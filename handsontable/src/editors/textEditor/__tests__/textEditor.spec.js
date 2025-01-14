@@ -578,7 +578,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+      classic.toBe('24px');
+      main.toBe('29px');
+    });
     expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
@@ -590,7 +593,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+      classic.toBe('24px');
+      main.toBe('30px');
+    });
   });
 
   it('should render textarea editor in specified size at cell 0, 0 with headers', async() => {
@@ -604,7 +610,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(getActiveEditor().TEXTAREA.style.height).toBe('24px');
+    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+      classic.toBe('24px');
+      main.toBe('30px');
+    });
     expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
@@ -620,7 +629,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(getActiveEditor().TEXTAREA.style.height).toBe('24px');
+    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+      classic.toBe('24px');
+      main.toBe('30px');
+    });
     expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
@@ -647,9 +659,18 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(51, 1);
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
-    expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
+    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(51, 1);
+      main.toBeAroundValue(55, 1);
+    });
+    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+      classic.toBe('24px');
+      main.toBe('30px');
+    });
+    expect(hot.getActiveEditor().textareaParentStyle.top).forThemes(({ classic, main }) => {
+      classic.toBe('26px');
+      main.toBe('29px');
+    });
   });
 
   it('should hide whole editor when it is higher then header and TD is not rendered anymore', async() => {
@@ -696,7 +717,10 @@ describe('TextEditor', () => {
     await sleep(200);
 
     expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(1);
-    expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(-77);
+    expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(-77);
+      main.toBeAroundValue(-62);
+    });
     expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(50);
   });
 
@@ -729,7 +753,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('24px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+      classic.toBe('24px');
+      main.toBe('30px');
+    });
   });
 
   it('should render textarea editor in specified height (multi line)', async() => {
@@ -742,7 +769,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('65px');
+    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+      classic.toBe('65px');
+      main.toBe('70px');
+    });
   });
 
   it('should render number in textarea', () => {
@@ -1857,7 +1887,10 @@ describe('TextEditor', () => {
 
     await sleep(150);
 
-    expect($editorInput.height()).toBe(83);
+    expect($editorInput.height()).forThemes(({ classic, main }) => {
+      classic.toBe(83);
+      main.toBe(95);
+    });
   });
 
   it('allow scrolling the editor if its content exceeds the viewport height', async() => {

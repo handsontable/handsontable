@@ -58,6 +58,7 @@ describe('TextEditor keyboard shortcut', () => {
 
   describe('"Enter + Alt"', () => {
     it('should exceed the editor height only for one line', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],

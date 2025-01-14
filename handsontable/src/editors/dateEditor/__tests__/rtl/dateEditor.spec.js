@@ -74,12 +74,15 @@ describe('DateEditor (RTL mode)', () => {
       const datePickerOffset = $datePicker.offset();
       const datePickerWidth = $datePicker.outerWidth();
 
-      // 23 is a height of the editor's cell
-      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+      expect(cellOffset.top + 23).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(datePickerOffset.top, 0); // 23 is a height of the editor's cell
+        main.toBeCloseTo(datePickerOffset.top - 6, 0); // -6 to compensate the difference between the main and classic theme
+      });
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
     });
 
     it('should display Pikaday Calendar left-bottom of the selected cell when table have scrolls', () => {
+      // TODO [themes]: Could be potentially a themes-related bug
       const container = $('#testContainer');
 
       container[0].style.height = '300px';
@@ -110,12 +113,15 @@ describe('DateEditor (RTL mode)', () => {
       const datePickerOffset = $datePicker.offset();
       const datePickerWidth = $datePicker.outerWidth();
 
-      // 23 is a height of the editor's cell
-      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+      expect(cellOffset.top + 23).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(datePickerOffset.top, 0); // 23 is a height of the editor's cell
+        main.toBeCloseTo(datePickerOffset.top - 6, 0); // -6 to compensate the difference between the main and classic theme
+      });
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
     });
 
     it('should move a datepicker together with the edited cell when the table is scrolled left', async() => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(50, 20),
@@ -136,8 +142,10 @@ describe('DateEditor (RTL mode)', () => {
 
       await sleep(50);
 
-      // 23 is a height of the editor's cell
-      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+      expect(cellOffset.top + 23).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(datePickerOffset.top, 0); // 23 is a height of the editor's cell
+        main.toBeCloseTo(datePickerOffset.top - 6, 0); // -6 to compensate the difference between the main and classic theme
+      });
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
       expect(pikaElement.is(':visible')).toBe(true);
 
@@ -145,8 +153,10 @@ describe('DateEditor (RTL mode)', () => {
 
       await sleep(50);
 
-      // 23 is a height of the editor's cell
-      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+      expect(cellOffset.top + 23).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(datePickerOffset.top, 0); // 23 is a height of the editor's cell
+        main.toBeCloseTo(datePickerOffset.top - 6, 0); // -6 to compensate the difference between the main and classic theme
+      });
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
       expect(pikaElement.is(':visible')).toBe(true);
 
@@ -158,6 +168,7 @@ describe('DateEditor (RTL mode)', () => {
     });
 
     it('should move a datepicker together with the edited cell when the table is scrolled right', async() => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(50, 20),
@@ -178,8 +189,10 @@ describe('DateEditor (RTL mode)', () => {
       const datePickerOffset = datePicker.offset();
       const datePickerWidth = datePicker.outerWidth();
 
-      // 23 is a height of the editor's cell
-      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+      expect(cellOffset.top + 23).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(datePickerOffset.top, 0); // 23 is a height of the editor's cell
+        main.toBeCloseTo(datePickerOffset.top - 6, 0); // -6 to compensate the difference between the main and classic theme
+      });
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
       expect(pikaElement.is(':visible')).toBe(true);
 
@@ -187,8 +200,10 @@ describe('DateEditor (RTL mode)', () => {
 
       await sleep(50);
 
-      // 23 is a height of the editor's cell
-      expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
+      expect(cellOffset.top + 23).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(datePickerOffset.top, 0); // 23 is a height of the editor's cell
+        main.toBeCloseTo(datePickerOffset.top - 6, 0); // -6 to compensate the difference between the main and classic theme
+      });
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
       expect(pikaElement.is(':visible')).toBe(true);
 
