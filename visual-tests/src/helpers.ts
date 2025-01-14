@@ -1,5 +1,6 @@
 import path from 'path';
 import os from 'os';
+import { URLSearchParams } from 'url';
 import { EXAMPLES_SERVER_PORT } from './config.mjs';
 
 export const helpers = {
@@ -9,6 +10,7 @@ export const helpers = {
   screenshotsExtension: 'png',
 
   selectors: {
+    anyTable: '#root .handsontable',
     mainTable: '#root > .handsontable',
     themesMainTable: '#root',
     mainTableBody: '> .ht_master.handsontable table tbody',
@@ -17,6 +19,7 @@ export const helpers = {
     cloneInlineStartCornerTable:
       '> .ht_clone_top_inline_start_corner.handsontable table thead',
     dropdownMenu: '.htMenu.htDropdownMenu.handsontable',
+    contextMenu: '.htMenu.htContextMenu.handsontable',
   },
 
   cssFiles: {
@@ -28,24 +31,58 @@ export const helpers = {
 
   expectedPageTitle: /Handsontable for .* example/,
 
-  hotFramework: '',
+  pageParams: {},
+  baseUrl: '/',
+  hotWrapper: '',
+  hotTheme: '',
   testURL: `http://localhost:${EXAMPLES_SERVER_PORT}/`,
   isMac: true,
   modifier: 'Meta' as 'Meta' | 'Control',
   screenshotsCount: 0,
-  screenshotDirName: '',
   browser: '',
+  testFilePath: '',
+  testedPageUrl: '',
 
   cssPath(file: string) {
     return `./tests-css/${file}`;
   },
 
-  init(workerInfo) {
-    this.hotWrapper = process.env.HOT_FRAMEWORK || this.defaultHOTFramework;
+  init() {
+    this.hotWrapper = process.env.HOT_FRAMEWORK ?? this.defaultHOTFramework;
+    this.hotTheme = process.env.HOT_THEME ?? '';
     this.isMac = os.platform() === 'darwin';
     this.modifier = this.isMac ? 'Meta' : 'Control';
-    this.screenshotDirName = workerInfo.titlePath[0].split('.spec.ts')[0];
-    this.browser = workerInfo.project.name;
+  },
+
+  setTestDetails(details) {
+    this.testFilePath = details.testFilePath;
+    this.screenshotDirName = path.relative(details.rootDir, details.testFilePath).replace(/\.spec\.ts$/, '');
+    this.browser = details.browser;
+    this.testedPageUrl = details.testedPageUrl;
+  },
+
+  getSearchUrlParams() {
+    // eslint-disable-next-line prefer-template
+    return '?' + new URLSearchParams({
+      ...(process.env.HOT_THEME ? { theme: process.env.HOT_THEME } : undefined),
+      ...this.pageParams,
+    }).toString();
+  },
+
+  setBaseUrl(url: string) {
+    this.baseUrl = url;
+
+    return this;
+  },
+
+  setPageParams(params: Record<string, string>) {
+    this.pageParams = params;
+
+    return this;
+  },
+
+  getFullUrl() {
+    return this.baseUrl + this.getSearchUrlParams();
   },
 
   findCell({ row = 0, column = 0, cellType = 'td' }) {
@@ -73,23 +110,24 @@ export const helpers = {
   screenshotPath() {
     this.screenshotsCount += 1;
 
-    // eslint-disable-next-line max-len
-    return `${this.screenshotsDirectory}/${this.hotWrapper}/${this.browser}/${
-      this.screenshotDirName
-    }/${path.basename(this.screenshotDirName)}-${this.screenshotsCount}.${
-      this.screenshotsExtension
-    }`;
-  },
+    if (this.testFilePath.includes('/cross-browser/')) {
+      let safeUrl = new URL(this.testedPageUrl).pathname.replace(/[^\w]/g, '-');
 
-  screenshotMultiUrlPath(testFileName: string, url = '', suffix = '') {
+      safeUrl = safeUrl === '-' ? '' : safeUrl;
 
-    const safeUrl = url.replace(/[^\w]/g, '_');
-    const screenshotPath = path.join(
-      __dirname,
-      `../screenshots/${this.browser}`,
-      `${testFileName}${safeUrl}${suffix}.png`
+      return path.join(
+        this.screenshotsDirectory,
+        'cross-browser',
+        this.browser,
+        `${this.screenshotDirName}${safeUrl}-${this.screenshotsCount}.${this.screenshotsExtension}`,
+      );
+    }
+
+    return path.join(
+      this.screenshotsDirectory,
+      this.hotWrapper,
+      `${this.browser}${this.hotTheme ? '-theme-' + this.hotTheme : ''}`, // eslint-disable-line prefer-template
+      `${this.screenshotDirName}-${this.screenshotsCount}.${this.screenshotsExtension}`,
     );
-
-    return screenshotPath;
   },
 };

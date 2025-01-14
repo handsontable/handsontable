@@ -4,10 +4,8 @@
 
 <script lang="ts">
 import { HotTable } from '@handsontable/vue3';
-import "@handsontable/pikaday/css/pikaday.css";
-import 'handsontable/dist/handsontable.css';
-
 import { getData } from "../utils/constants";
+import { getThemeName } from "../utils/utils";
 import { progressBarRenderer } from "../renderers/progressBar";
 import { starsRenderer } from "../renderers/stars";
 
@@ -24,6 +22,7 @@ export default {
 
     return {
       hotSettings: {
+        themeName: getThemeName(),
         height: 450,
         dropdownMenu: true,
         manualRowMove: true,
@@ -43,7 +42,7 @@ export default {
         headerClassName: isRtl ? "htRight" : "htLeft",
         afterGetRowHeader: drawCheckboxInRowHeaders,
         beforeRenderer: addClassesToRows,
-        colWidths: [140, 192, 100, 90, 90, 110, 97, 100, 126],
+        colWidths: [140, 210, 135, 100, 90, 110, 120, 115, 140],
         colHeaders: [
           "Company name",
           "Name",
@@ -102,41 +101,31 @@ export default {
 </script>
 
 <style lang="scss">
-/*
-  A stylesheet customizing app (custom renderers)
-*/
-
-table.htCore {
-  tr.odd td {
-    background: #fafbff;
+  .handsontable {
+    font-size: 13px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 400;
   }
 
-  tr.selected td {
-    background: #edf3fd;
-  }
-
-  td .progressBar {
+  .handsontable td .progressBar {
     background: #37bc6c;
     height: 10px;
   }
 
-  td.star {
+  .handsontable td.star {
     color: #fcb515;
   }
-}
 
-/*
-  A stylesheet customizing Handsontable style
-*/
-
-.handsontable {
-  font-size: 13px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-  'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 400;
-
-  .collapsibleIndicator {
-    text-align: center;
+  .handsontable .htCore tr.selected td {
+    background: #edf3fd;
   }
-}
+
+  .handsontable.ht-theme-main-dark .htCore tr.selected td {
+    background: #081b3d;
+  }
+
+  .handsontable.ht-theme-horizon-dark .htCore tr.selected td {
+    background: #3a2901;
+  }
 </style>

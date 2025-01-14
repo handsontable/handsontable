@@ -38,18 +38,20 @@ the **Visual tests** check on on your pull request fails, and you can't merge yo
 
 Visual tests are divided into:
 
-   - multi-frameworks: tests run on Chromium against Handsontable instance created in:
+   - multi-frameworks: tests run on Chromium using classic, horizon, horizon-dark, main and main-dark themes against Handsontable instance created in:
       - Vanilla JS
       - Angular
       - React
-      - Vue
+      - React (functional)
+      - Vue 2
+      - Vue 3
    - cross-browser: tests run against vanilla JS Handsontable instance using:
       - Chromium
       - Firefox
       - Webkit
 
    There is a separate Playwright config for cross-browser tests: `playwright-cross-browser.config.ts`
-    
+
 ## Visual tests demos
 
 All the test examples are available at `examples/next/visual-tests` and configured to be served from `localhost:8082`
@@ -142,7 +144,7 @@ const dropdownMenu = page.locator(helpers.selectors.dropdownMenu);
 await dropdownMenu.screenshot({ path: helpers.screenshotPath() });
 ```
 
-For cross-browser tests we are using 
+For cross-browser tests we are using
 ```js
   await page.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, url, suffix) });
 ```
