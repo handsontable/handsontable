@@ -107,6 +107,8 @@ jobs:
             test-visual:
               - './examples/next/visual-tests/**'
               - './visual-tests/**'
+              - '.visual-tests/playwright.config.ts'
+              - '.visual-tests/playwright-cross-browser.config.ts'
 
   build-handsontable-umd:
     name: "[BUILD] Handsontable: UMD"
