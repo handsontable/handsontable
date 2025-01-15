@@ -78,6 +78,7 @@ const deprecationWarns = new Set();
  * by using React's `ref` feature (read more on the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page).
  * :::
  *
+ *
  * ## How to call a method
  *
  * ::: only-for javascript
