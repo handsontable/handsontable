@@ -22,6 +22,7 @@ describe('ColumnSorting (RTL)', () => {
     });
 
     it('should display indicator properly after changing sorted column sequence', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       const hot = handsontable({
         layoutDirection,
         data: [

@@ -201,6 +201,7 @@ describe('ColumnSorting', () => {
     });
 
     it('should display indicator properly after changing sorted column sequence', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       const hot = handsontable({
         layoutDirection,
         data: [
@@ -2180,6 +2181,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should add a sorting indicator to the column header after it\'s been sorted, if `indicator` property is set to `true` (by default)', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2237,6 +2239,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should change sorting indicator state on every plugin API method (calling for different columns)', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2290,6 +2293,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should change sorting indicator state when initial column sorting was provided', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: [
         [1, 'Ted', 'Right'],

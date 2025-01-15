@@ -205,6 +205,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should display indicator properly after changing sorted column sequence', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     const hot = handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -2118,6 +2119,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should add a sorting indicator to the column header after it\'s been sorted, if `indicator` property is set to `true` (by default)', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2175,6 +2177,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should change sorting indicator state on every plugin API method (calling for different columns)', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2228,6 +2231,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should change sorting indicator state when initial column sorting was provided', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2772,6 +2776,7 @@ describe('MultiColumnSorting', () => {
       });
 
       it('should be properly position the number when multi columns are sorted', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 
@@ -3452,6 +3457,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('cooperation with the ColumnSorting plugin (extra warn and just one plugin works)', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -3480,6 +3486,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('cooperation with the ColumnSorting plugin (updateSettings enable and disable plugins properly)', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       columnSorting: true,
       colHeaders: true

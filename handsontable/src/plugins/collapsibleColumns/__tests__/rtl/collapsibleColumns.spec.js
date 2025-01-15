@@ -25,6 +25,7 @@ describe('CollapsibleColumns (RTL)', () => {
 
     describe('collapsible button', () => {
       it('should be placed in correct place', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         handsontable({
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(10, 10),
