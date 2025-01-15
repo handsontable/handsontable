@@ -122,7 +122,7 @@
 
       } else if (/^handsontable\/dist|styles\/.+\.css$/.test(key)) { // ignore CSS imports
         ns = '';
-        
+
       } else if (key === 'numbro') {
         ns = 'numbro';
 
@@ -197,6 +197,9 @@
               moduleToReturn[camelCase] = moduleToReturn[rendererKey];
             }
           });
+
+        } else if (ns === 'HyperFormula') {
+          moduleToReturn.HyperFormula = HyperFormula;
         }
 
         // Covers default import expressions
