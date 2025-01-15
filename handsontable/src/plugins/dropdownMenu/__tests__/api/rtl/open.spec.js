@@ -43,6 +43,7 @@ describe('DropdownMenu (RTL mode)', () => {
       });
 
       it('should open dropdown menu on the left-top position if on the right and bottom there is no space left', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), 4),
@@ -91,6 +92,7 @@ describe('DropdownMenu (RTL mode)', () => {
       });
 
       it('should open dropdown menu on the right-top position if on the left and bottom there is no space left', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),

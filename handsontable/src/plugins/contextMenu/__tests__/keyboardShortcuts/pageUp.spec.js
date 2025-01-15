@@ -25,7 +25,10 @@ describe('ContextMenu keyboard shortcut', () => {
       keyDownUp('pageup');
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
-      expect(window.scrollY).toBe(1);
+      expect(window.scrollY).forThemes(({ classic, main }) => {
+        classic.toBe(1);
+        main.toBe(10);
+      });
     });
 
     it('should move the menu item selection to the first item when the menu fits within the browser viewport' +

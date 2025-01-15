@@ -21,6 +21,7 @@ describe('ContextMenu', () => {
 
     describe('`open()` method', () => {
       it('should open context menu by default on the right-bottom position', () => {
+        // TODO [themes]: Possibly a themes-related bug. (1px offset)
         handsontable({
           layoutDirection,
           contextMenu: true,
@@ -42,6 +43,7 @@ describe('ContextMenu', () => {
       });
 
       it('should open context menu by default on the right-bottom position (including offset)', () => {
+        // TODO [themes]: Possibly a themes-related bug. (1px offset)
         handsontable({
           layoutDirection,
           contextMenu: true,
@@ -68,6 +70,7 @@ describe('ContextMenu', () => {
       });
 
       it('should open context menu on the right-top position if on the left and bottom there is no space left', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), 4),
@@ -92,6 +95,7 @@ describe('ContextMenu', () => {
       });
 
       it('should open context menu on the right-top position if on the left and bottom there is no space left (including offset)', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), 4),
@@ -121,6 +125,7 @@ describe('ContextMenu', () => {
       });
 
       it('should open context menu on the left-bottom position if on the right there is no space left', () => {
+        // TODO [themes]: Possibly a themes-related bug. (1px offset)
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -145,6 +150,7 @@ describe('ContextMenu', () => {
       });
 
       it('should open context menu on the left-bottom position if on the right there is no space left (including offset)', () => {
+        // TODO [themes]: Possibly a themes-related bug. (1px offset)
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -174,6 +180,7 @@ describe('ContextMenu', () => {
       });
 
       it('should open context menu on the left-top position if on the right and bottom there is no space left', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
@@ -199,6 +206,7 @@ describe('ContextMenu', () => {
       });
 
       it('should open context menu on the left-top position if on the right and bottom there is no space left (including offset)', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),

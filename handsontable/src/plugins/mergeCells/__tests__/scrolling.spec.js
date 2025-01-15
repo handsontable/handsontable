@@ -42,7 +42,7 @@ describe('MergeCells scrolling', () => {
   });
 
   it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked', () => {
-    // TODO [themes]: Possible a themes-related bug.
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: createSpreadsheetObjectData(5, 10),
       mergeCells: [

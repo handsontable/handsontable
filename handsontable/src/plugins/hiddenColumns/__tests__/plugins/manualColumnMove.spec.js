@@ -354,6 +354,7 @@ describe('HiddenColumns', () => {
 
       describe('guideline', () => {
         it('should get correct position while grabing the column placed after hidden columns (moving right)', () => {
+          // TODO [themes]: Possibly a themes-related bug.
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -385,6 +386,7 @@ describe('HiddenColumns', () => {
         });
 
         it('should get correct position while grabing the column placed after hidden columns (moving left)', () => {
+          // TODO [themes]: Could be potentially improved by per-theme configuration
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -416,6 +418,7 @@ describe('HiddenColumns', () => {
         });
 
         it('should get correct position while grabing the column placed before hidden columns (moving right)', () => {
+          // TODO [themes]: Possibly a themes-related bug.
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -447,6 +450,7 @@ describe('HiddenColumns', () => {
         });
 
         it('should get correct position while grabing the column placed before hidden columns (moving left)', () => {
+          // TODO [themes]: Possibly a themes-related bug.
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             colHeaders: true,

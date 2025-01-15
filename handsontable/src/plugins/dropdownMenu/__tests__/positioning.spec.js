@@ -24,6 +24,7 @@ describe('DropdownMenu', () => {
 
     describe('subMenu opening', () => {
       it('should open subMenu by default on the right position of the main menu', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -48,6 +49,7 @@ describe('DropdownMenu', () => {
       });
 
       it('should open subMenu on the left of the main menu if on the right there\'s no space left', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -88,13 +90,20 @@ describe('DropdownMenu', () => {
       const $dropdownMenuRoot = $('.htDropdownMenu');
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
-      expect(tickItemOffset.top).toBe(135);
-      expect(tickItemOffset.left).toBe(dropdownMenuOffset.left + 4);
+      expect(tickItemOffset.top).forThemes(({ classic, main }) => {
+        classic.toBe(135);
+        main.toBe(155);
+      });
+      expect(tickItemOffset.left).forThemes(({ classic, main }) => {
+        classic.toBe(dropdownMenuOffset.left + 4);
+        main.toBe(dropdownMenuOffset.left + 1);
+      });
     });
   });
 
   describe('subMenu opening', () => {
     it('should open subMenu by default on the right-bottom position of the main menu (scrolled viewport) #dev-1895', async() => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(4, 100),
         dropdownMenu: true,
@@ -122,6 +131,7 @@ describe('DropdownMenu', () => {
     });
 
     it('should open subMenu on the left-bottom of the main menu if on the right there\'s no space left (scrolled viewport) #dev-1895', async() => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(4, 100),
         dropdownMenu: true,

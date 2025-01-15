@@ -21,6 +21,7 @@ describe('HiddenColumns', () => {
 
     describe('indicators', () => {
       it('should add proper class names in column headers', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         handsontable({
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(1, 5),

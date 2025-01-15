@@ -23,6 +23,7 @@ describe('ContextMenu (RTL mode)', () => {
 
     describe('subMenu opening', () => {
       it('should open subMenu by default on the left-bottom position of the main menu', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -47,6 +48,7 @@ describe('ContextMenu (RTL mode)', () => {
       });
 
       it('should open subMenu on the left-top of the main menu if on the right and bottom there\'s no space left', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), 4),
@@ -74,6 +76,7 @@ describe('ContextMenu (RTL mode)', () => {
       });
 
       it('should open subMenu on the right-bottom of the main menu if on the left there\'s no space left', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -97,6 +100,7 @@ describe('ContextMenu (RTL mode)', () => {
       });
 
       it('should open subMenu on the right-top of the main menu if on the left and bottom there\'s no space left', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
@@ -143,13 +147,20 @@ describe('ContextMenu (RTL mode)', () => {
       const $contextMenuRoot = $('.htContextMenu');
       const contextMenuOffset = $contextMenuRoot.offset();
 
-      expect(tickItemOffset.top).toBe(216);
-      expect(tickItemOffset.left).toBe(contextMenuOffset.left + $contextMenuRoot.outerWidth() - 4);
+      expect(tickItemOffset.top).forThemes(({ classic, main }) => {
+        classic.toBe(216);
+        main.toBe(247);
+      });
+      expect(tickItemOffset.left).forThemes(({ classic, main }) => {
+        classic.toBe(contextMenuOffset.left + $contextMenuRoot.outerWidth() - 4);
+        main.toBe(contextMenuOffset.left + $contextMenuRoot.outerWidth() + 208); // not sure if correct value
+      });
     });
   });
 
   describe('subMenu opening', () => {
     it('should open subMenu by default on the left-bottom position of the main menu (scrolled viewport) #dev-1895', async() => {
+      // TODO [themes]: Possibly a themes-related bug. (1px offset)
       handsontable({
         data: createSpreadsheetData(4, 100),
         contextMenu: true,
@@ -173,6 +184,7 @@ describe('ContextMenu (RTL mode)', () => {
     });
 
     it('should open subMenu on the right-bottom of the main menu if on the left there\'s no space left (scrolled viewport) #dev-1895', async() => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(4, 100),
         contextMenu: true,

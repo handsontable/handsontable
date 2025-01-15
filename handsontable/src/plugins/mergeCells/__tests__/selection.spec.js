@@ -13,7 +13,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should leave the partially selected merged cells white (or any initial color), when selecting entire columns or rows', () => {
-    // TODO [themes]: Possible a themes-related bug.
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -92,7 +92,7 @@ describe('MergeCells Selection', () => {
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
     'selecting entire columns or rows (using multiple selection layers)', () => {
-    // TODO [themes]: Possible a themes-related bug.
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -466,7 +466,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should keep focus selection on the high virtualized merged cell that intersects the top overlay', () => {
-    // TODO [themes]: Possible a themes-related bug.
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,

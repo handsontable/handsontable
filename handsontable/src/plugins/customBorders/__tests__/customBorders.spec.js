@@ -1128,6 +1128,7 @@ describe('CustomBorders', () => {
     // based on tests in Core_count.spec.js
 
     it('should render borders only for rendered rows', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       const data = Handsontable.helper.createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
       const instance = handsontable({
@@ -1143,6 +1144,7 @@ describe('CustomBorders', () => {
     });
 
     it('should render borders only for rendered rows, after scrolling', async() => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       const data = Handsontable.helper.createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
       const instance = handsontable({

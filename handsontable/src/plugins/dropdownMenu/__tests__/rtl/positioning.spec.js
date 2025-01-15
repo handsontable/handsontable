@@ -23,6 +23,7 @@ describe('DropdownMenu (RTL mode)', () => {
 
     describe('subMenu opening', () => {
       it('should open subMenu by default on the left position of the main menu', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -48,6 +49,7 @@ describe('DropdownMenu (RTL mode)', () => {
       });
 
       it('should open subMenu on the right of the main menu if on the left there\'s no space left', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -73,6 +75,7 @@ describe('DropdownMenu (RTL mode)', () => {
     });
 
     it('should show tick from "Read only" element at proper place', () => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(10, 10),
@@ -96,6 +99,7 @@ describe('DropdownMenu (RTL mode)', () => {
 
   describe('subMenu opening', () => {
     it('should open subMenu by default on the left-bottom position of the main menu (scrolled viewport) #dev-1895', async() => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(4, 100),
         dropdownMenu: true,
@@ -120,6 +124,7 @@ describe('DropdownMenu (RTL mode)', () => {
     });
 
     it('should open subMenu on the right-bottom of the main menu if on the left there\'s no space left (scrolled viewport) #dev-1895', async() => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(4, 100),
         dropdownMenu: true,

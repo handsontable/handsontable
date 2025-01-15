@@ -516,6 +516,7 @@ describe('CopyPaste', () => {
     });
 
     it('should paste data without scrolling the viewport', async() => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: createSpreadsheetData(50, 50),
         width: 200,

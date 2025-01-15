@@ -103,6 +103,7 @@ describe('DropdownMenu', () => {
 
   describe('menu opening', () => {
     it('should open menu after click on table header button', () => {
+      // TODO [themes]: Possibly a themes-related bug.
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -150,6 +151,7 @@ describe('DropdownMenu', () => {
     });
 
     it('should open menu after click on table header button when only header cells are visible', () => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: [],
         colHeaders: ['Year', 'Kia'],
@@ -237,6 +239,7 @@ describe('DropdownMenu', () => {
     });
 
     it('should reenable menu with updateSettings when it was disabled in constructor', () => {
+      // TODO [themes]: Possibly a themes-related bug.
       const hot = handsontable({
         dropdownMenu: false,
         colHeaders: true,
@@ -958,11 +961,16 @@ describe('DropdownMenu', () => {
 
     await sleep(10);
 
-    // 900 column width - 250 viewport width + 1 header border compensation
-    expect(inlineStartOverlay().getScrollPosition()).toBe(651);
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(651); // 900 column width - 250 viewport width + 1 header border compensation
+      main.toBe(666);
+    });
 
     dropdownMenu(6); // click on the column `G` header button
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(651);
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(651);
+      main.toBe(666);
+    });
   });
 });

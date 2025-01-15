@@ -55,6 +55,7 @@ describe('Filters UI Value component', () => {
 
   it('should appear a list from the column selected by the selection highlight when the dropdown is opened ' +
       'using API and the table has non-contiguous selection', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -182,6 +183,7 @@ describe('Filters UI Value component', () => {
   });
 
   it('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     const columnsSetting = getColumnsForFilters();
 
     handsontable({
@@ -286,6 +288,7 @@ describe('Filters UI Value component', () => {
   });
 
   it('should disappear after hitting ESC key (focused search input)', async() => {
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -307,6 +310,7 @@ describe('Filters UI Value component', () => {
   });
 
   it('should disappear after hitting ESC key (focused items box)', async() => {
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),

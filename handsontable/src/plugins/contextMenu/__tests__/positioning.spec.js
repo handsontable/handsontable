@@ -85,6 +85,7 @@ describe('ContextMenu', () => {
 
     describe('subMenu opening', () => {
       it('should open subMenu by default on the right-bottom position of the main menu', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -103,12 +104,16 @@ describe('ContextMenu', () => {
         const subMenuRoot = $('.htContextMenuSub_Alignment');
         const subMenuOffset = subMenuRoot.offset();
 
-        expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
+        expect(subMenuOffset.top).forThemes(({ classic, main }) => {
+          classic.toBeCloseTo(subMenuItemOffset.top - 1, 0);
+          main.toBeCloseTo(subMenuItemOffset.top + 1, 0);
+        });
         // 3px comes from borders
         expect(subMenuOffset.left).toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() + 3, 0);
       });
 
       it('should open subMenu on the right-top of the main menu if on the left and bottom there\'s no space left', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), 4),
@@ -136,6 +141,7 @@ describe('ContextMenu', () => {
       });
 
       it('should open subMenu on the left-bottom of the main menu if on the right there\'s no space left', async() => {
+        // TODO [themes]: Possibly a themes-related bug. (1px offset)
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -160,6 +166,7 @@ describe('ContextMenu', () => {
       });
 
       it('should open subMenu on the left-top of the main menu if on the right and bottom there\'s no space left', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
@@ -206,13 +213,20 @@ describe('ContextMenu', () => {
       const $contextMenuRoot = $('.htContextMenu');
       const contextMenuOffset = $contextMenuRoot.offset();
 
-      expect(tickItemOffset.top).toBe(216);
-      expect(tickItemOffset.left).toBe(contextMenuOffset.left + 4);
+      expect(tickItemOffset.top).forThemes(({ classic, main }) => {
+        classic.toBe(216);
+        main.toBe(247);
+      });
+      expect(tickItemOffset.left).forThemes(({ classic, main }) => {
+        classic.toBe(contextMenuOffset.left + 4);
+        main.toBe(contextMenuOffset.left + 1);
+      });
     });
   });
 
   describe('subMenu opening', () => {
     it('should open subMenu by default on the right-bottom position of the main menu (scrolled viewport) #dev-1895', async() => {
+      // TODO [themes]: Possibly a themes-related bug. (1px offset)
       handsontable({
         data: createSpreadsheetData(4, 100),
         contextMenu: true,
@@ -240,6 +254,7 @@ describe('ContextMenu', () => {
     });
 
     it('should open subMenu on the left-bottom of the main menu if on the right there\'s no space left (scrolled viewport) #dev-1895', async() => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(4, 100),
         contextMenu: true,

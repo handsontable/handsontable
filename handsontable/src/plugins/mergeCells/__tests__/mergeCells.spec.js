@@ -1592,7 +1592,7 @@ describe('MergeCells', () => {
     getActiveEditor().TEXTAREA.value = 'test\n\ntest';
     keyDownUp('enter');
 
-    // TODO [themes]: Possible a themes-related bug (the top clones differ in heights).
+    // TODO [themes]: Possibly a themes-related bug (the top clones differ in heights).
     expect(getTopInlineStartClone().height()).toBe(111);
     expect(getTopClone().height()).toBe(111);
     expect(getInlineStartClone().height()).toBe(400);
@@ -1687,7 +1687,7 @@ describe('MergeCells', () => {
   });
 
   it('should display properly high merged cell', () => {
-    // TODO [themes]: Possible a themes-related bug.
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
@@ -1783,7 +1783,7 @@ describe('MergeCells', () => {
   });
 
   it('should display properly high virtualized merged cell', () => {
-    // TODO [themes]: Possible a themes-related bug.
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,

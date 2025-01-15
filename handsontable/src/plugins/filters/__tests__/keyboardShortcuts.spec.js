@@ -162,6 +162,7 @@ describe('Filters keyboard shortcut', () => {
 
   describe('LinkUI buttons', () => {
     it('should react to both `Enter` and `Space`', async() => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       const countCheckedCheckboxes = () => {
         return Array.from(
           document.querySelectorAll('.htUIMultipleSelectHot input[type=checkbox]')
