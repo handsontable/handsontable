@@ -2702,7 +2702,7 @@ export default () => {
      * columns: [{
      *   type: 'checkbox',
      *   // add 'My label:' after the checkbox
-     *   label: { position: 'after', value: 'My label: ', separated: true }
+     *   label: { position: 'before', value: 'My label: ', separated: true }
      * }],
      * ```
      */
