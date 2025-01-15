@@ -105,12 +105,12 @@ module.exports.create = function create(envArgs) {
       test: /hyperformula/,
       use: [
         {
-          loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
+          loader: path.resolve(__dirname, 'loader/exports-to-window-loader-esm.js'),
           options: {
             globals: {
-              HyperFormula: 'hyperformula',
-            },
-            defaultExport: true
+              moduleToExport: 'HyperFormula',
+              moduleName: 'hyperformula',
+            }
           }
         }
       ]
