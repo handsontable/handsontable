@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  
+  <meta charset="utf-8">
+  <title>Searching values - JavaScript Data Grid | Handsontable</title>
+  <meta name="generator" content="VuePress 1.9.10">
+  <link rel="icon" media="(prefers-color-scheme: light)" href="https://handsontable.com/docs/img/favicon.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="https://handsontable.com/docs/img/favicon-dark.png">
+    <link rel="preload" href="https://handsontable.com/docs/data/common.json" as="fetch" crossorigin="">
+    <script>
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          environment: 'production',
+          tracesSampleRate: 0,
+          profilesSampleRate: 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0.2,
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),   
+          ],
+        });
+      };
+    </script>
+    <script id="Sentry.io" src="https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js" crossorigin="anonymous" defer="true"></script>
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="ef171f1d-a288-433f-b680-3cdbdebd5646" defer="true"></script>
+    <script id="Headwayapp" src="https://cdn.headwayapp.co/widget.js" defer="true"></script>
+    <script>const DOCS_VERSION = '15.0';</script>
+    <script>
+      (function(w, d) {
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    </script>
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-55L5D3');
+    </script>
+    <script>
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      </script>
+  <meta name="description" content="Search data across Handsontable, using built-in API methods and implementing your own search UI.">
+    <meta name="og:url" content="https://handsontable.com/docs/javascript-data-grid/searching-values/">
+    <meta name="og:type" content="website">
+    <meta name="og:title" content="Searching values">
+    <meta name="og:description" content="Search data across Handsontable, using built-in API methods and implementing your own search UI.">
+    <meta name="og:image" content="https://handsontable.com/docs/img/handsontable-banner-og.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://handsontable.com/docs/javascript-data-grid/searching-values/" rel="canonical" />
+  <link rel="preload" href="/docs/assets/css/0.styles.29b8f05b.css" as="style"><link rel="preload" href="/docs/assets/js/app.8c0eccc3.js" as="script"><link rel="preload" href="/docs/assets/js/5.af4b1d74.js" as="script"><link rel="preload" href="/docs/assets/js/3.6372b058.js" as="script"><link rel="preload" href="/docs/assets/js/2.b3c0589f.js" as="script"><link rel="preload" href="/docs/assets/js/189.54a16526.js" as="script"><link rel="preload" href="/docs/assets/js/37.c231f17e.js" as="script">
+  <link rel="stylesheet" href="/docs/assets/css/0.styles.29b8f05b.css">
+</head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="//www.googletagmanager.com/ns.html?id=GTM-55L5D3"
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<div id="app" data-server-rendered="true"><div class="layout-container"><script type="application/ld+json">{
+    "@context": "https://schema.org/",
+    "@type": "WebPage",
+    "name": "Searching values - JavaScript Data Grid  Handsontable",
+    "headline": "Searching values - JavaScript Data Grid  Handsontable",
+    "description": "Search data across Handsontable, using built-in API methods and implementing your own search UI.",
+    "url": "https://handsontable.com/docs/javascript-data-grid/searching-values/",
+    "mainEntityOfPage": {
+        "@type": "TechArticle",
+        "@id": "https://handsontable.com/docs/javascript-data-grid/searching-values/"
+    },
+    "keywords": [
+        "find values",
+        "highlight values",
+        "search values"
+    ],
+    "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsontable-docs-cover.png"
+    },
+    "image": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsontable-docs-cover.png"
+    },
+    "author": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable Team",
+        "url": "https://handsontable.com",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "alternateName": "Handsontable",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "dateModified": "2025-01-16T07:04:03.594Z",
+    "lastReviewed": "2025-01-16T07:04:03.594Z",
+    "copyrightHolder": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://handsontable.com/docs/img/handsontable-docs-cover.png"
+        }
+    },
+    "copyrightYear": "2025"
+}</script> <div class="theme-container"><header class="navbar"><div class="navbar-wrapper"><a href="/docs/javascript-data-grid/" aria-label="Docs Homepage Link" class="home-link router-link-active"><i class="Logo"></i></a> <div class="top-bar"><div class="top-bar_left"><div class="framework-and-version"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav></div></div> <div id="algolia-search"></div> <div class="menu"><nav class="nav-links"><div class="nav-item"><a href="/docs/javascript-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/javascript-data-grid/api/" class="nav-link">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav> <nav class="nav-links"><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Support" class="dropdown-title"><span class="title">Support</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="https://forum.handsontable.com" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Developers Forum
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://github.com/handsontable/handsontable/discussions" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    GitHub Discussions
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://stackoverflow.com/tags/handsontable" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    StackOverflow
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://handsontable.com/contact?category=technical_support" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Contact support
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div></nav> <nav class="icons-nav"><span class="news"><i class="ico i-bell"></i></span> <a href="https://github.com/handsontable/handsontable" target="_blank" class="github-stars"><i class="ico i-github"></i> <!----></a> <button id="mobileSearch" aria-label="Search" class="menuButton"><i class="ico i-search"></i></button> <button aria-label="Menu button" class="menuButton"><i class="ico i-menu"></i> <i class="ico i-close"></i></button></nav></div></div></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <div class="sidebar-nav"><div class="mobile-nav"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav> <nav class="nav-links"><div class="nav-item"><a href="/docs/javascript-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/javascript-data-grid/api/" class="nav-link">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav></div> <ul class="sidebar-links"><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-3d811caf"></i> <span>Getting started</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/" aria-current="page" class="sidebar-link">Introduction</a></li><li><a href="/docs/javascript-data-grid/demo/" class="sidebar-link">Demo</a></li><li><a href="/docs/javascript-data-grid/installation/" class="sidebar-link">Installation</a></li><li><a href="/docs/javascript-data-grid/binding-to-data/" class="sidebar-link">Binding to data</a></li><li><a href="/docs/javascript-data-grid/saving-data/" class="sidebar-link">Saving data</a></li><li><a href="/docs/javascript-data-grid/configuration-options/" class="sidebar-link">Configuration options</a></li><li><a href="/docs/javascript-data-grid/grid-size/" class="sidebar-link">Grid size</a></li><li><a href="/docs/javascript-data-grid/events-and-hooks/" class="sidebar-link">Events and hooks</a></li><li><a href="/docs/javascript-data-grid/license-key/" class="sidebar-link">License key</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-029029c3"></i> <span>Styling</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/themes/" class="sidebar-link">Themes</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5e6bf2de"></i> <span>Columns</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/column-header/" class="sidebar-link">Column headers</a></li><li><a href="/docs/javascript-data-grid/column-groups/" class="sidebar-link">Column groups</a></li><li><a href="/docs/javascript-data-grid/column-hiding/" class="sidebar-link">Column hiding</a></li><li><a href="/docs/javascript-data-grid/column-moving/" class="sidebar-link">Column moving</a></li><li><a href="/docs/javascript-data-grid/column-freezing/" class="sidebar-link">Column freezing</a></li><li><a href="/docs/javascript-data-grid/column-width/" class="sidebar-link">Column widths</a></li><li><a href="/docs/javascript-data-grid/column-summary/" class="sidebar-link">Column summary</a></li><li><a href="/docs/javascript-data-grid/column-virtualization/" class="sidebar-link">Column virtualization</a></li><li><a href="/docs/javascript-data-grid/column-menu/" class="sidebar-link">Column menu</a></li><li><a href="/docs/javascript-data-grid/column-filter/" class="sidebar-link">Column filter</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5c42e7f6"></i> <span>Rows</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/row-header/" class="sidebar-link">Row headers</a></li><li><a href="/docs/javascript-data-grid/row-parent-child/" class="sidebar-link">Row parent-child</a></li><li><a href="/docs/javascript-data-grid/row-hiding/" class="sidebar-link">Row hiding</a></li><li><a href="/docs/javascript-data-grid/row-moving/" class="sidebar-link">Row moving</a></li><li><a href="/docs/javascript-data-grid/row-freezing/" class="sidebar-link">Row freezing</a></li><li><a href="/docs/javascript-data-grid/row-height/" class="sidebar-link">Row heights</a></li><li><a href="/docs/javascript-data-grid/row-virtualization/" class="sidebar-link">Row virtualization</a></li><li><a href="/docs/javascript-data-grid/rows-sorting/" class="sidebar-link">Rows sorting</a></li><li><a href="/docs/javascript-data-grid/row-trimming/" class="sidebar-link">Row trimming</a></li><li><a href="/docs/javascript-data-grid/row-prepopulating/" class="sidebar-link">Row pre-populating</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-04fc4d33"></i> <span>Cell features</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/basic-clipboard/" class="sidebar-link">Clipboard</a></li><li><a href="/docs/javascript-data-grid/selection/" class="sidebar-link">Selection</a></li><li><a href="/docs/javascript-data-grid/merge-cells/" class="sidebar-link">Merge cells</a></li><li><a href="/docs/javascript-data-grid/conditional-formatting/" class="sidebar-link">Conditional formatting</a></li><li><a href="/docs/javascript-data-grid/text-alignment/" class="sidebar-link">Text alignment</a></li><li><a href="/docs/javascript-data-grid/disabled-cells/" class="sidebar-link">Disabled cells</a></li><li><a href="/docs/javascript-data-grid/comments/" class="sidebar-link">Comments</a></li><li><a href="/docs/javascript-data-grid/autofill-values/" class="sidebar-link">Autofill values</a></li><li><a href="/docs/javascript-data-grid/formatting-cells/" class="sidebar-link">Formatting cells</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-f7a21ab6"></i> <span>Cell functions</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/cell-function/" class="sidebar-link">Cell functions</a></li><li><a href="/docs/javascript-data-grid/cell-renderer/" class="sidebar-link">Cell renderer</a></li><li><a href="/docs/javascript-data-grid/cell-editor/" class="sidebar-link">Cell editor</a></li><li><a href="/docs/javascript-data-grid/cell-validator/" class="sidebar-link">Cell validator</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-12d75036"></i> <span>Cell types</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/cell-type/" class="sidebar-link">Cell type</a></li><li><a href="/docs/javascript-data-grid/numeric-cell-type/" class="sidebar-link">Numeric cell type</a></li><li><a href="/docs/javascript-data-grid/date-cell-type/" class="sidebar-link">Date cell type</a></li><li><a href="/docs/javascript-data-grid/time-cell-type/" class="sidebar-link">Time cell type</a></li><li><a href="/docs/javascript-data-grid/checkbox-cell-type/" class="sidebar-link">Checkbox cell type</a></li><li><a href="/docs/javascript-data-grid/select-cell-type/" class="sidebar-link">Select cell type</a></li><li><a href="/docs/javascript-data-grid/dropdown-cell-type/" class="sidebar-link">Dropdown cell type</a></li><li><a href="/docs/javascript-data-grid/autocomplete-cell-type/" class="sidebar-link">Autocomplete cell type</a></li><li><a href="/docs/javascript-data-grid/password-cell-type/" class="sidebar-link">Password cell type</a></li><li><a href="/docs/javascript-data-grid/handsontable-cell-type/" class="sidebar-link">Handsontable cell type</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-811e5476"></i> <span>Formulas</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/formula-calculation/" class="sidebar-link">Formula calculation</a></li></ul></section></li><li><section class="sidebar-group collapsable open depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5a6efe65"></i> <span>Navigation</span> <i class="ico i-arrow down"></i></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/docs/javascript-data-grid/keyboard-shortcuts/" class="sidebar-link">Keyboard shortcuts</a></li><li><a href="/docs/javascript-data-grid/custom-shortcuts/" class="sidebar-link">Custom shortcuts</a></li><li><a href="/docs/javascript-data-grid/searching-values/" aria-current="page" class="active sidebar-link">Searching values</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-1110acc7"></i> <span>Accessibility</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/accessibility/" class="sidebar-link">Accessibility</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-18763746"></i> <span>Accessories and menus</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/context-menu/" class="sidebar-link">Context menu</a></li><li><a href="/docs/javascript-data-grid/undo-redo/" class="sidebar-link">Undo and redo</a></li><li><a href="/docs/javascript-data-grid/icon-pack/" class="sidebar-link">Icon pack</a></li><li><a href="/docs/javascript-data-grid/export-to-csv/" class="sidebar-link">Export to CSV</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-69214965"></i> <span>Internationalization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/language/" class="sidebar-link">Language</a></li><li><a href="/docs/javascript-data-grid/locale/" class="sidebar-link">Locale</a></li><li><a href="/docs/javascript-data-grid/layout-direction/" class="sidebar-link">Layout direction</a></li><li><a href="/docs/javascript-data-grid/ime-support/" class="sidebar-link">IME support</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-8a776f76"></i> <span>Integrate with Angular</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/angular-installation/" class="sidebar-link">Installation in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-basic-example/" class="sidebar-link">Basic example in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-modules/" class="sidebar-link">Modules in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-id/" class="sidebar-link">Custom ID in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-context-menu-example/" class="sidebar-link">Custom context menu in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-editor-example/" class="sidebar-link">Custom editor in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-renderer-example/" class="sidebar-link">Custom renderer in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-language-change-example/" class="sidebar-link">Language change in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-hot-reference/" class="sidebar-link">Referencing a Handsontable instance in Angular</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-ed097276"></i> <span>Integrate with Vue 2</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/vue-installation/" class="sidebar-link">Installation in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-basic-example/" class="sidebar-link">Basic example in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-modules/" class="sidebar-link">Modules in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-editor-example/" class="sidebar-link">Custom editor in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-language-change-example/" class="sidebar-link">Language change in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-vuex-example/" class="sidebar-link">Vuex example in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 2</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-0cb42003"></i> <span>Integrate with Vue 3</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/vue3-installation/" class="sidebar-link">Installation in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-basic-example/" class="sidebar-link">Basic example in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-modules/" class="sidebar-link">Modules in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-editor-example/" class="sidebar-link">Custom editor in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-language-change-example/" class="sidebar-link">Language change in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-vuex-example/" class="sidebar-link">Vuex in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 3</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-786864e5"></i> <span>Tools and building</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/packages/" class="sidebar-link">Packages</a></li><li><a href="/docs/javascript-data-grid/modules/" class="sidebar-link">Modules</a></li><li><a href="/docs/javascript-data-grid/custom-plugins/" class="sidebar-link">Custom plugins</a></li><li><a href="/docs/javascript-data-grid/custom-builds/" class="sidebar-link">Custom builds</a></li><li><a href="/docs/javascript-data-grid/testing/" class="sidebar-link">Testing</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-17c10e85"></i> <span>Optimization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/batch-operations/" class="sidebar-link">Batch operations</a></li><li><a href="/docs/javascript-data-grid/performance/" class="sidebar-link">Performance</a></li><li><a href="/docs/javascript-data-grid/bundle-size/" class="sidebar-link">Bundle size</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-6e40b0b6"></i> <span>Security</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/security/" class="sidebar-link">Security</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-23ef33b9"></i> <span>Technical specification</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/supported-browsers/" class="sidebar-link">Supported browsers</a></li><li><a href="/docs/javascript-data-grid/software-license/" class="sidebar-link">Software license</a></li><li><a href="/docs/javascript-data-grid/third-party-licenses/" class="sidebar-link">Third-party licenses</a></li><li><a href="/docs/javascript-data-grid/documentation-license/" class="sidebar-link">Documentation license</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-00e59586"></i> <span>Upgrade and migration</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/changelog/" class="sidebar-link">Changelog</a></li><li><a href="/docs/javascript-data-grid/versioning-policy/" class="sidebar-link">Versioning policy</a></li><li><a href="/docs/javascript-data-grid/migration-from-14.6-to-15.0/" class="sidebar-link">Migrating from 14.6 to 15.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-13.1-to-14.0/" class="sidebar-link">Migrating from 13.1 to 14.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-12.4-to-13.0/" class="sidebar-link">Migrating from 12.4 to 13.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-11.1-to-12.0/" class="sidebar-link">Migrating from 11.1 to 12.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-10.0-to-11.0/" class="sidebar-link">Migrating from 10.0 to 11.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-9.0-to-10.0/" class="sidebar-link">Migrating from 9.0 to 10.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-8.4-to-9.0/" class="sidebar-link">Migrating from 8.4 to 9.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-7.4-to-8.0/" class="sidebar-link">Migrate from 7.4 to 8.0</a></li></ul></section></li></ul></div> </aside> <main class="page"><div class="breadcrumbs"><a href="https://handsontable.com/docs/javascript-data-grid/"><i class="ico i-home"></i> <span> <span></span>JavaScript Data Grid</span></a> <a href="https://handsontable.com/docs/javascript-data-grid/searching-values"><span>Searching values</span></a></div> <div class="theme-default-content content__default"><h1 id="searching-values"><a href="#searching-values" class="header-link"><span class="header-framework">JavaScript Data Grid</span>Searching values</a></h1> <p>Search data across Handsontable, using the built-in API methods of the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin, and implementing your own search UI.</p> <p></p><div class="table-of-contents"><div class="toc-container-header"><i class="ico i-toc"></i>On this page</div><ul><li><a href="#overview">Overview</a></li><li><a href="#search-result-class">Search result class</a></li><li><a href="#custom-querymethod">Custom queryMethod</a></li><li><a href="#custom-result-callback">Custom result callback</a></li><li><a href="#simplest-use-case">Simplest use case</a></li><li><a href="#custom-search-result-class">Custom search result class</a></li><li><a href="#custom-query-method">Custom query method</a></li><li><a href="#custom-callback">Custom callback</a></li><li><a href="#related-api-reference">Related API reference</a></li></ul></div><p></p> <h2 id="overview"><a href="#overview" class="header-link">Overview</a></h2> <p></p> <p>The <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin provides an easy API to search data across Handsontable.</p> <p>You should first enable the plugin by setting the <a href="/docs/javascript-data-grid/api/options/#search"><code>search</code></a> option to <code>true</code>. When enabled, the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin exposes a new method <a href="/docs/javascript-data-grid/api/search/#query"><code>query(queryStr)</code></a>, where <a href="/docs/javascript-data-grid/api/search/#query"><code>queryStr</code></a> is a string to find within the table. By default, the search is case insensitive.</p> <p><a href="/docs/javascript-data-grid/api/search/#query"><code>query(queryStr, [callback], [queryMethod])</code></a> method does 2 things. First of all, it returns an array of search results. Every element is an objects containing 3 properties:</p> <ul><li><code>row</code> – index of the row where the value has been found</li> <li><code>col</code> – index of the column where the value has been found</li> <li><code>data</code> – the value that has been found</li></ul> <p>The second thing the <a href="/docs/javascript-data-grid/api/search/#query"><code>query()</code></a> method does is set the <code>isSearchResult</code> property for each cell. If a cell is in search results, then its <code>isSearchResult</code> is set to <code>true</code>, otherwise the property is set to <code>false</code>.</p> <p>All you have to do now, is use the <a href="/docs/javascript-data-grid/api/search/#query"><code>query()</code></a> method inside search input listener and you're done.</p> <h2 id="search-result-class"><a href="#search-result-class" class="header-link">Search result class</a></h2> <p>By default, the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin adds <code>htSearchResult</code> class to every cell which <code>isSearchResult</code> property is <code>true</code>. You can change this class using <a href="/docs/javascript-data-grid/api/options/#search"><code>searchResultClass</code></a> configuration option.</p> <p>To change the result class, you use the <a href="/docs/javascript-data-grid/api/search/#setsearchresultclass"><code>var searchPlugin = hot.getPlugin('search'); searchPlugin.setSearchResultClass(className);</code></a> method.</p> <h2 id="custom-querymethod"><a href="#custom-querymethod" class="header-link">Custom <code>queryMethod</code></a></h2> <p>The <a href="/docs/javascript-data-grid/api/search/#query"><code>queryMethod()</code></a> function is responsible for determining whether a <code>queryStr</code> matches the value stored in a cell. It takes 2 arguments: <code>queryStr</code> and <code>cellData</code>. The first is a string passed to <a href="/docs/javascript-data-grid/api/search/#query"><code>query()</code></a> method. The second is a value returned by <a href="/docs/javascript-data-grid/api/core/#getdataatcell"><code>getDataAtCell()</code></a>. The <a href="/docs/javascript-data-grid/api/options/#search"><code>queryMethod()</code></a> function should return <code>true</code> if there is a match.</p> <p>The default <a href="/docs/javascript-data-grid/api/options/#search"><code>queryMethod</code></a> function is dead simple:</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">const</span> <span class="token function-variable function">DEFAULT_QUERY_METHOD</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">query<span class="token punctuation">,</span> value</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">isUndefined</span><span class="token punctuation">(</span>query<span class="token punctuation">)</span> <span class="token operator">||</span> query <span class="token operator">===</span> <span class="token keyword">null</span> <span class="token operator">||</span> <span class="token operator">!</span>query<span class="token punctuation">.</span>toLowerCase <span class="token operator">||</span> query<span class="token punctuation">.</span>length <span class="token operator">===</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">isUndefined</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span> <span class="token operator">||</span> value <span class="token operator">===</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token keyword">return</span> value<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toLowerCase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span>query<span class="token punctuation">.</span><span class="token function">toLowerCase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">!==</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p>If you want to change the <a href="/docs/javascript-data-grid/api/search/#query"><code>queryMethod</code></a>, use the <a href="/docs/javascript-data-grid/api/options/#search"><code>queryMethod</code></a> option. You can also pass the <a href="/docs/javascript-data-grid/api/options/#search"><code>queryMethod</code></a> as the third argument of <a href="/docs/javascript-data-grid/api/search/#query"><code>query()</code></a> method. To change the <a href="/docs/javascript-data-grid/api/options/#search"><code>queryMethod</code></a>, use <a href="/docs/javascript-data-grid/api/search/#setquerymethod"><code>var searchPlugin = hot.getPlugin('search'); searchPlugin.setQueryMethod(myNewQueryMethod);</code></a>.</p> <h2 id="custom-result-callback"><a href="#custom-result-callback" class="header-link">Custom result callback</a></h2> <p>After calling <a href="/docs/javascript-data-grid/api/options/#search"><code>queryMethod</code></a> the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin calls <code>callback(instance, rowIndex, colIndex, cellData, testResult)</code> for every cell.</p> <p>Just as the <a href="/docs/javascript-data-grid/api/options/#search"><code>queryMethod</code></a>, you can override this callback, using <a href="/docs/javascript-data-grid/api/search/#setcallback"><code>var searchPlugin = hot.getPlugin('search'); searchPlugin.setCallback(myNewCallbackFunction);</code></a>, or passing your callback as the second argument of <a href="/docs/javascript-data-grid/api/search/#query"><code>query()</code></a> method.</p> <p>The default <code>callback</code> is responsible for setting the <code>isSearchResult</code> property.</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">const</span> <span class="token function-variable function">DEFAULT_CALLBACK</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">instance<span class="token punctuation">,</span> row<span class="token punctuation">,</span> col<span class="token punctuation">,</span> data<span class="token punctuation">,</span> testResult</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  instance<span class="token punctuation">.</span><span class="token function">getCellMeta</span><span class="token punctuation">(</span>row<span class="token punctuation">,</span> col<span class="token punctuation">)</span><span class="token punctuation">.</span>isSearchResult <span class="token operator">=</span> testResult<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><h2 id="simplest-use-case"><a href="#simplest-use-case" class="header-link">Simplest use case</a></h2> <p>The example below:</p> <ul><li>Enables the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin (by setting the <a href="/docs/javascript-data-grid/api/options/#search"><code>search</code></a> configuration option to <code>true</code>)</li> <li>Adds a search input listener</li> <li>Inside the search input listener, gets the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin's instance</li> <li>Uses the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin's <a href="/docs/javascript-data-grid/api/search/#query"><code>query()</code></a> method</li></ul> <p></p> <div class="example-container"><style></style> <div><div data-preset-type="hot" data-example-id="example1" class="ht-theme-main-dark-auto"><div class="example-controls-container"><div class="controls"><input id="search_field" type="search" placeholder="Search"></div></div> <div id="example1" class="ht-theme-main-dark-auto"></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+    &quot;name&quot;: &quot;handsontable&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;description&quot;: &quot;&quot;,
+    &quot;dependencies&quot;: {
+      &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+      &quot;handsontable&quot;: &quot;15.0&quot;
+    }
+  }</textarea> <textarea class="hidden" name="project[files][index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+  &lt;html&gt;
+    &lt;head&gt;
+      &lt;meta charset=&quot;utf-8&quot; /&gt;
+      &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+      &lt;title&gt;Handsontable&lt;/title&gt;
+    &lt;/head&gt;
+  
+    &lt;body&gt;
+      &lt;div class=&quot;example-controls-container&quot;&gt;
+  &lt;div class=&quot;controls&quot;&gt;
+    &lt;input id=&quot;search_field&quot; type=&quot;search&quot; placeholder=&quot;Search&quot;&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;example1&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;</textarea> <textarea class="hidden" name="project[files][styles.css]" readOnly=""></textarea> <textarea class="hidden" name="project[files][index.js]" readOnly="">import './styles.css'
+import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'yellow', 'gray'],
+];
+
+const container = document.querySelector('#example1');
+const hot = new Handsontable(container, {
+  data,
+  colHeaders: true,
+  // enable the `Search` plugin
+  search: true,
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const searchField = document.querySelector('#search_field');
+
+// add a search input listener
+searchField.addEventListener('keyup', (event) =&gt; {
+  // get the `Search` plugin's instance
+  const search = hot.getPlugin('search');
+  // use the `Search` plugin's `query()` method
+  const queryResult = search.query(event.target.value);
+
+  console.log(queryResult);
+  hot.render();
+});
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="javascript"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'yellow', 'gray'],
+];
+
+const container = document.querySelector('#example1');
+const hot = new Handsontable(container, {
+  data,
+  colHeaders: true,
+  // enable the `Search` plugin
+  search: true,
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const searchField = document.querySelector('#search_field');
+
+// add a search input listener
+searchField.addEventListener('keyup', (event) =&gt; {
+  // get the `Search` plugin's instance
+  const search = hot.getPlugin('search');
+  // use the `Search` plugin's `query()` method
+  const queryResult = search.query(event.target.value);
+
+  console.log(queryResult);
+  hot.render();
+});
+</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/handsontable.min.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-main.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-horizon.css&quot; /&gt; 
+&lt;script src=&quot;https://handsontable.com/docs/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div class=&quot;example-controls-container&quot;&gt;
+  &lt;div class=&quot;controls&quot;&gt;
+    &lt;input id=&quot;search_field&quot; type=&quot;search&quot; placeholder=&quot;Search&quot;&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;example1&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly=""></textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example1" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> Handsontable <span class="token keyword">from</span> <span class="token string">'handsontable'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/handsontable.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/ht-theme-main.css'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">[</span><span class="token string">'Tesla'</span><span class="token punctuation">,</span> <span class="token number">2017</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Nissan'</span><span class="token punctuation">,</span> <span class="token number">2018</span><span class="token punctuation">,</span> <span class="token string">'blue'</span><span class="token punctuation">,</span> <span class="token string">'blue'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Chrysler'</span><span class="token punctuation">,</span> <span class="token number">2019</span><span class="token punctuation">,</span> <span class="token string">'yellow'</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Volvo'</span><span class="token punctuation">,</span> <span class="token number">2020</span><span class="token punctuation">,</span> <span class="token string">'yellow'</span><span class="token punctuation">,</span> <span class="token string">'gray'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> container <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#example1'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> hot <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>container<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  data<span class="token punctuation">,</span>
+  <span class="token literal-property property">colHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token comment">// enable the `Search` plugin</span>
+  <span class="token literal-property property">search</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'auto'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapRow</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapCol</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'non-commercial-and-evaluation'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> searchField <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#search_field'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// add a search input listener</span>
+searchField<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'keyup'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token comment">// get the `Search` plugin's instance</span>
+  <span class="token keyword">const</span> search <span class="token operator">=</span> hot<span class="token punctuation">.</span><span class="token function">getPlugin</span><span class="token punctuation">(</span><span class="token string">'search'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// use the `Search` plugin's `query()` method</span>
+  <span class="token keyword">const</span> queryResult <span class="token operator">=</span> search<span class="token punctuation">.</span><span class="token function">query</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>target<span class="token punctuation">.</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>queryResult<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  hot<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section><section aria-hidden="true" id="html-tab-example1" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example-controls-container<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>controls<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>search_field<span class="token punctuation">&quot;</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>search<span class="token punctuation">&quot;</span></span> <span class="token attr-name">placeholder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>Search<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example1<span class="token punctuation">&quot;</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>ht-theme-main-dark-auto<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="html" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></section></div></div></div></div><p></p> <p></p> <h2 id="custom-search-result-class"><a href="#custom-search-result-class" class="header-link">Custom search result class</a></h2> <p>You can style your search results with a custom CSS class, using the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin's <a href="/docs/javascript-data-grid/api/options/#search"><code>searchResultClass</code></a> option.</p> <p>The example below highlights its search results in bold red. To do this, it:</p> <ul><li>Defines a custom CSS class called <code>my-custom-search-result-class</code></li> <li>Enables the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin (by setting the <a href="/docs/javascript-data-grid/api/options/#search"><code>search</code></a> configuration option to an object)</li> <li>Sets the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin's <a href="/docs/javascript-data-grid/api/options/#search"><code>searchResultClass</code></a> option to <code>'my-custom-search-result-class'</code></li></ul> <p></p> <div class="example-container"><style>.my-custom-search-result-class{
+  color: #ff0000;
+  font-weight: 900;
+}</style> <div><div data-preset-type="hot" data-example-id="example2" class="ht-theme-main-dark-auto"><div class="example-controls-container"><div class="controls"><input id="search_field2" type="search" placeholder="Search"></div></div> <div id="example2" class="ht-theme-main-dark-auto"></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+    &quot;name&quot;: &quot;handsontable&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;description&quot;: &quot;&quot;,
+    &quot;dependencies&quot;: {
+      &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+      &quot;handsontable&quot;: &quot;15.0&quot;
+    }
+  }</textarea> <textarea class="hidden" name="project[files][index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+  &lt;html&gt;
+    &lt;head&gt;
+      &lt;meta charset=&quot;utf-8&quot; /&gt;
+      &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+      &lt;title&gt;Handsontable&lt;/title&gt;
+    &lt;/head&gt;
+  
+    &lt;body&gt;
+      &lt;div class=&quot;example-controls-container&quot;&gt;
+  &lt;div class=&quot;controls&quot;&gt;
+    &lt;input id=&quot;search_field2&quot; type=&quot;search&quot; placeholder=&quot;Search&quot;&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;example2&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;</textarea> <textarea class="hidden" name="project[files][styles.css]" readOnly="">.my-custom-search-result-class{
+  color: #ff0000;
+  font-weight: 900;
+}</textarea> <textarea class="hidden" name="project[files][index.js]" readOnly="">import './styles.css'
+import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'yellow', 'gray'],
+];
+
+const container = document.querySelector('#example2');
+const hot = new Handsontable(container, {
+  data,
+  colHeaders: true,
+  // enable the `Search` plugin
+  search: {
+    // add your custom CSS class
+    searchResultClass: 'my-custom-search-result-class',
+  },
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const searchField = document.querySelector('#search_field2');
+
+searchField.addEventListener('keyup', (event) =&gt; {
+  const search = hot.getPlugin('search');
+  const queryResult = search.query(event.target.value);
+
+  console.log(queryResult);
+  hot.render();
+});
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="javascript"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'yellow', 'gray'],
+];
+
+const container = document.querySelector('#example2');
+const hot = new Handsontable(container, {
+  data,
+  colHeaders: true,
+  // enable the `Search` plugin
+  search: {
+    // add your custom CSS class
+    searchResultClass: 'my-custom-search-result-class',
+  },
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const searchField = document.querySelector('#search_field2');
+
+searchField.addEventListener('keyup', (event) =&gt; {
+  const search = hot.getPlugin('search');
+  const queryResult = search.query(event.target.value);
+
+  console.log(queryResult);
+  hot.render();
+});
+</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/handsontable.min.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-main.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-horizon.css&quot; /&gt; 
+&lt;script src=&quot;https://handsontable.com/docs/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div class=&quot;example-controls-container&quot;&gt;
+  &lt;div class=&quot;controls&quot;&gt;
+    &lt;input id=&quot;search_field2&quot; type=&quot;search&quot; placeholder=&quot;Search&quot;&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;example2&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly="">.my-custom-search-result-class{
+  color: #ff0000;
+  font-weight: 900;
+}</textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example2" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> Handsontable <span class="token keyword">from</span> <span class="token string">'handsontable'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/handsontable.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/ht-theme-main.css'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">[</span><span class="token string">'Tesla'</span><span class="token punctuation">,</span> <span class="token number">2017</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Nissan'</span><span class="token punctuation">,</span> <span class="token number">2018</span><span class="token punctuation">,</span> <span class="token string">'blue'</span><span class="token punctuation">,</span> <span class="token string">'blue'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Chrysler'</span><span class="token punctuation">,</span> <span class="token number">2019</span><span class="token punctuation">,</span> <span class="token string">'yellow'</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Volvo'</span><span class="token punctuation">,</span> <span class="token number">2020</span><span class="token punctuation">,</span> <span class="token string">'yellow'</span><span class="token punctuation">,</span> <span class="token string">'gray'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> container <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#example2'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> hot <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>container<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  data<span class="token punctuation">,</span>
+  <span class="token literal-property property">colHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token comment">// enable the `Search` plugin</span>
+  <span class="token literal-property property">search</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token comment">// add your custom CSS class</span>
+    <span class="token literal-property property">searchResultClass</span><span class="token operator">:</span> <span class="token string">'my-custom-search-result-class'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'auto'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapRow</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapCol</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'non-commercial-and-evaluation'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> searchField <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#search_field2'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+searchField<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'keyup'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> search <span class="token operator">=</span> hot<span class="token punctuation">.</span><span class="token function">getPlugin</span><span class="token punctuation">(</span><span class="token string">'search'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> queryResult <span class="token operator">=</span> search<span class="token punctuation">.</span><span class="token function">query</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>target<span class="token punctuation">.</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>queryResult<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  hot<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section><section aria-hidden="true" id="html-tab-example2" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example-controls-container<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>controls<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>search_field2<span class="token punctuation">&quot;</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>search<span class="token punctuation">&quot;</span></span> <span class="token attr-name">placeholder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>Search<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example2<span class="token punctuation">&quot;</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>ht-theme-main-dark-auto<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="html" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></section><section aria-hidden="true" id="css-tab-example2" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="language-css extra-class"><pre class="language-css"><code><span class="token selector">.my-custom-search-result-class</span><span class="token punctuation">{</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> #ff0000<span class="token punctuation">;</span>
+  <span class="token property">font-weight</span><span class="token punctuation">:</span> 900<span class="token punctuation">;</span>
+<span class="token punctuation">}</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="css" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></section></div></div></div></div><p></p> <p></p> <h2 id="custom-query-method"><a href="#custom-query-method" class="header-link">Custom query method</a></h2> <p>You can add a custom query method, using the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin's <a href="/docs/javascript-data-grid/api/search/#query"><code>queryMethod</code></a>.</p> <p>The example below searches only for exact search query matches. To do this, it:</p> <ul><li>Defines a custom query method called <code>onlyExactMatch</code></li> <li>Enables the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin (by setting the <a href="/docs/javascript-data-grid/api/options/#search"><code>search</code></a> configuration option to an object)</li> <li>Sets the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin's <a href="/docs/javascript-data-grid/api/options/#search"><code>queryMethod</code></a> option to <code>onlyExactMatch</code></li></ul> <p></p> <div class="example-container"><style></style> <div><div data-preset-type="hot" data-example-id="example3" class="ht-theme-main-dark-auto"><div class="example-controls-container"><div class="controls"><input id="search_field3" type="search" placeholder="Search"></div></div> <div id="example3" class="ht-theme-main-dark-auto"></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+    &quot;name&quot;: &quot;handsontable&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;description&quot;: &quot;&quot;,
+    &quot;dependencies&quot;: {
+      &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+      &quot;handsontable&quot;: &quot;15.0&quot;
+    }
+  }</textarea> <textarea class="hidden" name="project[files][index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+  &lt;html&gt;
+    &lt;head&gt;
+      &lt;meta charset=&quot;utf-8&quot; /&gt;
+      &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+      &lt;title&gt;Handsontable&lt;/title&gt;
+    &lt;/head&gt;
+  
+    &lt;body&gt;
+      &lt;div class=&quot;example-controls-container&quot;&gt;
+  &lt;div class=&quot;controls&quot;&gt;
+    &lt;input id=&quot;search_field3&quot; type=&quot;search&quot; placeholder=&quot;Search&quot;&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;example3&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;</textarea> <textarea class="hidden" name="project[files][styles.css]" readOnly=""></textarea> <textarea class="hidden" name="project[files][index.js]" readOnly="">import './styles.css'
+import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'white', 'gray'],
+];
+
+// define your custom query method
+function onlyExactMatch(queryStr, value) {
+  return queryStr.toString() === value.toString();
+}
+
+const container = document.querySelector('#example3');
+const hot = new Handsontable(container, {
+  data,
+  colHeaders: true,
+  // enable the `Search` plugin
+  search: {
+    // add your custom query method
+    queryMethod: onlyExactMatch,
+  },
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const searchField = document.querySelector('#search_field3');
+
+searchField.addEventListener('keyup', (event) =&gt; {
+  const search = hot.getPlugin('search');
+  // use the `Search`'s `query()` method
+  const queryResult = search.query(event.target.value);
+
+  console.log(queryResult);
+  hot.render();
+});
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="javascript"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'white', 'gray'],
+];
+
+// define your custom query method
+function onlyExactMatch(queryStr, value) {
+  return queryStr.toString() === value.toString();
+}
+
+const container = document.querySelector('#example3');
+const hot = new Handsontable(container, {
+  data,
+  colHeaders: true,
+  // enable the `Search` plugin
+  search: {
+    // add your custom query method
+    queryMethod: onlyExactMatch,
+  },
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const searchField = document.querySelector('#search_field3');
+
+searchField.addEventListener('keyup', (event) =&gt; {
+  const search = hot.getPlugin('search');
+  // use the `Search`'s `query()` method
+  const queryResult = search.query(event.target.value);
+
+  console.log(queryResult);
+  hot.render();
+});
+</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/handsontable.min.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-main.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-horizon.css&quot; /&gt; 
+&lt;script src=&quot;https://handsontable.com/docs/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div class=&quot;example-controls-container&quot;&gt;
+  &lt;div class=&quot;controls&quot;&gt;
+    &lt;input id=&quot;search_field3&quot; type=&quot;search&quot; placeholder=&quot;Search&quot;&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;example3&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly=""></textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example3" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> Handsontable <span class="token keyword">from</span> <span class="token string">'handsontable'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/handsontable.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/ht-theme-main.css'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">[</span><span class="token string">'Tesla'</span><span class="token punctuation">,</span> <span class="token number">2017</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Nissan'</span><span class="token punctuation">,</span> <span class="token number">2018</span><span class="token punctuation">,</span> <span class="token string">'blue'</span><span class="token punctuation">,</span> <span class="token string">'blue'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Chrysler'</span><span class="token punctuation">,</span> <span class="token number">2019</span><span class="token punctuation">,</span> <span class="token string">'yellow'</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Volvo'</span><span class="token punctuation">,</span> <span class="token number">2020</span><span class="token punctuation">,</span> <span class="token string">'white'</span><span class="token punctuation">,</span> <span class="token string">'gray'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">// define your custom query method</span>
+<span class="token keyword">function</span> <span class="token function">onlyExactMatch</span><span class="token punctuation">(</span><span class="token parameter">queryStr<span class="token punctuation">,</span> value</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> queryStr<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">===</span> value<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">const</span> container <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#example3'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> hot <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>container<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  data<span class="token punctuation">,</span>
+  <span class="token literal-property property">colHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token comment">// enable the `Search` plugin</span>
+  <span class="token literal-property property">search</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token comment">// add your custom query method</span>
+    <span class="token literal-property property">queryMethod</span><span class="token operator">:</span> onlyExactMatch<span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'auto'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapRow</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapCol</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'non-commercial-and-evaluation'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> searchField <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#search_field3'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+searchField<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'keyup'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> search <span class="token operator">=</span> hot<span class="token punctuation">.</span><span class="token function">getPlugin</span><span class="token punctuation">(</span><span class="token string">'search'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// use the `Search`'s `query()` method</span>
+  <span class="token keyword">const</span> queryResult <span class="token operator">=</span> search<span class="token punctuation">.</span><span class="token function">query</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>target<span class="token punctuation">.</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>queryResult<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  hot<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section><section aria-hidden="true" id="html-tab-example3" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example-controls-container<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>controls<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>search_field3<span class="token punctuation">&quot;</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>search<span class="token punctuation">&quot;</span></span> <span class="token attr-name">placeholder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>Search<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example3<span class="token punctuation">&quot;</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>ht-theme-main-dark-auto<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="html" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></section></div></div></div></div><p></p> <p></p> <h2 id="custom-callback"><a href="#custom-callback" class="header-link">Custom callback</a></h2> <p>You can add a custom callback function, using the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin's <a href="/docs/javascript-data-grid/api/search/"><code>callback</code></a> option.</p> <p>The example below displays the number of matching search results. To do this, it:</p> <ul><li>Defines a custom callback function called <code>searchResultCounter</code></li> <li>Enables the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin (by setting the <a href="/docs/javascript-data-grid/api/options/#search"><code>search</code></a> configuration option to an object)</li> <li>Sets the <a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a> plugin's <a href="/docs/javascript-data-grid/api/search/"><code>callback</code></a> option to <code>searchResultCounter</code></li></ul> <p></p> <div class="example-container"><style></style> <div><div data-preset-type="hot" data-example-id="example4" class="ht-theme-main-dark-auto"><div class="example-controls-container"><div class="controls"><input id="search_field4" type="search" placeholder="Search"></div> <output class="console" id="output">0 results</output></div> <div id="example4" class="ht-theme-main-dark-auto"></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+    &quot;name&quot;: &quot;handsontable&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;description&quot;: &quot;&quot;,
+    &quot;dependencies&quot;: {
+      &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+      &quot;handsontable&quot;: &quot;15.0&quot;
+    }
+  }</textarea> <textarea class="hidden" name="project[files][index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+  &lt;html&gt;
+    &lt;head&gt;
+      &lt;meta charset=&quot;utf-8&quot; /&gt;
+      &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+      &lt;title&gt;Handsontable&lt;/title&gt;
+    &lt;/head&gt;
+  
+    &lt;body&gt;
+      &lt;div class=&quot;example-controls-container&quot;&gt;
+    &lt;div class=&quot;controls&quot;&gt;
+    &lt;input id=&quot;search_field4&quot; type=&quot;search&quot; placeholder=&quot;Search&quot;&gt;
+  &lt;/div&gt;
+  &lt;output class=&quot;console&quot; id=&quot;output&quot;&gt;0 results&lt;/output&gt;
+&lt;/div&gt;
+&lt;div id=&quot;example4&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;</textarea> <textarea class="hidden" name="project[files][styles.css]" readOnly=""></textarea> <textarea class="hidden" name="project[files][index.js]" readOnly="">import './styles.css'
+import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+let searchResultCount = 0;
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'white', 'gray'],
+];
+
+// define your custom callback function
+function searchResultCounter(instance, row, column, value, result) {
+  const DEFAULT_CALLBACK = function (instance, row, col, _data, testResult) {
+    instance.getCellMeta(row, col).isSearchResult = testResult;
+  };
+
+  DEFAULT_CALLBACK.apply(this, [instance, row, column, value, result]);
+
+  if (result) {
+    searchResultCount++;
+  }
+}
+
+const container = document.querySelector('#example4');
+const hot = new Handsontable(container, {
+  data,
+  colHeaders: true,
+  // enable the `Search` plugin
+  search: {
+    // add your custom callback function
+    callback: searchResultCounter,
+  },
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const searchField = document.querySelector('#search_field4');
+const output = document.querySelector('#output');
+
+searchField.addEventListener('keyup', (event) =&gt; {
+  searchResultCount = 0;
+
+  const search = hot.getPlugin('search');
+  const queryResult = search.query(event.target.value);
+
+  console.log(queryResult);
+  output.innerText = `${searchResultCount} results`;
+  hot.render();
+});
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="javascript"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+let searchResultCount = 0;
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'white', 'gray'],
+];
+
+// define your custom callback function
+function searchResultCounter(instance, row, column, value, result) {
+  const DEFAULT_CALLBACK = function (instance, row, col, _data, testResult) {
+    instance.getCellMeta(row, col).isSearchResult = testResult;
+  };
+
+  DEFAULT_CALLBACK.apply(this, [instance, row, column, value, result]);
+
+  if (result) {
+    searchResultCount++;
+  }
+}
+
+const container = document.querySelector('#example4');
+const hot = new Handsontable(container, {
+  data,
+  colHeaders: true,
+  // enable the `Search` plugin
+  search: {
+    // add your custom callback function
+    callback: searchResultCounter,
+  },
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const searchField = document.querySelector('#search_field4');
+const output = document.querySelector('#output');
+
+searchField.addEventListener('keyup', (event) =&gt; {
+  searchResultCount = 0;
+
+  const search = hot.getPlugin('search');
+  const queryResult = search.query(event.target.value);
+
+  console.log(queryResult);
+  output.innerText = `${searchResultCount} results`;
+  hot.render();
+});
+</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/handsontable.min.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-main.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-horizon.css&quot; /&gt; 
+&lt;script src=&quot;https://handsontable.com/docs/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div class=&quot;example-controls-container&quot;&gt;
+    &lt;div class=&quot;controls&quot;&gt;
+    &lt;input id=&quot;search_field4&quot; type=&quot;search&quot; placeholder=&quot;Search&quot;&gt;
+  &lt;/div&gt;
+  &lt;output class=&quot;console&quot; id=&quot;output&quot;&gt;0 results&lt;/output&gt;
+&lt;/div&gt;
+&lt;div id=&quot;example4&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly=""></textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example4" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> Handsontable <span class="token keyword">from</span> <span class="token string">'handsontable'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/handsontable.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/ht-theme-main.css'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">let</span> searchResultCount <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token punctuation">[</span>
+  <span class="token punctuation">[</span><span class="token string">'Tesla'</span><span class="token punctuation">,</span> <span class="token number">2017</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Nissan'</span><span class="token punctuation">,</span> <span class="token number">2018</span><span class="token punctuation">,</span> <span class="token string">'blue'</span><span class="token punctuation">,</span> <span class="token string">'blue'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Chrysler'</span><span class="token punctuation">,</span> <span class="token number">2019</span><span class="token punctuation">,</span> <span class="token string">'yellow'</span><span class="token punctuation">,</span> <span class="token string">'black'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span><span class="token string">'Volvo'</span><span class="token punctuation">,</span> <span class="token number">2020</span><span class="token punctuation">,</span> <span class="token string">'white'</span><span class="token punctuation">,</span> <span class="token string">'gray'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">// define your custom callback function</span>
+<span class="token keyword">function</span> <span class="token function">searchResultCounter</span><span class="token punctuation">(</span><span class="token parameter">instance<span class="token punctuation">,</span> row<span class="token punctuation">,</span> column<span class="token punctuation">,</span> value<span class="token punctuation">,</span> result</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> <span class="token function-variable function">DEFAULT_CALLBACK</span> <span class="token operator">=</span> <span class="token keyword">function</span> <span class="token punctuation">(</span><span class="token parameter">instance<span class="token punctuation">,</span> row<span class="token punctuation">,</span> col<span class="token punctuation">,</span> _data<span class="token punctuation">,</span> testResult</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    instance<span class="token punctuation">.</span><span class="token function">getCellMeta</span><span class="token punctuation">(</span>row<span class="token punctuation">,</span> col<span class="token punctuation">)</span><span class="token punctuation">.</span>isSearchResult <span class="token operator">=</span> testResult<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+  <span class="token constant">DEFAULT_CALLBACK</span><span class="token punctuation">.</span><span class="token function">apply</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>instance<span class="token punctuation">,</span> row<span class="token punctuation">,</span> column<span class="token punctuation">,</span> value<span class="token punctuation">,</span> result<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>result<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    searchResultCount<span class="token operator">++</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">const</span> container <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#example4'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> hot <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>container<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  data<span class="token punctuation">,</span>
+  <span class="token literal-property property">colHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token comment">// enable the `Search` plugin</span>
+  <span class="token literal-property property">search</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token comment">// add your custom callback function</span>
+    <span class="token literal-property property">callback</span><span class="token operator">:</span> searchResultCounter<span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'auto'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapRow</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapCol</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'non-commercial-and-evaluation'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> searchField <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#search_field4'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> output <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#output'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+searchField<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'keyup'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  searchResultCount <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">const</span> search <span class="token operator">=</span> hot<span class="token punctuation">.</span><span class="token function">getPlugin</span><span class="token punctuation">(</span><span class="token string">'search'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">const</span> queryResult <span class="token operator">=</span> search<span class="token punctuation">.</span><span class="token function">query</span><span class="token punctuation">(</span>event<span class="token punctuation">.</span>target<span class="token punctuation">.</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>queryResult<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  output<span class="token punctuation">.</span>innerText <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>searchResultCount<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> results</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+  hot<span class="token punctuation">.</span><span class="token function">render</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section><section aria-hidden="true" id="html-tab-example4" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example-controls-container<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>controls<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>search_field4<span class="token punctuation">&quot;</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>search<span class="token punctuation">&quot;</span></span> <span class="token attr-name">placeholder</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>Search<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>output</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>console<span class="token punctuation">&quot;</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>output<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>0 results<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>output</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example4<span class="token punctuation">&quot;</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>ht-theme-main-dark-auto<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="html" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></section></div></div></div></div><p></p> <p></p> <h2 id="related-api-reference"><a href="#related-api-reference" class="header-link">Related API reference</a></h2> <ul><li>Configuration options:
+<ul><li><a href="/docs/javascript-data-grid/api/options/#search"><code>search</code></a></li></ul></li> <li>Plugins:
+<ul><li><a href="/docs/javascript-data-grid/api/search/"><code>Search</code></a></li></ul></li></ul></div> <div class="page-top" style="display:none;"><div class="custom-block tip version-alert"><p>There is a newer version of Handsontable available.
+            <a href="/docs/">Switch to the latest version ⟶</a></p></div></div> <footer class="footer"><a href="https://github.com/handsontable/handsontable/edit/develop/docs/content/guides/navigation/searching-values/searching-values.md" target="_blank" rel="noopener noreferrer" class="edit-link">Edit on GitHub <i class="ico i-external"></i></a> <div class="footer-links"><div class="socail-links"><a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a> <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a> <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a></div> <div class="hot-links"><a href="https://handsontable.com/privacy">Privacy policy</a> <a href="https://handsontable.com/terms-of-use">Terms of use</a> <a href="https://handsontable.com/team">Team</a> <a href="https://handsontable.com/contact?category=technical_support">Contact</a> <a href="https://handsontable.com/blog/">Blog</a> <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a></div></div> <div class="copyright"><p>© 2012 - 2025 Handsoncode</p> <label id="switch" class="dark-mode"><span class="inner" style="display:none;"><input type="checkbox"> <span style="display:none;"><i class="ico i-dm-dark"></i>Light</span> <span style="display:;"><i class="ico i-dm-light"></i>Dark</span></span></label></div></footer> </main></div></div><div class="global-ui"></div></div>
+
+<script src="/docs/assets/js/app.8c0eccc3.js" defer></script><script src="/docs/assets/js/5.af4b1d74.js" defer></script><script src="/docs/assets/js/3.6372b058.js" defer></script><script src="/docs/assets/js/2.b3c0589f.js" defer></script><script src="/docs/assets/js/189.54a16526.js" defer></script><script src="/docs/assets/js/37.c231f17e.js" defer></script>
+</body>
+</html>

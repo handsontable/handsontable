@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  
+  <meta charset="utf-8">
+  <title>AutoColumnSize - JavaScript Data Grid | Handsontable</title>
+  <meta name="generator" content="VuePress 1.9.10">
+  <link rel="icon" media="(prefers-color-scheme: light)" href="https://handsontable.com/docs/15.0/img/favicon.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="https://handsontable.com/docs/15.0/img/favicon-dark.png">
+    <link rel="preload" href="https://handsontable.com/docs/15.0/data/common.json" as="fetch" crossorigin="">
+    <script>
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          environment: 'production',
+          tracesSampleRate: 0,
+          profilesSampleRate: 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0.2,
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),   
+          ],
+        });
+      };
+    </script>
+    <script id="Sentry.io" src="https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js" crossorigin="anonymous" defer="true"></script>
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="ef171f1d-a288-433f-b680-3cdbdebd5646" defer="true"></script>
+    <script id="Headwayapp" src="https://cdn.headwayapp.co/widget.js" defer="true"></script>
+    <script>const DOCS_VERSION = '15.0';</script>
+    <script>
+      (function(w, d) {
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    </script>
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-55L5D3');
+    </script>
+    <script>
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      </script>
+  <meta name="description" content="Use the AutoColumnSize plugin with its API options, members, and methods to set column widths based on the widest cell in a given column.">
+    <meta name="og:url" content="https://handsontable.com/docs/15.0/javascript-data-grid/api/auto-column-size/">
+    <meta name="og:type" content="website">
+    <meta name="og:title" content="AutoColumnSize">
+    <meta name="og:description" content="Use the AutoColumnSize plugin with its API options, members, and methods to set column widths based on the widest cell in a given column.">
+    <meta name="og:image" content="https://handsontable.com/docs/15.0/img/handsontable-banner-og.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://handsontable.com/docs/15.0/javascript-data-grid/api/auto-column-size/" rel="canonical" />
+  <link rel="preload" href="/docs/15.0/assets/css/0.styles.232f2b45.css" as="style"><link rel="preload" href="/docs/15.0/assets/js/app.46cb68fe.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/5.af4b1d74.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/3.6372b058.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/2.b3c0589f.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/45.6a80f6dd.js" as="script">
+  <link rel="stylesheet" href="/docs/15.0/assets/css/0.styles.232f2b45.css">
+</head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="//www.googletagmanager.com/ns.html?id=GTM-55L5D3"
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<div id="app" data-server-rendered="true"><div class="layout-container"><script type="application/ld+json">{
+    "@context": "https://schema.org/",
+    "@type": "WebPage",
+    "name": "AutoColumnSize - JavaScript Data Grid  Handsontable",
+    "headline": "AutoColumnSize - JavaScript Data Grid  Handsontable",
+    "description": "Use the AutoColumnSize plugin with its API options, members, and methods to set column widths based on the widest cell in a given column.",
+    "url": "https://handsontable.com/docs/15.0/javascript-data-grid/api/auto-column-size/",
+    "mainEntityOfPage": {
+        "@type": "TechArticle",
+        "@id": "https://handsontable.com/docs/15.0/javascript-data-grid/api/auto-column-size/"
+    },
+    "keywords": [],
+    "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/15.0/img/handsontable-docs-cover.png"
+    },
+    "image": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/15.0/img/handsontable-docs-cover.png"
+    },
+    "author": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable Team",
+        "url": "https://handsontable.com",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "alternateName": "Handsontable",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "dateModified": "2025-01-16T06:56:59.493Z",
+    "lastReviewed": "2025-01-16T06:56:59.493Z",
+    "copyrightHolder": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://handsontable.com/docs/15.0/img/handsontable-docs-cover.png"
+        }
+    },
+    "copyrightYear": "2025"
+}</script> <div class="theme-container"><header class="navbar"><div class="navbar-wrapper"><a href="/docs/15.0/javascript-data-grid/" aria-label="Docs Homepage Link" class="home-link router-link-active"><i class="Logo"></i></a> <div class="top-bar"><div class="top-bar_left"><div class="framework-and-version"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav></div></div> <div id="algolia-search"></div> <div class="menu"><nav class="nav-links"><div class="nav-item"><a href="/docs/15.0/javascript-data-grid/" class="nav-link">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/15.0/javascript-data-grid/api/" class="nav-link router-link-active">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/15.0/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav> <nav class="nav-links"><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Support" class="dropdown-title"><span class="title">Support</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="https://forum.handsontable.com" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Developers Forum
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://github.com/handsontable/handsontable/discussions" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    GitHub Discussions
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://stackoverflow.com/tags/handsontable" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    StackOverflow
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://handsontable.com/contact?category=technical_support" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Contact support
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div></nav> <nav class="icons-nav"><span class="news"><i class="ico i-bell"></i></span> <a href="https://github.com/handsontable/handsontable" target="_blank" class="github-stars"><i class="ico i-github"></i> <!----></a> <button id="mobileSearch" aria-label="Search" class="menuButton"><i class="ico i-search"></i></button> <button aria-label="Menu button" class="menuButton"><i class="ico i-menu"></i> <i class="ico i-close"></i></button></nav></div></div></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <div class="sidebar-nav"><div class="mobile-nav"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav> <nav class="nav-links"><div class="nav-item"><a href="/docs/15.0/javascript-data-grid/" class="nav-link">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/15.0/javascript-data-grid/api/" class="nav-link router-link-active">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/15.0/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav></div> <ul class="sidebar-links"><li><a href="/docs/15.0/javascript-data-grid/api/" aria-current="page" class="sidebar-link">Introduction</a></li><li><a href="/docs/15.0/javascript-data-grid/api/core/" class="sidebar-link">Core</a></li><li><a href="/docs/15.0/javascript-data-grid/api/hooks/" class="sidebar-link">Hooks</a></li><li><a href="/docs/15.0/javascript-data-grid/api/options/" class="sidebar-link">Configuration options</a></li><li><section class="sidebar-group open depth-0"><a href="/docs/15.0/javascript-data-grid/api/plugins/" class="sidebar-heading clickable"><i class="ico v-f69bb88e"></i> <span>Plugins</span> <!----></a> <ul class="sidebar-links sidebar-group-items"><li><a href="/docs/15.0/javascript-data-grid/api/auto-column-size/" aria-current="page" class="active sidebar-link">AutoColumnSize</a></li><li><a href="/docs/15.0/javascript-data-grid/api/auto-row-size/" class="sidebar-link">AutoRowSize</a></li><li><a href="/docs/15.0/javascript-data-grid/api/autofill/" class="sidebar-link">Autofill</a></li><li><a href="/docs/15.0/javascript-data-grid/api/bind-rows-with-headers/" class="sidebar-link">BindRowsWithHeaders</a></li><li><a href="/docs/15.0/javascript-data-grid/api/collapsible-columns/" class="sidebar-link">CollapsibleColumns</a></li><li><a href="/docs/15.0/javascript-data-grid/api/column-sorting/" class="sidebar-link">ColumnSorting</a></li><li><a href="/docs/15.0/javascript-data-grid/api/column-summary/" class="sidebar-link">ColumnSummary</a></li><li><a href="/docs/15.0/javascript-data-grid/api/comments/" class="sidebar-link">Comments</a></li><li><a href="/docs/15.0/javascript-data-grid/api/context-menu/" class="sidebar-link">ContextMenu</a></li><li><a href="/docs/15.0/javascript-data-grid/api/copy-paste/" class="sidebar-link">CopyPaste</a></li><li><a href="/docs/15.0/javascript-data-grid/api/custom-borders/" class="sidebar-link">CustomBorders</a></li><li><a href="/docs/15.0/javascript-data-grid/api/drag-to-scroll/" class="sidebar-link">DragToScroll</a></li><li><a href="/docs/15.0/javascript-data-grid/api/dropdown-menu/" class="sidebar-link">DropdownMenu</a></li><li><a href="/docs/15.0/javascript-data-grid/api/export-file/" class="sidebar-link">ExportFile</a></li><li><a href="/docs/15.0/javascript-data-grid/api/filters/" class="sidebar-link">Filters</a></li><li><a href="/docs/15.0/javascript-data-grid/api/formulas/" class="sidebar-link">Formulas</a></li><li><a href="/docs/15.0/javascript-data-grid/api/hidden-columns/" class="sidebar-link">HiddenColumns</a></li><li><a href="/docs/15.0/javascript-data-grid/api/hidden-rows/" class="sidebar-link">HiddenRows</a></li><li><a href="/docs/15.0/javascript-data-grid/api/manual-column-freeze/" class="sidebar-link">ManualColumnFreeze</a></li><li><a href="/docs/15.0/javascript-data-grid/api/manual-column-move/" class="sidebar-link">ManualColumnMove</a></li><li><a href="/docs/15.0/javascript-data-grid/api/manual-column-resize/" class="sidebar-link">ManualColumnResize</a></li><li><a href="/docs/15.0/javascript-data-grid/api/manual-row-move/" class="sidebar-link">ManualRowMove</a></li><li><a href="/docs/15.0/javascript-data-grid/api/manual-row-resize/" class="sidebar-link">ManualRowResize</a></li><li><a href="/docs/15.0/javascript-data-grid/api/merge-cells/" class="sidebar-link">MergeCells</a></li><li><a href="/docs/15.0/javascript-data-grid/api/multi-column-sorting/" class="sidebar-link">MultiColumnSorting</a></li><li><a href="/docs/15.0/javascript-data-grid/api/nested-headers/" class="sidebar-link">NestedHeaders</a></li><li><a href="/docs/15.0/javascript-data-grid/api/nested-rows/" class="sidebar-link">NestedRows</a></li><li><a href="/docs/15.0/javascript-data-grid/api/persistent-state/" class="sidebar-link">PersistentState</a></li><li><a href="/docs/15.0/javascript-data-grid/api/search/" class="sidebar-link">Search</a></li><li><a href="/docs/15.0/javascript-data-grid/api/stretch-columns/" class="sidebar-link">StretchColumns</a></li><li><a href="/docs/15.0/javascript-data-grid/api/trim-rows/" class="sidebar-link">TrimRows</a></li><li><a href="/docs/15.0/javascript-data-grid/api/undo-redo/" class="sidebar-link">UndoRedo</a></li></ul></section></li></ul></div> </aside> <main class="page api"><div class="breadcrumbs"><a href="https://handsontable.com/docs/15.0/javascript-data-grid/api/"><i class="ico i-home"></i> <span> <span></span>JavaScript Data Grid</span></a> <a href="https://handsontable.com/docs/15.0/javascript-data-grid/api/auto-column-size"><span>AutoColumnSize</span></a></div> <div class="theme-default-content content__default"><h1 id="autocolumnsize"><a href="#autocolumnsize" class="header-link"><span class="header-framework">JavaScript Data Grid</span>AutoColumnSize</a></h1> <p></p><div class="table-of-contents"><div class="toc-container-header"><i class="ico i-toc"></i>On this page</div><ul><li><a href="#description">Description</a></li><li><a href="#options">Options</a><ul><li><a href="#autocolumnsize-2">autoColumnSize</a></li></ul></li><li><a href="#members">Members</a><ul><li><a href="#inprogress">inProgress</a></li><li><a href="#measuredcolumns">measuredColumns</a></li></ul></li><li><a href="#methods">Methods</a><ul><li><a href="#calculateallcolumnswidth">calculateAllColumnsWidth</a></li><li><a href="#calculatecolumnswidth">calculateColumnsWidth</a></li><li><a href="#calculatevisiblecolumnswidth">calculateVisibleColumnsWidth</a></li><li><a href="#clearcache">clearCache</a></li><li><a href="#destroy">destroy</a></li><li><a href="#disableplugin">disablePlugin</a></li><li><a href="#enableplugin">enablePlugin</a></li><li><a href="#getcolumnwidth">getColumnWidth</a></li><li><a href="#getfirstvisiblecolumn">getFirstVisibleColumn</a></li><li><a href="#getlastvisiblecolumn">getLastVisibleColumn</a></li><li><a href="#getsynccalculationlimit">getSyncCalculationLimit</a></li><li><a href="#isenabled">isEnabled</a></li><li><a href="#isneedrecalculate">isNeedRecalculate</a></li><li><a href="#recalculateallcolumnswidth">recalculateAllColumnsWidth</a></li><li><a href="#updateplugin">updatePlugin</a></li></ul></li></ul></div><p></p> <h2 id="description"><a href="#description" class="header-link">Description</a></h2> <p>This plugin allows to set column widths based on their widest cells.</p> <p>By default, the plugin is declared as <code>undefined</code>, which makes it enabled (same as if it was declared as <code>true</code>).
+Enabling this plugin may decrease the overall table performance, as it needs to calculate the widths of all cells to
+resize the columns accordingly.
+If you experience problems with the performance, try turning this feature off and declaring the column widths manually.</p> <p>Column width calculations are divided into sync and async part. Each of this parts has their own advantages and
+disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
+operations don't block the browser UI.</p> <p>To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token comment">// as a number (300 columns in sync, rest async)</span>
+<span class="token literal-property property">autoColumnSize</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token literal-property property">syncLimit</span><span class="token operator">:</span> <span class="token number">300</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+
+<span class="token comment">// as a string (percent)</span>
+<span class="token literal-property property">autoColumnSize</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token literal-property property">syncLimit</span><span class="token operator">:</span> <span class="token string">'40%'</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p>The plugin uses <a href="/docs/15.0/javascript-data-grid/api/ghost-table/">GhostTable</a> and <a href="/docs/15.0/javascript-data-grid/api/samples-generator/">SamplesGenerator</a> for calculations.
+First, <a href="/docs/15.0/javascript-data-grid/api/samples-generator/">SamplesGenerator</a> prepares samples of data with its coordinates.
+Next <a href="/docs/15.0/javascript-data-grid/api/ghost-table/">GhostTable</a> uses coordinates to get cells' renderers and append all to the DOM through DocumentFragment.</p> <p>Sampling accepts additional options:</p> <ul><li><em>samplingRatio</em> - Defines how many samples for the same length will be used to calculate. Default is <code>3</code>.</li></ul> <div class="language-js extra-class"><pre class="language-js"><code>  <span class="token literal-property property">autoColumnSize</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">samplingRatio</span><span class="token operator">:</span> <span class="token number">10</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><ul><li><em>allowSampleDuplicates</em> - Defines if duplicated values might be used in sampling. Default is <code>false</code>.</li></ul> <div class="language-js extra-class"><pre class="language-js"><code>  <span class="token literal-property property">autoColumnSize</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">allowSampleDuplicates</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p>To configure this plugin see <a href="/docs/15.0/javascript-data-grid/api/options/#autocolumnsize">Options#autoColumnSize</a>.</p> <p><strong>Example</strong><br></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">const</span> hot <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">'example'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">data</span><span class="token operator">:</span> <span class="token function">getData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoColumnSize</span><span class="token operator">:</span> <span class="token boolean">true</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// Access to plugin instance:</span>
+<span class="token keyword">const</span> plugin <span class="token operator">=</span> hot<span class="token punctuation">.</span><span class="token function">getPlugin</span><span class="token punctuation">(</span><span class="token string">'autoColumnSize'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+plugin<span class="token punctuation">.</span><span class="token function">getColumnWidth</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span>plugin<span class="token punctuation">.</span><span class="token function">isEnabled</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// code...</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p></p> <p></p> <h2 id="options"><a href="#options" class="header-link">Options</a></h2> <h3 id="autocolumnsize-2"><a href="#autocolumnsize-2" class="header-link">autoColumnSize</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/dataMap/metaManager/metaSchema.js#L391" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.autoColumnSize : object | boolean</em></p> <p>The <code>autoColumnSize</code> option configures the <a href="/docs/15.0/javascript-data-grid/api/auto-column-size/" aria-current="page" class="router-link-exact-active router-link-active"><code>AutoColumnSize</code></a> plugin.</p> <p>You can set the <code>autoColumnSize</code> option to one of the following:</p> <table><thead><tr><th>Setting</th> <th>Description</th></tr></thead> <tbody><tr><td><code>false</code></td> <td>Disable the <a href="/docs/15.0/javascript-data-grid/api/auto-column-size/" aria-current="page" class="router-link-exact-active router-link-active"><code>AutoColumnSize</code></a> plugin</td></tr> <tr><td><code>true</code></td> <td>Enable the <a href="/docs/15.0/javascript-data-grid/api/auto-column-size/" aria-current="page" class="router-link-exact-active router-link-active"><code>AutoColumnSize</code></a> plugin with the default configuration</td></tr> <tr><td>An object</td> <td>Enable the <a href="/docs/15.0/javascript-data-grid/api/auto-column-size/" aria-current="page" class="router-link-exact-active router-link-active"><code>AutoColumnSize</code></a> plugin and modify the plugin options</td></tr></tbody></table> <p>If you set the <code>autoColumnSize</code> option to an object, you can set the following <a href="/docs/15.0/javascript-data-grid/api/auto-column-size/" aria-current="page" class="router-link-exact-active router-link-active"><code>AutoColumnSize</code></a> plugin options:</p> <table><thead><tr><th>Property</th> <th>Possible values</th> <th>Description</th></tr></thead> <tbody><tr><td><code>syncLimit</code></td> <td>A number | A percentage string</td> <td>The number/percentage of columns to keep in sync<br>(default: <code>50</code>)</td></tr> <tr><td><code>useHeaders</code></td> <td><code>true</code> | <code>false</code></td> <td>When calculating column widths:<br><code>true</code>: use column headers<br><code>false</code>: don't use column headers</td></tr> <tr><td><code>samplingRatio</code></td> <td>A number</td> <td>The number of samples of the same length to be used in column width calculations</td></tr> <tr><td><code>allowSampleDuplicates</code></td> <td><code>true</code> | <code>false</code></td> <td>When calculating column widths:<br><code>true</code>: Allow duplicate samples<br><code>false</code>: Don't allow duplicate samples</td></tr></tbody></table> <p>By default, the <code>autoColumnSize</code> option is set to <code>undefined</code>,
+but the <a href="/docs/15.0/javascript-data-grid/api/auto-column-size/" aria-current="page" class="router-link-exact-active router-link-active"><code>AutoColumnSize</code></a> plugin acts as enabled.
+To disable the <a href="/docs/15.0/javascript-data-grid/api/auto-column-size/" aria-current="page" class="router-link-exact-active router-link-active"><code>AutoColumnSize</code></a> plugin completely,
+set the <code>autoColumnSize</code> option to <code>false</code>.</p> <p>Using the <a href="#colwidths"><code>colWidths</code></a> option forcibly disables the <a href="/docs/15.0/javascript-data-grid/api/auto-column-size/" aria-current="page" class="router-link-exact-active router-link-active"><code>AutoColumnSize</code></a> plugin.</p> <p>Read more:</p> <ul><li><a href="/docs/15.0/javascript-data-grid/api/auto-column-size/" aria-current="page" class="router-link-exact-active router-link-active">Plugins: <code>AutoColumnSize</code></a></li></ul> <p><strong>Default</strong>: <code>undefined</code><br> <strong>Example</strong></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token literal-property property">autoColumnSize</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+  <span class="token comment">// keep 40% of columns in sync (the rest of columns: async)</span>
+  <span class="token literal-property property">syncLimit</span><span class="token operator">:</span> <span class="token string">'40%'</span><span class="token punctuation">,</span>
+  <span class="token comment">// when calculating column widths, use column headers</span>
+  <span class="token literal-property property">useHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token comment">// when calculating column widths, use 10 samples of the same length</span>
+  <span class="token literal-property property">samplingRatio</span><span class="token operator">:</span> <span class="token number">10</span><span class="token punctuation">,</span>
+  <span class="token comment">// when calculating column widths, allow duplicate samples</span>
+  <span class="token literal-property property">allowSampleDuplicates</span><span class="token operator">:</span> <span class="token boolean">true</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><h2 id="members"><a href="#members" class="header-link">Members</a></h2> <h3 id="inprogress"><a href="#inprogress" class="header-link">inProgress</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L186" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.inProgress : boolean</em></p> <p><code>true</code> if the size calculation is in progress.</p> <h3 id="measuredcolumns"><a href="#measuredcolumns" class="header-link">measuredColumns</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L192" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.measuredColumns : number</em></p> <p>Number of already measured columns (we already know their sizes).</p> <h2 id="methods"><a href="#methods" class="header-link">Methods</a></h2> <h3 id="calculateallcolumnswidth"><a href="#calculateallcolumnswidth" class="header-link">calculateAllColumnsWidth</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L354" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.calculateAllColumnsWidth(rowRange, [overwriteCache])</em></p> <p>Calculates all columns width. The calculated column will be cached in the <a href="/docs/15.0/javascript-data-grid/api/auto-column-size/#widths">AutoColumnSize#widths</a> property.
+To retrieve width for specified column use <a href="/docs/15.0/javascript-data-grid/api/auto-column-size/#getcolumnwidth">AutoColumnSize#getColumnWidth</a> method.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Default</th> <th>Description</th></tr></thead> <tbody><tr><td>rowRange</td> <td><code>object</code> <br> <code>number</code></td> <td></td> <td>Row index or an object with <code>from</code> and <code>to</code> properties which define row range.</td></tr> <tr><td>[overwriteCache]</td> <td><code>boolean</code></td> <td><code>false</code></td> <td><code>optional</code> If <code>true</code> the calculation will be processed regardless of whether the width exists in the cache.</td></tr></tbody></table> <h3 id="calculatecolumnswidth"><a href="#calculatecolumnswidth" class="header-link">calculateColumnsWidth</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L310" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.calculateColumnsWidth(colRange, rowRange, [overwriteCache])</em></p> <p>Calculates a columns width.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Default</th> <th>Description</th></tr></thead> <tbody><tr><td>colRange</td> <td><code>number</code> <br> <code>object</code></td> <td></td> <td>Visual column index or an object with <code>from</code> and <code>to</code> visual indexes as a range.</td></tr> <tr><td>rowRange</td> <td><code>number</code> <br> <code>object</code></td> <td></td> <td>Visual row index or an object with <code>from</code> and <code>to</code> visual indexes as a range.</td></tr> <tr><td>[overwriteCache]</td> <td><code>boolean</code></td> <td><code>false</code></td> <td><code>optional</code> If <code>true</code> the calculation will be processed regardless of whether the width exists in the cache.</td></tr></tbody></table> <h3 id="calculatevisiblecolumnswidth"><a href="#calculatevisiblecolumnswidth" class="header-link">calculateVisibleColumnsWidth</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L285" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.calculateVisibleColumnsWidth()</em></p> <p>Calculates widths for visible columns in the viewport only.</p> <h3 id="clearcache"><a href="#clearcache" class="header-link">clearCache</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L550" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.clearCache([physicalColumns])</em></p> <p>Clears cache of calculated column widths. If you want to clear only selected columns pass an array with their indexes.
+Otherwise whole cache will be cleared.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Description</th></tr></thead> <tbody><tr><td>[physicalColumns]</td> <td><code>Array&lt;number&gt;</code></td> <td><code>optional</code> List of physical column indexes to clear.</td></tr></tbody></table> <h3 id="destroy"><a href="#destroy" class="header-link">destroy</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L670" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.destroy()</em></p> <p>Destroys the plugin instance.</p> <h3 id="disableplugin"><a href="#disableplugin" class="header-link">disablePlugin</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L273" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.disablePlugin()</em></p> <p>Disables the plugin functionality for this Handsontable instance.</p> <h3 id="enableplugin"><a href="#enableplugin" class="header-link">enablePlugin</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L238" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.enablePlugin()</em></p> <p>Enables the plugin functionality for this Handsontable instance.</p> <h3 id="getcolumnwidth"><a href="#getcolumnwidth" class="header-link">getColumnWidth</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L485" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.getColumnWidth(column, [defaultWidth], [keepMinimum]) ⇒ number</em></p> <p>Gets the calculated column width.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Default</th> <th>Description</th></tr></thead> <tbody><tr><td>column</td> <td><code>number</code></td> <td></td> <td>Visual column index.</td></tr> <tr><td>[defaultWidth]</td> <td><code>number</code></td> <td></td> <td><code>optional</code> Default column width. It will be picked up if no calculated width found.</td></tr> <tr><td>[keepMinimum]</td> <td><code>boolean</code></td> <td><code>true</code></td> <td><code>optional</code> If <code>true</code> then returned value won't be smaller then 50 (default column width).</td></tr></tbody></table> <h3 id="getfirstvisiblecolumn"><a href="#getfirstvisiblecolumn" class="header-link">getFirstVisibleColumn</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L504" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.getFirstVisibleColumn() ⇒ number</em></p> <p>Gets the first visible column.</p> <p><strong>Returns</strong>: <code>number</code> - Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.</p> <h3 id="getlastvisiblecolumn"><a href="#getlastvisiblecolumn" class="header-link">getLastVisibleColumn</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L513" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.getLastVisibleColumn() ⇒ number</em></p> <p>Gets the last visible column.</p> <p><strong>Returns</strong>: <code>number</code> - Returns visual column index or -1 if table is not rendered.</p> <h3 id="getsynccalculationlimit"><a href="#getsynccalculationlimit" class="header-link">getSyncCalculationLimit</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L457" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.getSyncCalculationLimit() ⇒ number</em></p> <p>Gets value which tells how many columns should be calculated synchronously (rest of the columns will be calculated
+asynchronously). The limit is calculated based on <code>syncLimit</code> set to <code>autoColumnSize</code> option (see <a href="/docs/15.0/javascript-data-grid/api/options/#autocolumnsize">Options#autoColumnSize</a>).</p> <h3 id="isenabled"><a href="#isenabled" class="header-link">isEnabled</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L231" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.isEnabled() ⇒ boolean</em></p> <p>Checks if the plugin is enabled in the handsontable settings. This method is executed in <a href="/docs/15.0/javascript-data-grid/api/hooks/#beforeinit">Hooks#beforeInit</a>
+hook and if it returns <code>true</code> then the <a href="#enableplugin">#enablePlugin</a> method is called.</p> <h3 id="isneedrecalculate"><a href="#isneedrecalculate" class="header-link">isNeedRecalculate</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L568" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.isNeedRecalculate() ⇒ boolean</em></p> <p>Checks if all widths were calculated. If not then return <code>true</code> (need recalculate).</p> <h3 id="recalculateallcolumnswidth"><a href="#recalculateallcolumnswidth" class="header-link">recalculateAllColumnsWidth</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L445" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.recalculateAllColumnsWidth()</em></p> <p>Recalculates all columns width (overwrite cache values).</p> <h3 id="updateplugin"><a href="#updateplugin" class="header-link">updatePlugin</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L265" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>autoColumnSize.updatePlugin()</em></p> <p>Updates the plugin's state. This method is executed when <a href="/docs/15.0/javascript-data-grid/api/core/#updatesettings">Core#updateSettings</a> is invoked.</p></div> <div class="page-top" style="display:none;"><div class="custom-block tip version-alert"><p>There is a newer version of Handsontable available.
+            <a href="/docs/">Switch to the latest version ⟶</a></p></div></div> <footer class="footer"><!----> <div class="footer-links"><div class="socail-links"><a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a> <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a> <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a></div> <div class="hot-links"><a href="https://handsontable.com/privacy">Privacy policy</a> <a href="https://handsontable.com/terms-of-use">Terms of use</a> <a href="https://handsontable.com/team">Team</a> <a href="https://handsontable.com/contact?category=technical_support">Contact</a> <a href="https://handsontable.com/blog/">Blog</a> <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a></div></div> <div class="copyright"><p>© 2012 - 2025 Handsoncode</p> <label id="switch" class="dark-mode"><span class="inner" style="display:none;"><input type="checkbox"> <span style="display:none;"><i class="ico i-dm-dark"></i>Light</span> <span style="display:;"><i class="ico i-dm-light"></i>Dark</span></span></label></div></footer> </main></div></div><div class="global-ui"></div></div>
+
+<script src="/docs/15.0/assets/js/app.46cb68fe.js" defer></script><script src="/docs/15.0/assets/js/5.af4b1d74.js" defer></script><script src="/docs/15.0/assets/js/3.6372b058.js" defer></script><script src="/docs/15.0/assets/js/2.b3c0589f.js" defer></script><script src="/docs/15.0/assets/js/45.6a80f6dd.js" defer></script>
+</body>
+</html>

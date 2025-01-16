@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  
+  <meta charset="utf-8">
+  <title>ManualColumnResize - JavaScript Data Grid | Handsontable</title>
+  <meta name="generator" content="VuePress 1.9.10">
+  <link rel="icon" media="(prefers-color-scheme: light)" href="https://handsontable.com/docs/15.0/img/favicon.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="https://handsontable.com/docs/15.0/img/favicon-dark.png">
+    <link rel="preload" href="https://handsontable.com/docs/15.0/data/common.json" as="fetch" crossorigin="">
+    <script>
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          environment: 'production',
+          tracesSampleRate: 0,
+          profilesSampleRate: 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0.2,
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),   
+          ],
+        });
+      };
+    </script>
+    <script id="Sentry.io" src="https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js" crossorigin="anonymous" defer="true"></script>
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="ef171f1d-a288-433f-b680-3cdbdebd5646" defer="true"></script>
+    <script id="Headwayapp" src="https://cdn.headwayapp.co/widget.js" defer="true"></script>
+    <script>const DOCS_VERSION = '15.0';</script>
+    <script>
+      (function(w, d) {
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    </script>
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-55L5D3');
+    </script>
+    <script>
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      </script>
+  <meta name="description" content="Use the ManualColumnResize plugin with its API options and methods to let your users manually change column widths using Handsontable&#39;s interface.">
+    <meta name="og:url" content="https://handsontable.com/docs/15.0/javascript-data-grid/api/manual-column-resize/">
+    <meta name="og:type" content="website">
+    <meta name="og:title" content="ManualColumnResize">
+    <meta name="og:description" content="Use the ManualColumnResize plugin with its API options and methods to let your users manually change column widths using Handsontable&#39;s interface.">
+    <meta name="og:image" content="https://handsontable.com/docs/15.0/img/handsontable-banner-og.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://handsontable.com/docs/15.0/javascript-data-grid/api/manual-column-resize/" rel="canonical" />
+  <link rel="preload" href="/docs/15.0/assets/css/0.styles.232f2b45.css" as="style"><link rel="preload" href="/docs/15.0/assets/js/app.46cb68fe.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/5.af4b1d74.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/3.6372b058.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/2.b3c0589f.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/82.58cabf17.js" as="script">
+  <link rel="stylesheet" href="/docs/15.0/assets/css/0.styles.232f2b45.css">
+</head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="//www.googletagmanager.com/ns.html?id=GTM-55L5D3"
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<div id="app" data-server-rendered="true"><div class="layout-container"><script type="application/ld+json">{
+    "@context": "https://schema.org/",
+    "@type": "WebPage",
+    "name": "ManualColumnResize - JavaScript Data Grid  Handsontable",
+    "headline": "ManualColumnResize - JavaScript Data Grid  Handsontable",
+    "description": "Use the ManualColumnResize plugin with its API options and methods to let your users manually change column widths using Handsontables interface.",
+    "url": "https://handsontable.com/docs/15.0/javascript-data-grid/api/manual-column-resize/",
+    "mainEntityOfPage": {
+        "@type": "TechArticle",
+        "@id": "https://handsontable.com/docs/15.0/javascript-data-grid/api/manual-column-resize/"
+    },
+    "keywords": [],
+    "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/15.0/img/handsontable-docs-cover.png"
+    },
+    "image": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/15.0/img/handsontable-docs-cover.png"
+    },
+    "author": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable Team",
+        "url": "https://handsontable.com",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "alternateName": "Handsontable",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "dateModified": "2025-01-16T06:57:00.202Z",
+    "lastReviewed": "2025-01-16T06:57:00.202Z",
+    "copyrightHolder": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://handsontable.com/docs/15.0/img/handsontable-docs-cover.png"
+        }
+    },
+    "copyrightYear": "2025"
+}</script> <div class="theme-container"><header class="navbar"><div class="navbar-wrapper"><a href="/docs/15.0/javascript-data-grid/" aria-label="Docs Homepage Link" class="home-link router-link-active"><i class="Logo"></i></a> <div class="top-bar"><div class="top-bar_left"><div class="framework-and-version"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav></div></div> <div id="algolia-search"></div> <div class="menu"><nav class="nav-links"><div class="nav-item"><a href="/docs/15.0/javascript-data-grid/" class="nav-link">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/15.0/javascript-data-grid/api/" class="nav-link router-link-active">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/15.0/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav> <nav class="nav-links"><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Support" class="dropdown-title"><span class="title">Support</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="https://forum.handsontable.com" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Developers Forum
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://github.com/handsontable/handsontable/discussions" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    GitHub Discussions
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://stackoverflow.com/tags/handsontable" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    StackOverflow
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://handsontable.com/contact?category=technical_support" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Contact support
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div></nav> <nav class="icons-nav"><span class="news"><i class="ico i-bell"></i></span> <a href="https://github.com/handsontable/handsontable" target="_blank" class="github-stars"><i class="ico i-github"></i> <!----></a> <button id="mobileSearch" aria-label="Search" class="menuButton"><i class="ico i-search"></i></button> <button aria-label="Menu button" class="menuButton"><i class="ico i-menu"></i> <i class="ico i-close"></i></button></nav></div></div></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <div class="sidebar-nav"><div class="mobile-nav"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav> <nav class="nav-links"><div class="nav-item"><a href="/docs/15.0/javascript-data-grid/" class="nav-link">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/15.0/javascript-data-grid/api/" class="nav-link router-link-active">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/15.0/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav></div> <ul class="sidebar-links"><li><a href="/docs/15.0/javascript-data-grid/api/" aria-current="page" class="sidebar-link">Introduction</a></li><li><a href="/docs/15.0/javascript-data-grid/api/core/" class="sidebar-link">Core</a></li><li><a href="/docs/15.0/javascript-data-grid/api/hooks/" class="sidebar-link">Hooks</a></li><li><a href="/docs/15.0/javascript-data-grid/api/options/" class="sidebar-link">Configuration options</a></li><li><section class="sidebar-group open depth-0"><a href="/docs/15.0/javascript-data-grid/api/plugins/" class="sidebar-heading clickable"><i class="ico v-f69bb88e"></i> <span>Plugins</span> <!----></a> <ul class="sidebar-links sidebar-group-items"><li><a href="/docs/15.0/javascript-data-grid/api/auto-column-size/" class="sidebar-link">AutoColumnSize</a></li><li><a href="/docs/15.0/javascript-data-grid/api/auto-row-size/" class="sidebar-link">AutoRowSize</a></li><li><a href="/docs/15.0/javascript-data-grid/api/autofill/" class="sidebar-link">Autofill</a></li><li><a href="/docs/15.0/javascript-data-grid/api/bind-rows-with-headers/" class="sidebar-link">BindRowsWithHeaders</a></li><li><a href="/docs/15.0/javascript-data-grid/api/collapsible-columns/" class="sidebar-link">CollapsibleColumns</a></li><li><a href="/docs/15.0/javascript-data-grid/api/column-sorting/" class="sidebar-link">ColumnSorting</a></li><li><a href="/docs/15.0/javascript-data-grid/api/column-summary/" class="sidebar-link">ColumnSummary</a></li><li><a href="/docs/15.0/javascript-data-grid/api/comments/" class="sidebar-link">Comments</a></li><li><a href="/docs/15.0/javascript-data-grid/api/context-menu/" class="sidebar-link">ContextMenu</a></li><li><a href="/docs/15.0/javascript-data-grid/api/copy-paste/" class="sidebar-link">CopyPaste</a></li><li><a href="/docs/15.0/javascript-data-grid/api/custom-borders/" class="sidebar-link">CustomBorders</a></li><li><a href="/docs/15.0/javascript-data-grid/api/drag-to-scroll/" class="sidebar-link">DragToScroll</a></li><li><a href="/docs/15.0/javascript-data-grid/api/dropdown-menu/" class="sidebar-link">DropdownMenu</a></li><li><a href="/docs/15.0/javascript-data-grid/api/export-file/" class="sidebar-link">ExportFile</a></li><li><a href="/docs/15.0/javascript-data-grid/api/filters/" class="sidebar-link">Filters</a></li><li><a href="/docs/15.0/javascript-data-grid/api/formulas/" class="sidebar-link">Formulas</a></li><li><a href="/docs/15.0/javascript-data-grid/api/hidden-columns/" class="sidebar-link">HiddenColumns</a></li><li><a href="/docs/15.0/javascript-data-grid/api/hidden-rows/" class="sidebar-link">HiddenRows</a></li><li><a href="/docs/15.0/javascript-data-grid/api/manual-column-freeze/" class="sidebar-link">ManualColumnFreeze</a></li><li><a href="/docs/15.0/javascript-data-grid/api/manual-column-move/" class="sidebar-link">ManualColumnMove</a></li><li><a href="/docs/15.0/javascript-data-grid/api/manual-column-resize/" aria-current="page" class="active sidebar-link">ManualColumnResize</a></li><li><a href="/docs/15.0/javascript-data-grid/api/manual-row-move/" class="sidebar-link">ManualRowMove</a></li><li><a href="/docs/15.0/javascript-data-grid/api/manual-row-resize/" class="sidebar-link">ManualRowResize</a></li><li><a href="/docs/15.0/javascript-data-grid/api/merge-cells/" class="sidebar-link">MergeCells</a></li><li><a href="/docs/15.0/javascript-data-grid/api/multi-column-sorting/" class="sidebar-link">MultiColumnSorting</a></li><li><a href="/docs/15.0/javascript-data-grid/api/nested-headers/" class="sidebar-link">NestedHeaders</a></li><li><a href="/docs/15.0/javascript-data-grid/api/nested-rows/" class="sidebar-link">NestedRows</a></li><li><a href="/docs/15.0/javascript-data-grid/api/persistent-state/" class="sidebar-link">PersistentState</a></li><li><a href="/docs/15.0/javascript-data-grid/api/search/" class="sidebar-link">Search</a></li><li><a href="/docs/15.0/javascript-data-grid/api/stretch-columns/" class="sidebar-link">StretchColumns</a></li><li><a href="/docs/15.0/javascript-data-grid/api/trim-rows/" class="sidebar-link">TrimRows</a></li><li><a href="/docs/15.0/javascript-data-grid/api/undo-redo/" class="sidebar-link">UndoRedo</a></li></ul></section></li></ul></div> </aside> <main class="page api"><div class="breadcrumbs"><a href="https://handsontable.com/docs/15.0/javascript-data-grid/api/"><i class="ico i-home"></i> <span> <span></span>JavaScript Data Grid</span></a> <a href="https://handsontable.com/docs/15.0/javascript-data-grid/api/manual-column-resize"><span>ManualColumnResize</span></a></div> <div class="theme-default-content content__default"><h1 id="manualcolumnresize"><a href="#manualcolumnresize" class="header-link"><span class="header-framework">JavaScript Data Grid</span>ManualColumnResize</a></h1> <p></p><div class="table-of-contents"><div class="toc-container-header"><i class="ico i-toc"></i>On this page</div><ul><li><a href="#description">Description</a></li><li><a href="#options">Options</a><ul><li><a href="#manualcolumnresize-2">manualColumnResize</a></li></ul></li><li><a href="#methods">Methods</a><ul><li><a href="#clearmanualsize">clearManualSize</a></li><li><a href="#destroy">destroy</a></li><li><a href="#disableplugin">disablePlugin</a></li><li><a href="#enableplugin">enablePlugin</a></li><li><a href="#isenabled">isEnabled</a></li><li><a href="#loadmanualcolumnwidths">loadManualColumnWidths</a></li><li><a href="#savemanualcolumnwidths">saveManualColumnWidths</a></li><li><a href="#setmanualsize">setManualSize</a></li><li><a href="#updateplugin">updatePlugin</a></li></ul></li></ul></div><p></p> <h2 id="description"><a href="#description" class="header-link">Description</a></h2> <p>This plugin allows to change columns width. To make columns width persistent the <a href="/docs/15.0/javascript-data-grid/api/options/#persistentstate">Options#persistentState</a>
+plugin should be enabled.</p> <p>The plugin creates additional components to make resizing possibly using user interface:</p> <ul><li>handle - the draggable element that sets the desired width of the column.</li> <li>guide - the helper guide that shows the desired width as a vertical guide.</li></ul> <h2 id="options"><a href="#options" class="header-link">Options</a></h2> <h3 id="manualcolumnresize-2"><a href="#manualcolumnresize-2" class="header-link">manualColumnResize</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/dataMap/metaManager/metaSchema.js#L2960" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>manualColumnResize.manualColumnResize : boolean | Array&lt;number&gt;</em></p> <p>The <code>manualColumnResize</code> option configures the <a href="/docs/15.0/javascript-data-grid/api/manual-column-resize/" aria-current="page" class="router-link-exact-active router-link-active"><code>ManualColumnResize</code></a> plugin.</p> <p>You can set the <code>manualColumnResize</code> option to one of the following:</p> <table><thead><tr><th>Setting</th> <th>Description</th></tr></thead> <tbody><tr><td><code>true</code></td> <td>Enable the <a href="/docs/15.0/javascript-data-grid/api/manual-column-resize/" aria-current="page" class="router-link-exact-active router-link-active"><code>ManualColumnResize</code></a> plugin</td></tr> <tr><td><code>false</code></td> <td>Disable the <a href="/docs/15.0/javascript-data-grid/api/manual-column-resize/" aria-current="page" class="router-link-exact-active router-link-active"><code>ManualColumnResize</code></a> plugin</td></tr> <tr><td>An array</td> <td>- Enable the <a href="/docs/15.0/javascript-data-grid/api/manual-column-resize/" aria-current="page" class="router-link-exact-active router-link-active"><code>ManualColumnResize</code></a> plugin<br>- Set initial widths of individual columns</td></tr></tbody></table> <p>Read more:</p> <ul><li><a href="/docs/15.0/javascript-data-grid/column-width/#column-stretching">Column width: Column stretching</a></li></ul> <p><strong>Default</strong>: <code>undefined</code><br> <strong>Example</strong></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token comment">// enable the `manualColumnResize` plugin</span>
+<span class="token literal-property property">manualColumnResize</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+
+<span class="token comment">// enable the `manualColumnResize` plugin</span>
+<span class="token comment">// set the initial width of column 0 to 40 pixels</span>
+<span class="token comment">// set the initial width of column 1 to 50 pixels</span>
+<span class="token comment">// set the initial width of column 2 to 60 pixels</span>
+<span class="token literal-property property">manualColumnResize</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">40</span><span class="token punctuation">,</span> <span class="token number">50</span><span class="token punctuation">,</span> <span class="token number">60</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><h2 id="methods"><a href="#methods" class="header-link">Methods</a></h2> <h3 id="clearmanualsize"><a href="#clearmanualsize" class="header-link">clearManualSize</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L217" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>manualColumnResize.clearManualSize(column)</em></p> <p>Clears the cache for the specified column index.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Description</th></tr></thead> <tbody><tr><td>column</td> <td><code>number</code></td> <td>Visual column index.</td></tr></tbody></table> <h3 id="destroy"><a href="#destroy" class="header-link">destroy</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L681" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>manualColumnResize.destroy()</em></p> <p>Destroys the plugin instance.</p> <h3 id="disableplugin"><a href="#disableplugin" class="header-link">disablePlugin</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L167" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>manualColumnResize.disablePlugin()</em></p> <p>Disables the plugin functionality for this Handsontable instance.</p> <h3 id="enableplugin"><a href="#enableplugin" class="header-link">enablePlugin</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L133" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>manualColumnResize.enablePlugin()</em></p> <p>Enables the plugin functionality for this Handsontable instance.</p> <h3 id="isenabled"><a href="#isenabled" class="header-link">isEnabled</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L126" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>manualColumnResize.isEnabled() ⇒ boolean</em></p> <p>Checks if the plugin is enabled in the handsontable settings. This method is executed in <a href="/docs/15.0/javascript-data-grid/api/hooks/#beforeinit">Hooks#beforeInit</a>
+hook and if it returns <code>true</code> then the <a href="/docs/15.0/javascript-data-grid/api/manual-column-resize/#enableplugin">ManualColumnResize#enablePlugin</a> method is called.</p> <h3 id="loadmanualcolumnwidths"><a href="#loadmanualcolumnwidths" class="header-link">loadManualColumnWidths</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L188" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>manualColumnResize.loadManualColumnWidths() ⇒ Array</em></p> <p>Loads the previously saved sizes using the persistentState plugin (the <a href="/docs/15.0/javascript-data-grid/api/options/#persistentstate">Options#persistentState</a> option has to be enabled).</p> <p><strong>Emits</strong>: <a href="/docs/15.0/javascript-data-grid/api/hooks/#persistentstateload"><code>Hooks#event:persistentStateLoad</code></a></p> <h3 id="savemanualcolumnwidths"><a href="#savemanualcolumnwidths" class="header-link">saveManualColumnWidths</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L178" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>manualColumnResize.saveManualColumnWidths()</em></p> <p>Saves the current sizes using the persistentState plugin (the <a href="/docs/15.0/javascript-data-grid/api/options/#persistentstate">Options#persistentState</a> option has to be enabled).</p> <p><strong>Emits</strong>: <a href="/docs/15.0/javascript-data-grid/api/hooks/#persistentstatesave"><code>Hooks#event:persistentStateSave</code></a></p> <h3 id="setmanualsize"><a href="#setmanualsize" class="header-link">setManualSize</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L203" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>manualColumnResize.setManualSize(column, width) ⇒ number</em></p> <p>Sets the new width for specified column index.</p> <table><thead><tr><th>Param</th> <th>Type</th> <th>Description</th></tr></thead> <tbody><tr><td>column</td> <td><code>number</code></td> <td>Visual column index.</td></tr> <tr><td>width</td> <td><code>number</code></td> <td>Column width (no less than 20px).</td></tr></tbody></table> <p><strong>Returns</strong>: <code>number</code> - Returns new width.</p> <h3 id="updateplugin"><a href="#updateplugin" class="header-link">updatePlugin</a></h3> <a href="https://github.com/handsontable/handsontable/blob/34e9d0aded2c90f656e6de8cc0a811b812dd92c4/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L157" target="_blank" class="source-code-link"> Source code <i class="ico i-external"></i></a><p><em>manualColumnResize.updatePlugin()</em></p> <p>Updates the plugin's state.</p> <p>This method is executed when <a href="/docs/15.0/javascript-data-grid/api/core/#updatesettings"><code>updateSettings()</code></a> is invoked with any of the following configuration options:</p> <ul><li><a href="/docs/15.0/javascript-data-grid/api/options/#manualcolumnresize"><code>manualColumnResize</code></a></li></ul></div> <div class="page-top" style="display:none;"><div class="custom-block tip version-alert"><p>There is a newer version of Handsontable available.
+            <a href="/docs/">Switch to the latest version ⟶</a></p></div></div> <footer class="footer"><!----> <div class="footer-links"><div class="socail-links"><a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a> <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a> <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a></div> <div class="hot-links"><a href="https://handsontable.com/privacy">Privacy policy</a> <a href="https://handsontable.com/terms-of-use">Terms of use</a> <a href="https://handsontable.com/team">Team</a> <a href="https://handsontable.com/contact?category=technical_support">Contact</a> <a href="https://handsontable.com/blog/">Blog</a> <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a></div></div> <div class="copyright"><p>© 2012 - 2025 Handsoncode</p> <label id="switch" class="dark-mode"><span class="inner" style="display:none;"><input type="checkbox"> <span style="display:none;"><i class="ico i-dm-dark"></i>Light</span> <span style="display:;"><i class="ico i-dm-light"></i>Dark</span></span></label></div></footer> </main></div></div><div class="global-ui"></div></div>
+
+<script src="/docs/15.0/assets/js/app.46cb68fe.js" defer></script><script src="/docs/15.0/assets/js/5.af4b1d74.js" defer></script><script src="/docs/15.0/assets/js/3.6372b058.js" defer></script><script src="/docs/15.0/assets/js/2.b3c0589f.js" defer></script><script src="/docs/15.0/assets/js/82.58cabf17.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  
+  <meta charset="utf-8">
+  <title>Modules - Vue 2 Data Grid | Handsontable</title>
+  <meta name="generator" content="VuePress 1.9.10">
+  <link rel="icon" media="(prefers-color-scheme: light)" href="https://handsontable.com/docs/img/favicon.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="https://handsontable.com/docs/img/favicon-dark.png">
+    <link rel="preload" href="https://handsontable.com/docs/data/common.json" as="fetch" crossorigin="">
+    <script>
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          environment: 'production',
+          tracesSampleRate: 0,
+          profilesSampleRate: 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0.2,
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),   
+          ],
+        });
+      };
+    </script>
+    <script id="Sentry.io" src="https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js" crossorigin="anonymous" defer="true"></script>
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="ef171f1d-a288-433f-b680-3cdbdebd5646" defer="true"></script>
+    <script id="Headwayapp" src="https://cdn.headwayapp.co/widget.js" defer="true"></script>
+    <script>const DOCS_VERSION = '15.0';</script>
+    <script>
+      (function(w, d) {
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    </script>
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-55L5D3');
+    </script>
+    <script>
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      </script>
+  <meta name="description" content="Reduce the size of your Vue 2 app by importing only the modules that you need and use.">
+    <meta name="og:url" content="https://handsontable.com/docs/react-data-grid/vue-modules/">
+    <meta name="og:type" content="website">
+    <meta name="og:title" content="Modules in Vue 2">
+    <meta name="og:description" content="Reduce the size of your Vue 2 app by importing only the modules that you need and use.">
+    <meta name="og:image" content="https://handsontable.com/docs/img/handsontable-banner-og.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://handsontable.com/docs/react-data-grid/vue-modules/" rel="canonical" />
+  <link rel="preload" href="/docs/assets/css/0.styles.29b8f05b.css" as="style"><link rel="preload" href="/docs/assets/js/app.8c0eccc3.js" as="script"><link rel="preload" href="/docs/assets/js/5.af4b1d74.js" as="script"><link rel="preload" href="/docs/assets/js/3.6372b058.js" as="script"><link rel="preload" href="/docs/assets/js/2.b3c0589f.js" as="script"><link rel="preload" href="/docs/assets/js/349.0e62ae43.js" as="script">
+  <link rel="stylesheet" href="/docs/assets/css/0.styles.29b8f05b.css">
+</head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="//www.googletagmanager.com/ns.html?id=GTM-55L5D3"
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<div id="app" data-server-rendered="true"><div class="layout-container"><script type="application/ld+json">{
+    "@context": "https://schema.org/",
+    "@type": "WebPage",
+    "name": "Modules - Vue 2 Data Grid  Handsontable",
+    "headline": "Modules - Vue 2 Data Grid  Handsontable",
+    "description": "Reduce the size of your Vue 2 app by importing only the modules that you need and use.",
+    "url": "https://handsontable.com/docs/react-data-grid/vue-modules/",
+    "mainEntityOfPage": {
+        "@type": "TechArticle",
+        "@id": "https://handsontable.com/docs/react-data-grid/vue-modules/"
+    },
+    "keywords": [],
+    "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsontable-docs-cover.png"
+    },
+    "image": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsontable-docs-cover.png"
+    },
+    "author": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable Team",
+        "url": "https://handsontable.com",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "alternateName": "Handsontable",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "dateModified": "2025-01-16T07:04:18.978Z",
+    "lastReviewed": "2025-01-16T07:04:18.978Z",
+    "copyrightHolder": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://handsontable.com/docs/img/handsontable-docs-cover.png"
+        }
+    },
+    "copyrightYear": "2025"
+}</script> <div class="theme-container"><header class="navbar"><div class="navbar-wrapper"><a href="/docs/react-data-grid/" aria-label="Docs Homepage Link" class="home-link router-link-active"><i class="Logo"></i></a> <div class="top-bar"><div class="top-bar_left"><div class="framework-and-version"><nav class="nav-frameworks nav-links"><i class="ico i-react"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="React" class="dropdown-title"><span class="title">React</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav></div></div> <div id="algolia-search"></div> <div class="menu"><nav class="nav-links"><div class="nav-item"><a href="/docs/react-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/react-data-grid/api/" class="nav-link">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/react-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav> <nav class="nav-links"><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Support" class="dropdown-title"><span class="title">Support</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="https://forum.handsontable.com" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Developers Forum
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://github.com/handsontable/handsontable/discussions" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    GitHub Discussions
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://stackoverflow.com/tags/handsontable" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    StackOverflow
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://handsontable.com/contact?category=technical_support" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Contact support
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div></nav> <nav class="icons-nav"><span class="news"><i class="ico i-bell"></i></span> <a href="https://github.com/handsontable/handsontable" target="_blank" class="github-stars"><i class="ico i-github"></i> <!----></a> <button id="mobileSearch" aria-label="Search" class="menuButton"><i class="ico i-search"></i></button> <button aria-label="Menu button" class="menuButton"><i class="ico i-menu"></i> <i class="ico i-close"></i></button></nav></div></div></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <div class="sidebar-nav"><div class="mobile-nav"><nav class="nav-frameworks nav-links"><i class="ico i-react"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="React" class="dropdown-title"><span class="title">React</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav> <nav class="nav-links"><div class="nav-item"><a href="/docs/react-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/react-data-grid/api/" class="nav-link">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/react-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav></div> <ul class="sidebar-links"><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-3c15c9a5"></i> <span>Getting started</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/" aria-current="page" class="sidebar-link">Introduction</a></li><li><a href="/docs/react-data-grid/demo/" class="sidebar-link">Demo</a></li><li><a href="/docs/react-data-grid/installation/" class="sidebar-link">Installation</a></li><li><a href="/docs/react-data-grid/binding-to-data/" class="sidebar-link">Binding to data</a></li><li><a href="/docs/react-data-grid/saving-data/" class="sidebar-link">Saving data</a></li><li><a href="/docs/react-data-grid/configuration-options/" class="sidebar-link">Configuration options</a></li><li><a href="/docs/react-data-grid/grid-size/" class="sidebar-link">Grid size</a></li><li><a href="/docs/react-data-grid/instance-methods/" class="sidebar-link">Instance methods</a></li><li><a href="/docs/react-data-grid/events-and-hooks/" class="sidebar-link">Events and hooks</a></li><li><a href="/docs/react-data-grid/license-key/" class="sidebar-link">License key</a></li><li><a href="/docs/react-data-grid/redux/" class="sidebar-link">Integration with Redux</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-48ff5ce5"></i> <span>Styling</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/themes/" class="sidebar-link">Themes</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-0a40d776"></i> <span>Columns</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/hot-column/" class="sidebar-link">Column component</a></li><li><a href="/docs/react-data-grid/column-header/" class="sidebar-link">Column headers</a></li><li><a href="/docs/react-data-grid/column-groups/" class="sidebar-link">Column groups</a></li><li><a href="/docs/react-data-grid/column-hiding/" class="sidebar-link">Column hiding</a></li><li><a href="/docs/react-data-grid/column-moving/" class="sidebar-link">Column moving</a></li><li><a href="/docs/react-data-grid/column-freezing/" class="sidebar-link">Column freezing</a></li><li><a href="/docs/react-data-grid/column-width/" class="sidebar-link">Column widths</a></li><li><a href="/docs/react-data-grid/column-summary/" class="sidebar-link">Column summary</a></li><li><a href="/docs/react-data-grid/column-virtualization/" class="sidebar-link">Column virtualization</a></li><li><a href="/docs/react-data-grid/column-menu/" class="sidebar-link">Column menu</a></li><li><a href="/docs/react-data-grid/column-filter/" class="sidebar-link">Column filter</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-c519597e"></i> <span>Rows</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/row-header/" class="sidebar-link">Row headers</a></li><li><a href="/docs/react-data-grid/row-parent-child/" class="sidebar-link">Row parent-child</a></li><li><a href="/docs/react-data-grid/row-hiding/" class="sidebar-link">Row hiding</a></li><li><a href="/docs/react-data-grid/row-moving/" class="sidebar-link">Row moving</a></li><li><a href="/docs/react-data-grid/row-freezing/" class="sidebar-link">Row freezing</a></li><li><a href="/docs/react-data-grid/row-height/" class="sidebar-link">Row heights</a></li><li><a href="/docs/react-data-grid/row-virtualization/" class="sidebar-link">Row virtualization</a></li><li><a href="/docs/react-data-grid/rows-sorting/" class="sidebar-link">Rows sorting</a></li><li><a href="/docs/react-data-grid/row-trimming/" class="sidebar-link">Row trimming</a></li><li><a href="/docs/react-data-grid/row-prepopulating/" class="sidebar-link">Row pre-populating</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-676ffb36"></i> <span>Cell features</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/basic-clipboard/" class="sidebar-link">Clipboard</a></li><li><a href="/docs/react-data-grid/selection/" class="sidebar-link">Selection</a></li><li><a href="/docs/react-data-grid/merge-cells/" class="sidebar-link">Merge cells</a></li><li><a href="/docs/react-data-grid/conditional-formatting/" class="sidebar-link">Conditional formatting</a></li><li><a href="/docs/react-data-grid/text-alignment/" class="sidebar-link">Text alignment</a></li><li><a href="/docs/react-data-grid/disabled-cells/" class="sidebar-link">Disabled cells</a></li><li><a href="/docs/react-data-grid/comments/" class="sidebar-link">Comments</a></li><li><a href="/docs/react-data-grid/autofill-values/" class="sidebar-link">Autofill values</a></li><li><a href="/docs/react-data-grid/formatting-cells/" class="sidebar-link">Formatting cells</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-2dcc3f43"></i> <span>Cell functions</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/cell-function/" class="sidebar-link">Cell functions</a></li><li><a href="/docs/react-data-grid/cell-renderer/" class="sidebar-link">Cell renderer</a></li><li><a href="/docs/react-data-grid/cell-editor/" class="sidebar-link">Cell editor</a></li><li><a href="/docs/react-data-grid/cell-validator/" class="sidebar-link">Cell validator</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-0ae59602"></i> <span>Cell types</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/cell-type/" class="sidebar-link">Cell type</a></li><li><a href="/docs/react-data-grid/numeric-cell-type/" class="sidebar-link">Numeric cell type</a></li><li><a href="/docs/react-data-grid/date-cell-type/" class="sidebar-link">Date cell type</a></li><li><a href="/docs/react-data-grid/time-cell-type/" class="sidebar-link">Time cell type</a></li><li><a href="/docs/react-data-grid/checkbox-cell-type/" class="sidebar-link">Checkbox cell type</a></li><li><a href="/docs/react-data-grid/select-cell-type/" class="sidebar-link">Select cell type</a></li><li><a href="/docs/react-data-grid/dropdown-cell-type/" class="sidebar-link">Dropdown cell type</a></li><li><a href="/docs/react-data-grid/autocomplete-cell-type/" class="sidebar-link">Autocomplete cell type</a></li><li><a href="/docs/react-data-grid/password-cell-type/" class="sidebar-link">Password cell type</a></li><li><a href="/docs/react-data-grid/handsontable-cell-type/" class="sidebar-link">Handsontable cell type</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-319b73cd"></i> <span>Formulas</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/formula-calculation/" class="sidebar-link">Formula calculation</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-62f4bd0b"></i> <span>Navigation</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/keyboard-shortcuts/" class="sidebar-link">Keyboard shortcuts</a></li><li><a href="/docs/react-data-grid/custom-shortcuts/" class="sidebar-link">Custom shortcuts</a></li><li><a href="/docs/react-data-grid/searching-values/" class="sidebar-link">Searching values</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-08ac9fb6"></i> <span>Accessibility</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/accessibility/" class="sidebar-link">Accessibility</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-050b24c5"></i> <span>Accessories and menus</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/context-menu/" class="sidebar-link">Context menu</a></li><li><a href="/docs/react-data-grid/undo-redo/" class="sidebar-link">Undo and redo</a></li><li><a href="/docs/react-data-grid/icon-pack/" class="sidebar-link">Icon pack</a></li><li><a href="/docs/react-data-grid/export-to-csv/" class="sidebar-link">Export to CSV</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-01ae6787"></i> <span>Internationalization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/language/" class="sidebar-link">Language</a></li><li><a href="/docs/react-data-grid/locale/" class="sidebar-link">Locale</a></li><li><a href="/docs/react-data-grid/layout-direction/" class="sidebar-link">Layout direction</a></li><li><a href="/docs/react-data-grid/ime-support/" class="sidebar-link">IME support</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-34727a45"></i> <span>Integrate with Angular</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/angular-installation/" class="sidebar-link">Installation in Angular</a></li><li><a href="/docs/react-data-grid/angular-basic-example/" class="sidebar-link">Basic example in Angular</a></li><li><a href="/docs/react-data-grid/angular-modules/" class="sidebar-link">Modules in Angular</a></li><li><a href="/docs/react-data-grid/angular-custom-id/" class="sidebar-link">Custom ID in Angular</a></li><li><a href="/docs/react-data-grid/angular-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Angular</a></li><li><a href="/docs/react-data-grid/angular-custom-context-menu-example/" class="sidebar-link">Custom context menu in Angular</a></li><li><a href="/docs/react-data-grid/angular-custom-editor-example/" class="sidebar-link">Custom editor in Angular</a></li><li><a href="/docs/react-data-grid/angular-custom-renderer-example/" class="sidebar-link">Custom renderer in Angular</a></li><li><a href="/docs/react-data-grid/angular-language-change-example/" class="sidebar-link">Language change in Angular</a></li><li><a href="/docs/react-data-grid/angular-hot-reference/" class="sidebar-link">Referencing a Handsontable instance in Angular</a></li></ul></section></li><li><section class="sidebar-group collapsable open depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5276f9fd"></i> <span>Integrate with Vue 2</span> <i class="ico i-arrow down"></i></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/docs/react-data-grid/vue-installation/" class="sidebar-link">Installation in Vue 2</a></li><li><a href="/docs/react-data-grid/vue-basic-example/" class="sidebar-link">Basic example in Vue 2</a></li><li><a href="/docs/react-data-grid/vue-modules/" aria-current="page" class="active sidebar-link">Modules in Vue 2</a></li><li><a href="/docs/react-data-grid/vue-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 2</a></li><li><a href="/docs/react-data-grid/vue-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 2</a></li><li><a href="/docs/react-data-grid/vue-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 2</a></li><li><a href="/docs/react-data-grid/vue-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 2</a></li><li><a href="/docs/react-data-grid/vue-custom-editor-example/" class="sidebar-link">Custom editor in Vue 2</a></li><li><a href="/docs/react-data-grid/vue-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 2</a></li><li><a href="/docs/react-data-grid/vue-language-change-example/" class="sidebar-link">Language change in Vue 2</a></li><li><a href="/docs/react-data-grid/vue-vuex-example/" class="sidebar-link">Vuex example in Vue 2</a></li><li><a href="/docs/react-data-grid/vue-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 2</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-235a9da5"></i> <span>Integrate with Vue 3</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/vue3-installation/" class="sidebar-link">Installation in Vue 3</a></li><li><a href="/docs/react-data-grid/vue3-basic-example/" class="sidebar-link">Basic example in Vue 3</a></li><li><a href="/docs/react-data-grid/vue3-modules/" class="sidebar-link">Modules in Vue 3</a></li><li><a href="/docs/react-data-grid/vue3-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 3</a></li><li><a href="/docs/react-data-grid/vue3-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 3</a></li><li><a href="/docs/react-data-grid/vue3-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 3</a></li><li><a href="/docs/react-data-grid/vue3-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 3</a></li><li><a href="/docs/react-data-grid/vue3-custom-editor-example/" class="sidebar-link">Custom editor in Vue 3</a></li><li><a href="/docs/react-data-grid/vue3-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 3</a></li><li><a href="/docs/react-data-grid/vue3-language-change-example/" class="sidebar-link">Language change in Vue 3</a></li><li><a href="/docs/react-data-grid/vue3-vuex-example/" class="sidebar-link">Vuex in Vue 3</a></li><li><a href="/docs/react-data-grid/vue3-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 3</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-53f4ea5b"></i> <span>Tools and building</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/modules/" class="sidebar-link">Modules</a></li><li><a href="/docs/react-data-grid/custom-plugins/" class="sidebar-link">Custom plugins</a></li><li><a href="/docs/react-data-grid/custom-builds/" class="sidebar-link">Custom builds</a></li><li><a href="/docs/react-data-grid/testing/" class="sidebar-link">Testing</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-759f304e"></i> <span>Optimization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/batch-operations/" class="sidebar-link">Batch operations</a></li><li><a href="/docs/react-data-grid/performance/" class="sidebar-link">Performance</a></li><li><a href="/docs/react-data-grid/bundle-size/" class="sidebar-link">Bundle size</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-8e45d19a"></i> <span>Security</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/security/" class="sidebar-link">Security</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-9fe94bf6"></i> <span>Technical specification</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/supported-browsers/" class="sidebar-link">Supported browsers</a></li><li><a href="/docs/react-data-grid/software-license/" class="sidebar-link">Software license</a></li><li><a href="/docs/react-data-grid/third-party-licenses/" class="sidebar-link">Third-party licenses</a></li><li><a href="/docs/react-data-grid/documentation-license/" class="sidebar-link">Documentation license</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-6411f2c5"></i> <span>Upgrade and migration</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/react-data-grid/changelog/" class="sidebar-link">Changelog</a></li><li><a href="/docs/react-data-grid/versioning-policy/" class="sidebar-link">Versioning policy</a></li><li><a href="/docs/react-data-grid/migration-from-14.6-to-15.0/" class="sidebar-link">Migrating from 14.6 to 15.0</a></li><li><a href="/docs/react-data-grid/migration-from-13.1-to-14.0/" class="sidebar-link">Migrating from 13.1 to 14.0</a></li><li><a href="/docs/react-data-grid/migration-from-12.4-to-13.0/" class="sidebar-link">Migrating from 12.4 to 13.0</a></li><li><a href="/docs/react-data-grid/migration-from-11.1-to-12.0/" class="sidebar-link">Migrating from 11.1 to 12.0</a></li><li><a href="/docs/react-data-grid/migration-from-10.0-to-11.0/" class="sidebar-link">Migrating from 10.0 to 11.0</a></li><li><a href="/docs/react-data-grid/migration-from-9.0-to-10.0/" class="sidebar-link">Migrating from 9.0 to 10.0</a></li><li><a href="/docs/react-data-grid/migration-from-8.4-to-9.0/" class="sidebar-link">Migrating from 8.4 to 9.0</a></li><li><a href="/docs/react-data-grid/migration-from-7.4-to-8.0/" class="sidebar-link">Migrate from 7.4 to 8.0</a></li></ul></section></li></ul></div> </aside> <main class="page"><div class="breadcrumbs"><a href="https://handsontable.com/docs/react-data-grid/"><i class="ico i-home"></i> <span> <span></span>React Data Grid</span></a> <a href="https://handsontable.com/docs/react-data-grid/vue-modules"><span>Modules in Vue 2</span></a></div> <div class="theme-default-content content__default"><h1 id="modules-in-vue-2"><a href="#modules-in-vue-2" class="header-link"><span class="header-framework">Vue 2 Data Grid</span>Modules in Vue 2</a></h1> <p>Reduce the size of your Vue 2 app by importing only the modules that you need and use.</p> <p></p><div class="table-of-contents"><div class="toc-container-header"><i class="ico i-toc"></i>On this page</div><ul><li><a href="#use-modules-in-vue">Use modules in Vue</a><ul><li><a href="#step-1-import-base-modules">Step 1: Import base modules</a></li><li><a href="#step-2-import-optional-modules">Step 2: Import optional modules</a></li><li><a href="#step-3-register-your-modules">Step 3: Register your modules</a></li><li><a href="#full-example">Full example</a></li></ul></li><li><a href="#related-guides">Related guides</a></li></ul></div><p></p> <h2 id="use-modules-in-vue"><a href="#use-modules-in-vue" class="header-link">Use modules in Vue</a></h2> <p>To use modules with Handsontable's <a href="/docs/react-data-grid/vue-installation/">Vue 2 wrapper</a>, follow the steps below:</p> <h3 id="step-1-import-base-modules"><a href="#step-1-import-base-modules" class="header-link">Step 1: Import base modules</a></h3> <p>No matter which <a href="/docs/react-data-grid/modules/#optional-modules">optional modules</a> you use, you need to import the <a href="/docs/react-data-grid/modules/#base-module">base module</a>.</p> <p>In the entry point file of your application, import the <code>handsontable/base</code> module:</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> Handsontable <span class="token keyword">from</span> <span class="token string">'handsontable/base'</span><span class="token punctuation">;</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><h3 id="step-2-import-optional-modules"><a href="#step-2-import-optional-modules" class="header-link">Step 2: Import optional modules</a></h3> <p>Import optional modules of your choice, along with their registering functions.</p> <ul><li><a href="/docs/react-data-grid/modules/#optional-modules">Optional modules</a></li> <li><a href="/docs/react-data-grid/modules/#list-of-all-modules">List of all modules</a></li> <li><a href="/docs/react-data-grid/modules/#list-of-all-module-imports">List of all module imports</a></li></ul> <p>For example, to import the <a href="/docs/react-data-grid/numeric-cell-type/"><code>numeric</code></a> cell type module and the <a href="/docs/react-data-grid/api/undo-redo/"><code>UndoRedo</code></a> plugin module:</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> <span class="token punctuation">{</span>
+  registerCellType<span class="token punctuation">,</span> <span class="token comment">// cell types' registering function</span>
+  NumericCellType<span class="token punctuation">,</span>
+<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'handsontable/cellTypes'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token punctuation">{</span>
+  registerPlugin<span class="token punctuation">,</span> <span class="token comment">// plugins' registering function</span>
+  UndoRedo<span class="token punctuation">,</span>
+<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'handsontable/plugins'</span><span class="token punctuation">;</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><h3 id="step-3-register-your-modules"><a href="#step-3-register-your-modules" class="header-link">Step 3: Register your modules</a></h3> <p>Register your modules, to let Handsontable recognize them.</p> <p>For example, to register the <a href="/docs/react-data-grid/numeric-cell-type/"><code>numeric</code></a> cell type module and the <a href="/docs/react-data-grid/api/undo-redo/"><code>UndoRedo</code></a> plugin module:</p> <div class="language-jsx extra-class"><pre class="language-jsx"><code><span class="token function">registerCellType</span><span class="token punctuation">(</span>NumericCellType<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">registerPlugin</span><span class="token punctuation">(</span>UndoRedo<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="jsx" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><h3 id="full-example"><a href="#full-example" class="header-link">Full example</a></h3> <div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> Vue <span class="token keyword">from</span> <span class="token string">'vue'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> App <span class="token keyword">from</span> <span class="token string">'./App.vue'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> Handsontable <span class="token keyword">from</span> <span class="token string">'handsontable/base'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token punctuation">{</span>
+  registerCellType<span class="token punctuation">,</span>
+  NumericCellType<span class="token punctuation">,</span>
+<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'handsontable/cellTypes'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token punctuation">{</span>
+  registerPlugin<span class="token punctuation">,</span>
+  UndoRedo<span class="token punctuation">,</span>
+<span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'handsontable/plugins'</span><span class="token punctuation">;</span>
+
+<span class="token function">registerCellType</span><span class="token punctuation">(</span>NumericCellType<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">registerPlugin</span><span class="token punctuation">(</span>UndoRedo<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+Vue<span class="token punctuation">.</span>config<span class="token punctuation">.</span>productionTip <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+
+<span class="token keyword">new</span> <span class="token class-name">Vue</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token function-variable function">render</span><span class="token operator">:</span> <span class="token parameter">h</span> <span class="token operator">=&gt;</span> <span class="token function">h</span><span class="token punctuation">(</span>App<span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">$mount</span><span class="token punctuation">(</span><span class="token string">'#app'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><h2 id="related-guides"><a href="#related-guides" class="header-link">Related guides</a></h2> <div class="boxes-list gray"><ul><li><a href="/docs/react-data-grid/modules/">Modules</a></li> <li><a href="/docs/react-data-grid/bundle-size/">Bundle size</a></li></ul></div></div> <div class="page-top" style="display:none;"><div class="custom-block tip version-alert"><p>There is a newer version of Handsontable available.
+            <a href="/docs/">Switch to the latest version ⟶</a></p></div></div> <footer class="footer"><a href="https://github.com/handsontable/handsontable/edit/develop/docs/content/guides/integrate-with-vue/vue-modules/vue-modules.md" target="_blank" rel="noopener noreferrer" class="edit-link">Edit on GitHub <i class="ico i-external"></i></a> <div class="footer-links"><div class="socail-links"><a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a> <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a> <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a></div> <div class="hot-links"><a href="https://handsontable.com/privacy">Privacy policy</a> <a href="https://handsontable.com/terms-of-use">Terms of use</a> <a href="https://handsontable.com/team">Team</a> <a href="https://handsontable.com/contact?category=technical_support">Contact</a> <a href="https://handsontable.com/blog/">Blog</a> <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a></div></div> <div class="copyright"><p>© 2012 - 2025 Handsoncode</p> <label id="switch" class="dark-mode"><span class="inner" style="display:none;"><input type="checkbox"> <span style="display:none;"><i class="ico i-dm-dark"></i>Light</span> <span style="display:;"><i class="ico i-dm-light"></i>Dark</span></span></label></div></footer> </main></div></div><div class="global-ui"></div></div>
+
+<script src="/docs/assets/js/app.8c0eccc3.js" defer></script><script src="/docs/assets/js/5.af4b1d74.js" defer></script><script src="/docs/assets/js/3.6372b058.js" defer></script><script src="/docs/assets/js/2.b3c0589f.js" defer></script><script src="/docs/assets/js/349.0e62ae43.js" defer></script>
+</body>
+</html>

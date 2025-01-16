@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  
+  <meta charset="utf-8">
+  <title>Column headers - React Data Grid | Handsontable</title>
+  <meta name="generator" content="VuePress 1.9.10">
+  <link rel="icon" media="(prefers-color-scheme: light)" href="https://handsontable.com/docs/15.0/img/favicon.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="https://handsontable.com/docs/15.0/img/favicon-dark.png">
+    <link rel="preload" href="https://handsontable.com/docs/15.0/data/common.json" as="fetch" crossorigin="">
+    <script>
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          environment: 'production',
+          tracesSampleRate: 0,
+          profilesSampleRate: 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0.2,
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),   
+          ],
+        });
+      };
+    </script>
+    <script id="Sentry.io" src="https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js" crossorigin="anonymous" defer="true"></script>
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="ef171f1d-a288-433f-b680-3cdbdebd5646" defer="true"></script>
+    <script id="Headwayapp" src="https://cdn.headwayapp.co/widget.js" defer="true"></script>
+    <script>const DOCS_VERSION = '15.0';</script>
+    <script>
+      (function(w, d) {
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    </script>
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-55L5D3');
+    </script>
+    <script>
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      </script>
+  <meta name="description" content="Use default column headers (A, B, C), or set them to custom values provided by an array or a function.">
+    <meta name="og:url" content="https://handsontable.com/docs/15.0/react-data-grid/column-header/">
+    <meta name="og:type" content="website">
+    <meta name="og:title" content="Column headers">
+    <meta name="og:description" content="Use default column headers (A, B, C), or set them to custom values provided by an array or a function.">
+    <meta name="og:image" content="https://handsontable.com/docs/15.0/img/handsontable-banner-og.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://handsontable.com/docs/15.0/react-data-grid/column-header/" rel="canonical" />
+  <link rel="preload" href="/docs/15.0/assets/css/0.styles.232f2b45.css" as="style"><link rel="preload" href="/docs/15.0/assets/js/app.46cb68fe.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/5.af4b1d74.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/3.6372b058.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/2.b3c0589f.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/311.ad86da97.js" as="script"><link rel="preload" href="/docs/15.0/assets/js/37.c231f17e.js" as="script">
+  <link rel="stylesheet" href="/docs/15.0/assets/css/0.styles.232f2b45.css">
+</head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="//www.googletagmanager.com/ns.html?id=GTM-55L5D3"
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<div id="app" data-server-rendered="true"><div class="layout-container"><script type="application/ld+json">{
+    "@context": "https://schema.org/",
+    "@type": "WebPage",
+    "name": "Column headers - React Data Grid  Handsontable",
+    "headline": "Column headers - React Data Grid  Handsontable",
+    "description": "Use default column headers (A, B, C), or set them to custom values provided by an array or a function.",
+    "url": "https://handsontable.com/docs/15.0/react-data-grid/column-header/",
+    "mainEntityOfPage": {
+        "@type": "TechArticle",
+        "@id": "https://handsontable.com/docs/15.0/react-data-grid/column-header/"
+    },
+    "keywords": [],
+    "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/15.0/img/handsontable-docs-cover.png"
+    },
+    "image": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/15.0/img/handsontable-docs-cover.png"
+    },
+    "author": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable Team",
+        "url": "https://handsontable.com",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "alternateName": "Handsontable",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "dateModified": "2025-01-16T06:57:15.207Z",
+    "lastReviewed": "2025-01-16T06:57:15.207Z",
+    "copyrightHolder": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://handsontable.com/docs/15.0/img/handsontable-docs-cover.png"
+        }
+    },
+    "copyrightYear": "2025"
+}</script> <div class="theme-container"><header class="navbar"><div class="navbar-wrapper"><a href="/docs/15.0/react-data-grid/" aria-label="Docs Homepage Link" class="home-link router-link-active"><i class="Logo"></i></a> <div class="top-bar"><div class="top-bar_left"><div class="framework-and-version"><nav class="nav-frameworks nav-links"><i class="ico i-react"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="React" class="dropdown-title"><span class="title">React</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav></div></div> <div id="algolia-search"></div> <div class="menu"><nav class="nav-links"><div class="nav-item"><a href="/docs/15.0/react-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/15.0/react-data-grid/api/" class="nav-link">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/15.0/react-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav> <nav class="nav-links"><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Support" class="dropdown-title"><span class="title">Support</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="https://forum.handsontable.com" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Developers Forum
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://github.com/handsontable/handsontable/discussions" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    GitHub Discussions
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://stackoverflow.com/tags/handsontable" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    StackOverflow
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://handsontable.com/contact?category=technical_support" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Contact support
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div></nav> <nav class="icons-nav"><span class="news"><i class="ico i-bell"></i></span> <a href="https://github.com/handsontable/handsontable" target="_blank" class="github-stars"><i class="ico i-github"></i> <!----></a> <button id="mobileSearch" aria-label="Search" class="menuButton"><i class="ico i-search"></i></button> <button aria-label="Menu button" class="menuButton"><i class="ico i-menu"></i> <i class="ico i-close"></i></button></nav></div></div></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <div class="sidebar-nav"><div class="mobile-nav"><nav class="nav-frameworks nav-links"><i class="ico i-react"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="React" class="dropdown-title"><span class="title">React</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav> <nav class="nav-links"><div class="nav-item"><a href="/docs/15.0/react-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/15.0/react-data-grid/api/" class="nav-link">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/15.0/react-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav></div> <ul class="sidebar-links"><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-3c15c9a5"></i> <span>Getting started</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/" aria-current="page" class="sidebar-link">Introduction</a></li><li><a href="/docs/15.0/react-data-grid/demo/" class="sidebar-link">Demo</a></li><li><a href="/docs/15.0/react-data-grid/installation/" class="sidebar-link">Installation</a></li><li><a href="/docs/15.0/react-data-grid/binding-to-data/" class="sidebar-link">Binding to data</a></li><li><a href="/docs/15.0/react-data-grid/saving-data/" class="sidebar-link">Saving data</a></li><li><a href="/docs/15.0/react-data-grid/configuration-options/" class="sidebar-link">Configuration options</a></li><li><a href="/docs/15.0/react-data-grid/grid-size/" class="sidebar-link">Grid size</a></li><li><a href="/docs/15.0/react-data-grid/instance-methods/" class="sidebar-link">Instance methods</a></li><li><a href="/docs/15.0/react-data-grid/events-and-hooks/" class="sidebar-link">Events and hooks</a></li><li><a href="/docs/15.0/react-data-grid/license-key/" class="sidebar-link">License key</a></li><li><a href="/docs/15.0/react-data-grid/redux/" class="sidebar-link">Integration with Redux</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-48ff5ce5"></i> <span>Styling</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/themes/" class="sidebar-link">Themes</a></li></ul></section></li><li><section class="sidebar-group collapsable open depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-0a40d776"></i> <span>Columns</span> <i class="ico i-arrow down"></i></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/hot-column/" class="sidebar-link">Column component</a></li><li><a href="/docs/15.0/react-data-grid/column-header/" aria-current="page" class="active sidebar-link">Column headers</a></li><li><a href="/docs/15.0/react-data-grid/column-groups/" class="sidebar-link">Column groups</a></li><li><a href="/docs/15.0/react-data-grid/column-hiding/" class="sidebar-link">Column hiding</a></li><li><a href="/docs/15.0/react-data-grid/column-moving/" class="sidebar-link">Column moving</a></li><li><a href="/docs/15.0/react-data-grid/column-freezing/" class="sidebar-link">Column freezing</a></li><li><a href="/docs/15.0/react-data-grid/column-width/" class="sidebar-link">Column widths</a></li><li><a href="/docs/15.0/react-data-grid/column-summary/" class="sidebar-link">Column summary</a></li><li><a href="/docs/15.0/react-data-grid/column-virtualization/" class="sidebar-link">Column virtualization</a></li><li><a href="/docs/15.0/react-data-grid/column-menu/" class="sidebar-link">Column menu</a></li><li><a href="/docs/15.0/react-data-grid/column-filter/" class="sidebar-link">Column filter</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-c519597e"></i> <span>Rows</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/row-header/" class="sidebar-link">Row headers</a></li><li><a href="/docs/15.0/react-data-grid/row-parent-child/" class="sidebar-link">Row parent-child</a></li><li><a href="/docs/15.0/react-data-grid/row-hiding/" class="sidebar-link">Row hiding</a></li><li><a href="/docs/15.0/react-data-grid/row-moving/" class="sidebar-link">Row moving</a></li><li><a href="/docs/15.0/react-data-grid/row-freezing/" class="sidebar-link">Row freezing</a></li><li><a href="/docs/15.0/react-data-grid/row-height/" class="sidebar-link">Row heights</a></li><li><a href="/docs/15.0/react-data-grid/row-virtualization/" class="sidebar-link">Row virtualization</a></li><li><a href="/docs/15.0/react-data-grid/rows-sorting/" class="sidebar-link">Rows sorting</a></li><li><a href="/docs/15.0/react-data-grid/row-trimming/" class="sidebar-link">Row trimming</a></li><li><a href="/docs/15.0/react-data-grid/row-prepopulating/" class="sidebar-link">Row pre-populating</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-676ffb36"></i> <span>Cell features</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/basic-clipboard/" class="sidebar-link">Clipboard</a></li><li><a href="/docs/15.0/react-data-grid/selection/" class="sidebar-link">Selection</a></li><li><a href="/docs/15.0/react-data-grid/merge-cells/" class="sidebar-link">Merge cells</a></li><li><a href="/docs/15.0/react-data-grid/conditional-formatting/" class="sidebar-link">Conditional formatting</a></li><li><a href="/docs/15.0/react-data-grid/text-alignment/" class="sidebar-link">Text alignment</a></li><li><a href="/docs/15.0/react-data-grid/disabled-cells/" class="sidebar-link">Disabled cells</a></li><li><a href="/docs/15.0/react-data-grid/comments/" class="sidebar-link">Comments</a></li><li><a href="/docs/15.0/react-data-grid/autofill-values/" class="sidebar-link">Autofill values</a></li><li><a href="/docs/15.0/react-data-grid/formatting-cells/" class="sidebar-link">Formatting cells</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-2dcc3f43"></i> <span>Cell functions</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/cell-function/" class="sidebar-link">Cell functions</a></li><li><a href="/docs/15.0/react-data-grid/cell-renderer/" class="sidebar-link">Cell renderer</a></li><li><a href="/docs/15.0/react-data-grid/cell-editor/" class="sidebar-link">Cell editor</a></li><li><a href="/docs/15.0/react-data-grid/cell-validator/" class="sidebar-link">Cell validator</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-0ae59602"></i> <span>Cell types</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/cell-type/" class="sidebar-link">Cell type</a></li><li><a href="/docs/15.0/react-data-grid/numeric-cell-type/" class="sidebar-link">Numeric cell type</a></li><li><a href="/docs/15.0/react-data-grid/date-cell-type/" class="sidebar-link">Date cell type</a></li><li><a href="/docs/15.0/react-data-grid/time-cell-type/" class="sidebar-link">Time cell type</a></li><li><a href="/docs/15.0/react-data-grid/checkbox-cell-type/" class="sidebar-link">Checkbox cell type</a></li><li><a href="/docs/15.0/react-data-grid/select-cell-type/" class="sidebar-link">Select cell type</a></li><li><a href="/docs/15.0/react-data-grid/dropdown-cell-type/" class="sidebar-link">Dropdown cell type</a></li><li><a href="/docs/15.0/react-data-grid/autocomplete-cell-type/" class="sidebar-link">Autocomplete cell type</a></li><li><a href="/docs/15.0/react-data-grid/password-cell-type/" class="sidebar-link">Password cell type</a></li><li><a href="/docs/15.0/react-data-grid/handsontable-cell-type/" class="sidebar-link">Handsontable cell type</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-319b73cd"></i> <span>Formulas</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/formula-calculation/" class="sidebar-link">Formula calculation</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-62f4bd0b"></i> <span>Navigation</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/keyboard-shortcuts/" class="sidebar-link">Keyboard shortcuts</a></li><li><a href="/docs/15.0/react-data-grid/custom-shortcuts/" class="sidebar-link">Custom shortcuts</a></li><li><a href="/docs/15.0/react-data-grid/searching-values/" class="sidebar-link">Searching values</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-08ac9fb6"></i> <span>Accessibility</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/accessibility/" class="sidebar-link">Accessibility</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-050b24c5"></i> <span>Accessories and menus</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/context-menu/" class="sidebar-link">Context menu</a></li><li><a href="/docs/15.0/react-data-grid/undo-redo/" class="sidebar-link">Undo and redo</a></li><li><a href="/docs/15.0/react-data-grid/icon-pack/" class="sidebar-link">Icon pack</a></li><li><a href="/docs/15.0/react-data-grid/export-to-csv/" class="sidebar-link">Export to CSV</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-01ae6787"></i> <span>Internationalization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/language/" class="sidebar-link">Language</a></li><li><a href="/docs/15.0/react-data-grid/locale/" class="sidebar-link">Locale</a></li><li><a href="/docs/15.0/react-data-grid/layout-direction/" class="sidebar-link">Layout direction</a></li><li><a href="/docs/15.0/react-data-grid/ime-support/" class="sidebar-link">IME support</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-34727a45"></i> <span>Integrate with Angular</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/angular-installation/" class="sidebar-link">Installation in Angular</a></li><li><a href="/docs/15.0/react-data-grid/angular-basic-example/" class="sidebar-link">Basic example in Angular</a></li><li><a href="/docs/15.0/react-data-grid/angular-modules/" class="sidebar-link">Modules in Angular</a></li><li><a href="/docs/15.0/react-data-grid/angular-custom-id/" class="sidebar-link">Custom ID in Angular</a></li><li><a href="/docs/15.0/react-data-grid/angular-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Angular</a></li><li><a href="/docs/15.0/react-data-grid/angular-custom-context-menu-example/" class="sidebar-link">Custom context menu in Angular</a></li><li><a href="/docs/15.0/react-data-grid/angular-custom-editor-example/" class="sidebar-link">Custom editor in Angular</a></li><li><a href="/docs/15.0/react-data-grid/angular-custom-renderer-example/" class="sidebar-link">Custom renderer in Angular</a></li><li><a href="/docs/15.0/react-data-grid/angular-language-change-example/" class="sidebar-link">Language change in Angular</a></li><li><a href="/docs/15.0/react-data-grid/angular-hot-reference/" class="sidebar-link">Referencing a Handsontable instance in Angular</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5276f9fd"></i> <span>Integrate with Vue 2</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/vue-installation/" class="sidebar-link">Installation in Vue 2</a></li><li><a href="/docs/15.0/react-data-grid/vue-basic-example/" class="sidebar-link">Basic example in Vue 2</a></li><li><a href="/docs/15.0/react-data-grid/vue-modules/" class="sidebar-link">Modules in Vue 2</a></li><li><a href="/docs/15.0/react-data-grid/vue-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 2</a></li><li><a href="/docs/15.0/react-data-grid/vue-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 2</a></li><li><a href="/docs/15.0/react-data-grid/vue-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 2</a></li><li><a href="/docs/15.0/react-data-grid/vue-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 2</a></li><li><a href="/docs/15.0/react-data-grid/vue-custom-editor-example/" class="sidebar-link">Custom editor in Vue 2</a></li><li><a href="/docs/15.0/react-data-grid/vue-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 2</a></li><li><a href="/docs/15.0/react-data-grid/vue-language-change-example/" class="sidebar-link">Language change in Vue 2</a></li><li><a href="/docs/15.0/react-data-grid/vue-vuex-example/" class="sidebar-link">Vuex example in Vue 2</a></li><li><a href="/docs/15.0/react-data-grid/vue-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 2</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-235a9da5"></i> <span>Integrate with Vue 3</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/vue3-installation/" class="sidebar-link">Installation in Vue 3</a></li><li><a href="/docs/15.0/react-data-grid/vue3-basic-example/" class="sidebar-link">Basic example in Vue 3</a></li><li><a href="/docs/15.0/react-data-grid/vue3-modules/" class="sidebar-link">Modules in Vue 3</a></li><li><a href="/docs/15.0/react-data-grid/vue3-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 3</a></li><li><a href="/docs/15.0/react-data-grid/vue3-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 3</a></li><li><a href="/docs/15.0/react-data-grid/vue3-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 3</a></li><li><a href="/docs/15.0/react-data-grid/vue3-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 3</a></li><li><a href="/docs/15.0/react-data-grid/vue3-custom-editor-example/" class="sidebar-link">Custom editor in Vue 3</a></li><li><a href="/docs/15.0/react-data-grid/vue3-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 3</a></li><li><a href="/docs/15.0/react-data-grid/vue3-language-change-example/" class="sidebar-link">Language change in Vue 3</a></li><li><a href="/docs/15.0/react-data-grid/vue3-vuex-example/" class="sidebar-link">Vuex in Vue 3</a></li><li><a href="/docs/15.0/react-data-grid/vue3-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 3</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-53f4ea5b"></i> <span>Tools and building</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/modules/" class="sidebar-link">Modules</a></li><li><a href="/docs/15.0/react-data-grid/custom-plugins/" class="sidebar-link">Custom plugins</a></li><li><a href="/docs/15.0/react-data-grid/custom-builds/" class="sidebar-link">Custom builds</a></li><li><a href="/docs/15.0/react-data-grid/testing/" class="sidebar-link">Testing</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-759f304e"></i> <span>Optimization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/batch-operations/" class="sidebar-link">Batch operations</a></li><li><a href="/docs/15.0/react-data-grid/performance/" class="sidebar-link">Performance</a></li><li><a href="/docs/15.0/react-data-grid/bundle-size/" class="sidebar-link">Bundle size</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-8e45d19a"></i> <span>Security</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/security/" class="sidebar-link">Security</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-9fe94bf6"></i> <span>Technical specification</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/supported-browsers/" class="sidebar-link">Supported browsers</a></li><li><a href="/docs/15.0/react-data-grid/software-license/" class="sidebar-link">Software license</a></li><li><a href="/docs/15.0/react-data-grid/third-party-licenses/" class="sidebar-link">Third-party licenses</a></li><li><a href="/docs/15.0/react-data-grid/documentation-license/" class="sidebar-link">Documentation license</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-6411f2c5"></i> <span>Upgrade and migration</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/15.0/react-data-grid/changelog/" class="sidebar-link">Changelog</a></li><li><a href="/docs/15.0/react-data-grid/versioning-policy/" class="sidebar-link">Versioning policy</a></li><li><a href="/docs/15.0/react-data-grid/migration-from-14.6-to-15.0/" class="sidebar-link">Migrating from 14.6 to 15.0</a></li><li><a href="/docs/15.0/react-data-grid/migration-from-13.1-to-14.0/" class="sidebar-link">Migrating from 13.1 to 14.0</a></li><li><a href="/docs/15.0/react-data-grid/migration-from-12.4-to-13.0/" class="sidebar-link">Migrating from 12.4 to 13.0</a></li><li><a href="/docs/15.0/react-data-grid/migration-from-11.1-to-12.0/" class="sidebar-link">Migrating from 11.1 to 12.0</a></li><li><a href="/docs/15.0/react-data-grid/migration-from-10.0-to-11.0/" class="sidebar-link">Migrating from 10.0 to 11.0</a></li><li><a href="/docs/15.0/react-data-grid/migration-from-9.0-to-10.0/" class="sidebar-link">Migrating from 9.0 to 10.0</a></li><li><a href="/docs/15.0/react-data-grid/migration-from-8.4-to-9.0/" class="sidebar-link">Migrating from 8.4 to 9.0</a></li><li><a href="/docs/15.0/react-data-grid/migration-from-7.4-to-8.0/" class="sidebar-link">Migrate from 7.4 to 8.0</a></li></ul></section></li></ul></div> </aside> <main class="page"><div class="breadcrumbs"><a href="https://handsontable.com/docs/15.0/react-data-grid/"><i class="ico i-home"></i> <span> <span></span>React Data Grid</span></a> <a href="https://handsontable.com/docs/15.0/react-data-grid/column-header"><span>Column headers</span></a></div> <div class="theme-default-content content__default"><h1 id="column-headers"><a href="#column-headers" class="header-link"><span class="header-framework">React Data Grid</span>Column headers</a></h1> <p>Use default column headers (A, B, C), or set them to custom values provided by an array or a function.</p> <p></p><div class="table-of-contents"><div class="toc-container-header"><i class="ico i-toc"></i>On this page</div><ul><li><a href="#overview">Overview</a></li><li><a href="#default-headers">Default headers</a></li><li><a href="#header-labels-as-an-array">Header labels as an array</a></li><li><a href="#header-labels-as-a-function">Header labels as a function</a></li><li><a href="#customize-column-headers">Customize column headers</a></li><li><a href="#nested-headers">Nested headers</a></li><li><a href="#related-articles">Related articles</a><ul><li><a href="#related-guides">Related guides</a></li><li><a href="#related-api-reference">Related API reference</a></li></ul></li></ul></div><p></p> <h2 id="overview"><a href="#overview" class="header-link">Overview</a></h2> <p>Column headers are gray-colored rows used to label each column or group of columns. By default, these headers are populated with letters in alphabetical order.</p> <p>To reflect the type or category of data in a particular column, give it a custom name and then display it in a column header. For example, instead of letters as labels such as <code>A, B, C, ...</code> name them <code>ID, Full name, Country, ...</code>.</p> <h2 id="default-headers"><a href="#default-headers" class="header-link">Default headers</a></h2> <p>Setting the <a href="/docs/15.0/react-data-grid/api/options/#colheaders"><code>colHeaders</code></a> option to <code>true</code> enables the default column headers as shown in the example below:</p> <p></p> <p></p> <div class="example-container"><style></style> <div><div data-preset-type="react" data-example-id="example1" class="ht-theme-main-dark-auto"><div id="example1" class="hot "></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+  &quot;name&quot;: &quot;handsontable&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;description&quot;: &quot;&quot;,
+  &quot;dependencies&quot;: {
+    &quot;react&quot;: &quot;^18.2.0&quot;,
+    &quot;react-dom&quot;: &quot;^18.2.0&quot;,
+    &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+    &quot;handsontable&quot;: &quot;15.0&quot;,
+    &quot;@handsontable/react-wrapper&quot;: &quot;15.0&quot;
+  },
+  
+  &quot;browserslist&quot;: {
+    &quot;production&quot;: [
+      &quot;&gt;0.2%&quot;,
+      &quot;not dead&quot;,
+      &quot;not op_mini all&quot;
+    ],
+    &quot;development&quot;: [
+      &quot;last 1 chrome version&quot;,
+      &quot;last 1 firefox version&quot;,
+      &quot;last 1 safari version&quot;
+    ]
+  }
+}</textarea> <textarea class="hidden" name="project[files][public/index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;Handsontable&lt;/title&gt;
+  &lt;/head&gt;
+
+  &lt;body&gt;
+    &lt;noscript&gt; You need to enable JavaScript to run this app. &lt;/noscript&gt;
+    &lt;div id=&quot;root&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</textarea> <textarea class="hidden" name="project[files][src/styles.css]" readOnly=""></textarea> <textarea class="hidden" name="project[files][src/index.js]" readOnly="">import React, { StrictMode } from &quot;react&quot;;
+import { createRoot } from &quot;react-dom/client&quot;;
+import &quot;./styles.css&quot;;
+import ExampleComponent from &quot;./ExampleComponent&quot;;
+
+const rootElement = document.getElementById(&quot;root&quot;);
+const root = createRoot(rootElement);
+
+root.render(
+  &lt;StrictMode&gt;
+    &lt;ExampleComponent /&gt;
+  &lt;/StrictMode&gt;
+);</textarea> <textarea class="hidden" name="project[files][src/ExampleComponent.jsx]" readOnly="">import React from &quot;react&quot;;
+import { HotTable } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () =&gt; {
+  return (
+    &lt;HotTable
+      data={[
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3', 'K3'],
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      height=&quot;auto&quot;
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey=&quot;non-commercial-and-evaluation&quot;
+    /&gt;
+  );
+};
+
+export default ExampleComponent;
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;, &quot;@handsontable/react-wrapper&quot;: &quot;latest&quot;, &quot;react&quot;: &quot;latest&quot;, &quot;react-dom&quot;: &quot;latest&quot;, &quot;redux&quot;: &quot;latest&quot;, &quot;react-redux&quot;: &quot;latest&quot;, &quot;react-colorful&quot;: &quot;latest&quot;, &quot;react-star-rating-component&quot;: &quot;latest&quot;, &quot;@types/react&quot;: &quot;latest&quot;, &quot;@types/react-dom&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="create-react-app"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import { HotTable } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () =&gt; {
+  return (
+    &lt;HotTable
+      data={[
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3', 'K3'],
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      height=&quot;auto&quot;
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey=&quot;non-commercial-and-evaluation&quot;
+    /&gt;
+  );
+};
+
+
+
+ReactDOM.render(&lt;ExampleComponent /&gt;, document.getElementById(&quot;example1&quot;));</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/handsontable.min.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-main.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-horizon.css&quot; /&gt; 
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/@handsontable/react-wrapper@15.0/dist/react-handsontable.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://handsontable.com/docs/15.0/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div id=&quot;example1&quot; class=&quot;hot ht-theme-main-dark-auto &quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly=""></textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example1" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-jsx extra-class"><pre class="language-jsx"><code><span class="token keyword">import</span> <span class="token punctuation">{</span> HotTable <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@handsontable/react-wrapper'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> registerAllModules <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'handsontable/registry'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/handsontable.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/ht-theme-main.css'</span><span class="token punctuation">;</span>
+
+<span class="token comment">// register Handsontable's modules</span>
+<span class="token function">registerAllModules</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> <span class="token function-variable function">ExampleComponent</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotTable</span></span>
+      <span class="token attr-name">data</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token punctuation">[</span>
+        <span class="token punctuation">[</span><span class="token string">'A1'</span><span class="token punctuation">,</span> <span class="token string">'B1'</span><span class="token punctuation">,</span> <span class="token string">'C1'</span><span class="token punctuation">,</span> <span class="token string">'D1'</span><span class="token punctuation">,</span> <span class="token string">'E1'</span><span class="token punctuation">,</span> <span class="token string">'F1'</span><span class="token punctuation">,</span> <span class="token string">'G1'</span><span class="token punctuation">,</span> <span class="token string">'H1'</span><span class="token punctuation">,</span> <span class="token string">'I1'</span><span class="token punctuation">,</span> <span class="token string">'J1'</span><span class="token punctuation">,</span> <span class="token string">'K1'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">'A2'</span><span class="token punctuation">,</span> <span class="token string">'B2'</span><span class="token punctuation">,</span> <span class="token string">'C2'</span><span class="token punctuation">,</span> <span class="token string">'D2'</span><span class="token punctuation">,</span> <span class="token string">'E2'</span><span class="token punctuation">,</span> <span class="token string">'F2'</span><span class="token punctuation">,</span> <span class="token string">'G2'</span><span class="token punctuation">,</span> <span class="token string">'H2'</span><span class="token punctuation">,</span> <span class="token string">'I2'</span><span class="token punctuation">,</span> <span class="token string">'J2'</span><span class="token punctuation">,</span> <span class="token string">'K2'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">'A3'</span><span class="token punctuation">,</span> <span class="token string">'B3'</span><span class="token punctuation">,</span> <span class="token string">'C3'</span><span class="token punctuation">,</span> <span class="token string">'D3'</span><span class="token punctuation">,</span> <span class="token string">'E3'</span><span class="token punctuation">,</span> <span class="token string">'F3'</span><span class="token punctuation">,</span> <span class="token string">'G3'</span><span class="token punctuation">,</span> <span class="token string">'H3'</span><span class="token punctuation">,</span> <span class="token string">'I3'</span><span class="token punctuation">,</span> <span class="token string">'J3'</span><span class="token punctuation">,</span> <span class="token string">'K3'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">]</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">colHeaders</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">rowHeaders</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>auto<span class="token punctuation">&quot;</span></span>
+      <span class="token attr-name">autoWrapRow</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">autoWrapCol</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">licenseKey</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>non-commercial-and-evaluation<span class="token punctuation">&quot;</span></span>
+    <span class="token punctuation">/&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> ExampleComponent<span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="jsx" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section></div></div></div></div><p></p> <h2 id="header-labels-as-an-array"><a href="#header-labels-as-an-array" class="header-link">Header labels as an array</a></h2> <p>An array of labels can be used to set the <a href="/docs/15.0/react-data-grid/api/options/#colheaders"><code>colHeaders</code></a> as shown in the example below:</p> <p></p> <p></p> <div class="example-container"><style></style> <div><div data-preset-type="react" data-example-id="example2" class="ht-theme-main-dark-auto"><div id="example2" class="hot "></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+  &quot;name&quot;: &quot;handsontable&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;description&quot;: &quot;&quot;,
+  &quot;dependencies&quot;: {
+    &quot;react&quot;: &quot;^18.2.0&quot;,
+    &quot;react-dom&quot;: &quot;^18.2.0&quot;,
+    &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+    &quot;handsontable&quot;: &quot;15.0&quot;,
+    &quot;@handsontable/react-wrapper&quot;: &quot;15.0&quot;
+  },
+  
+  &quot;browserslist&quot;: {
+    &quot;production&quot;: [
+      &quot;&gt;0.2%&quot;,
+      &quot;not dead&quot;,
+      &quot;not op_mini all&quot;
+    ],
+    &quot;development&quot;: [
+      &quot;last 1 chrome version&quot;,
+      &quot;last 1 firefox version&quot;,
+      &quot;last 1 safari version&quot;
+    ]
+  }
+}</textarea> <textarea class="hidden" name="project[files][public/index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;Handsontable&lt;/title&gt;
+  &lt;/head&gt;
+
+  &lt;body&gt;
+    &lt;noscript&gt; You need to enable JavaScript to run this app. &lt;/noscript&gt;
+    &lt;div id=&quot;root&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</textarea> <textarea class="hidden" name="project[files][src/styles.css]" readOnly=""></textarea> <textarea class="hidden" name="project[files][src/index.js]" readOnly="">import React, { StrictMode } from &quot;react&quot;;
+import { createRoot } from &quot;react-dom/client&quot;;
+import &quot;./styles.css&quot;;
+import ExampleComponent from &quot;./ExampleComponent&quot;;
+
+const rootElement = document.getElementById(&quot;root&quot;);
+const root = createRoot(rootElement);
+
+root.render(
+  &lt;StrictMode&gt;
+    &lt;ExampleComponent /&gt;
+  &lt;/StrictMode&gt;
+);</textarea> <textarea class="hidden" name="project[files][src/ExampleComponent.jsx]" readOnly="">import React from &quot;react&quot;;
+import { HotTable } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () =&gt; {
+  return (
+    &lt;HotTable
+      data={[
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3'],
+      ]}
+      colHeaders={[
+        'ID',
+        'Full name',
+        'Position',
+        'Country',
+        'City',
+        'Address',
+        'Zip code',
+        'Mobile',
+        'E-mail',
+      ]}
+      rowHeaders={true}
+      height=&quot;auto&quot;
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey=&quot;non-commercial-and-evaluation&quot;
+    /&gt;
+  );
+};
+
+export default ExampleComponent;
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;, &quot;@handsontable/react-wrapper&quot;: &quot;latest&quot;, &quot;react&quot;: &quot;latest&quot;, &quot;react-dom&quot;: &quot;latest&quot;, &quot;redux&quot;: &quot;latest&quot;, &quot;react-redux&quot;: &quot;latest&quot;, &quot;react-colorful&quot;: &quot;latest&quot;, &quot;react-star-rating-component&quot;: &quot;latest&quot;, &quot;@types/react&quot;: &quot;latest&quot;, &quot;@types/react-dom&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="create-react-app"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import { HotTable } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () =&gt; {
+  return (
+    &lt;HotTable
+      data={[
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3'],
+      ]}
+      colHeaders={[
+        'ID',
+        'Full name',
+        'Position',
+        'Country',
+        'City',
+        'Address',
+        'Zip code',
+        'Mobile',
+        'E-mail',
+      ]}
+      rowHeaders={true}
+      height=&quot;auto&quot;
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey=&quot;non-commercial-and-evaluation&quot;
+    /&gt;
+  );
+};
+
+
+
+ReactDOM.render(&lt;ExampleComponent /&gt;, document.getElementById(&quot;example2&quot;));</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/handsontable.min.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-main.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-horizon.css&quot; /&gt; 
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/@handsontable/react-wrapper@15.0/dist/react-handsontable.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://handsontable.com/docs/15.0/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div id=&quot;example2&quot; class=&quot;hot ht-theme-main-dark-auto &quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly=""></textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example2" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-jsx extra-class"><pre class="language-jsx"><code><span class="token keyword">import</span> <span class="token punctuation">{</span> HotTable <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@handsontable/react-wrapper'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> registerAllModules <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'handsontable/registry'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/handsontable.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/ht-theme-main.css'</span><span class="token punctuation">;</span>
+
+<span class="token comment">// register Handsontable's modules</span>
+<span class="token function">registerAllModules</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> <span class="token function-variable function">ExampleComponent</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotTable</span></span>
+      <span class="token attr-name">data</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token punctuation">[</span>
+        <span class="token punctuation">[</span><span class="token string">'A1'</span><span class="token punctuation">,</span> <span class="token string">'B1'</span><span class="token punctuation">,</span> <span class="token string">'C1'</span><span class="token punctuation">,</span> <span class="token string">'D1'</span><span class="token punctuation">,</span> <span class="token string">'E1'</span><span class="token punctuation">,</span> <span class="token string">'F1'</span><span class="token punctuation">,</span> <span class="token string">'G1'</span><span class="token punctuation">,</span> <span class="token string">'H1'</span><span class="token punctuation">,</span> <span class="token string">'I1'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">'A2'</span><span class="token punctuation">,</span> <span class="token string">'B2'</span><span class="token punctuation">,</span> <span class="token string">'C2'</span><span class="token punctuation">,</span> <span class="token string">'D2'</span><span class="token punctuation">,</span> <span class="token string">'E2'</span><span class="token punctuation">,</span> <span class="token string">'F2'</span><span class="token punctuation">,</span> <span class="token string">'G2'</span><span class="token punctuation">,</span> <span class="token string">'H2'</span><span class="token punctuation">,</span> <span class="token string">'I2'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">'A3'</span><span class="token punctuation">,</span> <span class="token string">'B3'</span><span class="token punctuation">,</span> <span class="token string">'C3'</span><span class="token punctuation">,</span> <span class="token string">'D3'</span><span class="token punctuation">,</span> <span class="token string">'E3'</span><span class="token punctuation">,</span> <span class="token string">'F3'</span><span class="token punctuation">,</span> <span class="token string">'G3'</span><span class="token punctuation">,</span> <span class="token string">'H3'</span><span class="token punctuation">,</span> <span class="token string">'I3'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">]</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">colHeaders</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token punctuation">[</span>
+        <span class="token string">'ID'</span><span class="token punctuation">,</span>
+        <span class="token string">'Full name'</span><span class="token punctuation">,</span>
+        <span class="token string">'Position'</span><span class="token punctuation">,</span>
+        <span class="token string">'Country'</span><span class="token punctuation">,</span>
+        <span class="token string">'City'</span><span class="token punctuation">,</span>
+        <span class="token string">'Address'</span><span class="token punctuation">,</span>
+        <span class="token string">'Zip code'</span><span class="token punctuation">,</span>
+        <span class="token string">'Mobile'</span><span class="token punctuation">,</span>
+        <span class="token string">'E-mail'</span><span class="token punctuation">,</span>
+      <span class="token punctuation">]</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">rowHeaders</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>auto<span class="token punctuation">&quot;</span></span>
+      <span class="token attr-name">autoWrapRow</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">autoWrapCol</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">licenseKey</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>non-commercial-and-evaluation<span class="token punctuation">&quot;</span></span>
+    <span class="token punctuation">/&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> ExampleComponent<span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="jsx" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section></div></div></div></div><p></p> <h2 id="header-labels-as-a-function"><a href="#header-labels-as-a-function" class="header-link">Header labels as a function</a></h2> <p>The <a href="/docs/15.0/react-data-grid/api/options/#colheaders"><code>colHeaders</code></a> can also be populated using a function as shown in the example below:</p> <p></p> <p></p> <div class="example-container"><style></style> <div><div data-preset-type="react" data-example-id="example3" class="ht-theme-main-dark-auto"><div id="example3" class="hot "></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+  &quot;name&quot;: &quot;handsontable&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;description&quot;: &quot;&quot;,
+  &quot;dependencies&quot;: {
+    &quot;react&quot;: &quot;^18.2.0&quot;,
+    &quot;react-dom&quot;: &quot;^18.2.0&quot;,
+    &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+    &quot;handsontable&quot;: &quot;15.0&quot;,
+    &quot;@handsontable/react-wrapper&quot;: &quot;15.0&quot;
+  },
+  
+  &quot;browserslist&quot;: {
+    &quot;production&quot;: [
+      &quot;&gt;0.2%&quot;,
+      &quot;not dead&quot;,
+      &quot;not op_mini all&quot;
+    ],
+    &quot;development&quot;: [
+      &quot;last 1 chrome version&quot;,
+      &quot;last 1 firefox version&quot;,
+      &quot;last 1 safari version&quot;
+    ]
+  }
+}</textarea> <textarea class="hidden" name="project[files][public/index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;Handsontable&lt;/title&gt;
+  &lt;/head&gt;
+
+  &lt;body&gt;
+    &lt;noscript&gt; You need to enable JavaScript to run this app. &lt;/noscript&gt;
+    &lt;div id=&quot;root&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</textarea> <textarea class="hidden" name="project[files][src/styles.css]" readOnly=""></textarea> <textarea class="hidden" name="project[files][src/index.js]" readOnly="">import React, { StrictMode } from &quot;react&quot;;
+import { createRoot } from &quot;react-dom/client&quot;;
+import &quot;./styles.css&quot;;
+import ExampleComponent from &quot;./ExampleComponent&quot;;
+
+const rootElement = document.getElementById(&quot;root&quot;);
+const root = createRoot(rootElement);
+
+root.render(
+  &lt;StrictMode&gt;
+    &lt;ExampleComponent /&gt;
+  &lt;/StrictMode&gt;
+);</textarea> <textarea class="hidden" name="project[files][src/ExampleComponent.jsx]" readOnly="">import React from &quot;react&quot;;
+import { HotTable } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () =&gt; {
+  return (
+    &lt;HotTable
+      data={[
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3', 'K3'],
+      ]}
+      colHeaders={(index) =&gt; {
+        return `Col ${index + 1}`;
+      }}
+      rowHeaders={true}
+      height=&quot;auto&quot;
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey=&quot;non-commercial-and-evaluation&quot;
+    /&gt;
+  );
+};
+
+export default ExampleComponent;
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;, &quot;@handsontable/react-wrapper&quot;: &quot;latest&quot;, &quot;react&quot;: &quot;latest&quot;, &quot;react-dom&quot;: &quot;latest&quot;, &quot;redux&quot;: &quot;latest&quot;, &quot;react-redux&quot;: &quot;latest&quot;, &quot;react-colorful&quot;: &quot;latest&quot;, &quot;react-star-rating-component&quot;: &quot;latest&quot;, &quot;@types/react&quot;: &quot;latest&quot;, &quot;@types/react-dom&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="create-react-app"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import { HotTable } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () =&gt; {
+  return (
+    &lt;HotTable
+      data={[
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3', 'K3'],
+      ]}
+      colHeaders={(index) =&gt; {
+        return `Col ${index + 1}`;
+      }}
+      rowHeaders={true}
+      height=&quot;auto&quot;
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey=&quot;non-commercial-and-evaluation&quot;
+    /&gt;
+  );
+};
+
+
+
+ReactDOM.render(&lt;ExampleComponent /&gt;, document.getElementById(&quot;example3&quot;));</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/handsontable.min.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-main.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-horizon.css&quot; /&gt; 
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/@handsontable/react-wrapper@15.0/dist/react-handsontable.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://handsontable.com/docs/15.0/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div id=&quot;example3&quot; class=&quot;hot ht-theme-main-dark-auto &quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly=""></textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example3" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-jsx extra-class"><pre class="language-jsx"><code><span class="token keyword">import</span> <span class="token punctuation">{</span> HotTable <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@handsontable/react-wrapper'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> registerAllModules <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'handsontable/registry'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/handsontable.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/ht-theme-main.css'</span><span class="token punctuation">;</span>
+
+<span class="token comment">// register Handsontable's modules</span>
+<span class="token function">registerAllModules</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> <span class="token function-variable function">ExampleComponent</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotTable</span></span>
+      <span class="token attr-name">data</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token punctuation">[</span>
+        <span class="token punctuation">[</span><span class="token string">'A1'</span><span class="token punctuation">,</span> <span class="token string">'B1'</span><span class="token punctuation">,</span> <span class="token string">'C1'</span><span class="token punctuation">,</span> <span class="token string">'D1'</span><span class="token punctuation">,</span> <span class="token string">'E1'</span><span class="token punctuation">,</span> <span class="token string">'F1'</span><span class="token punctuation">,</span> <span class="token string">'G1'</span><span class="token punctuation">,</span> <span class="token string">'H1'</span><span class="token punctuation">,</span> <span class="token string">'I1'</span><span class="token punctuation">,</span> <span class="token string">'J1'</span><span class="token punctuation">,</span> <span class="token string">'K1'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">'A2'</span><span class="token punctuation">,</span> <span class="token string">'B2'</span><span class="token punctuation">,</span> <span class="token string">'C2'</span><span class="token punctuation">,</span> <span class="token string">'D2'</span><span class="token punctuation">,</span> <span class="token string">'E2'</span><span class="token punctuation">,</span> <span class="token string">'F2'</span><span class="token punctuation">,</span> <span class="token string">'G2'</span><span class="token punctuation">,</span> <span class="token string">'H2'</span><span class="token punctuation">,</span> <span class="token string">'I2'</span><span class="token punctuation">,</span> <span class="token string">'J2'</span><span class="token punctuation">,</span> <span class="token string">'K2'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">'A3'</span><span class="token punctuation">,</span> <span class="token string">'B3'</span><span class="token punctuation">,</span> <span class="token string">'C3'</span><span class="token punctuation">,</span> <span class="token string">'D3'</span><span class="token punctuation">,</span> <span class="token string">'E3'</span><span class="token punctuation">,</span> <span class="token string">'F3'</span><span class="token punctuation">,</span> <span class="token string">'G3'</span><span class="token punctuation">,</span> <span class="token string">'H3'</span><span class="token punctuation">,</span> <span class="token string">'I3'</span><span class="token punctuation">,</span> <span class="token string">'J3'</span><span class="token punctuation">,</span> <span class="token string">'K3'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">]</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">colHeaders</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token punctuation">(</span><span class="token parameter">index</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">Col </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>index <span class="token operator">+</span> <span class="token number">1</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">rowHeaders</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>auto<span class="token punctuation">&quot;</span></span>
+      <span class="token attr-name">autoWrapRow</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">autoWrapCol</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">licenseKey</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>non-commercial-and-evaluation<span class="token punctuation">&quot;</span></span>
+    <span class="token punctuation">/&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> ExampleComponent<span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="jsx" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section></div></div></div></div><p></p> <h2 id="customize-column-headers"><a href="#customize-column-headers" class="header-link">Customize column headers</a></h2> <p>You can align the text in the header label with the <a href="/docs/15.0/react-data-grid/api/options/#headerclassname"><code>headerClassName</code></a> option. Setting it to <code>htLeft</code>, <code>htCenter</code>, or <code>htRight</code> will align the header labels to the left, center, or right, respectively.</p> <p>You can also set the alignment for a specific column by using the <a href="/docs/15.0/react-data-grid/api/options/#columns"><code>columns</code></a> option.</p> <p></p> <p></p> <div class="example-container"><style></style> <div><div data-preset-type="react" data-example-id="example4" class="ht-theme-main-dark-auto"><div id="example4" class="hot "></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+  &quot;name&quot;: &quot;handsontable&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;description&quot;: &quot;&quot;,
+  &quot;dependencies&quot;: {
+    &quot;react&quot;: &quot;^18.2.0&quot;,
+    &quot;react-dom&quot;: &quot;^18.2.0&quot;,
+    &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+    &quot;handsontable&quot;: &quot;15.0&quot;,
+    &quot;@handsontable/react-wrapper&quot;: &quot;15.0&quot;
+  },
+  
+  &quot;browserslist&quot;: {
+    &quot;production&quot;: [
+      &quot;&gt;0.2%&quot;,
+      &quot;not dead&quot;,
+      &quot;not op_mini all&quot;
+    ],
+    &quot;development&quot;: [
+      &quot;last 1 chrome version&quot;,
+      &quot;last 1 firefox version&quot;,
+      &quot;last 1 safari version&quot;
+    ]
+  }
+}</textarea> <textarea class="hidden" name="project[files][public/index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;Handsontable&lt;/title&gt;
+  &lt;/head&gt;
+
+  &lt;body&gt;
+    &lt;noscript&gt; You need to enable JavaScript to run this app. &lt;/noscript&gt;
+    &lt;div id=&quot;root&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</textarea> <textarea class="hidden" name="project[files][src/styles.css]" readOnly=""></textarea> <textarea class="hidden" name="project[files][src/index.js]" readOnly="">import React, { StrictMode } from &quot;react&quot;;
+import { createRoot } from &quot;react-dom/client&quot;;
+import &quot;./styles.css&quot;;
+import ExampleComponent from &quot;./ExampleComponent&quot;;
+
+const rootElement = document.getElementById(&quot;root&quot;);
+const root = createRoot(rootElement);
+
+root.render(
+  &lt;StrictMode&gt;
+    &lt;ExampleComponent /&gt;
+  &lt;/StrictMode&gt;
+);</textarea> <textarea class="hidden" name="project[files][src/ExampleComponent.jsx]" readOnly="">import React from &quot;react&quot;;
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () =&gt; {
+  return (
+    &lt;HotTable
+      data={[
+        ['A1', 'B1', 'C1', 'D1'],
+        ['A2', 'B2', 'C2', 'D2'],
+        ['A3', 'B3', 'C3', 'D3'],
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
+      height='auto'
+      headerClassName='htCenter'
+      licenseKey='non-commercial-and-evaluation'
+    &gt;
+      &lt;HotColumn
+        headerClassName='htRight'
+      /&gt;
+      &lt;HotColumn
+        headerClassName='htLeft'
+      /&gt;
+      &lt;HotColumn/&gt;
+      &lt;HotColumn/&gt;
+    &lt;/HotTable&gt;
+  );
+};
+
+export default ExampleComponent;
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;, &quot;@handsontable/react-wrapper&quot;: &quot;latest&quot;, &quot;react&quot;: &quot;latest&quot;, &quot;react-dom&quot;: &quot;latest&quot;, &quot;redux&quot;: &quot;latest&quot;, &quot;react-redux&quot;: &quot;latest&quot;, &quot;react-colorful&quot;: &quot;latest&quot;, &quot;react-star-rating-component&quot;: &quot;latest&quot;, &quot;@types/react&quot;: &quot;latest&quot;, &quot;@types/react-dom&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="create-react-app"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () =&gt; {
+  return (
+    &lt;HotTable
+      data={[
+        ['A1', 'B1', 'C1', 'D1'],
+        ['A2', 'B2', 'C2', 'D2'],
+        ['A3', 'B3', 'C3', 'D3'],
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
+      height='auto'
+      headerClassName='htCenter'
+      licenseKey='non-commercial-and-evaluation'
+    &gt;
+      &lt;HotColumn
+        headerClassName='htRight'
+      /&gt;
+      &lt;HotColumn
+        headerClassName='htLeft'
+      /&gt;
+      &lt;HotColumn/&gt;
+      &lt;HotColumn/&gt;
+    &lt;/HotTable&gt;
+  );
+};
+
+
+
+ReactDOM.render(&lt;ExampleComponent /&gt;, document.getElementById(&quot;example4&quot;));</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/handsontable.min.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-main.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-horizon.css&quot; /&gt; 
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/@handsontable/react-wrapper@15.0/dist/react-handsontable.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://handsontable.com/docs/15.0/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div id=&quot;example4&quot; class=&quot;hot ht-theme-main-dark-auto &quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly=""></textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example4" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-jsx extra-class"><pre class="language-jsx"><code><span class="token keyword">import</span> <span class="token punctuation">{</span> HotTable<span class="token punctuation">,</span> HotColumn <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@handsontable/react-wrapper'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> registerAllModules <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'handsontable/registry'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/handsontable.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/ht-theme-main.css'</span><span class="token punctuation">;</span>
+
+<span class="token comment">// register Handsontable's modules</span>
+<span class="token function">registerAllModules</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> <span class="token function-variable function">ExampleComponent</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotTable</span></span>
+      <span class="token attr-name">data</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token punctuation">[</span>
+        <span class="token punctuation">[</span><span class="token string">'A1'</span><span class="token punctuation">,</span> <span class="token string">'B1'</span><span class="token punctuation">,</span> <span class="token string">'C1'</span><span class="token punctuation">,</span> <span class="token string">'D1'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">'A2'</span><span class="token punctuation">,</span> <span class="token string">'B2'</span><span class="token punctuation">,</span> <span class="token string">'C2'</span><span class="token punctuation">,</span> <span class="token string">'D2'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">'A3'</span><span class="token punctuation">,</span> <span class="token string">'B3'</span><span class="token punctuation">,</span> <span class="token string">'C3'</span><span class="token punctuation">,</span> <span class="token string">'D3'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">]</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">colHeaders</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">rowHeaders</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">autoWrapRow</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">autoWrapCol</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>auto<span class="token punctuation">'</span></span>
+      <span class="token attr-name">headerClassName</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>htCenter<span class="token punctuation">'</span></span>
+      <span class="token attr-name">licenseKey</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>non-commercial-and-evaluation<span class="token punctuation">'</span></span>
+    <span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotColumn</span></span>
+        <span class="token attr-name">headerClassName</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>htRight<span class="token punctuation">'</span></span>
+      <span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotColumn</span></span>
+        <span class="token attr-name">headerClassName</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>htLeft<span class="token punctuation">'</span></span>
+      <span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotColumn</span></span><span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotColumn</span></span><span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">HotTable</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> ExampleComponent<span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="jsx" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section></div></div></div></div><p></p> <p>If you want to style the header labels, you can pass any number of class names, separated by a space, to the <a href="/docs/15.0/react-data-grid/api/options/#headerclassname"><code>headerClassName</code></a> option.</p> <p></p> <p></p> <div class="example-container"><style>.bold-text {
+    font-weight: bold;
+}
+
+.italic-text {
+    font-style: italic;
+}
+</style> <div><div data-preset-type="react" data-example-id="example5" class="ht-theme-main-dark-auto"><div id="example5" class="hot "></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+  &quot;name&quot;: &quot;handsontable&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;description&quot;: &quot;&quot;,
+  &quot;dependencies&quot;: {
+    &quot;react&quot;: &quot;^18.2.0&quot;,
+    &quot;react-dom&quot;: &quot;^18.2.0&quot;,
+    &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+    &quot;handsontable&quot;: &quot;15.0&quot;,
+    &quot;@handsontable/react-wrapper&quot;: &quot;15.0&quot;
+  },
+  
+  &quot;browserslist&quot;: {
+    &quot;production&quot;: [
+      &quot;&gt;0.2%&quot;,
+      &quot;not dead&quot;,
+      &quot;not op_mini all&quot;
+    ],
+    &quot;development&quot;: [
+      &quot;last 1 chrome version&quot;,
+      &quot;last 1 firefox version&quot;,
+      &quot;last 1 safari version&quot;
+    ]
+  }
+}</textarea> <textarea class="hidden" name="project[files][public/index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+    &lt;title&gt;Handsontable&lt;/title&gt;
+  &lt;/head&gt;
+
+  &lt;body&gt;
+    &lt;noscript&gt; You need to enable JavaScript to run this app. &lt;/noscript&gt;
+    &lt;div id=&quot;root&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</textarea> <textarea class="hidden" name="project[files][src/styles.css]" readOnly="">.bold-text {
+    font-weight: bold;
+}
+
+.italic-text {
+    font-style: italic;
+}
+</textarea> <textarea class="hidden" name="project[files][src/index.js]" readOnly="">import React, { StrictMode } from &quot;react&quot;;
+import { createRoot } from &quot;react-dom/client&quot;;
+import &quot;./styles.css&quot;;
+import ExampleComponent from &quot;./ExampleComponent&quot;;
+
+const rootElement = document.getElementById(&quot;root&quot;);
+const root = createRoot(rootElement);
+
+root.render(
+  &lt;StrictMode&gt;
+    &lt;ExampleComponent /&gt;
+  &lt;/StrictMode&gt;
+);</textarea> <textarea class="hidden" name="project[files][src/ExampleComponent.jsx]" readOnly="">import React from &quot;react&quot;;
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () =&gt; {
+  return (
+    &lt;HotTable
+      data={[
+        ['A1', 'B1', 'C1', 'D1'],
+        ['A2', 'B2', 'C2', 'D2'],
+        ['A3', 'B3', 'C3', 'D3'],
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
+      height='auto'
+      headerClassName='htLeft'
+      licenseKey='non-commercial-and-evaluation'
+    &gt;
+      &lt;HotColumn
+        headerClassName='italic-text'
+      /&gt;
+      &lt;HotColumn
+        headerClassName='bold-text italic-text'
+      /&gt;
+      &lt;HotColumn
+        headerClassName='htRight bold-text italic-text'
+      /&gt;
+      &lt;HotColumn/&gt;
+    &lt;/HotTable&gt;
+  );
+};
+
+export default ExampleComponent;
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;, &quot;@handsontable/react-wrapper&quot;: &quot;latest&quot;, &quot;react&quot;: &quot;latest&quot;, &quot;react-dom&quot;: &quot;latest&quot;, &quot;redux&quot;: &quot;latest&quot;, &quot;react-redux&quot;: &quot;latest&quot;, &quot;react-colorful&quot;: &quot;latest&quot;, &quot;react-star-rating-component&quot;: &quot;latest&quot;, &quot;@types/react&quot;: &quot;latest&quot;, &quot;@types/react-dom&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="create-react-app"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () =&gt; {
+  return (
+    &lt;HotTable
+      data={[
+        ['A1', 'B1', 'C1', 'D1'],
+        ['A2', 'B2', 'C2', 'D2'],
+        ['A3', 'B3', 'C3', 'D3'],
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
+      height='auto'
+      headerClassName='htLeft'
+      licenseKey='non-commercial-and-evaluation'
+    &gt;
+      &lt;HotColumn
+        headerClassName='italic-text'
+      /&gt;
+      &lt;HotColumn
+        headerClassName='bold-text italic-text'
+      /&gt;
+      &lt;HotColumn
+        headerClassName='htRight bold-text italic-text'
+      /&gt;
+      &lt;HotColumn/&gt;
+    &lt;/HotTable&gt;
+  );
+};
+
+
+
+ReactDOM.render(&lt;ExampleComponent /&gt;, document.getElementById(&quot;example5&quot;));</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/handsontable.min.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-main.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-horizon.css&quot; /&gt; 
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/@handsontable/react-wrapper@15.0/dist/react-handsontable.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://handsontable.com/docs/15.0/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div id=&quot;example5&quot; class=&quot;hot ht-theme-main-dark-auto &quot;&gt;&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly="">.bold-text {
+    font-weight: bold;
+}
+
+.italic-text {
+    font-style: italic;
+}
+</textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example5" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-jsx extra-class"><pre class="language-jsx"><code><span class="token keyword">import</span> <span class="token punctuation">{</span> HotTable<span class="token punctuation">,</span> HotColumn <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@handsontable/react-wrapper'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> registerAllModules <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'handsontable/registry'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/handsontable.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/ht-theme-main.css'</span><span class="token punctuation">;</span>
+
+<span class="token comment">// register Handsontable's modules</span>
+<span class="token function">registerAllModules</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> <span class="token function-variable function">ExampleComponent</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotTable</span></span>
+      <span class="token attr-name">data</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token punctuation">[</span>
+        <span class="token punctuation">[</span><span class="token string">'A1'</span><span class="token punctuation">,</span> <span class="token string">'B1'</span><span class="token punctuation">,</span> <span class="token string">'C1'</span><span class="token punctuation">,</span> <span class="token string">'D1'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">'A2'</span><span class="token punctuation">,</span> <span class="token string">'B2'</span><span class="token punctuation">,</span> <span class="token string">'C2'</span><span class="token punctuation">,</span> <span class="token string">'D2'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">'A3'</span><span class="token punctuation">,</span> <span class="token string">'B3'</span><span class="token punctuation">,</span> <span class="token string">'C3'</span><span class="token punctuation">,</span> <span class="token string">'D3'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">]</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">colHeaders</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">rowHeaders</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">autoWrapRow</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">autoWrapCol</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span><span class="token boolean">true</span><span class="token punctuation">}</span></span>
+      <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>auto<span class="token punctuation">'</span></span>
+      <span class="token attr-name">headerClassName</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>htLeft<span class="token punctuation">'</span></span>
+      <span class="token attr-name">licenseKey</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>non-commercial-and-evaluation<span class="token punctuation">'</span></span>
+    <span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotColumn</span></span>
+        <span class="token attr-name">headerClassName</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>italic-text<span class="token punctuation">'</span></span>
+      <span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotColumn</span></span>
+        <span class="token attr-name">headerClassName</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>bold-text italic-text<span class="token punctuation">'</span></span>
+      <span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotColumn</span></span>
+        <span class="token attr-name">headerClassName</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span>htRight bold-text italic-text<span class="token punctuation">'</span></span>
+      <span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HotColumn</span></span><span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">HotTable</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> ExampleComponent<span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="jsx" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section><section aria-hidden="true" id="css-tab-example5" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="language-css extra-class"><pre class="language-css"><code><span class="token selector">.bold-text</span> <span class="token punctuation">{</span>
+    <span class="token property">font-weight</span><span class="token punctuation">:</span> bold<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.italic-text</span> <span class="token punctuation">{</span>
+    <span class="token property">font-style</span><span class="token punctuation">:</span> italic<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="css" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></section></div></div></div></div><p></p> <h2 id="nested-headers"><a href="#nested-headers" class="header-link">Nested headers</a></h2> <p>More complex data structures can be displayed with multiple headers, each representing a different category of data. To learn more about nested headers, see the <a href="/docs/15.0/react-data-grid/column-groups/">column groups</a> page.</p> <h2 id="related-articles"><a href="#related-articles" class="header-link">Related articles</a></h2> <h3 id="related-guides"><a href="#related-guides" class="header-link">Related guides</a></h3> <div class="boxes-list gray"><ul><li><a href="/docs/15.0/react-data-grid/column-groups/">Column groups</a></li></ul></div> <h3 id="related-api-reference"><a href="#related-api-reference" class="header-link">Related API reference</a></h3> <ul><li>Configuration options:
+<ul><li><a href="/docs/15.0/react-data-grid/api/options/#activeheaderclassname"><code>activeHeaderClassName</code></a></li> <li><a href="/docs/15.0/react-data-grid/api/options/#colheaders"><code>colHeaders</code></a></li> <li><a href="/docs/15.0/react-data-grid/api/options/#columnheaderheight"><code>columnHeaderHeight</code></a></li> <li><a href="/docs/15.0/react-data-grid/api/options/#currentheaderclassname"><code>currentHeaderClassName</code></a></li> <li><a href="/docs/15.0/react-data-grid/api/options/#nestedheaders"><code>nestedHeaders</code></a></li> <li><a href="/docs/15.0/react-data-grid/api/options/#title"><code>title</code></a></li></ul></li> <li>Core methods:
+<ul><li><a href="/docs/15.0/react-data-grid/api/core/#getcolheader"><code>getColHeader()</code></a></li> <li><a href="/docs/15.0/react-data-grid/api/core/#hascolheaders"><code>hasColHeaders()</code></a></li></ul></li> <li>Hooks:
+<ul><li><a href="/docs/15.0/react-data-grid/api/hooks/#aftergetcolheader"><code>afterGetColHeader</code></a></li> <li><a href="/docs/15.0/react-data-grid/api/hooks/#aftergetcolumnheaderrenderers"><code>afterGetColumnHeaderRenderers</code></a></li> <li><a href="/docs/15.0/react-data-grid/api/hooks/#beforehighlightingcolumnheader"><code>beforeHighlightingColumnHeader</code></a></li> <li><a href="/docs/15.0/react-data-grid/api/hooks/#modifycolheader"><code>modifyColHeader</code></a></li> <li><a href="/docs/15.0/react-data-grid/api/hooks/#modifycolumnheaderheight"><code>modifyColumnHeaderHeight</code></a></li></ul></li> <li>Plugins:
+<ul><li><a href="/docs/15.0/react-data-grid/api/nested-headers/"><code>NestedHeaders</code></a></li></ul></li></ul></div> <div class="page-top" style="display:none;"><div class="custom-block tip version-alert"><p>There is a newer version of Handsontable available.
+            <a href="/docs/">Switch to the latest version ⟶</a></p></div></div> <footer class="footer"><a href="https://github.com/handsontable/handsontable/edit/develop/docs/content/guides/columns/column-header/column-header.md" target="_blank" rel="noopener noreferrer" class="edit-link">Edit on GitHub <i class="ico i-external"></i></a> <div class="footer-links"><div class="socail-links"><a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a> <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a> <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a></div> <div class="hot-links"><a href="https://handsontable.com/privacy">Privacy policy</a> <a href="https://handsontable.com/terms-of-use">Terms of use</a> <a href="https://handsontable.com/team">Team</a> <a href="https://handsontable.com/contact?category=technical_support">Contact</a> <a href="https://handsontable.com/blog/">Blog</a> <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a></div></div> <div class="copyright"><p>© 2012 - 2025 Handsoncode</p> <label id="switch" class="dark-mode"><span class="inner" style="display:none;"><input type="checkbox"> <span style="display:none;"><i class="ico i-dm-dark"></i>Light</span> <span style="display:;"><i class="ico i-dm-light"></i>Dark</span></span></label></div></footer> </main></div></div><div class="global-ui"></div></div>
+
+<script src="/docs/15.0/assets/js/app.46cb68fe.js" defer></script><script src="/docs/15.0/assets/js/5.af4b1d74.js" defer></script><script src="/docs/15.0/assets/js/3.6372b058.js" defer></script><script src="/docs/15.0/assets/js/2.b3c0589f.js" defer></script><script src="/docs/15.0/assets/js/311.ad86da97.js" defer></script><script src="/docs/15.0/assets/js/37.c231f17e.js" defer></script>
+</body>
+</html>

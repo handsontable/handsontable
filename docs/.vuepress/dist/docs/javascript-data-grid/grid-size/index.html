@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  
+  <meta charset="utf-8">
+  <title>Grid size - JavaScript Data Grid | Handsontable</title>
+  <meta name="generator" content="VuePress 1.9.10">
+  <link rel="icon" media="(prefers-color-scheme: light)" href="https://handsontable.com/docs/img/favicon.png">
+    <link rel="icon" media="(prefers-color-scheme: dark)" href="https://handsontable.com/docs/img/favicon-dark.png">
+    <link rel="preload" href="https://handsontable.com/docs/data/common.json" as="fetch" crossorigin="">
+    <script>
+      window.sentryOnLoad = function () {
+        Sentry.init({
+          environment: 'production',
+          tracesSampleRate: 0,
+          profilesSampleRate: 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0.2,
+          integrations: [
+            // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
+            new Sentry.BrowserTracing(),
+            // If you use a bundle with session replay enabled, add the SessionReplay integration
+            new Sentry.Replay({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),   
+          ],
+        });
+      };
+    </script>
+    <script id="Sentry.io" src="https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js" crossorigin="anonymous" defer="true"></script>
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="ef171f1d-a288-433f-b680-3cdbdebd5646" defer="true"></script>
+    <script id="Headwayapp" src="https://cdn.headwayapp.co/widget.js" defer="true"></script>
+    <script>const DOCS_VERSION = '15.0';</script>
+    <script>
+      (function(w, d) {
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
+        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+          d.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    </script>
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-55L5D3');
+    </script>
+    <script>
+      (function(h,o,t,j,a,r){
+        window.addEventListener('DOMContentLoaded', function(){
+          if(h.innerWidth > 600){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:329042,hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+          }
+        });
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+      </script>
+  <meta name="description" content="Set the width and height of the grid, using either absolute values or values relative to the parent container.">
+    <meta name="og:url" content="https://handsontable.com/docs/javascript-data-grid/grid-size/">
+    <meta name="og:type" content="website">
+    <meta name="og:title" content="Grid size">
+    <meta name="og:description" content="Set the width and height of the grid, using either absolute values or values relative to the parent container.">
+    <meta name="og:image" content="https://handsontable.com/docs/img/handsontable-banner-og.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://handsontable.com/docs/javascript-data-grid/grid-size/" rel="canonical" />
+  <link rel="preload" href="/docs/assets/css/0.styles.29b8f05b.css" as="style"><link rel="preload" href="/docs/assets/js/app.8c0eccc3.js" as="script"><link rel="preload" href="/docs/assets/js/5.af4b1d74.js" as="script"><link rel="preload" href="/docs/assets/js/3.6372b058.js" as="script"><link rel="preload" href="/docs/assets/js/2.b3c0589f.js" as="script"><link rel="preload" href="/docs/assets/js/144.e567e89e.js" as="script"><link rel="preload" href="/docs/assets/js/37.c231f17e.js" as="script">
+  <link rel="stylesheet" href="/docs/assets/css/0.styles.29b8f05b.css">
+</head>
+<body>
+<!-- Google Tag Manager -->
+<noscript>
+  <iframe src="//www.googletagmanager.com/ns.html?id=GTM-55L5D3"
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<div id="app" data-server-rendered="true"><div class="layout-container"><script type="application/ld+json">{
+    "@context": "https://schema.org/",
+    "@type": "WebPage",
+    "name": "Grid size - JavaScript Data Grid  Handsontable",
+    "headline": "Grid size - JavaScript Data Grid  Handsontable",
+    "description": "Set the width and height of the grid, using either absolute values or values relative to the parent container.",
+    "url": "https://handsontable.com/docs/javascript-data-grid/grid-size/",
+    "mainEntityOfPage": {
+        "@type": "TechArticle",
+        "@id": "https://handsontable.com/docs/javascript-data-grid/grid-size/"
+    },
+    "keywords": [
+        "grid sizing",
+        "width",
+        "height",
+        "dimensions"
+    ],
+    "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsontable-docs-cover.png"
+    },
+    "image": {
+        "@type": "ImageObject",
+        "url": "https://handsontable.com/docs/img/handsontable-docs-cover.png"
+    },
+    "author": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable Team",
+        "url": "https://handsontable.com",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "alternateName": "Handsontable",
+        "sameAs": [
+            "https://twitter.com/handsontable",
+            "https://www.linkedin.com/company/handsontable"
+        ]
+    },
+    "dateModified": "2025-01-16T07:04:00.888Z",
+    "lastReviewed": "2025-01-16T07:04:00.888Z",
+    "copyrightHolder": {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": "Handsontable",
+        "url": "https://handsontable.com",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://handsontable.com/docs/img/handsontable-docs-cover.png"
+        }
+    },
+    "copyrightYear": "2025"
+}</script> <div class="theme-container"><header class="navbar"><div class="navbar-wrapper"><a href="/docs/javascript-data-grid/" aria-label="Docs Homepage Link" class="home-link router-link-active"><i class="Logo"></i></a> <div class="top-bar"><div class="top-bar_left"><div class="framework-and-version"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav></div></div> <div id="algolia-search"></div> <div class="menu"><nav class="nav-links"><div class="nav-item"><a href="/docs/javascript-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/javascript-data-grid/api/" class="nav-link">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav> <nav class="nav-links"><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Support" class="dropdown-title"><span class="title">Support</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="https://forum.handsontable.com" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Developers Forum
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://github.com/handsontable/handsontable/discussions" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    GitHub Discussions
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://stackoverflow.com/tags/handsontable" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    StackOverflow
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://handsontable.com/contact?category=technical_support" target="_blank" rel="noopener noreferrer" class="nav-link external">
+    Contact support
+   <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div></nav> <nav class="icons-nav"><span class="news"><i class="ico i-bell"></i></span> <a href="https://github.com/handsontable/handsontable" target="_blank" class="github-stars"><i class="ico i-github"></i> <!----></a> <button id="mobileSearch" aria-label="Search" class="menuButton"><i class="ico i-search"></i></button> <button aria-label="Menu button" class="menuButton"><i class="ico i-menu"></i> <i class="ico i-close"></i></button></nav></div></div></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <div class="sidebar-nav"><div class="mobile-nav"><nav class="nav-frameworks nav-links"><i class="ico i-javascript"></i> <nav class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="JavaScript" class="dropdown-title"><span class="title">JavaScript</span> <i class="ico i-arrow down"></i></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/docs/15.0/javascript-data-grid/" target="_self" class="nav-link external">
+    JavaScript
+   <!----></a></li><li class="dropdown-item"><!----> <a href="/docs/15.0/react-data-grid/" target="_self" class="nav-link external">
+    React
+   <!----></a></li></ul></div></nav></nav> <nav class="nav-links"><div class="nav-item"><a href="/docs/javascript-data-grid/" class="nav-link router-link-active">
+  Guides
+</a></div> <div class="nav-item"><a href="/docs/javascript-data-grid/api/" class="nav-link">
+  API
+</a></div> <div class="nav-item changelog"><a href="/docs/javascript-data-grid/changelog/" class="nav-link">
+  Changelog
+</a></div></nav></div> <ul class="sidebar-links"><li><section class="sidebar-group collapsable open depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-3d811caf"></i> <span>Getting started</span> <i class="ico i-arrow down"></i></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/docs/javascript-data-grid/" aria-current="page" class="sidebar-link">Introduction</a></li><li><a href="/docs/javascript-data-grid/demo/" class="sidebar-link">Demo</a></li><li><a href="/docs/javascript-data-grid/installation/" class="sidebar-link">Installation</a></li><li><a href="/docs/javascript-data-grid/binding-to-data/" class="sidebar-link">Binding to data</a></li><li><a href="/docs/javascript-data-grid/saving-data/" class="sidebar-link">Saving data</a></li><li><a href="/docs/javascript-data-grid/configuration-options/" class="sidebar-link">Configuration options</a></li><li><a href="/docs/javascript-data-grid/grid-size/" aria-current="page" class="active sidebar-link">Grid size</a></li><li><a href="/docs/javascript-data-grid/events-and-hooks/" class="sidebar-link">Events and hooks</a></li><li><a href="/docs/javascript-data-grid/license-key/" class="sidebar-link">License key</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-029029c3"></i> <span>Styling</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/themes/" class="sidebar-link">Themes</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5e6bf2de"></i> <span>Columns</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/column-header/" class="sidebar-link">Column headers</a></li><li><a href="/docs/javascript-data-grid/column-groups/" class="sidebar-link">Column groups</a></li><li><a href="/docs/javascript-data-grid/column-hiding/" class="sidebar-link">Column hiding</a></li><li><a href="/docs/javascript-data-grid/column-moving/" class="sidebar-link">Column moving</a></li><li><a href="/docs/javascript-data-grid/column-freezing/" class="sidebar-link">Column freezing</a></li><li><a href="/docs/javascript-data-grid/column-width/" class="sidebar-link">Column widths</a></li><li><a href="/docs/javascript-data-grid/column-summary/" class="sidebar-link">Column summary</a></li><li><a href="/docs/javascript-data-grid/column-virtualization/" class="sidebar-link">Column virtualization</a></li><li><a href="/docs/javascript-data-grid/column-menu/" class="sidebar-link">Column menu</a></li><li><a href="/docs/javascript-data-grid/column-filter/" class="sidebar-link">Column filter</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5c42e7f6"></i> <span>Rows</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/row-header/" class="sidebar-link">Row headers</a></li><li><a href="/docs/javascript-data-grid/row-parent-child/" class="sidebar-link">Row parent-child</a></li><li><a href="/docs/javascript-data-grid/row-hiding/" class="sidebar-link">Row hiding</a></li><li><a href="/docs/javascript-data-grid/row-moving/" class="sidebar-link">Row moving</a></li><li><a href="/docs/javascript-data-grid/row-freezing/" class="sidebar-link">Row freezing</a></li><li><a href="/docs/javascript-data-grid/row-height/" class="sidebar-link">Row heights</a></li><li><a href="/docs/javascript-data-grid/row-virtualization/" class="sidebar-link">Row virtualization</a></li><li><a href="/docs/javascript-data-grid/rows-sorting/" class="sidebar-link">Rows sorting</a></li><li><a href="/docs/javascript-data-grid/row-trimming/" class="sidebar-link">Row trimming</a></li><li><a href="/docs/javascript-data-grid/row-prepopulating/" class="sidebar-link">Row pre-populating</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-04fc4d33"></i> <span>Cell features</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/basic-clipboard/" class="sidebar-link">Clipboard</a></li><li><a href="/docs/javascript-data-grid/selection/" class="sidebar-link">Selection</a></li><li><a href="/docs/javascript-data-grid/merge-cells/" class="sidebar-link">Merge cells</a></li><li><a href="/docs/javascript-data-grid/conditional-formatting/" class="sidebar-link">Conditional formatting</a></li><li><a href="/docs/javascript-data-grid/text-alignment/" class="sidebar-link">Text alignment</a></li><li><a href="/docs/javascript-data-grid/disabled-cells/" class="sidebar-link">Disabled cells</a></li><li><a href="/docs/javascript-data-grid/comments/" class="sidebar-link">Comments</a></li><li><a href="/docs/javascript-data-grid/autofill-values/" class="sidebar-link">Autofill values</a></li><li><a href="/docs/javascript-data-grid/formatting-cells/" class="sidebar-link">Formatting cells</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-f7a21ab6"></i> <span>Cell functions</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/cell-function/" class="sidebar-link">Cell functions</a></li><li><a href="/docs/javascript-data-grid/cell-renderer/" class="sidebar-link">Cell renderer</a></li><li><a href="/docs/javascript-data-grid/cell-editor/" class="sidebar-link">Cell editor</a></li><li><a href="/docs/javascript-data-grid/cell-validator/" class="sidebar-link">Cell validator</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-12d75036"></i> <span>Cell types</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/cell-type/" class="sidebar-link">Cell type</a></li><li><a href="/docs/javascript-data-grid/numeric-cell-type/" class="sidebar-link">Numeric cell type</a></li><li><a href="/docs/javascript-data-grid/date-cell-type/" class="sidebar-link">Date cell type</a></li><li><a href="/docs/javascript-data-grid/time-cell-type/" class="sidebar-link">Time cell type</a></li><li><a href="/docs/javascript-data-grid/checkbox-cell-type/" class="sidebar-link">Checkbox cell type</a></li><li><a href="/docs/javascript-data-grid/select-cell-type/" class="sidebar-link">Select cell type</a></li><li><a href="/docs/javascript-data-grid/dropdown-cell-type/" class="sidebar-link">Dropdown cell type</a></li><li><a href="/docs/javascript-data-grid/autocomplete-cell-type/" class="sidebar-link">Autocomplete cell type</a></li><li><a href="/docs/javascript-data-grid/password-cell-type/" class="sidebar-link">Password cell type</a></li><li><a href="/docs/javascript-data-grid/handsontable-cell-type/" class="sidebar-link">Handsontable cell type</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-811e5476"></i> <span>Formulas</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/formula-calculation/" class="sidebar-link">Formula calculation</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-5a6efe65"></i> <span>Navigation</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/keyboard-shortcuts/" class="sidebar-link">Keyboard shortcuts</a></li><li><a href="/docs/javascript-data-grid/custom-shortcuts/" class="sidebar-link">Custom shortcuts</a></li><li><a href="/docs/javascript-data-grid/searching-values/" class="sidebar-link">Searching values</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-1110acc7"></i> <span>Accessibility</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/accessibility/" class="sidebar-link">Accessibility</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-18763746"></i> <span>Accessories and menus</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/context-menu/" class="sidebar-link">Context menu</a></li><li><a href="/docs/javascript-data-grid/undo-redo/" class="sidebar-link">Undo and redo</a></li><li><a href="/docs/javascript-data-grid/icon-pack/" class="sidebar-link">Icon pack</a></li><li><a href="/docs/javascript-data-grid/export-to-csv/" class="sidebar-link">Export to CSV</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-69214965"></i> <span>Internationalization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/language/" class="sidebar-link">Language</a></li><li><a href="/docs/javascript-data-grid/locale/" class="sidebar-link">Locale</a></li><li><a href="/docs/javascript-data-grid/layout-direction/" class="sidebar-link">Layout direction</a></li><li><a href="/docs/javascript-data-grid/ime-support/" class="sidebar-link">IME support</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-8a776f76"></i> <span>Integrate with Angular</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/angular-installation/" class="sidebar-link">Installation in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-basic-example/" class="sidebar-link">Basic example in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-modules/" class="sidebar-link">Modules in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-id/" class="sidebar-link">Custom ID in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-context-menu-example/" class="sidebar-link">Custom context menu in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-editor-example/" class="sidebar-link">Custom editor in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-custom-renderer-example/" class="sidebar-link">Custom renderer in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-language-change-example/" class="sidebar-link">Language change in Angular</a></li><li><a href="/docs/javascript-data-grid/angular-hot-reference/" class="sidebar-link">Referencing a Handsontable instance in Angular</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-ed097276"></i> <span>Integrate with Vue 2</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/vue-installation/" class="sidebar-link">Installation in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-basic-example/" class="sidebar-link">Basic example in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-modules/" class="sidebar-link">Modules in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-editor-example/" class="sidebar-link">Custom editor in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-language-change-example/" class="sidebar-link">Language change in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-vuex-example/" class="sidebar-link">Vuex example in Vue 2</a></li><li><a href="/docs/javascript-data-grid/vue-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 2</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-0cb42003"></i> <span>Integrate with Vue 3</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/vue3-installation/" class="sidebar-link">Installation in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-basic-example/" class="sidebar-link">Basic example in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-modules/" class="sidebar-link">Modules in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-hot-column/" class="sidebar-link">Using the HotColumn component in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-setting-up-a-translation/" class="sidebar-link">Setting up a translation in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-id-class-style/" class="sidebar-link">Custom ID, Class and other attributes in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-context-menu-example/" class="sidebar-link">Custom context menu in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-editor-example/" class="sidebar-link">Custom editor in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-custom-renderer-example/" class="sidebar-link">Custom renderer in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-language-change-example/" class="sidebar-link">Language change in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-vuex-example/" class="sidebar-link">Vuex in Vue 3</a></li><li><a href="/docs/javascript-data-grid/vue3-hot-reference/" class="sidebar-link">Referencing the Handsontable instance in Vue 3</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-786864e5"></i> <span>Tools and building</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/packages/" class="sidebar-link">Packages</a></li><li><a href="/docs/javascript-data-grid/modules/" class="sidebar-link">Modules</a></li><li><a href="/docs/javascript-data-grid/custom-plugins/" class="sidebar-link">Custom plugins</a></li><li><a href="/docs/javascript-data-grid/custom-builds/" class="sidebar-link">Custom builds</a></li><li><a href="/docs/javascript-data-grid/testing/" class="sidebar-link">Testing</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-17c10e85"></i> <span>Optimization</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/batch-operations/" class="sidebar-link">Batch operations</a></li><li><a href="/docs/javascript-data-grid/performance/" class="sidebar-link">Performance</a></li><li><a href="/docs/javascript-data-grid/bundle-size/" class="sidebar-link">Bundle size</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-6e40b0b6"></i> <span>Security</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/security/" class="sidebar-link">Security</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-23ef33b9"></i> <span>Technical specification</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/supported-browsers/" class="sidebar-link">Supported browsers</a></li><li><a href="/docs/javascript-data-grid/software-license/" class="sidebar-link">Software license</a></li><li><a href="/docs/javascript-data-grid/third-party-licenses/" class="sidebar-link">Third-party licenses</a></li><li><a href="/docs/javascript-data-grid/documentation-license/" class="sidebar-link">Documentation license</a></li></ul></section></li><li><section class="sidebar-group collapsable depth-0"><p tabindex="0" role="button" class="sidebar-heading"><i class="ico v-00e59586"></i> <span>Upgrade and migration</span> <i class="ico i-arrow right"></i></p> <ul class="sidebar-links d-none sidebar-group-items"><li><a href="/docs/javascript-data-grid/changelog/" class="sidebar-link">Changelog</a></li><li><a href="/docs/javascript-data-grid/versioning-policy/" class="sidebar-link">Versioning policy</a></li><li><a href="/docs/javascript-data-grid/migration-from-14.6-to-15.0/" class="sidebar-link">Migrating from 14.6 to 15.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-13.1-to-14.0/" class="sidebar-link">Migrating from 13.1 to 14.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-12.4-to-13.0/" class="sidebar-link">Migrating from 12.4 to 13.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-11.1-to-12.0/" class="sidebar-link">Migrating from 11.1 to 12.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-10.0-to-11.0/" class="sidebar-link">Migrating from 10.0 to 11.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-9.0-to-10.0/" class="sidebar-link">Migrating from 9.0 to 10.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-8.4-to-9.0/" class="sidebar-link">Migrating from 8.4 to 9.0</a></li><li><a href="/docs/javascript-data-grid/migration-from-7.4-to-8.0/" class="sidebar-link">Migrate from 7.4 to 8.0</a></li></ul></section></li></ul></div> </aside> <main class="page"><div class="breadcrumbs"><a href="https://handsontable.com/docs/javascript-data-grid/"><i class="ico i-home"></i> <span> <span></span>JavaScript Data Grid</span></a> <a href="https://handsontable.com/docs/javascript-data-grid/grid-size"><span>Grid size</span></a></div> <div class="theme-default-content content__default"><h1 id="grid-size"><a href="#grid-size" class="header-link"><span class="header-framework">JavaScript Data Grid</span>Grid size</a></h1> <p>Set the width and height of the grid, using either absolute values or values relative to the parent container.</p> <p></p><div class="table-of-contents"><div class="toc-container-header"><i class="ico i-toc"></i>On this page</div><ul><li><a href="#set-your-grid-s-size">Set your grid's size</a><ul><li><a href="#define-the-size-in-your-css">Define the size in your CSS</a></li><li><a href="#pass-the-size-in-the-configuration">Pass the size in the configuration</a></li></ul></li><li><a href="#what-if-the-size-is-not-set">What if the size is not set</a></li><li><a href="#autoresizing">Autoresizing</a></li><li><a href="#manual-resizing">Manual resizing</a></li><li><a href="#related-articles">Related articles</a></li></ul></div><p></p> <h2 id="set-your-grid-s-size"><a href="#set-your-grid-s-size" class="header-link">Set your grid's size</a></h2> <p>You need to define the grid's container as a starting point to initialize it. Usually, the <code>div</code> element becomes this container. This container should have defined dimensions as well as the rest of your layout. Handsontable supports relative units such as <code>%</code>, <code>rem</code>, <code>em</code>, <code>vh</code>, <code>vw</code>, and <code>px</code>.</p> <h3 id="define-the-size-in-your-css"><a href="#define-the-size-in-your-css" class="header-link">Define the size in your CSS</a></h3> <p>Both <code>width</code> and <code>height</code> could be defined as inline styles or as a CSS class property. In this case, it's important to define what should be an <code>overflow</code> parent properly. Handsontable looks for the closest element with <code>overflow: auto</code> or <code>overflow: hidden</code> to use it as a scrollable container. If no such element is found, a window will be used.</p> <div class="custom-block tip"><p class="custom-block-title">TIP</p> <p>Handsontable doesn't observe CSS changes for containers out of the box.
+If you'd like to observe it, you can define the dimensions in the configuration object or create your own observer.</p></div> <h3 id="pass-the-size-in-the-configuration"><a href="#pass-the-size-in-the-configuration" class="header-link">Pass the size in the configuration</a></h3> <p>You can pass width and height values to Handsontable as numbers or possible CSS values for the &quot;width&quot;/&quot;height&quot; properties:</p> <p></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">{</span>
+  <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token string">'100px'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'100px'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p>or</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">{</span>
+  <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token string">'75%'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'75%'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p>or</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">{</span>
+  <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token number">100</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token number">100</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p></p> <p></p> <p>These dimensions will be set as inline styles in a container element, and <code>overflow: hidden</code> will be added automatically.</p> <p>If container is a block element, then its parent has to have defined <code>height</code>. By default block element is <code>0px</code> height, so <code>100%</code> from <code>0px</code> is still <code>0px</code>.</p> <p>Changes called in <a href="/docs/javascript-data-grid/api/core/#updatesettings"><code>updateSettings()</code></a> will re-render the grid with the new properties.</p> <h2 id="what-if-the-size-is-not-set"><a href="#what-if-the-size-is-not-set" class="header-link">What if the size is not set</a></h2> <p>If you don't define any dimensions, Handsontable generates as many rows and columns as needed to fill the available space.</p> <p>If your grid's contents don't fit in the viewport, the browser's native scrollbars are used for scrolling. For this to work properly, Handsontable's <a href="/docs/javascript-data-grid/layout-direction/">layout direction</a> (e.g., <a href="/docs/javascript-data-grid/api/options/#layoutdirection"><code>layoutDirection: 'rtl'</code></a>) must be the same as your HTML document's layout direction (<code>&lt;html dir='rtl'&gt;</code>). Otherwise, horizontal scrolling doesn't work.</p> <h2 id="autoresizing"><a href="#autoresizing" class="header-link">Autoresizing</a></h2> <p>Handsontable observes window resizing. If the window's dimensions have changed, then we check if Handsontable should resize itself too. Due to the performance issue, we use the debounce method to respond on window resize.</p> <p>You can easily overwrite this behaviour by returning <code>false</code> in the <a href="/docs/javascript-data-grid/api/hooks/#beforerefreshdimensions"><code>beforeRefreshDimensions</code></a> hook.</p> <p></p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">{</span>
+  <span class="token function">beforeRefreshDimensions</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p></p> <p></p> <h2 id="manual-resizing"><a href="#manual-resizing" class="header-link">Manual resizing</a></h2> <p>The Handsontable instance exposes the <a href="/docs/javascript-data-grid/api/core/#refreshdimensions"><code>refreshDimensions()</code></a> method, which helps you to resize grid elements properly.</p> <p></p> <div class="language-js extra-class"><pre class="language-js"><code>hot<span class="token punctuation">.</span><span class="token function">refreshDimensions</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div><p>You can listen for two hooks, <a href="/docs/javascript-data-grid/api/hooks/#beforerefreshdimensions"><code>beforeRefreshDimensions</code></a> and <a href="/docs/javascript-data-grid/api/hooks/#afterrefreshdimensions"><code>afterRefreshDimensions</code></a>.</p> <p></p> <div class="example-container"><style>#exampleParent {
+  height: 157px;
+}</style> <div><div data-preset-type="hot" data-example-id="example" class="ht-theme-main-dark-auto"><div class="example-controls-container"><div class="controls"><button id="triggerBtn" class="button button--primary">Expand container</button></div></div> <div id="exampleParent"><div id="example" class="ht-theme-main-dark-auto"></div></div></div></div> <div></div></div> <div class="tabs-button-wrapper"><div class="tabs-button-list"><button class="show-code"><i class="ico i-code"></i>Source code
+              </button> <div class="example-controls"><div class="examples-buttons"><form action="https://stackblitz.com/run" method="post" target="_blank" class="form-stackblitz-external"><textarea class="hidden" name="project[files][package.json]" readOnly="">{
+    &quot;name&quot;: &quot;handsontable&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;description&quot;: &quot;&quot;,
+    &quot;dependencies&quot;: {
+      &quot;hyperformula&quot;: &quot;^2.4.0&quot;,
+      &quot;handsontable&quot;: &quot;15.0&quot;
+    }
+  }</textarea> <textarea class="hidden" name="project[files][index.html]" readOnly="">&lt;!DOCTYPE html&gt;
+  &lt;html&gt;
+    &lt;head&gt;
+      &lt;meta charset=&quot;utf-8&quot; /&gt;
+      &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+      &lt;title&gt;Handsontable&lt;/title&gt;
+    &lt;/head&gt;
+  
+    &lt;body&gt;
+      &lt;div class=&quot;example-controls-container&quot;&gt;
+  &lt;div class=&quot;controls&quot;&gt;
+    &lt;button id=&quot;triggerBtn&quot; class=&quot;button button--primary&quot;&gt;Expand container&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;exampleParent&quot;&gt;&lt;!-- element with dynamically added styles --&gt;
+  &lt;div id=&quot;example&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;</textarea> <textarea class="hidden" name="project[files][styles.css]" readOnly="">#exampleParent {
+  height: 157px;
+}</textarea> <textarea class="hidden" name="project[files][index.js]" readOnly="">import './styles.css'
+import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+const triggerBtn = document.querySelector('#triggerBtn');
+const example = document.querySelector('#example');
+const exampleParent = document.querySelector('#exampleParent');
+// generate an array of arrays with dummy data
+const data = new Array(100) // number of rows
+  .fill(null)
+  .map((_, row) =&gt;
+    new Array(50) // number of columns
+      .fill(null)
+      .map((_, column) =&gt; `${row}, ${column}`)
+  );
+
+const hot = new Handsontable(example, {
+  data,
+  rowHeaders: true,
+  colHeaders: true,
+  width: '100%',
+  height: '100%',
+  rowHeights: 23,
+  colWidths: 100,
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+triggerBtn.addEventListener('click', () =&gt; {
+  if (triggerBtn.textContent === 'Collapse container') {
+    exampleParent.style.height = ''; // reset to initial 150px;
+    hot.refreshDimensions();
+    triggerBtn.textContent = 'Expand container';
+  } else {
+    exampleParent.style.height = '410px';
+    hot.refreshDimensions();
+    triggerBtn.textContent = 'Collapse container';
+  }
+});
+</textarea> <input type="hidden" name="project[title]" value="handsontable"> <input type="hidden" name="project[description]" value="demo"> <input type="hidden" name="project[dependencies]" value="{&quot;hyperformula&quot;:&quot;latest&quot;, &quot;handsontable&quot;: &quot;latest&quot;}"> <input type="hidden" name="project[template]" value="javascript"> <div class="js-stackblitz-link"><button type="submit" aria-label="Edit in StackBlitz"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="10.43" height="15" preserveAspectRatio="xMidYMid" viewBox="0 0 256 368" class="icon outbound"><path fill="currentColor" d="M109.586 217.013H0L200.34 0l-53.926 150.233H256L55.645 367.246l53.927-150.233z"></path></svg></button></div></form> <form action="https://jsfiddle.net/api/post/library/pure/" method="post" target="_blank" class="form-jsfiddle-external"><input type="hidden" name="title" readOnly="" value="Handsontable example"> <input type="hidden" name="wrap" readOnly="" value="d"> <textarea class="hidden" name="js" readOnly="">import Handsontable from 'handsontable';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+
+const triggerBtn = document.querySelector('#triggerBtn');
+const example = document.querySelector('#example');
+const exampleParent = document.querySelector('#exampleParent');
+// generate an array of arrays with dummy data
+const data = new Array(100) // number of rows
+  .fill(null)
+  .map((_, row) =&gt;
+    new Array(50) // number of columns
+      .fill(null)
+      .map((_, column) =&gt; `${row}, ${column}`)
+  );
+
+const hot = new Handsontable(example, {
+  data,
+  rowHeaders: true,
+  colHeaders: true,
+  width: '100%',
+  height: '100%',
+  rowHeights: 23,
+  colWidths: 100,
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+triggerBtn.addEventListener('click', () =&gt; {
+  if (triggerBtn.textContent === 'Collapse container') {
+    exampleParent.style.height = ''; // reset to initial 150px;
+    hot.refreshDimensions();
+    triggerBtn.textContent = 'Expand container';
+  } else {
+    exampleParent.style.height = '410px';
+    hot.refreshDimensions();
+    triggerBtn.textContent = 'Collapse container';
+  }
+});
+</textarea> <textarea class="hidden" name="html" readOnly="">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/dist/handsontable.full.min.js&quot;&gt;&lt;/script&gt;
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/handsontable.min.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-main.css&quot; /&gt; 
+&lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/handsontable@15.0/styles/ht-theme-horizon.css&quot; /&gt; 
+&lt;script src=&quot;https://handsontable.com/docs/scripts/fixer.js&quot;&gt;&lt;/script&gt;
+
+&lt;div class=&quot;example-controls-container&quot;&gt;
+  &lt;div class=&quot;controls&quot;&gt;
+    &lt;button id=&quot;triggerBtn&quot; class=&quot;button button--primary&quot;&gt;Expand container&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;exampleParent&quot;&gt;&lt;!-- element with dynamically added styles --&gt;
+  &lt;div id=&quot;example&quot; class=&quot;ht-theme-main-dark-auto&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+      </textarea> <textarea class="hidden" name="css" readOnly="">#exampleParent {
+  height: 157px;
+}</textarea> <input type="hidden" name="panel_css" value="1" readOnly=""> <input type="hidden" name="panel_js" value="3" readOnly=""> <div class="js-fiddle-link"><button type="submit" aria-label="Edit in JSFiddle"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 64 64" class="icon outbound"><path fill="currentColor" d="m20.04 20.76 1.42-2.33c3.307-4.71 7.818-7.473 13.536-8.177 8.378-1.032 16.455 3.59 19.773 11.275 1.11 2.572 1.634 5.26 1.475 8.065-.018.318.08.45.367.577 4.826 2.156 7.758 7.065 7.352 12.278-.42 5.378-4.438 9.963-9.762 11.128-1.147.25-2.307.383-3.485.283-.17-.014-.342-.006-.513-.006-12.335 0-24.67-.003-37.005.003-2.22.001-4.33-.44-6.308-1.463-8.718-4.51-9.283-16.584-1.015-21.884.332-.213.416-.38.314-.768-1.283-4.88 2.13-9.96 7.123-10.644 2.385-.326 4.57.163 6.543 1.553.063.044.13.08.182.11zm8.354 19.394c-.3.254-.552.484-.82.696-1.41 1.11-2.992 1.568-4.766 1.202-1.613-.333-2.845-1.687-3.012-3.252a3.742 3.742 0 0 1 2.174-3.818c1.033-.478 2.11-.508 3.197-.21 1.878.518 3.28 1.707 4.498 3.174 1.317 1.59 2.614 3.2 4 4.717 3.085 3.352 6.894 4.67 11.347 3.555 3.144-.787 5.315-2.793 5.98-6.045.675-3.31-.25-6.145-3.026-8.236-1.58-1.19-3.4-1.66-5.346-1.75-2.975-.136-5.61.667-7.794 2.758-.09.088-.24.115-.358.168l2.935 3.447c.065-.017.08-.017.09-.024l.51-.436c1.342-1.124 2.86-1.68 4.63-1.462a3.92 3.92 0 0 1 3.388 3.43c.185 1.688-.903 3.327-2.6 3.88-1.076.35-2.153.293-3.2-.092-1.765-.643-3.07-1.867-4.24-3.292-1.352-1.644-2.69-3.313-4.18-4.83-2.945-2.998-6.52-4.182-10.686-3.272-3.16.7-6.49 3.372-6.487 7.77.002 3.07 1.267 5.423 3.892 7.022 1.282.78 2.7 1.15 4.187 1.263 2.21.166 4.328-.127 6.265-1.29a11.46 11.46 0 0 0 2.262-1.765l-2.836-3.313z"></path></svg></button></div></form></div> <!----> <button aria-label="Reset the demo"><i class="ico i-refresh"></i></button> <button aria-label="View the source on GitHub"><i class="ico i-github"></i></button></div></div> <div class="example-container-code"><div class="tabs-component"><ul role="tablist" class="tabs-component-tabs"></ul> <div class="tabs-component-panels"><section aria-hidden="true" id="code-tab-example" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="tab-content-js"><div class="language-js extra-class"><pre class="language-js"><code><span class="token keyword">import</span> Handsontable <span class="token keyword">from</span> <span class="token string">'handsontable'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/handsontable.css'</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token string">'handsontable/styles/ht-theme-main.css'</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> triggerBtn <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#triggerBtn'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> example <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#example'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> exampleParent <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#exampleParent'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// generate an array of arrays with dummy data</span>
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Array</span><span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span> <span class="token comment">// number of rows</span>
+  <span class="token punctuation">.</span><span class="token function">fill</span><span class="token punctuation">(</span><span class="token keyword">null</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">_<span class="token punctuation">,</span> row</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span>
+    <span class="token keyword">new</span> <span class="token class-name">Array</span><span class="token punctuation">(</span><span class="token number">50</span><span class="token punctuation">)</span> <span class="token comment">// number of columns</span>
+      <span class="token punctuation">.</span><span class="token function">fill</span><span class="token punctuation">(</span><span class="token keyword">null</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">_<span class="token punctuation">,</span> column</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>row<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">, </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>column<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">const</span> hot <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Handsontable</span><span class="token punctuation">(</span>example<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  data<span class="token punctuation">,</span>
+  <span class="token literal-property property">rowHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">colHeaders</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">width</span><span class="token operator">:</span> <span class="token string">'100%'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">height</span><span class="token operator">:</span> <span class="token string">'100%'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">rowHeights</span><span class="token operator">:</span> <span class="token number">23</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">colWidths</span><span class="token operator">:</span> <span class="token number">100</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapRow</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">autoWrapCol</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">licenseKey</span><span class="token operator">:</span> <span class="token string">'non-commercial-and-evaluation'</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+triggerBtn<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>triggerBtn<span class="token punctuation">.</span>textContent <span class="token operator">===</span> <span class="token string">'Collapse container'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    exampleParent<span class="token punctuation">.</span>style<span class="token punctuation">.</span>height <span class="token operator">=</span> <span class="token string">''</span><span class="token punctuation">;</span> <span class="token comment">// reset to initial 150px;</span>
+    hot<span class="token punctuation">.</span><span class="token function">refreshDimensions</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    triggerBtn<span class="token punctuation">.</span>textContent <span class="token operator">=</span> <span class="token string">'Expand container'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    exampleParent<span class="token punctuation">.</span>style<span class="token punctuation">.</span>height <span class="token operator">=</span> <span class="token string">'410px'</span><span class="token punctuation">;</span>
+    hot<span class="token punctuation">.</span><span class="token function">refreshDimensions</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    triggerBtn<span class="token punctuation">.</span>textContent <span class="token operator">=</span> <span class="token string">'Collapse container'</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="js" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js active">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></div><!----></section><section aria-hidden="true" id="html-tab-example" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example-controls-container<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>controls<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>triggerBtn<span class="token punctuation">&quot;</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>button button--primary<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>Expand container<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>exampleParent<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span><span class="token comment">&lt;!-- element with dynamically added styles --&gt;</span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>example<span class="token punctuation">&quot;</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">&quot;</span>ht-theme-main-dark-auto<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="html" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></section><section aria-hidden="true" id="css-tab-example" role="tabpanel" class="tabs-component-panel" style="display:none;"><div class="language-css extra-class"><pre class="language-css"><code><span class="token selector">#exampleParent</span> <span class="token punctuation">{</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 157px<span class="token punctuation">;</span>
+<span class="token punctuation">}</span></code></pre> <div class="codeControls"><div class="select-type"><button type="button" value="css" class="select-type-button">
+                JavaScript
+              </button> <ul><li><button type="button" class="select-type-js">
+                    JavaScript
+                  </button></li> <li><button type="button" class="select-type-ts">
+                    TypeScript
+                  </button></li></ul></div> <button aria-label="Copy to clipboard" class="copycode"><i class="ico i-copy no-pointer"></i><i class="ico i-checks no-pointer"></i></button></div></div></section></div></div></div></div><p></p> <p></p> <h2 id="related-articles"><a href="#related-articles" class="header-link">Related articles</a></h2> <div class="boxes-list gray"><ul><li><a href="/docs/javascript-data-grid/column-width/">Column widths</a></li> <li><a href="/docs/javascript-data-grid/row-height/">Row heights</a></li></ul></div> <p><strong>Related API reference</strong></p> <ul><li>Configuration options:
+<ul><li><a href="/docs/javascript-data-grid/api/options/#height"><code>height</code></a></li> <li><a href="/docs/javascript-data-grid/api/options/#layoutdirection"><code>layoutDirection</code></a></li> <li><a href="/docs/javascript-data-grid/api/options/#preventoverflow"><code>preventOverflow</code></a></li> <li><a href="/docs/javascript-data-grid/api/options/#width"><code>width</code></a></li></ul></li> <li>Core methods:
+<ul><li><a href="/docs/javascript-data-grid/api/core/#refreshdimensions"><code>refreshDimensions()</code></a></li> <li><a href="/docs/javascript-data-grid/api/core/#updatesettings"><code>updateSettings()</code></a></li></ul></li> <li>Hooks:
+<ul><li><a href="/docs/javascript-data-grid/api/hooks/#aftercellmetareset"><code>afterCellMetaReset</code></a></li> <li><a href="/docs/javascript-data-grid/api/hooks/#afterrefreshdimensions"><code>afterRefreshDimensions</code></a></li> <li><a href="/docs/javascript-data-grid/api/hooks/#afterupdatesettings"><code>afterUpdateSettings</code></a></li> <li><a href="/docs/javascript-data-grid/api/hooks/#beforerefreshdimensions"><code>beforeRefreshDimensions</code></a></li></ul></li></ul></div> <div class="page-top" style="display:none;"><div class="custom-block tip version-alert"><p>There is a newer version of Handsontable available.
+            <a href="/docs/">Switch to the latest version ⟶</a></p></div></div> <footer class="footer"><a href="https://github.com/handsontable/handsontable/edit/develop/docs/content/guides/getting-started/grid-size/grid-size.md" target="_blank" rel="noopener noreferrer" class="edit-link">Edit on GitHub <i class="ico i-external"></i></a> <div class="footer-links"><div class="socail-links"><a href="https://github.com/handsontable/handsontable" target="_blank" aria-label="Link to Github"><i class="ico i-github"></i></a> <a href="https://www.linkedin.com/company/handsontable/" target="_blank" aria-label="Link to Linkedin"><i class="ico i-linkedin"></i></a> <a href="https://twitter.com/handsontable" target="_blank" aria-label="Link to X"><i class="ico i-twitter"></i></a></div> <div class="hot-links"><a href="https://handsontable.com/privacy">Privacy policy</a> <a href="https://handsontable.com/terms-of-use">Terms of use</a> <a href="https://handsontable.com/team">Team</a> <a href="https://handsontable.com/contact?category=technical_support">Contact</a> <a href="https://handsontable.com/blog/">Blog</a> <a href="https://status.handsontable.com/" target="_blank" class="status">Status</a></div></div> <div class="copyright"><p>© 2012 - 2025 Handsoncode</p> <label id="switch" class="dark-mode"><span class="inner" style="display:none;"><input type="checkbox"> <span style="display:none;"><i class="ico i-dm-dark"></i>Light</span> <span style="display:;"><i class="ico i-dm-light"></i>Dark</span></span></label></div></footer> </main></div></div><div class="global-ui"></div></div>
+
+<script src="/docs/assets/js/app.8c0eccc3.js" defer></script><script src="/docs/assets/js/5.af4b1d74.js" defer></script><script src="/docs/assets/js/3.6372b058.js" defer></script><script src="/docs/assets/js/2.b3c0589f.js" defer></script><script src="/docs/assets/js/144.e567e89e.js" defer></script><script src="/docs/assets/js/37.c231f17e.js" defer></script>
+</body>
+</html>
