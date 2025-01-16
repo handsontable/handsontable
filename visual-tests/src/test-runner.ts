@@ -47,6 +47,17 @@ const test = baseTest.extend<TestParams>({
       testedPageUrl: page.url(),
     });
 
+    await page.addStyleTag({
+      content: `
+        *,
+        *::before,
+        *::after {
+            animation: none !important;
+            transition: none !important;
+        }
+      `
+    });
+
     stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
 
     const table = page.locator(helpers.selectors.anyTable).first();
