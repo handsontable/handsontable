@@ -66,6 +66,7 @@ const deprecationWarns = new Set();
 /**
  * Handsontable constructor.
  *
+ *
  * @core
  * @class Core
  * @description
