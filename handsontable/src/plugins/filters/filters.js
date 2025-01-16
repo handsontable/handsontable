@@ -861,7 +861,11 @@ export class Filters extends BasePlugin {
   #onAfterGetColHeader(col, TH) {
     const physicalColumn = this.hot.toPhysicalColumn(col);
 
-    if (this.enabled && this.conditionCollection.hasConditions(physicalColumn)) {
+    if (
+      this.enabled
+      && this.conditionCollection.hasConditions(physicalColumn)
+      && TH.querySelector('.changeType')
+    ) {
       addClass(TH, 'htFiltersActive');
     } else {
       removeClass(TH, 'htFiltersActive');
