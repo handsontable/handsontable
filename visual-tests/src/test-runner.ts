@@ -47,6 +47,7 @@ const test = baseTest.extend<TestParams>({
       testedPageUrl: page.url(),
     });
 
+    // disable animations and transitions on all testing pages (for consistent screenshots)
     await page.addStyleTag({
       content: `
         *,
