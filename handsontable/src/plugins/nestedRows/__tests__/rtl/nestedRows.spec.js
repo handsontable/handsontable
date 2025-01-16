@@ -120,6 +120,7 @@ describe('NestedRows (RTL)', () => {
       });
 
       it('should display indicators properly located', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         const hot = handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),

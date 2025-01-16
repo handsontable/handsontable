@@ -250,6 +250,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize (narrowing) selected columns', async() => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -314,6 +315,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize (expanding) selected columns', async() => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -375,11 +377,26 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect($columnHeaders.eq(0).width()).toBe(221);
-    expect($columnHeaders.eq(1).width()).toBe(19);
-    expect($columnHeaders.eq(2).width()).toBe(222);
-    expect($columnHeaders.eq(3).width()).toBe(222);
-    expect($columnHeaders.eq(4).width()).toBe(220);
+    expect($columnHeaders.eq(0).width()).forThemes(({ classic, main }) => {
+      classic.toBe(221);
+      main.toBe(219);
+    });
+    expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+      classic.toBe(19);
+      main.toBe(27);
+    });
+    expect($columnHeaders.eq(2).width()).forThemes(({ classic, main }) => {
+      classic.toBe(222);
+      main.toBe(220);
+    });
+    expect($columnHeaders.eq(3).width()).forThemes(({ classic, main }) => {
+      classic.toBe(222);
+      main.toBe(220);
+    });
+    expect($columnHeaders.eq(4).width()).forThemes(({ classic, main }) => {
+      classic.toBe(220);
+      main.toBe(218);
+    });
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async() => {
@@ -412,10 +429,22 @@ describe('manualColumnResize', () => {
     await sleep(1000);
 
     expect($columnHeaders.eq(0).width()).toBeAroundValue(19);
-    expect($columnHeaders.eq(1).width()).toBe(49);
-    expect($columnHeaders.eq(2).width()).toBe(49);
-    expect($columnHeaders.eq(3).width()).toBe(49);
-    expect($columnHeaders.eq(4).width()).toBeAroundValue(738);
+    expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+      classic.toBe(49);
+      main.toBe(48);
+    });
+    expect($columnHeaders.eq(2).width()).forThemes(({ classic, main }) => {
+      classic.toBe(49);
+      main.toBe(48);
+    });
+    expect($columnHeaders.eq(3).width()).forThemes(({ classic, main }) => {
+      classic.toBe(49);
+      main.toBe(48);
+    });
+    expect($columnHeaders.eq(4).width()).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(738);
+      main.toBeAroundValue(730);
+    });
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler after ' +
@@ -448,8 +477,14 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(25);
-      expect($columnHeaders.eq(1).width()).toBe(119);
+      expect($columnHeaders.eq(0).width()).forThemes(({ classic, main }) => {
+        classic.toBe(25);
+        main.toBe(35);
+      });
+      expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+        classic.toBe(119);
+        main.toBe(118);
+      });
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
       expect($columnHeaders.eq(4).width()).toBe(79);
@@ -466,8 +501,14 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(25);
-      expect($columnHeaders.eq(1).width()).toBe(70);
+      expect($columnHeaders.eq(0).width()).forThemes(({ classic, main }) => {
+        classic.toBe(25);
+        main.toBe(35);
+      });
+      expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+        classic.toBe(70);
+        main.toBe(81);
+      });
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
       expect($columnHeaders.eq(4).width()).toBe(79);
@@ -632,8 +673,14 @@ describe('manualColumnResize', () => {
     await sleep(1000);
 
     expect(afterColumnResizeCallback).toHaveBeenCalledTimes(1);
-    expect(afterColumnResizeCallback).toHaveBeenCalledWith(26, 0, true);
-    expect(colWidth(spec().$container, 0)).toBe(26);
+    expect(afterColumnResizeCallback).forThemes(({ classic, main }) => {
+      classic.toHaveBeenCalledWith(26, 0, true);
+      main.toHaveBeenCalledWith(36, 0, true);
+    });
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(26);
+      main.toBe(36);
+    });
   });
 
   it('should autosize column after double click (when initial width is not defined)', async() => {
@@ -657,7 +704,10 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(29, 3);
+      main.toBeAroundValue(35, 3);
+    });
   });
 
   it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
@@ -681,7 +731,10 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(29, 3);
+      main.toBeAroundValue(35, 3);
+    });
   });
 
   it('should autosize selected columns after double click on handler', async() => {
@@ -708,12 +761,22 @@ describe('manualColumnResize', () => {
 
     await sleep(600);
 
-    expect(colWidth(spec().$container, 1)).toBe(26);
-    expect(colWidth(spec().$container, 2)).toBe(26);
-    expect(colWidth(spec().$container, 3)).toBe(26);
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(26);
+      main.toBe(36);
+    });
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(26);
+      main.toBe(36);
+    });
+    expect(colWidth(spec().$container, 3)).forThemes(({ classic, main }) => {
+      classic.toBe(26);
+      main.toBe(36);
+    });
   });
 
   it('should adjust resize handles position after table size changed', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     let maxed = false;
 
     handsontable({
@@ -1143,6 +1206,7 @@ describe('manualColumnResize', () => {
       });
 
       it('should display the resize handle in the proper position and with a proper size', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         handsontable({
           layoutDirection,
           data: [
@@ -1192,6 +1256,7 @@ describe('manualColumnResize', () => {
     });
 
     it('should remove resize handler when user clicks RMB', async() => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         colHeaders: true,

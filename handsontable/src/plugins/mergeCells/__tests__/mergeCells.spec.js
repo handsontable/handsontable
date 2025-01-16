@@ -1548,6 +1548,7 @@ describe('MergeCells', () => {
   });
 
   it('should correctly render all overlay\'s heights when they are contain merge cells', () => {
+    // TODO [themes]: Possibly a themes-related bug. (different sizes for top overlays)
     handsontable({
       data: createSpreadsheetData(10, 10),
       width: 600,
@@ -1573,6 +1574,7 @@ describe('MergeCells', () => {
   });
 
   it('should expand the all overlays size after changing the row height', () => {
+    // TODO [themes]: Possibly a themes-related bug. (different sizes for top overlays)
     handsontable({
       data: createSpreadsheetData(10, 10),
       width: 600,
@@ -1687,6 +1689,7 @@ describe('MergeCells', () => {
   });
 
   it('should display properly high merged cell', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: createSpreadsheetData(50, 3),
@@ -1783,6 +1786,7 @@ describe('MergeCells', () => {
   });
 
   it('should display properly high virtualized merged cell', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: createSpreadsheetData(50, 30),

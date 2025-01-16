@@ -96,6 +96,7 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch columns after vertical scroll appears (defined table size)', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration (nothing changes after updateSettings)
     handsontable({
       data: createSpreadsheetData(5, 3),
       colHeaders: true,
@@ -223,8 +224,14 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(0)).toBe(404);
-    expect(getColWidth(1)).toBe(96);
+    expect(getColWidth(0)).forThemes(({ classic, main }) => {
+      classic.toBe(404);
+      main.toBe(412);
+    });
+    expect(getColWidth(1)).forThemes(({ classic, main }) => {
+      classic.toBe(96);
+      main.toBe(88);
+    });
   });
 
   it('should not stretch the columns when the sum of columns widths is wider than the viewport (stretch "all")', () => {
@@ -269,7 +276,10 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(4)).toBe(259);
+    expect(getColWidth(4)).forThemes(({ classic, main }) => {
+      classic.toBe(259);
+      main.toBe(286);
+    });
 
     setDataAtCell(0, 4, 'text');
 
@@ -277,6 +287,9 @@ describe('StretchColumns', () => {
 
     setDataAtCell(0, 4, 'very long text is here to make the column wider');
 
-    expect(getColWidth(4)).toBe(259);
+    expect(getColWidth(4)).forThemes(({ classic, main }) => {
+      classic.toBe(259);
+      main.toBe(286);
+    });
   });
 });

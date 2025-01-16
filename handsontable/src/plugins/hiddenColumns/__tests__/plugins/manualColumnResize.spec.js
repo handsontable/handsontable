@@ -51,7 +51,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should display the resize handler in the proper position when the table contains hidden column', () => {
-      // TODO [themes]: Possibly a themes-related bug.
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },
@@ -79,7 +79,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should display the resize handler in the proper position when the table contains hidden fixed left column', () => {
-      // TODO [themes]: Possibly a themes-related bug.
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },

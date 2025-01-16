@@ -466,6 +466,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should keep focus selection on the high virtualized merged cell that intersects the top overlay', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: createSpreadsheetData(30, 3),

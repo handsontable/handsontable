@@ -24,7 +24,10 @@ describe('HiddenRows', () => {
         manualRowResize: true,
       });
 
-      expect(rowHeight(spec().$container, 1)).toEqual(23);
+      expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toEqual(23);
+        main.toEqual(29);
+      });
 
       // Resize renderable row index `1` (within visual index term the index at 1 is hidden).
       resizeRow(1, 100);
@@ -43,7 +46,10 @@ describe('HiddenRows', () => {
         manualRowResize: true,
       });
 
-      expect(rowHeight(spec().$container, 1)).toEqual(23);
+      expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toEqual(23);
+        main.toEqual(29);
+      });
 
       getPlugin('manualRowResize').setManualSize(2, 100);
       render();
@@ -52,6 +58,7 @@ describe('HiddenRows', () => {
     });
 
     it('should display the resize handler in the proper position when the table contains hidden row', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right' },
@@ -80,6 +87,7 @@ describe('HiddenRows', () => {
     });
 
     it('should display the resize handler in the proper position when the table contains hidden fixed top row', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right' },
@@ -111,6 +119,7 @@ describe('HiddenRows', () => {
     });
 
     it('should display the resize handler in the proper position when the table contains hidden fixed bottom row', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right' },
@@ -142,6 +151,7 @@ describe('HiddenRows', () => {
     });
 
     it('should resize a proper row using the resize handler when the table contains hidden row', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right' },

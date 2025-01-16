@@ -734,6 +734,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should select the entire column after column header is clicked', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       width: 200,
       height: 100,
@@ -762,6 +763,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should select the entire column and row after column header and row header is clicked', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       width: 200,
       height: 100,
@@ -861,6 +863,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should select the entire fixed column after column header is clicked, after scroll horizontally', () => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       width: 200,
       height: 100,
@@ -895,6 +898,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', async() => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       width: 200,
       height: 200,
@@ -948,6 +952,8 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', async() => {
+    // TODO [themes]: Could be potentially improved by per-theme configuration
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       width: 200,
       height: 200,

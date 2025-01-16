@@ -2891,6 +2891,7 @@ describe('MultiColumnSorting', () => {
       });
 
       it('should be properly hided when just one column is sorted', async() => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(10, 10),

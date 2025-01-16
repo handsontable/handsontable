@@ -1263,6 +1263,7 @@ describe('TrimRows', () => {
     const DEFAULT_ROW_HEIGHT = 23;
 
     it('should resize container for headers properly after insertion (pixel perfect)', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration (change the default row height)
       const insertedRows = 6;
 
       const hot = handsontable({
@@ -1287,6 +1288,7 @@ describe('TrimRows', () => {
     });
 
     it('should resize container for headers properly after removal (pixel perfect)', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration (change the default row height)
       const removedRows = 6;
 
       const hot = handsontable({
@@ -1311,6 +1313,7 @@ describe('TrimRows', () => {
     });
 
     it('should resize container for headers properly after untrimming row (pixel perfect) #6276', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration (change the default row height)
       const hot = handsontable({
         rowHeaders: true,
         colHeaders: true,

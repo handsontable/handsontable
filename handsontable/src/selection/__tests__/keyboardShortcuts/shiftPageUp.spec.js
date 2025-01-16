@@ -12,6 +12,8 @@ describe('Selection extending', () => {
 
   describe('"Shift + PageUp"', () => {
     it('should extend the cell selection up by the height of the table viewport', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         width: 180,
         height: 100, // 100/23 (default cell height) rounding down is 4. So PageUp will extend the selection per 4 rows
@@ -107,6 +109,7 @@ describe('Selection extending', () => {
 
     it('should scroll the viewport repeatedly by the same number of pixels with keeping the initial ' +
        'selection viewport offset', async() => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       const hot = handsontable({
         width: 180,
         height: 200,

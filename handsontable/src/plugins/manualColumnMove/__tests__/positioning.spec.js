@@ -69,6 +69,7 @@ describe('manualColumnMove', () => {
       });
 
       it('should move backlight and guideline element with the movement of the mouse (move left)', () => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 10),
@@ -100,6 +101,7 @@ describe('manualColumnMove', () => {
       });
 
       it('should move backlight and guideline element with the movement of the mouse (move right)', () => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 10),
@@ -131,6 +133,7 @@ describe('manualColumnMove', () => {
       });
 
       it('should move guideline element to the last header when the mouse exceeds half of the width of that header', () => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 10),
@@ -197,6 +200,7 @@ describe('manualColumnMove', () => {
 
       it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
         '(overflow: hidden, move left)', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 50),
@@ -240,6 +244,7 @@ describe('manualColumnMove', () => {
 
       it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
         '(overflow: hidden, move right)', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 50),
@@ -313,6 +318,7 @@ describe('manualColumnMove', () => {
 
       it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
         '(window as scrollable element, move left)', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 100),
@@ -354,6 +360,7 @@ describe('manualColumnMove', () => {
 
       it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
         '(window as scrollable element, move right)', async() => {
+        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 100),

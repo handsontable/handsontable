@@ -32,6 +32,7 @@ describe('manualRowMove', () => {
     });
 
     it('should draw backlight element properly when target element points to header\'s child element', () => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(10, 5),
         manualRowMove: true,
@@ -58,6 +59,7 @@ describe('manualRowMove', () => {
     });
 
     it('should move backlight and guideline element with the movement of the mouse (move top)', () => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(10, 5),
         manualRowMove: true,
@@ -88,6 +90,7 @@ describe('manualRowMove', () => {
     });
 
     it('should move backlight and guideline element with the movement of the mouse (move bottom)', () => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(10, 5),
         manualRowMove: true,
@@ -118,6 +121,7 @@ describe('manualRowMove', () => {
     });
 
     it('should move guideline element to the last header when the mouse exceeds half of the height of that header', () => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(10, 5),
         manualRowMove: true,
@@ -182,6 +186,7 @@ describe('manualRowMove', () => {
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
       '(overflow: hidden, move top)', async() => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(50, 5),
         width: 200,
@@ -224,6 +229,7 @@ describe('manualRowMove', () => {
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
       '(overflow: hidden, move bottom)', async() => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(50, 5),
         width: 200,
@@ -295,6 +301,7 @@ describe('manualRowMove', () => {
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
       '(window as scrollable element, move top)', async() => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(100, 5),
         manualRowMove: true,
@@ -335,6 +342,7 @@ describe('manualRowMove', () => {
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
       '(window as scrollable element, move bottom)', async() => {
+      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(100, 5),
         manualRowMove: true,
@@ -415,7 +423,10 @@ describe('manualRowMove', () => {
 
       const backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
-      expect(backlight.outerHeight()).toBe(46);
+      expect(backlight.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(46);
+        main.toBe(58);
+      });
       expect(backlight.offset().top).toBe(TH.offset().top);
     });
   });

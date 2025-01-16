@@ -27,6 +27,7 @@ describe('Selection navigation', () => {
 
   describe('"PageDown"', () => {
     it('should move the cell selection down by the height of the table viewport', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         width: 180,
         height: 100, // 100/23 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows

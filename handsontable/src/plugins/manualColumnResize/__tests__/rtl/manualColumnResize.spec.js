@@ -17,6 +17,7 @@ describe('manualColumnResize (RTL)', () => {
   });
 
   it('should resize (narrowing) selected columns', async() => {
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -50,6 +51,7 @@ describe('manualColumnResize (RTL)', () => {
   });
 
   it('should resize (expanding) selected columns', async() => {
+    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -96,6 +98,7 @@ describe('manualColumnResize (RTL)', () => {
       });
 
       it('should display the resize handle in the proper position and with a proper size', () => {
+        // TODO [themes]: Could be potentially improved by per-theme configuration
         handsontable({
           layoutDirection,
           data: [

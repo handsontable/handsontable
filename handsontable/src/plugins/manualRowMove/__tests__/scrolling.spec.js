@@ -47,6 +47,7 @@ describe('manualRowMove', () => {
 
     it('should move the table\'s viewport down when the next mouse-overed element is a row that belongs to ' +
        'the bottom overlay', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -116,6 +117,7 @@ describe('manualRowMove', () => {
 
     it('should not move the table\'s viewport when the next mouse-overed element is the last row that belongs ' +
        'to the main table and there are some bottom overlay rows', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -169,7 +171,10 @@ describe('manualRowMove', () => {
       const rowHeader = $(getCell(7, -1));
       const nextElement = $(document.body);
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(105);
+      expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main }) => {
+        classic.toBeGreaterThan(105);
+        main.toBeGreaterThan(185); // not sure about this value
+      });
 
       rowHeader
         .simulate('mousedown')
@@ -185,7 +190,10 @@ describe('manualRowMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(105);
+      expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main }) => {
+        classic.toBeLessThan(105);
+        main.toBeLessThan(185);
+      });
     });
 
     it('should move the table\'s viewport up when the next mouse-overed element is a row that belongs to ' +

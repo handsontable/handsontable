@@ -27,6 +27,7 @@ describe('Selection navigation', () => {
 
   describe('"PageUp"', () => {
     it('should move the cell selection up by the height of the table viewport', () => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         width: 180,
         height: 100, // 100/23 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
@@ -246,6 +247,7 @@ describe('Selection navigation', () => {
     });
 
     it('should move the cell selection up to the first column header and scroll the viewport (navigableHeaders on)', async() => {
+      // TODO [themes]: Could be potentially improved by per-theme configuration
       const hot = handsontable({
         height: 200,
         rowHeaders: true,
