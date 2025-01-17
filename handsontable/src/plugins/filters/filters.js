@@ -138,7 +138,7 @@ export class Filters extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
-    this.hot.addHook('afterGetColHeader', (col, TH, headerLevel) => this.#onAfterGetColHeader(col, TH, headerLevel));
+    this.hot.addHook('afterGetColHeader', (...args) => this.#onAfterGetColHeader(...args));
   }
 
   /**
