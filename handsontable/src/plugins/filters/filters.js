@@ -867,7 +867,7 @@ export class Filters extends BasePlugin {
     if (
       this.enabled
       && this.conditionCollection.hasConditions(physicalColumn)
-      && headerLevel === (this.hot.getSettings().nestedHeaders?.length || 1) - 1
+      && headerLevel === this.hot.view.getColumnHeadersCount() - 1
     ) {
       addClass(TH, 'htFiltersActive');
     } else {
