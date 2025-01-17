@@ -5,7 +5,7 @@ import { selectCell } from '../../../src/page-helpers';
 /**
  * Checks if active class is applied on the filtered column header with nested headers.
  */
-test(__filename, async({ tablePage, goto }) => {
+test(__filename, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/nested-headers-demo')
