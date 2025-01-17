@@ -10,8 +10,8 @@
     "directory": "docs"
   },
   "scripts": {
-    "docs:lint": "eslint --ext .js,.vue,.mjs,.ts .vuepress content netlify",
-    "docs:lint:fix": "eslint --ext .js,.vue,.mjs,.ts .vuepress content netlify --fix",
+    "docs:lint": "eslint --ext .js,.vue,.mjs,.ts .vuepress content",
+    "docs:lint:fix": "eslint --ext .js,.vue,.mjs,.ts .vuepress content --fix",
     "docs:scripts:link-assets": "node .vuepress/tools/link-assets.mjs",
     "docs:scripts:generate-legacy-docs-versions": "node .vuepress/tools/generate-legacy-docs-versions.mjs",
     "docs:code-examples:generate-js": "bash .vuepress/tools/code-examples-generator.sh",
@@ -25,7 +25,6 @@
     "docs:docker:build:testing": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=testing npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
     "docs:docker:build:staging": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=staging npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
     "docs:docker:build:production": "cross-env BUILD_MODE=production npm run docs:build && docker build -f docker/Dockerfile -t docs-md:production ./",
-    "docs:build:production:netlify": "cross-env DOCS_LATEST_VERSION=$DOCS_LATEST_VERSION BUILD_MODE=production npm run docs:build",
     "docs:api": "node .vuepress/tools/jsdoc-convert/index.mjs",
     "docs:check-links": "node .vuepress/tools/check-links.js",
     "docs:review": "./.vuepress/tools/review-commit.sh",
@@ -66,7 +65,6 @@
     "http-server": "^14.1.0",
     "inquirer": "^8.1.1",
     "jsdoc-to-markdown": "^7.0.1",
-    "netlify-cli": "^17.34.2",
     "prettier": "^2.8.8",
     "puppeteer": "^23.5.3",
     "replace-in-files": "^3.0.0",
