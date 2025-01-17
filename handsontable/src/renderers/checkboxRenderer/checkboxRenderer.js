@@ -417,13 +417,15 @@ function createLabel(rootDocument, text, fullWidth) {
 
   label.className = `htCheckboxRendererLabel ${fullWidth ? 'fullWidth' : ''}`;
 
+  const textNode = rootDocument.createTextNode(text);
+  
   if (fullWidth) {
     const span = rootDocument.createElement('span');
 
-    span.appendChild(rootDocument.createTextNode(text));
+    span.appendChild(textNode);
     label.appendChild(span);
   } else {
-    label.appendChild(rootDocument.createTextNode(text));
+    label.appendChild(textNode);
   }
 
   return label.cloneNode(true);
