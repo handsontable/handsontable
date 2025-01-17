@@ -418,7 +418,7 @@ function createLabel(rootDocument, text, fullWidth) {
   label.className = `htCheckboxRendererLabel ${fullWidth ? 'fullWidth' : ''}`;
 
   const textNode = rootDocument.createTextNode(text);
-  
+
   if (fullWidth) {
     const span = rootDocument.createElement('span');
 
