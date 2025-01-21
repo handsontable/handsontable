@@ -382,7 +382,7 @@ class Overlays {
     hiderStyle.width = `${proposedHiderWidth}px`;
     hiderStyle.height = `${proposedHiderHeight}px`;
 
-    const styleProperty = this.wtSettings.getSetting('rtlMode') ? 'right' : 'paddingLeft';
+    const styleProperty = this.wtSettings.getSetting('rtlMode') ? 'right' : 'left';
 
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
       wtTable.spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
@@ -395,10 +395,10 @@ class Overlays {
     }
 
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
-      wtTable.spreader.style.paddingTop = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
+      wtTable.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
     } else if (totalRows === 0) {
-      wtTable.spreader.style.paddingTop = '0';
+      wtTable.spreader.style.top = '0';
 
     } else {
       throw new Error('Incorrect value of the rowsRenderCalculator');
