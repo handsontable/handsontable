@@ -60,6 +60,10 @@ export class TopOverlay extends Overlay {
     return this.wtSettings.getSetting('shouldRenderTopOverlay');
   }
 
+  draw() {
+
+  }
+
   /**
    * Updates the top overlay position.
    *

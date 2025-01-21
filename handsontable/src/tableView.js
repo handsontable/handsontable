@@ -181,7 +181,7 @@ class TableView {
     if (this.hot.isRenderSuspended()) {
       this.postponedAdjustElementsSize = true;
     } else {
-      this._wt.wtOverlays.adjustElementsSize();
+      // this._wt.wtOverlays.adjustElementsSize();
     }
   }
 
@@ -1459,7 +1459,7 @@ class TableView {
    */
   updateCellHeader(element, index, content, headerLevel = 0) {
     let renderedIndex = index;
-    const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
+    const parentOverlay = this._wt;
 
     // prevent wrong calculations from SampleGenerator
     if (element.parentNode) {

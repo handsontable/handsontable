@@ -51,6 +51,10 @@ export class InlineStartOverlay extends Overlay {
     return this.wtSettings.getSetting('shouldRenderInlineStartOverlay');
   }
 
+  draw() {
+
+  }
+
   /**
    * Updates the left overlay position.
    *

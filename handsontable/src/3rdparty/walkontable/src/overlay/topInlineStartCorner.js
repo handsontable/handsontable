@@ -62,6 +62,10 @@ export class TopInlineStartCornerOverlay extends Overlay {
       && this.wtSettings.getSetting('shouldRenderInlineStartOverlay');
   }
 
+  draw() {
+
+  }
+
   /**
    * Updates the corner overlay position.
    *

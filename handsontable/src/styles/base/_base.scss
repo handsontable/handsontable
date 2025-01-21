@@ -493,12 +493,6 @@
         border-bottom-width: 0;
       }
     }
-
-    .ht_master table.htCore > thead,
-    .ht_master table.htCore > tbody > tr > th,
-    .ht_clone_inline_start table.htCore > thead {
-      visibility: hidden;
-    }
   }
 
   .ht_master,

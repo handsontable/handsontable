@@ -59,6 +59,7 @@ export class Overlay {
     this.instance = this.wot;
 
     this.type = type;
+
     this.mainTableScrollableElement = null;
     this.TABLE = TABLE;
     this.hider = hider;
@@ -67,34 +68,19 @@ export class Overlay {
     this.wtRootElement = wtRootElement;
     this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
     this.needFullRender = this.shouldBeRendered();
-    this.clone = this.makeClone();
-  }
 
-  /**
-   * Checks if the overlay rendering state has changed.
-   *
-   * @returns {boolean}
-   */
-  hasRenderingStateChanged() {
-    return this.needFullRender !== this.shouldBeRendered();
-  }
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    const tableParent = this.wot.wtTable.wtRootElement.parentNode;
 
-  /**
-   * Updates internal state with an information about the need of full rendering of the overlay in the next draw cycles.
-   *
-   * If the state is changed to render the overlay, the `needFullRender` property is set to `true` which means that
-   * the overlay will be fully rendered in the current draw cycle. If the state is changed to not render the overlay,
-   * the `needFullRender` property is set to `false` which means that the overlay will be fully rendered in the
-   * current draw cycle but it will not be rendered in the next draw cycles.
-   *
-   * @param {'before' | 'after'} drawPhase The phase of the rendering process.
-   */
-  updateStateOfRendering(drawPhase) {
-    if (drawPhase === 'before' && this.shouldBeRendered()) {
-      this.needFullRender = true;
+    if (preventOverflow === true ||
+      preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
+      preventOverflow === 'vertical' && this.type === CLONE_INLINE_START) {
+      this.mainTableScrollableElement = domBindings.rootWindow;
 
-    } else if (drawPhase === 'after' && !this.shouldBeRendered()) {
-      this.needFullRender = false;
+    } else if (domBindings.rootWindow.getComputedStyle(tableParent).getPropertyValue('overflow') === 'hidden') {
+      this.mainTableScrollableElement = holder;
+    } else {
+      this.mainTableScrollableElement = getScrollableElement(TABLE);
     }
   }
 
@@ -112,20 +98,6 @@ export class Overlay {
    */
   updateTrimmingContainer() {
     this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
-  }
-
-  /**
-   * Update the main scrollable element.
-   */
-  updateMainScrollableElement() {
-    const { wtTable } = this.wot;
-    const { rootWindow } = this.domBindings;
-
-    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
-      this.mainTableScrollableElement = this.wot.wtTable.holder;
-    } else {
-      this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
-    }
   }
 
   /**

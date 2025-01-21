@@ -148,32 +148,6 @@ export default class CoreAbstract {
       return this.wtTable.getCell(coords);
     }
 
-    const totalRows = this.wtSettings.getSetting('totalRows');
-    const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
-    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
-    const fixedColumnsStart = this.wtSettings.getSetting('fixedColumnsStart');
-
-    if (coords.row < fixedRowsTop && coords.col < fixedColumnsStart) {
-      return this.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.getCell(coords);
-
-    } else if (coords.row < fixedRowsTop) {
-      return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
-
-    } else if (coords.col < fixedColumnsStart && coords.row >= totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomInlineStartCornerOverlay && this.wtOverlays.bottomInlineStartCornerOverlay.clone) {
-        return this.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.getCell(coords);
-      }
-
-    } else if (coords.col < fixedColumnsStart) {
-      return this.wtOverlays.inlineStartOverlay.clone.wtTable.getCell(coords);
-
-    } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomOverlay && this.wtOverlays.bottomOverlay.clone) {
-        return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
-      }
-
-    }
-
     return this.wtTable.getCell(coords);
   }
 

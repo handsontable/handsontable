@@ -56,6 +56,10 @@ export class BottomOverlay extends Overlay {
     return this.wtSettings.getSetting('shouldRenderBottomOverlay');
   }
 
+  draw() {
+
+  }
+
   /**
    * Updates the top overlay position.
    *

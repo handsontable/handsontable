@@ -29,7 +29,6 @@ import { A11Y_PRESENTATION } from '../../../helpers/a11y';
 /**
  * @todo These mixes are never added to the class Table, however their members are used here.
  * @todo Continue: Potentially it works only, because some of these mixes are added to every inherited class.
- * @todo Refactoring, move code from `if(this.isMaster)` into MasterTable, and others like that.
  * @mixes stickyColumnsStart
  * @mixes stickyRowsBottom
  * @mixes stickyRowsTop
@@ -86,7 +85,6 @@ class Table {
      *
      * @type {boolean}
      */
-    this.isMaster = name === 'master';
     this.name = name;
     this.dataAccessObject = dataAccessObject;
     this.facadeGetter = facadeGetter;
@@ -105,9 +103,7 @@ class Table {
     this.holder = this.createHolder(this.hider);
     this.wtRootElement = this.holder.parentNode;
 
-    if (this.isMaster) {
-      this.alignOverlaysWithTrimmingContainer(); // todo wow, It calls method from child class (MasterTable).
-    }
+    this.alignOverlaysWithTrimmingContainer(); // todo wow, It calls method from child class (MasterTable).
     this.fixTableDomTree();
 
     this.rowFilter = null; // TODO refactoring, eliminate all (re)creations of this object, then updates state when needed.
@@ -129,7 +125,39 @@ class Table {
       TBODY: this.TBODY,
       rowUtils: this.rowUtils,
       columnUtils: this.columnUtils,
-      cellRenderer: this.wtSettings.getSettingPure('cellRenderer'),
+      cellRenderer: (row, column, TD) => {
+        const fixedColumnsStart = this.wtSettings.getSetting('fixedColumnsStart');
+        const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
+
+        this.wtSettings.getSettingPure('cellRenderer')(row, column, TD);
+
+        if (column < fixedColumnsStart) {
+          const left = this.dataAccessObject.wtViewport.getRowHeaderWidth() + this.dataAccessObject
+            .wtOverlays.inlineStartOverlay.sumCellSizes(0, column);
+
+          TD.style.position = 'sticky';
+          TD.style.left = `${left}px`;
+
+          if (row < fixedRowsTop) {
+            TD.style.zIndex = '9';
+          } else {
+            TD.style.zIndex = '5';
+          }
+        }
+        if (row < fixedRowsTop) {
+          const top = this.dataAccessObject.wtViewport.getColumnHeaderHeight() + this.dataAccessObject
+            .wtOverlays.topOverlay.sumCellSizes(0, row);
+
+          TD.style.position = 'sticky';
+          TD.style.top = `${top}px`;
+
+          if (column < fixedColumnsStart) {
+            TD.style.zIndex = '10';
+          } else {
+            TD.style.zIndex = '6';
+          }
+        }
+      },
       stylesHandler: this.dataAccessObject.stylesHandler,
     });
   }
@@ -247,15 +275,13 @@ class Table {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
         parent.insertBefore(holder, hider);
       }
-      if (this.isMaster) {
-        holder.parentNode.className += 'ht_master handsontable';
-        holder.parentNode.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
+      holder.parentNode.className += 'ht_master handsontable';
+      holder.parentNode.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
 
-        if (this.wtSettings.getSetting('ariaTags')) {
-          setAttribute(holder.parentNode, [
-            A11Y_PRESENTATION()
-          ]);
-        }
+      if (this.wtSettings.getSetting('ariaTags')) {
+        setAttribute(holder.parentNode, [
+          A11Y_PRESENTATION()
+        ]);
       }
       holder.appendChild(hider);
     }
@@ -281,39 +307,79 @@ class Table {
     const { wtOverlays, wtViewport } = this.dataAccessObject;
     const totalRows = wtSettings.getSetting('totalRows');
     const totalColumns = wtSettings.getSetting('totalColumns');
-    const rowHeaders = wtSettings.getSetting('rowHeaders');
+    const rowHeaders = wtSettings.getSetting('rowHeaders').map((origRowRenderer) => {
+      return (row, TH, column) => {
+        const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
+        const fixedColumnsStart = this.wtSettings.getSetting('fixedColumnsStart');
+
+        if (row < fixedRowsTop) {
+          let top = 0;
+
+          if (row >= 0) {
+            top = this.dataAccessObject.wtViewport.getColumnHeaderHeight() + this.dataAccessObject
+              .wtOverlays.topOverlay.sumCellSizes(0, row);
+          }
+
+          TH.style.top = `${top}px`;
+
+          if (column < fixedColumnsStart) {
+            TH.style.zIndex = '20';
+          } else {
+            TH.style.zIndex = '10';
+          }
+        } else {
+          TH.style.top = '0px';
+          TH.style.zIndex = '3';
+        }
+
+        origRowRenderer(row, TH, column);
+
+        TH.style.position = 'sticky';
+        TH.style.left = '0px';
+      }
+    })
     const rowHeadersCount = rowHeaders.length;
-    const columnHeaders = wtSettings.getSetting('columnHeaders');
+    const columnHeaders = wtSettings.getSetting('columnHeaders').map((origColumnRenderer) => {
+      return (column, TH, row) => {
+        const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
+        const fixedColumnsStart = this.wtSettings.getSetting('fixedColumnsStart');
+
+        if (column < fixedColumnsStart) {
+          let left = 0;
+
+          if (column >= 0) {
+            left = this.dataAccessObject.wtViewport.getRowHeaderWidth() + this.dataAccessObject
+              .wtOverlays.inlineStartOverlay.sumCellSizes(0, column);
+          }
+
+          TH.style.left = `${left}px`;
+
+          if (row < fixedRowsTop) {
+            TH.style.zIndex = '20';
+          } else {
+            TH.style.zIndex = '10';
+          }
+        } else {
+          TH.style.zIndex = '3';
+          TH.style.left = '0px';
+        }
+
+        origColumnRenderer(column, TH, row);
+
+        TH.style.position = 'sticky';
+        TH.style.top = '0px';
+      }
+    });
     const columnHeadersCount = columnHeaders.length;
     let runFastDraw = fastDraw;
 
-    if (this.isMaster) {
-      wtOverlays.beforeDraw();
-      this.holderOffset = offset(this.holder);
-      runFastDraw = wtViewport.createCalculators(runFastDraw);
+    wtOverlays.beforeDraw();
+    this.holderOffset = offset(this.holder);
+    runFastDraw = wtViewport.createCalculators(runFastDraw);
 
-      if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
-        const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
-        const previousState = this.correctHeaderWidth;
+    if (!runFastDraw) {
+      this.tableOffset = offset(this.TABLE);
 
-        this.correctHeaderWidth = leftScrollPos !== 0;
-
-        if (previousState !== this.correctHeaderWidth) {
-          runFastDraw = false;
-        }
-      }
-    }
-
-    if (runFastDraw) {
-      if (this.isMaster) {
-        wtOverlays.refresh(true);
-      }
-    } else {
-      if (this.isMaster) {
-        this.tableOffset = offset(this.TABLE);
-      } else {
-        this.tableOffset = this.dataAccessObject.parentTableOffset;
-      }
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
 
@@ -322,24 +388,14 @@ class Table {
 
       let performRedraw = true;
 
-      // Only master table rendering can be skipped
-      if (this.isMaster) {
-        this.alignOverlaysWithTrimmingContainer(); // todo It calls method from child class (MasterTable).
-        const skipRender = {};
+      this.alignOverlaysWithTrimmingContainer(); // todo It calls method from child class (MasterTable).
+      const skipRender = {};
 
-        this.wtSettings.getSetting('beforeDraw', true, skipRender);
-        performRedraw = skipRender.skipRender !== true;
-      }
+      this.wtSettings.getSetting('beforeDraw', true, skipRender);
+      performRedraw = skipRender.skipRender !== true;
 
       if (performRedraw) {
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
-
-        if (this.is(CLONE_BOTTOM) ||
-            this.is(CLONE_BOTTOM_INLINE_START_CORNER)) {
-          // do NOT render headers on the bottom or bottom-left corner overlay
-          this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
-        }
-
         this.resetOversizedRows();
 
         this.tableRenderer
@@ -348,68 +404,26 @@ class Table {
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
 
-        if (this.isMaster) {
-          this.markOversizedColumnHeaders();
-        }
-
+        this.markOversizedColumnHeaders();
         this.adjustColumnHeaderHeights();
+        this.markOversizedRows();
 
-        if (this.isMaster || this.is(CLONE_BOTTOM)) {
-          this.markOversizedRows();
+        if (!this.wtSettings.getSetting('externalRowCalculator')) {
+          wtViewport.createVisibleCalculators();
         }
 
-        if (this.isMaster) {
-          if (!this.wtSettings.getSetting('externalRowCalculator')) {
-            wtViewport.createVisibleCalculators();
-          }
+        wtOverlays.adjustElementsSize();
+        // wtOverlays.draw(fastDraw);
 
-          wtOverlays.refresh(false);
-          wtOverlays.applyToDOM();
-
-          this.wtSettings.getSetting('onDraw', true);
-
-        } else if (this.is(CLONE_BOTTOM)) {
-          this.dataAccessObject.cloneSource.wtOverlays.adjustElementsSize();
-        }
+        this.wtSettings.getSetting('onDraw', true);
       }
     }
 
-    let positionChanged = false;
+    this.dataAccessObject.selectionManager
+      .setActiveOverlay(this.facadeGetter())
+      .render(runFastDraw);
 
-    if (this.isMaster) {
-      positionChanged = wtOverlays.topOverlay.resetFixedPosition();
-
-      if (wtOverlays.bottomOverlay.clone) {
-        positionChanged = wtOverlays.bottomOverlay.resetFixedPosition() || positionChanged;
-      }
-
-      positionChanged = wtOverlays.inlineStartOverlay.resetFixedPosition() || positionChanged;
-
-      if (wtOverlays.topInlineStartCornerOverlay) {
-        wtOverlays.topInlineStartCornerOverlay.resetFixedPosition();
-      }
-
-      if (wtOverlays.bottomInlineStartCornerOverlay && wtOverlays.bottomInlineStartCornerOverlay.clone) {
-        wtOverlays.bottomInlineStartCornerOverlay.resetFixedPosition();
-      }
-    }
-
-    if (positionChanged) {
-      // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
-      // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
-      // when there is a switch between rendering from 0 to N rows/columns and vice versa).
-      wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
-      wtOverlays.adjustElementsSize();
-    } else {
-      this.dataAccessObject.selectionManager
-        .setActiveOverlay(this.facadeGetter())
-        .render(runFastDraw);
-    }
-
-    if (this.isMaster) {
-      wtOverlays.afterDraw();
-    }
-
+    wtOverlays.afterDraw();
     this.dataAccessObject.drawn = true;
 
     return this;
@@ -487,10 +501,6 @@ class Table {
     const { wtSettings } = this;
     const { wtViewport } = this.dataAccessObject;
 
-    if (!this.isMaster && !this.is(CLONE_BOTTOM)) {
-      return;
-    }
-
     if (!wtSettings.getSetting('externalRowCalculator')) {
       const rowsToRender = this.getRenderedRowsCount();
 
@@ -528,7 +538,7 @@ class Table {
     let row = coords.row;
     let column = coords.col;
     const hookResult = this.wtSettings
-      .getSetting('onModifyGetCellCoords', row, column, !this.isMaster, 'render');
+      .getSetting('onModifyGetCellCoords', row, column, false, 'render');
 
     if (hookResult && Array.isArray(hookResult)) {
       [row, column] = hookResult;

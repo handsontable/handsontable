@@ -216,7 +216,7 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
-    const scrollHandler = this.hot.view._wt.wtOverlays.topOverlay.mainTableScrollableElement;
+    const scrollHandler = this.hot.view._wt.wtOverlays.scrollableElement;
 
     this.setBoundaries(scrollHandler !== this.hot.rootWindow ? scrollHandler.getBoundingClientRect() : undefined);
 
