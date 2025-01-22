@@ -145,7 +145,9 @@ module.exports = function(docsVersion, base) {
           : `<div id="${id}" class="hot ${klass}"></div>`;
         const htmlContentSandbox = htmlToken
           ? htmlToken.content
-          : `<div id="${id}" class="hot ht-theme-main-dark-auto ${klass}"></div>`;
+          : `<div id="${id}" ${!klass?.includes('disable-auto-theme') 
+            ? `class="hot ht-theme-main ${klass}"` 
+            : ''} ></div>`;
         const htmlContentRoot = `<div 
           data-preset-type="${preset}" 
           data-example-id="${id}" 

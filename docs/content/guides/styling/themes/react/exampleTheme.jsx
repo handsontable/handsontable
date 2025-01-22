@@ -1,7 +1,9 @@
+import { useRef, useState, useEffect } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+import 'handsontable/styles/ht-theme-horizon.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -1211,56 +1213,105 @@ export const data = [
 ];
 
 const ExampleComponent = () => {
+  const hotRef = useRef(null);
+  const [themeName, setThemeName] = useState(
+    document.querySelector('html')?.classList.contains('theme-dark')
+      ? 'ht-theme-horizon-dark'
+      : 'ht-theme-horizon'
+  );
+
+  const handleOnChange = (event) => {
+    setThemeName(event.target.value);
+  };
+
+  useEffect(() => {
+    if (!hotRef.current?.hotInstance) return;
+    hotRef.current.hotInstance?.useTheme(themeName);
+    hotRef.current.hotInstance.render();
+  }, [themeName]);
+
   return (
-    <HotTable
-      data={data}
-      height={450}
-      colWidths={[180, 220, 140, 120, 120, 120, 140]}
-      colHeaders={[
-        'Company Name',
-        'Name',
-        'Sell date',
-        'In stock',
-        'Quantity',
-        'Order ID',
-        'Country',
-      ]}
-      contextMenu={[
-        'cut',
-        'copy',
-        '---------',
-        'row_above',
-        'row_below',
-        'remove_row',
-        '---------',
-        'alignment',
-        'make_read_only',
-        'clear_column',
-      ]}
-      dropdownMenu={true}
-      hiddenColumns={{
-        indicators: true,
-      }}
-      multiColumnSorting={true}
-      filters={true}
-      rowHeaders={true}
-      headerClassName="htLeft"
-      manualRowMove={true}
-      autoWrapRow={true}
-      autoWrapCol={true}
-      manualRowResize={true}
-      manualColumnResize={true}
-      navigableHeaders={true}
-      licenseKey="non-commercial-and-evaluation"
-    >
-      <HotColumn data={1} />
-      <HotColumn data={3} />
-      <HotColumn data={4} type="date" allowInvalid={false} />
-      <HotColumn data={6} type="checkbox" className="htCenter" />
-      <HotColumn data={7} type="numeric" />
-      <HotColumn data={5} />
-      <HotColumn data={2} />
-    </HotTable>
+    <>
+      <div className="theme-examples-controls">
+        <div className="example-container">
+          <label className="color-select">
+            <select value={themeName} onChange={handleOnChange}>
+              <option value="ht-theme-main">Main Light</option>
+              <option value="ht-theme-horizon">Horizon Light</option>
+              <option value="ht-theme-main-dark">Main Dark</option>
+              <option value="ht-theme-horizon-dark">Horizon Dark</option>
+              <option value="ht-no-theme">No theme</option>
+            </select>
+            <div className={`color-box ${themeName}`}>
+              <span
+                className="color"
+                style={{ background: 'var(--ht-foreground-color)' }}
+              />
+              <span
+                className="color"
+                style={{ background: 'var(--ht-background-color)' }}
+              />
+              <span
+                className="color"
+                style={{ background: 'var(--ht-accent-color)' }}
+              />
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <HotTable
+        key={themeName}
+        ref={hotRef}
+        data={data}
+        height={450}
+        colWidths={[180, 220, 140, 120, 120, 120, 140]}
+        colHeaders={[
+          'Company Name',
+          'Name',
+          'Sell date',
+          'In stock',
+          'Quantity',
+          'Order ID',
+          'Country',
+        ]}
+        contextMenu={[
+          'cut',
+          'copy',
+          '---------',
+          'row_above',
+          'row_below',
+          'remove_row',
+          '---------',
+          'alignment',
+          'make_read_only',
+          'clear_column',
+        ]}
+        dropdownMenu={true}
+        hiddenColumns={{
+          indicators: true,
+        }}
+        multiColumnSorting={true}
+        filters={true}
+        rowHeaders={true}
+        headerClassName="htLeft"
+        manualRowMove={true}
+        autoWrapRow={true}
+        autoWrapCol={true}
+        manualRowResize={true}
+        manualColumnResize={true}
+        navigableHeaders={true}
+        licenseKey="non-commercial-and-evaluation"
+      >
+        <HotColumn data={1} />
+        <HotColumn data={3} />
+        <HotColumn data={4} type="date" allowInvalid={false} />
+        <HotColumn data={6} type="checkbox" className="htCenter" />
+        <HotColumn data={7} type="numeric" />
+        <HotColumn data={5} />
+        <HotColumn data={2} />
+      </HotTable>
+    </>
   );
 };
 
