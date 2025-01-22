@@ -1,7 +1,7 @@
-import "@handsontable/pikaday/css/pikaday.css";
 import "./styles.css";
 import { HotTable, HotColumn } from "@handsontable/react";
 import { data } from "./constants";
+import { getThemeName } from "./utils";
 import { ProgressBarRenderer } from "./renderers/ProgressBar";
 import { StarsRenderer } from "./renderers/Stars";
 
@@ -11,16 +11,15 @@ import {
   changeCheckboxCell
 } from "./hooksCallbacks";
 
-import "handsontable/dist/handsontable.css";
-
 const DataGrid = () => {
-  const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
+  const isRtl = document.documentElement.getAttribute("dir") === "rtl";
 
   return (
     <HotTable
       data={data}
+      themeName={getThemeName()}
       height={450}
-      colWidths={[140, 192, 100, 90, 90, 110, 97, 100, 126]}
+      colWidths={[140, 210, 135, 100, 90, 110, 120, 115, 140]}
       colHeaders={[
         "Company name",
         "Name",

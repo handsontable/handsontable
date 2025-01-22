@@ -92,10 +92,3 @@ To revert a production deployment to a previous version (on the example of a bro
     ```bash
     docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:v12.1
     ```
-
-### Deploying the Latest Version to Netlify
-The deployment process to Netlify is fully automated through a GitHub workflow. Whenever a release or patch is applied to the latest version, the `docs-production-netlify-cli.yml` file initiates the deployment.
-
-The workflow first executes the `check-version` job to determine if a new version is available. If a new version is detected, the `netlify-deploy` job is triggered.
-
-When the `netlify-deploy` job runs, it recreates the `prod-docs/latest` branch, which rebuilds the documentation and deploys it to Netlify. If no new version is found, the `netlify-deploy` job does not execute. This setup guarantees that the latest documentation is always available on Netlify after each latest version update or release.

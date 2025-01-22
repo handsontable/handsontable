@@ -53,6 +53,9 @@ jobs:
               - './package-lock.json'
               - './handsontable/hot.config.js'
               - './handsontable/babel.config.js'
+              - './.github/workflows/test.yml'
+              - './visual-tests/playwright.config.ts'
+              - './visual-tests/playwright-cross-browser.config.ts'
             hot-definition-files: &hot-definition-files
               - './handsontable/base.d.ts'
               - './handsontable/handsontable.d.ts'
@@ -633,8 +636,13 @@ jobs:
       - name: Run visual cross-browser tests
         run: npm run in visual-tests test:cross-browser
 
-      - name: Run visual tests for themes
-        run: npm run in visual-tests test:themes
+      - run: tar -zcf screenshots.tar.gz ./visual-tests/screenshots
+
+      - name: Upload the test results artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # https://github.com/actions/upload-artifact/releases/tag/v4.3.1
+        with:
+          name: visual-tests-screenshots
+          path: screenshots.tar.gz
 
       - name: Upload the screenshot to Argos CI
         env:

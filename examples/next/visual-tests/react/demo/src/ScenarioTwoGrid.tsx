@@ -1,5 +1,6 @@
-import { HotTable } from '@handsontable/react';
-import { scenarioDataTop, scenarioDataBottom } from './constants';
+import { HotTable } from "@handsontable/react";
+import { scenarioDataTop, scenarioDataBottom } from "./constants";
+import { getThemeName } from "./utils";
 
 const ScenarioTwoGrid = () => {
   return (
@@ -9,6 +10,7 @@ const ScenarioTwoGrid = () => {
         <HotTable
           title='Table Top'
           data={scenarioDataTop}
+          themeName={getThemeName()}
           colHeaders={true}
           nestedHeaders={[
             [
@@ -70,6 +72,7 @@ const ScenarioTwoGrid = () => {
         <HotTable
           title='Table Bottom'
           data={scenarioDataBottom}
+          themeName={getThemeName()}
           colHeaders={[
             'Category',
             'Product ID',

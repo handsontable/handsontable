@@ -1,30 +1,22 @@
-/*
-  A stylesheet customizing app (custom renderers)
-*/
-
-table.htCore td.star {
-  color: #fcb515;
-}
-
-table.htCore tr.odd td {
-  background: #fafbff;
-}
-
-table.htCore td .progressBar {
+.handsontable td .progressBar {
   background: #37bc6c;
   height: 10px;
 }
 
-table.htCore tr.selected td {
+.handsontable td.star {
+  color: #fcb515;
+}
+
+.handsontable .htCore tr.selected td {
   background: #edf3fd;
 }
 
-/*
-  A stylesheet customizing Handsontable style
-*/
+.handsontable.ht-theme-main-dark .htCore tr.selected td {
+  background: #081b3d;
+}
 
-.collapsibleIndicator {
-  text-align: center;
+.handsontable.ht-theme-horizon-dark .htCore tr.selected td {
+  background: #3a2901;
 }
 
 .handsontable .green {

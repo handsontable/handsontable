@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix autocomplete highlight",
+  "type": "fixed",
+  "issueOrPR": 11364,
+  "breaking": false,
+  "framework": "none"
+}

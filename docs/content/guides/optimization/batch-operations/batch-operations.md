@@ -25,12 +25,12 @@ Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid
 <style>
 .handsontable .green-bg {
   color: #fff;
-  background-color: #37BC6C;
+  background-color: #37BC6C !important;
 }
 
 .handsontable .red-bg {
   color: #fff;
-  background-color: #FF5A12;
+  background-color: #FF5A12 !important;
 }
 
 #logOutput {
