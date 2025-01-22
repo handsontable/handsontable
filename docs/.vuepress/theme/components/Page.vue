@@ -11,7 +11,7 @@
 </template>
 
 <script>
-/* global instanceRegister, hotThemeManager */
+/* global instanceRegister */
 import PageEdit from '@theme/components/PageEdit.vue';
 import Breadcrumbs from '@theme/components/Breadcrumbs.vue';
 
