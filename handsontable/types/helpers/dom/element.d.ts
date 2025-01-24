@@ -24,7 +24,6 @@ export function getScrollableElement(element: HTMLElement): HTMLElement;
 export function getTrimmingContainer(base: HTMLElement): HTMLElement;
 export function getStyle(element: HTMLElement, prop: string, rootWindow?: Window): string;
 export function matchesCSSRules(element: Element, rule: CSSRule): boolean;
-export function getComputedStyle(element: HTMLElement, rootWindow?: Window): any;
 export function outerWidth(element: HTMLElement): number;
 export function outerHeight(element: HTMLElement): number;
 export function innerHeight(element: HTMLElement): number;
