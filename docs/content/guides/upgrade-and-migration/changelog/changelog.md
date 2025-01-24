@@ -47,6 +47,7 @@ For more information about this release see:
 
 #### Removed
 - **Breaking change**: Removed check marks from the Context Menu's alignment submenu. [#11278](https://github.com/handsontable/handsontable/pull/11278)
+- **Breaking change**: Removed getComputedStyle from element dom helper. [#11201](https://github.com/handsontable/handsontable/pull/11201)
 - Removed `aria-hidden` from TextEditor's and PasswordEditor's `TEXTAREA` elements.  [#11218](https://github.com/handsontable/handsontable/pull/11218)
 
 #### Fixed
