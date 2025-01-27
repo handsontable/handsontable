@@ -538,7 +538,7 @@ export class ManualRowMove extends BasePlugin {
       this.#rowsToMove = this.prepareRowsToMoving();
 
       const leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
-      const topOffset = this.getRowsHeight(start, coords.row - 1) + event.offsetY;
+      const topOffset = this.getRowsHeight(start, coords.row - 1) + (event.clientY - TD.getBoundingClientRect().top);
 
       this.#backlight.setPosition(null, leftPos);
       this.#backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
