@@ -333,6 +333,11 @@
       td {
         border-top-color: var(--ht-border-color);
         border-top-width: 1px;
+        line-height: calc(var(--ht-line-height) - 1px);
+
+        .rowHeader, .colHeader {
+          line-height: calc(var(--ht-line-height) - 1px);
+        }
 
         &.ht__active_highlight {
           border-top-color: var(--ht-header-active-border-color);
