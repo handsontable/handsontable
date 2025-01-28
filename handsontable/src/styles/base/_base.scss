@@ -285,6 +285,16 @@
     // Header in Col
     thead {
       tr {
+        &:only-of-type {
+          th {
+            .relative {
+              &::after {
+                bottom: -2px;
+              }
+            }
+          }
+        }
+
         th {
           padding: 0;
 
