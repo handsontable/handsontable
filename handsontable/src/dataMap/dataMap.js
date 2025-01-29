@@ -850,23 +850,27 @@ class DataMap {
       const sliced = prop.split('.');
 
       for (i = 0, ilen = sliced.length - 1; i < ilen; i++) {
-        if (sliced[i] === '__proto__' || sliced[i] === 'constructor') {
+        if (sliced[i] === '__proto__' || sliced[i] === 'constructor' || sliced[i] === 'prototype') {
+          // Security: prototype-polluting is not allowed
           continue;
         }
+        
         if (typeof out[sliced[i]] === 'undefined') {
           out[sliced[i]] = {};
         }
         out = out[sliced[i]];
       }
 
-      if (sliced[i] !== '__proto__' && sliced[i] !== 'constructor') {
-        out[sliced[i]] = newValue;
-      }
-
+      out[sliced[i]] = newValue;
     } else if (typeof prop === 'function') {
       prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0], newValue);
 
     } else {
+      if (prop === '__proto__' || prop === 'constructor' || prop === 'prototype') {
+        // Security: prototype-polluting is not allowed
+        return;
+      }
+      
       dataRow[prop] = newValue;
     }
   }
