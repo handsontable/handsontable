@@ -290,6 +290,7 @@ export function setProperty(object, name, value) {
 
   names.forEach((propName, index) => {
     if (propName === '__proto__' || propName === 'constructor' || propName === 'prototype') {
+      // Security: prototype-polluting is not allowed
       return;
     }
 
