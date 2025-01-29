@@ -207,15 +207,14 @@ class DataSource {
       }
     }
 
-    if (['__proto__', 'constructor', 'prototype'].includes(row) || ['__proto__', 'constructor', 'prototype'].includes(column)) {
-      // Invalid row or column name
+    if (!Number.isInteger(row)) {
+      // invalid row number
       return;
     }
 
     if (!Number.isInteger(column)) {
       // column argument is the prop name
       setProperty(this.data[row], column, value);
-
     } else {
       this.data[row][column] = value;
     }
