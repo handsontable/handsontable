@@ -292,7 +292,7 @@ export function setProperty(object, name, value) {
     if (propName === '__proto__' || propName === 'constructor' || propName === 'prototype') {
       return;
     }
-    
+
     if (index !== names.length - 1) {
       if (!hasOwnProperty(workingObject, propName)) {
         workingObject[propName] = {};
