@@ -678,7 +678,7 @@ export class Menu {
     if (!container) {
       container = doc.createElement('div');
 
-      addClass(container, `htMenu ${this.options.className}`);
+      addClass(container, `htMenu handsontable ${this.options.className}`);
 
       if (className) {
         addClass(container, className);
