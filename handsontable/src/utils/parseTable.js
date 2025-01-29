@@ -73,11 +73,11 @@ export function instanceToHTML(instance) {
             cell = `<td ${attrs.join(' ')}></td>`;
           } else {
             const value = cellData.toString()
-              .replace('<', '&lt;')
-              .replace('>', '&gt;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
               .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
-              .replace(/\x20/gi, '&nbsp;')
-              .replace(/\t/gi, '&#9;');
+              .replace(/\x20/g, '&nbsp;')
+              .replace(/\t/g, '&#9;');
 
             cell = `<td ${attrs.join(' ')}>${value}</td>`;
           }
