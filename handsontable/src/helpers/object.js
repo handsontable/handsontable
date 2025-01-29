@@ -289,6 +289,9 @@ export function setProperty(object, name, value) {
   let workingObject = object;
 
   names.forEach((propName, index) => {
+    if (propName === '__proto__' || propName === 'constructor' || propName === 'prototype') {
+      return;
+    }
     if (index !== names.length - 1) {
       if (!hasOwnProperty(workingObject, propName)) {
         workingObject[propName] = {};
