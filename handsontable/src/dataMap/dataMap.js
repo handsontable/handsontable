@@ -850,13 +850,18 @@ class DataMap {
       const sliced = prop.split('.');
 
       for (i = 0, ilen = sliced.length - 1; i < ilen; i++) {
+        if (sliced[i] === '__proto__' || sliced[i] === 'constructor') {
+          continue;
+        }
         if (typeof out[sliced[i]] === 'undefined') {
           out[sliced[i]] = {};
         }
         out = out[sliced[i]];
       }
 
-      out[sliced[i]] = newValue;
+      if (sliced[i] !== '__proto__' && sliced[i] !== 'constructor') {
+        out[sliced[i]] = newValue;
+      }
 
     } else if (typeof prop === 'function') {
       prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0], newValue);
