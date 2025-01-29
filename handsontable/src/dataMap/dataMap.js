@@ -854,7 +854,7 @@ class DataMap {
           // Security: prototype-polluting is not allowed
           return;
         }
-        
+
         if (typeof out[sliced[i]] === 'undefined') {
           out[sliced[i]] = {};
         }
@@ -870,7 +870,7 @@ class DataMap {
         // Security: prototype-polluting is not allowed
         return;
       }
-      
+
       dataRow[prop] = newValue;
     }
   }
