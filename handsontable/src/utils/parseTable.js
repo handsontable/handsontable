@@ -76,8 +76,8 @@ export function instanceToHTML(instance) {
               .replace(/</g, '&lt;')
               .replace(/>/g, '&gt;')
               .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
-              .replace(/\x20/g, '&nbsp;')
-              .replace(/\t/g, '&#9;');
+              .replace(/\x20/gi, '&nbsp;')
+              .replace(/\t/gi, '&#9;');
 
             cell = `<td ${attrs.join(' ')}>${value}</td>`;
           }
