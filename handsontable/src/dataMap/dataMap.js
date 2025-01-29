@@ -852,7 +852,7 @@ class DataMap {
       for (i = 0, ilen = sliced.length - 1; i < ilen; i++) {
         if (sliced[i] === '__proto__' || sliced[i] === 'constructor' || sliced[i] === 'prototype') {
           // Security: prototype-polluting is not allowed
-          continue;
+          return;
         }
         
         if (typeof out[sliced[i]] === 'undefined') {
