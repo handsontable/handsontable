@@ -17,7 +17,7 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['حذف ریدف', 'حذف ردیف ها'],
   [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['حذف ستون', 'حذف ستون ها'],
   [C.CONTEXTMENU_ITEMS_UNDO]: 'واگرد',
-  [C.CONTEXTMENU_ITEMS_REDO]: 'Redo',
+  [C.CONTEXTMENU_ITEMS_REDO]: 'بازگردانی',
   [C.CONTEXTMENU_ITEMS_READ_ONLY]: 'فقط خواندنی',
   [C.CONTEXTMENU_ITEMS_CLEAR_COLUMN]: 'پاک کردن ستون',
 
