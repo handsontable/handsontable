@@ -63,7 +63,8 @@ describe('Core_count', () => {
       expect(instance.countRenderedRows()).toEqual(5);
     });
 
-    it.forTheme('classic')('should return number of rendered rows, including rows rendered becausee of viewportRowRenderingOffset', () => {
+    it.forTheme('classic')('should return number of rendered rows, including rows rendered ' +
+      'because of viewportRowRenderingOffset', () => {
       const instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 10),
         height: 100,
@@ -73,7 +74,8 @@ describe('Core_count', () => {
       expect(instance.countRenderedRows()).toEqual(25);
     });
 
-    it.forTheme('main')('should return number of rendered rows, including rows rendered becausee of viewportRowRenderingOffset', () => {
+    it.forTheme('main')('should return number of rendered rows, including rows rendered ' +
+      'because of viewportRowRenderingOffset', () => {
       const instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 10),
         height: 125,
