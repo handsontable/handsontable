@@ -622,7 +622,9 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - test-handsontable-e2e
+      - test-handsontable-e2e-main
       - test-handsontable-e2e-min
+      - test-handsontable-e2e-min-main
       - test-angular
       - test-react
       - test-react-wrapper
