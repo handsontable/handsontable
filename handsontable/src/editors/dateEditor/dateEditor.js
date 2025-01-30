@@ -296,6 +296,8 @@ export class DateEditor extends TextEditor {
       if (origOnSelect) {
         origOnSelect();
       }
+
+      this.$datePicker.hide();
     };
     options.onClose = () => {
       if (!this.parentDestroyed) {
