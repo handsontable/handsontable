@@ -573,7 +573,7 @@ hot.getCellMeta(1, 1).readOnly;
 ::: only-for react
 
 ```jsx
-// change the `readOnly` option of cell (1, 1) back to `false`
+// changes the `readOnly` option of cell (1, 1) back to `false`
 hot.setCellMeta(1, 1, 'readOnly', false);
 
 // returns `false`
@@ -660,7 +660,7 @@ hot.getCellMeta(0, 0).readOnly;
 // returns `true`
 hot.getCellMeta(1, 1).readOnly;
 
-// change the `readOnly` option of cell (1, 1) back to `false`
+// changes the `readOnly` option of cell (1, 1) back to `false`
 hot.setCellMeta(1, 1, 'readOnly', false);
 
 // returns `false`
