@@ -84,7 +84,7 @@ describe('BaseEditor API (RTL mode)', () => {
               main.toEqual({
                 start: 0,
                 top: 0,
-                width: 50,
+                width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
                 maxHeight: document.documentElement.clientHeight,
@@ -168,10 +168,10 @@ describe('BaseEditor API (RTL mode)', () => {
 
               // Not sure about the values below - can be modified if found they're wrong (implemented after introducing the new themes).
               main.toEqual(jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 60,
+                start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 62,
                 top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 29,
-                width: 60,
-                maxWidth: 60,
+                width: 62,
+                maxWidth: 62,
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
@@ -236,7 +236,7 @@ describe('BaseEditor API (RTL mode)', () => {
               main.toEqual({
                 start: 0,
                 top: 0,
-                width: 50,
+                width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
                 maxHeight: document.documentElement.clientHeight,
@@ -312,9 +312,9 @@ describe('BaseEditor API (RTL mode)', () => {
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
               main.toEqual(jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + 49, // 49 - the width of the first cell
+                start: Math.abs(document.documentElement.scrollLeft) + 50,
                 top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 29,
-                width: 51,
+                width: 52,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
@@ -378,7 +378,7 @@ describe('BaseEditor API (RTL mode)', () => {
               main.toEqual({
                 start: 0,
                 top: 0,
-                width: 50,
+                width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
                 maxHeight: document.documentElement.clientHeight,
@@ -452,9 +452,9 @@ describe('BaseEditor API (RTL mode)', () => {
                 maxHeight: 24,
               }));
               main.toEqual(jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + 49, // 49 - the width of the first cell
+                start: Math.abs(document.documentElement.scrollLeft) + 50,
                 top: document.documentElement.offsetHeight - 30,
-                width: 51,
+                width: 52,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
                 height: 30,
                 maxHeight: 30,
@@ -520,7 +520,7 @@ describe('BaseEditor API (RTL mode)', () => {
               main.toEqual(jasmine.objectContaining({
                 start: 0,
                 top: document.documentElement.clientHeight - 59,
-                width: 50,
+                width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
@@ -598,7 +598,7 @@ describe('BaseEditor API (RTL mode)', () => {
               main.toEqual(jasmine.objectContaining({
                 start: Math.abs(document.documentElement.scrollLeft),
                 top: document.documentElement.offsetHeight - 60,
-                width: 50,
+                width: 51,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
@@ -662,7 +662,7 @@ describe('BaseEditor API (RTL mode)', () => {
               main.toEqual(jasmine.objectContaining({
                 start: 0,
                 top: document.documentElement.clientHeight - 59,
-                width: 50,
+                width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206

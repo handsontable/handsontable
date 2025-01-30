@@ -83,7 +83,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the single cell', () => {
-      // TODO [themes]: Possibly a themes-related bug. (1px offset)
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -102,13 +101,15 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      });
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 2,1']);
     });
 
     it('should be possible to open the dropdown menu on the left position when on the right there is no space left', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
         colHeaders: true,
@@ -131,7 +132,10 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonWidth = $(cell.querySelector('.changeType')).outerWidth();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      });
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
       expect(getSelectedRange()).toEqualCellRange([
         `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
@@ -139,7 +143,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of the cells', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -158,13 +161,15 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      });
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: -1,4 to: 2,4']);
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of non-contiguous selection', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -183,13 +188,15 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      });
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 2,3']);
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the single cell (navigableHeaders on)', () => {
-      // TODO [themes]: Possibly a themes-related bug. (1px offset)
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -208,13 +215,15 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      });
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of the cells (navigableHeaders on)', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -233,13 +242,15 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      });
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: 2,4']);
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of non-contiguous selection (navigableHeaders on)', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -258,13 +269,15 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      });
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,3 to: 2,3']);
     });
 
     it('should be possible to open the dropdown menu from the focused column when a range of the columns are selected', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -284,13 +297,15 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+      expect(menuOffset.top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      });
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
     it('should be possible to open the dropdown menu only by triggering the action only from the lowest column header', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -367,7 +382,6 @@ describe('DropdownMenu keyboard shortcut', () => {
 
     describe('cooperation with nested headers', () => {
       it('should be possible to open the dropdown menu in the correct position when the cells in-between nested headers is selected', () => {
-        // TODO [themes]: Possibly a themes-related bug.
         handsontable({
           data: createSpreadsheetData(3, 8),
           colHeaders: true,
@@ -389,7 +403,10 @@ describe('DropdownMenu keyboard shortcut', () => {
         const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        expect(menuOffset.top).forThemes(({ classic, main }) => {
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+          main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+        });
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,1 to: 2,3']);
       });

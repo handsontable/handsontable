@@ -167,7 +167,6 @@ describe('ContextMenu', () => {
 
   describe('menu opening', () => {
     it('should open menu after right click on table cell', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         contextMenu: true,
         height: 100
@@ -287,7 +286,6 @@ describe('ContextMenu', () => {
     });
 
     it('should not open the menu after clicking an open editor', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -306,7 +304,6 @@ describe('ContextMenu', () => {
     });
 
     it('should open menu after right click on header cell when only header cells are visible', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       const hot = handsontable({
         data: [],
         colHeaders: ['Year', 'Kia'],
@@ -324,7 +321,6 @@ describe('ContextMenu', () => {
     });
 
     it('should open menu after right click on selected column header (the current selection should not be changed)', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       const hot = handsontable({
         data: createSpreadsheetData(5, 10),
         colHeaders: true,
@@ -353,7 +349,6 @@ describe('ContextMenu', () => {
     });
 
     it('should open menu after right click on selected row header (the current selection should not be changed)', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       const hot = handsontable({
         data: createSpreadsheetData(5, 10),
         colHeaders: true,
@@ -382,7 +377,6 @@ describe('ContextMenu', () => {
     });
 
     it('should open menu after right click on header corner', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       const hot = handsontable({
         data: [],
         colHeaders: true,
@@ -400,7 +394,6 @@ describe('ContextMenu', () => {
     });
 
     it('should open menu after right click active cell border', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         contextMenu: true,
         height: 100
@@ -468,7 +461,6 @@ describe('ContextMenu', () => {
     });
 
     it('should close menu after right click on menu item (Windows OS simulation, #6507#issuecomment-582392301)', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       Handsontable.helper.setPlatformMeta({ platform: 'Win' }); // Let HoT think that it runs on Windows OS
       handsontable({
         data: createSpreadsheetData(4, 4),
@@ -597,7 +589,6 @@ describe('ContextMenu', () => {
     });
 
     it('should reenable menu with updateSettings when it was disabled in constructor', async() => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         contextMenu: false,
         height: 100
@@ -2537,7 +2528,6 @@ describe('ContextMenu', () => {
     });
 
     it('should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ', async() => {
-      // TODO [themes]: Possibly a themes-related bug.
       const hot1 = handsontable({
         contextMenu: false,
         height: 100

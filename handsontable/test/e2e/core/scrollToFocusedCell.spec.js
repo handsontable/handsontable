@@ -29,7 +29,7 @@ describe('Core.scrollToFocusedCell', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(1250);
-      main.toBe(1255);
+      main.toBe(1289);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(5750);
@@ -42,7 +42,7 @@ describe('Core.scrollToFocusedCell', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(1250);
-      main.toBe(1255);
+      main.toBe(1289);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(5750);
@@ -125,7 +125,7 @@ describe('Core.scrollToFocusedCell', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(2267);
-      main.toBe(2482);
+      main.toBe(2558);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(5750);
@@ -173,7 +173,7 @@ describe('Core.scrollToFocusedCell', () => {
     // 2500 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(2268);
-      main.toBe(2483);
+      main.toBe(2559);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(5750);
@@ -200,7 +200,7 @@ describe('Core.scrollToFocusedCell', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(1250);
-      main.toBe(1255);
+      main.toBe(1289);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(5865);
@@ -213,7 +213,7 @@ describe('Core.scrollToFocusedCell', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(1250);
-      main.toBe(1255);
+      main.toBe(1289);
     });
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
@@ -237,7 +237,7 @@ describe('Core.scrollToFocusedCell', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(1250);
-      main.toBe(1255);
+      main.toBe(1289);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(5865);
@@ -250,7 +250,7 @@ describe('Core.scrollToFocusedCell', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(1250);
-      main.toBe(1255);
+      main.toBe(1289);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(11243);

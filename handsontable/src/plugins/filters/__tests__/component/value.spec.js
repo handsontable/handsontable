@@ -55,7 +55,6 @@ describe('Filters UI Value component', () => {
 
   it('should appear a list from the column selected by the selection highlight when the dropdown is opened ' +
       'using API and the table has non-contiguous selection', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -76,7 +75,10 @@ describe('Filters UI Value component', () => {
       left: 100,
     });
 
-    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(7);
+    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).forThemes(({ classic, main }) => {
+      classic.toBe(7);
+      main.toBe(6);
+    });
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('2014-01-08');
   });
 
@@ -182,8 +184,7 @@ describe('Filters UI Value component', () => {
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
   });
 
-  it('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
+  it.forTheme('classic')('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
     const columnsSetting = getColumnsForFilters();
 
     handsontable({
@@ -210,6 +211,35 @@ describe('Filters UI Value component', () => {
       ).toBe(`Pre ${unifiedColDataSample[i]}`);
     }
     expect(unifiedColDataSample.length).toBe(6);
+  });
+
+  it.forTheme('main')('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
+    const columnsSetting = getColumnsForFilters();
+
+    handsontable({
+      data: getDataForFilters(),
+      columns: columnsSetting,
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300,
+      modifyFiltersMultiSelectValue: (value) => {
+        return `Pre ${value}`;
+      },
+    });
+
+    dropdownMenu(1);
+
+    const unifiedColDataSample = [
+      'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash',
+    ];
+
+    for (let i = 0; i < unifiedColDataSample.length; i++) {
+      expect(
+        byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
+      ).toBe(`Pre ${unifiedColDataSample[i]}`);
+    }
+    expect(unifiedColDataSample.length).toBe(5);
   });
 
   it('should display the formatted renderer output in the multi-selection component if the column being filtered ' +
@@ -288,7 +318,6 @@ describe('Filters UI Value component', () => {
   });
 
   it('should disappear after hitting ESC key (focused search input)', async() => {
-    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -310,7 +339,6 @@ describe('Filters UI Value component', () => {
   });
 
   it('should disappear after hitting ESC key (focused items box)', async() => {
-    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),

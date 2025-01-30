@@ -75,10 +75,79 @@ describe('TextEditor (RTL mode)', () => {
       expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
     });
 
-    it('should render an editor in specified position while opening an editor from top to bottom when ' +
-      'top and bottom overlays are enabled', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
-      // TODO [themes]: Could be potentially a themes-related bug
+    it.forTheme('classic')('should render an editor in specified position while opening an editor ' +
+      'from top to bottom when top and bottom overlays are enabled', () => {
+      handsontable({
+        layoutDirection,
+        data: Handsontable.helper.createSpreadsheetData(8, 2),
+        rowHeaders: true,
+        colHeaders: true,
+        fixedRowsTop: 3,
+        fixedRowsBottom: 3,
+        columns: [
+          {
+            type: 'text',
+          },
+          {},
+        ],
+      });
+
+      selectCell(0, 0);
+
+      const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+      keyDown('enter');
+
+      expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+      keyDown('enter');
+      keyDown('enter');
+
+      // Cells that do not touch the edges of the table have an additional top border.
+      const editorOffset = () => ({
+        top: editor.offset().top + 1,
+        left: editor.offset().left,
+      });
+
+      expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+      keyDown('enter');
+      keyDown('enter');
+
+      expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+      keyDown('enter');
+      keyDown('enter');
+
+      expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+      keyDown('enter');
+      keyDown('enter');
+
+      expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+      keyDown('enter');
+      keyDown('enter');
+
+      // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+      expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+      keyDown('enter');
+      keyDown('enter');
+
+      expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+      keyDown('enter');
+      keyDown('enter');
+
+      expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+    });
+
+    it.forTheme('main')('should render an editor in specified position while opening an editor ' +
+      'from top to bottom when top and bottom overlays are enabled', () => {
+      spec().$container[0].style.height = '240px';
+      spec().$container[0].style.width = '200px';
+
       handsontable({
         layoutDirection,
         data: Handsontable.helper.createSpreadsheetData(8, 2),

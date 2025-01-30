@@ -11,18 +11,24 @@ describe('Core_count', () => {
   });
 
   describe('countVisibleRows', () => {
-    it('should return number of visible rows', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
+    it.forTheme('classic')('should return number of visible rows', () => {
       const instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 100,
         width: 600
       });
 
-      expect(instance.countVisibleRows()).forThemes(({ classic, main }) => {
-        classic.toEqual(4);
-        main.toEqual(3);
+      expect(instance.countVisibleRows()).toEqual(4);
+    });
+
+    it.forTheme('main')('should return number of visible rows', () => {
+      const instance = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        height: 125,
+        width: 600
       });
+
+      expect(instance.countVisibleRows()).toEqual(4);
     });
 
     it('should return -1 if table is not rendered', () => {
@@ -37,32 +43,44 @@ describe('Core_count', () => {
   });
 
   describe('countRenderedRows', () => {
-    it('should return number of rendered rows', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
+    it.forTheme('classic')('should return number of rendered rows', () => {
       const instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 100,
         viewportRowRenderingOffset: 0
       });
 
-      expect(instance.countRenderedRows()).forThemes(({ classic, main }) => {
-        classic.toEqual(5);
-        main.toEqual(4);
-      });
+      expect(instance.countRenderedRows()).toEqual(5);
     });
 
-    it('should return number of rendered rows, including rows rendered becausee of viewportRowRenderingOffset', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
+    it.forTheme('main')('should return number of rendered rows', () => {
+      const instance = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        height: 125,
+        viewportRowRenderingOffset: 0
+      });
+
+      expect(instance.countRenderedRows()).toEqual(5);
+    });
+
+    it.forTheme('classic')('should return number of rendered rows, including rows rendered becausee of viewportRowRenderingOffset', () => {
       const instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 10),
         height: 100,
         viewportRowRenderingOffset: 20
       });
 
-      expect(instance.countRenderedRows()).forThemes(({ classic, main }) => {
-        classic.toEqual(25);
-        main.toEqual(24);
+      expect(instance.countRenderedRows()).toEqual(25);
+    });
+
+    it.forTheme('main')('should return number of rendered rows, including rows rendered becausee of viewportRowRenderingOffset', () => {
+      const instance = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 10),
+        height: 125,
+        viewportRowRenderingOffset: 20
       });
+
+      expect(instance.countRenderedRows()).toEqual(25);
     });
 
     it('should return -1 if table is not rendered', () => {

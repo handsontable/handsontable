@@ -63,8 +63,7 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should internally call `open()` method with correct cell coordinates', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
-      // TODO [themes]: Possibly a themes-related bug. (1px offset)
+      // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2210)
       handsontable({
         contextMenu: true,
       });
@@ -88,8 +87,7 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should internally call `open()` method with correct row header coordinates', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
-      // TODO [themes]: Possibly a themes-related bug. (1px offset)
+      // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2210)
       handsontable({
         contextMenu: true,
         rowHeaders: true,
@@ -116,8 +114,7 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should internally call `open()` method with correct column header coordinates', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
-      // TODO [themes]: Possibly a themes-related bug. (1px offset)
+      // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2210)
       handsontable({
         contextMenu: true,
         rowHeaders: true,
@@ -144,8 +141,7 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should internally call `open()` method with correct corner coordinates', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
-      // TODO [themes]: Possibly a themes-related bug. (1px offset)
+      // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2210)
       handsontable({
         contextMenu: true,
         rowHeaders: true,
@@ -185,8 +181,7 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should scroll the viewport when the focused cell is outside the table and call the `open` method', async() => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
-      // TODO [themes]: Possibly a themes-related bug. (1px offset)
+      // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2210)
       const hot = handsontable({
         data: createSpreadsheetData(500, 50),
         width: 300,

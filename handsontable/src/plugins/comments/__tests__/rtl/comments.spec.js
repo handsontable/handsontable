@@ -106,7 +106,6 @@ describe('Comments (RTL mode)', () => {
       });
 
       it('should display the comment editor on the left of the cell when the viewport is not scrolled (the Window object is not a scrollable element)', () => {
-        // TODO [themes]: Could be potentially improved by per-theme configuration (probably the comment container is wider and doesn't fit on the right side for RTL)
         handsontable({
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(30, 20),
@@ -132,7 +131,6 @@ describe('Comments (RTL mode)', () => {
       });
 
       it('should display the comment editor on the left of the cell when the viewport is scrolled (the Window object is not a scrollable element)', async() => {
-        // TODO [themes]: Could be potentially improved by per-theme configuration (container placement problem for RTL - probably too wide for the config)
         handsontable({
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(30, 20),

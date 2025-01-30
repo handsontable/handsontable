@@ -95,8 +95,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(2)).toBe(150);
   });
 
-  it('should correctly stretch columns after vertical scroll appears (defined table size)', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration (nothing changes after updateSettings)
+  it.forTheme('classic')('should correctly stretch columns after vertical scroll appears (defined table size)', () => {
     handsontable({
       data: createSpreadsheetData(5, 3),
       colHeaders: true,
@@ -120,6 +119,37 @@ describe('StretchColumns', () => {
 
     updateSettings({
       height: 142,
+    });
+
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
+  });
+
+  it.forTheme('main')('should correctly stretch columns after vertical scroll appears (defined table size)', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 3),
+      colHeaders: true,
+      rowHeaders: true,
+      width: 320,
+      height: 179,
+      stretchH: 'all',
+    });
+
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
+
+    updateSettings({
+      height: 165,
+    });
+
+    expect(getColWidth(0)).toBe(85);
+    expect(getColWidth(1)).toBe(85);
+    expect(getColWidth(2)).toBe(85);
+
+    updateSettings({
+      height: 179,
     });
 
     expect(getColWidth(0)).toBe(90);
@@ -226,11 +256,11 @@ describe('StretchColumns', () => {
 
     expect(getColWidth(0)).forThemes(({ classic, main }) => {
       classic.toBe(404);
-      main.toBe(412);
+      main.toBe(421);
     });
     expect(getColWidth(1)).forThemes(({ classic, main }) => {
       classic.toBe(96);
-      main.toBe(88);
+      main.toBe(79);
     });
   });
 
@@ -278,7 +308,7 @@ describe('StretchColumns', () => {
 
     expect(getColWidth(4)).forThemes(({ classic, main }) => {
       classic.toBe(259);
-      main.toBe(286);
+      main.toBe(323);
     });
 
     setDataAtCell(0, 4, 'text');
@@ -289,7 +319,7 @@ describe('StretchColumns', () => {
 
     expect(getColWidth(4)).forThemes(({ classic, main }) => {
       classic.toBe(259);
-      main.toBe(286);
+      main.toBe(323);
     });
   });
 });

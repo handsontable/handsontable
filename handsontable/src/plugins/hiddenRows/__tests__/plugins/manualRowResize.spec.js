@@ -58,7 +58,6 @@ describe('HiddenRows', () => {
     });
 
     it('should display the resize handler in the proper position when the table contains hidden row', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right' },
@@ -81,13 +80,14 @@ describe('HiddenRows', () => {
 
       const $handle = $('.manualRowResizer');
 
-      expect($handle.offset().top)
-        .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+      expect($handle.offset().top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+        main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
+      });
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
 
     it('should display the resize handler in the proper position when the table contains hidden fixed top row', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right' },
@@ -113,13 +113,14 @@ describe('HiddenRows', () => {
 
       const $handle = $('.manualRowResizer');
 
-      expect($handle.offset().top)
-        .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+      expect($handle.offset().top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+        main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
+      });
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
 
     it('should display the resize handler in the proper position when the table contains hidden fixed bottom row', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right' },
@@ -145,13 +146,14 @@ describe('HiddenRows', () => {
 
       const $handle = $('.manualRowResizer');
 
-      expect($handle.offset().top)
-        .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+      expect($handle.offset().top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+        main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
+      });
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
 
     it('should resize a proper row using the resize handler when the table contains hidden row', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right' },
@@ -181,7 +183,10 @@ describe('HiddenRows', () => {
         .simulate('mouseup')
       ;
 
-      expect(rowHeight(spec().$container, 1)).toEqual(53);
+      expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toEqual(53);
+        main.toEqual(59);
+      });
     });
   });
 });

@@ -84,7 +84,7 @@ describe('BaseEditor API', () => {
               main.toEqual({
                 start: 0,
                 top: 0,
-                width: 50,
+                width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
                 maxHeight: document.documentElement.clientHeight,
@@ -166,10 +166,10 @@ describe('BaseEditor API', () => {
 
               // Not sure about the values below - can be modified if found they're wrong (implemented after introducing the new themes).
               main.toEqual(jasmine.objectContaining({
-                start: document.documentElement.scrollLeft + document.documentElement.clientWidth - 60,
+                start: document.documentElement.scrollLeft + document.documentElement.clientWidth - 62,
                 top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 29,
-                width: 60,
-                maxWidth: 60,
+                width: 62,
+                maxWidth: 62,
                 height: 30,
                 maxHeight: document.documentElement.clientHeight - 29,
               }));
@@ -234,7 +234,7 @@ describe('BaseEditor API', () => {
               main.toEqual({
                 start: 0,
                 top: 0,
-                width: 50,
+                width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
                 maxHeight: document.documentElement.clientHeight,
@@ -312,10 +312,10 @@ describe('BaseEditor API', () => {
 
               // Not sure about the values below - can be modified if found they're wrong (implemented after introducing the new themes).
               main.toEqual(jasmine.objectContaining({
-                start: document.documentElement.scrollLeft + 49,
+                start: document.documentElement.scrollLeft + 50,
                 top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 29,
-                width: 51,
-                maxWidth: document.documentElement.clientWidth - 49,
+                width: 52,
+                maxWidth: document.documentElement.clientWidth - 50,
                 height: 30,
                 maxHeight: document.documentElement.clientHeight - 29,
               }));
@@ -378,7 +378,7 @@ describe('BaseEditor API', () => {
               main.toEqual({
                 start: 0,
                 top: 0,
-                width: 50,
+                width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
                 maxHeight: document.documentElement.clientHeight,
@@ -452,10 +452,10 @@ describe('BaseEditor API', () => {
                 maxHeight: 24,
               }));
               main.toEqual(jasmine.objectContaining({
-                start: document.documentElement.scrollLeft + 49, // 49 - the width of the first cell
+                start: document.documentElement.scrollLeft + 50, // 50 - the width of the first cell
                 top: document.documentElement.offsetHeight - 30,
-                width: 51,
-                maxWidth: document.documentElement.clientWidth - 49,
+                width: 52,
+                maxWidth: document.documentElement.clientWidth - 50,
                 height: 30,
                 maxHeight: 30,
               }));
@@ -520,7 +520,7 @@ describe('BaseEditor API', () => {
               main.toEqual(jasmine.objectContaining({
                 start: 0,
                 top: document.documentElement.clientHeight - 59,
-                width: 50,
+                width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
                 maxHeight: 74,
@@ -598,7 +598,7 @@ describe('BaseEditor API', () => {
               main.toEqual(jasmine.objectContaining({
                 start: document.documentElement.scrollLeft,
                 top: document.documentElement.offsetHeight - 60,
-                width: 50,
+                width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
                 maxHeight: 74,
@@ -664,7 +664,7 @@ describe('BaseEditor API', () => {
               main.toEqual(jasmine.objectContaining({
                 start: 0,
                 top: document.documentElement.clientHeight - 59,
-                width: 50,
+                width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
                 maxHeight: 74,

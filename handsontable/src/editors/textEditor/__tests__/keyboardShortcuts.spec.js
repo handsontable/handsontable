@@ -57,8 +57,7 @@ describe('TextEditor keyboard shortcut', () => {
   });
 
   describe('"Enter + Alt"', () => {
-    it('should exceed the editor height only for one line', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
+    it.forTheme('classic')('should exceed the editor height only for one line', () => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -77,10 +76,37 @@ describe('TextEditor keyboard shortcut', () => {
 
       expect(editorTextareaHeight).toBe(2 * editorTextareaLineHeight);
     });
+
+    it.forTheme('main')('should exceed the editor height only for one line', () => {
+      const hot = handsontable({
+        data: [
+          ['Maserati', 'Mazda'],
+          ['Honda', 'Mini']
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      keyDownUp(['alt', 'enter']);
+
+      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorComputedStyle = getComputedStyle(editorTextarea);
+      const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
+      const editorTextareaTopPadding = parseInt(editorComputedStyle.paddingTop, 10);
+      const editorTextareaBottomPadding = parseInt(editorComputedStyle.paddingBottom, 10);
+      const editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
+
+      expect(editorTextareaHeight).toBe(
+        (2 * editorTextareaLineHeight)
+        + editorTextareaTopPadding
+        + editorTextareaBottomPadding
+        - 1 // Subtracted by the `autoResize` plugin, not sure why.
+      );
+    });
   });
 
   describe('"Enter + Control"', () => {
-    it('should exceed the editor height only for one line', () => {
+    it.forTheme('classic')('should exceed the editor height only for one line', () => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -99,10 +125,37 @@ describe('TextEditor keyboard shortcut', () => {
 
       expect(editorTextareaHeight).toBe(2 * editorTextareaLineHeight);
     });
+
+    it.forTheme('main')('should exceed the editor height only for one line', () => {
+      const hot = handsontable({
+        data: [
+          ['Maserati', 'Mazda'],
+          ['Honda', 'Mini']
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      keyDownUp(['control', 'enter']);
+
+      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorComputedStyle = getComputedStyle(editorTextarea);
+      const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
+      const editorTextareaPaddingTop = parseInt(editorComputedStyle.paddingTop, 10);
+      const editorTextareaPaddingBottom = parseInt(editorComputedStyle.paddingBottom, 10);
+      const editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
+
+      expect(editorTextareaHeight).toBe(
+        (2 * editorTextareaLineHeight)
+        + editorTextareaPaddingTop
+        + editorTextareaPaddingBottom
+        - 1 // Subtracted by the `autoResize` plugin, not sure why.
+      );
+    });
   });
 
   describe('"Enter + Command"', () => {
-    it('should exceed the editor height only for one line', () => {
+    it.forTheme('classic')('should exceed the editor height only for one line', () => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -120,6 +173,33 @@ describe('TextEditor keyboard shortcut', () => {
       const editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
 
       expect(editorTextareaHeight).toBe(2 * editorTextareaLineHeight);
+    });
+
+    it.forTheme('main')('should exceed the editor height only for one line', () => {
+      const hot = handsontable({
+        data: [
+          ['Maserati', 'Mazda'],
+          ['Honda', 'Mini']
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      keyDownUp(['meta', 'enter']);
+
+      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorComputedStyle = getComputedStyle(editorTextarea);
+      const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
+      const editorTextareaPaddingTop = parseInt(editorComputedStyle.paddingTop, 10);
+      const editorTextareaPaddingBottom = parseInt(editorComputedStyle.paddingBottom, 10);
+      const editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
+
+      expect(editorTextareaHeight).toBe(
+        (2 * editorTextareaLineHeight)
+        + editorTextareaPaddingTop
+        + editorTextareaPaddingBottom
+        - 1 // Subtracted by the `autoResize` plugin, not sure why.
+      );
     });
   });
 

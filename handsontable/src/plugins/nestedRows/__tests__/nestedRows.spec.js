@@ -85,8 +85,7 @@ describe('NestedRows', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it('should display indicators properly located', () => {
-        // TODO [themes]: Could be potentially improved by per-theme configuration
+      it.forTheme('classic')('should display indicators properly located', () => {
         const hot = handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
@@ -97,6 +96,19 @@ describe('NestedRows', () => {
         expect(hot.countRows()).toEqual(13);
         expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('left');
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('-2px');
+      });
+
+      it.forTheme('main')('should display indicators properly located', () => {
+        const hot = handsontable({
+          layoutDirection,
+          data: getMoreComplexNestedData(),
+          nestedRows: true,
+          rowHeaders: true
+        });
+
+        expect(hot.countRows()).toEqual(13);
+        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
+        expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });
     });
 

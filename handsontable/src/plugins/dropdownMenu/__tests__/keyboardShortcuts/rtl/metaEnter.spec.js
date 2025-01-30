@@ -19,7 +19,6 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
 
     describe('"Control/meta" + "Enter"', () => {
       it('should be possible to open the dropdown menu in the correct position', async() => {
-        // TODO [themes]: Possibly a themes-related bug. (1px offset)
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(3, 8),
@@ -41,13 +40,15 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         const buttonWidth = $(cell.querySelector('.changeType')).outerWidth();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        expect(menuOffset.top).forThemes(({ classic, main }) => {
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+          main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+        });
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
       });
 
       it('should be possible to open the dropdown menu on the right position when on the left there is no space left', async() => {
-        // TODO [themes]: Possibly a themes-related bug. (1px offset)
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -69,7 +70,10 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        expect(menuOffset.top).forThemes(({ classic, main }) => {
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+          main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+        });
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
         expect(getSelectedRange()).toEqualCellRange([
           `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`

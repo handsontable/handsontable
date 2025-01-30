@@ -51,7 +51,6 @@ describe('HiddenColumns', () => {
     });
 
     it('should display the resize handler in the proper position when the table contains hidden column', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },
@@ -74,12 +73,14 @@ describe('HiddenColumns', () => {
 
       const $handle = $('.manualColumnResizer');
 
-      expect($handle.offset().left).toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+      expect($handle.offset().left).forThemes(({ classic, main }) => {
+        classic.toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+        main.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
+      });
       expect($handle.height()).toBe($headerTH.outerHeight());
     });
 
     it('should display the resize handler in the proper position when the table contains hidden fixed left column', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },
@@ -105,13 +106,14 @@ describe('HiddenColumns', () => {
 
       const $handle = $('.manualColumnResizer');
 
-      expect($handle.offset().left).toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+      expect($handle.offset().left).forThemes(({ classic, main }) => {
+        classic.toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+        main.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
+      });
       expect($handle.height()).toBe($headerTH.outerHeight());
     });
 
     it('should resize a proper column using the resize handler when the table contains hidden column', () => {
-      // TODO [themes]: Possibly a themes-related bug.
-      // TODO [themes]: Could be potentially improved by per-theme configuration
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },
@@ -141,7 +143,10 @@ describe('HiddenColumns', () => {
         .simulate('mouseup')
       ;
 
-      expect(colWidth(spec().$container, 1)).toBe(80); // 50 (initial column width) + 30
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(80); // 50 (initial column width) + 30
+        main.toBe(95); // 65 (initial column width) + 30
+      });
     });
   });
 });

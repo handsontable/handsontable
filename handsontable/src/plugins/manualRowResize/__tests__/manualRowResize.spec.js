@@ -14,13 +14,15 @@ describe('manualRowResize', () => {
   });
 
   it('should change row heights at init', () => {
-    // TODO [themes]: Possibly a themes-related bug.
     handsontable({
       rowHeaders: true,
       manualRowResize: [50, 40, 100]
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(51);
+    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toEqual(51);
+      main.toEqual(50);
+    });
     expect(rowHeight(spec().$container, 1)).toEqual(40);
     expect(rowHeight(spec().$container, 2)).toEqual(100);
   });
@@ -44,8 +46,7 @@ describe('manualRowResize', () => {
     expect($('.manualRowResizer').size()).toBeGreaterThan(0);
   });
 
-  it('should change the default row height with updateSettings', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration (change the defaultRowHeight)
+  it.forTheme('classic')('should change the default row height with updateSettings', () => {
     handsontable({
       manualRowResize: true
     });
@@ -59,6 +60,26 @@ describe('manualRowResize', () => {
     });
 
     expect(rowHeight(spec().$container, 0)).toEqual(61);
+    expect(rowHeight(spec().$container, 1)).toEqual(50);
+    expect(rowHeight(spec().$container, 2)).toEqual(80);
+  });
+
+  it.forTheme('main')('should change the default row height with updateSettings', () => {
+    const themeDefaultRowHeight = 29;
+
+    handsontable({
+      manualRowResize: true
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight); // + Double border
+    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight); // + Single border
+    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight); // + Single border
+
+    updateSettings({
+      manualRowResize: [60, 50, 80]
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(60);
     expect(rowHeight(spec().$container, 1)).toEqual(50);
     expect(rowHeight(spec().$container, 2)).toEqual(80);
   });
@@ -111,8 +132,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(80);
   });
 
-  it('should change the row height to defaults when undefined is passed', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration (change the defaultRowHeight)
+  it.forTheme('classic')('should change the row height to defaults when undefined is passed', () => {
     handsontable({
       manualRowResize: [60, 50, 80]
     });
@@ -130,8 +150,27 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1); // + Single border
   });
 
-  it('should reset row height', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration (change the defaultRowHeight)
+  it.forTheme('main')('should change the row height to defaults when undefined is passed', () => {
+    const themeDefaultRowHeight = 29;
+
+    handsontable({
+      manualRowResize: [60, 50, 80]
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(60);
+    expect(rowHeight(spec().$container, 1)).toEqual(50);
+    expect(rowHeight(spec().$container, 2)).toEqual(80);
+
+    updateSettings({
+      manualRowResize: undefined
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
+  });
+
+  it.forTheme('classic')('should reset row height', () => {
     handsontable({
       manualRowResize: true
     });
@@ -149,8 +188,27 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
   });
 
-  it('should keep proper row heights after inserting row', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration (change the defaultRowHeight)
+  it.forTheme('main')('should reset row height', () => {
+    const themeDefaultRowHeight = 29;
+
+    handsontable({
+      manualRowResize: true
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
+
+    updateSettings({
+      manualRowResize: true
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
+  });
+
+  it.forTheme('classic')('should keep proper row heights after inserting row', () => {
     handsontable({
       manualRowResize: [undefined, undefined, 120]
     });
@@ -168,8 +226,27 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 3)).toBe(120);
   });
 
-  it('should keep proper row heights after removing row', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration (change the defaultRowHeight)
+  it.forTheme('main')('should keep proper row heights after inserting row', () => {
+    const themeDefaultRowHeight = 29;
+
+    handsontable({
+      manualRowResize: [undefined, undefined, 120]
+    });
+
+    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toBe(120);
+    expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);
+
+    alter('insert_row_above', 0);
+
+    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 3)).toBe(120);
+  });
+
+  it.forTheme('classic')('should keep proper row heights after removing row', () => {
     handsontable({
       manualRowResize: [undefined, undefined, 120]
     });
@@ -187,8 +264,27 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight + 1);
   });
 
-  it('should trigger beforeRowResize event after row height changes', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration (change the defaultRowHeight)
+  it.forTheme('main')('should keep proper row heights after removing row', () => {
+    const themeDefaultRowHeight = 29;
+
+    handsontable({
+      manualRowResize: [undefined, undefined, 120]
+    });
+
+    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toBe(120);
+    expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);
+
+    alter('remove_row', 0);
+
+    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 1)).toBe(120);
+    expect(rowHeight(spec().$container, 2)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);
+  });
+
+  it.forTheme('classic')('should trigger beforeRowResize event after row height changes', () => {
     const beforeRowResizeCallback = jasmine.createSpy('beforeRowResizeCallback');
 
     handsontable({
@@ -203,6 +299,24 @@ describe('manualRowResize', () => {
     resizeRow(0, 100);
     expect(beforeRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
     expect(rowHeight(spec().$container, 0)).toEqual(101);
+  });
+
+  it.forTheme('main')('should trigger beforeRowResize event after row height changes', () => {
+    const beforeRowResizeCallback = jasmine.createSpy('beforeRowResizeCallback');
+    const themeDefaultRowHeight = 29;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      beforeRowResize: beforeRowResizeCallback
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
+
+    resizeRow(0, 100);
+    expect(beforeRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
+    expect(rowHeight(spec().$container, 0)).toEqual(100);
   });
 
   it('should appropriate resize rowHeight after beforeRowResize call a few times', async() => {
@@ -238,8 +352,7 @@ describe('manualRowResize', () => {
     });
   });
 
-  it('should trigger afterRowResize event after row height changes', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
+  it.forTheme('classic')('should trigger afterRowResize event after row height changes', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -256,8 +369,25 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(101);
   });
 
-  it('should not trigger afterRowResize event if row height does not change (delta = 0)', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
+  it.forTheme('main')('should trigger afterRowResize event after row height changes', () => {
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+    const themeDefaultRowHeight = 29;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      afterRowResize: afterRowResizeCallback
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
+
+    resizeRow(0, 100);
+    expect(afterRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
+    expect(rowHeight(spec().$container, 0)).toEqual(100);
+  });
+
+  it.forTheme('classic')('should not trigger afterRowResize event if row height does not change (delta = 0)', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -274,8 +404,26 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
   });
 
-  it('should not trigger afterRowResize event after if row height does not change (no mousemove event)', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
+  it.forTheme('main')('should not trigger afterRowResize event if row height does not change (delta = 0)', () => {
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+    const themeDefaultRowHeight = 29;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      afterRowResize: afterRowResizeCallback
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
+
+    resizeRow(0, themeDefaultRowHeight + 1);
+    expect(afterRowResizeCallback).not.toHaveBeenCalled();
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
+  });
+
+  it.forTheme('classic')('should not trigger afterRowResize event after if row height does not change ' +
+    '(no mousemove event)', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -300,8 +448,34 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
   });
 
-  it('should trigger an afterRowResize after row size changes, after double click', async() => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
+  it.forTheme('main')('should not trigger afterRowResize event after if row height does not change ' +
+    '(no mousemove event)', () => {
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+    const themeDefaultRowHeight = 29;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      afterRowResize: afterRowResizeCallback
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
+
+    const $th = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
+
+    $th.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    simulateClick($resizer, { clientY: resizerPosition.top });
+
+    expect(afterRowResizeCallback).not.toHaveBeenCalled();
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
+  });
+
+  it.forTheme('classic')('should trigger an afterRowResize after row size changes, after double click', async() => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -329,6 +503,37 @@ describe('manualRowResize', () => {
     expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
     expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(defaultRowHeight + 1);
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
+  });
+
+  it.forTheme('main')('should trigger an afterRowResize after row size changes, after double click', async() => {
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+    const themeDefaultRowHeight = 29;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      autoRowSize: true,
+      afterRowResize: afterRowResizeCallback
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
+
+    const $th = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
+
+    $th.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    mouseDoubleClick($resizer, { clientY: resizerPosition.top });
+
+    await sleep(1000);
+
+    expect(afterRowResizeCallback.calls.count()).toEqual(1);
+    expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
+    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
   });
 
   it('should resize appropriate rows to calculated autoRowSize height after double click on row handler after ' +
@@ -396,8 +601,8 @@ describe('manualRowResize', () => {
     }
   });
 
-  it('should not trigger afterRowResize event after if row height does not change (no dblclick event)', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
+  it.forTheme('classic')('should not trigger afterRowResize event after if row height does not change ' +
+    '(no dblclick event)', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -420,6 +625,33 @@ describe('manualRowResize', () => {
 
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
+  });
+
+  it.forTheme('main')('should not trigger afterRowResize event after if row height does not change ' +
+    '(no dblclick event)', () => {
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+    const themeDefaultRowHeight = 29;
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      afterRowResize: afterRowResizeCallback
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
+
+    const $th = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
+
+    $th.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    simulateClick($resizer, { clientY: resizerPosition.top });
+
+    expect(afterRowResizeCallback).not.toHaveBeenCalled();
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
   });
 
   it('should autosize row after double click (when initial height is not defined)', async() => {
@@ -1095,8 +1327,7 @@ describe('manualRowResize', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it('should display the resize handle in the proper position and with a proper size', () => {
-        // TODO [themes]: Could be potentially improved by per-theme configuration
+      it.forTheme('classic')('should display the resize handle in the proper position and with a proper size', () => {
         handsontable({
           layoutDirection,
           data: [
@@ -1118,6 +1349,32 @@ describe('manualRowResize', () => {
 
         expect($handle.offset().top)
           .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+        expect($handle.offset().left).toBeCloseTo($headerTH.offset().left, 0);
+        expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
+      });
+
+      it.forTheme('main')('should display the resize handle in the proper position and with a proper size', () => {
+        handsontable({
+          layoutDirection,
+          data: [
+            { id: 1, name: 'Ted', lastName: 'Right' },
+            { id: 2, name: 'Frank', lastName: 'Honest' },
+            { id: 3, name: 'Joan', lastName: 'Well' },
+            { id: 4, name: 'Sid', lastName: 'Strong' },
+            { id: 5, name: 'Jane', lastName: 'Neat' }
+          ],
+          rowHeaders: true,
+          manualRowResize: true
+        });
+
+        const $headerTH = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
+
+        $headerTH.simulate('mouseover');
+
+        const $handle = $('.manualRowResizer');
+
+        expect($handle.offset().top)
+          .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
         expect($handle.offset().left).toBeCloseTo($headerTH.offset().left, 0);
         expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
       });
@@ -1205,8 +1462,7 @@ describe('manualRowResize', () => {
       });
     });
 
-    it('should remove resize handler when user clicks RMB', async() => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
+    it.forTheme('classic')('should remove resize handler when user clicks RMB', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1230,6 +1486,32 @@ describe('manualRowResize', () => {
       await sleep(0);
 
       expect(getComputedStyle($handle[0]).backgroundColor).not.toBe('rgb(52, 169, 219)');
+    });
+
+    it.forTheme('main')('should remove resize handler when user clicks RMB', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      const $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $handle.position();
+
+      $handle.simulate('mousedown', { clientY: resizerPosition.top });
+
+      // To watch whether color has changed.
+      expect(getComputedStyle($handle[0]).opacity).toBe('0');
+
+      $handle.simulate('contextmenu');
+
+      await sleep(0);
+
+      expect(getComputedStyle($handle[0]).opacity).not.toBe('0');
     });
   });
 
@@ -1280,9 +1562,8 @@ describe('manualRowResize', () => {
       });
     });
 
-    it('should be able to get the last desired row height from the `getLastDesiredRowHeight` method in the ' +
-    '`afterRowResize` hook callback', async() => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration (not sure about what to put in the expect for themes)
+    it.forTheme('classic')('should be able to get the last desired row height from the ' +
+      '`getLastDesiredRowHeight` method in the `afterRowResize` hook callback', async() => {
       const desiredHeightsLog = [];
 
       handsontable({
@@ -1306,6 +1587,36 @@ describe('manualRowResize', () => {
 
       $resizer.simulate('mousedown', { clientY: resizerPosition.top });
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + $resizer.height() - 50 });
+      $resizer.simulate('mouseup');
+
+      expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 6]);
+    });
+
+    it.forTheme('main')('should be able to get the last desired row height from the ' +
+      '`getLastDesiredRowHeight` method in the `afterRowResize` hook callback', async() => {
+      const desiredHeightsLog = [];
+
+      handsontable({
+        data: [['value \n value \n value \n value \n value']],
+        rowHeaders: true,
+        manualRowResize: true,
+        // eslint-disable-next-line object-shorthand
+        afterRowResize: function() {
+          desiredHeightsLog.push(this.getPlugin('manualRowResize').getLastDesiredRowHeight());
+        },
+      });
+
+      const $rowHeader = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $resizer.position();
+
+      await sleep(100);
+
+      $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+      $resizer.simulate('mousemove', { clientY: resizerPosition.top + ($resizer.height() / 2) - 50 });
       $resizer.simulate('mouseup');
 
       expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 6]);

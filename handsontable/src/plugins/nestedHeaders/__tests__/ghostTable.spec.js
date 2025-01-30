@@ -56,31 +56,31 @@ describe('NestedHeaders', () => {
 
         expect(ghostTable.widthsMap.getValueAtIndex(0)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(92);
-          main.toBeAroundValue(84);
+          main.toBeAroundValue(110);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(92);
-          main.toBeAroundValue(84);
+          main.toBeAroundValue(110);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(92);
-          main.toBeAroundValue(83); // not sure why the values are not the same for every entry, like in the classic theme
+          main.toBeAroundValue(109); // not sure why the values are not the same for every entry, like in the classic theme
         });
         expect(ghostTable.widthsMap.getValueAtIndex(3)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(92);
-          main.toBeAroundValue(83);
+          main.toBeAroundValue(110);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(92);
-          main.toBeAroundValue(83);
+          main.toBeAroundValue(110);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(92);
-          main.toBeAroundValue(83);
+          main.toBeAroundValue(110);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(92);
-          main.toBeAroundValue(83);
+          main.toBeAroundValue(110);
         });
       });
 
@@ -101,43 +101,43 @@ describe('NestedHeaders', () => {
 
         expect(ghostTable.widthsMap.getValueAtIndex(0)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(19);
-          main.toBeAroundValue(11);
+          main.toBeAroundValue(14);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(19);
-          main.toBeAroundValue(11);
+          main.toBeAroundValue(14);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(16);
-          main.toBeAroundValue(8);
+          main.toBeAroundValue(11);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(3)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(19);
-          main.toBeAroundValue(10);
+          main.toBeAroundValue(13);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(19);
-          main.toBeAroundValue(10);
+          main.toBeAroundValue(11);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(16);
-          main.toBeAroundValue(8);
+          main.toBeAroundValue(10);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(16);
-          main.toBeAroundValue(9);
+          main.toBeAroundValue(11);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(88);
-          main.toBeAroundValue(84);
+          main.toBeAroundValue(122);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(88);
-          main.toBeAroundValue(84);
+          main.toBeAroundValue(112);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(9)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(21);
-          main.toBeAroundValue(13);
+          main.toBeAroundValue(16);
         });
       });
 
@@ -177,7 +177,7 @@ describe('NestedHeaders', () => {
         expect(widthAfterUpdate).not.toBe(widthBeforeUpdate);
         expect(widthAfterUpdate).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(120);
-          main.toBeAroundValue(113);
+          main.toBeAroundValue(164);
         });
       });
     });
@@ -203,12 +203,12 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(19);
-          main.toBeAroundValue(11);
+          main.toBeAroundValue(14);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(2)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(3)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(70);
-          main.toBeAroundValue(62);
+          main.toBeAroundValue(84);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(18);
@@ -216,19 +216,19 @@ describe('NestedHeaders', () => {
         });
         expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(16);
-          main.toBeAroundValue(8);
+          main.toBeAroundValue(11);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(17);
-          main.toBeAroundValue(9);
+          main.toBeAroundValue(11);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(88);
-          main.toBeAroundValue(84);
+          main.toBeAroundValue(122);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(88);
-          main.toBeAroundValue(84);
+          main.toBeAroundValue(112);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
@@ -252,12 +252,12 @@ describe('NestedHeaders', () => {
 
         expect(ghostTable.widthsMap.getValueAtIndex(0)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(19);
-          main.toBeAroundValue(11);
+          main.toBeAroundValue(14);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(70);
-          main.toBeAroundValue(62);
+          main.toBeAroundValue(84);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main }) => {
@@ -266,16 +266,16 @@ describe('NestedHeaders', () => {
         });
         expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(16);
-          main.toBeAroundValue(8);
+          main.toBeAroundValue(11);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(17);
-          main.toBeAroundValue(9);
+          main.toBeAroundValue(11);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(7)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(178);
-          main.toBeAroundValue(170);
+          main.toBeAroundValue(236);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
@@ -303,7 +303,7 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(70);
-          main.toBeAroundValue(62);
+          main.toBeAroundValue(84);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main }) => {
@@ -314,11 +314,11 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getValueAtIndex(6)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(88);
-          main.toBeAroundValue(84);
+          main.toBeAroundValue(122);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main }) => {
           classic.toBeAroundValue(88);
-          main.toBeAroundValue(84);
+          main.toBeAroundValue(112);
         });
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });

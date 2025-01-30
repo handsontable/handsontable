@@ -42,7 +42,7 @@ describe('Core.scrollViewportTo', () => {
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(2318);
-        main.toBe(2541);
+        main.toBe(2618);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(3216);
@@ -78,7 +78,7 @@ describe('Core.scrollViewportTo', () => {
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(2502);
-        main.toBe(2717);
+        main.toBe(2793);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(3216);
@@ -114,7 +114,7 @@ describe('Core.scrollViewportTo', () => {
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(2502);
-        main.toBe(2717);
+        main.toBe(2793);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(3450);
@@ -150,7 +150,7 @@ describe('Core.scrollViewportTo', () => {
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(2318);
-        main.toBe(2541);
+        main.toBe(2618);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(3450);
@@ -226,7 +226,7 @@ describe('Core.scrollViewportTo', () => {
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(2318);
-      main.toBe(2541);
+      main.toBe(2618);
     });
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
@@ -250,7 +250,7 @@ describe('Core.scrollViewportTo', () => {
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(2502);
-      main.toBe(2717);
+      main.toBe(2793);
     });
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
@@ -303,8 +303,7 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(0);
   });
 
-  it('should scroll the viewport only horizontally', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
+  it.forTheme('classic')('should scroll the viewport only horizontally', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100),
       height: 300,
@@ -326,18 +325,41 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).forThemes(({ classic, main }) => {
-      classic.toBe(47);
-      main.toBe(48);
-    });
-    expect(hot.view._wt.wtScroll.getFirstVisibleRow()).forThemes(({ classic, main }) => {
-      classic.toBe(70);
-      main.toBe(73);
-    });
+    await sleep(50);
+
+    expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
+    expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(70);
   });
 
-  it('should scroll the viewport only vertically', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
+  it.forTheme('main')('should scroll the viewport only horizontally', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(100, 100),
+      height: 375,
+      width: 360,
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    scrollViewportTo({
+      row: 50,
+      col: 50,
+    });
+
+    render();
+
+    scrollViewportTo({
+      row: 80,
+    });
+
+    render();
+
+    await sleep(50);
+
+    expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
+    expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(70);
+  });
+
+  it.forTheme('classic')('should scroll the viewport only vertically', () => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100),
       height: 300,
@@ -360,10 +382,33 @@ describe('Core.scrollViewportTo', () => {
     render();
 
     expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(77);
-    expect(hot.view._wt.wtScroll.getFirstVisibleRow()).forThemes(({ classic, main }) => {
-      classic.toBe(40);
-      main.toBe(43);
+    expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(40);
+  });
+
+  it.forTheme('main')('should scroll the viewport only vertically', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(100, 100),
+      height: 375,
+      width: 360,
+      rowHeaders: true,
+      colHeaders: true
     });
+
+    scrollViewportTo({
+      row: 50,
+      col: 50,
+    });
+
+    render();
+
+    scrollViewportTo({
+      col: 80,
+    });
+
+    render();
+
+    expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(77);
+    expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(40);
   });
 
   it('should scroll the viewport properly when there are hidden columns', () => {

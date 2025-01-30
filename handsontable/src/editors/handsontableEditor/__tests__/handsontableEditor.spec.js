@@ -447,10 +447,7 @@ describe('HandsontableEditor', () => {
 
     const container = spec().$container.find('.handsontableInputHolder');
 
-    expect(container.css('zIndex')).forThemes(({ classic, main }) => {
-      classic.toBe('200');
-      main.toBe('140');
-    });
+    expect(container.css('zIndex')).toBe('200');
   });
 
   it('should destroy the editor when Esc is pressed', () => {
@@ -858,7 +855,7 @@ describe('HandsontableEditor', () => {
 
     expect(container.clientWidth).forThemes(({ classic, main }) => {
       classic.toBe(290);
-      main.toBe(337);
+      main.toBe(367);
     });
     expect(container.clientHeight).forThemes(({ classic, main }) => {
       classic.toBe(168);
@@ -901,7 +898,7 @@ describe('HandsontableEditor', () => {
 
     expect(container.clientWidth).forThemes(({ classic, main }) => {
       classic.toBe(290);
-      main.toBe(337);
+      main.toBe(367);
     });
     expect(container.clientHeight).forThemes(({ classic, main }) => {
       classic.toBe(168);

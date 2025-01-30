@@ -1548,7 +1548,7 @@ describe('MergeCells', () => {
   });
 
   it('should correctly render all overlay\'s heights when they are contain merge cells', () => {
-    // TODO [themes]: Possibly a themes-related bug. (different sizes for top overlays)
+    // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2208)
     handsontable({
       data: createSpreadsheetData(10, 10),
       width: 600,
@@ -1574,7 +1574,7 @@ describe('MergeCells', () => {
   });
 
   it('should expand the all overlays size after changing the row height', () => {
-    // TODO [themes]: Possibly a themes-related bug. (different sizes for top overlays)
+    // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2208)
     handsontable({
       data: createSpreadsheetData(10, 10),
       width: 600,
@@ -1594,7 +1594,6 @@ describe('MergeCells', () => {
     getActiveEditor().TEXTAREA.value = 'test\n\ntest';
     keyDownUp('enter');
 
-    // TODO [themes]: Possibly a themes-related bug (the top clones differ in heights).
     expect(getTopInlineStartClone().height()).toBe(111);
     expect(getTopClone().height()).toBe(111);
     expect(getInlineStartClone().height()).toBe(400);
@@ -1688,9 +1687,7 @@ describe('MergeCells', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should display properly high merged cell', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
-    // TODO [themes]: Possibly a themes-related bug.
+  it.forTheme('classic')('should display properly high merged cell', () => {
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
@@ -1785,13 +1782,170 @@ describe('MergeCells', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should display properly high virtualized merged cell', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
-    // TODO [themes]: Possibly a themes-related bug.
+  it.forTheme('main')('should display properly high merged cell', () => {
+    handsontable({
+      data: createSpreadsheetData(50, 3),
+      width: 200,
+      height: 245,
+      viewportRowRenderingOffset: 0,
+      mergeCells: true,
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 20, 0);
+    selectCell(0, 0);
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
+    expect(`
+      | # :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is partially visible
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
+    expect(`
+      | # :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
+    expect(`
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it.forTheme('classic')('should display properly high virtualized merged cell', () => {
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
       height: 200,
+      viewportRowRenderingOffset: 0,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 20, 0);
+    selectCell(0, 0);
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
+    expect(`
+      | # :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 27, col: 0 }); // the merged cell is partially visible
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A29');
+    expect(`
+      | # :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
+    expect(`
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it.forTheme('main')('should display properly high virtualized merged cell', () => {
+    // TODO: This test case is too closely bound to this specfici table height. It should be looked into.
+    handsontable({
+      data: createSpreadsheetData(50, 30),
+      width: 200,
+      height: 248,
       viewportRowRenderingOffset: 0,
       mergeCells: {
         virtualized: true,

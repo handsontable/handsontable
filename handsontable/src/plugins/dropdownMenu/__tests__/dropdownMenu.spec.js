@@ -103,7 +103,6 @@ describe('DropdownMenu', () => {
 
   describe('menu opening', () => {
     it('should open menu after click on table header button', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -151,7 +150,6 @@ describe('DropdownMenu', () => {
     });
 
     it('should open menu after click on table header button when only header cells are visible', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: [],
         colHeaders: ['Year', 'Kia'],
@@ -239,7 +237,6 @@ describe('DropdownMenu', () => {
     });
 
     it('should reenable menu with updateSettings when it was disabled in constructor', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       const hot = handsontable({
         dropdownMenu: false,
         colHeaders: true,

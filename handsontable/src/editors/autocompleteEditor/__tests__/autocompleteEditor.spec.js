@@ -55,9 +55,78 @@ describe('AutocompleteEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
-  it('should render an editor in specified position while opening an editor from top to bottom when ' +
-     'top and bottom overlays are enabled', () => {
-    // TODO [themes]: Looks like something might be wrong with the values for the main theme
+  it.forTheme('classic')('should render an editor in specified position while opening an ' +
+    'editor from top to bottom when top and bottom overlays are enabled', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [
+        {
+          editor: 'autocomplete',
+          source: choices,
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDownUp('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
+  it.forTheme('main')('should render an editor in specified position while opening an editor from top to bottom when ' +
+    'top and bottom overlays are enabled', () => {
+    spec().$container.css('height', '245px');
+
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(8, 2),
       rowHeaders: true,
@@ -423,7 +492,7 @@ describe('AutocompleteEditor', () => {
 
       expect(container.clientWidth).forThemes(({ classic, main }) => {
         classic.toBe(52);
-        main.toBe(57);
+        main.toBe(64);
       });
       expect(container.clientHeight).forThemes(({ classic, main }) => {
         classic.toBe(118);
@@ -482,7 +551,7 @@ describe('AutocompleteEditor', () => {
 
       expect(container.clientWidth).forThemes(({ classic, main }) => {
         classic.toBe(52 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(57 + Handsontable.dom.getScrollbarWidth());
+        main.toBe(64 + Handsontable.dom.getScrollbarWidth());
       });
       expect(container.clientHeight).forThemes(({ classic, main }) => {
         classic.toBe(72);
@@ -761,7 +830,7 @@ describe('AutocompleteEditor', () => {
         .toEqual(editor.find('.handsontableInput').width() - 2);
       expect(editor.find('.autocompleteEditor .htCore td').width()).forThemes(({ classic, main }) => {
         classic.toBeGreaterThan(187);
-        main.toBeGreaterThan(187); // TODO [themes]: not sure where did `187` come from for the classic theme
+        main.toEqual(180); // TODO [themes]: not sure where did `187` come from for the classic theme
       });
     });
 

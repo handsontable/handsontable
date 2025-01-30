@@ -32,7 +32,6 @@ describe('manualRowMove', () => {
     });
 
     it('should draw backlight element properly when target element points to header\'s child element', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(10, 5),
         manualRowMove: true,
@@ -46,10 +45,10 @@ describe('manualRowMove', () => {
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('mousedown', {
-          clientX: TH.offset().top + (TH.outerHeight() / 2)
+          clientY: TH.offset().top + (TH.outerHeight() / 2)
         })
         .simulate('mousemove', {
-          clientX: TH.offset().top + (TH.outerHeight() / 2)
+          clientY: TH.offset().top + (TH.outerHeight() / 2)
         });
 
       const backlight = spec().$container.find('.ht__manualRowMove--backlight');
@@ -59,7 +58,6 @@ describe('manualRowMove', () => {
     });
 
     it('should move backlight and guideline element with the movement of the mouse (move top)', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(10, 5),
         manualRowMove: true,
@@ -85,12 +83,17 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should move backlight and guideline element with the movement of the mouse (move bottom)', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(10, 5),
         manualRowMove: true,
@@ -116,12 +119,17 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should move guideline element to the last header when the mouse exceeds half of the height of that header', () => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(10, 5),
         manualRowMove: true,
@@ -149,8 +157,14 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THLast.offset().top - dropOffset);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THLast.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THLast.offset().top - 2);
+        main.toBe(THLast.offset().top - 1.5);
+      });
     });
 
     it('should draw backlight element properly when the table is scrolled (overflow: hidden)', async() => {
@@ -186,7 +200,6 @@ describe('manualRowMove', () => {
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
       '(overflow: hidden, move top)', async() => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(50, 5),
         width: 200,
@@ -223,13 +236,18 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
       '(overflow: hidden, move bottom)', async() => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(50, 5),
         width: 200,
@@ -266,8 +284,14 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should draw backlight element properly when the table is scrolled (window as scrollable element)', async() => {
@@ -301,7 +325,6 @@ describe('manualRowMove', () => {
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
       '(window as scrollable element, move top)', async() => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(100, 5),
         manualRowMove: true,
@@ -336,13 +359,18 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
       '(window as scrollable element, move bottom)', async() => {
-      // TODO [themes]: Possibly a themes-related bug.
       handsontable({
         data: createSpreadsheetData(100, 5),
         manualRowMove: true,
@@ -377,8 +405,14 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should draw backlight element properly when rowHeights is defined', () => {

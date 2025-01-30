@@ -354,7 +354,6 @@ describe('HiddenColumns', () => {
 
       describe('guideline', () => {
         it('should get correct position while grabing the column placed after hidden columns (moving right)', () => {
-          // TODO [themes]: Possibly a themes-related bug.
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -382,11 +381,13 @@ describe('HiddenColumns', () => {
 
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
-          expect($guideline.offset().left).toBe($secondHeaderTH.offset().left - 1);
+          expect($guideline.offset().left).forThemes(({ classic, main }) => {
+            classic.toBe($secondHeaderTH.offset().left - 1);
+            main.toBe($secondHeaderTH.offset().left - 0.5);
+          });
         });
 
         it('should get correct position while grabing the column placed after hidden columns (moving left)', () => {
-          // TODO [themes]: Could be potentially improved by per-theme configuration
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -414,11 +415,13 @@ describe('HiddenColumns', () => {
 
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
-          expect($guideline.offset().left).toBe($firstHeaderTH.offset().left + $firstHeaderTH.width());
+          expect($guideline.offset().left).forThemes(({ classic, main }) => {
+            classic.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width());
+            main.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
+          });
         });
 
         it('should get correct position while grabing the column placed before hidden columns (moving right)', () => {
-          // TODO [themes]: Possibly a themes-related bug.
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -446,11 +449,13 @@ describe('HiddenColumns', () => {
 
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
-          expect($guideline.offset().left).toBe($secondHeaderTH.offset().left - 1);
+          expect($guideline.offset().left).forThemes(({ classic, main }) => {
+            classic.toBe($secondHeaderTH.offset().left - 1);
+            main.toBe($secondHeaderTH.offset().left - 0.5);
+          });
         });
 
         it('should get correct position while grabing the column placed before hidden columns (moving left)', () => {
-          // TODO [themes]: Possibly a themes-related bug.
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -478,7 +483,10 @@ describe('HiddenColumns', () => {
 
           const $guideline = spec().$container.find('.ht__manualColumnMove--guideline');
 
-          expect($guideline.offset().left).toBe($firstHeaderTH.offset().left + $firstHeaderTH.width());
+          expect($guideline.offset().left).forThemes(({ classic, main }) => {
+            classic.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width());
+            main.toBe($firstHeaderTH.offset().left + $firstHeaderTH.width() + 0.5);
+          });
         });
       });
     });

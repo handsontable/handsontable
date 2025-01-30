@@ -24,14 +24,9 @@ function it(description, specDefinitions) {
 }
 
 it.forTheme = themeName => (description, specDefinition) => {
-  originalIt(description, function() {
-    if ((this.loadedTheme || 'classic') === themeName) {
-      specDefinition.apply(this);
-
-    } else {
-      pending(`Skipped (spec for the "${themeName}" theme).`);
-    }
-  });
+  if ((__ENV_ARGS__.HOT_THEME || 'classic') === themeName) {
+    originalIt(description, specDefinition);
+  }
 };
 
 global.it = it;

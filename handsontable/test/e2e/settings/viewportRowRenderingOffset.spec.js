@@ -13,8 +13,7 @@ describe('settings', () => {
   });
 
   describe('viewportRowRenderingOffset', () => {
-    it('should be possible to change the size of the calculated rendered rows', () => {
-      // TODO [themes]: Could be potentially improved by per-theme configuration
+    it.forTheme('classic')('should be possible to change the size of the calculated rendered rows', () => {
       let calculator;
 
       handsontable({
@@ -29,18 +28,36 @@ describe('settings', () => {
 
       selectCell(25, 25);
 
-      expect(calculator.startRow).forThemes(({ classic, main }) => {
-        classic.toBe(22);
-        main.toBe(23);
-      });
+      expect(calculator.startRow).toBe(22);
       expect(calculator.endRow).toBe(26);
 
       updateSettings({ viewportRowRenderingOffset: 10 });
 
-      expect(calculator.startRow).forThemes(({ classic, main }) => {
-        classic.toBe(12);
-        main.toBe(13);
+      expect(calculator.startRow).toBe(12);
+      expect(calculator.endRow).toBe(36);
+    });
+
+    it.forTheme('main')('should be possible to change the size of the calculated rendered rows', () => {
+      let calculator;
+
+      handsontable({
+        data: createSpreadsheetData(50, 50),
+        width: 125,
+        height: 125,
+        viewportRowRenderingOffset: 0,
+        afterViewportRowCalculatorOverride(calculatorInstance) {
+          calculator = calculatorInstance;
+        },
       });
+
+      selectCell(25, 25);
+
+      expect(calculator.startRow).toBe(22);
+      expect(calculator.endRow).toBe(26);
+
+      updateSettings({ viewportRowRenderingOffset: 10 });
+
+      expect(calculator.startRow).toBe(12);
       expect(calculator.endRow).toBe(36);
     });
   });

@@ -488,7 +488,6 @@ describe('HiddenRows', () => {
 
       describe('guideline', () => {
         it('should get correct position while grabing the row placed after hidden rows (moving down)', () => {
-          // TODO [themes]: Possibly a themes-related bug.
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             rowHeaders: true,
@@ -517,11 +516,13 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($secondHeaderTH.offset().top - 2);
+          expect($guideline.offset().top).forThemes(({ classic, main }) => {
+            classic.toBe($secondHeaderTH.offset().top - 2);
+            main.toBe($secondHeaderTH.offset().top - 1.5);
+          });
         });
 
         it('should get correct position while grabing the row placed after hidden rows (moving up)', () => {
-          // TODO [themes]: Possibly a themes-related bug.
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             rowHeaders: true,
@@ -549,11 +550,13 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+          expect($guideline.offset().top).forThemes(({ classic, main }) => {
+            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 0.5);
+          });
         });
 
         it('should get correct position while grabing the row placed before hidden rows (moving down)', () => {
-          // TODO [themes]: Possibly a themes-related bug.
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             rowHeaders: true,
@@ -582,11 +585,13 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($secondHeaderTH.offset().top - 2);
+          expect($guideline.offset().top).forThemes(({ classic, main }) => {
+            classic.toBe($secondHeaderTH.offset().top - 2);
+            main.toBe($secondHeaderTH.offset().top - 1.5);
+          });
         });
 
         it('should get correct position while grabing the row placed before hidden rows (moving up)', () => {
-          // TODO [themes]: Possibly a themes-related bug.
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             rowHeaders: true,
@@ -614,7 +619,10 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+          expect($guideline.offset().top).forThemes(({ classic, main }) => {
+            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 0.5);
+          });
         });
       });
     });

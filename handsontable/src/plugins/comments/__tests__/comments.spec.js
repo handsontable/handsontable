@@ -177,7 +177,8 @@ describe('Comments', () => {
         });
       });
 
-      it('should display the comment editor on the right of the cell when the viewport is not scrolled (the Window object is not a scrollable element)', () => {
+      it.forTheme('classic')('should display the comment editor on the right of the cell when the ' +
+        'viewport is not scrolled (the Window object is not a scrollable element)', () => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(30, 20),
@@ -201,8 +202,33 @@ describe('Comments', () => {
         });
       });
 
-      it('should display the comment editor on the right of the cell when the viewport is scrolled (the Window object is not a scrollable element)', async() => {
-        // TODO [themes]: Could be potentially improved by per-theme configuration (probably the comment container is wider and doesn't fit on the right side for RTL)
+      it.forTheme('main')('should display the comment editor on the right of the cell when the ' +
+        'viewport is not scrolled (the Window object is not a scrollable element)', () => {
+        handsontable({
+          layoutDirection,
+          data: createSpreadsheetData(30, 20),
+          comments: true,
+          width: 500,
+          height: 200,
+        });
+
+        const plugin = getPlugin('comments');
+        const $editor = $(plugin.getEditorInputElement());
+
+        plugin.showAtCell(0, 1);
+
+        const cellOffset = $(getCell(0, 2)).offset();
+        const editorOffset = $editor.offset();
+
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
+        expect(editorOffset.left).forThemes(({ classic, main }) => {
+          classic.toBeCloseTo(cellOffset.left, 0);
+          main.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
+        });
+      });
+
+      it.forTheme('classic')('should display the comment editor on the right of the cell when the ' +
+        'viewport is scrolled (the Window object is not a scrollable element)', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(30, 20),
@@ -226,6 +252,40 @@ describe('Comments', () => {
         plugin.showAtCell(countRows() - 2, countCols() - 5);
 
         const cellOffset = $(getCell(countRows() - 2, countCols() - 4)).offset();
+        const editorOffset = $editor.offset();
+
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
+        expect(editorOffset.left).forThemes(({ classic, main }) => {
+          classic.toBeCloseTo(cellOffset.left, 0);
+          main.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
+        });
+      });
+
+      it.forTheme('main')('should display the comment editor on the right of the cell when the ' +
+        'viewport is scrolled (the Window object is not a scrollable element)', async() => {
+        handsontable({
+          layoutDirection,
+          data: createSpreadsheetData(30, 20),
+          comments: true,
+          width: 500,
+          height: 250,
+        });
+
+        scrollViewportTo({
+          row: countRows() - 1,
+          col: countCols() - 1,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
+
+        const plugin = getPlugin('comments');
+        const $editor = $(plugin.getEditorInputElement());
+
+        await sleep(10);
+
+        plugin.showAtCell(countRows() - 2, countCols() - 8);
+
+        const cellOffset = $(getCell(countRows() - 2, countCols() - 7)).offset();
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);

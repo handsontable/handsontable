@@ -79,9 +79,8 @@ describe('DropdownEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
-  it('should render an editor in specified position while opening an editor from top to bottom when ' +
-     'top and bottom overlays are enabled', () => {
-    // TODO [themes]: Could be potentially a themes-related bug
+  it.forTheme('classic')('should render an editor in specified position while opening an editor ' +
+    'from top to bottom when top and bottom overlays are enabled', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(8, 2),
       rowHeaders: true,
@@ -144,6 +143,84 @@ describe('DropdownEditor', () => {
 
     keyDownUp('enter');
     keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
+  it.forTheme('main')('should render an editor in specified position while opening an editor from top to bottom when ' +
+    'top and bottom overlays are enabled', async() => {
+    spec().$container[0].style.height = '252px';
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [
+        {
+          editor: 'dropdown',
+          source: choices,
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });

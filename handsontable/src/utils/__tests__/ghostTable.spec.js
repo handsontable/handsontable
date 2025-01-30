@@ -237,17 +237,17 @@ describe('GhostTable', () => {
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
       expect(widthSpy.calls.argsFor(0)[1]).forThemes(({ classic, main }) => {
         classic.toBe(66);
-        main.toBe(78);
+        main.toBe(84);
       });
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
       expect(widthSpy.calls.argsFor(1)[1]).forThemes(({ classic, main }) => {
         classic.toBe(31);
-        main.toBe(41);
+        main.toBe(45);
       });
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
       expect(widthSpy.calls.argsFor(2)[1]).forThemes(({ classic, main }) => {
         classic.toBe(53);
-        main.toBe(64);
+        main.toBe(68);
       });
     });
 

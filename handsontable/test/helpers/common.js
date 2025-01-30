@@ -283,9 +283,13 @@ export function setScrollLeft(x) {
  * @returns {Handsontable}
  */
 export function handsontable(options, explicitOptions = false, container = spec().$container) {
+  const loadedTheme = spec().loadedTheme;
+
   // Add a license key to every Handsontable instance.
-  if (options && !explicitOptions) {
-    const loadedTheme = spec().loadedTheme;
+  if (!explicitOptions) {
+    if (!options) {
+      options = {};
+    }
 
     if (
       !options.themeName &&

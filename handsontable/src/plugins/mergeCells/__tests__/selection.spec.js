@@ -13,7 +13,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should leave the partially selected merged cells white (or any initial color), when selecting entire columns or rows', () => {
-    // TODO [themes]: Possibly a themes-related bug.
+    // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2209)
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -92,7 +92,7 @@ describe('MergeCells Selection', () => {
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
     'selecting entire columns or rows (using multiple selection layers)', () => {
-    // TODO [themes]: Possibly a themes-related bug.
+    // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2209)
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -345,12 +345,55 @@ describe('MergeCells Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should keep the highlight (area selection) on the virtualized merged cell after vertical scroll', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration (number of rendered rows)
+  it.forTheme('classic')('should keep the highlight (area selection) on the virtualized merged cell ' +
+    'after vertical scroll', () => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
       height: 200,
+      viewportRowRenderingOffset: 0,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 20, 0);
+    selectCells([[20, 1, 0, 0]]);
+
+    expect(`
+      | 0 : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
+    render();
+
+    expect(`
+      | 0 : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : 0 :   :   :   :   |
+      |   : A :   :   :   :   |
+      |   :   :   :   :   :   |
+      |   :   :   :   :   :   |
+      |   :   :   :   :   :   |
+      |   :   :   :   :   :   |
+      |   :   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it.forTheme('main')('should keep the highlight (area selection) on the virtualized merged cell ' +
+    'after vertical scroll', () => {
+    handsontable({
+      data: createSpreadsheetData(100, 10),
+      width: 200,
+      height: 248, // TODO: needs to be very specific to work, worth investigating if correct
       viewportRowRenderingOffset: 0,
       mergeCells: {
         virtualized: true,
@@ -465,13 +508,82 @@ describe('MergeCells Selection', () => {
     expect(getInlineStartClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
   });
 
-  it('should keep focus selection on the high virtualized merged cell that intersects the top overlay', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
-    // TODO [themes]: Possibly a themes-related bug.
+  it.forTheme('classic')('should keep focus selection on the high virtualized merged cell that ' +
+    'intersects the top overlay', () => {
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,
       height: 200,
+      viewportRowRenderingOffset: 1,
+      fixedRowsTop: 2,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 20, 0);
+    selectCell(0, 0);
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
+    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
+    expect(`
+      | # :   :   |
+      |   :   :   |
+      |---:---:---|
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A28');
+    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
+    expect(`
+      | # :   :   |
+      |   :   :   |
+      |---:---:---|
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A24');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
+    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
+    expect(`
+      |   :   :   |
+      |   :   :   |
+      |---:---:---|
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it.forTheme('main')('should keep focus selection on the high virtualized merged cell that ' +
+    'intersects the top overlay', () => {
+    // TODO: The test is tightly bound to this specific table height. Probably worth looking into it.
+    handsontable({
+      data: createSpreadsheetData(30, 3),
+      width: 200,
+      height: 248,
       viewportRowRenderingOffset: 1,
       fixedRowsTop: 2,
       mergeCells: {

@@ -36,8 +36,7 @@ describe('Core.getFirstRenderedVisibleRow', () => {
     expect(getFirstRenderedVisibleRow()).toBe(2);
   });
 
-  it('should return first rendered row index (scrolled viewport)', () => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
+  it.forTheme('classic')('should return first rendered row index (scrolled viewport)', () => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -47,9 +46,19 @@ describe('Core.getFirstRenderedVisibleRow', () => {
     setScrollTop(355); // row 15 (A16) is partially visible
     render();
 
-    expect(getFirstRenderedVisibleRow()).forThemes(({ classic, main }) => {
-      classic.toBe(12);
-      main.toBe(9);
+    expect(getFirstRenderedVisibleRow()).toBe(12);
+  });
+
+  it.forTheme('main')('should return first rendered row index (scrolled viewport)', () => {
+    handsontable({
+      data: createSpreadsheetData(100, 10),
+      width: 200,
+      height: 240,
     });
+
+    setScrollTop(447); // row 15 (A16) is partially visible
+    render();
+
+    expect(getFirstRenderedVisibleRow()).toBe(12);
   });
 });

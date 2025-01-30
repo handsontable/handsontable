@@ -14,7 +14,8 @@
  * To make end-to-end tests more predictable between different operating systems, overwrite
  * default Handsontable's styles with this one.
  */
-.handsontable {
+.handsontable:not([class*="ht-theme-"]):not(.ht-wrapper[class*="ht-theme-"] .handsontable) {
+  /* Your styles here */
   font-family: serif;
   font-size: 13px;
   font-weight: normal;

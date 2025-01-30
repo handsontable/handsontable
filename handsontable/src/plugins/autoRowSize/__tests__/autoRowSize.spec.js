@@ -208,7 +208,6 @@ describe('AutoRowSize', () => {
   });
 
   it('should correctly detect row height when table is hidden on init (display: none)', async() => {
-    // TODO [themes]: Could be potentially improved by per-theme configuration
     spec().$container.css('display', 'none');
     const hot = handsontable({
       data: arrayOfObjects(),
@@ -228,7 +227,11 @@ describe('AutoRowSize', () => {
       classic.toBe(43);
       main.toBe(49);
     });
-    expect([106, 127]).toEqual(jasmine.arrayContaining([rowHeight(spec().$container, 2)]));
+
+    expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(127);
+      main.toBe(129);
+    });
   });
 
   it('should be possible to disable plugin using updateSettings', () => {
@@ -477,7 +480,7 @@ describe('AutoRowSize', () => {
     });
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main }) => {
       classic.toBe(63);
-      main.toBe(69);
+      main.toBe(89);
     });
 
     resizeColumn.call(this, 1, 50);
@@ -507,7 +510,7 @@ describe('AutoRowSize', () => {
     });
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main }) => {
       classic.toBe(22);
-      main.toBe(29);
+      main.toBe(49);
     });
   });
 
