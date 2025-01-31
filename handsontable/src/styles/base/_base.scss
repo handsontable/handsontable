@@ -338,6 +338,10 @@
         .rowHeader, .colHeader {
           line-height: calc(var(--ht-line-height) - 2px);
         }
+        
+        .colHeader {
+          margin-top: 1px;
+        }
 
         &.ht__active_highlight {
           border-top-color: var(--ht-header-active-border-color);
