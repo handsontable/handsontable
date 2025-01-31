@@ -107,10 +107,8 @@ if (isReferenceBranch()) {
   // so we need to make sure the paths are the same
   for (let i = 0; i < WRAPPERS.length; ++i) {
     fse.copySync(
-      path.resolve(`${dirs.screenshots}/${REFERENCE_FRAMEWORK}/chromium`),
-      path.resolve(`${dirs.screenshots}/${WRAPPERS[i]}/chromium`),
+      path.resolve(`${dirs.screenshots}/${REFERENCE_FRAMEWORK}/chromium/multi-frameworks`),
+      path.resolve(`${dirs.screenshots}/${WRAPPERS[i]}/chromium/multi-frameworks`),
       { overwrite: true });
-    // complex demo is skipped for wrappers so remove the directory from golden snapshots
-    fse.removeSync(path.resolve(`${dirs.screenshots}/${WRAPPERS[i]}/chromium/complex-demo`));
   }
 }

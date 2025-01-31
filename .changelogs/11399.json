@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix editor visibility issue",
+  "type": "fixed",
+  "issueOrPR": 11399,
+  "breaking": false,
+  "framework": "none"
+}
