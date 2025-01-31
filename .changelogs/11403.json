@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix the merge cells selection highlight",
+  "type": "fixed",
+  "issueOrPR": 11403,
+  "breaking": false,
+  "framework": "none"
+}

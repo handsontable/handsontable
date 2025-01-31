@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix the cells size in the first row in the new themes",
+  "type": "fixed",
+  "issueOrPR": 11402,
+  "breaking": true,
+  "framework": "none"
+}
