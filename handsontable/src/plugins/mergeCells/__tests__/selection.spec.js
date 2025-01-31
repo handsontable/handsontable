@@ -13,7 +13,6 @@ describe('MergeCells Selection', () => {
   });
 
   it('should leave the partially selected merged cells white (or any initial color), when selecting entire columns or rows', () => {
-    // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2209)
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -92,7 +91,6 @@ describe('MergeCells Selection', () => {
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
     'selecting entire columns or rows (using multiple selection layers)', () => {
-    // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2209)
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [

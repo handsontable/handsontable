@@ -63,7 +63,6 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should internally call `open()` method with correct cell coordinates', () => {
-      // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2210)
       handsontable({
         contextMenu: true,
       });
@@ -87,7 +86,6 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should internally call `open()` method with correct row header coordinates', () => {
-      // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2210)
       handsontable({
         contextMenu: true,
         rowHeaders: true,
@@ -114,7 +112,6 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should internally call `open()` method with correct column header coordinates', () => {
-      // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2210)
       handsontable({
         contextMenu: true,
         rowHeaders: true,
@@ -141,7 +138,6 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should internally call `open()` method with correct corner coordinates', () => {
-      // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2210)
       handsontable({
         contextMenu: true,
         rowHeaders: true,
@@ -181,7 +177,6 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should scroll the viewport when the focused cell is outside the table and call the `open` method', async() => {
-      // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2210)
       const hot = handsontable({
         data: createSpreadsheetData(500, 50),
         width: 300,
@@ -216,8 +211,14 @@ describe('ContextMenu keyboard shortcut', () => {
         left: cellRect.width,
         above: -cellRect.height,
       });
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1766);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(8939);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(1766);
+        main.toBe(1961);
+      });
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(8939);
+        main.toBe(11345);
+      });
     });
 
     it('should not close the menu after hitting the same shortcut many times', () => {
