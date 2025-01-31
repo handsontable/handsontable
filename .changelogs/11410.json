@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem with header widths when using Nested Headers with the new themes.",
+  "type": "fixed",
+  "issueOrPR": 11410,
+  "breaking": false,
+  "framework": "none"
+}
