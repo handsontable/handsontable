@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix context menu offset values",
+  "type": "fixed",
+  "issueOrPR": 11404,
+  "breaking": false,
+  "framework": "none"
+}
