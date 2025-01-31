@@ -78,8 +78,15 @@ class GhostTable {
    * Build cache of the headers widths.
    */
   buildWidthsMap() {
+    const currentThemeName = this.hot.getCurrentThemeName();
+
     this.container = this.hot.rootDocument.createElement('div');
     this.container.classList.add('handsontable', 'htGhostTable', 'htAutoSize');
+
+    if (currentThemeName) {
+      this.container.classList.add(currentThemeName);
+    }
+
     this._buildGhostTable(this.container);
     this.hot.rootDocument.body.appendChild(this.container);
 
