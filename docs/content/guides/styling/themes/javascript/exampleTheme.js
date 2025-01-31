@@ -1299,7 +1299,7 @@ const currentTheme = document
 
 const setTheme = (theme) => {
   colorBox.classList.value = `color-box ${theme}`;
-  hotInstance?.useTheme(theme);
+  hotInstance.useTheme(theme);
   hotInstance.render();
 };
 
