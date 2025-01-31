@@ -91,6 +91,31 @@ correctFormat={false}
 correctFormat={true}
 ```
 
+Also, you can set `isCorrectFormatStrict` to `true` to make the date validation stricter when trying to correct the input format.
+For more information check [Moment.js documentation](https://momentjs.com/guides/#/parsing/strict-mode/).
+
+```js
+dateFormat: 'D/M/YY',
+
+// default behavior
+// date entered as `01/02/2023` will be formatted as `1/2/20` which is incorrect
+isCorrectFormatStrict: false,
+
+// date entered as `01/02/2023` will be formatted as `1/2/23` which is correct
+isCorrectFormatStrict: true,
+```
+
+```jsx
+dateFormat={'D/M/YY'}
+
+// default behavior
+// date entered as `01-02-2023` will be formatted as `1-2-20` which is incorrect
+isCorrectFormatStrict={false}
+
+// date entered as `01-02-2023` will be formatted as `1-2-23` which is correct
+isCorrectFormatStrict={true}
+```
+
 :::
 
 ## Basic example

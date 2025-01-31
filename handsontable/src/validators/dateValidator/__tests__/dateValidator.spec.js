@@ -462,27 +462,36 @@ describe('dateValidator', () => {
 
     describe('with `correctFormat` enabled', () => {
       using('data set', [
-        { value: '01/02/2023', dateFormat: 'DD/MM/YYYY' },
-        { value: '01/02/23', dateFormat: 'DD/MM/YY' },
-        { value: '1/2/23', dateFormat: 'D/M/YY' },
-        { value: '01/02/23', dateFormat: 'D/M/YY' }, // ?
-        { value: '01-02-2023', dateFormat: 'DD-MM-YYYY' },
-        { value: '1-2-23', dateFormat: 'D-M-YY' },
-        { value: '1-12-23', dateFormat: 'D-M-YY' },
-        { value: '1.2.23', dateFormat: 'D.M.YY' },
-        { value: '2023 February 2nd', dateFormat: 'YYYY MMMM Do' },
-        { value: 'Feb 2nd \'23', dateFormat: 'MMM Do \'YY' },
-        { value: 'The 2nd of February \'23', dateFormat: '[The] Do [of] MMMM \'YY' },
-        { value: 'Day: 2, Month: 2, Year: 2023', dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY' },
-        { value: '01/02/23', dateFormat: 'DD/MM/YYYY' },
-        { value: '1/2/23', dateFormat: 'DD/MM/YY' },
-        { value: '01/02/2023', dateFormat: 'D/M/YY' },
-        { value: '1-2-23', dateFormat: 'DD-MM-YYYY' },
-        { value: '01/02/2023', dateFormat: 'DD-MM-YYYY' },
-        { value: '01-02-2023', dateFormat: 'DD.MM.YYYY' },
-        { value: '1-2-2023', dateFormat: 'D-M-YY' },
-        { value: '1.2.2023', dateFormat: 'D.M.YY' },
-      ], ({ value, dateFormat }) => {
+        { value: '01/02/2023', dateFormat: 'DD/MM/YYYY', formattedValue: '01/02/2023' },
+        { value: '01/02/23', dateFormat: 'DD/MM/YY', formattedValue: '01/02/23' },
+        { value: '1/2/23', dateFormat: 'D/M/YY', formattedValue: '1/2/23' },
+        { value: '01/02/23', dateFormat: 'D/M/YY', formattedValue: '1/2/23' },
+        { value: '01-02-2023', dateFormat: 'DD-MM-YYYY', formattedValue: '01-02-2023' },
+        { value: '1-2-23', dateFormat: 'D-M-YY', formattedValue: '1-2-23' },
+        { value: '1-12-23', dateFormat: 'D-M-YY', formattedValue: '1-12-23' },
+        { value: '1.2.23', dateFormat: 'D.M.YY', formattedValue: '1.2.23' },
+        { value: '2023 February 2nd', dateFormat: 'YYYY MMMM Do', formattedValue: '2023 February 2nd' },
+        { value: 'Feb 2nd \'23', dateFormat: 'MMM Do \'YY', formattedValue: 'Feb 2nd \'23' },
+        { value: 'The 2nd of February \'23',
+          dateFormat: '[The] Do [of] MMMM \'YY',
+          formattedValue: 'The 2nd of February \'23'
+        },
+        { value: 'Day: 2, Month: 2, Year: 2023',
+          dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY',
+          formattedValue: 'Day: 2, Month: 2, Year: 2023'
+        },
+        { value: '01/02/23', dateFormat: 'DD/MM/YYYY', formattedValue: '01/02/2023' },
+        { value: '1/2/23', dateFormat: 'DD/MM/YY', formattedValue: '01/02/23' },
+        { value: '1-2-23', dateFormat: 'DD-MM-YYYY', formattedValue: '01-02-2023' },
+        { value: '01/02/2023', dateFormat: 'DD-MM-YYYY', formattedValue: '01-02-2023' },
+        { value: '01-02-2023', dateFormat: 'DD.MM.YYYY', formattedValue: '01.02.2023' },
+        // The following are formatted in a wrong way because isCorrectFormatStrict is set to false
+        // and Moment is in forgiving mode.
+        { value: '01/02/2023', dateFormat: 'D/M/YY', formattedValue: '1/2/20' },
+        { value: '1-2-2023', dateFormat: 'D-M-YY', formattedValue: '1-2-20' },
+        { value: '1.2.2023', dateFormat: 'D.M.YY', formattedValue: '1.2.20' },
+        { value: '2024-01-01', dateFormat: 'MMM D, YYYY', formattedValue: 'Jan 20, 2024' },
+      ], ({ value, dateFormat, formattedValue }) => {
         it('should validate positively', async() => {
           const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
 
@@ -498,6 +507,7 @@ describe('dateValidator', () => {
 
           await sleep(50);
 
+          expect(getDataAtCell(0, 0)).toEqual(formattedValue);
           expect(onAfterValidateSpy).toHaveBeenCalledWith(true, value, 0, 0);
         });
       });
@@ -524,6 +534,59 @@ describe('dateValidator', () => {
 
           await sleep(50);
 
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
+        });
+      });
+    });
+
+    describe('with `correctFormat` enabled and `isCorrectFormatStrict` enabled', () => {
+      using('data set', [
+        { value: '01/02/2023', dateFormat: 'D/M/YY', formattedValue: '1/2/23' },
+        { value: '1-2-2023', dateFormat: 'D-M-YY', formattedValue: '1-2-23' },
+        { value: '1.2.2023', dateFormat: 'D.M.YY', formattedValue: '1.2.23' },
+        { value: '2024-01-01', dateFormat: 'MMM D, YYYY', formattedValue: 'Jan 01, 2024' },
+      ], ({ value, formattedValue, dateFormat }) => {
+        const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
+
+        it('should validate positively and should transform', async() => {
+          handsontable({
+            data: [],
+            columns: [
+              { type: 'date', dateFormat, correctFormat: true, isCorrectFormatStrict: true },
+            ],
+            afterValidate: onAfterValidateSpy
+          });
+
+          setDataAtCell(0, 0, value);
+
+          await sleep(50);
+
+          expect(getDataAtCell(0, 0)).toEqual(formattedValue);
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(true, value, 0, 0);
+        });
+      });
+      using('data set', [
+        { value: '2023 February 2nd' },
+        { value: 'Feb 2nd \'23' },
+        { value: 'The 2nd of February \'23' },
+        { value: '100110/09/2015' }
+      ], ({ value }) => {
+        const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
+
+        it('should validate negatively', async() => {
+          handsontable({
+            data: [],
+            columns: [
+              { type: 'date', dateFormat: 'MMM D, YYYY', correctFormat: true, isCorrectFormatStrict: true },
+            ],
+            afterValidate: onAfterValidateSpy
+          });
+
+          setDataAtCell(0, 0, value);
+
+          await sleep(50);
+
+          expect(getDataAtCell(0, 0)).toEqual(value);
           expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
         });
       });

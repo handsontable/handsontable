@@ -101,6 +101,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   copyable: true,
   copyPaste: true,
   correctFormat: true,
+  isCorrectFormatStrict: true,
   currentColClassName: 'foo',
   currentHeaderClassName: 'foo',
   currentRowClassName: 'foo',
