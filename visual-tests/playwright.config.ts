@@ -10,7 +10,8 @@ import { PlaywrightTestConfig, devices } from '@playwright/test';
  * @see https://playwright.dev/docs/test-configuration
  */
 const config: PlaywrightTestConfig = {
-  testDir: './tests/multi-frameworks',
+  testDir: './tests',
+  testIgnore: '**/cross-browser/**',
   /* Maximum time one test can run for. */
   timeout: 10 * 1000,
   expect: {
