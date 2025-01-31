@@ -1225,7 +1225,9 @@ const ExampleComponent = () => {
   };
 
   useEffect(() => {
-    if (!hotRef.current?.hotInstance) return;
+    if (!hotRef.current?.hotInstance) {
+      return;
+    }
 
     hotRef.current.hotInstance.useTheme(themeName);
     hotRef.current.hotInstance.render();
