@@ -30,7 +30,7 @@ const hot = new Handsontable(container, {
   autoWrapCol: true,
 });
 
-// check sa cell's options
+// checks sa cell's options
 // returns `false`
 hot.getCellMeta(0, 0).readOnly;
 
