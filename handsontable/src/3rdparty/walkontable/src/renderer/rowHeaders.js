@@ -79,7 +79,7 @@ export class RowHeadersRenderer extends BaseRenderer {
       orderView
         .appendView(cellsView)
         .setSize(rowHeadersCount)
-        .setOffset(this.table.renderedColumnToSource(0))
+        .setOffset(0)
         .start();
 
       for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
