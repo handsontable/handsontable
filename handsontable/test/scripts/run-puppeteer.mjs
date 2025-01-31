@@ -61,6 +61,10 @@ JSHandle.prototype.getEventListeners = function() {
   // const client = await page.target().createCDPSession();
   // await client.send('Emulation.setCPUThrottlingRate', { rate: 2 });
 
+  const browserVersion = await page.browser().version();
+
+  console.log(`\nRunning tests on ${browserVersion}\n`);
+
   page.setCacheEnabled(false);
   page.setViewport({
     width: 1280,
