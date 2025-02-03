@@ -48,7 +48,7 @@ describe('Date Editor', () => {
 
   });
 
-  it('it should display the correct date in the cell after select the date', async() => {
+  it('should display the correct date in the cell after select the date', async() => {
     const hot = handsontable({
       data: [
         ['01/14/2006'],
