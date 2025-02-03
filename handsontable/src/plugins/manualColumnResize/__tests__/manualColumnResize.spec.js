@@ -511,7 +511,7 @@ describe('manualColumnResize', () => {
       });
       expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
         classic.toBe(70);
-        main.toBe(90);
+        main.toBe(87);
       });
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
@@ -771,11 +771,11 @@ describe('manualColumnResize', () => {
     });
     expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
       classic.toBe(26);
-      main.toBe(37);
+      main.toBe(36);
     });
     expect(colWidth(spec().$container, 3)).forThemes(({ classic, main }) => {
       classic.toBe(26);
-      main.toBe(37);
+      main.toBe(36);
     });
   });
 

@@ -256,11 +256,11 @@ describe('StretchColumns', () => {
 
     expect(getColWidth(0)).forThemes(({ classic, main }) => {
       classic.toBe(404);
-      main.toBe(421);
+      main.toBe(418);
     });
     expect(getColWidth(1)).forThemes(({ classic, main }) => {
       classic.toBe(96);
-      main.toBe(79);
+      main.toBe(82);
     });
   });
 
@@ -308,7 +308,7 @@ describe('StretchColumns', () => {
 
     expect(getColWidth(4)).forThemes(({ classic, main }) => {
       classic.toBe(259);
-      main.toBe(323);
+      main.toBe(311);
     });
 
     setDataAtCell(0, 4, 'text');
@@ -319,7 +319,7 @@ describe('StretchColumns', () => {
 
     expect(getColWidth(4)).forThemes(({ classic, main }) => {
       classic.toBe(259);
-      main.toBe(323);
+      main.toBe(311);
     });
   });
 });

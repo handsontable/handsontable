@@ -855,7 +855,7 @@ describe('HandsontableEditor', () => {
 
     expect(container.clientWidth).forThemes(({ classic, main }) => {
       classic.toBe(290);
-      main.toBe(367);
+      main.toBe(360);
     });
     expect(container.clientHeight).forThemes(({ classic, main }) => {
       classic.toBe(168);
@@ -898,7 +898,7 @@ describe('HandsontableEditor', () => {
 
     expect(container.clientWidth).forThemes(({ classic, main }) => {
       classic.toBe(290);
-      main.toBe(367);
+      main.toBe(360);
     });
     expect(container.clientHeight).forThemes(({ classic, main }) => {
       classic.toBe(168);

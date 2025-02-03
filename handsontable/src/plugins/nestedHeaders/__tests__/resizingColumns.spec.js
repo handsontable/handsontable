@@ -39,7 +39,7 @@ describe('NestedHeaders', () => {
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
         classic.toBe(20);
-        main.toBe(38);
+        main.toBe(37);
       });
     });
 

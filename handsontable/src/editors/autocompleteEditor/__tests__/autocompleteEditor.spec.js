@@ -492,7 +492,7 @@ describe('AutocompleteEditor', () => {
 
       expect(container.clientWidth).forThemes(({ classic, main }) => {
         classic.toBe(52);
-        main.toBe(64);
+        main.toBe(62);
       });
       expect(container.clientHeight).forThemes(({ classic, main }) => {
         classic.toBe(118);
@@ -551,7 +551,7 @@ describe('AutocompleteEditor', () => {
 
       expect(container.clientWidth).forThemes(({ classic, main }) => {
         classic.toBe(52 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(64 + Handsontable.dom.getScrollbarWidth());
+        main.toBe(62 + Handsontable.dom.getScrollbarWidth());
       });
       expect(container.clientHeight).forThemes(({ classic, main }) => {
         classic.toBe(72);

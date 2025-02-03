@@ -125,7 +125,7 @@ describe('Core.scrollToFocusedCell', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(2267);
-      main.toBe(2558);
+      main.toBe(2560);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(5750);
@@ -173,7 +173,7 @@ describe('Core.scrollToFocusedCell', () => {
     // 2500 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(2268);
-      main.toBe(2559);
+      main.toBe(2561);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(5750);

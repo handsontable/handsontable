@@ -1023,7 +1023,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollLeft(200); // scroll the viewport so the edited cell is not visible
+    setScrollLeft(220); // scroll the viewport so the edited cell is not visible
 
     await sleep(50);
 

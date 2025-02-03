@@ -40,7 +40,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       expect(scrollPosition).forThemes(({ classic, main }) => {
         classic.toEqual({ x: 45, y: 15 });
-        main.toEqual({ x: 55, y: 93 });
+        main.toEqual({ x: 57, y: 93 });
       });
 
       keyDownUp(['control/meta', 'backspace']);
@@ -118,7 +118,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       expect(scrollPosition).forThemes(({ classic, main }) => {
         classic.toEqual({ x: 45, y: 0 });
-        main.toEqual({ x: 55, y: 0 });
+        main.toEqual({ x: 57, y: 0 });
       });
 
       keyDownUp(['control/meta', 'backspace']);
@@ -172,7 +172,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
         classic.toEqual({ x: 1850, y: 0 });
-        main.toEqual({ x: 1999, y: 0 });
+        main.toEqual({ x: 2001, y: 0 });
       });
     });
 
@@ -197,7 +197,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
         classic.toEqual({ x: 350, y: 0 });
-        main.toEqual({ x: 410, y: 0 });
+        main.toEqual({ x: 412, y: 0 });
       });
     });
 
@@ -247,7 +247,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
         classic.toEqual({ x: 1100, y: 1012 });
-        main.toEqual({ x: 1130, y: 1334 });
+        main.toEqual({ x: 1132, y: 1334 });
       });
     });
 
@@ -275,7 +275,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
         classic.toEqual({ x: 1100, y: 1836 });
-        main.toEqual({ x: 1186, y: 2385 });
+        main.toEqual({ x: 1187, y: 2385 });
       });
     });
 
@@ -427,14 +427,14 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         // 1300 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
         classic.toEqual({ x: 996, y: 916 });
 
-        main.toEqual({ x: 1036, y: 1225 });
+        main.toEqual({ x: 1035, y: 1225 });
       });
 
       keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
         classic.toEqual({ x: 996, y: 916 });
-        main.toEqual({ x: 1036, y: 1225 });
+        main.toEqual({ x: 1035, y: 1225 });
       });
     });
   });

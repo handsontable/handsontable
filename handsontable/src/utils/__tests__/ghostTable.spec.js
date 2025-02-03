@@ -242,7 +242,7 @@ describe('GhostTable', () => {
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
       expect(widthSpy.calls.argsFor(1)[1]).forThemes(({ classic, main }) => {
         classic.toBe(31);
-        main.toBe(45);
+        main.toBe(43);
       });
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
       expect(widthSpy.calls.argsFor(2)[1]).forThemes(({ classic, main }) => {

@@ -145,7 +145,7 @@ describe('HiddenColumns', () => {
 
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
         classic.toBe(80); // 50 (initial column width) + 30
-        main.toBe(95); // 65 (initial column width) + 30
+        main.toBe(93); // 63 (initial column width) + 30
       });
     });
   });

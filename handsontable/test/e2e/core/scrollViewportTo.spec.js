@@ -42,7 +42,7 @@ describe('Core.scrollViewportTo', () => {
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(2318);
-        main.toBe(2618);
+        main.toBe(2620);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(3216);
@@ -78,7 +78,7 @@ describe('Core.scrollViewportTo', () => {
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(2502);
-        main.toBe(2793);
+        main.toBe(2795);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(3216);
@@ -114,7 +114,7 @@ describe('Core.scrollViewportTo', () => {
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(2502);
-        main.toBe(2793);
+        main.toBe(2795);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(3450);
@@ -150,7 +150,7 @@ describe('Core.scrollViewportTo', () => {
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(2318);
-        main.toBe(2618);
+        main.toBe(2620);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(3450);
@@ -226,7 +226,7 @@ describe('Core.scrollViewportTo', () => {
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(2318);
-      main.toBe(2618);
+      main.toBe(2620);
     });
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
@@ -250,7 +250,7 @@ describe('Core.scrollViewportTo', () => {
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
       classic.toBe(2502);
-      main.toBe(2793);
+      main.toBe(2795);
     });
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });

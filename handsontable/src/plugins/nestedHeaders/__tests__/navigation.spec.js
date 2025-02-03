@@ -1558,7 +1558,7 @@ describe('NestedHeaders', () => {
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(1266);
-        main.toBe(1275);
+        main.toBe(1280);
       });
 
       keyDownUp('arrowright'); // "H"
@@ -1566,7 +1566,7 @@ describe('NestedHeaders', () => {
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
         classic.toBe(1316);
-        main.toBe(1326);
+        main.toBe(1333);
       });
     });
 
