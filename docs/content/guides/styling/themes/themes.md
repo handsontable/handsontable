@@ -44,45 +44,26 @@ The `horizon` ([source](https://github.com/handsontable/handsontable/blob/develo
 
 Keep in mind that starting from version `15.0`, importing a theme is required.
 
-<div :class="['theme-examples', $parent.$parent.themeName]">
-<div class="theme-examples-controls">
-  <div class="example-container">
-    <label class="color-select">
-      <select v-model="$parent.$parent.themeName">
-        <option value="ht-theme-main">Main Light</option>
-        <option value="ht-theme-horizon">Horizon Light</option>
-        <option value="ht-theme-main-dark">Main Dark</option>
-        <option value="ht-theme-horizon-dark">Horizon Dark</option>
-        <option value="ht-no-theme">No theme</option>
-      </select>
-      <div class="color-box">
-        <span class="color" style="background: var(--ht-foreground-color);"></span>
-        <span class="color" style="background: var(--ht-background-color);"></span>
-        <span class="color" style="background: var(--ht-accent-color);"></span>
-      </div>
-    </label>
-  </div>
-</div>
-
 ::: only-for javascript
 
-::: example #exampleTheme .disable-auto-theme --js 1 --ts 2
+::: example #exampleTheme .disable-auto-theme --html 1 --js 2 --ts 3 --css 4
+@[code](@/content/guides/styling/themes/javascript/exampleTheme.html)
 @[code](@/content/guides/styling/themes/javascript/exampleTheme.js)
 @[code](@/content/guides/styling/themes/javascript/exampleTheme.ts)
+@[code](@/content/guides/styling/themes/javascript/exampleTheme.css)
 :::
 
 :::
 
 ::: only-for react
 
-::: example #exampleTheme .disable-auto-theme :react --js 1 --ts 2
+::: example #exampleTheme .disable-auto-theme :react --js 1 --ts 2 --css 3
 @[code](@/content/guides/styling/themes/react/exampleTheme.jsx)
 @[code](@/content/guides/styling/themes/react/exampleTheme.tsx)
+@[code](@/content/guides/styling/themes/react/exampleTheme.css)
 :::
 
 :::
-
-</div>
 
 ## Light and dark modes
 

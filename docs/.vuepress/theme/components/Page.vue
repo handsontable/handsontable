@@ -11,7 +11,7 @@
 </template>
 
 <script>
-/* global instanceRegister, hotThemeManager */
+/* global instanceRegister */
 import PageEdit from '@theme/components/PageEdit.vue';
 import Breadcrumbs from '@theme/components/Breadcrumbs.vue';
 
@@ -26,7 +26,6 @@ export default {
       inActiveElementId: '',
       isButtonInactive: false,
       selectedLang: 'JavaScript',
-      themeName: 'ht-theme-horizon-dark',
     };
   },
   computed: {
@@ -209,13 +208,6 @@ export default {
   unmounted() {
     window.removeEventListener('scroll', this.checkSectionInView);
     window.removeEventListener('click', this.detectClickOutsideButton);
-  },
-  watch: {
-    themeName(name) {
-      instanceRegister.getAllHotInstances().forEach((hotInstance) => {
-        hotThemeManager.switchExampleTheme(hotInstance, name);
-      });
-    },
   },
 };
 </script>

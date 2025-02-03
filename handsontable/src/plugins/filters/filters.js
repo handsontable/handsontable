@@ -138,7 +138,7 @@ export class Filters extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
-    this.hot.addHook('afterGetColHeader', (col, TH) => this.#onAfterGetColHeader(col, TH));
+    this.hot.addHook('afterGetColHeader', (...args) => this.#onAfterGetColHeader(...args));
   }
 
   /**
@@ -857,11 +857,18 @@ export class Filters extends BasePlugin {
    *
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
+   * @param {number} headerLevel The index of header level counting from the top (positive
+   *                             values counting from 0 to N).
+   *
    */
-  #onAfterGetColHeader(col, TH) {
+  #onAfterGetColHeader(col, TH, headerLevel) {
     const physicalColumn = this.hot.toPhysicalColumn(col);
 
-    if (this.enabled && this.conditionCollection.hasConditions(physicalColumn)) {
+    if (
+      this.enabled
+      && this.conditionCollection.hasConditions(physicalColumn)
+      && headerLevel === this.hot.view.getColumnHeadersCount() - 1
+    ) {
       addClass(TH, 'htFiltersActive');
     } else {
       removeClass(TH, 'htFiltersActive');

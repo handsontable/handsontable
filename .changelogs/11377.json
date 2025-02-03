@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix spacing between label text and checkbox",
+  "type": "fixed",
+  "issueOrPR": 11377,
+  "breaking": false,
+  "framework": "none"
+}

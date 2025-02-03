@@ -176,6 +176,19 @@
         border-inline-start-width: 0;
         border-inline-end-width: 1px;
         border-bottom-width: 1px;
+        border-inline-end-color: var(--ht-border-color);
+
+        &.ht__active_highlight {
+          border-inline-end-color: var(--ht-header-active-border-color);
+        }
+      }
+
+      &:first-child {
+        border-inline-start-color: var(--ht-border-color);
+
+        &.ht__active_highlight {
+          border-inline-start-color: var(--ht-header-active-border-color);
+        }
       }
 
       &:first-child,
@@ -276,7 +289,7 @@
           th {
             .relative {
               &::after {
-                bottom: 0;
+                bottom: -2px;
               }
             }
           }
@@ -311,6 +324,38 @@
               }
             }
           }
+        }
+      }
+    }
+
+    tr:first-child {
+      th,
+      td {
+        border-top-color: var(--ht-border-color);
+        border-top-width: 1px;
+        line-height: calc(var(--ht-line-height) - 2px);
+
+        .rowHeader, .colHeader {
+          line-height: calc(var(--ht-line-height) - 2px);
+        }
+        
+        .colHeader {
+          margin-top: 1px;
+        }
+
+        &.ht__active_highlight {
+          border-top-color: var(--ht-header-active-border-color);
+        }
+      }
+    }
+
+    tr:last-child {
+      th,
+      td {
+        border-bottom-color: var(--ht-border-color);
+
+        &.ht__active_highlight {
+          border-bottom-color: var(--ht-header-active-border-color);
         }
       }
     }
@@ -434,29 +479,14 @@
       border-inline-start-width: 1px;
     }
 
-    tr:first-child {
-      th,
-      td {
-        border-top-width: 1px;
-      }
-    }
-
-    tr:last-child {
-      th,
-      td {
-        border-bottom-color: var(--ht-border-color);
-
-        &.ht__active_highlight {
-          border-bottom-color: var(--ht-header-active-border-color);
-        }
-      }
-    }
-
     .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) {
       tbody tr th,
       thead tr th:first-child,
       ~ .handsontable:not(.htGhostTable) tbody tr th,
-      ~ .handsontable:not(.ht_clone_top):not(.htGhostTable) thead tr th:first-child {
+      ~ .handsontable:not(.ht_clone_top):not(.htGhostTable)
+        thead
+        tr
+        th:first-child {
         border-inline-end-width: 0;
         border-inline-start-width: 1px;
       }

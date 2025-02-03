@@ -42,7 +42,7 @@ const config: PlaywrightTestConfig = {
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npm run serve-example-classic',
+    command: 'npm run serve-example',
     port: 8082,
     reuseExistingServer: !process.env.CI,
   },
@@ -63,7 +63,6 @@ const config: PlaywrightTestConfig = {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
     },
-
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },

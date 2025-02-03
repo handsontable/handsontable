@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@handsontable/vue": "latest",
+    "copy-webpack-plugin": "^12.0.2",
     "core-js": "3.9.1",
     "handsontable": "latest",
     "vue": "2.7.14"

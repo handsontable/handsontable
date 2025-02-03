@@ -272,6 +272,17 @@ export async function selectFromDropdownMenu(option: string) {
 /**
  * @param {string} option Cell locator.
  */
+export async function selectFromContextMenu(option: string) {
+  const contextMenu = getPageInstance().locator(
+    helpers.selectors.contextMenu
+  );
+
+  await contextMenu.locator(option).click();
+}
+
+/**
+ * @param {string} option Cell locator.
+ */
 export async function selectCo(option: string) {
   const dropdownMenu = getPageInstance().locator(
     helpers.selectors.dropdownMenu

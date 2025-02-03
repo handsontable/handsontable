@@ -1,6 +1,6 @@
 import Handsontable from "handsontable/base";
 
-import { generateExampleData, isArabicDemoEnabled } from "./utils";
+import { generateExampleData, getDirectionFromURL, getThemeNameFromURL } from "./utils";
 import { progressBarRenderer, starRenderer } from "./customRenderers";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
 
@@ -62,10 +62,11 @@ root.appendChild(example);
 export function initializeDataGrid() {
   new Handsontable(example, {
     data: generateExampleData(),
-    layoutDirection: isArabicDemoEnabled() ? "rtl" : "ltr",
-    language: isArabicDemoEnabled() ? arAR.languageCode : "en-US",
+    layoutDirection: getDirectionFromURL(),
+    language: getDirectionFromURL() === "rtl" ? arAR.languageCode : "en-US",
+    themeName: getThemeNameFromURL(),
     height: 450,
-    colWidths: [140, 192, 100, 90, 90, 110, 97, 100, 126],
+    colWidths: [140, 210, 135, 100, 90, 110, 120, 115, 140],
     colHeaders: [
       "Company name",
       "Name",
@@ -84,7 +85,7 @@ export function initializeDataGrid() {
         data: 4,
         type: "date",
         allowInvalid: false,
-        dateFormat: isArabicDemoEnabled() ? "M/D/YYYY" : "DD/MM/YYYY",
+        dateFormat: getDirectionFromURL() === "rtl" ? "M/D/YYYY" : "DD/MM/YYYY",
       },
       {
         data: 6,
@@ -127,7 +128,7 @@ export function initializeDataGrid() {
     comments: true,
     manualColumnMove: true,
     customBorders: true,
-    headerClassName: isArabicDemoEnabled() ? 'htRight' : 'htLeft',
+    headerClassName: getDirectionFromURL() === "rtl" ? 'htRight' : 'htLeft',
     afterGetRowHeader: drawCheckboxInRowHeaders,
     afterOnCellMouseDown: changeCheckboxCell,
     beforeRenderer: addClassesToRows,

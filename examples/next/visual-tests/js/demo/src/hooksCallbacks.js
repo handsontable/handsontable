@@ -36,14 +36,18 @@ export function drawCheckboxInRowHeaders(row, TH) {
 
   input.type = "checkbox";
   input.tabIndex = -1;
+  input.classList.add("htCheckboxRendererInput");
 
   if (row >= 0 && this.getDataAtRowProp(row, "0")) {
     input.checked = true;
   }
 
-  Handsontable.dom.empty(TH);
+  const relative = TH.querySelector(".relative .rowHeader");
 
-  TH.appendChild(input);
+  if (relative) {
+    relative.textContent = "";
+    relative.appendChild(input);
+  }
 }
 
 export function changeCheckboxCell(event, coords) {
