@@ -33,10 +33,11 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getWidth(sourceIndex) {
-    const width = this.wtSettings.getSetting('columnWidth', sourceIndex)
-      || this.wtSettings.getSetting('defaultColumnWidth');
+    return 50;
+    // const width = this.wtSettings.getSetting('columnWidth', sourceIndex)
+      // || this.wtSettings.getSetting('defaultColumnWidth');
 
-    return width;
+    // return width;
   }
 
   /**
@@ -46,14 +47,16 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getHeaderHeight(level) {
-    let height = this.dataAccessObject.stylesHandler.getDefaultRowHeight();
-    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedColumnHeaders[level];
+    return 23;
+    // let height = this.dataAccessObject.stylesHandler.getDefaultRowHeight();
 
-    if (oversizedHeight !== undefined) {
-      height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
-    }
+    // const oversizedHeight = this.dataAccessObject.wtViewport.oversizedColumnHeaders[level];
 
-    return height;
+    // if (oversizedHeight !== undefined) {
+    //   height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
+    // }
+
+    // return height;
   }
 
   /**

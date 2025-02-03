@@ -86,12 +86,13 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
    * @returns {number}
    */
   getRowHeight(row) {
-    const rowHeight = this.rowHeightFn(row);
+    return 23;
+    // const rowHeight = this.rowHeightFn(row);
 
-    if (isNaN(rowHeight)) {
-      return this.defaultHeight;
-    }
+    // if (isNaN(rowHeight)) {
+    //   return this.defaultHeight;
+    // }
 
-    return rowHeight;
+    // return rowHeight;
   }
 }

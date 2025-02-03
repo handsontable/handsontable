@@ -3844,15 +3844,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#modifyColWidth
    */
   this.getColWidth = function(column, source) {
-    let width = instance._getColWidthFromSettings(column);
-
-    width = instance.runHooks('modifyColWidth', width, column, source);
-
-    if (width === undefined) {
-      width = DEFAULT_COLUMN_WIDTH;
-    }
-
-    return width;
+    return 50;
+    // let width = instance._getColWidthFromSettings(column);
+//
+    // width = instance.runHooks('modifyColWidth', width, column, source);
+//
+    // if (width === undefined) {
+      // width = DEFAULT_COLUMN_WIDTH;
+    // }
+//
+    // return width;
   };
 
   /**
@@ -3915,11 +3916,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#modifyRowHeight
    */
   this.getRowHeight = function(row, source) {
-    let height = instance._getRowHeightFromSettings(row);
-
-    height = instance.runHooks('modifyRowHeight', height, row, source);
-
-    return height;
+    return 23;
+    // let height = instance._getRowHeightFromSettings(row);
+//
+    // height = instance.runHooks('modifyRowHeight', height, row, source);
+//
+    // return height;
   };
 
   /**
