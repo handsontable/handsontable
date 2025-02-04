@@ -24,21 +24,16 @@ export default function columnRightItem() {
 
       const range = this.getSelectedRangeLast();
 
-      if (!range) {
+      if (
+        !range ||
+        this.selection.isSelectedByRowHeader() ||
+        (range.isSingleHeader() && range.highlight.col < 0) ||
+        (this.countSourceCols() >= this.getSettings().maxCols)
+      ) {
         return true;
       }
 
-      if (range.isSingleHeader() && range.highlight.col < 0) {
-        return true;
-      }
-
-      if (this.selection.isSelectedByCorner()) {
-        // Enable "Insert column right" always when the menu is triggered by corner click.
-        return false;
-      }
-
-      return this.selection.isSelectedByRowHeader() ||
-        this.countCols() >= this.getSettings().maxCols;
+      return false;
     },
     hidden() {
       return !this.getSettings().allowInsertColumn;
