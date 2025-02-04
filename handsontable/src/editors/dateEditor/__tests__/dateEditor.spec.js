@@ -419,7 +419,7 @@ describe('DateEditor', () => {
     expect($('.pika-single').find('.pika-table .is-selected').text()).toMatch(date.getDate().toString());
   });
 
-  it('should save new date after clicked on calendar', (done) => {
+  it('should save new date after clicked on calendar', async() => {
     handsontable({
       data: getDates(),
       columns: [
@@ -437,13 +437,12 @@ describe('DateEditor', () => {
 
     mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
-    setTimeout(() => {
-      expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
-      done();
-    }, 150);
+    await sleep(150);
+
+    expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
   });
 
-  it('should display fill handle after selected date on calendar', (done) => {
+  it('should display fill handle after selected date on calendar', async() => {
     handsontable({
       data: getDates(),
       columns: [
@@ -461,14 +460,13 @@ describe('DateEditor', () => {
 
     mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
-    setTimeout(() => {
-      expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
-      expect($('.htBorders .current.corner').is(':visible')).toBe(true);
-      done();
-    }, 150);
+    await sleep(150);
+
+    expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
+    expect($('.htBorders .current.corner').is(':visible')).toBe(true);
   });
 
-  it('should setup in settings and display defaultDate on calendar', (done) => {
+  it('should setup in settings and display defaultDate on calendar', async() => {
     handsontable({
       data: getDates(),
       minSpareRows: 1,
@@ -494,10 +492,31 @@ describe('DateEditor', () => {
 
     keyDownUp('enter');
 
-    setTimeout(() => {
-      expect(getDataAtCell(5, 0)).toMatch('01/01/1900');
-      done();
-    }, 150);
+    await sleep(150);
+
+    expect(getDataAtCell(5, 0)).toMatch('01/01/1900');
+  });
+
+  it('should correctly format date for an empty cell (#dev-1807)', async() => {
+    handsontable({
+      data: [['']],
+      columns: [
+        {
+          type: 'date',
+          dateFormat: 'YYYY-MM-DD',
+          correctFormat: true,
+          defaultDate: '2000-01-01'
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    await sleep(50);
+
+    expect(getDataAtCell(0, 0)).toBe('2000-01-01');
   });
 
   it('should close calendar after picking new date', () => {
