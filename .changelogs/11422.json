@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed context menu alter item activity",
+  "type": "fixed",
+  "issueOrPR": 11422,
+  "breaking": false,
+  "framework": "none"
+}
