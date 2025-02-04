@@ -71,6 +71,7 @@
         thead {
           th {
             border-bottom-width: 0;
+            line-height: var(--ht-line-height);
           }
         }
 
@@ -79,6 +80,7 @@
             td,
             th {
               border-top-width: 0;
+              line-height: var(--ht-line-height);
             }
           }
         }
