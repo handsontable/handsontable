@@ -595,7 +595,6 @@ describe('Core_view', () => {
   });
 
   it('should correctly calculate the width of the top overlay after the vertical scrollbar disappears (#dev-954)', () => {
-    // TODO [themes]: Not sure if correct
     handsontable({
       data: createSpreadsheetData(10, 10),
       colHeaders: true,

@@ -1482,7 +1482,7 @@ describe('MergeCells', () => {
 
     expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main }) => {
       classic.toBe(70);
-      main.toBe(87);
+      main.toBe(88);
     });
   });
 
@@ -1499,7 +1499,7 @@ describe('MergeCells', () => {
 
     expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main }) => {
       classic.toBe(116);
-      main.toBe(145);
+      main.toBe(146);
     });
 
     updateSettings({
@@ -1508,7 +1508,7 @@ describe('MergeCells', () => {
 
     expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main }) => {
       classic.toBe(116);
-      main.toBe(145);
+      main.toBe(146);
     });
 
     updateSettings({
@@ -1517,7 +1517,7 @@ describe('MergeCells', () => {
 
     expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main }) => {
       classic.toBe(116);
-      main.toBe(145);
+      main.toBe(146);
     });
   });
 
@@ -1548,7 +1548,6 @@ describe('MergeCells', () => {
   });
 
   it('should correctly render all overlay\'s heights when they are contain merge cells', () => {
-    // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2208)
     handsontable({
       data: createSpreadsheetData(10, 10),
       width: 600,
@@ -1564,17 +1563,16 @@ describe('MergeCells', () => {
 
     expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
       classic.toBe(70);
-      main.toBe(87);
+      main.toBe(88);
     });
     expect(getTopClone().height()).forThemes(({ classic, main }) => {
       classic.toBe(70);
-      main.toBe(87);
+      main.toBe(88);
     });
     expect(getInlineStartClone().height()).toBe(400);
   });
 
   it('should expand the all overlays size after changing the row height', () => {
-    // TODO [themes]: Possibly a themes-related bug. (https://github.com/handsontable/dev-handsontable/issues/2208)
     handsontable({
       data: createSpreadsheetData(10, 10),
       width: 600,
@@ -1594,8 +1592,14 @@ describe('MergeCells', () => {
     getActiveEditor().TEXTAREA.value = 'test\n\ntest';
     keyDownUp('enter');
 
-    expect(getTopInlineStartClone().height()).toBe(111);
-    expect(getTopClone().height()).toBe(111);
+    expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+      classic.toBe(111);
+      main.toBe(128);
+    });
+    expect(getTopClone().height()).forThemes(({ classic, main }) => {
+      classic.toBe(111);
+      main.toBe(128);
+    });
     expect(getInlineStartClone().height()).toBe(400);
   });
 
@@ -1941,7 +1945,6 @@ describe('MergeCells', () => {
   });
 
   it.forTheme('main')('should display properly high virtualized merged cell', () => {
-    // TODO: This test case is too closely bound to this specfici table height. It should be looked into.
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,

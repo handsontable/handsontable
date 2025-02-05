@@ -830,7 +830,7 @@ describe('AutocompleteEditor', () => {
         .toEqual(editor.find('.handsontableInput').width() - 2);
       expect(editor.find('.autocompleteEditor .htCore td').width()).forThemes(({ classic, main }) => {
         classic.toBeGreaterThan(187);
-        main.toEqual(180); // TODO [themes]: not sure where did `187` come from for the classic theme
+        main.toEqual(180);
       });
     });
 
