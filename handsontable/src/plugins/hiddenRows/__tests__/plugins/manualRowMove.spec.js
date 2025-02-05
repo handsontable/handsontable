@@ -385,7 +385,10 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
-          expect($backlight.height()).toBe(23);
+          expect($backlight.height()).forThemes(({ classic, main }) => {
+            classic.toBe(23);
+            main.toBe(29);
+          });
         });
 
         it('should get correct position and size while grabing the multiple rows placed after hidden rows', () => {
@@ -416,7 +419,10 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
-          expect($backlight.height()).toBe(69); // 23 * 3
+          expect($backlight.height()).forThemes(({ classic, main }) => {
+            classic.toBe(69); // 23 * 3
+            main.toBe(87); // 29 * 3
+          });
         });
 
         it('should get correct position and size while grabing the row placed before hidden rows', () => {
@@ -439,7 +445,10 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
-          expect($backlight.height()).toBe(23);
+          expect($backlight.height()).forThemes(({ classic, main }) => {
+            classic.toBe(23);
+            main.toBe(29);
+          });
         });
 
         it('should get correct position and size while grabing the multiple rows placed before hidden rows', () => {
@@ -470,7 +479,10 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
-          expect($backlight.height()).toBe(69); // 23 * 3
+          expect($backlight.height()).forThemes(({ classic, main }) => {
+            classic.toBe(69); // 23 * 3
+            main.toBe(87); // 29 * 3
+          });
         });
       });
 
@@ -504,7 +516,10 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($secondHeaderTH.offset().top - 2);
+          expect($guideline.offset().top).forThemes(({ classic, main }) => {
+            classic.toBe($secondHeaderTH.offset().top - 2);
+            main.toBe($secondHeaderTH.offset().top - 1.5);
+          });
         });
 
         it('should get correct position while grabing the row placed after hidden rows (moving up)', () => {
@@ -535,7 +550,10 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+          expect($guideline.offset().top).forThemes(({ classic, main }) => {
+            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 0.5);
+          });
         });
 
         it('should get correct position while grabing the row placed before hidden rows (moving down)', () => {
@@ -567,7 +585,10 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($secondHeaderTH.offset().top - 2);
+          expect($guideline.offset().top).forThemes(({ classic, main }) => {
+            classic.toBe($secondHeaderTH.offset().top - 2);
+            main.toBe($secondHeaderTH.offset().top - 1.5);
+          });
         });
 
         it('should get correct position while grabing the row placed before hidden rows (moving up)', () => {
@@ -598,7 +619,10 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+          expect($guideline.offset().top).forThemes(({ classic, main }) => {
+            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 0.5);
+          });
         });
       });
     });

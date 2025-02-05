@@ -1556,12 +1556,18 @@ describe('NestedHeaders', () => {
       keyDownUp('arrowright'); // "G"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(1266);
+      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(1266);
+        main.toBe(1280);
+      });
 
       keyDownUp('arrowright'); // "H"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(1316);
+      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(1316);
+        main.toBe(1333);
+      });
     });
 
     it('should scroll the viewport correctly while navigating horizontally using arrows (from right to left)', async() => {

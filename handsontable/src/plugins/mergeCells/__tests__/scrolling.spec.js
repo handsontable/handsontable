@@ -24,7 +24,10 @@ describe('MergeCells scrolling', () => {
     render();
     simulateClick(getCell(5, 0));
 
-    expect(topOverlay().getScrollPosition()).toBe(115);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(115);
+      main.toBe(130);
+    });
 
     setScrollTop(0);
     render();
@@ -32,7 +35,10 @@ describe('MergeCells scrolling', () => {
     render();
     simulateClick(getCell(5, 2));
 
-    expect(topOverlay().getScrollPosition()).toBe(115);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(115);
+      main.toBe(130);
+    });
   });
 
   it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked', () => {
@@ -42,7 +48,7 @@ describe('MergeCells scrolling', () => {
         { row: 0, col: 5, rowspan: 2, colspan: 2 }
       ],
       height: 100,
-      width: 200
+      width: 265
     });
 
     setScrollLeft(300);
@@ -78,7 +84,10 @@ describe('MergeCells scrolling', () => {
 
     simulateClick(getCell(5, 0));
 
-    expect(topOverlay().getScrollPosition()).toBe(115);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(115);
+      main.toBe(145);
+    });
   });
 
   it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked (virtualized is on)', () => {

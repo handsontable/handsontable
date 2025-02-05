@@ -1127,7 +1127,7 @@ describe('CustomBorders', () => {
   describe('virtual rendering', () => {
     // based on tests in Core_count.spec.js
 
-    it('should render borders only for rendered rows', () => {
+    it.forTheme('classic')('should render borders only for rendered rows', () => {
       const data = Handsontable.helper.createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
       const instance = handsontable({
@@ -1142,13 +1142,46 @@ describe('CustomBorders', () => {
       expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
     });
 
-    it('should render borders only for rendered rows, after scrolling', async() => {
+    it.forTheme('main')('should render borders only for rendered rows', () => {
+      const data = Handsontable.helper.createSpreadsheetData(10, 2);
+      const customBorders = generateCustomBordersForAllRows(data.length);
+      const instance = handsontable({
+        data,
+        customBorders,
+        height: 125,
+        viewportRowRenderingOffset: 0
+      });
+
+      expect(instance.countRenderedRows()).toEqual(5);
+      expect(countVisibleCustomBorders()).toEqual(5);
+      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
+    });
+
+    it.forTheme('classic')('should render borders only for rendered rows, after scrolling', async() => {
       const data = Handsontable.helper.createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
       const instance = handsontable({
         data,
         customBorders,
         height: 100,
+        viewportRowRenderingOffset: 0
+      });
+      const mainHolder = instance.view._wt.wtTable.holder;
+
+      $(mainHolder).scrollTop(400);
+      await sleep(300);
+      expect(instance.countRenderedRows()).toEqual(5);
+      expect(countVisibleCustomBorders()).toEqual(5);
+      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
+    });
+
+    it.forTheme('main')('should render borders only for rendered rows, after scrolling', async() => {
+      const data = Handsontable.helper.createSpreadsheetData(10, 2);
+      const customBorders = generateCustomBordersForAllRows(data.length);
+      const instance = handsontable({
+        data,
+        customBorders,
+        height: 125,
         viewportRowRenderingOffset: 0
       });
       const mainHolder = instance.view._wt.wtTable.holder;

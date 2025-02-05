@@ -135,8 +135,6 @@ jobs:
           npm run build:umd.min
           npm run build:languages
           npm run build:languages.min
-          npm run build:classic-css
-          npm run build:classic-css.min
       - run: tar -zcf dist.tar.gz ./handsontable/dist ./handsontable/styles
 
       - name: Upload the Handsontable UMD build artifact.
@@ -246,7 +244,7 @@ jobs:
           npm run test:walkontable
 
   test-handsontable-e2e:
-    name: "[TEST] Handsontable: UMD"
+    name: "[TEST] Handsontable: UMD (theme: classic)"
     runs-on: ubuntu-latest
     needs: [ build-handsontable-umd ]
     if: |
@@ -274,8 +272,37 @@ jobs:
           cd handsontable
           npm run test:e2e.dump && npm run test:e2e.puppeteer
 
+  test-handsontable-e2e-main:
+    name: "[TEST] Handsontable: UMD (theme: main)"
+    runs-on: ubuntu-latest
+    needs: [ build-handsontable-umd ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-handsontable-e2e == 'true'
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
+      - name: Use Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - run: npm ci --no-audit
+
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
+        with:
+          name: handsontable-build-umd
+          path: ./
+      - run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
+
+      - name: Test
+        run: |
+          cd handsontable
+          npm run test:e2e.dump --theme=main && npm run test:e2e.puppeteer
+
   test-handsontable-e2e-min:
-    name: "[TEST] Handsontable: UMD.min"
+    name: "[TEST] Handsontable: UMD.min (theme: classic)"
     runs-on: ubuntu-latest
     needs: [ build-handsontable-umd ]
     if: |
@@ -302,6 +329,35 @@ jobs:
         run: |
           cd handsontable
           npm run test:production.dump && npm run test:e2e.puppeteer
+
+  test-handsontable-e2e-min-main:
+    name: "[TEST] Handsontable: UMD.min (theme: main)"
+    runs-on: ubuntu-latest
+    needs: [ build-handsontable-umd ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-handsontable-e2e-min == 'true'
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
+      - name: Use Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - run: npm ci --no-audit
+
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
+        with:
+          name: handsontable-build-umd
+          path: ./
+      - run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
+
+      - name: Test
+        run: |
+          cd handsontable
+          npm run test:production.dump --theme=main && npm run test:e2e.puppeteer
 
   test-handsontable-esm-e2e:
     name: "[TEST] Handsontable: ESM"
@@ -566,7 +622,9 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - test-handsontable-e2e
+      - test-handsontable-e2e-main
       - test-handsontable-e2e-min
+      - test-handsontable-e2e-min-main
       - test-angular
       - test-react
       - test-react-wrapper
@@ -622,8 +680,6 @@ jobs:
             npm run in handsontable build:umd.min
             npm run in handsontable build:languages
             npm run in handsontable build:languages.min
-            npm run in handsontable build:classic-css
-            npm run in handsontable build:classic-css.min
           fi
           npm run in handsontable postbuild
 

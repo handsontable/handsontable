@@ -28,9 +28,16 @@ module.exports.create = function create(envArgs) {
         }`,
         externalCssFiles: [
           'lib/normalize.css',
-          '../dist/handsontable.css',
+          ...((envArgs.HOT_THEME && envArgs.HOT_THEME !== 'classic') ? [
+              '../styles/handsontable.css',
+              `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
+              'helpers/common-themes.css',
+            ] : [
+              '../dist/handsontable.css',
+              'helpers/common-classic.css',
+            ]
+          ),
           `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
-          'helpers/common.css',
         ],
         externalJsFiles: [
           'helpers/jasmine-bridge-reporter.js',

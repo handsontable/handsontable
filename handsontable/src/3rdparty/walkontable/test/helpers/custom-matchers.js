@@ -98,7 +98,7 @@ beforeEach(function() {
  (between ${expected - diff} and ${expected + diff})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected}
+            message = `Expected ${actual} to be around ${expected}
  (between ${expected - diff} and ${expected + diff})`;
           }
 
