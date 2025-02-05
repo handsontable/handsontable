@@ -824,7 +824,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('classic')('should select the entire column and row after column header and row ' +
+  it.forTheme('main')('should select the entire column and row after column header and row ' +
     'header is clicked', () => {
     handsontable({
       width: 200,
