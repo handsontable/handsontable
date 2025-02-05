@@ -34,7 +34,7 @@ describe('Context menu theme handling', () => {
     spec().$container.addClass('ht-theme-sth-else');
     handsontable({
       contextMenu: true,
-    });
+    }, true);
 
     contextMenu();
 

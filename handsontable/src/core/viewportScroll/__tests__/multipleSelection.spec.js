@@ -337,7 +337,10 @@ describe('Multiple selection scroll', () => {
       keyDown('shift');
       simulateClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
 
     it('should scroll the viewport after navigating using ArrowDown key', async() => {
@@ -357,7 +360,10 @@ describe('Multiple selection scroll', () => {
       selectCell(10, 0);
       keyDownUp(['shift', 'arrowdown']);
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
 
     it('should not scroll the viewport after navigating through the row headers using ArrowDown key', async() => {
@@ -378,7 +384,10 @@ describe('Multiple selection scroll', () => {
       selectCell(10, -1);
       keyDownUp(['shift', 'arrowdown']);
 
-      expect(topOverlay().getScrollPosition()).toBe(5);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(5);
+        main.toBe(65);
+      });
     });
 
     it('should scroll the viewport after using API (selecting fully visible row to partially visible row)', async() => {
@@ -397,7 +406,10 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[10, 0, 11, 0]]);
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
 
     it('should scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
@@ -416,7 +428,10 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[11, 0, 10, 0]]);
 
-      expect(topOverlay().getScrollPosition()).toBe(5);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(5);
+        main.toBe(65);
+      });
     });
   });
 });

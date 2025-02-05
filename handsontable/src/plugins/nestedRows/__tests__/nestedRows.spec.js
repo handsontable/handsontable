@@ -85,7 +85,7 @@ describe('NestedRows', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it('should display indicators properly located', () => {
+      it.forTheme('classic')('should display indicators properly located', () => {
         const hot = handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
@@ -97,6 +97,19 @@ describe('NestedRows', () => {
         expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('left');
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('-2px');
       });
+
+      it.forTheme('main')('should display indicators properly located', () => {
+        const hot = handsontable({
+          layoutDirection,
+          data: getMoreComplexNestedData(),
+          nestedRows: true,
+          rowHeaders: true
+        });
+
+        expect(hot.countRows()).toEqual(13);
+        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
+        expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
+      });
     });
 
     it('should render row header with correct default width', async() => {
@@ -106,7 +119,10 @@ describe('NestedRows', () => {
         rowHeaders: true,
       });
 
-      expect(getCell(0, -1).offsetWidth).toBe(56);
+      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main }) => {
+        classic.toBe(56);
+        main.toBe(61);
+      });
     });
 
     it('should take into account the `rowHeaderWidth` option when nested rows are enabled', async() => {
@@ -133,19 +149,28 @@ describe('NestedRows', () => {
       contextMenu();
       selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).toBe(70);
+      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main }) => {
+        classic.toBe(70);
+        main.toBe(71);
+      });
 
       selectCell(3, 0);
       contextMenu();
       selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).toBe(76);
+      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main }) => {
+        classic.toBe(76);
+        main.toBe(81);
+      });
 
       selectCell(4, 0);
       contextMenu();
       selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).toBe(86);
+      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main }) => {
+        classic.toBe(86);
+        main.toBe(91);
+      });
     });
   });
 

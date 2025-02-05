@@ -853,8 +853,14 @@ describe('HandsontableEditor', () => {
 
     const container = getActiveEditor().htContainer;
 
-    expect(container.clientWidth).toBe(290);
-    expect(container.clientHeight).toBe(168);
+    expect(container.clientWidth).forThemes(({ classic, main }) => {
+      classic.toBe(290);
+      main.toBe(360);
+    });
+    expect(container.clientHeight).forThemes(({ classic, main }) => {
+      classic.toBe(168);
+      main.toBe(212);
+    });
   });
 
   it('should open editor with the correct size after other handsontable editor was open beforehand (#dev-2112)', async() => {
@@ -890,7 +896,13 @@ describe('HandsontableEditor', () => {
 
     const container = getActiveEditor().htContainer;
 
-    expect(container.clientWidth).toBe(290);
-    expect(container.clientHeight).toBe(168);
+    expect(container.clientWidth).forThemes(({ classic, main }) => {
+      classic.toBe(290);
+      main.toBe(360);
+    });
+    expect(container.clientHeight).forThemes(({ classic, main }) => {
+      classic.toBe(168);
+      main.toBe(212);
+    });
   });
 });

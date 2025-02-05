@@ -207,10 +207,14 @@ class DataSource {
       }
     }
 
+    if (!Number.isInteger(row)) {
+      // invalid row number
+      return;
+    }
+
     if (!Number.isInteger(column)) {
       // column argument is the prop name
       setProperty(this.data[row], column, value);
-
     } else {
       this.data[row][column] = value;
     }

@@ -101,7 +101,10 @@ describe('ContextMenu', () => {
       await sleep(300);
 
       expect($menu.find('.wtHider').width()).toEqual(215);
-      expect($menu.width()).toEqual(215);
+      expect($menu.width()).forThemes(({ classic, main }) => {
+        classic.toEqual(215);
+        main.toEqual(217);
+      });
     });
 
     it('should expand menu when one of items is wider then default width of the menu', async() => {

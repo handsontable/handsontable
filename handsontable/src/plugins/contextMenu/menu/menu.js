@@ -669,7 +669,7 @@ export class Menu {
         }
       }
 
-      className = className.replace(/[^A-z0-9]/g, '_');
+      className = className.replace(/[^A-Za-z0-9]/g, '_');
       className = `${this.options.className}Sub_${className}`;
 
       container = doc.querySelector(`.${this.options.className}.${className}`);

@@ -92,7 +92,10 @@ describe('NestedRows', () => {
         nestedRows: true,
       });
 
-      expect(getCell(0, -1).offsetWidth).toBe(76);
+      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main }) => {
+        classic.toBe(76);
+        main.toBe(81);
+      });
     });
   });
 });
