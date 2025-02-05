@@ -69,7 +69,7 @@ beforeEach(function() {
             if (attributesToKeep.length) {
               attributesToKeep = attributesToKeep.map((attribute) => {
                 // Replace * in, for example, `aria-*`.
-                return attribute.includes('*') ? attribute.replace('*', '([a-zA-Z-]+)') : attribute;
+                return attribute.includes('*') ? attribute.replace(/\*/g, '([a-zA-Z-]+)') : attribute;
               });
 
               keptAttributes = attributes.match(
