@@ -612,7 +612,7 @@ describe('CollapsibleColumns', () => {
         <thead>
           <tr>
             <th class="">A1</th>
-            <th class="" colspan="4">B1</th>
+            <th class="hiddenHeaderText" colspan="4">B1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -624,7 +624,7 @@ describe('CollapsibleColumns', () => {
           </tr>
           <tr>
             <th class="">A2</th>
-            <th class="" colspan="2">B2</th>
+            <th class="hiddenHeaderText" colspan="2">B2</th>
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator expanded" colspan="2">D2</th>
             <th class="hiddenHeader"></th>

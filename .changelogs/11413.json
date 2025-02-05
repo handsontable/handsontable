@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix header text overlap in nested headers",
+  "type": "fixed",
+  "issueOrPR": 11413,
+  "breaking": false,
+  "framework": "none"
+}

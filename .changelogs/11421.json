@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Removed `getComputedStyle` function declaration from types",
+  "type": "removed",
+  "issueOrPR": 11421,
+  "breaking": false,
+  "framework": "none"
+}
