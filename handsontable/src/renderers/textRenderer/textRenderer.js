@@ -30,20 +30,8 @@ export function textRenderer(hotInstance, TD, row, col, prop, value, cellPropert
     escaped = escaped.trim();
   }
 
-  if (cellProperties.rendererTemplate) {
-    empty(TD);
-    const TEMPLATE = hotInstance.rootDocument.createElement('TEMPLATE');
-
-    TEMPLATE.setAttribute('bind', '{{}}');
-    TEMPLATE.innerHTML = cellProperties.rendererTemplate;
-    HTMLTemplateElement.decorate(TEMPLATE);
-    TEMPLATE.model = hotInstance.getSourceDataAtRow(row);
-    TD.appendChild(TEMPLATE);
-
-  } else {
-    // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
-    fastInnerText(TD, escaped);
-  }
+  // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
+  fastInnerText(TD, escaped);
 }
 
 textRenderer.RENDERER_TYPE = RENDERER_TYPE;
