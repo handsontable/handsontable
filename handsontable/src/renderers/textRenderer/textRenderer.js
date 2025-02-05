@@ -1,5 +1,5 @@
 import { baseRenderer } from '../baseRenderer';
-import { empty, fastInnerText } from '../../helpers/dom/element';
+import { fastInnerText } from '../../helpers/dom/element';
 import { stringify } from '../../helpers/mixed';
 
 export const RENDERER_TYPE = 'text';
