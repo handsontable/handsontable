@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix merge cells height calculation, and revert line-height style changes",
-  "type": "fixed",
-  "issueOrPR": 11423,
-  "breaking": false,
-  "framework": "none"
-}

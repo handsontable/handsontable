@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed dropdown cells type validation for custom editors.",
-  "type": "fixed",
-  "issueOrPR": 11314,
-  "breaking": false,
-  "framework": "none"
-}
