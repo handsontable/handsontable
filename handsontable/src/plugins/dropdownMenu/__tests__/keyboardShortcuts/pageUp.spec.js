@@ -26,7 +26,10 @@ describe('DropdownMenu keyboard shortcut', () => {
       keyDownUp('pageup');
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
-      expect(window.scrollY).toBe(25);
+      expect(window.scrollY).forThemes(({ classic, main }) => {
+        classic.toBe(25);
+        main.toBe(35);
+      });
     });
 
     it('should move the menu item selection to the first item when the menu fits within the browser viewport' +

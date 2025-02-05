@@ -16,6 +16,7 @@ const allowedE2EModules = [
   './helpers/custom-matchers',
   './custom-matchers',
   './helpers/jasmine-helpers',
+  '../helpers/it-themes-extension',
   './asciiTable',
   '../../../../../test/helpers/asciiTable',
   './__mocks__/*',

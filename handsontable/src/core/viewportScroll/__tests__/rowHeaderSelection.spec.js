@@ -109,7 +109,10 @@ describe('Row header selection scroll', () => {
 
       simulateClick(getCell(11, -1));
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
 
     it('should scroll the viewport after extending header selection using Shift key', async() => {
@@ -130,7 +133,10 @@ describe('Row header selection scroll', () => {
       keyDown('shift');
       simulateClick(getCell(11, -1));
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
 
     it('should scroll the viewport after using API (selecting fully visible row to partially visible row)', async() => {
@@ -149,7 +155,10 @@ describe('Row header selection scroll', () => {
 
       selectRows(10, 11);
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
 
     it('should scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
@@ -168,7 +177,10 @@ describe('Row header selection scroll', () => {
 
       selectRows(11, 10);
 
-      expect(topOverlay().getScrollPosition()).toBe(5);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(5);
+        main.toBe(65);
+      });
     });
   });
 });

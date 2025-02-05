@@ -5,6 +5,7 @@ import { TextEditor } from '../textEditor';
 import { addClass, removeClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
+import { isMobileBrowser } from '../../helpers/browser';
 
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
@@ -291,6 +292,10 @@ export class DateEditor extends TextEditor {
 
       if (origOnSelect) {
         origOnSelect();
+      }
+
+      if (isMobileBrowser()) {
+        this.hideDatepicker();
       }
     };
     options.onClose = () => {

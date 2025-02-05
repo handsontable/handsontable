@@ -40,8 +40,14 @@ describe('Core.scrollViewportTo', () => {
       render();
 
       expect(result).toBe(true);
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2318);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3216);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(2318);
+        main.toBe(2620);
+      });
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(3216);
+        main.toBe(4125);
+      });
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the bottom-start edge when ' +
@@ -70,8 +76,14 @@ describe('Core.scrollViewportTo', () => {
       render();
 
       expect(result).toBe(true);
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2502);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3216);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(2502);
+        main.toBe(2795);
+      });
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(3216);
+        main.toBe(4125);
+      });
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the top-start edge when ' +
@@ -100,8 +112,14 @@ describe('Core.scrollViewportTo', () => {
       render();
 
       expect(result).toBe(true);
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2502);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3450);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(2502);
+        main.toBe(2795);
+      });
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(3450);
+        main.toBe(4350);
+      });
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the top-end edge when ' +
@@ -130,8 +148,14 @@ describe('Core.scrollViewportTo', () => {
       render();
 
       expect(result).toBe(true);
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2318);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3450);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(2318);
+        main.toBe(2620);
+      });
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(3450);
+        main.toBe(4350);
+      });
     });
   });
 
@@ -153,7 +177,10 @@ describe('Core.scrollViewportTo', () => {
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3216);
+    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(3216);
+      main.toBe(4125);
+    });
   });
 
   it('should scroll the viewport in such a way that the coordinates are glued to the top edge (manual snapping)', () => {
@@ -174,7 +201,10 @@ describe('Core.scrollViewportTo', () => {
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
-    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(3450);
+    expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(3450);
+      main.toBe(4350);
+    });
   });
 
   it('should scroll the viewport in such a way that the coordinates are glued to the right edge (manual snapping)', () => {
@@ -194,7 +224,10 @@ describe('Core.scrollViewportTo', () => {
     render();
 
     expect(result).toBe(true);
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2318);
+    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(2318);
+      main.toBe(2620);
+    });
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
 
@@ -215,7 +248,10 @@ describe('Core.scrollViewportTo', () => {
     render();
 
     expect(result).toBe(true);
-    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(2502);
+    expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(2502);
+      main.toBe(2795);
+    });
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
 
@@ -267,7 +303,7 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(0);
   });
 
-  it('should scroll the viewport only horizontally', () => {
+  it.forTheme('classic')('should scroll the viewport only horizontally', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100),
       height: 300,
@@ -289,15 +325,71 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
+    await sleep(50);
+
     expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
     expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(70);
   });
 
-  it('should scroll the viewport only vertically', () => {
+  it.forTheme('main')('should scroll the viewport only horizontally', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(100, 100),
+      height: 375,
+      width: 360,
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    scrollViewportTo({
+      row: 50,
+      col: 50,
+    });
+
+    render();
+
+    scrollViewportTo({
+      row: 80,
+    });
+
+    render();
+
+    await sleep(50);
+
+    expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
+    expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(70);
+  });
+
+  it.forTheme('classic')('should scroll the viewport only vertically', () => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100),
       height: 300,
       width: 300,
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    scrollViewportTo({
+      row: 50,
+      col: 50,
+    });
+
+    render();
+
+    scrollViewportTo({
+      col: 80,
+    });
+
+    render();
+
+    expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(77);
+    expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(40);
+  });
+
+  it.forTheme('main')('should scroll the viewport only vertically', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(100, 100),
+      height: 375,
+      width: 360,
       rowHeaders: true,
       colHeaders: true
     });

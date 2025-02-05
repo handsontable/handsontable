@@ -29,29 +29,48 @@ describe('Focus selection scroll', () => {
     keyDownUp('enter');
     keyDownUp('enter'); // B4
 
-    // 92 row heights - 104 viewport width + 15 scrollbart offset + + 1 selection offset + 1 header border offset
-    expect(topOverlay().getScrollPosition()).toBe(5);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      // 92 row heights - 104 viewport width + 15 scrollbart offset + + 1 selection offset + 1 header border offset
+      classic.toBe(5);
+
+      main.toBe(32);
+    });
 
     keyDownUp('enter'); // B5
 
-    expect(topOverlay().getScrollPosition()).toBe(28);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(28);
+      main.toBe(61);
+    });
 
     keyDownUp('enter'); // B6
 
-    expect(topOverlay().getScrollPosition()).toBe(51);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(51);
+      main.toBe(90);
+    });
 
     keyDownUp(['shift', 'enter']); // B5
     keyDownUp(['shift', 'enter']); // B4
 
-    expect(topOverlay().getScrollPosition()).toBe(51);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(51);
+      main.toBe(87);
+    });
 
     keyDownUp(['shift', 'enter']); // B3
 
-    expect(topOverlay().getScrollPosition()).toBe(46);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(46);
+      main.toBe(58);
+    });
 
     keyDownUp(['shift', 'enter']); // B2
 
-    expect(topOverlay().getScrollPosition()).toBe(23);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(23);
+      main.toBe(29);
+    });
 
     keyDownUp(['shift', 'enter']); // B1
 
@@ -59,8 +78,12 @@ describe('Focus selection scroll', () => {
 
     keyDownUp(['shift', 'enter']); // B50
 
-    // 1150 row heights - 104 viewport width + 15 scrollbart offset + 1 header border offset
-    expect(topOverlay().getScrollPosition()).toBe(1063);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      // 1150 row heights - 104 viewport width + 15 scrollbart offset + 1 header border offset
+      classic.toBe(1063);
+
+      main.toBe(1366);
+    });
   });
 
   it('should scroll the viewport horizontally', () => {

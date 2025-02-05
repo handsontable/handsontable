@@ -215,18 +215,42 @@ describe('settings', () => {
 
       alter('insert_row_above', 0);
 
-      expect(getMaster().height()).toBe(50); // 25px corner + 25px added row
-      expect(getTopClone().height()).toBe(50);
-      expect(getTopInlineStartClone().height()).toBe(50);
-      expect(getInlineStartClone().height()).toBe(50);
+      expect(getMaster().height()).forThemes(({ classic, main }) => {
+        classic.toBe(50); // 25px corner + 25px added row
+        main.toBe(59);
+      });
+      expect(getTopClone().height()).forThemes(({ classic, main }) => {
+        classic.toBe(50);
+        main.toBe(59);
+      });
+      expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+        classic.toBe(50);
+        main.toBe(59);
+      });
+      expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
+        classic.toBe(50);
+        main.toBe(59);
+      });
       expect(getBottomClone().height()).toBe(0);
 
       alter('insert_row_above', 0);
 
-      expect(getMaster().height()).toBe(73);
-      expect(getTopClone().height()).toBe(73);
-      expect(getTopInlineStartClone().height()).toBe(73);
-      expect(getInlineStartClone().height()).toBe(73);
+      expect(getMaster().height()).forThemes(({ classic, main }) => {
+        classic.toBe(73);
+        main.toBe(88);
+      });
+      expect(getTopClone().height()).forThemes(({ classic, main }) => {
+        classic.toBe(73);
+        main.toBe(88);
+      });
+      expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+        classic.toBe(73);
+        main.toBe(88);
+      });
+      expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
+        classic.toBe(73);
+        main.toBe(88);
+      });
       expect(getBottomClone().height()).toBe(0);
     });
   });

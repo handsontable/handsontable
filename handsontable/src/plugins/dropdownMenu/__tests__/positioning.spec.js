@@ -42,9 +42,19 @@ describe('DropdownMenu', () => {
         const subMenuRoot = $('.htDropdownMenuSub_Alignment');
         const subMenuOffset = subMenuRoot.offset();
 
-        expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
-        // 3px comes from borders
-        expect(subMenuOffset.left).toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() + 3, 0);
+        expect(subMenuOffset.top).forThemes(({ classic, main }) => {
+          classic.toBeCloseTo(subMenuItemOffset.top - 1, 0);
+
+          // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+          main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+        });
+        expect(subMenuOffset.left).forThemes(({ classic, main }) => {
+          // 3px comes from borders
+          classic.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() + 3, 0);
+
+          // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+          main.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() - 1, 0);
+        });
       });
 
       it('should open subMenu on the left of the main menu if on the right there\'s no space left', async() => {
@@ -66,8 +76,18 @@ describe('DropdownMenu', () => {
         const subMenuRoot = $('.htDropdownMenuSub_Alignment');
         const subMenuOffset = subMenuRoot.offset();
 
-        expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
-        expect(subMenuOffset.left).toBeCloseTo(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth()));
+        expect(subMenuOffset.top).forThemes(({ classic, main }) => {
+          classic.toBeCloseTo(subMenuItemOffset.top - 1, 0);
+
+          // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+          main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+        });
+        expect(subMenuOffset.left).forThemes(({ classic, main }) => {
+          classic.toBeCloseTo(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth()));
+
+          // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+          main.toBeCloseTo(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth() + 1));
+        });
       });
     });
 
@@ -88,8 +108,14 @@ describe('DropdownMenu', () => {
       const $dropdownMenuRoot = $('.htDropdownMenu');
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
-      expect(tickItemOffset.top).toBe(135);
-      expect(tickItemOffset.left).toBe(dropdownMenuOffset.left + 4);
+      expect(tickItemOffset.top).forThemes(({ classic, main }) => {
+        classic.toBe(135);
+        main.toBe(155);
+      });
+      expect(tickItemOffset.left).forThemes(({ classic, main }) => {
+        classic.toBe(dropdownMenuOffset.left + 4);
+        main.toBe(dropdownMenuOffset.left + 1);
+      });
     });
   });
 
@@ -116,9 +142,19 @@ describe('DropdownMenu', () => {
       const subMenuRoot = $('.htDropdownMenuSub_Alignment');
       const subMenuOffset = subMenuRoot.offset();
 
-      expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
-      // 3px comes from borders
-      expect(subMenuOffset.left).toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() + 3, 0);
+      expect(subMenuOffset.top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(subMenuItemOffset.top - 1, 0);
+
+        // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+        main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+      });
+      expect(subMenuOffset.left).forThemes(({ classic, main }) => {
+        // 3px comes from borders
+        classic.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() + 3, 0);
+
+        // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+        main.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() - 1, 0);
+      });
     });
 
     it('should open subMenu on the left-bottom of the main menu if on the right there\'s no space left (scrolled viewport) #dev-1895', async() => {
@@ -144,8 +180,18 @@ describe('DropdownMenu', () => {
       const subMenuRoot = $('.htDropdownMenuSub_Alignment');
       const subMenuOffset = subMenuRoot.offset();
 
-      expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
-      expect(subMenuOffset.left).toBe(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth()));
+      expect(subMenuOffset.top).forThemes(({ classic, main }) => {
+        classic.toBeCloseTo(subMenuItemOffset.top - 1, 0);
+
+        // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+        main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+      });
+      expect(subMenuOffset.left).forThemes(({ classic, main }) => {
+        classic.toBe(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth()));
+
+        // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
+        main.toBe(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth() + 1));
+      });
     });
   });
 });

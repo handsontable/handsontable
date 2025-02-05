@@ -93,7 +93,10 @@ describe('HiddenColumns', () => {
 
       expect(hot.getColWidth(0)).toBe(0);
       expect(hot.getColWidth(1)).toBe(0);
-      expect(hot.getColWidth(2)).toBe(188);
+      expect(hot.getColWidth(2)).forThemes(({ classic, main }) => {
+        classic.toBe(188);
+        main.toBe(225);
+      });
     });
 
     it('should return proper values from the `getColWidth` function (when indicator is disabled)', () => {
@@ -114,7 +117,10 @@ describe('HiddenColumns', () => {
 
       expect(hot.getColWidth(0)).toBe(0);
       expect(hot.getColWidth(1)).toBe(0);
-      expect(hot.getColWidth(2)).toBe(173);
+      expect(hot.getColWidth(2)).forThemes(({ classic, main }) => {
+        classic.toBe(173);
+        main.toBe(210);
+      });
     });
 
     it('should return proper values from the `getColHeader` function', () => {

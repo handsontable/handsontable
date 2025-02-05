@@ -19,7 +19,7 @@ describe('Hook', () => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         afterSetTheme: afterSetThemeSpy,
-      });
+      }, true);
 
       // Initial theme setup.
       expect(afterSetThemeSpy.calls.count()).toBe(1);
