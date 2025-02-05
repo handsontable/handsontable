@@ -61,7 +61,7 @@ dateValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
 export function correctFormat(value, dateFormat) {
   const dateFromDate = moment(getNormalizedDate(value));
   const dateFromMoment = moment(value, dateFormat);
-  const isAlphanumeric = value.search(/[A-z]/g) > -1;
+  const isAlphanumeric = value.search(/[A-Za-z]/g) > -1;
   let date;
 
   if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) ||

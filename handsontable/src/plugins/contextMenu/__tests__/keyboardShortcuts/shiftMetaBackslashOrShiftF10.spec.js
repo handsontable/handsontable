@@ -211,8 +211,14 @@ describe('ContextMenu keyboard shortcut', () => {
         left: cellRect.width,
         above: -cellRect.height,
       });
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1766);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(8939);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(1766);
+        main.toBe(1961);
+      });
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(8939);
+        main.toBe(11345);
+      });
     });
 
     it('should not close the menu after hitting the same shortcut many times', () => {

@@ -144,7 +144,10 @@ describe('Hook', () => {
       scrollViewportTo({ row: 10 });
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).toBe(686);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(686);
+        main.toBe(935);
+      });
     });
 
     it('should be possible to change row to which the viewport is scrolled (case with hidden rows)', () => {
@@ -173,7 +176,10 @@ describe('Hook', () => {
         value: 'auto',
       }));
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).toBe(157);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(157);
+        main.toBe(268);
+      });
     });
 
     it('should be possible to block viewport scrolling after returning `false`', () => {

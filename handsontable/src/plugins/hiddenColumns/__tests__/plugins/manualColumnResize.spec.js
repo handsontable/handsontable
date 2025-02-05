@@ -73,7 +73,10 @@ describe('HiddenColumns', () => {
 
       const $handle = $('.manualColumnResizer');
 
-      expect($handle.offset().left).toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+      expect($handle.offset().left).forThemes(({ classic, main }) => {
+        classic.toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+        main.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
+      });
       expect($handle.height()).toBe($headerTH.outerHeight());
     });
 
@@ -103,7 +106,10 @@ describe('HiddenColumns', () => {
 
       const $handle = $('.manualColumnResizer');
 
-      expect($handle.offset().left).toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+      expect($handle.offset().left).forThemes(({ classic, main }) => {
+        classic.toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+        main.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
+      });
       expect($handle.height()).toBe($headerTH.outerHeight());
     });
 
@@ -137,7 +143,10 @@ describe('HiddenColumns', () => {
         .simulate('mouseup')
       ;
 
-      expect(colWidth(spec().$container, 1)).toBe(80); // 50 (initial column width) + 30
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+        classic.toBe(80); // 50 (initial column width) + 30
+        main.toBe(93); // 63 (initial column width) + 30
+      });
     });
   });
 });

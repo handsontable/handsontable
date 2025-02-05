@@ -11,10 +11,20 @@ describe('Core_count', () => {
   });
 
   describe('countVisibleRows', () => {
-    it('should return number of visible rows', () => {
+    it.forTheme('classic')('should return number of visible rows', () => {
       const instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 100,
+        width: 600
+      });
+
+      expect(instance.countVisibleRows()).toEqual(4);
+    });
+
+    it.forTheme('main')('should return number of visible rows', () => {
+      const instance = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        height: 125,
         width: 600
       });
 
@@ -33,7 +43,7 @@ describe('Core_count', () => {
   });
 
   describe('countRenderedRows', () => {
-    it('should return number of rendered rows', () => {
+    it.forTheme('classic')('should return number of rendered rows', () => {
       const instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 100,
@@ -43,10 +53,32 @@ describe('Core_count', () => {
       expect(instance.countRenderedRows()).toEqual(5);
     });
 
-    it('should return number of rendered rows, including rows rendered becausee of viewportRowRenderingOffset', () => {
+    it.forTheme('main')('should return number of rendered rows', () => {
+      const instance = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        height: 125,
+        viewportRowRenderingOffset: 0
+      });
+
+      expect(instance.countRenderedRows()).toEqual(5);
+    });
+
+    it.forTheme('classic')('should return number of rendered rows, including rows rendered ' +
+      'because of viewportRowRenderingOffset', () => {
       const instance = handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 10),
         height: 100,
+        viewportRowRenderingOffset: 20
+      });
+
+      expect(instance.countRenderedRows()).toEqual(25);
+    });
+
+    it.forTheme('main')('should return number of rendered rows, including rows rendered ' +
+      'because of viewportRowRenderingOffset', () => {
+      const instance = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 10),
+        height: 125,
         viewportRowRenderingOffset: 20
       });
 
