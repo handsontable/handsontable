@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix closing date picker on mobile devices",
+  "type": "fixed",
+  "issueOrPR": 11406,
+  "breaking": false,
+  "framework": "none"
+}

@@ -265,7 +265,7 @@ const products: Product[] = [
     inStock: true,
     qty: 385,
     orderId: '13-7828353',
-    country: 'French Southern Territories',
+    country: 'Switzerland',
   },
   {
     companyName: 'Reichel Group',
@@ -292,7 +292,7 @@ const products: Product[] = [
     inStock: true,
     qty: 305,
     orderId: '63-2315723',
-    country: 'French Southern Territories',
+    country: 'Switzerland',
   },
   {
     companyName: 'Weber Inc',
@@ -493,7 +493,7 @@ const app = document.getElementById('example1')!;
 const hotOptions: Handsontable.GridSettings = {
   data: products,
   height: 464,
-  colWidths: [160, 165, 130, 100, 100, 110, 216],
+  colWidths: [160, 165, 130, 120, 100, 110, 216],
   autoRowSize: true,
   colHeaders: [
     'Company name',
