@@ -244,7 +244,7 @@ jobs:
           npm run test:walkontable
 
   test-handsontable-e2e:
-    name: "[TEST] Handsontable: UMD"
+    name: "[TEST] Handsontable: UMD (theme: classic)"
     runs-on: ubuntu-latest
     needs: [ build-handsontable-umd ]
     if: |
@@ -302,7 +302,7 @@ jobs:
           npm run test:e2e.dump --theme=main && npm run test:e2e.puppeteer
 
   test-handsontable-e2e-min:
-    name: "[TEST] Handsontable: UMD.min"
+    name: "[TEST] Handsontable: UMD.min (theme: classic)"
     runs-on: ubuntu-latest
     needs: [ build-handsontable-umd ]
     if: |
