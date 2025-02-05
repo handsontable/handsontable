@@ -40,7 +40,10 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         const buttonWidth = $(cell.querySelector('.changeType')).outerWidth();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        expect(menuOffset.top).forThemes(({ classic, main }) => {
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+          main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+        });
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 2,1']);
       });
@@ -67,7 +70,10 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         const buttonOffset = $(cell.querySelector('.changeType')).offset();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        expect(menuOffset.top).forThemes(({ classic, main }) => {
+          classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+          main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+        });
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
         expect(getSelectedRange()).toEqualCellRange([
           `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`

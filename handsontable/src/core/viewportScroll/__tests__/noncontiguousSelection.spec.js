@@ -214,7 +214,10 @@ describe('Non-contiguous selection scroll', () => {
       keyDown('control/meta');
       simulateClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
 
     it('should scroll the viewport after using API (selecting fully visible row to partially visible row)', async() => {
@@ -233,7 +236,10 @@ describe('Non-contiguous selection scroll', () => {
 
       selectCells([[10, 0], [11, 0]]);
 
-      expect(topOverlay().getScrollPosition()).toBe(19);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(19);
+        main.toBe(94);
+      });
     });
 
     it('should scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
@@ -252,7 +258,10 @@ describe('Non-contiguous selection scroll', () => {
 
       selectCells([[11, 0], [10, 0]]);
 
-      expect(topOverlay().getScrollPosition()).toBe(5);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(5);
+        main.toBe(65);
+      });
     });
   });
 });

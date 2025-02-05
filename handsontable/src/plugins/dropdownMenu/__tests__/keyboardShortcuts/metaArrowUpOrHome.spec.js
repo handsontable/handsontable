@@ -29,7 +29,10 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
       // check if the viewport is scrolled to the top
-      expect(window.scrollY).toBe(25);
+      expect(window.scrollY).forThemes(({ classic, main }) => {
+        classic.toBe(25);
+        main.toBe(35);
+      });
     });
 
     it('should move the menu item selection to the first active item', () => {

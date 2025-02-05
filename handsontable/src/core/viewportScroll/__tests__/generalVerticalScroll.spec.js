@@ -33,6 +33,9 @@ describe('Vertical scroll', () => {
     selectCell(8, 0);
 
     // expect that the viewport is scrolled to the beginning of the `9` row
-    expect(topOverlay().getScrollPosition()).toBe(184);
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      classic.toBe(184);
+      main.toBe(195);
+    });
   });
 });

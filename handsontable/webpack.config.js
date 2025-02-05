@@ -11,5 +11,6 @@ if (process.env.npm_config_testpathpattern) {
 module.exports = function() {
   return configFactory.create({
     testPathPattern: process.env.npm_config_testPathPattern,
+    HOT_THEME: process.env.npm_config_theme,
   });
 };

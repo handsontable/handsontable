@@ -34,7 +34,7 @@ describe('Date editor theme handling', () => {
     spec().$container.addClass('ht-theme-sth-else');
     handsontable({
       columns: [{ type: 'date' }],
-    });
+    }, true);
 
     selectCell(0, 0);
     keyDownUp('enter');

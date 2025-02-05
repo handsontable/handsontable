@@ -75,7 +75,10 @@ describe('Comments keyboard shortcut', () => {
 
       // 2050 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1816);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(8966);
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+        classic.toBe(8966);
+        main.toBe(11375);
+      });
     });
 
     it('should open and edit a comment, make it active, and ready for typing', async() => {

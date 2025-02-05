@@ -1,0 +1,21 @@
+.red-background {
+  background-color: #ff0000 !important;
+}
+
+.green-background {
+  background-color: #68d628 !important;
+}
+
+.jasmine_html-reporter {
+  margin: 0;
+}
+
+/**
+ * To make end-to-end tests more predictable between different operating systems, overwrite
+ * default Handsontable's styles with this one.
+ */
+.handsontable {
+  font-family: sans-serif;
+  font-weight: normal;
+  text-rendering: geometricPrecision;
+}

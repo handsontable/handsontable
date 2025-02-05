@@ -37,7 +37,7 @@ describe('Comments theme handling', () => {
       cell: [
         { row: 1, col: 1, comment: { value: 'Test comment' } }
       ],
-    });
+    }, true);
 
     selectCell(1, 1);
     const $editorElement = $(getPlugin('comments').getEditorInputElement().parentElement);
