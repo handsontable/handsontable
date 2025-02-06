@@ -13,6 +13,7 @@ import { jsdocLinksFixer } from './postProcessors/jsdocLinksFixer.mjs';
 import { isJsdocPlugin } from './predictors.mjs';
 import { buildHeaderWriter } from './seo.mjs';
 import { removeInternals } from './preProcessors/removeInternals.mjs';
+import { jsdocReturnsLinksFixer } from './postProcessors/jsdocReturnsLinksFixer.mjs';
 
 export const buildRenderer = ({ dist, generateMarkdown, configuration, logger }) =>
   (fileName, members, parsedTypes) => {
@@ -49,6 +50,7 @@ export const buildRenderer = ({ dist, generateMarkdown, configuration, logger })
       ...buildTypesLinkingFixers({ parsedTypes }),
       unescapeRedundant,
       jsdocLinksFixer,
+      jsdocReturnsLinksFixer,
     ]);
 
     const jsdocData = preProcessor(members);
