@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Removed broken, unsupported and undocumented `rendererTemplate` option",
+  "type": "removed",
+  "issueOrPR": 11424,
+  "breaking": false,
+  "framework": "none"
+}
