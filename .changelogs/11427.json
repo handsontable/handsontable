@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Add checkbox input visibility for the no-theme variant",
+  "type": "fixed",
+  "issueOrPR": 11427,
+  "breaking": false,
+  "framework": "none"
+}
