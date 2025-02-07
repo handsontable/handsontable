@@ -43,7 +43,7 @@ const META_HEAD = [
  * @description
  * ::: tip
  *
- * In Chrome version 133, this functionality is currently non-operational. To restore it, we recommend reverting to Handsontable version 14.5.0. The issue will be addressed and resolved in version 15.1.0, scheduled for release on February 12, 2025.
+ * In Chrome version 133, copy/paste functionality is currently non-operational. To restore it, we recommend reverting to Handsontable version 14.5.0. The issue will be addressed and resolved in version 15.1.0, scheduled for release on February 12, 2025.
  *
  * :::
  * Copy, cut, and paste data by using the `CopyPaste` plugin.
