@@ -515,11 +515,32 @@ describe('CopyPaste', () => {
       expect(getSelectedRangeLast().to.col).toBe(9);
     });
 
-    it('should paste data without scrolling the viewport', async() => {
+    it.forTheme('classic')('should paste data without scrolling the viewport', async() => {
       handsontable({
         data: createSpreadsheetData(50, 50),
         width: 200,
         height: 200,
+      });
+
+      selectCell(6, 2);
+      triggerPaste([
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+      ].join('\n'));
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    });
+
+    it.forTheme('main')('should paste data without scrolling the viewport', async() => {
+      handsontable({
+        data: createSpreadsheetData(50, 50),
+        width: 200,
+        height: 250,
       });
 
       selectCell(6, 2);
@@ -643,6 +664,23 @@ describe('CopyPaste', () => {
 
       selectCell(1, 1);
       copyEvent.target = document.body;
+      plugin.onPaste(copyEvent); // trigger the plugin's method that is normally triggered by the native "paste" event
+
+      expect(copyEvent.preventDefault).toHaveBeenCalled();
+    });
+
+    it('should not skip processing the event when the target element has not the "data-hot-input" attribute and it\'s a TD element (#dev-2225)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      spyOn(copyEvent, 'preventDefault');
+
+      selectCell(1, 1);
+      copyEvent.target = getCell(1, 1);
       plugin.onPaste(copyEvent); // trigger the plugin's method that is normally triggered by the native "paste" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();

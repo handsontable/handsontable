@@ -2,7 +2,12 @@ const specContext = {};
 
 beforeEach(function() {
   specContext.spec = this;
+
+  if (typeof __ENV_ARGS__ !== 'undefined') {
+    this.loadedTheme = __ENV_ARGS__.HOT_THEME;
+  }
 });
+
 afterEach(() => {
   specContext.spec = null;
 });
@@ -278,8 +283,22 @@ export function setScrollLeft(x) {
  * @returns {Handsontable}
  */
 export function handsontable(options, explicitOptions = false, container = spec().$container) {
+  const loadedTheme = spec().loadedTheme;
+
   // Add a license key to every Handsontable instance.
-  if (options && !explicitOptions) {
+  if (!explicitOptions) {
+    if (!options) {
+      options = {};
+    }
+
+    if (
+      !options.themeName &&
+      loadedTheme &&
+      loadedTheme !== 'classic'
+    ) {
+      options.themeName = `ht-theme-${spec().loadedTheme}`;
+    }
+
     options.licenseKey = 'non-commercial-and-evaluation';
   }
 

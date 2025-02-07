@@ -275,7 +275,7 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
+    const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
 
     expect($columnHeaders.eq(1).width()).toBe(34);
     expect($columnHeaders.eq(2).width()).toBe(34);
@@ -339,7 +339,7 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
+    const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
 
     expect($columnHeaders.eq(1).width()).toBe(155);
     expect($columnHeaders.eq(2).width()).toBe(155);
@@ -375,11 +375,26 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect($columnHeaders.eq(0).width()).toBe(221);
-    expect($columnHeaders.eq(1).width()).toBe(19);
-    expect($columnHeaders.eq(2).width()).toBe(222);
-    expect($columnHeaders.eq(3).width()).toBe(222);
-    expect($columnHeaders.eq(4).width()).toBe(220);
+    expect($columnHeaders.eq(0).width()).forThemes(({ classic, main }) => {
+      classic.toBe(221);
+      main.toBe(219);
+    });
+    expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+      classic.toBe(19);
+      main.toBe(27);
+    });
+    expect($columnHeaders.eq(2).width()).forThemes(({ classic, main }) => {
+      classic.toBe(222);
+      main.toBe(220);
+    });
+    expect($columnHeaders.eq(3).width()).forThemes(({ classic, main }) => {
+      classic.toBe(222);
+      main.toBe(220);
+    });
+    expect($columnHeaders.eq(4).width()).forThemes(({ classic, main }) => {
+      classic.toBe(220);
+      main.toBe(218);
+    });
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async() => {
@@ -395,7 +410,10 @@ describe('manualColumnResize', () => {
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
     expect($columnHeaders.eq(0).width()).toBe(64);
-    expect($columnHeaders.eq(1).width()).toBe(49);
+    expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+      classic.toBe(49);
+      main.toBe(48); // TODO: seems to be an issue with how .width() reads the width value.
+    });
     expect($columnHeaders.eq(2).width()).toBe(49);
     expect($columnHeaders.eq(3).width()).toBe(49);
     expect($columnHeaders.eq(4).width()).toBe(694);
@@ -411,11 +429,26 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect($columnHeaders.eq(0).width()).toBeAroundValue(19);
-    expect($columnHeaders.eq(1).width()).toBe(49);
-    expect($columnHeaders.eq(2).width()).toBe(49);
-    expect($columnHeaders.eq(3).width()).toBe(49);
-    expect($columnHeaders.eq(4).width()).toBeAroundValue(738);
+    expect($columnHeaders.eq(0).width()).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(19);
+      main.toBeAroundValue(27);
+    });
+    expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+      classic.toBe(49);
+      main.toBe(48);
+    });
+    expect($columnHeaders.eq(2).width()).forThemes(({ classic, main }) => {
+      classic.toBe(49);
+      main.toBe(49);
+    });
+    expect($columnHeaders.eq(3).width()).forThemes(({ classic, main }) => {
+      classic.toBe(49);
+      main.toBe(49);
+    });
+    expect($columnHeaders.eq(4).width()).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(738);
+      main.toBeAroundValue(730);
+    });
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler after ' +
@@ -448,8 +481,14 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(25);
-      expect($columnHeaders.eq(1).width()).toBe(119);
+      expect($columnHeaders.eq(0).width()).forThemes(({ classic, main }) => {
+        classic.toBe(25);
+        main.toBe(35);
+      });
+      expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+        classic.toBe(119);
+        main.toBe(118);
+      });
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
       expect($columnHeaders.eq(4).width()).toBe(79);
@@ -466,8 +505,14 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(25);
-      expect($columnHeaders.eq(1).width()).toBe(70);
+      expect($columnHeaders.eq(0).width()).forThemes(({ classic, main }) => {
+        classic.toBe(25);
+        main.toBe(35);
+      });
+      expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+        classic.toBe(70);
+        main.toBe(87);
+      });
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
       expect($columnHeaders.eq(4).width()).toBe(79);
@@ -632,8 +677,14 @@ describe('manualColumnResize', () => {
     await sleep(1000);
 
     expect(afterColumnResizeCallback).toHaveBeenCalledTimes(1);
-    expect(afterColumnResizeCallback).toHaveBeenCalledWith(26, 0, true);
-    expect(colWidth(spec().$container, 0)).toBe(26);
+    expect(afterColumnResizeCallback).forThemes(({ classic, main }) => {
+      classic.toHaveBeenCalledWith(26, 0, true);
+      main.toHaveBeenCalledWith(36, 0, true);
+    });
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+      classic.toBe(26);
+      main.toBe(36);
+    });
   });
 
   it('should autosize column after double click (when initial width is not defined)', async() => {
@@ -657,7 +708,10 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(29, 3);
+      main.toBeAroundValue(35, 3);
+    });
   });
 
   it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
@@ -681,7 +735,10 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect(colWidth(spec().$container, 2)).toBeAroundValue(29, 3);
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBeAroundValue(29, 3);
+      main.toBeAroundValue(35, 3);
+    });
   });
 
   it('should autosize selected columns after double click on handler', async() => {
@@ -708,12 +765,21 @@ describe('manualColumnResize', () => {
 
     await sleep(600);
 
-    expect(colWidth(spec().$container, 1)).toBe(26);
-    expect(colWidth(spec().$container, 2)).toBe(26);
-    expect(colWidth(spec().$container, 3)).toBe(26);
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      classic.toBe(26);
+      main.toBe(36);
+    });
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+      classic.toBe(26);
+      main.toBe(36);
+    });
+    expect(colWidth(spec().$container, 3)).forThemes(({ classic, main }) => {
+      classic.toBe(26);
+      main.toBe(36);
+    });
   });
 
-  it('should adjust resize handles position after table size changed', () => {
+  it.forTheme('classic')('should adjust resize handles position after table size changed', () => {
     let maxed = false;
 
     handsontable({
@@ -743,6 +809,38 @@ describe('manualColumnResize', () => {
     thBox = th0[0].getBoundingClientRect();
 
     expect(handleBox.left + handleBox.width).toEqual(thBox.left + thBox.width - 1);
+  });
+
+  it.forTheme('main')('should adjust resize handles position after table size changed', () => {
+    let maxed = false;
+
+    handsontable({
+      colHeaders: true,
+      manualColumnResize: true,
+      stretchH: 'all',
+      width() {
+        return maxed ? 614 : 200;
+      }
+    });
+
+    getTopClone().find('thead th:eq(0)').simulate('mouseover');
+
+    const handle = spec().$container.find('.manualColumnResizer');
+    const th0 = getTopClone().find('thead th:eq(0)');
+    let handleBox = handle[0].getBoundingClientRect();
+    let thBox = th0[0].getBoundingClientRect();
+
+    expect(handleBox.left).toEqual(thBox.left + thBox.width - (handleBox.width / 2) - 1);
+
+    maxed = true;
+
+    render();
+    getTopClone().find('thead th:eq(0)').simulate('mouseover');
+
+    handleBox = handle[0].getBoundingClientRect();
+    thBox = th0[0].getBoundingClientRect();
+
+    expect(handleBox.left).toEqual(thBox.left + thBox.width - (handleBox.width / 2) - 1);
   });
 
   it('should display the resize handle in the correct place after the table has been scrolled', async() => {
@@ -1142,7 +1240,7 @@ describe('manualColumnResize', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it('should display the resize handle in the proper position and with a proper size', () => {
+      it.forTheme('classic')('should display the resize handle in the proper position and with a proper size', () => {
         handsontable({
           layoutDirection,
           data: [
@@ -1164,6 +1262,31 @@ describe('manualColumnResize', () => {
 
         expect($handle.offset().left)
           .toEqual($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+        expect($handle.height()).toEqual($headerTH.outerHeight());
+      });
+
+      it.forTheme('main')('should display the resize handle in the proper position and with a proper size', () => {
+        handsontable({
+          layoutDirection,
+          data: [
+            { id: 1, name: 'Ted', lastName: 'Right' },
+            { id: 2, name: 'Frank', lastName: 'Honest' },
+            { id: 3, name: 'Joan', lastName: 'Well' },
+            { id: 4, name: 'Sid', lastName: 'Strong' },
+            { id: 5, name: 'Jane', lastName: 'Neat' }
+          ],
+          colHeaders: true,
+          manualColumnResize: true
+        });
+
+        const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
+
+        $headerTH.simulate('mouseover');
+
+        const $handle = $('.manualColumnResizer');
+
+        expect($handle.offset().left)
+          .toEqual($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 
@@ -1191,7 +1314,7 @@ describe('manualColumnResize', () => {
       });
     });
 
-    it('should remove resize handler when user clicks RMB', async() => {
+    it.forTheme('classic')('should remove resize handler when user clicks RMB', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -1215,6 +1338,31 @@ describe('manualColumnResize', () => {
       await sleep(0);
 
       expect(getComputedStyle($handle[0]).backgroundColor).not.toBe('rgb(52, 169, 219)');
+    });
+
+    it.forTheme('main')('should remove resize handler when user clicks RMB', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        manualColumnResize: true
+      });
+
+      const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
+
+      $colHeader.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualColumnResizer');
+      const resizerPosition = $handle.position();
+
+      $handle.simulate('mousedown', { clientX: resizerPosition.left });
+
+      expect(getComputedStyle($handle[0]).opacity).toBe('1');
+
+      $handle.simulate('contextmenu');
+
+      await sleep(0);
+
+      expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
   });
 });

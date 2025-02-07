@@ -68,8 +68,14 @@ describe('manualColumnMove (RTL mode)', () => {
 
         expect(backlight.outerWidth()).toBe(TH.outerWidth());
         expect(backlight.offset().left).toBe(THNext.offset().left + 1);
-        expect(guideline.outerWidth()).toBe(2);
-        expect(guideline.offset().left).toBe(THNext.offset().left - 1);
+        expect(guideline.outerWidth()).forThemes(({ classic, main }) => {
+          classic.toBe(2);
+          main.toBe(1);
+        });
+        expect(guideline.offset().left).forThemes(({ classic, main }) => {
+          classic.toBe(THNext.offset().left - 1);
+          main.toBe(THNext.offset().left - 0.5);
+        });
       });
 
       it('should move backlight and guideline element with the movement of the mouse (move right)', () => {
@@ -99,8 +105,14 @@ describe('manualColumnMove (RTL mode)', () => {
 
         expect(backlight.outerWidth()).toBe(TH.outerWidth());
         expect(backlight.offset().left).toBe(THNext.offset().left + 1);
-        expect(guideline.outerWidth()).toBe(2);
-        expect(guideline.offset().left).toBe(THNext.offset().left - 1);
+        expect(guideline.outerWidth()).forThemes(({ classic, main }) => {
+          classic.toBe(2);
+          main.toBe(1);
+        });
+        expect(guideline.offset().left).forThemes(({ classic, main }) => {
+          classic.toBe(THNext.offset().left - 1);
+          main.toBe(THNext.offset().left - 0.5);
+        });
       });
 
       it('should move guideline element to the last header when the mouse exceeds half of the width of that header', () => {
@@ -132,8 +144,14 @@ describe('manualColumnMove (RTL mode)', () => {
 
         expect(backlight.outerWidth()).toBe(TH.outerWidth());
         expect(backlight.offset().left).toBe(THNext.offset().left + dropOffset + 1);
-        expect(guideline.outerWidth()).toBe(2);
-        expect(guideline.offset().left).toBe(THNext.offset().left - 1);
+        expect(guideline.outerWidth()).forThemes(({ classic, main }) => {
+          classic.toBe(2);
+          main.toBe(1);
+        });
+        expect(guideline.offset().left).forThemes(({ classic, main }) => {
+          classic.toBe(THNext.offset().left - 1);
+          main.toBe(THNext.offset().left - 0.5);
+        });
       });
 
       it('should draw backlight element properly when the table is scrolled (overflow: hidden)', async() => {
@@ -207,8 +225,14 @@ describe('manualColumnMove (RTL mode)', () => {
 
         expect(backlight.outerWidth()).toBe(TH.outerWidth());
         expect(backlight.offset().left).toBe(THNext.offset().left + 1);
-        expect(guideline.outerWidth()).toBe(2);
-        expect(guideline.offset().left).toBe(THNext.offset().left - 1);
+        expect(guideline.outerWidth()).forThemes(({ classic, main }) => {
+          classic.toBe(2);
+          main.toBe(1);
+        });
+        expect(guideline.offset().left).forThemes(({ classic, main }) => {
+          classic.toBe(THNext.offset().left - 1);
+          main.toBe(THNext.offset().left - 0.5);
+        });
       });
 
       it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
@@ -250,8 +274,14 @@ describe('manualColumnMove (RTL mode)', () => {
 
         expect(backlight.outerWidth()).toBe(TH.outerWidth());
         expect(backlight.offset().left).toBe(THNext.offset().left + 1);
-        expect(guideline.outerWidth()).toBe(2);
-        expect(guideline.offset().left).toBe(THNext.offset().left - 1);
+        expect(guideline.outerWidth()).forThemes(({ classic, main }) => {
+          classic.toBe(2);
+          main.toBe(1);
+        });
+        expect(guideline.offset().left).forThemes(({ classic, main }) => {
+          classic.toBe(THNext.offset().left - 1);
+          main.toBe(THNext.offset().left - 0.5);
+        });
       });
 
       it('should draw backlight element properly when the table is scrolled (window as scrollable element)', async() => {
@@ -321,8 +351,14 @@ describe('manualColumnMove (RTL mode)', () => {
 
         expect(backlight.outerWidth()).toBe(TH.outerWidth());
         expect(backlight.offset().left).toBe(THNext.offset().left + 1);
-        expect(guideline.outerWidth()).toBe(2);
-        expect(guideline.offset().left).toBe(THNext.offset().left - 1);
+        expect(guideline.outerWidth()).forThemes(({ classic, main }) => {
+          classic.toBe(2);
+          main.toBe(1);
+        });
+        expect(guideline.offset().left).forThemes(({ classic, main }) => {
+          classic.toBe(THNext.offset().left - 1);
+          main.toBe(THNext.offset().left - 0.5);
+        });
       });
 
       it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
@@ -362,8 +398,14 @@ describe('manualColumnMove (RTL mode)', () => {
 
         expect(backlight.outerWidth()).toBe(TH.outerWidth());
         expect(backlight.offset().left).toBe(THNext.offset().left + 1);
-        expect(guideline.outerWidth()).toBe(2);
-        expect(guideline.offset().left).toBe(THNext.offset().left - 1);
+        expect(guideline.outerWidth()).forThemes(({ classic, main }) => {
+          classic.toBe(2);
+          main.toBe(1);
+        });
+        expect(guideline.offset().left).forThemes(({ classic, main }) => {
+          classic.toBe(THNext.offset().left - 1);
+          main.toBe(THNext.offset().left - 0.5);
+        });
       });
 
       it('should draw backlight element properly when colWidths is defined', () => {

@@ -32,7 +32,11 @@ describe('ColHeader', () => {
       height: 'auto',
     });
 
-    expect(spec().$container.find('.handsontable.ht_clone_top').height()).toEqual(26); // THs are 25px height and have 1px border on top
+    expect(spec().$container.find('.handsontable.ht_clone_top').height())
+      .forThemes(({ classic, main }) => {
+        classic.toEqual(26); // THs are 25px height and have 1px border on top
+        main.toEqual(29);
+      });
   });
 
   it('should properly calculate colHeaders\' overlay width', () => {
@@ -388,7 +392,10 @@ describe('ColHeader', () => {
 
     hot.render();
 
-    expect(spec().$container.find('th').eq(0).height()).toEqual(40);
+    expect(spec().$container.find('th').eq(0).height()).forThemes(({ classic, main }) => {
+      classic.toEqual(40);
+      main.toEqual(39);
+    });
   });
 
   it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', () => {
@@ -418,7 +425,12 @@ describe('ColHeader', () => {
 
     hot.render();
 
-    expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height()).toEqual(45);
+    expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height())
+      .forThemes(({ classic, main }) => {
+        classic.toEqual(45);
+        main.toEqual(43);
+      });
+
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(2) th:nth-child(1)').height()).toEqual(65);
   });
 

@@ -45,10 +45,10 @@ describe('manualRowMove', () => {
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('mousedown', {
-          clientX: TH.offset().top + (TH.outerHeight() / 2)
+          clientY: TH.offset().top + (TH.outerHeight() / 2)
         })
         .simulate('mousemove', {
-          clientX: TH.offset().top + (TH.outerHeight() / 2)
+          clientY: TH.offset().top + (TH.outerHeight() / 2)
         });
 
       const backlight = spec().$container.find('.ht__manualRowMove--backlight');
@@ -83,8 +83,14 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should move backlight and guideline element with the movement of the mouse (move bottom)', () => {
@@ -113,8 +119,14 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should move guideline element to the last header when the mouse exceeds half of the height of that header', () => {
@@ -145,8 +157,14 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THLast.offset().top - dropOffset);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THLast.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THLast.offset().top - 2);
+        main.toBe(THLast.offset().top - 1.5);
+      });
     });
 
     it('should draw backlight element properly when the table is scrolled (overflow: hidden)', async() => {
@@ -218,8 +236,14 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
@@ -260,8 +284,14 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should draw backlight element properly when the table is scrolled (window as scrollable element)', async() => {
@@ -329,8 +359,14 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
@@ -369,8 +405,14 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).toBe(2);
-      expect(guideline.offset().top).toBe(THNext.offset().top - 2);
+      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(2);
+        main.toBe(1);
+      });
+      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+        classic.toBe(THNext.offset().top - 2);
+        main.toBe(THNext.offset().top - 1.5);
+      });
     });
 
     it('should draw backlight element properly when rowHeights is defined', () => {
@@ -415,7 +457,10 @@ describe('manualRowMove', () => {
 
       const backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
-      expect(backlight.outerHeight()).toBe(46);
+      expect(backlight.outerHeight()).forThemes(({ classic, main }) => {
+        classic.toBe(46);
+        main.toBe(58);
+      });
       expect(backlight.offset().top).toBe(TH.offset().top);
     });
   });

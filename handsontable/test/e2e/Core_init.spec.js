@@ -223,7 +223,7 @@ describe('Core_init', () => {
 
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(15, 15),
-      });
+      }, true);
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
       expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
@@ -235,7 +235,7 @@ describe('Core_init', () => {
 
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(15, 15),
-      });
+      }, true);
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
       expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
