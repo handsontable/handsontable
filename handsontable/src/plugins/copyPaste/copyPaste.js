@@ -626,13 +626,15 @@ export class CopyPaste extends BasePlugin {
   onCopy(event) {
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = event.target?.hasAttribute('data-hot-input');
+    const selectedCell = this.hot.getSelectedRangeLast()?.highlight;
+    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCopy ||
       this.isEditorOpened() ||
       event.target instanceof HTMLElement && (
         isHotInput && event.target !== focusedElement ||
-        !isHotInput && event.target !== this.hot.rootDocument.body
+        !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target
       )
     ) {
       return;
@@ -674,13 +676,15 @@ export class CopyPaste extends BasePlugin {
   onCut(event) {
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = event.target?.hasAttribute('data-hot-input');
+    const selectedCell = this.hot.getSelectedRangeLast()?.highlight;
+    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCut ||
       this.isEditorOpened() ||
       event.target instanceof HTMLElement && (
         isHotInput && event.target !== focusedElement ||
-        !isHotInput && event.target !== this.hot.rootDocument.body
+        !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target
       )
     ) {
       return;
@@ -720,6 +724,8 @@ export class CopyPaste extends BasePlugin {
   onPaste(event) {
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = event.target?.hasAttribute('data-hot-input');
+    const selectedCell = this.hot.getSelectedRangeLast()?.highlight;
+    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
 
     if (
       !this.hot.isListening() ||
@@ -727,7 +733,7 @@ export class CopyPaste extends BasePlugin {
       !this.hot.getSelected() ||
       event.target instanceof HTMLElement && (
         isHotInput && event.target !== focusedElement ||
-        !isHotInput && event.target !== this.hot.rootDocument.body
+        !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target
       )
     ) {
       return;
