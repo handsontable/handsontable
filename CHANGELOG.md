@@ -9,6 +9,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [15.0.1] - 2025-02-10
+
+### Fixed
+- Fixed the copy/paste feature not working correctly in Chrome 133. [#11428](https://github.com/handsontable/handsontable/pull/11428)
+
 ## [15.0.0] - 2024-12-16
 
 ### Added
