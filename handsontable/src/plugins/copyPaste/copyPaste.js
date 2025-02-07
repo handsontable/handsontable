@@ -41,6 +41,11 @@ const META_HEAD = [
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
+ * ::: tip
+ *
+ * In Chrome version 133, this functionality is currently non-operational. To restore it, we recommend reverting to Handsontable version 14.5.0. The issue will be addressed and resolved in version 15.1.0, scheduled for release on February 12, 2025.
+ *
+ * :::
  * Copy, cut, and paste data by using the `CopyPaste` plugin.
  *
  * Control the `CopyPaste` plugin programmatically through its [API methods](#methods).
