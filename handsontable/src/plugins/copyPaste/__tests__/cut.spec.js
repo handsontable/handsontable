@@ -159,5 +159,22 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
     });
+
+    it('should not skip processing the event when the target element has not the "data-hot-input" attribute and it\'s a TD element (#dev-2225)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      spyOn(copyEvent, 'preventDefault');
+
+      selectCell(1, 1);
+      copyEvent.target = getCell(1, 1);
+      plugin.onCut(copyEvent); // trigger the plugin's method that is normally triggered by the native "cut" event
+
+      expect(copyEvent.preventDefault).toHaveBeenCalled();
+    });
   });
 });
