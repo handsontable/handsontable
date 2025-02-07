@@ -471,9 +471,9 @@ export async function redo() {
   const isMac = process.platform === 'darwin';
 
   if (isMac) {
-    await getPageInstance().keyboard.press('Meta+X');
+    await getPageInstance().keyboard.press('Meta+Y');
   } else {
-    await getPageInstance().keyboard.press('Control+X');
+    await getPageInstance().keyboard.press('Control+Y');
   }
 }
 
