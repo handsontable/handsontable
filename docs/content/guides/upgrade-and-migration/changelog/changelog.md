@@ -25,6 +25,63 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 15.1.0
+
+Released on February 12, 2025
+
+For more information about this release see:
+- [Documentation (15.0)](https://handsontable.com/docs/15.1)
+
+#### Added
+- Added the `TAB` and `SHIFT + TAB` functionality to the Comments editor. [#11345](https://github.com/handsontable/handsontable/pull/11345)
+
+#### Changed
+- Changed the approach to how the table is rendered by reusing the cell nodes. [#11264](https://github.com/handsontable/handsontable/pull/11264)
+- Updated Hyperformula to v3. [#11373](https://github.com/handsontable/handsontable/pull/11373)
+- Improved the performance of horizontal scrolling. [#11412](https://github.com/handsontable/handsontable/pull/11412)
+
+#### Removed
+- Removed the `getComputedStyle` function from the type declaration file. [#11421](https://github.com/handsontable/handsontable/pull/11421)
+
+#### Fixed
+- Fixed a bug where values passed to data-modifying hooks were not normalized. [#11346](https://github.com/handsontable/handsontable/pull/11346)
+- Fixed a problem where data population via autofill handler was broken for merged cells. [#11291](https://github.com/handsontable/handsontable/pull/11291)
+- Fixed a problem with a missing render call for the `minSpareRows` and `minSpareCols` options. [#11292](https://github.com/handsontable/handsontable/pull/11292)
+- Fixed the undo/redo scrolling behavior after undoing the data deletion. [#11297](https://github.com/handsontable/handsontable/pull/11297)
+- Fixed the `Page Up`/`Page Down` keyboard shortcuts for the oversized rows. [#11301](https://github.com/handsontable/handsontable/pull/11301)
+- Fixed a bug where the Undo/Redo action caused the wrong cells to be affected when triggered after filtering data. [#11307](https://github.com/handsontable/handsontable/pull/11307)
+- Fixed a bug where the selection was incorrectly expanded after closing the editor. [#11311](https://github.com/handsontable/handsontable/pull/11311)
+- Fixed a bug where the viewport was incorrectly scrolled after moving rows with the Nested Rows plugin enabled. [#11312](https://github.com/handsontable/handsontable/pull/11312)
+- Fixed dropdown-typed cells validation for custom editors. [#11314](https://github.com/handsontable/handsontable/pull/11314)
+- Fixed Undo/Redo for rows/columns with enabled min spare indexes. [#11321](https://github.com/handsontable/handsontable/pull/11321)
+- Fixed a problem with the table misalignment after changing the container size. [#11324](https://github.com/handsontable/handsontable/pull/11324)
+- Fixed a bug with an uncaught error being thrown after changing the theme while some of the editors were not fully initialized. [#11325](https://github.com/handsontable/handsontable/pull/11325)
+- Fixed a problem with a broken scroll on overlays when `batch` was used. [#11328](https://github.com/handsontable/handsontable/pull/11328)
+- Fixed the date picker arrow icon positions for RTL, along with other minor RTL fixes. [#11329](https://github.com/handsontable/handsontable/pull/11329)
+- Fixed the Autofill handler styles for the new themes. [#11330](https://github.com/handsontable/handsontable/pull/11330)
+- Fixed a problem with an uncaught error being thrown after scrolling the viewport. [#11341](https://github.com/handsontable/handsontable/pull/11341)
+- Fixed a problem where calling `updateSettings` with `themeName` set to the current theme name would clear the theme from the table. [#11343](https://github.com/handsontable/handsontable/pull/11343)
+- Fixed a problem where the `getCellsMeta` method returned improper results.  [#11350](https://github.com/handsontable/handsontable/pull/11350)
+- Fixed the row virtualization for Filter's "by value" component. [#11351](https://github.com/handsontable/handsontable/pull/11351)
+- Fixed a problem with the columns shifting after the render calls with the new themes being enabled. [#11352](https://github.com/handsontable/handsontable/pull/11352)
+- Fixed the cell editor width for the new themes. [#11354](https://github.com/handsontable/handsontable/pull/11354)
+- Disabled the "Clear column" option for read-only cells. [#11355](https://github.com/handsontable/handsontable/pull/11355)
+- Fixed a problem where autocomplete highlight was not rendered correctly in the new themes. [#11364](https://github.com/handsontable/handsontable/pull/11364)
+- Fixed a problem where the cell borders were not rendered correctly for fixed rows and columns with the new themes being enabled. [#11369](https://github.com/handsontable/handsontable/pull/11369)
+- Fixed the incorrect spacing between the checkboxes and their labels. [#11377](https://github.com/handsontable/handsontable/pull/11377)
+- Fixed a problem where the Nested Headers' header selection was not rendered properly for the new themes. [#11381](https://github.com/handsontable/handsontable/pull/11381)
+- Fixed a bug where the dropdown editor was not fully visible on fixed rows while the new themes were enabled. [#11399](https://github.com/handsontable/handsontable/pull/11399)
+- Fixed a problem where the initial styles of the context menu and dropdown menu were not properly assigned in the new themes. [#11400](https://github.com/handsontable/handsontable/pull/11400)
+- Fixed a misalignment of the Manual Row Move's "guide" in the new themes. [#11401](https://github.com/handsontable/handsontable/pull/11401)
+- Fixed a bug where the selection was not rendered correctly when selecting both merged and non-merged cells with the new themes being enabled. [#11403](https://github.com/handsontable/handsontable/pull/11403)
+- Fixed a bug where using the keyboard shortcuts to open the Context Menu would open it at a wrong position when the new themes were enabled. [#11404](https://github.com/handsontable/handsontable/pull/11404)
+- Fixed the CodeQL warnings by modifying potentially problematic code fragments. [#11405](https://github.com/handsontable/handsontable/pull/11405)
+- Fixed a bug where the date editor would not close after selecting a date on mobile devices. [#11406](https://github.com/handsontable/handsontable/pull/11406)
+- Fixed a problem with the header widths when using Nested Headers with the new themes enabled. [#11410](https://github.com/handsontable/handsontable/pull/11410)
+- Fixed the header text overlap in Nested Headers. [#11413](https://github.com/handsontable/handsontable/pull/11413)
+- Fixed a problem with the merged cells height calculation in the new themes. [#11423](https://github.com/handsontable/handsontable/pull/11423)
+
+
 ## 15.0.0
 
 Released on December 16, 2024
