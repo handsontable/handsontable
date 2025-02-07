@@ -725,7 +725,7 @@ export class CopyPaste extends BasePlugin {
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = event.target?.hasAttribute('data-hot-input');
     const selectedCell = this.hot.getSelectedRangeLast()?.highlight;
-    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col) : null;
+    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
 
     if (
       !this.hot.isListening() ||
