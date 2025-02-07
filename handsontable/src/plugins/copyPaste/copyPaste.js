@@ -626,13 +626,15 @@ export class CopyPaste extends BasePlugin {
   onCopy(event) {
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = event.target?.hasAttribute('data-hot-input');
+    const selected = this.hot.getSelected();
+    const TD = selected ? this.hot.getCell(selected[0][0], selected[0][1]) : null;
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCopy ||
       this.isEditorOpened() ||
       event.target instanceof HTMLElement && (
         isHotInput && event.target !== focusedElement ||
-        !isHotInput && event.target !== this.hot.rootDocument.body
+        !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target
       )
     ) {
       return;
@@ -720,6 +722,8 @@ export class CopyPaste extends BasePlugin {
   onPaste(event) {
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = event.target?.hasAttribute('data-hot-input');
+    const selected = this.hot.getSelected();
+    const TD = selected ? this.hot.getCell(selected[0][0], selected[0][1]) : null;
 
     if (
       !this.hot.isListening() ||
@@ -727,7 +731,7 @@ export class CopyPaste extends BasePlugin {
       !this.hot.getSelected() ||
       event.target instanceof HTMLElement && (
         isHotInput && event.target !== focusedElement ||
-        !isHotInput && event.target !== this.hot.rootDocument.body
+        !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target
       )
     ) {
       return;
