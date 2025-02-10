@@ -25,6 +25,16 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 15.0.1
+
+Released on February 10, 2025
+
+For more information about this release see:
+- [Documentation (15.0)](https://handsontable.com/docs/15.0)
+
+#### Fixed
+- Fixed the copy/paste feature not working correctly in Chrome 133. [#11428](https://github.com/handsontable/handsontable/pull/11428)
+
 ## 15.0.0
 
 Released on December 16, 2024
@@ -67,6 +77,17 @@ For more information about this release see:
 - Fixed the missing `source` argument for the `setDataAtCell` method. [#11287](https://github.com/handsontable/handsontable/pull/11287)
 - Fixed the top overlay misalignment issue, visible after vertical scrollbar disappeared. [#11289](https://github.com/handsontable/handsontable/pull/11289)
 - React: Made the build scripts of `@handsontable/react-wrapper` place the TS type definitions in the configured directory. [#11296](https://github.com/handsontable/handsontable/pull/11296)
+
+## 14.6.2
+
+Released on February 10, 2025
+
+For more information about this release see:
+- [Documentation (14.6)](https://handsontable.com/docs/14.6)
+
+#### Fixed
+- Fixed the copy/paste feature not working correctly in Chrome 133. [#11428](https://github.com/handsontable/handsontable/pull/11428)
+
 
 ## 14.6.1
 
