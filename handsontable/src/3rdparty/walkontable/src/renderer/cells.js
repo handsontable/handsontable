@@ -83,7 +83,7 @@ export class CellsRenderer extends BaseRenderer {
       orderView
         .prependView(rowHeadersView)
         .setSize(columnsToRender)
-        .setOffset(0)
+        .setOffset(this.table.renderedColumnToSource(0))
         .start();
 
       for (let visibleColumnIndex = 0; visibleColumnIndex < columnsToRender; visibleColumnIndex++) {
@@ -91,6 +91,10 @@ export class CellsRenderer extends BaseRenderer {
 
         const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
         const TD = orderView.getCurrentNode();
+
+        if (TD.innerHTML !== '') {
+          continue;
+        }
 
         if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
           TD.className = '';

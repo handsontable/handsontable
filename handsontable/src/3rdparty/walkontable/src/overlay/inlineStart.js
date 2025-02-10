@@ -126,16 +126,7 @@ export class InlineStartOverlay extends Overlay {
    * @returns {number} Width sum.
    */
   sumCellSizes(from, to) {
-    const defaultColumnWidth = this.wtSettings.getSetting('defaultColumnWidth');
-    let column = from;
-    let sum = 0;
-
-    while (column < to) {
-      sum += this.wot.wtTable.getColumnWidth(column) || defaultColumnWidth;
-      column += 1;
-    }
-
-    return sum;
+    return (to - from) * 80;
   }
 
   /**

@@ -148,18 +148,7 @@ export class TopOverlay extends Overlay {
    * @returns {number} Height sum.
    */
   sumCellSizes(from, to) {
-    const defaultRowHeight = this.wot.stylesHandler.getDefaultRowHeight();
-    let row = from;
-    let sum = 0;
-
-    while (row < to) {
-      const height = this.wot.wtTable.getRowHeight(row);
-
-      sum += height === undefined ? defaultRowHeight : height;
-      row += 1;
-    }
-
-    return sum;
+    return (to - from) * 29;
   }
 
   /**

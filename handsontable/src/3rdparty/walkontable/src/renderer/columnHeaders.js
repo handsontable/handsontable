@@ -28,7 +28,7 @@ import {
  */
 export class ColumnHeadersRenderer extends BaseRenderer {
   constructor(rootNode) {
-    super(null, rootNode); // NodePool is not implemented for this renderer yet
+    super('TR', rootNode); // NodePool is not implemented for this renderer yet
   }
 
   /**
@@ -98,6 +98,10 @@ export class ColumnHeadersRenderer extends BaseRenderer {
       for (let renderedColumnIndex = (-1) * rowHeadersCount; renderedColumnIndex < columnsToRender; renderedColumnIndex += 1) { // eslint-disable-line max-len
         const sourceColumnIndex = this.table.renderedColumnToSource(renderedColumnIndex);
         const TH = TR.childNodes[renderedColumnIndex + rowHeadersCount];
+
+        if (TH.innerHTML !== '') {
+          continue;
+        }
 
         TH.className = '';
         TH.removeAttribute('style');

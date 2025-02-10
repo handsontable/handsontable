@@ -33,10 +33,7 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getWidth(sourceIndex) {
-    const width = this.wtSettings.getSetting('columnWidth', sourceIndex)
-      || this.wtSettings.getSetting('defaultColumnWidth');
-
-    return width;
+    return this.wtSettings.getSetting('columnWidth', sourceIndex);
   }
 
   /**
@@ -46,14 +43,7 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getHeaderHeight(level) {
-    let height = this.dataAccessObject.stylesHandler.getDefaultRowHeight();
-    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedColumnHeaders[level];
-
-    if (oversizedHeight !== undefined) {
-      height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
-    }
-
-    return height;
+    return this.dataAccessObject.stylesHandler.getDefaultRowHeight();
   }
 
   /**
@@ -63,30 +53,13 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getHeaderWidth(sourceIndex) {
-    return this.headerWidths.get(this.dataAccessObject.wtTable.columnFilter.sourceToRendered(sourceIndex));
+    return 50;
   }
 
   /**
    * Calculates column header widths that can be retrieved from the cache.
    */
   calculateWidths() {
-    const { wtSettings } = this;
-    let rowHeaderWidthSetting = wtSettings.getSetting('rowHeaderWidth');
 
-    rowHeaderWidthSetting = wtSettings.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
-
-    if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== undefined) {
-      const rowHeadersCount = wtSettings.getSetting('rowHeaders').length;
-      const defaultColumnWidth = wtSettings.getSetting('defaultColumnWidth');
-
-      for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
-        let width = Array.isArray(rowHeaderWidthSetting)
-          ? rowHeaderWidthSetting[visibleColumnIndex] : rowHeaderWidthSetting;
-
-        width = (width === null || width === undefined) ? defaultColumnWidth : width;
-
-        this.headerWidths.set(visibleColumnIndex, width);
-      }
-    }
   }
 }

@@ -29,14 +29,7 @@ export default class RowUtils {
    * @returns {number}
    */
   getHeight(sourceIndex) {
-    let height = this.wtSettings.getSetting('rowHeight', sourceIndex);
-    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
-
-    if (oversizedHeight !== undefined) {
-      height = height === undefined ? oversizedHeight : Math.max(height, oversizedHeight);
-    }
-
-    return height;
+    return this.wtSettings.getSetting('rowHeight', sourceIndex);
   }
 
   /**
@@ -47,13 +40,6 @@ export default class RowUtils {
    * @returns {number}
    */
   getHeightByOverlayName(sourceIndex, overlayName) {
-    let height = this.wtSettings.getSetting('rowHeightByOverlayName', sourceIndex, overlayName);
-    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
-
-    if (oversizedHeight !== undefined) {
-      height = height === undefined ? oversizedHeight : Math.max(height, oversizedHeight);
-    }
-
-    return height;
+    return this.wtSettings.getSetting('rowHeight', sourceIndex);
   }
 }

@@ -30,8 +30,16 @@ export function textRenderer(hotInstance, TD, row, col, prop, value, cellPropert
     escaped = escaped.trim();
   }
 
-  // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
-  fastInnerText(TD, escaped);
+  if (TD.firstChild) {
+    fastInnerText(TD.firstChild, escaped);
+  } else {
+    const div = hotInstance.rootDocument.createElement('div');
+
+    div.style.height = '20px';
+
+    TD.appendChild(div);
+    fastInnerText(div, escaped);
+  }
 }
 
 textRenderer.RENDERER_TYPE = RENDERER_TYPE;

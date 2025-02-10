@@ -84,12 +84,6 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
    * @returns {number}
    */
   getColumnWidth(column) {
-    const width = this.columnWidthFn(column);
-
-    if (isNaN(width)) {
-      return DEFAULT_WIDTH;
-    }
-
-    return width;
+    return this.columnWidthFn(column);
   }
 }

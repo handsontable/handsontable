@@ -87,6 +87,10 @@ export class RowHeadersRenderer extends BaseRenderer {
 
         const TH = orderView.getCurrentNode();
 
+        if (TH.innerHTML !== '') {
+          continue;
+        }
+
         TH.className = '';
         TH.removeAttribute('style');
 

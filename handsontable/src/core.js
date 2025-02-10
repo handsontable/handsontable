@@ -3800,37 +3800,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this._getColWidthFromSettings = function(col) {
-    let width;
-
-    // We currently don't support cell meta objects for headers (negative values)
-    if (col >= 0) {
-      const cellProperties = instance.getCellMeta(0, col);
-
-      width = cellProperties.width;
-    }
-
-    if (width === undefined || width === tableMeta.width) {
-      width = tableMeta.colWidths;
-    }
-
-    if (width !== undefined && width !== null) {
-      switch (typeof width) {
-        case 'object': // array
-          width = width[col];
-          break;
-
-        case 'function':
-          width = width(col);
-          break;
-        default:
-          break;
-      }
-      if (typeof width === 'string') {
-        width = parseInt(width, 10);
-      }
-    }
-
-    return width;
+    return tableMeta.colWidths[col];
   };
 
   /**
@@ -3844,15 +3814,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#modifyColWidth
    */
   this.getColWidth = function(column, source) {
-    let width = instance._getColWidthFromSettings(column);
-
-    width = instance.runHooks('modifyColWidth', width, column, source);
-
-    if (width === undefined) {
-      width = DEFAULT_COLUMN_WIDTH;
-    }
-
-    return width;
+    return instance._getColWidthFromSettings(column);
   };
 
   /**
@@ -3865,26 +3827,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
-    let height = tableMeta.rowHeights;
-
-    if (height !== undefined && height !== null) {
-      switch (typeof height) {
-        case 'object': // array
-          height = height[row];
-          break;
-
-        case 'function':
-          height = height(row);
-          break;
-        default:
-          break;
-      }
-      if (typeof height === 'string') {
-        height = parseInt(height, 10);
-      }
-    }
-
-    return height;
+    return tableMeta.rowHeights;
   };
 
   /**
@@ -3915,11 +3858,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#modifyRowHeight
    */
   this.getRowHeight = function(row, source) {
-    let height = instance._getRowHeightFromSettings(row);
-
-    height = instance.runHooks('modifyRowHeight', height, row, source);
-
-    return height;
+    return instance._getRowHeightFromSettings(row);
   };
 
   /**
