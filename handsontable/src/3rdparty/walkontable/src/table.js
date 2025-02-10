@@ -349,20 +349,6 @@ class Table {
           .render();
 
         if (this.isMaster) {
-          this.markOversizedColumnHeaders();
-        }
-
-        this.adjustColumnHeaderHeights();
-
-        if (this.isMaster || this.is(CLONE_BOTTOM)) {
-          this.markOversizedRows();
-        }
-
-        if (this.isMaster) {
-          if (!this.wtSettings.getSetting('externalRowCalculator')) {
-            wtViewport.createVisibleCalculators();
-          }
-
           wtOverlays.refresh(false);
           wtOverlays.applyToDOM();
 
@@ -419,64 +405,12 @@ class Table {
    * @param {number} col The visual column index.
    */
   markIfOversizedColumnHeader(col) {
-    const sourceColIndex = this.columnFilter.renderedToSource(col);
-    let level = this.wtSettings.getSetting('columnHeaders').length;
-    const defaultRowHeight = this.dataAccessObject.stylesHandler.getDefaultRowHeight();
-    let previousColHeaderHeight;
-    let currentHeader;
-    let currentHeaderHeight;
-    const columnHeaderHeightSetting = this.wtSettings.getSetting('columnHeaderHeight') || [];
-
-    while (level) {
-      level -= 1;
-
-      previousColHeaderHeight = this.getColumnHeaderHeight(level);
-      currentHeader = this.getColumnHeader(sourceColIndex, level);
-
-      if (!currentHeader) {
-        /* eslint-disable no-continue */
-        continue;
-      }
-      currentHeaderHeight = innerHeight(currentHeader);
-
-      if (!previousColHeaderHeight &&
-          defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
-        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
-      }
-
-      if (Array.isArray(columnHeaderHeightSetting)) {
-        if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== undefined) {
-          this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
-        }
-
-      } else if (!isNaN(columnHeaderHeightSetting)) {
-        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
-      }
-
-      if (this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] ||
-          columnHeaderHeightSetting)) {
-        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting); // eslint-disable-line max-len
-      }
-    }
   }
 
   /**
    *
    */
   adjustColumnHeaderHeights() {
-    const { wtSettings } = this;
-    const children = this.THEAD.childNodes;
-    const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
-    const columnHeaders = wtSettings.getSetting('columnHeaders');
-
-    for (let i = 0, len = columnHeaders.length; i < len; i++) {
-      if (oversizedColumnHeaders[i]) {
-        if (!children[i] || children[i].childNodes.length === 0) {
-          return;
-        }
-        children[i].childNodes[0].style.height = `${oversizedColumnHeaders[i]}px`;
-      }
-    }
   }
 
   /**
@@ -484,25 +418,6 @@ class Table {
    * when new cell values have content which increases/decreases cell height.
    */
   resetOversizedRows() {
-    const { wtSettings } = this;
-    const { wtViewport } = this.dataAccessObject;
-
-    if (!this.isMaster && !this.is(CLONE_BOTTOM)) {
-      return;
-    }
-
-    if (!wtSettings.getSetting('externalRowCalculator')) {
-      const rowsToRender = this.getRenderedRowsCount();
-
-      // Reset the oversized row cache for rendered rows
-      for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
-        const sourceRow = this.rowFilter.renderedToSource(visibleRowIndex);
-
-        if (wtViewport.oversizedRows && wtViewport.oversizedRows[sourceRow]) {
-          wtViewport.oversizedRows[sourceRow] = undefined;
-        }
-      }
-    }
   }
 
   /**
@@ -742,55 +657,7 @@ class Table {
    * Check if any of the rendered rows is higher than expected, and if so, cache them.
    */
   markOversizedRows() {
-    if (this.wtSettings.getSetting('externalRowCalculator')) {
-      return;
-    }
-    let rowCount = this.TBODY.childNodes.length;
-    const expectedTableHeight = rowCount * this.dataAccessObject.stylesHandler.getDefaultRowHeight();
-    const actualTableHeight = innerHeight(this.TBODY) - 1;
-    const borderBoxSizing = this.wot.stylesHandler.areCellsBorderBox();
-    const rowHeightFn = borderBoxSizing ? outerHeight : innerHeight;
-    const borderCompensation = borderBoxSizing ? 0 : 1;
-    const firstRowBorderCompensation = borderBoxSizing ? 1 : 0;
-    let previousRowHeight;
-    let rowCurrentHeight;
-    let sourceRowIndex;
-    let currentTr;
-    let rowHeader;
 
-    if (expectedTableHeight === actualTableHeight && !this.wtSettings.getSetting('fixedRowsBottom')) {
-      // If the actual table height equals rowCount * default single row height, no row is oversized -> no need to iterate over them
-      return;
-    }
-
-    while (rowCount) {
-      rowCount -= 1;
-      sourceRowIndex = this.rowFilter.renderedToSource(rowCount);
-      previousRowHeight = this.getRowHeight(sourceRowIndex);
-      currentTr = this.getTrForRow(sourceRowIndex);
-      rowHeader = currentTr.querySelector('th');
-
-      const topBorderCompensation = sourceRowIndex === 0 ? firstRowBorderCompensation : 0;
-
-      if (rowHeader) {
-        rowCurrentHeight = rowHeightFn(rowHeader);
-
-      } else {
-        rowCurrentHeight = rowHeightFn(currentTr) - borderCompensation;
-      }
-
-      if (
-        !previousRowHeight &&
-        this.dataAccessObject.stylesHandler.getDefaultRowHeight() < rowCurrentHeight - topBorderCompensation ||
-        previousRowHeight < rowCurrentHeight
-      ) {
-        if (!borderBoxSizing) {
-          rowCurrentHeight += 1;
-        }
-
-        this.dataAccessObject.wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;
-      }
-    }
   }
 
   /**
@@ -1119,36 +986,7 @@ class Table {
    * @returns {number}
    */
   _modifyRowHeaderWidth(rowHeaderWidthFactory) {
-    let widths = isFunction(rowHeaderWidthFactory) ? rowHeaderWidthFactory() : null;
-
-    if (Array.isArray(widths)) {
-      widths = [...widths];
-      widths[widths.length - 1] = this._correctRowHeaderWidth(widths[widths.length - 1]);
-    } else {
-      widths = this._correctRowHeaderWidth(widths);
-    }
-
-    return widths;
-  }
-
-  /**
-   * Correct row header width if necessary.
-   *
-   * @private
-   * @param {number} width The width to process.
-   * @returns {number}
-   */
-  _correctRowHeaderWidth(width) {
-    let rowHeaderWidth = width;
-
-    if (typeof width !== 'number') {
-      rowHeaderWidth = this.wtSettings.getSetting('defaultColumnWidth');
-    }
-    if (this.correctHeaderWidth) {
-      rowHeaderWidth += 1;
-    }
-
-    return rowHeaderWidth;
+    return 50;
   }
 }
 

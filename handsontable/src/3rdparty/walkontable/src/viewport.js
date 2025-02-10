@@ -37,7 +37,6 @@ class Viewport {
     this.domBindings = domBindings;
     this.wtSettings = wtSettings;
     this.wtTable = wtTable;
-    this.oversizedRows = [];
     this.oversizedColumnHeaders = [];
     this.hasOversizedColumnHeadersMarked = {};
     this.clientHeight = 0;
@@ -218,59 +217,14 @@ class Viewport {
    * @returns {number}
    */
   getColumnHeaderHeight() {
-    const columnHeaders = this.wtSettings.getSetting('columnHeaders');
-
-    if (!columnHeaders.length) {
-      this.columnHeaderHeight = 0;
-    } else if (isNaN(this.columnHeaderHeight)) {
-      this.columnHeaderHeight = outerHeight(this.wtTable.THEAD);
-    }
-
-    return this.columnHeaderHeight;
+    return 59;
   }
 
   /**
    * @returns {number}
    */
   getRowHeaderWidth() {
-    const rowHeadersWidthSetting = this.wtSettings.getSetting('rowHeaderWidth');
-    const rowHeaders = this.wtSettings.getSetting('rowHeaders');
-
-    if (rowHeadersWidthSetting) {
-      this.rowHeaderWidth = 0;
-
-      for (let i = 0, len = rowHeaders.length; i < len; i++) {
-        this.rowHeaderWidth += rowHeadersWidthSetting[i] || rowHeadersWidthSetting;
-      }
-    }
-
-    if (isNaN(this.rowHeaderWidth)) {
-
-      if (rowHeaders.length) {
-        let TH = this.wtTable.TABLE.querySelector('TH');
-
-        this.rowHeaderWidth = 0;
-
-        for (let i = 0, len = rowHeaders.length; i < len; i++) {
-          if (TH) {
-            this.rowHeaderWidth += outerWidth(TH);
-            TH = TH.nextSibling;
-
-          } else {
-            // yes this is a cheat but it worked like that before, just taking assumption from CSS instead of measuring.
-            // TODO: proper fix
-            this.rowHeaderWidth += 50;
-          }
-        }
-      } else {
-        this.rowHeaderWidth = 0;
-      }
-    }
-
-    this.rowHeaderWidth = this.wtSettings
-      .getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
-
-    return this.rowHeaderWidth;
+    return 50;
   }
 
   /**
