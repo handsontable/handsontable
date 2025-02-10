@@ -43,7 +43,7 @@ const META_HEAD = [
  * @description
  * ::: tip
  *
- * In Chrome version 133, copy/paste functionality is currently non-operational. To restore it, we recommend reverting to Handsontable version 14.5.0. The issue will be addressed and resolved in version 15.1.0, scheduled for release on February 12, 2025.
+ * Clipboard operations (copy, cut, paste) do not work in Chrome 133+ when using Handsontable 14.6.0, 14.6.1, and 15.0.0. Fix is available in Handsontable 14.6.2 and 15.0.1.
  *
  * :::
  * Copy, cut, and paste data by using the `CopyPaste` plugin.
