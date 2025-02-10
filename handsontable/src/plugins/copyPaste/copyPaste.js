@@ -41,11 +41,6 @@ const META_HEAD = [
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
- * ::: tip
- *
- * Clipboard operations (copy, cut, paste) do not work in Chrome 133+ when using Handsontable 14.6.0, 14.6.1, and 15.0.0. Fix is available in Handsontable 14.6.2 and 15.0.1.
- *
- * :::
  * Copy, cut, and paste data by using the `CopyPaste` plugin.
  *
  * Control the `CopyPaste` plugin programmatically through its [API methods](#methods).
