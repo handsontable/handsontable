@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 15.0.0
- * Release date: 16/12/2024 (built at 16/12/2024 11:14:20)
+ * Version: 15.0.1
+ * Release date: 10/02/2025 (built at 07/02/2025 16:10:00)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,8 +104,8 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "16/12/2024 11:14:20";
-Handsontable.version = "15.0.0";
+Handsontable.buildDate = "07/02/2025 16:10:00";
+Handsontable.version = "15.0.1";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
   getLanguageDictionary: _registry.getLanguageDictionary,
@@ -10059,7 +10059,7 @@ const domMessages = {
 function _injectProductInfo(key, element) {
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  const hotVersion = "15.0.0";
+  const hotVersion = "15.0.1";
   let keyValidityDate;
   let consoleMessageState = 'invalid';
   let domMessageState = 'invalid';
@@ -10067,7 +10067,7 @@ function _injectProductInfo(key, element) {
   const schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = (0, _moment.default)("16/12/2024", 'DD/MM/YYYY');
+      const releaseDate = (0, _moment.default)("10/02/2025", 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
@@ -66391,10 +66391,12 @@ class CopyPaste extends _base.BasePlugin {
    * @private
    */
   onCopy(event) {
-    var _event$target;
+    var _event$target, _this$hot$getSelected;
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = (_event$target = event.target) === null || _event$target === void 0 ? void 0 : _event$target.hasAttribute('data-hot-input');
-    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCopy, this) || this.isEditorOpened() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body)) {
+    const selectedCell = (_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight;
+    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
+    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCopy, this) || this.isEditorOpened() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
       return;
     }
     event.preventDefault();
@@ -66424,10 +66426,12 @@ class CopyPaste extends _base.BasePlugin {
    * @private
    */
   onCut(event) {
-    var _event$target2;
+    var _event$target2, _this$hot$getSelected2;
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = (_event$target2 = event.target) === null || _event$target2 === void 0 ? void 0 : _event$target2.hasAttribute('data-hot-input');
-    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCut, this) || this.isEditorOpened() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body)) {
+    const selectedCell = (_this$hot$getSelected2 = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected2 === void 0 ? void 0 : _this$hot$getSelected2.highlight;
+    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
+    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCut, this) || this.isEditorOpened() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
       return;
     }
     event.preventDefault();
@@ -66456,10 +66460,12 @@ class CopyPaste extends _base.BasePlugin {
    * @private
    */
   onPaste(event) {
-    var _event$target3;
+    var _event$target3, _this$hot$getSelected3;
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = (_event$target3 = event.target) === null || _event$target3 === void 0 ? void 0 : _event$target3.hasAttribute('data-hot-input');
-    if (!this.hot.isListening() || this.isEditorOpened() || !this.hot.getSelected() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body)) {
+    const selectedCell = (_this$hot$getSelected3 = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected3 === void 0 ? void 0 : _this$hot$getSelected3.highlight;
+    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
+    if (!this.hot.isListening() || this.isEditorOpened() || !this.hot.getSelected() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
       return;
     }
     event.preventDefault();
