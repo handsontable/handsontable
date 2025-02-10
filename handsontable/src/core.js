@@ -3800,7 +3800,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this._getColWidthFromSettings = function(col) {
-    return tableMeta.colWidths[col];
+    return tableMeta.colWidths;
   };
 
   /**
