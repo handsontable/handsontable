@@ -50,8 +50,18 @@ export function numericRenderer(hotInstance, TD, row, col, prop, value, cellProp
   let newValue = value;
 
   if (isNumeric(newValue)) {
-    const className = cellProperties.className || '';
-    const classArr = className.length ? className.split(' ') : [];
+    let classArr = [];
+
+    if (Array.isArray(cellProperties.className)) {
+      classArr = cellProperties.className;
+
+    } else {
+      const className = cellProperties.className ?? '';
+
+      if (className.length) {
+        classArr = className.split(' ');
+      }
+    }
 
     newValue = getRenderedValue(newValue, cellProperties);
 

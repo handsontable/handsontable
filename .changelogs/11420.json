@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added support for className as an array in numeric renderer",
+  "type": "added",
+  "issueOrPR": 11420,
+  "breaking": false,
+  "framework": "none"
+}
