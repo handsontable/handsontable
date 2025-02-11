@@ -14,7 +14,7 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'درج ردیف در پایین',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'درج ستون در چپ',
   [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'درج ستون در راست',
-  [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['حذف ریدف', 'حذف ردیف ها'],
+  [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['حذف ردیف', 'حذف ردیف ها'],
   [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['حذف ستون', 'حذف ستون ها'],
   [C.CONTEXTMENU_ITEMS_UNDO]: 'واگرد',
   [C.CONTEXTMENU_ITEMS_REDO]: 'بازگردانی',
