@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix copy paste for chrome version 133",
+  "type": "fixed",
+  "issueOrPR": 11428,
+  "breaking": false,
+  "framework": "none"
+}
