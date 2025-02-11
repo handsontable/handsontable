@@ -22,12 +22,6 @@ Copy data from selected cells to the system clipboard.
 
 [[toc]]
 
-::: tip
-
-Clipboard operations (copy, cut, paste) do not work in Chrome 133+ when using Handsontable 14.6.0, 14.6.1, and 15.0.0. Fix is available in Handsontable 14.6.2 and 15.0.1.
-
-:::
-
 ## Overview
 
 You can copy or cut data from Handsontable to the system clipboard, either manually (using the context menu or the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>/<kbd>**X**</kbd> shortcuts) or programmatically (using Handsontable's API methods).
@@ -266,6 +260,7 @@ Examples of how to use them are provided in their descriptions.
 1. The [`CopyPaste`](@/api/copyPaste.md) plugin doesn't copy, cut or paste cells' appearance.
 2. The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as the value of `'true'`.
 3. `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
+4. Clipboard operations don’t work in Chrome 133+ with Handsontable 14.6.0, 14.6.1, or 15.0.0. Update to 14.6.2 or 15.0.1+. See the [incident announcement](https://handsontable.com/blog/incident-report-handsontable-14.6-15.0-clipboard-disruption-in-chrome-133) for details.
 
 ## Related keyboard shortcuts
 
