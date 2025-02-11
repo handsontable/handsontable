@@ -208,6 +208,36 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
+    it('should not insert row below when the physical number of rows is the same as `maxRows` ' +
+       'and some indexes are trimmed', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 1),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        maxRows: 5,
+      });
+
+      const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'trimming');
+
+      rowMapper.setValueAtIndex(1, true);
+      render();
+
+      contextMenu(getCell(0, 0, true));
+
+      const item = selectContextMenuOption('Insert row below');
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(`
+        |   ║ - |
+        |===:===|
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+    });
+
     it('should insert row below of the clicked cell', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),

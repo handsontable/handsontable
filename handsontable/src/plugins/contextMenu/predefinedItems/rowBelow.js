@@ -19,21 +19,16 @@ export default function rowBelowItem() {
     disabled() {
       const range = this.getSelectedRangeLast();
 
-      if (!range) {
+      if (
+        !range ||
+        this.selection.isSelectedByColumnHeader() ||
+        (range.isSingleHeader() && range.highlight.row < 0) ||
+        (this.countSourceRows() >= this.getSettings().maxRows)
+      ) {
         return true;
       }
 
-      if (range.isSingleHeader() && range.highlight.row < 0) {
-        return true;
-      }
-
-      if (this.selection.isSelectedByCorner()) {
-        // Enable "Insert row below" always when the menu is triggered by corner click.
-        return false;
-      }
-
-      return this.selection.isSelectedByColumnHeader() ||
-        this.countRows() >= this.getSettings().maxRows;
+      return false;
     },
     hidden() {
       return !this.getSettings().allowInsertRow;
