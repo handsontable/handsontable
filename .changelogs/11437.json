@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Updated Serbian translation for new context menu labels (PR-10115-fix)",
+  "type": "added",
+  "issueOrPR": 11437,
+  "breaking": false,
+  "framework": "none"
+}
