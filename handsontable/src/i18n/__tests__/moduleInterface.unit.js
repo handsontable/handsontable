@@ -12,6 +12,7 @@ import {
   deDE,
   enUS,
   esMX,
+  faIR,
   frFR,
   itIT,
   jaJP,
@@ -48,6 +49,7 @@ describe('i18n', () => {
     expect(deDE.languageCode).toBe('de-DE');
     expect(enUS.languageCode).toBe('en-US');
     expect(esMX.languageCode).toBe('es-MX');
+    expect(faIR.languageCode).toBe('fa-IR');
     expect(frFR.languageCode).toBe('fr-FR');
     expect(itIT.languageCode).toBe('it-IT');
     expect(jaJP.languageCode).toBe('ja-JP');
