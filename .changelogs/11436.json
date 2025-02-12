@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Updated Italian translation for new context menu labels (PR-10117-fix)",
+  "type": "added",
+  "issueOrPR": 11436,
+  "breaking": false,
+  "framework": "none"
+}
