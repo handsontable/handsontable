@@ -1,4 +1,4 @@
-import './styles/handsontable.scss';
+import './styles_processed/handsontable.scss';
 
 import Core from './core';
 import { rootInstanceSymbol } from './utils/rootInstance';
