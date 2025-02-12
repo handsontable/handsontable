@@ -96,7 +96,7 @@
         border-radius: var(--ht-menu-border-radius);
         overflow: hidden;
         padding: var(--ht-menu-vertical-padding) var(--ht-menu-horizontal-padding);
-        background-color: var(--ht-background-color, #ffffff);
+        background-color: var(--ht-background-color);
       }
 
       &:not(.htGhostTable) {

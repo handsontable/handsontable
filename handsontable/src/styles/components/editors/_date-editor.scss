@@ -15,7 +15,7 @@
     font-weight: var(--ht-font-weight);
     color: var(--ht-foreground-color);
     background: var(--ht-background-color);
-    border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color);
+    border: var(--ht-menu-border-width) solid var(--ht-menu-border-color);
     border-radius: var(--ht-menu-border-radius);
     z-index: 9999;
 
