@@ -7,11 +7,8 @@
   .handsontable {
     .htUISelectCaption {
       width: 100%;
-      padding: var(--ht-input-vertical-padding)
-        var(--ht-input-horizontal-padding);
-      padding-inline-end: calc(
-        var(--ht-input-horizontal-padding) + var(--ht-icon-size)
-      );
+      padding: var(--ht-input-vertical-padding) var(--ht-input-horizontal-padding);
+      padding-inline-end: calc(var(--ht-input-horizontal-padding) + var(--ht-icon-size));
       margin: 0;
       font-family: inherit;
       font-size: var(--ht-font-size);
@@ -32,9 +29,7 @@
         @include mixins.pseudo;
 
         position: absolute;
-        right: calc(
-          var(--ht-input-horizontal-padding) - var(--ht-icon-size) / 4
-        );
+        right: calc(var(--ht-input-horizontal-padding) - var(--ht-icon-size) / 4);
         top: 50%;
         transform: translateY(-50%);
       }
@@ -77,9 +72,7 @@
     .htUISelectCaption {
       &::after {
         right: auto;
-        left: calc(
-          var(--ht-input-horizontal-padding) - var(--ht-icon-size) / 4
-        );
+        left: calc(var(--ht-input-horizontal-padding) - var(--ht-icon-size) / 4);
       }
     }
   }

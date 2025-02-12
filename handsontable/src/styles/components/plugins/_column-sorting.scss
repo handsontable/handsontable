@@ -8,10 +8,10 @@
       position: relative;
 
       &.sortAction {
-        padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
-        padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
-        min-width: calc(var(--ht-icon-size, 16px) + 8px);
-        max-width: calc(100% - calc(var(--ht-icon-size, 16px) * 2) - 4px);
+        padding-inline-start: calc(var(--ht-icon-size) + 2px);
+        padding-inline-end: calc(var(--ht-icon-size) + 2px);
+        min-width: calc(var(--ht-icon-size) + 8px);
+        max-width: calc(100% - calc(var(--ht-icon-size) * 2) - 4px);
 
         &:hover {
           text-decoration: none;
@@ -21,7 +21,7 @@
         &::before {
           @include mixins.pseudo;
 
-          width: var(--ht-icon-size, 16px);
+          width: var(--ht-icon-size);
           position: absolute;
           top: 50%;
           right: 2px;
@@ -42,8 +42,8 @@
     .htRight {
       .columnSorting {
         &.sortAction {
-          padding-inline-start: var(--ht-icon-size, 16px);
-          padding-inline-end: var(--ht-gap-size, 4px);
+          padding-inline-start: var(--ht-icon-size);
+          padding-inline-end: var(--ht-gap-size);
 
           &::before {
             left: 2px;
@@ -70,8 +70,8 @@
       .htRight {
         .columnSorting {
           &.sortAction {
-            padding-inline-start: var(--ht-gap-size, 4px);
-            padding-inline-end: var(--ht-icon-size, 16px);
+            padding-inline-start: var(--ht-gap-size);
+            padding-inline-end: var(--ht-icon-size);
           }
         }
       }
@@ -79,8 +79,8 @@
       .htLeft {
         .columnSorting {
           &.sortAction {
-            padding-inline-start: var(--ht-icon-size, 16px);
-            padding-inline-end: var(--ht-gap-size, 4px);
+            padding-inline-start: var(--ht-icon-size);
+            padding-inline-end: var(--ht-gap-size);
 
             &::before {
               left: auto;

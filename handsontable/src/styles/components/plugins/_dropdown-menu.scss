@@ -92,12 +92,10 @@
       & > .ht_master {
         @include mixins.menu-box-shadow;
 
-        border: var(--ht-menu-border-width, 1px) solid
-          var(--ht-menu-border-color, #e5e5e9);
+        border: var(--ht-menu-border-width) solid var(--ht-menu-border-color);
         border-radius: var(--ht-menu-border-radius);
         overflow: hidden;
-        padding: var(--ht-menu-vertical-padding, 8px)
-          var(--ht-menu-horizontal-padding, 0);
+        padding: var(--ht-menu-vertical-padding) var(--ht-menu-horizontal-padding);
         background-color: var(--ht-background-color, #ffffff);
       }
 
@@ -134,16 +132,14 @@
 
       table tbody tr td {
         position: relative;
-        padding: var(--ht-menu-item-vertical-padding, 4px)
-          var(--ht-menu-item-horizontal-padding, 8px);
+        padding: var(--ht-menu-item-vertical-padding) var(--ht-menu-item-horizontal-padding);
         border-width: 0;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
-        background: var(--ht-background-color, #ffffff);
+        background: var(--ht-background-color);
         cursor: pointer;
-        transition: background calc(0.5 * var(--ht-table-transition))
-          ease-in-out;
+        transition: background calc(0.5 * var(--ht-table-transition)) ease-in-out;
 
         &:first-child {
           border-top-width: 0;
@@ -160,25 +156,21 @@
         &:not(&.htCustomMenuRenderer, &.htDisabled) {
           &:hover,
           &.current {
-            background: var(--ht-menu-item-hover-color, #e5e5e9);
+            background: var(--ht-menu-item-hover-color);
             cursor: pointer;
           }
         }
 
         &.htSubmenu {
           .htItemWrapper {
-            margin-inline-end: calc(
-              2 * var(--ht-gap-size, 4px) + var(--ht-icon-size)
-            );
+            margin-inline-end: calc(2 * var(--ht-gap-size) + var(--ht-icon-size));
 
             &::after {
               @include mixins.pseudo;
 
               position: absolute;
               top: 50%;
-              right: calc(
-                var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2
-              );
+              right: calc(var(--ht-menu-item-horizontal-padding) + var(--ht-gap-size) * 2);
               transform: translateY(-50%);
             }
           }
@@ -210,7 +202,7 @@
         }
 
         .htItemWrapper {
-          margin-inline: calc(2 * var(--ht-gap-size, 4px));
+          margin-inline: calc(2 * var(--ht-gap-size));
 
           &::before {
             vertical-align: text-bottom;

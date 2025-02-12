@@ -14,9 +14,8 @@
     line-height: var(--ht-line-height);
     font-weight: var(--ht-font-weight);
     color: var(--ht-foreground-color);
-    background: var(--ht-background-color, #ffffff);
-    border: var(--ht-menu-border-width, 1px) solid
-      var(--ht-menu-border-color, #e5e5e9);
+    background: var(--ht-background-color);
+    border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color);
     border-radius: var(--ht-menu-border-radius);
     z-index: 9999;
 
@@ -106,8 +105,8 @@
 
         &.is-selected {
           .pika-button {
-            background: var(--ht-accent-color, #1a42e8);
-            color: var(--ht-background-color, #ffffff);
+            background: var(--ht-accent-color);
+            color: var(--ht-background-color);
           }
         }
 
@@ -135,7 +134,7 @@
       }
     }
   }
-  
+
   [dir=rtl].htDatepickerHolder {
     .pika-single {
       .pika-next {

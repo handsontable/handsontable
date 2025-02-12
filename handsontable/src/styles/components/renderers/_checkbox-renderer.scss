@@ -64,9 +64,7 @@
           // Box
           &::before {
             border-color: var(--ht-checkbox-checked-disabled-border-color);
-            background-color: var(
-              --ht-checkbox-checked-disabled-background-color
-            );
+            background-color: var(--ht-checkbox-checked-disabled-background-color);
           }
 
           // Icon

@@ -14,11 +14,10 @@
         top: 0;
         inset-inline-end: 0;
         inset-inline-start: unset;
-        border-inline-start: var(--ht-comments-indicator-size, 4px) solid
+        border-inline-start: var(--ht-comments-indicator-size) solid
           transparent;
         border-inline-end: none;
-        border-top: var(--ht-comments-indicator-size, 4px) solid
-          var(--ht-comments-indicator-color, #1a42e8);
+        border-top: var(--ht-comments-indicator-size) solid var(--ht-comments-indicator-color);
       }
     }
   }
@@ -40,23 +39,20 @@
       line-height: var(--ht-line-height);
       font-weight: var(--ht-font-weight);
       margin: 0 -1px;
-      padding: var(--ht-comments-textarea-vertical-padding)
-        var(--ht-comments-textarea-horizontal-padding);
-      border: var(--ht-comments-textarea-border-width, 1px) solid
-        var(--ht-comments-textarea-border-color, transparent);
-      border-inline-start: var(--ht-comments-textarea-border-width, 1px) solid
-        var(--ht-comments-textarea-border-color, #1a42e8);
+      padding: var(--ht-comments-textarea-vertical-padding) var(--ht-comments-textarea-horizontal-padding);
+      border: var(--ht-comments-textarea-border-width) solid var(--ht-comments-textarea-border-color);
+      border-inline-start: var(--ht-comments-textarea-border-width) solid var(--ht-comments-textarea-border-color);
       color: var(--ht-comments-textarea-foreground-color);
-      background-color: var(--ht-comments-textarea-background-color, #ffffff);
+      background-color: var(--ht-comments-textarea-background-color);
       outline: 0 !important;
       box-sizing: border-box;
       -webkit-appearance: none;
 
       &:focus {
-        border: var(--ht-comments-textarea-focus-border-width, 1px) solid
-          var(--ht-comments-textarea-focus-border-color, #1a42e8);
+        border: var(--ht-comments-textarea-focus-border-width) solid
+          var(--ht-comments-textarea-focus-border-color);
         color: var(--ht-comments-textarea-focus-foreground-color);
-        background-color: var(--ht-comments-textarea-focus-background-color, #ffffff);
+        background-color: var(--ht-comments-textarea-focus-background-color);
       }
     }
   }

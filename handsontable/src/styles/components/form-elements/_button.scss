@@ -34,9 +34,7 @@
 
           &:disabled {
             border-color: var(--ht-secondary-button-disabled-border-color);
-            background-color: var(
-              --ht-secondary-button-disabled-background-color
-            );
+            background-color: var(--ht-secondary-button-disabled-background-color);
             color: var(--ht-secondary-button-disabled-foreground-color);
           }
 
@@ -51,7 +49,7 @@
 
       &.htUIButtonOK {
         margin-inline-start: 0;
-        margin-inline-end: calc(2 * var(--ht-gap-size, 2px));
+        margin-inline-end: calc(2 * var(--ht-gap-size));
 
         input {
           border-color: var(--ht-primary-button-border-color);
@@ -66,9 +64,7 @@
 
           &:disabled {
             border-color: var(--ht-primary-button-disabled-border-color);
-            background-color: var(
-              --ht-primary-button-disabled-background-color
-            );
+            background-color: var(--ht-primary-button-disabled-background-color);
             color: var(--ht-primary-button-disabled-foreground-color);
           }
 

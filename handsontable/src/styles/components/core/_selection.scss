@@ -18,11 +18,7 @@
     }
 
     td.area {
-      border-color: color-mix(
-        in srgb,
-        var(--ht-border-color),
-        var(--ht-foreground-color) 10%
-      );
+      border-color: color-mix(in srgb, var(--ht-border-color), var(--ht-foreground-color) 10%);
     }
 
     // Borders
@@ -47,20 +43,14 @@
 
       &.fill {
         z-index: 6;
-        background-color: var(
-          --ht-cell-autofill-fill-border-color,
-          #68696c
-        ) !important;
+        background-color: var(--ht-cell-autofill-fill-border-color) !important;
       }
 
       // Fill handle
       &.corner {
         border-radius: var(--ht-cell-autofill-border-radius) !important;
-        background-color: var(
-          --ht-cell-autofill-background-color,
-          #1a42e8
-        ) !important;
-        border-color: var(--ht-cell-autofill-border-color) !important;;
+        background-color: var(--ht-cell-autofill-background-color) !important;
+        border-color: var(--ht-cell-autofill-border-color) !important;
         font-size: 0;
         cursor: crosshair;
         z-index: 10;

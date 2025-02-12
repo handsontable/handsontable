@@ -40,8 +40,7 @@
 
     // Scrollbars
     scrollbar-width: thin;
-    scrollbar-color: var(--ht-scrollbar-thumb-color)
-      var(--ht-scrollbar-track-color);
+    scrollbar-color: var(--ht-scrollbar-thumb-color) var(--ht-scrollbar-track-color);
 
     &::-webkit-scrollbar-track {
       border-radius: var(--ht-scrollbar-border-radius);
@@ -49,16 +48,15 @@
 
     // Wrapper
     &.ht-wrapper {
-      border-radius: var(--ht-wrapper-border-radius, 0);
+      border-radius: var(--ht-wrapper-border-radius);
 
       &::before {
         @include mixins.pseudo();
 
         position: absolute;
         inset: 0;
-        border: var(--ht-wrapper-border-width) solid
-          var(--ht-wrapper-border-color);
-        border-radius: var(--ht-wrapper-border-radius, 0);
+        border: var(--ht-wrapper-border-width) solid var(--ht-wrapper-border-color);
+        border-radius: var(--ht-wrapper-border-radius);
         z-index: 999;
         pointer-events: none;
         overflow: hidden;
@@ -121,9 +119,7 @@
     // Cell and Header
     th,
     td {
-      height: calc(
-        var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px
-      );
+      height: calc(var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px);
       padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
       vertical-align: top;
       border-top-width: 0;
@@ -235,9 +231,7 @@
           th {
             &.ht__highlight {
               color: var(--ht-header-row-highlighted-foreground-color);
-              background-color: var(
-                --ht-header-row-highlighted-background-color
-              );
+              background-color: var(--ht-header-row-highlighted-background-color);
             }
 
             &.ht__active_highlight {
@@ -253,8 +247,7 @@
           background-color: var(--ht-header-row-background-color);
 
           .relative {
-            padding: var(--ht-cell-vertical-padding)
-              var(--ht-cell-horizontal-padding);
+            padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
             height: 100%;
 
             &::after {
@@ -299,8 +292,7 @@
           padding: 0;
 
           .relative {
-            padding: var(--ht-cell-vertical-padding)
-              var(--ht-cell-horizontal-padding);
+            padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
 
             &::after {
               left: -1px;

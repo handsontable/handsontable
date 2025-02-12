@@ -44,11 +44,8 @@
         }
 
         &:hover {
-          background-color: var(
-            --ht-collapse-button-open-hover-background-color
-          );
-          box-shadow: 0 0 0 1px
-            var(--ht-collapse-button-open-hover-border-color); // border
+          background-color: var(--ht-collapse-button-open-hover-background-color);
+          box-shadow: 0 0 0 1px var(--ht-collapse-button-open-hover-border-color); // border
 
           &::before {
             color: var(--ht-collapse-button-open-hover-icon-color);
@@ -66,11 +63,8 @@
         }
 
         &:hover {
-          background-color: var(
-            --ht-collapse-button-close-hover-background-color
-          );
-          box-shadow: 0 0 0 1px
-            var(--ht-collapse-button-close-hover-border-color); // border
+          background-color: var(--ht-collapse-button-close-hover-background-color);
+          box-shadow: 0 0 0 1px var(--ht-collapse-button-close-hover-border-color); // border
 
           &::before {
             color: var(--ht-collapse-button-close-hover-icon-color);

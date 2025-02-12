@@ -9,22 +9,21 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      padding: calc(var(--ht-cell-vertical-padding, 4px) + 1px)
-        calc(var(--ht-cell-horizontal-padding, 8px) + 1px);
+      padding: calc(var(--ht-cell-vertical-padding) + 1px) calc(var(--ht-cell-horizontal-padding) + 1px);
       padding-inline-end: 26px;
       margin: 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       color: var(--ht-cell-editor-foreground-color);
-      background-color: var(--ht-cell-editor-background-color, #ffffff);
+      background-color: var(--ht-cell-editor-background-color);
       font-family: inherit !important;
       font-size: inherit !important;
       line-height: inherit !important;
-      box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
-          var(--ht-cell-editor-border-color, #1a42e8),
-        0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
-          var(--ht-cell-editor-shadow-color, transparent);
+      box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width)
+          var(--ht-cell-editor-border-color),
+        0 0 var(--ht-cell-editor-shadow-blur-radius) 0
+          var(--ht-cell-editor-shadow-color);
       border: none;
       box-sizing: border-box;
       -webkit-appearance: none !important;
