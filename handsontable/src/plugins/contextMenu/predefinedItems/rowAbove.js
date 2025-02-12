@@ -19,23 +19,21 @@ export default function rowAboveItem() {
     disabled() {
       const range = this.getSelectedRangeLast();
 
-      if (!range) {
-        return true;
-      }
-
-      if (range.isSingleHeader() && range.highlight.row < 0) {
+      if (
+        !range ||
+        this.selection.isSelectedByColumnHeader() ||
+        (range.isSingleHeader() && range.highlight.row < 0) ||
+        (this.countSourceRows() >= this.getSettings().maxRows)
+      ) {
         return true;
       }
 
       if (this.selection.isSelectedByCorner()) {
-        const totalRows = this.countRows();
-
         // Enable "Insert row above" only when there is at least one row.
-        return totalRows === 0;
+        return this.countRows() === 0;
       }
 
-      return this.selection.isSelectedByColumnHeader() ||
-        this.countRows() >= this.getSettings().maxRows;
+      return false;
     },
     hidden() {
       return !this.getSettings().allowInsertRow;

@@ -240,6 +240,33 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
+    it('should not insert column on the right when the physical number of columns is the same as `maxCols` ' +
+       'and some indexes are trimmed', () => {
+      handsontable({
+        data: createSpreadsheetData(1, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        maxCols: 5,
+      });
+
+      const columnMapper = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'trimming');
+
+      columnMapper.setValueAtIndex(1, true);
+      render();
+
+      contextMenu(getCell(0, 0, true));
+
+      const item = selectContextMenuOption('Insert column right');
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(`
+        |   ║ - :   :   :   |
+        |===:===:===:===:===|
+        | - ║ # :   :   :   |
+        `).toBeMatchToSelectionPattern();
+    });
+
     it('should insert column on the right of the clicked cell', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),

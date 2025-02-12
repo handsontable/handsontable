@@ -40,15 +40,30 @@ To run Jasmine tests in your command line (using Puppeteer), first install all n
 To run all tests from the monorepo's root directory, use the following command:
 - `npm run test`
 
-To run individual tests, go to to the `/handsontable` directory, and use the following commands:
-- `npm test` - runs all test cases (Handsontable and Walkontable).
-- `npm test:unit` - runs all unit tests.
-- `npm test:walkontable` - runs only Walkontable tests.
-- `npm test:e2e` - runs all end-to-end tests.
-- `npm run test:e2e --testPathPattern=selection` - runs only end-to-end tests and suites matching the filename "selection".
-- `npm run test:unit --testPathPattern=array` - runs only unit tests and suites matching the filename "array".
-- `npm run test:e2e.dump` - generates the `test/E2ERunner.html` file which can by executed in the browser environment (Chrome, Firefox etc.) to check if tests passes.
-- `npm run test:e2e.dump -- --watch` - generates the `E2ERunner.html` file on every change detected in test files. It can be helpful for debugging proposes.
+To run individual tests, go to the `/handsontable` directory, and use the following commands:
+- `npm run test` - runs all test cases (Handsontable and Walkontable).
+- `npm run test:unit` - runs all unit tests.
+- `npm run test:walkontable` - runs only Walkontable tests.
+- `npm run test:e2e` - runs all end-to-end tests.
+- `npm run run test:e2e --testPathPattern=selection` - runs only end-to-end tests and suites matching the filename "selection".
+- `npm run run test:unit --testPathPattern=array` - runs only unit tests and suites matching the filename "array".
+- `npm run run test:e2e.dump` - generates the `test/E2ERunner.html` file which can by executed in the browser environment (Chrome, Firefox etc.) to check if tests passes.
+- `npm run run test:e2e.dump -- --watch` - generates the `E2ERunner.html` file on every change detected in test files. It can be helpful for debugging proposes.
+
+## Test specific themes
+To run the E2E tests with a theme different than "classic", you can use the `--theme` flag.
+For example, to run all the E2E tests using the "main" theme, you can use the following command:
+```
+npm run test:e2e --theme=main
+```
+
+The `--theme` flag can be used along the `--testPathPattern` flag to run only specific tests with a specific theme.
+For example, to run only the E2E tests with "selection" in the filename and the "main" theme enabled, you can use the following command:
+```
+npm run test:e2e --theme=main --testPathPattern=selection
+```
+
+Note: As for version `15.1.0`, the `--theme` flag is available just for the "main" theme.
 
 ## Test the framework-specific wrappers.
 
