@@ -193,6 +193,76 @@ describe('AutocompleteEditor', () => {
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
 
+  it.forTheme('horizon')('should render an editor in specified position while opening an editor from top to bottom when ' +
+    'top and bottom overlays are enabled', () => {
+    spec().$container.css('height', '245px');
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [
+        {
+          editor: 'autocomplete',
+          source: choices,
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDownUp('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  })
+
   it('should render an editor in specified position while opening an editor from left to right when ' +
      'left overlay is enabled', () => {
     handsontable({
@@ -460,13 +530,15 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(120);
         main.toBe(118);
+        horizon.toBe(118);
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(118);
         main.toBe(146);
+        horizon.toBe(146);
       });
     });
 
@@ -490,13 +562,15 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(52);
         main.toBe(62);
+        horizon.toBe(62);
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(118);
         main.toBe(146);
+        horizon.toBe(146);
       });
     });
 
@@ -519,13 +593,15 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
         main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(72);
         main.toBe(88);
+        horizon.toBe(88);
       });
     });
 
@@ -549,13 +625,15 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(52 + Handsontable.dom.getScrollbarWidth());
         main.toBe(62 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(62 + Handsontable.dom.getScrollbarWidth());
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(72);
         main.toBe(88);
+        horizon.toBe(88);
       });
     });
   });
@@ -828,9 +906,10 @@ describe('AutocompleteEditor', () => {
       // -2 for transparent borders
       expect(editor.find('.autocompleteEditor .htCore td').width())
         .toEqual(editor.find('.handsontableInput').width() - 2);
-      expect(editor.find('.autocompleteEditor .htCore td').width()).forThemes(({ classic, main }) => {
+      expect(editor.find('.autocompleteEditor .htCore td').width()).forThemes(({ classic, main, horizon }) => {
         classic.toBeGreaterThan(187);
         main.toEqual(180);
+        horizon.toEqual(180);
       });
     });
 

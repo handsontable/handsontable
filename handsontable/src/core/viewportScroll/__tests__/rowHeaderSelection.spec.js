@@ -109,9 +109,10 @@ describe('Row header selection scroll', () => {
 
       simulateClick(getCell(11, -1));
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -133,9 +134,10 @@ describe('Row header selection scroll', () => {
       keyDown('shift');
       simulateClick(getCell(11, -1));
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -155,9 +157,10 @@ describe('Row header selection scroll', () => {
 
       selectRows(10, 11);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -177,9 +180,10 @@ describe('Row header selection scroll', () => {
 
       selectRows(11, 10);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
         main.toBe(65);
+        horizon.toBe(65);
       });
     });
   });

@@ -95,9 +95,10 @@ describe('Filters UI Conditional component', () => {
     const rect = document.querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
 
     // 3px comes from borders
-    expect(window.scrollY + rect.top - 3).forThemes(({ classic, main }) => {
+    expect(window.scrollY + rect.top - 3).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(757, 1);
       main.toBeAroundValue(715, 1);
+      horizon.toBeAroundValue(715, 1);
     });
     hot.rootElement.style.marginTop = '';
   });

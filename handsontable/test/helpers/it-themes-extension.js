@@ -1,5 +1,3 @@
-const KNOWN_THEMES = ['classic', 'main'];
-
 /**
  * This extension allows to run specs only for a specific theme.
  * If the currently loaded theme doesn't match the specified one, the spec will be marked as pending.
@@ -26,10 +24,7 @@ function it(description, specDefinitions) {
 }
 
 it.forTheme = themeName => (description, specDefinition) => {
-  if (
-    ((__ENV_ARGS__.HOT_THEME || 'classic') === themeName) ||
-    (!KNOWN_THEMES.includes(__ENV_ARGS__.HOT_THEME) && themeName === 'classic')
-  ) {
+  if ((__ENV_ARGS__.HOT_THEME || 'classic') === themeName) {
     originalIt(description, specDefinition);
   }
 };

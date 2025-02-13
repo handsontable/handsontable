@@ -73,9 +73,10 @@ describe('HiddenColumns', () => {
 
       const $handle = $('.manualColumnResizer');
 
-      expect($handle.offset().left).forThemes(({ classic, main }) => {
+      expect($handle.offset().left).forThemes(({ classic, main, horizon }) => {
         classic.toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
         main.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
+        horizon.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
       });
       expect($handle.height()).toBe($headerTH.outerHeight());
     });
@@ -106,9 +107,10 @@ describe('HiddenColumns', () => {
 
       const $handle = $('.manualColumnResizer');
 
-      expect($handle.offset().left).forThemes(({ classic, main }) => {
+      expect($handle.offset().left).forThemes(({ classic, main, horizon }) => {
         classic.toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
         main.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
+        horizon.toBe($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
       });
       expect($handle.height()).toBe($headerTH.outerHeight());
     });
@@ -143,9 +145,10 @@ describe('HiddenColumns', () => {
         .simulate('mouseup')
       ;
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(80); // 50 (initial column width) + 30
-        main.toBe(93); // 63 (initial column width) + 30
+        main.toBe(93);
+        horizon.toBe(93); // 63 (initial column width) + 30
       });
     });
   });

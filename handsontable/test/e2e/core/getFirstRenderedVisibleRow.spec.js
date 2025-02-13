@@ -61,4 +61,17 @@ describe('Core.getFirstRenderedVisibleRow', () => {
 
     expect(getFirstRenderedVisibleRow()).toBe(12);
   });
+
+  it.forTheme('horizon')('should return first rendered row index (scrolled viewport)', () => {
+    handsontable({
+      data: createSpreadsheetData(100, 10),
+      width: 200,
+      height: 240,
+    });
+
+    setScrollTop(447); // row 15 (A16) is partially visible
+    render();
+
+    expect(getFirstRenderedVisibleRow()).toBe(12);
+  });
 });

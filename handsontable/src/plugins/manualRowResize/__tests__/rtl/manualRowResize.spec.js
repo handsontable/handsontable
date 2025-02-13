@@ -158,9 +158,10 @@ describe('manualRowResize (RTL mode)', () => {
 
         const $handle = $('.manualRowResizer');
 
-        expect($handle.offset().top).forThemes(({ classic, main }) => {
+        expect($handle.offset().top).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
           main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
+          horizon.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
         });
         expect($handle.offset().left).toBeCloseTo($headerTH.offset().left, 0);
         expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);

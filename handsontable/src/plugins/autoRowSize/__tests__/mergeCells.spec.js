@@ -29,13 +29,15 @@ describe('MergeCells', () => {
       }],
     });
 
-    expect(getRowHeight(0)).forThemes(({ classic, main }) => {
+    expect(getRowHeight(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
       main.toBe(29);
+      horizon.toBe(29);
     });
-    expect(getRowHeight(1)).forThemes(({ classic, main }) => {
+    expect(getRowHeight(1)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
       main.toBe(29);
+      horizon.toBe(29);
     });
   });
 });

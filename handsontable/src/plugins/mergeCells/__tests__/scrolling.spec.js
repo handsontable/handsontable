@@ -24,9 +24,10 @@ describe('MergeCells scrolling', () => {
     render();
     simulateClick(getCell(5, 0));
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(115);
       main.toBe(130);
+      horizon.toBe(130);
     });
 
     setScrollTop(0);
@@ -35,9 +36,10 @@ describe('MergeCells scrolling', () => {
     render();
     simulateClick(getCell(5, 2));
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(115);
       main.toBe(130);
+      horizon.toBe(130);
     });
   });
 
@@ -84,9 +86,10 @@ describe('MergeCells scrolling', () => {
 
     simulateClick(getCell(5, 0));
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(115);
       main.toBe(145);
+      horizon.toBe(145);
     });
   });
 

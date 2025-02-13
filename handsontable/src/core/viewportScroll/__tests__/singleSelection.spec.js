@@ -329,9 +329,10 @@ describe('Single selection scroll', () => {
 
       simulateClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -351,9 +352,10 @@ describe('Single selection scroll', () => {
 
       mouseDoubleClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -374,9 +376,10 @@ describe('Single selection scroll', () => {
       selectCell(10, 0);
       keyDownUp('arrowdown');
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -398,9 +401,10 @@ describe('Single selection scroll', () => {
       selectCell(10, -1);
       keyDownUp('arrowdown');
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -420,9 +424,10 @@ describe('Single selection scroll', () => {
 
       selectCell(11, 0);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
   });

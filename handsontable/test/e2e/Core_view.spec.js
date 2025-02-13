@@ -404,6 +404,34 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
   });
 
+  it.forTheme('horizon')('should scroll the viewport vertically from the row header navigation', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      width: 200,
+      height: 240,
+      colHeaders: true,
+      rowHeaders: true,
+      navigableHeaders: true,
+    });
+
+    const htCore = getHtCore();
+
+    selectCell(10, -1);
+
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
+  });
+
   it.forTheme('classic')('should scroll the viewport to the first row when the highlight moves ' +
     'down to the cell from the column header', () => {
     handsontable({
@@ -450,6 +478,29 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
 
+  it.forTheme('horizon')('should scroll the viewport to the first row when the highlight moves ' +
+    'down to the cell from the column header', () => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      width: 200,
+      height: 240,
+      colHeaders: true,
+      rowHeaders: true,
+      navigableHeaders: true,
+    });
+
+    const htCore = getHtCore();
+
+    selectCell(40, 1);
+    selectCell(-1, 1);
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+
+    keyDownUp('arrowdown');
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
+  });
+
   it.forTheme('classic')('should scroll the viewport to the first row when the highlight moves ' +
     'down to the row header from the corner', () => {
     handsontable({
@@ -474,6 +525,29 @@ describe('Core_view', () => {
   });
 
   it.forTheme('main')('should scroll the viewport to the first row when the highlight moves ' +
+    'down to the row header from the corner', () => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      width: 200,
+      height: 240,
+      colHeaders: true,
+      rowHeaders: true,
+      navigableHeaders: true,
+    });
+
+    const htCore = getHtCore();
+
+    selectCell(40, 1);
+    selectCell(-1, -1);
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
+
+    keyDownUp('arrowdown');
+
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
+  });
+
+  it.forTheme('horizon')('should scroll the viewport to the first row when the highlight moves ' +
     'down to the row header from the corner', () => {
     handsontable({
       data: createSpreadsheetData(50, 10),
@@ -612,9 +686,10 @@ describe('Core_view', () => {
     rowMapper.setValueAtIndex(3, true);
     render();
 
-    expect(getTopClone().width()).forThemes(({ classic, main }) => {
+    expect(getTopClone().width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(200);
       main.toBe(185);
+      horizon.toBe(185);
     });
   });
 
@@ -662,6 +737,30 @@ describe('Core_view', () => {
       })
       .simulate('mouseup')
       .simulate('click');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
+  });
+
+  it.forTheme('horizon')('should not extend the selection to the cell under the mouse pointer after ' +
+    'the viewport is moved (#dev-1479)', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    simulateClick(getCell(0, 0));
+    keyDownUp('enter');
+    getActiveEditor().TEXTAREA.value = 'AVeryLongStringThatWillBePastedInASingleCell';
+
+    // emulates behavior that is similar to the one that is caused by the bug
+    $(getCell(1, 2))
+    .simulate('mousedown');
+    $(getCell(1, 0))
+    .simulate('mouseover', {
+      clientX: 100, // coordinates of the cell 1, 2 before the column is resized
+      clientY: 30, // coordinates of the cell 1, 2 before the column is resized
+    })
+    .simulate('mouseup')
+    .simulate('click');
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
   });

@@ -26,9 +26,10 @@ describe('DropdownMenu keyboard shortcut', () => {
       keyDownUp('pageup');
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
-      expect(window.scrollY).forThemes(({ classic, main }) => {
+      expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
         classic.toBe(25);
         main.toBe(35);
+        horizon.toBe(35);
       });
     });
 

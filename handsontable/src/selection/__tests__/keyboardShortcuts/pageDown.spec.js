@@ -202,6 +202,94 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 14,1 from: 14,1 to: 14,1']);
     });
 
+    it.forTheme('horizon')('should move the cell selection down by the height of the table viewport', () => {
+      handsontable({
+        width: 180,
+        height: 126, // 126/29 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
+        startRows: 15,
+        startCols: 3
+      });
+
+      selectCell(1, 1);
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
+
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
+
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 13,1']);
+
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 14,1 from: 14,1 to: 14,1']);
+    });
+
     it('should move the cell selection down to the last cell', () => {
       handsontable({
         rowHeaders: true,

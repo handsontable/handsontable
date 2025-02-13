@@ -1556,17 +1556,19 @@ describe('NestedHeaders', () => {
       keyDownUp('arrowright'); // "G"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(1266);
         main.toBe(1280);
+        horizon.toBe(1280);
       });
 
       keyDownUp('arrowright'); // "H"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(1316);
         main.toBe(1333);
+        horizon.toBe(1333);
       });
     });
 

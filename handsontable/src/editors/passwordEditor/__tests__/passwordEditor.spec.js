@@ -327,9 +327,10 @@ describe('PasswordEditor', () => {
 
     await sleep(10);
 
-    expect(editor.style.width).forThemes(({ classic, main }) => {
+    expect(editor.style.width).forThemes(({ classic, main, horizon }) => {
       classic.toBe('93px');
       main.toBe('107px');
+      horizon.toBe('107px');
     });
   });
 

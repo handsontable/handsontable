@@ -107,9 +107,10 @@ describe('manualRowMove', () => {
         $headers[0].simulate('mouseover');
         $headers[0].simulate('mousemove');
 
-        expect(spec().$container.find('.ht__manualRowMove--guideline')[0].offsetTop).forThemes(({ classic, main }) => {
+        expect(spec().$container.find('.ht__manualRowMove--guideline')[0].offsetTop).forThemes(({ classic, main, horizon }) => {
           classic.toBe(-1);
           main.toBe(0);
+          horizon.toBe(0);
         });
       });
     });

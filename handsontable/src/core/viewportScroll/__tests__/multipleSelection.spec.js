@@ -337,9 +337,10 @@ describe('Multiple selection scroll', () => {
       keyDown('shift');
       simulateClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -360,9 +361,10 @@ describe('Multiple selection scroll', () => {
       selectCell(10, 0);
       keyDownUp(['shift', 'arrowdown']);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -384,9 +386,10 @@ describe('Multiple selection scroll', () => {
       selectCell(10, -1);
       keyDownUp(['shift', 'arrowdown']);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
         main.toBe(65);
+        horizon.toBe(65);
       });
     });
 
@@ -406,9 +409,10 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[10, 0, 11, 0]]);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -428,9 +432,10 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[11, 0, 10, 0]]);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
         main.toBe(65);
+        horizon.toBe(65);
       });
     });
   });

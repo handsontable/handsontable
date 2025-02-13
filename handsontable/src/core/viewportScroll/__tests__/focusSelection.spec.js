@@ -29,47 +29,53 @@ describe('Focus selection scroll', () => {
     keyDownUp('enter');
     keyDownUp('enter'); // B4
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       // 92 row heights - 104 viewport width + 15 scrollbart offset + + 1 selection offset + 1 header border offset
       classic.toBe(5);
 
       main.toBe(32);
+      horizon.toBe(32);
     });
 
     keyDownUp('enter'); // B5
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(28);
       main.toBe(61);
+      horizon.toBe(61);
     });
 
     keyDownUp('enter'); // B6
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(51);
       main.toBe(90);
+      horizon.toBe(90);
     });
 
     keyDownUp(['shift', 'enter']); // B5
     keyDownUp(['shift', 'enter']); // B4
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(51);
       main.toBe(87);
+      horizon.toBe(87);
     });
 
     keyDownUp(['shift', 'enter']); // B3
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(46);
       main.toBe(58);
+      horizon.toBe(58);
     });
 
     keyDownUp(['shift', 'enter']); // B2
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
       main.toBe(29);
+      horizon.toBe(29);
     });
 
     keyDownUp(['shift', 'enter']); // B1
@@ -78,11 +84,12 @@ describe('Focus selection scroll', () => {
 
     keyDownUp(['shift', 'enter']); // B50
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       // 1150 row heights - 104 viewport width + 15 scrollbart offset + 1 header border offset
       classic.toBe(1063);
 
       main.toBe(1366);
+      horizon.toBe(1366);
     });
   });
 

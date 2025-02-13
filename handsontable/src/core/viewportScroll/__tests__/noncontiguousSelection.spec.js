@@ -214,9 +214,10 @@ describe('Non-contiguous selection scroll', () => {
       keyDown('control/meta');
       simulateClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -236,9 +237,10 @@ describe('Non-contiguous selection scroll', () => {
 
       selectCells([[10, 0], [11, 0]]);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
+        horizon.toBe(94);
       });
     });
 
@@ -258,9 +260,10 @@ describe('Non-contiguous selection scroll', () => {
 
       selectCells([[11, 0], [10, 0]]);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
         main.toBe(65);
+        horizon.toBe(65);
       });
     });
   });

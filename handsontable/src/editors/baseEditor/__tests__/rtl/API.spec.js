@@ -42,7 +42,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
                 start: 0,
                 top: 0,
@@ -72,7 +72,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
                 start: 0,
                 top: 0,
@@ -112,7 +112,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             selectCell(1, countRows() - 1);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 234,
                 top: 23,
@@ -156,7 +156,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await sleep(100);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 51, // 51 - the width of the first cell
                 top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 23,
@@ -193,7 +193,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
                 start: 0,
                 top: 0,
@@ -224,7 +224,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
                 start: 0,
                 top: 0,
@@ -265,7 +265,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             selectCell(1, 1);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 49,
                 top: 23,
@@ -302,7 +302,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             selectCell(1, 1);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: Math.abs(document.documentElement.scrollLeft) + 49, // 49 - the width of the first cell
                 top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 23,
@@ -336,7 +336,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
                 start: 0,
                 top: 0,
@@ -366,7 +366,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
                 start: 0,
                 top: 0,
@@ -406,7 +406,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             selectCell(countRows() - 1, 1);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 49,
                 top: 161,
@@ -442,7 +442,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             selectCell(countRows() - 1, 1);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: Math.abs(document.documentElement.scrollLeft) + 49, // 49 - the width of the first cell
                 top: document.documentElement.offsetHeight - 24, // 24 - the height of the last cell
@@ -477,7 +477,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             selectCell(8, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
                 top: 138,
@@ -508,7 +508,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             selectCell(countRows() - 2, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
                 top: document.documentElement.clientHeight - 47, // 47 - height of the 2 last rows,
@@ -549,7 +549,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             selectCell(countRows() - 2, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
                 top: 138,
@@ -586,7 +586,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             selectCell(countRows() - 2, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: Math.abs(document.documentElement.scrollLeft),
                 top: document.documentElement.offsetHeight - 47,
@@ -620,7 +620,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             selectCell(countRows() - 2, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
                 top: 138,
@@ -650,7 +650,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             selectCell(countRows() - 2, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
                 top: document.documentElement.clientHeight - 47, // 47 - height of the 2 last rows
@@ -690,7 +690,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             selectCell(countRows() - 1, countCols() - 1);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 234,
                 top: 161,
@@ -735,7 +735,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             selectCell(countRows() - 1, countCols() - 1);
 
-            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main }) => {
+            expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 4949,
                 top: document.documentElement.offsetHeight - 24,

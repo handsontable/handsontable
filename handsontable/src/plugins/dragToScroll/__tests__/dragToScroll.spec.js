@@ -470,9 +470,10 @@ describe('DragToScroll', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main }) => {
+      expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
         classic.toBeLessThan(105);
-        main.toBeLessThan(170); // not sure if the correct value
+        main.toBeLessThan(170);
+        horizon.toBeLessThan(170); // not sure if the correct value
       });
     });
 
@@ -514,9 +515,10 @@ describe('DragToScroll', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main }) => {
+      expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
         classic.toBeLessThan(105);
-        main.toBeLessThan(170); // not sure if the correct value
+        main.toBeLessThan(170);
+        horizon.toBeLessThan(170); // not sure if the correct value
       });
     });
 

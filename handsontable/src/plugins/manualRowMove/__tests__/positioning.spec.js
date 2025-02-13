@@ -83,13 +83,15 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(2);
         main.toBe(1);
+        horizon.toBe(1);
       });
-      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
         main.toBe(THNext.offset().top - 1.5);
+        horizon.toBe(THNext.offset().top - 1.5);
       });
     });
 
@@ -119,13 +121,15 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(2);
         main.toBe(1);
+        horizon.toBe(1);
       });
-      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
         main.toBe(THNext.offset().top - 1.5);
+        horizon.toBe(THNext.offset().top - 1.5);
       });
     });
 
@@ -157,13 +161,15 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THLast.offset().top - dropOffset);
-      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(2);
         main.toBe(1);
+        horizon.toBe(1);
       });
-      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THLast.offset().top - 2);
         main.toBe(THLast.offset().top - 1.5);
+        horizon.toBe(THLast.offset().top - 1.5);
       });
     });
 
@@ -236,13 +242,15 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(2);
         main.toBe(1);
+        horizon.toBe(1);
       });
-      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
         main.toBe(THNext.offset().top - 1.5);
+        horizon.toBe(THNext.offset().top - 1.5);
       });
     });
 
@@ -284,13 +292,15 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(2);
         main.toBe(1);
+        horizon.toBe(1);
       });
-      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
         main.toBe(THNext.offset().top - 1.5);
+        horizon.toBe(THNext.offset().top - 1.5);
       });
     });
 
@@ -359,13 +369,15 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(2);
         main.toBe(1);
+        horizon.toBe(1);
       });
-      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
         main.toBe(THNext.offset().top - 1.5);
+        horizon.toBe(THNext.offset().top - 1.5);
       });
     });
 
@@ -405,13 +417,15 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main }) => {
+      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(2);
         main.toBe(1);
+        horizon.toBe(1);
       });
-      expect(guideline.offset().top).forThemes(({ classic, main }) => {
+      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
         main.toBe(THNext.offset().top - 1.5);
+        horizon.toBe(THNext.offset().top - 1.5);
       });
     });
 
@@ -457,9 +471,10 @@ describe('manualRowMove', () => {
 
       const backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
-      expect(backlight.outerHeight()).forThemes(({ classic, main }) => {
+      expect(backlight.outerHeight()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(46);
         main.toBe(58);
+        horizon.toBe(58);
       });
       expect(backlight.offset().top).toBe(TH.offset().top);
     });

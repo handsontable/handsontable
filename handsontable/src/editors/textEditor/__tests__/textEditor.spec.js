@@ -246,6 +246,76 @@ describe('TextEditor', () => {
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
 
+  it.forTheme('horizon')('should render an editor in specified position while opening an editor from top to bottom when ' +
+    'top and bottom overlays are enabled', () => {
+    spec().$container[0].style.height = '240px';
+    spec().$container[0].style.width = '200px';
+
+    handsontable({
+      data: createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [
+        {
+          type: 'text',
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDownUp('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
   it('should render an editor in specified position while opening an editor from left to right when ' +
      'left overlay is enabled', () => {
     handsontable({
@@ -648,9 +718,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
       classic.toBe('24px');
       main.toBe('29px');
+      horizon.toBe('29px');
     });
     expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
@@ -663,9 +734,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
       classic.toBe('24px');
       main.toBe('30px');
+      horizon.toBe('30px');
     });
   });
 
@@ -680,9 +752,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
       classic.toBe('24px');
       main.toBe('30px');
+      horizon.toBe('30px');
     });
     expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
@@ -699,9 +772,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
       classic.toBe('24px');
       main.toBe('30px');
+      horizon.toBe('30px');
     });
     expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
@@ -729,17 +803,20 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).forThemes(({ classic, main }) => {
+    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(51, 1);
       main.toBeAroundValue(60, 1);
+      horizon.toBeAroundValue(60, 1);
     });
-    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
       classic.toBe('24px');
       main.toBe('30px');
+      horizon.toBe('30px');
     });
-    expect(hot.getActiveEditor().textareaParentStyle.top).forThemes(({ classic, main }) => {
+    expect(hot.getActiveEditor().textareaParentStyle.top).forThemes(({ classic, main, horizon }) => {
       classic.toBe('26px');
       main.toBe('29px');
+      horizon.toBe('29px');
     });
   });
 
@@ -787,9 +864,10 @@ describe('TextEditor', () => {
     await sleep(200);
 
     expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(1);
-    expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).forThemes(({ classic, main }) => {
+    expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(-77);
       main.toBeAroundValue(-62);
+      horizon.toBeAroundValue(-62);
     });
     expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(50);
   });
@@ -823,9 +901,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
       classic.toBe('24px');
       main.toBe('30px');
+      horizon.toBe('30px');
     });
   });
 
@@ -839,9 +918,10 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
-    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
+    expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
       classic.toBe('65px');
       main.toBe('70px');
+      horizon.toBe('70px');
     });
   });
 
@@ -1957,9 +2037,10 @@ describe('TextEditor', () => {
 
     await sleep(150);
 
-    expect($editorInput.height()).forThemes(({ classic, main }) => {
+    expect($editorInput.height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(83);
       main.toBe(95);
+      horizon.toBe(95);
     });
   });
 

@@ -110,6 +110,19 @@ describe('NestedRows', () => {
         expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });
+
+      it.forTheme('horizon')('should display indicators properly located', () => {
+        const hot = handsontable({
+          layoutDirection,
+          data: getMoreComplexNestedData(),
+          nestedRows: true,
+          rowHeaders: true
+        });
+
+        expect(hot.countRows()).toEqual(13);
+        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
+        expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
+      });
     });
 
     it('should render row header with correct default width', async() => {
@@ -119,9 +132,10 @@ describe('NestedRows', () => {
         rowHeaders: true,
       });
 
-      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main }) => {
+      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(56);
         main.toBe(61);
+        horizon.toBe(61);
       });
     });
 
@@ -149,27 +163,30 @@ describe('NestedRows', () => {
       contextMenu();
       selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main }) => {
+      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(70);
         main.toBe(71);
+        horizon.toBe(71);
       });
 
       selectCell(3, 0);
       contextMenu();
       selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main }) => {
+      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(76);
         main.toBe(81);
+        horizon.toBe(81);
       });
 
       selectCell(4, 0);
       contextMenu();
       selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main }) => {
+      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(86);
         main.toBe(91);
+        horizon.toBe(91);
       });
     });
   });

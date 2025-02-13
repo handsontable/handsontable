@@ -1157,6 +1157,21 @@ describe('CustomBorders', () => {
       expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
     });
 
+    it.forTheme('horizon')('should render borders only for rendered rows', () => {
+      const data = Handsontable.helper.createSpreadsheetData(10, 2);
+      const customBorders = generateCustomBordersForAllRows(data.length);
+      const instance = handsontable({
+        data,
+        customBorders,
+        height: 125,
+        viewportRowRenderingOffset: 0
+      });
+
+      expect(instance.countRenderedRows()).toEqual(5);
+      expect(countVisibleCustomBorders()).toEqual(5);
+      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
+    });
+
     it.forTheme('classic')('should render borders only for rendered rows, after scrolling', async() => {
       const data = Handsontable.helper.createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
@@ -1176,6 +1191,24 @@ describe('CustomBorders', () => {
     });
 
     it.forTheme('main')('should render borders only for rendered rows, after scrolling', async() => {
+      const data = Handsontable.helper.createSpreadsheetData(10, 2);
+      const customBorders = generateCustomBordersForAllRows(data.length);
+      const instance = handsontable({
+        data,
+        customBorders,
+        height: 125,
+        viewportRowRenderingOffset: 0
+      });
+      const mainHolder = instance.view._wt.wtTable.holder;
+
+      $(mainHolder).scrollTop(400);
+      await sleep(300);
+      expect(instance.countRenderedRows()).toEqual(5);
+      expect(countVisibleCustomBorders()).toEqual(5);
+      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
+    });
+
+    it.forTheme('horizon')('should render borders only for rendered rows, after scrolling', async() => {
       const data = Handsontable.helper.createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
       const instance = handsontable({

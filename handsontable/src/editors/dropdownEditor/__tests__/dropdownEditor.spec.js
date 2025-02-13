@@ -225,6 +225,84 @@ describe('DropdownEditor', () => {
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
 
+  it.forTheme('horizon')('should render an editor in specified position while opening an editor from top to bottom when ' +
+    'top and bottom overlays are enabled', async() => {
+    spec().$container[0].style.height = '252px';
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [
+        {
+          editor: 'dropdown',
+          source: choices,
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
   it('should render an editor in specified position while opening an editor from left to right when ' +
      'left overlay is enabled', () => {
     handsontable({
@@ -478,13 +556,15 @@ describe('DropdownEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(120);
         main.toBe(118);
+        horizon.toBe(118);
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(118);
         main.toBe(146);
+        horizon.toBe(146);
       });
     });
 
@@ -507,13 +587,15 @@ describe('DropdownEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
         main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(72);
         main.toBe(88);
+        horizon.toBe(88);
       });
     });
   });

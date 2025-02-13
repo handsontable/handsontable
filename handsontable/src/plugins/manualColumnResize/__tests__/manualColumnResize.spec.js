@@ -375,25 +375,30 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect($columnHeaders.eq(0).width()).forThemes(({ classic, main }) => {
+    expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(221);
       main.toBe(219);
+      horizon.toBe(219);
     });
-    expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+    expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(19);
       main.toBe(27);
+      horizon.toBe(27);
     });
-    expect($columnHeaders.eq(2).width()).forThemes(({ classic, main }) => {
+    expect($columnHeaders.eq(2).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(222);
       main.toBe(220);
+      horizon.toBe(220);
     });
-    expect($columnHeaders.eq(3).width()).forThemes(({ classic, main }) => {
+    expect($columnHeaders.eq(3).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(222);
       main.toBe(220);
+      horizon.toBe(220);
     });
-    expect($columnHeaders.eq(4).width()).forThemes(({ classic, main }) => {
+    expect($columnHeaders.eq(4).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(220);
       main.toBe(218);
+      horizon.toBe(218);
     });
   });
 
@@ -410,9 +415,10 @@ describe('manualColumnResize', () => {
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
     expect($columnHeaders.eq(0).width()).toBe(64);
-    expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+    expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(49);
-      main.toBe(48); // TODO: seems to be an issue with how .width() reads the width value.
+      main.toBe(48);
+      horizon.toBe(48); // TODO: seems to be an issue with how .width() reads the width value.
     });
     expect($columnHeaders.eq(2).width()).toBe(49);
     expect($columnHeaders.eq(3).width()).toBe(49);
@@ -429,25 +435,30 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect($columnHeaders.eq(0).width()).forThemes(({ classic, main }) => {
+    expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(19);
       main.toBeAroundValue(27);
+      horizon.toBeAroundValue(27);
     });
-    expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+    expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(49);
       main.toBe(48);
+      horizon.toBe(48);
     });
-    expect($columnHeaders.eq(2).width()).forThemes(({ classic, main }) => {
+    expect($columnHeaders.eq(2).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(49);
       main.toBe(49);
+      horizon.toBe(49);
     });
-    expect($columnHeaders.eq(3).width()).forThemes(({ classic, main }) => {
+    expect($columnHeaders.eq(3).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(49);
       main.toBe(49);
+      horizon.toBe(49);
     });
-    expect($columnHeaders.eq(4).width()).forThemes(({ classic, main }) => {
+    expect($columnHeaders.eq(4).width()).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(738);
       main.toBeAroundValue(730);
+      horizon.toBeAroundValue(730);
     });
   });
 
@@ -481,13 +492,15 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).forThemes(({ classic, main }) => {
+      expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(25);
         main.toBe(35);
+        horizon.toBe(35);
       });
-      expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+      expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(119);
         main.toBe(118);
+        horizon.toBe(118);
       });
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
@@ -505,13 +518,15 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).forThemes(({ classic, main }) => {
+      expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(25);
         main.toBe(35);
+        horizon.toBe(35);
       });
-      expect($columnHeaders.eq(1).width()).forThemes(({ classic, main }) => {
+      expect($columnHeaders.eq(1).width()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(70);
         main.toBe(87);
+        horizon.toBe(87);
       });
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
@@ -677,13 +692,15 @@ describe('manualColumnResize', () => {
     await sleep(1000);
 
     expect(afterColumnResizeCallback).toHaveBeenCalledTimes(1);
-    expect(afterColumnResizeCallback).forThemes(({ classic, main }) => {
+    expect(afterColumnResizeCallback).forThemes(({ classic, main, horizon }) => {
       classic.toHaveBeenCalledWith(26, 0, true);
       main.toHaveBeenCalledWith(36, 0, true);
+      horizon.toHaveBeenCalledWith(36, 0, true);
     });
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main }) => {
+    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(26);
       main.toBe(36);
+      horizon.toBe(36);
     });
   });
 
@@ -708,9 +725,10 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(29, 3);
       main.toBeAroundValue(35, 3);
+      horizon.toBeAroundValue(35, 3);
     });
   });
 
@@ -735,9 +753,10 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(29, 3);
       main.toBeAroundValue(35, 3);
+      horizon.toBeAroundValue(35, 3);
     });
   });
 
@@ -765,17 +784,20 @@ describe('manualColumnResize', () => {
 
     await sleep(600);
 
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main }) => {
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(26);
       main.toBe(36);
+      horizon.toBe(36);
     });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main }) => {
+    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(26);
       main.toBe(36);
+      horizon.toBe(36);
     });
-    expect(colWidth(spec().$container, 3)).forThemes(({ classic, main }) => {
+    expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(26);
       main.toBe(36);
+      horizon.toBe(36);
     });
   });
 
@@ -812,6 +834,38 @@ describe('manualColumnResize', () => {
   });
 
   it.forTheme('main')('should adjust resize handles position after table size changed', () => {
+    let maxed = false;
+
+    handsontable({
+      colHeaders: true,
+      manualColumnResize: true,
+      stretchH: 'all',
+      width() {
+        return maxed ? 614 : 200;
+      }
+    });
+
+    getTopClone().find('thead th:eq(0)').simulate('mouseover');
+
+    const handle = spec().$container.find('.manualColumnResizer');
+    const th0 = getTopClone().find('thead th:eq(0)');
+    let handleBox = handle[0].getBoundingClientRect();
+    let thBox = th0[0].getBoundingClientRect();
+
+    expect(handleBox.left).toEqual(thBox.left + thBox.width - (handleBox.width / 2) - 1);
+
+    maxed = true;
+
+    render();
+    getTopClone().find('thead th:eq(0)').simulate('mouseover');
+
+    handleBox = handle[0].getBoundingClientRect();
+    thBox = th0[0].getBoundingClientRect();
+
+    expect(handleBox.left).toEqual(thBox.left + thBox.width - (handleBox.width / 2) - 1);
+  });
+
+  it.forTheme('horizon')('should adjust resize handles position after table size changed', () => {
     let maxed = false;
 
     handsontable({
@@ -1290,6 +1344,31 @@ describe('manualColumnResize', () => {
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 
+      it.forTheme('horizon')('should display the resize handle in the proper position and with a proper size', () => {
+        handsontable({
+          layoutDirection,
+          data: [
+            { id: 1, name: 'Ted', lastName: 'Right' },
+            { id: 2, name: 'Frank', lastName: 'Honest' },
+            { id: 3, name: 'Joan', lastName: 'Well' },
+            { id: 4, name: 'Sid', lastName: 'Strong' },
+            { id: 5, name: 'Jane', lastName: 'Neat' }
+          ],
+          colHeaders: true,
+          manualColumnResize: true
+        });
+
+        const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
+
+        $headerTH.simulate('mouseover');
+
+        const $handle = $('.manualColumnResizer');
+
+        expect($handle.offset().left)
+        .toEqual($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
+        expect($handle.height()).toEqual($headerTH.outerHeight());
+      });
+
       it('should display the resize handle in the proper z-index and be greater than top overlay z-index', () => {
         handsontable({
           layoutDirection,
@@ -1341,6 +1420,31 @@ describe('manualColumnResize', () => {
     });
 
     it.forTheme('main')('should remove resize handler when user clicks RMB', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        manualColumnResize: true
+      });
+
+      const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
+
+      $colHeader.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualColumnResizer');
+      const resizerPosition = $handle.position();
+
+      $handle.simulate('mousedown', { clientX: resizerPosition.left });
+
+      expect(getComputedStyle($handle[0]).opacity).toBe('1');
+
+      $handle.simulate('contextmenu');
+
+      await sleep(0);
+
+      expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
+    });
+
+    it.forTheme('horizon')('should remove resize handler when user clicks RMB', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         colHeaders: true,
