@@ -40,7 +40,7 @@ module.exports.create = function create(envArgs) {
 
     c.plugins.push(
       new MiniCssExtractPlugin({
-        filename: `../styles/${PACKAGE_FILENAME}.min.css`,
+        filename: `../styles_processed/${PACKAGE_FILENAME}.min.css`,
       }),
     );
 

@@ -8,8 +8,7 @@
       @include mixins.menu-box-shadow;
 
       margin: 0;
-      border: var(--ht-menu-border-width, 1px) solid
-        var(--ht-menu-border-color, #e5e5e9);
+      border: var(--ht-menu-border-width) solid var(--ht-menu-border-color);
 
       .ht_master {
         overflow: hidden;
@@ -62,14 +61,14 @@
         tr {
           &:hover {
             td {
-              background: var(--ht-menu-item-hover-color, #e5e5e9);
+              background: var(--ht-menu-item-hover-color);
               cursor: pointer;
             }
           }
 
           td {
             &:hover, &.current {
-              background: var(--ht-menu-item-hover-color, #e5e5e9);
+              background: var(--ht-menu-item-hover-color);
               cursor: pointer;
             }
           }
@@ -115,14 +114,14 @@
         &.ht__row_even {
           th,
           td {
-            background-color: var(--ht-background-color, #ffffff);
+            background-color: var(--ht-background-color);
           }
         }
 
         &.ht__row_odd {
           th,
           td {
-            background-color: var(--ht-background-color, #ffffff);
+            background-color: var(--ht-background-color);
           }
         }
       }
