@@ -13,7 +13,7 @@ const data: (string | number)[][] = [
 ];
 
 new Handsontable(container, {
-  data: JSON.parse(JSON.stringify(data)),
+  data: structuredClone(data),
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
