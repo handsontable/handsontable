@@ -5,6 +5,8 @@
 @mixin output {
   // Required variables for bare theme
   .ht-wrapper:not([class*="ht-theme"]) {
+    --ht-gap-size: 4px;
+    --ht-checkbox-size: 16px;
     --ht-cell-horizontal-padding: 8px;
     --ht-cell-vertical-padding: 4px;
     --ht-font-size: 14px;
