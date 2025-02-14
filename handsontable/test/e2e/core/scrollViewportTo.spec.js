@@ -911,7 +911,8 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(0);
   });
 
-  it.forTheme('classic')('should scroll the viewport to the the visual index destination when there are some hidden rows', () => {
+  it.forTheme('classic')('should scroll the viewport to the the visual index destination when ' +
+    'there are some hidden rows', () => {
     const hot = handsontable({
       data: createSpreadsheetData(25, 20),
       width: 200,
@@ -981,7 +982,8 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(0);
   });
 
-  it.forTheme('main')('should scroll the viewport to the the visual index destination when there are some hidden rows', () => {
+  it.forTheme('main')('should scroll the viewport to the the visual index destination when ' +
+    'there are some hidden rows', () => {
     const hot = handsontable({
       data: createSpreadsheetData(25, 20),
       width: 200,
@@ -1051,7 +1053,8 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(0);
   });
 
-  it.forTheme('horizon')('should scroll the viewport to the the visual index destination when there are some hidden rows', () => {
+  it.forTheme('horizon')('should scroll the viewport to the the visual index destination when ' +
+    'there are some hidden rows', () => {
     const hot = handsontable({
       data: createSpreadsheetData(25, 20),
       width: 200,

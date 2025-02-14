@@ -375,8 +375,8 @@ describe('Selection extending', () => {
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
     });
 
-    it.forTheme('horizon')('should scroll the viewport repeatedly by the same number of pixels with keeping the initial ' +
-      'selection viewport offset', async() => {
+    it.forTheme('horizon')('should scroll the viewport repeatedly by the same number of pixels with ' +
+      'keeping the initial selection viewport offset', async() => {
       const hot = handsontable({
         width: 180,
         height: 252,

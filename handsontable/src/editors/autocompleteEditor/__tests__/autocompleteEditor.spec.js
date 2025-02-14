@@ -193,8 +193,8 @@ describe('AutocompleteEditor', () => {
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
 
-  it.forTheme('horizon')('should render an editor in specified position while opening an editor from top to bottom when ' +
-    'top and bottom overlays are enabled', () => {
+  it.forTheme('horizon')('should render an editor in specified position while opening an editor ' +
+    'from top to bottom when top and bottom overlays are enabled', () => {
     spec().$container.css('height', '312px');
 
     handsontable({
@@ -261,7 +261,7 @@ describe('AutocompleteEditor', () => {
     keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
-  })
+  });
 
   it('should render an editor in specified position while opening an editor from left to right when ' +
      'left overlay is enabled', () => {

@@ -3455,16 +3455,16 @@ describe('MultiColumnSorting', () => {
         });
 
         expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
-        .getPropertyValue('content')).toEqual('"2"');
+          .getPropertyValue('content')).toEqual('"2"');
         expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[1], ':after')
-        .getPropertyValue('content')).toEqual('"1"');
+          .getPropertyValue('content')).toEqual('"1"');
 
         getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
 
         expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
-        .getPropertyValue('content')).toEqual('""');
+          .getPropertyValue('content')).toEqual('""');
         expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[1], ':after')
-        .getPropertyValue('content')).toEqual('""');
+          .getPropertyValue('content')).toEqual('""');
       });
     });
   });

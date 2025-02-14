@@ -130,17 +130,17 @@ describe('manualRowMove', () => {
       expect(getMaster().find('.wtHolder').scrollTop()).toBe(0);
 
       rowHeader
-      .simulate('mousedown')
-      .simulate('mouseup')
-      .simulate('mousedown', {
-        clientY: rowHeader.offset().top,
-      });
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('mousedown', {
+          clientY: rowHeader.offset().top,
+        });
       bottomOverlayFirstRowHeader
-      .simulate('mouseover')
-      .simulate('mousemove', {
-        clientY: bottomOverlayFirstRowHeader.offset().top + bottomOverlayFirstRowHeader.innerHeight()
-      })
-      .simulate('mouseup');
+        .simulate('mouseover')
+        .simulate('mousemove', {
+          clientY: bottomOverlayFirstRowHeader.offset().top + bottomOverlayFirstRowHeader.innerHeight()
+        })
+        .simulate('mouseup');
 
       expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(0);
     });
@@ -265,17 +265,17 @@ describe('manualRowMove', () => {
       expect(getMaster().find('.wtHolder').scrollTop()).toBe(0);
 
       rowHeader
-      .simulate('mousedown')
-      .simulate('mouseup')
-      .simulate('mousedown', {
-        clientY: rowHeader.offset().top + rowHeader.innerHeight() - 1,
-      });
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('mousedown', {
+          clientY: rowHeader.offset().top + rowHeader.innerHeight() - 1,
+        });
       nextRowHeader
-      .simulate('mouseover')
-      .simulate('mousemove', {
-        clientY: nextRowHeader[0].getBoundingClientRect().top + 1,
-      })
-      .simulate('mouseup');
+        .simulate('mouseover')
+        .simulate('mousemove', {
+          clientY: nextRowHeader[0].getBoundingClientRect().top + 1,
+        })
+        .simulate('mouseup');
 
       expect(getMaster().find('.wtHolder').scrollTop()).toBe(0);
     });

@@ -1387,8 +1387,8 @@ describe('Selection using mouse interaction', () => {
 
     mouseDown(getCell(12, 11));
     spec().$container.find('.ht_clone_inline_start tbody th:eq(12)')
-    .simulate('mouseover')
-    .simulate('mouseup');
+      .simulate('mouseover')
+      .simulate('mouseup');
 
     await sleep(30);
 

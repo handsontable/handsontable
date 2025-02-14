@@ -1385,21 +1385,24 @@ describe('manualRowResize', () => {
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
 
-      expect(getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
+      expect(getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
     });
 
     it('should resize (expanding) selected columns, with window as a scroll parent', () => {
@@ -1425,21 +1428,24 @@ describe('manualRowResize', () => {
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
 
-      expect(getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
+      expect(getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
 
       $(window).scrollTop(0);
     });
@@ -1463,31 +1469,36 @@ describe('manualRowResize', () => {
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
 
-      expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
-        main.toBe(28);
-        horizon.toBe(28);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
-        main.toBe(28);
-        horizon.toBe(28);
-      });
+      expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(22);
+          main.toBe(28);
+          horizon.toBe(28);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(22);
+          main.toBe(28);
+          horizon.toBe(28);
+        });
     });
 
     it('should resize (expanding) height of selected non-contiguous rows', () => {
@@ -1517,56 +1528,66 @@ describe('manualRowResize', () => {
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
 
-      expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
-        main.toBe(28);
-        horizon.toBe(28);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
-        main.toBe(28);
-        horizon.toBe(28);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
-        main.toBe(28);
-        horizon.toBe(28);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
-        main.toBe(28);
-        horizon.toBe(28);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(7) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(8) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
-        main.toBe(28);
-        horizon.toBe(28);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(9) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
-        main.toBe(28);
-        horizon.toBe(28);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(10) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(58);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(11) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(22);
-        main.toBe(28);
-        horizon.toBe(28);
-      });
+      expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(22);
+          main.toBe(28);
+          horizon.toBe(28);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(22);
+          main.toBe(28);
+          horizon.toBe(28);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(22);
+          main.toBe(28);
+          horizon.toBe(28);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(22);
+          main.toBe(28);
+          horizon.toBe(28);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(7) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(8) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(22);
+          main.toBe(28);
+          horizon.toBe(28);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(9) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(22);
+          main.toBe(28);
+          horizon.toBe(28);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(10) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(52);
+          main.toBe(58);
+          horizon.toBe(58);
+        });
+      expect(getInlineStartClone().find('tbody tr:eq(11) th:eq(0)').height())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(22);
+          main.toBe(28);
+          horizon.toBe(28);
+        });
     });
 
     it('should not resize few rows when selected just single cells before resize action', () => {
@@ -1686,7 +1707,7 @@ describe('manualRowResize', () => {
         const $handle = $('.manualRowResizer');
 
         expect($handle.offset().top)
-        .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
+          .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
         expect($handle.offset().left).toBeCloseTo($headerTH.offset().left, 0);
         expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
       });

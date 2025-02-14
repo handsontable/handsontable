@@ -791,14 +791,14 @@ describe('Core_view', () => {
 
     // emulates behavior that is similar to the one that is caused by the bug
     $(getCell(1, 2))
-    .simulate('mousedown');
+      .simulate('mousedown');
     $(getCell(1, 0))
-    .simulate('mouseover', {
-      clientX: 100, // coordinates of the cell 1, 2 before the column is resized
-      clientY: 38, // coordinates of the cell 1, 2 before the column is resized
-    })
-    .simulate('mouseup')
-    .simulate('click');
+      .simulate('mouseover', {
+        clientX: 100, // coordinates of the cell 1, 2 before the column is resized
+        clientY: 38, // coordinates of the cell 1, 2 before the column is resized
+      })
+      .simulate('mouseup')
+      .simulate('click');
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
   });

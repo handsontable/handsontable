@@ -190,7 +190,7 @@ describe('manualColumnResize (RTL)', () => {
         const $handle = $('.manualColumnResizer');
 
         expect($handle.offset().left)
-        .toEqual($headerTH.offset().left - ($handle.outerWidth() / 2) + 1);
+          .toEqual($headerTH.offset().left - ($handle.outerWidth() / 2) + 1);
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 

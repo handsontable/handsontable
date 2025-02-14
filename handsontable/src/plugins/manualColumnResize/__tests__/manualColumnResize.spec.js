@@ -1365,7 +1365,7 @@ describe('manualColumnResize', () => {
         const $handle = $('.manualColumnResizer');
 
         expect($handle.offset().left)
-        .toEqual($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
+          .toEqual($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 

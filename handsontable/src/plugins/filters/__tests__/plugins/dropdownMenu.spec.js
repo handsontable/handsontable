@@ -392,8 +392,8 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     openDropdownByConditionMenu();
     $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
-    .simulate('mousedown')
-    .simulate('mouseup');
+      .simulate('mousedown')
+      .simulate('mouseup');
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfValueBox = $(byValueBoxRootElement()).width();

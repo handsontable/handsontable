@@ -246,8 +246,8 @@ describe('TextEditor', () => {
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
 
-  it.forTheme('horizon')('should render an editor in specified position while opening an editor from top to bottom when ' +
-    'top and bottom overlays are enabled', () => {
+  it.forTheme('horizon')('should render an editor in specified position while opening an editor ' +
+    'from top to bottom when top and bottom overlays are enabled', () => {
     spec().$container[0].style.height = '240px';
     spec().$container[0].style.width = '200px';
 

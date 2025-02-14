@@ -755,7 +755,8 @@ describe('DateEditor', () => {
     expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
   });
 
-  it.forTheme('classic')('should move a datepicker together with the edited cell when the table is scrolled down', async() => {
+  it.forTheme('classic')('should move a datepicker together with the edited cell when the table ' +
+    'is scrolled down', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
       width: 200,
@@ -795,7 +796,8 @@ describe('DateEditor', () => {
     expect(pikaElement.is(':visible')).toBe(false);
   });
 
-  it.forTheme('main')('should move a datepicker together with the edited cell when the table is scrolled down', async() => {
+  it.forTheme('main')('should move a datepicker together with the edited cell when the table is ' +
+    'scrolled down', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
       width: 200,
@@ -835,7 +837,8 @@ describe('DateEditor', () => {
     expect(pikaElement.is(':visible')).toBe(false);
   });
 
-  it.forTheme('horizon')('should move a datepicker together with the edited cell when the table is scrolled down', async() => {
+  it.forTheme('horizon')('should move a datepicker together with the edited cell when the table is' +
+    ' scrolled down', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
       width: 200,
@@ -995,7 +998,7 @@ describe('DateEditor', () => {
     await sleep(50);
 
     expect(pikaElement.is(':visible')).toBe(false);
-  })
+  });
 
   it.forTheme('classic')('should move a datepicker together with the edited cell when the ' +
     'table is scrolled left', async() => {
@@ -1117,7 +1120,7 @@ describe('DateEditor', () => {
     await sleep(50);
 
     expect(pikaElement.is(':visible')).toBe(false);
-  })
+  });
 
   it.forTheme('classic')('should move a datepicker together with the edited cell when the ' +
     'table is scrolled right', async() => {
@@ -1240,7 +1243,7 @@ describe('DateEditor', () => {
     await sleep(50);
 
     expect(pikaElement.is(':visible')).toBe(false);
-  })
+  });
 
   it('should show datepicker in the right position when cell is opened in the top overlay', async() => {
     handsontable({
@@ -1453,7 +1456,8 @@ describe('DateEditor', () => {
     expect(pikaElement.is(':visible')).toBe(true);
   });
 
-  it.forTheme('classic')('should show datepicker in the right position when cell is opened in the top-start corner', async() => {
+  it.forTheme('classic')('should show datepicker in the right position when cell is opened in the ' +
+    'top-start corner', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
       fixedRowsTop: 3,
@@ -1487,7 +1491,8 @@ describe('DateEditor', () => {
     expect(pikaElement.is(':visible')).toBe(true);
   });
 
-  it.forTheme('main')('should show datepicker in the right position when cell is opened in the top-start corner', async() => {
+  it.forTheme('main')('should show datepicker in the right position when cell is opened in the ' +
+    'top-start corner', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
       fixedRowsTop: 3,
@@ -1521,7 +1526,8 @@ describe('DateEditor', () => {
     expect(pikaElement.is(':visible')).toBe(true);
   });
 
-  it.forTheme('horizon')('should show datepicker in the right position when cell is opened in the top-start corner', async() => {
+  it.forTheme('horizon')('should show datepicker in the right position when cell is opened in the ' +
+    'top-start corner', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
       fixedRowsTop: 3,

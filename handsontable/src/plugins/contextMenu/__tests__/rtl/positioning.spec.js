@@ -135,9 +135,9 @@ describe('ContextMenu (RTL mode)', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         expect(subMenuOffset.top)
-        .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 5, 0);
+          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 5, 0);
         expect(subMenuOffset.left)
-        .toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
+          .toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
       });
 
       it('should open subMenu on the right-bottom of the main menu if on the left there\'s no space left', async() => {
@@ -251,9 +251,9 @@ describe('ContextMenu (RTL mode)', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         expect(subMenuOffset.top)
-        .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 5, 0);
+          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 5, 0);
         expect(subMenuOffset.left)
-        .toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
+          .toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
       });
     });
 

@@ -75,11 +75,12 @@ describe('Filters UI Value component', () => {
       left: 100,
     });
 
-    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(7);
-      main.toBe(6);
-      horizon.toBe(6);
-    });
+    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length)
+      .forThemes(({ classic, main, horizon }) => {
+        classic.toBe(7);
+        main.toBe(6);
+        horizon.toBe(6);
+      });
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('2014-01-08');
   });
 
