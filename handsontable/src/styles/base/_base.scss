@@ -213,8 +213,7 @@
 
         .relative {
           &::after {
-            @include mixins.pseudo;
-
+            display: block;
             position: absolute;
             background-color: var(--ht-accent-color);
           }
