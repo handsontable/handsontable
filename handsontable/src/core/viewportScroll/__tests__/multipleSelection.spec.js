@@ -340,7 +340,7 @@ describe('Multiple selection scroll', () => {
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
-        horizon.toBe(94);
+        horizon.toBe(198);
       });
     });
 
@@ -364,7 +364,7 @@ describe('Multiple selection scroll', () => {
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
-        horizon.toBe(94);
+        horizon.toBe(198);
       });
     });
 
@@ -389,7 +389,7 @@ describe('Multiple selection scroll', () => {
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
         main.toBe(65);
-        horizon.toBe(65);
+        horizon.toBe(161);
       });
     });
 
@@ -412,7 +412,7 @@ describe('Multiple selection scroll', () => {
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
         main.toBe(94);
-        horizon.toBe(94);
+        horizon.toBe(198);
       });
     });
 
@@ -435,7 +435,7 @@ describe('Multiple selection scroll', () => {
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
         main.toBe(65);
-        horizon.toBe(65);
+        horizon.toBe(161);
       });
     });
   });

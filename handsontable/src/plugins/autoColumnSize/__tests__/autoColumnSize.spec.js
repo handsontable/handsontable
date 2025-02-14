@@ -1463,7 +1463,7 @@ describe('AutoColumnSize', () => {
       expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
         main.toBe(65);
-        horizon.toBe(65);
+        horizon.toBe(161);
       });
 
       setDataAtCell(0, 0, 9);

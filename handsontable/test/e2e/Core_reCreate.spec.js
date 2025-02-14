@@ -35,7 +35,7 @@ describe('Core_reCreate', () => {
     expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(36);
       main.toEqual(48);
-      horizon.toEqual(48);
+      horizon.toEqual(56);
     });
   });
 });

@@ -66,10 +66,10 @@ describe('Core.getFirstRenderedVisibleRow', () => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
-      height: 240,
+      height: 306,
     });
 
-    setScrollTop(447); // row 15 (A16) is partially visible
+    setScrollTop(570); // row 15 (A16) is partially visible
     render();
 
     expect(getFirstRenderedVisibleRow()).toBe(12);

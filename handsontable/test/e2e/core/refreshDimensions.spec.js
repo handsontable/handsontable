@@ -35,6 +35,11 @@ describe('Core.refreshDimensions', () => {
         { width: 1265, height: 146 },
         true,
       );
+      horizon.toHaveBeenCalledOnceWith(
+        { width: 1265, height: 0 },
+        { width: 1265, height: 186 },
+        true,
+      );
     });
     expect(afterRefreshDimensions).forThemes(({ classic, main, horizon }) => {
       classic.toHaveBeenCalledOnceWith(
@@ -45,6 +50,11 @@ describe('Core.refreshDimensions', () => {
       main.toHaveBeenCalledOnceWith(
         { width: 1265, height: 0 },
         { width: 1265, height: 146 },
+        true,
+      );
+      horizon.toHaveBeenCalledOnceWith(
+        { width: 1265, height: 0 },
+        { width: 1265, height: 186 },
         true,
       );
     });

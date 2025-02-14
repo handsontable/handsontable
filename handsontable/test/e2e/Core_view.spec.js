@@ -408,7 +408,7 @@ describe('Core_view', () => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: 240,
+      height: 306,
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -483,7 +483,7 @@ describe('Core_view', () => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: 240,
+      height: 306,
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -552,7 +552,7 @@ describe('Core_view', () => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: 240,
+      height: 306,
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -609,9 +609,47 @@ describe('Core_view', () => {
     spec().$container.unwrap();
   });
 
-  it('should fire beforeViewRender event after table has been scrolled', async() => {
+  it.forTheme('classic')('should fire beforeViewRender event after table has been scrolled', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
+    spec().$container[0].style.overflow = 'hidden';
+
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(100, 3)
+    });
+
+    const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
+
+    hot.addHook('beforeViewRender', beforeRenderCallback);
+    spec().$container.find('.ht_master .wtHolder').scrollTop(1000);
+
+    await sleep(200);
+
+    expect(beforeRenderCallback.calls.count()).toBe(1);
+  });
+
+  it.forTheme('main')('should fire beforeViewRender event after table has been scrolled', async() => {
+    spec().$container[0].style.width = '400px';
+    spec().$container[0].style.height = '60px';
+    spec().$container[0].style.overflow = 'hidden';
+
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(100, 3)
+    });
+
+    const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
+
+    hot.addHook('beforeViewRender', beforeRenderCallback);
+    spec().$container.find('.ht_master .wtHolder').scrollTop(1000);
+
+    await sleep(200);
+
+    expect(beforeRenderCallback.calls.count()).toBe(1);
+  });
+
+  it.forTheme('horizon')('should fire beforeViewRender event after table has been scrolled', async() => {
+    spec().$container[0].style.width = '400px';
+    spec().$container[0].style.height = '97px';
     spec().$container[0].style.overflow = 'hidden';
 
     const hot = handsontable({
@@ -757,7 +795,7 @@ describe('Core_view', () => {
     $(getCell(1, 0))
     .simulate('mouseover', {
       clientX: 100, // coordinates of the cell 1, 2 before the column is resized
-      clientY: 30, // coordinates of the cell 1, 2 before the column is resized
+      clientY: 38, // coordinates of the cell 1, 2 before the column is resized
     })
     .simulate('mouseup')
     .simulate('click');

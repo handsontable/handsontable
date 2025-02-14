@@ -43,12 +43,12 @@ describe('Core.scrollViewportTo', () => {
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(2318);
         main.toBe(2620);
-        horizon.toBe(2620);
+        horizon.toBe(3023);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(3216);
         main.toBe(4125);
-        horizon.toBe(4125);
+        horizon.toBe(5341);
       });
     });
 
@@ -81,12 +81,12 @@ describe('Core.scrollViewportTo', () => {
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(2502);
         main.toBe(2795);
-        horizon.toBe(2795);
+        horizon.toBe(3190);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(3216);
         main.toBe(4125);
-        horizon.toBe(4125);
+        horizon.toBe(5341);
       });
     });
 
@@ -119,12 +119,12 @@ describe('Core.scrollViewportTo', () => {
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(2502);
         main.toBe(2795);
-        horizon.toBe(2795);
+        horizon.toBe(3190);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(3450);
         main.toBe(4350);
-        horizon.toBe(4350);
+        horizon.toBe(5550);
       });
     });
 
@@ -157,12 +157,12 @@ describe('Core.scrollViewportTo', () => {
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(2318);
         main.toBe(2620);
-        horizon.toBe(2620);
+        horizon.toBe(3023);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(3450);
         main.toBe(4350);
-        horizon.toBe(4350);
+        horizon.toBe(5550);
       });
     });
   });
@@ -188,7 +188,7 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(3216);
       main.toBe(4125);
-      horizon.toBe(4125);
+      horizon.toBe(5341);
     });
   });
 
@@ -213,7 +213,7 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(3450);
       main.toBe(4350);
-      horizon.toBe(4350);
+      horizon.toBe(5550);
     });
   });
 
@@ -237,7 +237,7 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(2318);
       main.toBe(2620);
-      horizon.toBe(2620);
+      horizon.toBe(3023);
     });
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
@@ -262,7 +262,7 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(2502);
       main.toBe(2795);
-      horizon.toBe(2795);
+      horizon.toBe(3190);
     });
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
@@ -374,7 +374,7 @@ describe('Core.scrollViewportTo', () => {
   it.forTheme('horizon')('should scroll the viewport only horizontally', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100),
-      height: 375,
+      height: 478,
       width: 360,
       rowHeaders: true,
       colHeaders: true
@@ -454,7 +454,7 @@ describe('Core.scrollViewportTo', () => {
   it.forTheme('horizon')('should scroll the viewport only vertically', () => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100),
-      height: 375,
+      height: 478,
       width: 360,
       rowHeaders: true,
       colHeaders: true
@@ -911,11 +911,151 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(0);
   });
 
-  it('should scroll the viewport to the the visual index destination when there are some hidden rows', () => {
+  it.forTheme('classic')('should scroll the viewport to the the visual index destination when there are some hidden rows', () => {
     const hot = handsontable({
       data: createSpreadsheetData(25, 20),
       width: 200,
       height: 200,
+    });
+
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+    hidingMap.setValueAtIndex(7, true);
+    hidingMap.setValueAtIndex(15, true);
+
+    render();
+
+    const scrollResult1 = scrollViewportTo({
+      row: 2,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
+
+    const scrollResult2 = scrollViewportTo({
+      row: 14,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(19);
+
+    const scrollResult3 = scrollViewportTo({
+      row: 2,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
+
+    const scrollResult4 = scrollViewportTo({
+      row: 0,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult4).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(0);
+  });
+
+  it.forTheme('main')('should scroll the viewport to the the visual index destination when there are some hidden rows', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(25, 20),
+      width: 200,
+      height: 200,
+    });
+
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+    hidingMap.setValueAtIndex(7, true);
+    hidingMap.setValueAtIndex(15, true);
+
+    render();
+
+    const scrollResult1 = scrollViewportTo({
+      row: 2,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
+
+    const scrollResult2 = scrollViewportTo({
+      row: 14,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(19);
+
+    const scrollResult3 = scrollViewportTo({
+      row: 2,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
+
+    const scrollResult4 = scrollViewportTo({
+      row: 0,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+      considerHiddenIndexes: false,
+    });
+
+    render();
+
+    expect(scrollResult4).toBe(true);
+    expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(0);
+  });
+
+  it.forTheme('horizon')('should scroll the viewport to the the visual index destination when there are some hidden rows', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(25, 20),
+      width: 200,
+      height: 321,
     });
 
     const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
@@ -1052,7 +1192,7 @@ describe('Core.scrollViewportTo', () => {
     const hot = handsontable({
       data: createSpreadsheetData(30, 30),
       colWidths: 50,
-      rowHeights: 30,
+      rowHeights: 40,
       rowHeaders: true,
       colHeaders: true,
       width: 200,

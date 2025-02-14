@@ -34,7 +34,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
-      height: 250,
+      height: 319,
     });
 
     expect(getLastRenderedVisibleRow()).toBe(9);
@@ -76,7 +76,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
-      height: 250,
+      height: 319,
     });
 
     const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
@@ -118,10 +118,10 @@ describe('Core.getLastRenderedVisibleRow', () => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
-      height: 250,
+      height: 319,
     });
 
-    setScrollTop(447); // row 23 (A24) is partially visible
+    setScrollTop(570); // row 23 (A24) is partially visible
     render();
 
     expect(getLastRenderedVisibleRow()).toBe(26);
