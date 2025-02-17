@@ -226,18 +226,18 @@ describe('AutoRowSize', () => {
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(24);
       main.toBe(30);
-      horizon.toBe(30);
+      horizon.toBe(38);
     });
     expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(43);
       main.toBe(49);
-      horizon.toBe(49);
+      horizon.toBe(57);
     });
 
     expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(127);
       main.toBe(129);
-      horizon.toBe(129);
+      horizon.toBe(137);
     });
   });
 
@@ -315,12 +315,12 @@ describe('AutoRowSize', () => {
     expect(getInlineStartClone().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(90);
       main.toBe(216);
-      horizon.toBe(216);
+      horizon.toBe(264);
     });
     expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(90);
       main.toBe(216);
-      horizon.toBe(216);
+      horizon.toBe(264);
     });
   });
 
@@ -469,17 +469,17 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22); // -1px of cell border
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22); // -1px of cell border
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22); // -1px of cell border
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
 
     resizeColumn.call(this, 1, 90);
@@ -487,17 +487,17 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(42);
       main.toBe(49);
-      horizon.toBe(49);
+      horizon.toBe(57);
     });
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(63);
       main.toBe(89);
-      horizon.toBe(89);
+      horizon.toBe(97);
     });
 
     resizeColumn.call(this, 1, 50);
@@ -505,17 +505,17 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(42);
       main.toBe(49);
-      horizon.toBe(49);
+      horizon.toBe(57);
     });
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(126);
       main.toBe(129);
-      horizon.toBe(129);
+      horizon.toBe(137);
     });
 
     resizeColumn.call(this, 1, 200);
@@ -523,17 +523,17 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(49);
-      horizon.toBe(49);
+      horizon.toBe(57);
     });
   });
 
@@ -552,17 +552,17 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(42); // -1px of cell border
       main.toBe(49);
-      horizon.toBe(49);
+      horizon.toBe(57);
     });
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(105); // -1px of cell border
       main.toBe(109);
-      horizon.toBe(109);
+      horizon.toBe(117);
     });
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeInArray([22, 42]); // -1px of cell border
       main.toBeInArray([29, 49]);
-      horizon.toBeInArray([29, 49]);
+      horizon.toBeInArray([37, 63]);
     });
 
     plugin.moveColumn(0, 1);
@@ -571,17 +571,17 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(42);
       main.toBe(49);
-      horizon.toBe(49);
+      horizon.toBe(57);
     });
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(126);
       main.toBe(129);
-      horizon.toBe(129);
+      horizon.toBe(137);
     });
   });
 
@@ -598,7 +598,7 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22); // -1px of cell border
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(49); // -1px of cell border
@@ -608,7 +608,7 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeInArray([22, 42]); // -1px of cell border
       main.toBeInArray([29, 49]);
-      horizon.toBeInArray([29, 49]);
+      horizon.toBeInArray([37, 63]);
     });
 
     hot.setDataAtCell(1, 0, 'A\nB\nC\nD\nE');
@@ -616,17 +616,17 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(105);
       main.toBe(109);
-      horizon.toBe(109);
+      horizon.toBe(117);
     });
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeInArray([22, 42]);
       main.toBeInArray([29, 49]);
-      horizon.toBeInArray([29, 49]);
+      horizon.toBeInArray([37, 63]);
     });
   });
 
@@ -644,7 +644,7 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22); // -1px of cell border
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(49); // -1px of cell border
@@ -654,7 +654,7 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeInArray([22, 42]); // -1px of cell border
       main.toBeInArray([29, 49]);
-      horizon.toBeInArray([29, 49]);
+      horizon.toBeInArray([37, 63]);
     });
 
     const plugin = hot.getPlugin('manualRowMove');
@@ -670,12 +670,12 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeInArray([22, 42]); // -1px of cell border
       main.toBeInArray([29, 49]);
-      horizon.toBeInArray([29, 49]);
+      horizon.toBeInArray([37, 63]);
     });
   });
 
@@ -698,7 +698,7 @@ describe('AutoRowSize', () => {
     expect(rowHeight(spec().$container, -1)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(65);
       main.toBeAroundValue(88);
-      horizon.toBeAroundValue(88);
+      horizon.toBeAroundValue(96);
     });
   });
 
@@ -717,7 +717,7 @@ describe('AutoRowSize', () => {
     expect(cloneLeft.height()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual(70);
       main.toEqual(79);
-      horizon.toEqual(79);
+      horizon.toEqual(95);
     });
   });
 
@@ -755,17 +755,17 @@ describe('AutoRowSize', () => {
     expect(getRowHeight(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(getRowHeight(1)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
     expect(getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
   });
 
@@ -791,7 +791,7 @@ describe('AutoRowSize', () => {
     expect(getRowHeight(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
       main.toBe(29);
-      horizon.toBe(29);
+      horizon.toBe(37);
     });
   });
 
@@ -827,7 +827,7 @@ describe('AutoRowSize', () => {
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(833);
       main.toBe(1135);
-      horizon.toBe(1135);
+      horizon.toBe(1543);
     });
 
     selectColumns(2, 2);
@@ -837,7 +837,7 @@ describe('AutoRowSize', () => {
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(833);
       main.toBe(1135);
-      horizon.toBe(1135);
+      horizon.toBe(1543);
     });
   });
 
@@ -881,27 +881,27 @@ describe('AutoRowSize', () => {
     expect(getRowHeight(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(26);
       main.toBe(34);
-      horizon.toBe(34);
+      horizon.toBe(42);
     });
     expect(getRowHeight(4)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(26);
       main.toBe(34);
-      horizon.toBe(34);
+      horizon.toBe(42);
     });
     expect(getRowHeight(9)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(26);
       main.toBe(34);
-      horizon.toBe(34);
+      horizon.toBe(42);
     });
     expect(getRowHeight(14)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(26);
       main.toBe(34);
-      horizon.toBe(34);
+      horizon.toBe(42);
     });
     expect(getRowHeight(19)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(26);
       main.toBe(34);
-      horizon.toBe(34);
+      horizon.toBe(42);
     });
 
     $(style).remove();

@@ -28,7 +28,7 @@ describe('HiddenRows', () => {
       expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(24);
         main.toBe(30);
-        horizon.toBe(30);
+        horizon.toBe(38);
       });
     });
 
@@ -47,7 +47,7 @@ describe('HiddenRows', () => {
       expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(24);
         main.toBe(30);
-        horizon.toBe(30);
+        horizon.toBe(38);
       });
     });
 
@@ -66,7 +66,7 @@ describe('HiddenRows', () => {
       expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(24);
         main.toBe(30);
-        horizon.toBe(30);
+        horizon.toBe(38);
       });
     });
 
@@ -84,7 +84,7 @@ describe('HiddenRows', () => {
       expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(24);
         main.toBe(30);
-        horizon.toBe(30);
+        horizon.toBe(38);
       });
     });
 
@@ -117,7 +117,7 @@ describe('HiddenRows', () => {
       expect(hot.getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(23);
         main.toBe(29);
-        horizon.toBe(29);
+        horizon.toBe(37);
       });
     });
 
@@ -149,7 +149,7 @@ describe('HiddenRows', () => {
       expect(hot.getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(23);
         main.toBe(29);
-        horizon.toBe(29);
+        horizon.toBe(37);
       });
     });
 

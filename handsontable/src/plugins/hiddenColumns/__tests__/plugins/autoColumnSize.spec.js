@@ -96,7 +96,7 @@ describe('HiddenColumns', () => {
       expect(hot.getColWidth(2)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(188);
         main.toBe(225);
-        horizon.toBe(225);
+        horizon.toBe(233);
       });
     });
 
@@ -121,7 +121,7 @@ describe('HiddenColumns', () => {
       expect(hot.getColWidth(2)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(173);
         main.toBe(210);
-        horizon.toBe(210);
+        horizon.toBe(218);
       });
     });
 

@@ -538,7 +538,7 @@ describe('AutocompleteEditor', () => {
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(118);
         main.toBe(146);
-        horizon.toBe(146);
+        horizon.toBe(148);
       });
     });
 
@@ -565,12 +565,12 @@ describe('AutocompleteEditor', () => {
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(52);
         main.toBe(62);
-        horizon.toBe(62);
+        horizon.toBe(70);
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(118);
         main.toBe(146);
-        horizon.toBe(146);
+        horizon.toBe(148);
       });
     });
 
@@ -601,7 +601,7 @@ describe('AutocompleteEditor', () => {
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(72);
         main.toBe(88);
-        horizon.toBe(88);
+        horizon.toBe(112);
       });
     });
 
@@ -628,12 +628,12 @@ describe('AutocompleteEditor', () => {
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(52 + Handsontable.dom.getScrollbarWidth());
         main.toBe(62 + Handsontable.dom.getScrollbarWidth());
-        horizon.toBe(62 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(70 + Handsontable.dom.getScrollbarWidth());
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(72);
         main.toBe(88);
-        horizon.toBe(88);
+        horizon.toBe(112);
       });
     });
   });
@@ -909,7 +909,7 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('.autocompleteEditor .htCore td').width()).forThemes(({ classic, main, horizon }) => {
         classic.toBeGreaterThan(187);
         main.toEqual(180);
-        horizon.toEqual(180);
+        horizon.toEqual(172);
       });
     });
 
@@ -2897,7 +2897,11 @@ describe('AutocompleteEditor', () => {
     const dropdownList = $('.autocompleteEditor tbody').first();
     const listLength = dropdownList.find('tr').size();
 
-    expect(listLength).toBe(9);
+    expect(listLength).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(9);
+      main.toBe(9);
+      horizon.toBe(8);
+    });
 
     for (let i = 1; i <= listLength; i++) {
       expect(dropdownList.find(`tr:nth-child(${i}) td`).text()).toEqual(choicesList[i - 1]);

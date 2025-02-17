@@ -218,12 +218,12 @@ describe('settings', () => {
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26); // 26px as rowHeaders is enabled
         main.toBe(29);
-        horizon.toBe(29);
+        horizon.toBe(37);
       });
       expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26); // 26px as rowHeaders is enabled
         main.toBe(29);
-        horizon.toBe(29);
+        horizon.toBe(37);
       });
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
@@ -251,12 +251,12 @@ describe('settings', () => {
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
         main.toBe(29);
-        horizon.toBe(29);
+        horizon.toBe(37);
       });
       expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
         main.toBe(29);
-        horizon.toBe(29);
+        horizon.toBe(37);
       });
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);
@@ -286,7 +286,7 @@ describe('settings', () => {
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
         main.toBe(29);
-        horizon.toBe(29);
+        horizon.toBe(37);
       });
 
       updateSettings({ fixedRowsBottom: 0 });
@@ -294,7 +294,7 @@ describe('settings', () => {
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
         main.toBe(29);
-        horizon.toBe(29);
+        horizon.toBe(37);
       });
 
       updateSettings({ fixedRowsBottom: 1 });
@@ -302,7 +302,7 @@ describe('settings', () => {
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
         main.toBe(29);
-        horizon.toBe(29);
+        horizon.toBe(37);
       });
 
       updateSettings({ data: [] });
