@@ -202,7 +202,7 @@ describe('Selection extending', () => {
     it.forTheme('horizon')('should extend the cell selection up by the height of the table viewport', () => {
       handsontable({
         width: 180,
-        height: 120, // 120/28 (cell height) rounding down is 4. So PageUp will extend the selection per 4 rows
+        height: 153, // 153/37 (cell height) rounding down is 4. So PageUp will extend the selection per 4 rows
         startRows: 15,
         startCols: 3
       });
@@ -379,7 +379,7 @@ describe('Selection extending', () => {
       'keeping the initial selection viewport offset', async() => {
       const hot = handsontable({
         width: 180,
-        height: 252,
+        height: 322,
         startRows: 100,
         startCols: 3
       });

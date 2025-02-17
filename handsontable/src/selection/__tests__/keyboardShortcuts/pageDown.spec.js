@@ -205,7 +205,7 @@ describe('Selection navigation', () => {
     it.forTheme('horizon')('should move the cell selection down by the height of the table viewport', () => {
       handsontable({
         width: 180,
-        height: 126, // 126/29 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
+        height: 161, // 161/37 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
         startRows: 15,
         startCols: 3
       });

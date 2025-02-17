@@ -78,7 +78,7 @@ describe('Comments keyboard shortcut', () => {
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(8966);
         main.toBe(11375);
-        horizon.toBe(11375);
+        horizon.toBe(14591);
       });
     });
 

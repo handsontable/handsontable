@@ -32,7 +32,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
         classic.toBe(25);
         main.toBe(35);
-        horizon.toBe(35);
+        horizon.toBe(43);
       });
     });
 

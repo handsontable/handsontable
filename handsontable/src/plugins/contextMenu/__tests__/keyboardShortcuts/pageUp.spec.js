@@ -28,7 +28,7 @@ describe('ContextMenu keyboard shortcut', () => {
       expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
         classic.toBe(1);
         main.toBe(10);
-        horizon.toBe(10);
+        horizon.toBe(14);
       });
     });
 

@@ -217,7 +217,7 @@ describe('Selection navigation', () => {
     it.forTheme('horizon')('should move the cell selection up by the height of the table viewport', () => {
       handsontable({
         width: 180,
-        height: 126, // 126/29 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
+        height: 161, // 161/37 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
         startRows: 15,
         startCols: 3
       });
@@ -508,7 +508,7 @@ describe('Selection navigation', () => {
     it.forTheme('horizon')('should move the cell selection up to the first column header and scroll ' +
       'the viewport (navigableHeaders on)', async() => {
       const hot = handsontable({
-        height: 252,
+        height: 322,
         rowHeaders: true,
         colHeaders: true,
         startRows: 15,

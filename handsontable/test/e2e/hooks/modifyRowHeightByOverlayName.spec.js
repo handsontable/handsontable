@@ -42,39 +42,39 @@ describe('Hook', () => {
       expect(getCell(0, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(22);
         main.toBe(28);
-        horizon.toBe(28);
+        horizon.toBe(36);
       });
       expect(getCell(1, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(22);
         main.toBe(28);
-        horizon.toBe(28);
+        horizon.toBe(36);
       });
       expect(getCell(2, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(22);
         main.toBe(28);
-        horizon.toBe(28);
+        horizon.toBe(36);
       });
       expect(getCell(3, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(22);
         main.toBe(28);
-        horizon.toBe(28);
+        horizon.toBe(36);
       });
       expect(getCell(4, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(22);
         main.toBe(28);
-        horizon.toBe(28);
+        horizon.toBe(36);
       });
       // top inline start corner
       expect(getCell(0, 0, true).clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(29);
         main.toBe(28);
-        horizon.toBe(28);
+        horizon.toBe(36);
       });
       // top overlay
       expect(getCell(0, 2, true).clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(34);
         main.toBe(33);
-        horizon.toBe(33);
+        horizon.toBe(36);
       });
       // inline start overlay
       expect(getCell(2, 0, true).clientHeight).toBe(39);
