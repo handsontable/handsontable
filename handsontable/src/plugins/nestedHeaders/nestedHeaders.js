@@ -860,10 +860,12 @@ export class NestedHeaders extends BasePlugin {
    * @param {Array} renderersArray Array of renderers.
    */
   #onAfterGetColumnHeaderRenderers(renderersArray) {
-    renderersArray.length = 0;
+    if (this.#stateManager.getLayersCount() > 0) {
+      renderersArray.length = 0;
 
-    for (let headerLayer = 0; headerLayer < this.#stateManager.getLayersCount(); headerLayer++) {
-      renderersArray.push(this.headerRendererFactory(headerLayer));
+      for (let headerLayer = 0; headerLayer < this.#stateManager.getLayersCount(); headerLayer++) {
+        renderersArray.push(this.headerRendererFactory(headerLayer));
+      }
     }
   }
 

@@ -20,6 +20,19 @@ describe('NestedHeaders', () => {
   });
 
   describe('general functionality', () => {
+    it('should add `htColumnHeaders` to the table when nested headers are defined', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(10, 10),
+        colHeaders: true,
+        nestedHeaders: [
+          ['a', 'b', 'c', 'd'],
+          ['a', 'b', 'c', 'd']
+        ]
+      });
+
+      expect(hot.rootElement.className).toContain('htColumnHeaders');
+    });
+
     it('should add as many header levels as the \'colHeaders\' property suggests', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
