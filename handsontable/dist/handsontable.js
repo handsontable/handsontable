@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 15.1.0
- * Release date: 19/02/2025 (built at 17/02/2025 11:06:44)
+ * Release date: 19/02/2025 (built at 18/02/2025 12:14:26)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "17/02/2025 11:06:44";
+Handsontable.buildDate = "18/02/2025 12:14:26";
 Handsontable.version = "15.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -61636,7 +61636,7 @@ class Comments extends _base.BasePlugin {
       keys: [['Shift', 'Tab'], ['Tab']],
       forwardToContext: manager.getContext('grid'),
       callback: () => {
-        _classPrivateFieldGet(_editor, this).setValue(_classPrivateFieldGet(_commentValueBeforeSave, this));
+        _classPrivateFieldGet(_editor, this).setValue(_classPrivateFieldGet(_editor, this).getValue());
         this.hide();
         manager.setActiveContextName('grid');
       },
@@ -61668,6 +61668,7 @@ class Comments extends _base.BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => _assertClassBrand(_Comments_brand, this, _onMouseUp).call(this));
     this.eventManager.addEventListener(editorElement, 'focus', () => _assertClassBrand(_Comments_brand, this, _onEditorFocus).call(this));
     this.eventManager.addEventListener(editorElement, 'blur', () => _assertClassBrand(_Comments_brand, this, _onEditorBlur).call(this));
+    this.eventManager.addEventListener(this.getEditorInputElement(), 'mousedown', event => _assertClassBrand(_Comments_brand, this, _onInputElementMouseDown).call(this, event));
   }
 
   /**
@@ -62031,6 +62032,14 @@ function _onMouseDown(event) {
       this.hide();
     }
   }
+}
+/**
+ * Prevent recognizing clicking on the comment editor as clicking outside of table.
+ *
+ * @param {MouseEvent} event The `mousedown` event.
+ */
+function _onInputElementMouseDown(event) {
+  event.stopPropagation();
 }
 /**
  * `mouseover` event callback.
