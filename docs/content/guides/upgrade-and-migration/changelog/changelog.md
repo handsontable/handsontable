@@ -27,7 +27,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 ## 15.1.0
 
-Released on February 12, 2025
+Released on February 19, 2025
 
 For more information about this release see:
 - [Documentation (15.0)](https://handsontable.com/docs/15.1)
@@ -80,6 +80,8 @@ For more information about this release see:
 - Fixed a problem with the header widths when using Nested Headers with the new themes enabled. [#11410](https://github.com/handsontable/handsontable/pull/11410)
 - Fixed the header text overlap in Nested Headers. [#11413](https://github.com/handsontable/handsontable/pull/11413)
 - Fixed a problem with the merged cells height calculation in the new themes. [#11423](https://github.com/handsontable/handsontable/pull/11423)
+- Fixed the copy/paste feature not working correctly in Chrome 133. [#11428](https://github.com/handsontable/handsontable/pull/11428)
+- Fixed a problem, where clicking on the Comments' editor element deselected the currently selected cells. [#11446](https://github.com/handsontable/handsontable/pull/11446)
 
 
 ## 15.0.0
