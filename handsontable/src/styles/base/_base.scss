@@ -210,22 +210,12 @@
       &.ht__highlight {
         color: var(--ht-header-highlighted-foreground-color);
         background-color: var(--ht-header-highlighted-background-color);
-
-        .relative {
-          &::after {
-            @include mixins.pseudo;
-
-            position: absolute;
-            background-color: var(--ht-accent-color);
-          }
-        }
       }
 
       &.ht__active_highlight {
         border-color: var(--ht-header-active-border-color);
         color: var(--ht-header-active-foreground-color);
         background-color: var(--ht-header-active-background-color);
-        box-shadow: -1px 0 0 0 var(--ht-header-active-border-color);
       }
     }
 
@@ -254,21 +244,14 @@
           color: var(--ht-header-row-foreground-color);
           background-color: var(--ht-header-row-background-color);
 
+          &.ht__active_highlight {
+            box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color);
+          }
+
           .relative {
             padding: var(--ht-cell-vertical-padding)
               var(--ht-cell-horizontal-padding);
             height: 100%;
-
-            &::after {
-              top: -1px;
-              right: -1px;
-              bottom: -1px;
-              width: var(--ht-header-highlighted-shadow-size);
-            }
-          }
-
-          &.ht__active_highlight {
-            box-shadow: 0 -1px 0 0 var(--ht-header-active-border-color);
           }
         }
 
@@ -287,29 +270,16 @@
     // Header in Col
     thead {
       tr {
-        &:only-of-type {
-          th {
-            .relative {
-              &::after {
-                bottom: 0;
-              }
-            }
-          }
-        }
-
         th {
           padding: 0;
+
+          &.ht__active_highlight {
+            box-shadow: -1px 0 0 0 var(--ht-header-active-border-color);
+          }
 
           .relative {
             padding: var(--ht-cell-vertical-padding)
               var(--ht-cell-horizontal-padding);
-
-            &::after {
-              left: -1px;
-              right: -1px;
-              bottom: -1px;
-              height: var(--ht-header-highlighted-shadow-size);
-            }
 
             .colHeader {
               text-overflow: ellipsis;
@@ -349,6 +319,53 @@
 
         &.ht__active_highlight {
           border-bottom-color: var(--ht-header-active-border-color);
+        }
+      }
+    }
+
+    // header highlight line
+    div[class^="ht_clone"] {
+      thead {
+        .ht__highlight {
+          .relative {
+            &::after {
+              @include mixins.pseudo();
+
+              position: absolute;
+              left: -1px;
+              right: -1px;
+              bottom: -1px;
+              height: var(--ht-header-highlighted-shadow-size);
+              background-color: var(--ht-accent-color);
+            }
+          }
+        }
+
+        tr:only-of-type {
+          .ht__highlight {
+            .relative {
+              &::after {
+                bottom: 0;
+              }
+            }
+          }
+        }
+      }
+
+      tbody {
+        .ht__highlight {
+          .relative {
+            &::after {
+              @include mixins.pseudo();
+
+              position: absolute;
+              top: -1px;
+              right: -1px;
+              bottom: -1px;
+              width: var(--ht-header-highlighted-shadow-size);
+              background-color: var(--ht-accent-color);
+            }
+          }
         }
       }
     }
@@ -531,16 +548,13 @@
             border-inline-start-color: var(--ht-border-color);
           }
         }
-
-        th {
-          .relative {
-            &::after {
-              right: auto;
-              left: -1px;
-            }
-          }
-        }
       }
+    }
+
+    // header highlight line rtl fix
+    div[class^="ht_clone"] tbody .ht__highlight .relative::after {
+      right: auto;
+      left: -1px;
     }
   }
 }
