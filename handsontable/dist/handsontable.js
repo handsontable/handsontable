@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 15.1.0
- * Release date: 19/02/2025 (built at 18/02/2025 12:14:26)
+ * Release date: 19/02/2025 (built at 18/02/2025 15:34:18)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "18/02/2025 12:14:26";
+Handsontable.buildDate = "18/02/2025 15:34:18";
 Handsontable.version = "15.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -2561,6 +2561,9 @@ function Core(rootElement, userSettings) {
       instance.forceFullRender = true; // used when data was changed
       instance.view.render();
       instance.view._wt.wtOverlays.adjustElementsSize();
+    }
+    if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) && currentHeight !== height) {
+      instance.view._wt.wtOverlays.updateMainScrollableElements();
     }
   };
 
@@ -22937,6 +22940,30 @@ class Overlays {
       this.inlineStartOverlay.clone.wtTable.holder.scrollTop = scrollTop; // todo rethink, *overlay.setScroll*()
     }
     _classPrivateFieldSet(_hasRenderingStateChanged, this, false);
+  }
+
+  /**
+   * Update the main scrollable elements for all the overlays.
+   */
+  updateMainScrollableElements() {
+    this.eventManager.clearEvents(true);
+    this.inlineStartOverlay.updateMainScrollableElement();
+    this.topOverlay.updateMainScrollableElement();
+    if (this.bottomOverlay.needFullRender) {
+      this.bottomOverlay.updateMainScrollableElement();
+    }
+    const {
+      wtTable
+    } = this;
+    const {
+      rootWindow
+    } = this.domBindings;
+    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+      this.scrollableElement = wtTable.holder;
+    } else {
+      this.scrollableElement = (0, _element.getScrollableElement)(wtTable.TABLE);
+    }
+    this.registerListeners();
   }
 
   /**
