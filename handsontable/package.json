@@ -137,7 +137,7 @@
     "lodash": "^4.17.20",
     "mini-css-extract-plugin": "^2.7.6",
     "minimatch": "^3.0.4",
-    "puppeteer": "^19.2.2",
+    "puppeteer": "^24.2.1",
     "replace-in-file": "^6.1.0",
     "rimraf": "^3.0.2",
     "sass": "^1.58.0",
