@@ -87,6 +87,8 @@
 
       .ht_master {
         .htCore {
+          border-radius: var(--ht-wrapper-border-radius);
+
           thead {
             tr {
               &:first-child {
@@ -135,6 +137,8 @@
 
       .ht_clone_top_inline_start_corner {
         .htCore {
+          border-start-start-radius: var(--ht-wrapper-border-radius);
+
           thead {
             tr {
               &:first-child {
@@ -151,6 +155,9 @@
 
       .ht_clone_top {
         .htCore {
+          border-start-start-radius: var(--ht-wrapper-border-radius);
+          border-start-end-radius: var(--ht-wrapper-border-radius);
+
           thead {
             tr {
               &:first-child {
@@ -171,6 +178,9 @@
 
       .ht_clone_inline_start {
         .htCore {
+          border-start-start-radius: var(--ht-wrapper-border-radius);
+          border-end-start-radius: var(--ht-wrapper-border-radius);
+
           thead {
             tr {
               &:first-child {
@@ -200,6 +210,8 @@
 
       .ht_clone_bottom_inline_start_corner {
         .htCore {
+          border-end-start-radius: var(--ht-wrapper-border-radius);
+
           tr {
             &:last-child {
               th,
@@ -215,6 +227,9 @@
 
       .ht_clone_bottom {
         .htCore {
+          border-end-start-radius: var(--ht-wrapper-border-radius);
+          border-end-end-radius: var(--ht-wrapper-border-radius);
+          
           tr {
             &:last-child {
               th,
