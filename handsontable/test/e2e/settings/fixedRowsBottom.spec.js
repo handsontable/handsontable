@@ -213,7 +213,7 @@ describe('settings', () => {
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50); // 25px corner + 25px added row
         main.toBe(59);
-        horizon.toBe(59);
+        horizon.toBe(75);
       });
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26); // 26px as rowHeaders is enabled
@@ -228,17 +228,17 @@ describe('settings', () => {
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
         main.toBe(59);
-        horizon.toBe(59);
+        horizon.toBe(75);
       });
       expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(24);
         main.toBe(30);
-        horizon.toBe(30);
+        horizon.toBe(38);
       });
       expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(24);
         main.toBe(30);
-        horizon.toBe(30);
+        horizon.toBe(38);
       });
 
       alter('insert_row_above', 0);
@@ -246,7 +246,7 @@ describe('settings', () => {
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);
         main.toBe(88);
-        horizon.toBe(88);
+        horizon.toBe(112);
       });
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
@@ -261,17 +261,17 @@ describe('settings', () => {
       expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);
         main.toBe(88);
-        horizon.toBe(88);
+        horizon.toBe(112);
       });
       expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(47);
         main.toBe(59);
-        horizon.toBe(59);
+        horizon.toBe(75);
       });
       expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(47);
         main.toBe(59);
-        horizon.toBe(59);
+        horizon.toBe(75);
       });
     });
 
@@ -311,7 +311,7 @@ describe('settings', () => {
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(27);
         main.toBe(30);
-        horizon.toBe(30);
+        horizon.toBe(38);
       });
     });
   });

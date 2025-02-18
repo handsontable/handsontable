@@ -227,7 +227,7 @@ describe('DropdownEditor', () => {
 
   it.forTheme('horizon')('should render an editor in specified position while opening an editor ' +
     'from top to bottom when top and bottom overlays are enabled', async() => {
-    spec().$container[0].style.height = '252px';
+    spec().$container[0].style.height = '313px';
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(8, 2),
@@ -564,7 +564,7 @@ describe('DropdownEditor', () => {
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(118);
         main.toBe(146);
-        horizon.toBe(146);
+        horizon.toBe(148);
       });
     });
 
@@ -595,7 +595,7 @@ describe('DropdownEditor', () => {
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(72);
         main.toBe(88);
-        horizon.toBe(88);
+        horizon.toBe(112);
       });
     });
   });

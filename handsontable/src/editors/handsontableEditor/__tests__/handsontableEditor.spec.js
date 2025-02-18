@@ -856,12 +856,12 @@ describe('HandsontableEditor', () => {
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
       classic.toBe(290);
       main.toBe(360);
-      horizon.toBe(360);
+      horizon.toBe(384);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(168);
       main.toBe(212);
-      horizon.toBe(212);
+      horizon.toBe(260);
     });
   });
 
@@ -901,12 +901,12 @@ describe('HandsontableEditor', () => {
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
       classic.toBe(290);
       main.toBe(360);
-      horizon.toBe(360);
+      horizon.toBe(384);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(168);
       main.toBe(212);
-      horizon.toBe(212);
+      horizon.toBe(260);
     });
   });
 });

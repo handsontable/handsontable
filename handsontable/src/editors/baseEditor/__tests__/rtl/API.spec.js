@@ -59,6 +59,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 maxHeight: 185,
               });
+              horizon.toEqual({
+                start: 0,
+                top: 0,
+                width: 51,
+                maxWidth: 285,
+                height: 38,
+                maxHeight: 185,
+              });
             });
           });
 
@@ -87,6 +95,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
+                maxHeight: document.documentElement.clientHeight,
+              });
+              horizon.toEqual({
+                start: 0,
+                top: 0,
+                width: 59,
+                maxWidth: document.documentElement.clientWidth,
+                height: 38,
                 maxHeight: document.documentElement.clientHeight,
               });
             });
@@ -127,6 +143,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 width: 51,
                 maxWidth: 51,
                 height: 30,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: 234,
+                top: 37,
+                width: 51,
+                maxWidth: 51,
+                height: 38,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
             });
@@ -175,6 +199,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 70, // 51 - the width of the first cell
+                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 37,
+                width: 70,
+                maxWidth: 70,
+                height: 38,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
             });
           });
         });
@@ -210,6 +242,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 maxHeight: 185,
               });
+              horizon.toEqual({
+                start: 0,
+                top: 0,
+                width: 51,
+                maxWidth: 285,
+                height: 38,
+                maxHeight: 185,
+              });
             });
           });
 
@@ -239,6 +279,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
+                maxHeight: document.documentElement.clientHeight,
+              });
+              horizon.toEqual({
+                start: 0,
+                top: 0,
+                width: 59,
+                maxWidth: document.documentElement.clientWidth,
+                height: 38,
                 maxHeight: document.documentElement.clientHeight,
               });
             });
@@ -282,6 +330,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: 50,
+                top: 37,
+                width: 52,
+                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+                height: 38,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
             });
           });
 
@@ -319,6 +375,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: Math.abs(document.documentElement.scrollLeft) + 58,
+                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 37,
+                width: 60,
+                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+                height: 38,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
             });
           });
         });
@@ -353,6 +417,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 maxHeight: 185,
               });
+              horizon.toEqual({
+                start: 0,
+                top: 0,
+                width: 51,
+                maxWidth: 285,
+                height: 38,
+                maxHeight: 185,
+              });
             });
           });
 
@@ -381,6 +453,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
+                maxHeight: document.documentElement.clientHeight,
+              });
+              horizon.toEqual({
+                start: 0,
+                top: 0,
+                width: 59,
+                maxWidth: document.documentElement.clientWidth,
+                height: 38,
                 maxHeight: document.documentElement.clientHeight,
               });
             });
@@ -423,6 +503,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 maxHeight: 30,
               }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: 50,
+                top: 147,
+                width: 52,
+                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+                height: 38,
+                maxHeight: 38,
+              }));
             });
           });
 
@@ -459,6 +547,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 maxHeight: 30,
               }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: Math.abs(document.documentElement.scrollLeft) + 58,
+                top: document.documentElement.offsetHeight - 38,
+                width: 60,
+                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+                height: 38,
+                maxHeight: 38,
+              }));
             });
           });
         });
@@ -494,6 +590,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: 0,
+                top: 110,
+                width: 51,
+                maxWidth: 285,
+                height: 38,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
             });
           });
 
@@ -523,6 +627,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: 0,
+                top: document.documentElement.clientHeight - 75,
+                width: 59,
+                maxWidth: document.documentElement.clientWidth,
+                height: 38,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
             });
@@ -566,6 +678,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: 0,
+                top: 110,
+                width: 51,
+                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+                height: 38,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
             });
           });
 
@@ -603,6 +723,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: Math.abs(document.documentElement.scrollLeft),
+                top: document.documentElement.offsetHeight - 76,
+                width: 59,
+                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
+                height: 38,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
             });
           });
         });
@@ -637,6 +765,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 height: 30,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: 0,
+                top: 110,
+                width: 51,
+                maxWidth: 285,
+                height: 38,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
             });
           });
 
@@ -665,6 +801,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 width: 51,
                 maxWidth: document.documentElement.clientWidth,
                 height: 30,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: 0,
+                top: document.documentElement.clientHeight - 75,
+                width: 59,
+                maxWidth: document.documentElement.clientWidth,
+                height: 38,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
             });
@@ -705,6 +849,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 width: 51,
                 maxWidth: 51,
                 height: 30,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: 234,
+                top: 147,
+                width: 51,
+                maxWidth: 51,
+                height: 38,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
             });
@@ -752,6 +904,14 @@ describe('BaseEditor API (RTL mode)', () => {
                 width: 51,
                 maxWidth: 51,
                 height: 30,
+                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+              }));
+              horizon.toEqual(jasmine.objectContaining({
+                start: 4949,
+                top: document.documentElement.offsetHeight - 39,
+                width: 51,
+                maxWidth: 51,
+                height: 38,
                 // maxHeight: ?, // returns wrong value! it will be fixed within #9206
               }));
             });

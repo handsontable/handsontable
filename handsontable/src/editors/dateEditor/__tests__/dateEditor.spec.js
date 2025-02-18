@@ -837,8 +837,8 @@ describe('DateEditor', () => {
     expect(pikaElement.is(':visible')).toBe(false);
   });
 
-  it.forTheme('horizon')('should move a datepicker together with the edited cell when the table is' +
-    ' scrolled down', async() => {
+  it.forTheme('horizon')('should move a datepicker together with the edited cell when the table is ' +
+    'scrolled down', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
       width: 200,

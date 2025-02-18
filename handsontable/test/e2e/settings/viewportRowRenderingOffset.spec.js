@@ -67,7 +67,7 @@ describe('settings', () => {
       handsontable({
         data: createSpreadsheetData(50, 50),
         width: 125,
-        height: 125,
+        height: 159,
         viewportRowRenderingOffset: 0,
         afterViewportRowCalculatorOverride(calculatorInstance) {
           calculator = calculatorInstance;

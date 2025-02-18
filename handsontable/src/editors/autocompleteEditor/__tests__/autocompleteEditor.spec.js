@@ -195,7 +195,7 @@ describe('AutocompleteEditor', () => {
 
   it.forTheme('horizon')('should render an editor in specified position while opening an editor ' +
     'from top to bottom when top and bottom overlays are enabled', () => {
-    spec().$container.css('height', '312px');
+    spec().$container.css('height', '313px');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(8, 2),
