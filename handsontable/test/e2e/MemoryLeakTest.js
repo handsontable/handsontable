@@ -45,8 +45,8 @@ describe('MemoryLeakTest', () => {
 
     } else {
       it('should not leave any event listeners attached to the HTML element after being destroyed', async() => {
-        const htmlListenersBefore = await getEventListeners(document.documentElement);
-        const bodyListenersBefore = await getEventListeners(document.body);
+        const htmlListenersBefore = await getEventListeners('html');
+        const bodyListenersBefore = await getEventListeners('body');
         const countListenersOfType = (listeners, type) =>
           (listeners.filter(listener => listener.type === type) || []).length;
 
@@ -67,8 +67,8 @@ describe('MemoryLeakTest', () => {
 
         hot.destroy();
 
-        const htmlListenersAfter = await getEventListeners(document.documentElement);
-        const bodyListenersAfter = await getEventListeners(document.body);
+        const htmlListenersAfter = await getEventListeners('html');
+        const bodyListenersAfter = await getEventListeners('body');
 
         expect(countListenersOfType(htmlListenersBefore.listeners, 'keydown'))
           .toEqual(countListenersOfType(htmlListenersAfter.listeners, 'keydown'));
