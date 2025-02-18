@@ -93,6 +93,7 @@
       .ht_master {
         .wtHolder {
           background-color: var(--ht-background-color);
+          border-radius: var(--ht-wrapper-border-radius, 0);
         }
       }
     }
