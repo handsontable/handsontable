@@ -27,7 +27,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 ## 15.1.0
 
-Released on February 19, 2025
+Released on February 20, 2025
 
 For more information about this release see:
 - [Documentation (15.0)](https://handsontable.com/docs/15.1)
