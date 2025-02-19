@@ -2632,6 +2632,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.view.render();
       instance.view._wt.wtOverlays.adjustElementsSize();
     }
+
+    if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
+        currentHeight !== height) {
+      instance.view._wt.wtOverlays.updateMainScrollableElements();
+    }
   };
 
   /**

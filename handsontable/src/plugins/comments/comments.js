@@ -299,7 +299,7 @@ export class Comments extends BasePlugin {
       keys: [['Shift', 'Tab'], ['Tab']],
       forwardToContext: manager.getContext('grid'),
       callback: () => {
-        this.#editor.setValue(this.#commentValueBeforeSave);
+        this.#editor.setValue(this.#editor.getValue());
         this.hide();
         manager.setActiveContextName('grid');
       },
@@ -332,6 +332,12 @@ export class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
     this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
     this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
+
+    this.eventManager.addEventListener(
+      this.getEditorInputElement(),
+      'mousedown',
+      event => this.#onInputElementMouseDown(event)
+    );
   }
 
   /**
@@ -678,6 +684,15 @@ export class Comments extends BasePlugin {
         this.hide();
       }
     }
+  }
+
+  /**
+   * Prevent recognizing clicking on the comment editor as clicking outside of table.
+   *
+   * @param {MouseEvent} event The `mousedown` event.
+   */
+  #onInputElementMouseDown(event) {
+    event.stopPropagation();
   }
 
   /**
