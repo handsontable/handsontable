@@ -3632,7 +3632,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns an array of row headers' values (if they are enabled). If param `row` was given, it returns the header of the given row as a string.
    *
-   *
    * @memberof Core#
    * @function getRowHeader
    * @param {number} [row] Visual row index.
