@@ -200,7 +200,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].style.width = '50px';
 
-        await sleep(500);
+        await sleep(700);
 
         expect(beforeRefreshDimensions).toHaveBeenCalledWith(
           { width: 469, height: 0 },
