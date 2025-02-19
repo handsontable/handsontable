@@ -666,6 +666,22 @@ describe('Core_view', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
   });
 
+  it('should update the `scrollableElement` value of the Overlays after changing the table view size settings', () => {
+    const hot = handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    expect(hot.view._wt.wtOverlays.scrollableElement).toBe(window);
+
+    updateSettings({
+      width: 200,
+      height: 200,
+    });
+
+    expect(hot.view._wt.wtOverlays.scrollableElement).toBe(hot.rootElement.querySelector('.wtHolder'));
+  });
+
   describe('scroll', () => {
     it('should call preventDefault in a wheel event on fixed overlay\'s element', async() => {
       spec().$container.css({
