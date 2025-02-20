@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the CodeQL warnings.",
-  "type": "fixed",
-  "issueOrPR": 11405,
-  "breaking": false,
-  "framework": "none"
-}

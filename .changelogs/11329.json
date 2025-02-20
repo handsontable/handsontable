@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix RLT datepicker arrows position, and other RTL fixes",
-  "type": "fixed",
-  "issueOrPR": 11329,
-  "breaking": false,
-  "framework": "none"
-}

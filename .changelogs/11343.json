@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where calling `updateSettings` with `themeName` set to the current theme name would clear the theme from the table.",
-  "type": "fixed",
-  "issueOrPR": 11343,
-  "breaking": false,
-  "framework": "none"
-}
