@@ -30,7 +30,8 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on February 20, 2025
 
 For more information about this release see:
-- [Documentation (15.0)](https://handsontable.com/docs/15.1)
+- [Blog post (15.1.0)](https://handsontable.com/blog/handsontable-15.1.0-performance-and-stability-improvements)
+- [Documentation (15.1)](https://handsontable.com/docs/15.1)
 
 #### Added
 - Added the `TAB` and `SHIFT + TAB` functionality to the Comments editor. [#11345](https://github.com/handsontable/handsontable/pull/11345)
