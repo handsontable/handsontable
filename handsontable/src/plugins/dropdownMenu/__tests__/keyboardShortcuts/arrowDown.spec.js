@@ -38,7 +38,10 @@ describe('DropdownMenu keyboard shortcut', () => {
       keyDownUp('arrowdown');
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
-      expect(window.scrollY).toBe(25);
+      expect(window.scrollY).forThemes(({ classic, main }) => {
+        classic.toBe(25);
+        main.toBe(35);
+      });
     });
 
     it('should move the menu item selection to the next item (skipping `disabled` items)', () => {

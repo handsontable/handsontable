@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 
-import { data } from '././customStyleData';
+import { data } from './customStyleData';
 
 const root = document.getElementById('root');
 

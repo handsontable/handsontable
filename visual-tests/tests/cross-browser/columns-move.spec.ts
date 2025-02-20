@@ -1,9 +1,8 @@
 import { test, expect } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
-
 import { columnsCount } from '../../src/page-helpers';
 
-test(__filename, async({ tablePage }) => {
+test('Test column moving', async({ tablePage }) => {
   expect(await columnsCount()).toBe(9);
 
   await tablePage.getByRole('columnheader', { name: 'Company name' }).click();

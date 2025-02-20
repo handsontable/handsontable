@@ -1095,12 +1095,12 @@ describe('Formulas general', () => {
       });
 
       hot.setDataAtCell(0, 5, '=B5');
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtCell(0, 5)).toBe('=A$1');
       expect(hot.getDataAtCell(0, 5)).toBe(0);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(hot.getSourceDataAtCell(0, 5)).toBe('=B5');
       expect(hot.getDataAtCell(0, 5)).toBe(8042);
@@ -1121,7 +1121,7 @@ describe('Formulas general', () => {
       hot.alter('insert_col_start', 1);
       hot.alter('insert_col_start', 4, 2);
       hot.alter('insert_row_above', 5);
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtRow(0))
         .toEqual(['=$C$5', null, 'Maserati', 'Mazda', null, null, 'Mercedes', 'Mini', '=A$1']);
@@ -1134,7 +1134,7 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(7))
         .toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,H6)', null, null, '=A5/C5', 12, '\'=SUM(E5)']);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$C$5', null, 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null, null]);
@@ -1146,7 +1146,7 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(7))
         .toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,F6)', '=A5/C5', 12, '\'=SUM(E5)']);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$5', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null]);
@@ -1158,7 +1158,7 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(7))
         .toEqual([2012, '=SUM(A5:A8)', '=SUM(B8,E6)', '=A5/B5', 12, '\'=SUM(E5)']);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -1183,10 +1183,10 @@ describe('Formulas general', () => {
       hot.alter('insert_col_start', 1);
       hot.alter('insert_col_start', 4, 2);
       hot.alter('insert_row_above', 5);
-      hot.undo();
-      hot.undo();
-      hot.undo();
-      hot.undo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -1194,7 +1194,7 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getSourceDataAtRow(4)).toEqual([2012, '=SUM(A2:A5)', '=SUM(B5,E3)', '=A2/B2', 12, '\'=SUM(E5)']);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$5', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null]);
@@ -1205,7 +1205,7 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(6)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getSourceDataAtRow(7)).toEqual([2012, '=SUM(A5:A8)', '=SUM(B8,E6)', '=A5/B5', 12, '\'=SUM(E5)']);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$C$5', null, 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null, null]);
@@ -1216,7 +1216,7 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(6)).toEqual([2011, null, 4, 2517, 4822, 552, 6127]);
       expect(hot.getSourceDataAtRow(7)).toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,F6)', '=A5/C5', 12, '\'=SUM(E5)']);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(hot.getSourceDataAtRow(0))
         .toEqual(['=$C$5', null, 'Maserati', 'Mazda', null, null, 'Mercedes', 'Mini', '=A$1']);
@@ -1245,26 +1245,26 @@ describe('Formulas general', () => {
       hot.alter('remove_col', 2, 2);
       hot.alter('remove_row', 0, 2);
       hot.alter('remove_col', 3);
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual([2011, 4, 552, 6127]);
       expect(hot.getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 354, 5814]);
       expect(hot.getSourceDataAtRow(2)).toEqual([2011, 4, 552, 6127]);
       expect(hot.getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', 12, '=SUM(E5)']);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
       expect(hot.getSourceDataAtRow(2)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', '=SUM(B4,#REF!)', '=A2/B2', 12, '=SUM(E5)']);
 
-      hot.undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -1288,10 +1288,10 @@ describe('Formulas general', () => {
       hot.alter('remove_col', 2, 2);
       hot.alter('remove_row', 0, 2);
       hot.alter('remove_col', 3);
-      hot.undo();
-      hot.undo();
-      hot.undo();
-      hot.undo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').undo();
+      getPlugin('undoRedo').undo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -1299,21 +1299,21 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getSourceDataAtRow(4)).toEqual([2012, '=Sum(a2:a5)', '=SUM(B5,E3)', '=A2/B2', 12, '=SUM(E5)']);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
       expect(hot.getSourceDataAtRow(2)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', '=SUM(B4,#REF!)', '=A2/B2', 12, '=SUM(E5)']);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 354, 5814]);
       expect(hot.getSourceDataAtRow(2)).toEqual([2011, 4, 552, 6127]);
       expect(hot.getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', 12, '=SUM(E5)']);
 
-      hot.redo();
+      getPlugin('undoRedo').redo();
 
       expect(hot.getSourceDataAtRow(0)).toEqual([2011, 4, 552, 6127]);
       expect(hot.getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
@@ -1340,7 +1340,7 @@ describe('Formulas general', () => {
         [null, 1, 2],
       ]);
 
-      undo();
+      getPlugin('undoRedo').undo();
 
       expect(getSourceData()).toEqual([
         [5, '=A1+1', '=B1+1'],
@@ -1349,7 +1349,7 @@ describe('Formulas general', () => {
         [5, 6, 7],
       ]);
 
-      redo();
+      getPlugin('undoRedo').redo();
 
       expect(getSourceData()).toEqual([
         [null, '=A1+1', '=B1+1'],
@@ -1377,7 +1377,7 @@ describe('Formulas general', () => {
         [0, 2, 10],
       ]);
 
-      undo();
+      getPlugin('undoRedo').undo();
 
       expect(getSourceData()).toEqual([
         [0, '=A1+1', '=B1+1'],
@@ -1386,7 +1386,7 @@ describe('Formulas general', () => {
         [0, 1, 2],
       ]);
 
-      redo();
+      getPlugin('undoRedo').redo();
 
       expect(getSourceData()).toEqual([
         ['=B1+2', '=C1+2', 10],
@@ -1395,7 +1395,7 @@ describe('Formulas general', () => {
         [14, 12, 10],
       ]);
 
-      undo();
+      getPlugin('undoRedo').undo();
 
       expect(getSourceData()).toEqual([
         [0, '=A1+1', '=B1+1'],
@@ -1424,7 +1424,7 @@ describe('Formulas general', () => {
       getPlugin('manualRowMove').moveRow(0, 1);
       render();
 
-      undo();
+      getPlugin('undoRedo').undo();
 
       expect(getSourceData()).toEqual([
         [5],
@@ -1437,7 +1437,7 @@ describe('Formulas general', () => {
         [7],
       ]);
 
-      redo();
+      getPlugin('undoRedo').redo();
 
       expect(getSourceData()).toEqual([
         [5],
@@ -1473,7 +1473,7 @@ describe('Formulas general', () => {
         [0, 1, 2],
       ]);
 
-      undo();
+      getPlugin('undoRedo').undo();
 
       expect(getSourceData()).toEqual([
         [null, 0, '=B1+1', '=C1+1'],
@@ -1482,7 +1482,7 @@ describe('Formulas general', () => {
         [null, 0, 1, 2],
       ]);
 
-      undo();
+      getPlugin('undoRedo').undo();
 
       expect(getSourceData()).toEqual([
         [0, '=A1+1', '=B1+1'],
@@ -1491,7 +1491,7 @@ describe('Formulas general', () => {
         [0, 1, 2],
       ]);
 
-      redo();
+      getPlugin('undoRedo').redo();
 
       expect(getSourceData()).toEqual([
         [null, 0, '=B1+1', '=C1+1'],
@@ -1500,7 +1500,7 @@ describe('Formulas general', () => {
         [null, 0, 1, 2],
       ]);
 
-      redo();
+      getPlugin('undoRedo').redo();
 
       expect(getSourceData()).toEqual([
         [0, '=A1+1', '=B1+1'],
@@ -1526,7 +1526,7 @@ describe('Formulas general', () => {
 
         alter('remove_row', 0);
 
-        undo();
+        getPlugin('undoRedo').undo();
 
         expect(getSourceData()).toEqual([
           [2],
@@ -1537,7 +1537,7 @@ describe('Formulas general', () => {
           [20],
         ]);
 
-        redo();
+        getPlugin('undoRedo').redo();
 
         expect(getSourceData()).toEqual([
           ['=#REF!*10'],
@@ -1562,7 +1562,7 @@ describe('Formulas general', () => {
 
         alter('remove_row', 1);
 
-        undo();
+        getPlugin('undoRedo').undo();
 
         expect(getSourceData()).toEqual([
           [2],
@@ -1573,7 +1573,7 @@ describe('Formulas general', () => {
           [20],
         ]);
 
-        redo();
+        getPlugin('undoRedo').redo();
 
         expect(getSourceData()).toEqual([
           [2],
@@ -1626,7 +1626,7 @@ describe('Formulas general', () => {
           [2, 2, 20, null],
         ]);
 
-        undo();
+        getPlugin('undoRedo').undo();
 
         expect(getSourceData()).toEqual([
           [2, 3, 4, 5],
@@ -1637,7 +1637,7 @@ describe('Formulas general', () => {
           [2, null, 20, null],
         ]);
 
-        undo();
+        getPlugin('undoRedo').undo();
 
         expect(getSourceData()).toEqual([
           [2, 3, 4, 5],
@@ -1648,7 +1648,7 @@ describe('Formulas general', () => {
           [20, null, 200, null],
         ]);
 
-        redo();
+        getPlugin('undoRedo').redo();
 
         expect(getSourceData()).toEqual([
           [2, 3, 4, 5],
@@ -1659,7 +1659,7 @@ describe('Formulas general', () => {
           [2, null, 20, null],
         ]);
 
-        redo();
+        getPlugin('undoRedo').redo();
 
         expect(getSourceData()).toEqual([
           [2, 2, 4, 5],
@@ -1670,7 +1670,7 @@ describe('Formulas general', () => {
           [2, 2, 20, null],
         ]);
 
-        undo();
+        getPlugin('undoRedo').undo();
 
         expect(getSourceData()).toEqual([
           [2, 3, 4, 5],
@@ -1701,7 +1701,7 @@ describe('Formulas general', () => {
 
         await sleep(100);
 
-        undo();
+        getPlugin('undoRedo').undo();
 
         expect(getSourceData()).toEqual([
           [2, 3, 4, 5],
@@ -1712,7 +1712,7 @@ describe('Formulas general', () => {
           [20, null, 200, null],
         ]);
 
-        redo();
+        getPlugin('undoRedo').redo();
 
         expect(getSourceData()).toEqual([
           [2, 3, 4, 5],
@@ -1723,7 +1723,7 @@ describe('Formulas general', () => {
           [20, null, 200, 0],
         ]);
 
-        undo();
+        getPlugin('undoRedo').undo();
 
         expect(getSourceData()).toEqual([
           [2, 3, 4, 5],
@@ -1754,7 +1754,7 @@ describe('Formulas general', () => {
 
         await sleep(100);
 
-        undo();
+        getPlugin('undoRedo').undo();
 
         expect(getSourceData()).toEqual([
           [2, 3, 4, 5],
@@ -1765,7 +1765,7 @@ describe('Formulas general', () => {
           [20, null, 200, null],
         ]);
 
-        redo();
+        getPlugin('undoRedo').redo();
 
         expect(getSourceData()).toEqual([
           [2, 2, 2, 2],
@@ -1776,7 +1776,7 @@ describe('Formulas general', () => {
           [20, null, 200, null],
         ]);
 
-        undo();
+        getPlugin('undoRedo').undo();
 
         expect(getSourceData()).toEqual([
           [2, 3, 4, 5],
@@ -3102,6 +3102,510 @@ describe('Formulas general', () => {
         ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
         ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
         ['=A2', '=DATEDIF(TODAY(), NOW(), "D")'],
+      ]);
+    });
+
+    it('should handle improper on start dates properly (mismatching date formatting) #1', async() => {
+      handsontable({
+        data: [
+          ['13/12/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['13/12/2022'], // Not converted - improper date (we treat it as a string)
+        ['13/12/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'13/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['13/12/2022'],
+        ['13/12/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['13/12/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(50);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+    });
+
+    it('should handle improper on start dates properly (mismatching date formatting) #2', async() => {
+      handsontable({
+        data: [
+          ['13/12/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD-MM-YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['13/12/2022'], // Not converted - improper date (we treat it as a string)
+        ['13/12/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'13/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['13/12/2022'],
+        ['13/12/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['13/12/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(50);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+    });
+
+    it('should handle correct on start dates properly (mismatching date formatting)', async() => {
+      handsontable({
+        data: [
+          ['12/11/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44906], // 11 Dec 2022
+        [44906], // 11 Dec 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['11/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/11/2022'],
+        ['12/11/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(50);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+    });
+
+    it('should handle dates after change properly (mismatching date formatting)', async() => {
+      handsontable({
+        data: [
+          ['12/11/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      setDataAtCell(0, 0, '13/12/2022');
+
+      await sleep(50);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['13/12/2022'], // Not converted - improper date (we treat it as a string)
+        ['13/12/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'13/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['13/12/2022'],
+        ['13/12/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['13/12/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(50);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+
+      setDataAtCell(0, 0, '12/11/2022');
+
+      await sleep(100);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44906], // 11 Dec 2022
+        [44906], // 11 Dec 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['11/12/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/11/2022'],
+        ['12/11/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(50);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+    });
+
+    it('should handle dates properly (matching date formatting)', async() => {
+      handsontable({
+        data: [
+          ['12/11/2022'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44877], // 12 Nov 2022
+        [44877], // 12 Nov 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/11/2022'],
+        ['12/11/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['12/11/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(50);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+
+      setDataAtCell(0, 0, '12/13/2022');
+
+      await sleep(50);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['12/13/2022'], // Not converted - improper date (we treat it as a string)
+        ['12/13/2022'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'12/13/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['12/13/2022'],
+        ['12/13/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['12/13/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(50);
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCellMeta(1, 0).valid).toBe(false);
+
+      setDataAtCell(0, 0, '13/11/2022');
+
+      await sleep(50);
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [44878], // 13 Nov 2022
+        [44878], // 13 Nov 2022
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['13/11/2022'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['13/11/2022'],
+        ['13/11/2022'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['13/11/2022'],
+        ['=A1'],
+      ]);
+
+      validateCells();
+
+      await sleep(50);
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+    });
+
+    it('should handle HF configuration property (HF instance should not overwrite `leapYear1900` and `nullDate` properties)', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({});
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [61],
+        [61],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['01/03/1900'],
+        ['=A1'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['01/03/1900'],
+        ['01/03/1900'],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['01/03/1900'],
+        ['=A1'],
+      ]);
+    });
+
+    it('should not show warn for default HyperFormula configuration', () => {
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not show warn for not overwritten HF\'s configuration options such as `leapYear1900` and `nullDate`', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({});
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should show warn for overwritten HF\'s configuration option such as `leapYear1900`', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({
+        leapYear1900: true,
+      });
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).toHaveBeenCalled();
+    });
+
+    it('should show warn for overwritten HF\'s configuration option such as `nullDate`', () => {
+      // Create an external HyperFormula instance
+      const hfInstance = HyperFormula.buildEmpty({
+        nullDate: {
+          year: 1970,
+          month: 0,
+          day: 0,
+        },
+      });
+      const warnSpy = spyOn(console, 'warn');
+
+      handsontable({
+        data: [
+          ['01/03/1900'],
+          ['=A1']
+        ],
+        formulas: {
+          engine: hfInstance,
+          sheetName: 'Sheet1'
+        },
+        columns: [{
+          type: 'date',
+          dateFormat: 'DD/MM/YYYY'
+        }],
+      });
+
+      expect(warnSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('handling numeric values', () => {
+    it('should handle numeric calculations properly after passing a value with a comma (#dev-546)', async() => {
+      handsontable({
+        data: [
+          [10.45000, 60.0000, '=A1*10003.2298'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'numeric',
+          numericFormat: {
+            pattern: '0,0.00000'
+          }
+        },
+        {
+          type: 'numeric',
+          numericFormat: {
+            pattern: '0,0.00000'
+          }
+        },
+        {
+          type: 'numeric',
+          numericFormat: {
+            pattern: '0,0.00 $',
+          }
+        }],
+      });
+
+      expect(getData()).toEqual([
+        [10.45, 60, 104533.75141],
+      ]);
+
+      setDataAtCell(0, 0, '11,8');
+
+      await sleep(50);
+
+      expect(getData()).toEqual([
+        [11.8, 60, 118038.11164],
       ]);
     });
 

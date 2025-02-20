@@ -69,6 +69,8 @@ beforeEach(function() {
           matchersUtil.matcherConfig = currentSpec.matchersConfig[matcherName];
         }
 
+        matchersUtil.customMatchers = matchers;
+
         return matcherFactory(matchersUtil);
       };
     });
@@ -183,7 +185,7 @@ beforeEach(function() {
  and ${expected + margin})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - margin}
+            message = `Expected ${actual} to be around ${expected} (between ${expected - margin}
  and ${expected + margin})`;
           }
 
@@ -457,6 +459,81 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
             message,
           };
         }
+      };
+    },
+    forThemes(matchersUtil) {
+      const currentTheme = currentSpec.loadedTheme;
+      const createThemeHelper = (theme, expectationMatchers, classicThemeExpectationMatchers) => {
+        return new Proxy({}, {
+          get(_, matcher) {
+            return (...args) => {
+              if (currentTheme === theme) {
+                expectationMatchers.push([matcher, ...args]);
+              }
+
+              if (theme === 'classic') {
+                classicThemeExpectationMatchers.push([matcher, ...args]);
+              }
+            };
+          }
+        });
+      };
+      const camelCaseToSpaced = (camelCaseString) => {
+        return camelCaseString.replace(/([A-Z])/g, ' $1').toLowerCase();
+      };
+
+      return {
+        compare(actualValue, callback) {
+          const expectationMatchers = [];
+          const classicThemeExpectationMatchers = [];
+          let expectationMatcher;
+
+          callback({
+            classic: createThemeHelper('classic', expectationMatchers, classicThemeExpectationMatchers),
+            horizon: createThemeHelper('horizon', expectationMatchers, classicThemeExpectationMatchers),
+            main: createThemeHelper('main', expectationMatchers, classicThemeExpectationMatchers),
+          });
+
+          if (classicThemeExpectationMatchers.length === 0) {
+            return {
+              pass: false,
+              message: 'No expectation for the classic theme was provided. ' +
+                'Please provide an expectation for the classic theme.',
+            };
+
+          } else if (expectationMatchers.length > 1 || classicThemeExpectationMatchers.length > 1) {
+            return {
+              pass: false,
+              message: 'More than one expectation per-theme was provided. ' +
+                'Please provide only one expectation per theme.',
+            };
+          }
+
+          // If no expectation for the current theme was provided, use the classic theme expectation.
+          if (expectationMatchers.length === 0) {
+            expectationMatcher = classicThemeExpectationMatchers.pop();
+
+          } else {
+            expectationMatcher = expectationMatchers.pop();
+          }
+
+          const [matcherName, ...matcherArgs] = expectationMatcher;
+
+          const expectationResult = (
+            jasmine.matchers[matcherName] || matchersUtil.customMatchers[matcherName]
+          )(matchersUtil).compare(
+            actualValue,
+            ...matcherArgs,
+          );
+
+          return {
+            pass: expectationResult.pass,
+            // Fallback for matchers that don't provide the `message` prop (like `toBe`).
+            message:
+              expectationResult.message ||
+              `Expected ${actualValue} ${camelCaseToSpaced(matcherName)} ${expectationMatcher[1]}`,
+          };
+        },
       };
     },
   };

@@ -3,7 +3,7 @@
  *
  * @class {ViewSize}
  */
-export default class ViewSize {
+export class ViewSize {
   /**
    * Current size of the rendered DOM elements.
    *

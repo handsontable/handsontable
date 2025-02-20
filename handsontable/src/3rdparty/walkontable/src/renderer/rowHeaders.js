@@ -1,5 +1,5 @@
-import { SharedOrderView } from './../utils/orderView';
-import BaseRenderer from './_base';
+import { SharedOrderView } from '../utils/orderView';
+import { BaseRenderer } from './_base';
 import { setAttribute, removeAttribute } from '../../../../helpers/dom/element';
 import {
   A11Y_COLINDEX,
@@ -21,7 +21,7 @@ import {
  *
  * @class {CellsRenderer}
  */
-export default class RowHeadersRenderer extends BaseRenderer {
+export class RowHeadersRenderer extends BaseRenderer {
   /**
    * Cache for OrderView classes connected to specified node.
    *
@@ -54,7 +54,6 @@ export default class RowHeadersRenderer extends BaseRenderer {
       orderView = new SharedOrderView(
         rootNode,
         sourceColumnIndex => this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex),
-        this.nodeType,
       );
       this.orderViews.set(rootNode, orderView);
     }
@@ -80,7 +79,7 @@ export default class RowHeadersRenderer extends BaseRenderer {
       orderView
         .appendView(cellsView)
         .setSize(rowHeadersCount)
-        .setOffset(this.table.renderedColumnToSource(0))
+        .setOffset(0)
         .start();
 
       for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {

@@ -14,9 +14,7 @@
 
 <script lang="ts">
 import { HotTable } from '@handsontable/vue';
-import '@handsontable/pikaday/css/pikaday.css';
-import 'handsontable/dist/handsontable.css';
-
+import { getThemeName } from "../utils/utils";
 import { scenarioDataTop, scenarioDataBottom } from '../utils/constants';
 
 export default {
@@ -26,6 +24,7 @@ export default {
       dataTop: scenarioDataTop,
       dataBottom: scenarioDataBottom,
       hotSettings1: {
+        themeName: getThemeName(),
         height: 350,
         dropdownMenu: true,
         manualRowMove: true,
@@ -81,6 +80,7 @@ export default {
         licenseKey: 'non-commercial-and-evaluation',
       },
       hotSettings2: {
+        themeName: getThemeName(),
         height: 250,
         dropdownMenu: true,
         manualRowMove: true,
@@ -145,50 +145,41 @@ export default {
 </script>
 
 <style lang="scss">
-/*
-  A stylesheet customizing app (custom renderers)
-*/
-
-table.htCore {
-  tr.odd td {
-    background: #fafbff;
+  .handsontable {
+    font-size: 13px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 400;
   }
 
-  tr.selected td {
-    background: #edf3fd;
-  }
-
-  td .progressBar {
+  .handsontable td .progressBar {
     background: #37bc6c;
     height: 10px;
   }
 
-  td.star {
+  .handsontable td.star {
     color: #fcb515;
   }
-}
 
-/*
-  A stylesheet customizing Handsontable style
-*/
-.input-spacing {
-  margin: 10px;
-}
-
-.handsontable {
-  font-size: 13px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 400;
-
-  .collapsibleIndicator {
-    text-align: center;
+  .handsontable .htCore tr.selected td {
+    background: #edf3fd;
   }
-}
 
-.handsontable .ht_nestingParent,
-.handsontable .ht_nestingParent~td {
-  background: #B5B5B5;
-  color: #222;
-}
+  .handsontable.ht-theme-main-dark .htCore tr.selected td {
+    background: #081b3d;
+  }
+
+  .handsontable.ht-theme-horizon-dark .htCore tr.selected td {
+    background: #3a2901;
+  }
+
+  .input-spacing {
+    margin: 10px;
+  }
+
+  .handsontable .ht_nestingParent,
+  .handsontable .ht_nestingParent~td {
+    background: #B5B5B5;
+    color: #222;
+  }
 </style>

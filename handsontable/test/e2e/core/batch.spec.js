@@ -14,7 +14,7 @@ describe('Core.batch', () => {
 
   it('should batch multi-line operations into one render and execution call', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       autoColumnSize: false,
       autoRowSize: false,
     });
@@ -76,7 +76,7 @@ describe('Core.batch', () => {
 
   it('should batch showing/hiding headers correctly', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       colHeaders: false,
       rowHeaders: false,
     });
@@ -96,11 +96,20 @@ describe('Core.batch', () => {
     });
 
     expect(getTopClone().width()).toBe(300);
-    expect(getTopClone().height()).toBe(26);
+    expect(getTopClone().height()).forThemes(({ classic, main }) => {
+      classic.toBe(26);
+      main.toBe(29);
+    });
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).toBe(26);
+    expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+      classic.toBe(26);
+      main.toBe(29);
+    });
     expect(getInlineStartClone().width()).toBe(50);
-    expect(getInlineStartClone().height()).toBe(142);
+    expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
+      classic.toBe(142);
+      main.toBe(175);
+    });
 
     hot.batch(() => {
       hot.updateSettings({
@@ -119,7 +128,7 @@ describe('Core.batch', () => {
 
   it('should batch adjusting fixed headers correctly', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       fixedRowsTop: 0,
       fixedColumnsStart: 0,
       fixedRowsBottom: 0,
@@ -145,15 +154,30 @@ describe('Core.batch', () => {
     });
 
     expect(getTopClone().width()).toBe(250);
-    expect(getTopClone().height()).toBe(24);
+    expect(getTopClone().height()).forThemes(({ classic, main }) => {
+      classic.toBe(24);
+      main.toBe(30);
+    });
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).toBe(24);
+    expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+      classic.toBe(24);
+      main.toBe(30);
+    });
     expect(getInlineStartClone().width()).toBe(50);
-    expect(getInlineStartClone().height()).toBe(116);
+    expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
+      classic.toBe(116);
+      main.toBe(147);
+    });
     expect(getBottomInlineStartClone().width()).toBe(50);
-    expect(getBottomInlineStartClone().height()).toBe(24);
+    expect(getBottomInlineStartClone().height()).forThemes(({ classic, main }) => {
+      classic.toBe(24);
+      main.toBe(30);
+    });
     expect(getBottomClone().width()).toBe(250);
-    expect(getBottomClone().height()).toBe(24);
+    expect(getBottomClone().height()).forThemes(({ classic, main }) => {
+      classic.toBe(24);
+      main.toBe(30);
+    });
 
     hot.batch(() => {
       hot.updateSettings({

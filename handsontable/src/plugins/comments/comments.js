@@ -294,6 +294,17 @@ export class Comments extends BasePlugin {
       runOnlyIf: () => this.#editor.isVisible() && this.#editor.isFocused(),
       group: SHORTCUTS_GROUP,
     });
+
+    pluginContext.addShortcut({
+      keys: [['Shift', 'Tab'], ['Tab']],
+      forwardToContext: manager.getContext('grid'),
+      callback: () => {
+        this.#editor.setValue(this.#editor.getValue());
+        this.hide();
+        manager.setActiveContextName('grid');
+      },
+      group: SHORTCUTS_GROUP,
+    });
   }
 
   /**
@@ -321,6 +332,12 @@ export class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
     this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
     this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
+
+    this.eventManager.addEventListener(
+      this.getEditorInputElement(),
+      'mousedown',
+      event => this.#onInputElementMouseDown(event)
+    );
   }
 
   /**
@@ -667,6 +684,15 @@ export class Comments extends BasePlugin {
         this.hide();
       }
     }
+  }
+
+  /**
+   * Prevent recognizing clicking on the comment editor as clicking outside of table.
+   *
+   * @param {MouseEvent} event The `mousedown` event.
+   */
+  #onInputElementMouseDown(event) {
+    event.stopPropagation();
   }
 
   /**

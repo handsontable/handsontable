@@ -128,5 +128,57 @@ describe('ContextMenu', () => {
       expect(getDataAtCol(2)).toEqual([null, null, null, null]);
       expect(getDataAtCol(3)).toEqual([null, null, null, null]);
     });
+
+    it('should display entry as enabled, when all rows are non-read-only', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: ['clear_column'],
+        rowHeaders: true,
+        colHeaders: true,
+        readOnly: false,
+      });
+
+      selectColumns(0);
+      contextMenu();
+
+      const item = selectContextMenuOption('Clear column');
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+    });
+
+    it('should display a disabled entry, when all rows are read-only', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: ['clear_column'],
+        rowHeaders: true,
+        colHeaders: true,
+        readOnly: true,
+      });
+
+      selectColumns(0);
+      contextMenu();
+
+      const item = selectContextMenuOption('Clear column');
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+    });
+
+    it('should display non-disabled entry, when one of the rows is non-read-only', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: ['clear_column'],
+        rowHeaders: true,
+        colHeaders: true,
+        readOnly: true,
+      });
+
+      setCellMeta(2, 0, 'readOnly', false);
+      selectColumns(0);
+      contextMenu();
+
+      const item = selectContextMenuOption('Clear column');
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+    });
   });
 });

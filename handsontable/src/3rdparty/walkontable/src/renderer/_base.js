@@ -1,11 +1,11 @@
-import NodesPool from './../utils/nodesPool';
+import { NodesPool } from '../utils/nodesPool';
 
 /**
  * Base renderer class, abstract logic for specialized renderers.
  *
  * @class BaseRenderer
  */
-export default class BaseRenderer {
+export class BaseRenderer {
   /**
    * Factory for newly created DOM elements.
    *

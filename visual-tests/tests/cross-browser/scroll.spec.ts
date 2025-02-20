@@ -1,5 +1,4 @@
-import path from 'path';
-import { testCrossBrowser } from '../../src/test-runner';
+import { test } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import { selectCell } from '../../src/page-helpers';
 
@@ -12,17 +11,14 @@ const urls = [
   '/nested-rows-demo',
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 urls.forEach((url) => {
-  testCrossBrowser(`Test scroll for URL: ${url}`, async({ tablePage }) => {
-    const testFileName = path.basename(__filename, '.spec.ts');
-
-    await tablePage.goto(url);
-    await tablePage.waitForLoadState('domcontentloaded'); // Ensure the page is fully loaded
+  test(`Test rows resizing for: ${url}`, async({ goto, tablePage }) => {
+    await goto(url);
 
     const table = tablePage.locator(helpers.selectors.mainTable);
 
     await table.waitFor();
+
     const cell = await selectCell(2, 2, table);
 
     await cell.click();
@@ -30,6 +26,6 @@ urls.forEach((url) => {
 
     await tablePage.mouse.wheel(500, 1000);
     await tablePage.waitForTimeout(500);
-    await tablePage.screenshot({ path: helpers.screenshotMultiUrlPath(testFileName, url) });
+    await tablePage.screenshot({ path: helpers.screenshotPath() });
   });
 });

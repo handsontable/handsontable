@@ -730,11 +730,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           throw new Error(`There is no such action "${action}"`);
       }
 
-      instance.view.render();
-
       if (!keepEmptyRows) {
         grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
       }
+
+      instance.view.render();
+      instance.view.adjustElementsSize();
     },
 
     /**
@@ -783,7 +784,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         // should I add empty cols to meet minCols?
         if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
-          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // The synchronization with cell meta is not desired here. For `minCols` option,
           // we don't want to touch/shift cell meta objects.
           const colsToCreate = minCols - nrOfColumns;
 
@@ -798,14 +799,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           const emptyColsMissing = minSpareCols - emptyCols;
           const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
 
-          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // The synchronization with cell meta is not desired here. For `minSpareCols` option,
           // we don't want to touch/shift cell meta objects.
           datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
         }
-      }
-
-      if (instance.view) {
-        instance.view.adjustElementsSize();
       }
     },
 
@@ -1234,7 +1231,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     };
 
     for (let i = changes.length - 1; i >= 0; i--) {
-      const [row, prop, , newValue] = changes[i];
+      const [row, prop] = changes[i];
       const visualCol = datamap.propToCol(prop);
       let cellProperties;
 
@@ -1245,10 +1242,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         // If there's no requested visual column, we can use the table meta as the cell properties when retrieving
         // the cell validator.
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
-      }
-
-      if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
-        changes[i][3] = getParsedNumber(newValue);
       }
 
       /* eslint-disable no-loop-func */
@@ -1302,7 +1295,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         while (changes[i][0] > instance.countRows() - 1) {
           const {
             delta: numberOfCreatedRows
-          } = datamap.createRow(undefined, undefined, { source });
+          } = datamap.createRow(undefined, undefined, { source: 'auto' });
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1316,7 +1309,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           const {
             delta: numberOfCreatedColumns
-          } = datamap.createCol(undefined, undefined, { source });
+          } = datamap.createCol(undefined, undefined, { source: 'auto' });
 
           if (numberOfCreatedColumns === 0) {
             skipThisChange = true;
@@ -1491,17 +1484,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} List of changes finally applied to the dataset.
    */
   function processChanges(changes, source) {
-    const activeEditor = instance.getActiveEditor();
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     // The `beforeChange` hook could add a `null` for purpose of cancelling some dataset's change.
     const filteredChanges = changes.filter(change => change !== null);
 
     if (beforeChangeResult === false || filteredChanges.length === 0) {
-      if (activeEditor) {
-        activeEditor.cancelChanges();
-      }
+      instance.getActiveEditor()?.cancelChanges();
 
       return [];
+    }
+
+    for (let i = filteredChanges.length - 1; i >= 0; i--) {
+      const [row, prop, , newValue] = filteredChanges[i];
+      const visualColumn = datamap.propToCol(prop);
+      let cellProperties;
+
+      if (Number.isInteger(visualColumn)) {
+        cellProperties = instance.getCellMeta(row, visualColumn);
+      } else {
+        // If there's no requested visual column, we can use the table meta as the cell properties
+        cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
+      }
+
+      if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
+        filteredChanges[i][3] = getParsedNumber(newValue);
+      }
     }
 
     return filteredChanges;
@@ -2163,7 +2170,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return;
     }
 
-    const { width: lastWidth, height: lastHeight } = instance.view.getLastSize();
+    const view = instance.view;
+    const { width: lastWidth, height: lastHeight } = view.getLastSize();
     const { width, height } = instance.rootElement.getBoundingClientRect();
     const isSizeChanged = width !== lastWidth || height !== lastHeight;
     const isResizeBlocked = instance.runHooks(
@@ -2177,9 +2185,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return;
     }
 
-    if (isSizeChanged || instance.view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
-      instance.view.setLastSize(width, height);
+    if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
+      view.setLastSize(width, height);
       instance.render();
+      view.adjustElementsSize();
     }
 
     instance.runHooks(
@@ -2593,7 +2602,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const currentThemeName = instance.getCurrentThemeName();
         const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
 
-        if (currentThemeName && themeNameOptionExists) {
+        if (
+          currentThemeName &&
+          themeNameOptionExists &&
+          currentThemeName !== settings.themeName
+        ) {
           instance.view.getStylesHandler().removeClassNames();
           instance.view.removeClassNameFromLicenseElement(currentThemeName);
         }
@@ -4758,14 +4771,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {BasePlugin|undefined} The plugin instance or undefined if there is no plugin.
    */
   this.getPlugin = function(pluginName) {
-    const unifiedPluginName = toUpperCaseFirst(pluginName);
-
-    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
-    if (unifiedPluginName === 'UndoRedo') {
-      return this.undoRedo;
-    }
-
-    return pluginsRegistry.getItem(unifiedPluginName);
+    return pluginsRegistry.getItem(toUpperCaseFirst(pluginName));
   };
 
   /**

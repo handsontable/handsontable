@@ -1,26 +1,3 @@
-/*
-  A stylesheet customizing app (custom renderers)
-*/
-table.htCore .star {
-  color: #fcb515;
-}
-
-table.htCore tr.odd td {
-  background: #fafbff;
-}
-
-table.htCore td .progressBar {
-  background: #37bc6c;
-  height: 10px;
-}
-
-table.htCore tr.selected td {
-  background: #edf3fd;
-}
-
-/*
-  A stylesheet customizing Handsontable style
-*/
 .handsontable {
   font-size: 13px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
@@ -28,8 +5,25 @@ table.htCore tr.selected td {
   font-weight: 400;
 }
 
-.collapsibleIndicator {
-  text-align: center;
+.handsontable td .progressBar {
+  background: #37bc6c;
+  height: 10px;
+}
+
+.handsontable td .star {
+  color: #fcb515;
+}
+
+.handsontable .htCore tr.selected td {
+  background: #edf3fd;
+}
+
+.handsontable.ht-theme-main-dark .htCore tr.selected td {
+  background: #081b3d;
+}
+
+.handsontable.ht-theme-horizon-dark .htCore tr.selected td {
+  background: #3a2901;
 }
 
 .handsontable .ht_nestingParent,

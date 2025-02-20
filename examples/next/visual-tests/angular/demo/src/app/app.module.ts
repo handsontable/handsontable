@@ -12,8 +12,6 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-  ],
   imports: [
     BrowserModule,
     RouterModule.forRoot(routes),

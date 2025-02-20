@@ -16,7 +16,7 @@
     "serve": "vite preview",
     "start": "vite preview",
     "build": "vite build"
-    },
+  },
   "dependencies": {
     "@handsontable/pikaday": "^1.0.0",
     "handsontable": "latest"

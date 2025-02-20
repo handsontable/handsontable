@@ -6,7 +6,7 @@ describe('getCurrentThemeName', () => {
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
-    });
+    }, true);
   });
 
   afterEach(function() {

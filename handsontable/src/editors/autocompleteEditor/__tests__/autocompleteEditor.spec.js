@@ -55,8 +55,78 @@ describe('AutocompleteEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
-  it('should render an editor in specified position while opening an editor from top to bottom when ' +
-     'top and bottom overlays are enabled', () => {
+  it.forTheme('classic')('should render an editor in specified position while opening an ' +
+    'editor from top to bottom when top and bottom overlays are enabled', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [
+        {
+          editor: 'autocomplete',
+          source: choices,
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDownUp('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
+  it.forTheme('main')('should render an editor in specified position while opening an editor from top to bottom when ' +
+    'top and bottom overlays are enabled', () => {
+    spec().$container.css('height', '245px');
+
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(8, 2),
       rowHeaders: true,
@@ -390,8 +460,14 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).toBe(120);
-      expect(container.clientHeight).toBe(118);
+      expect(container.clientWidth).forThemes(({ classic, main }) => {
+        classic.toBe(120);
+        main.toBe(118);
+      });
+      expect(container.clientHeight).forThemes(({ classic, main }) => {
+        classic.toBe(118);
+        main.toBe(146);
+      });
     });
 
     it('should open editor with the correct size when there is no scrollbar on the list (trimDropdown: false)', async() => {
@@ -414,8 +490,14 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).toBe(52);
-      expect(container.clientHeight).toBe(118);
+      expect(container.clientWidth).forThemes(({ classic, main }) => {
+        classic.toBe(52);
+        main.toBe(62);
+      });
+      expect(container.clientHeight).forThemes(({ classic, main }) => {
+        classic.toBe(118);
+        main.toBe(146);
+      });
     });
 
     it('should open editor with the correct size when there is scrollbar on the list', async() => {
@@ -437,8 +519,14 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).toBe(120 + Handsontable.dom.getScrollbarWidth());
-      expect(container.clientHeight).toBe(72);
+      expect(container.clientWidth).forThemes(({ classic, main }) => {
+        classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
+        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+      });
+      expect(container.clientHeight).forThemes(({ classic, main }) => {
+        classic.toBe(72);
+        main.toBe(88);
+      });
     });
 
     it('should open editor with the correct size when there is scrollbar on the list (trimDropdown: false)', async() => {
@@ -461,8 +549,14 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).toBe(52 + Handsontable.dom.getScrollbarWidth());
-      expect(container.clientHeight).toBe(72);
+      expect(container.clientWidth).forThemes(({ classic, main }) => {
+        classic.toBe(52 + Handsontable.dom.getScrollbarWidth());
+        main.toBe(62 + Handsontable.dom.getScrollbarWidth());
+      });
+      expect(container.clientHeight).forThemes(({ classic, main }) => {
+        classic.toBe(72);
+        main.toBe(88);
+      });
     });
   });
 
@@ -730,10 +824,14 @@ describe('AutocompleteEditor', () => {
       keyDownUp('enter');
 
       await sleep(200);
+
       // -2 for transparent borders
       expect(editor.find('.autocompleteEditor .htCore td').width())
         .toEqual(editor.find('.handsontableInput').width() - 2);
-      expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(187);
+      expect(editor.find('.autocompleteEditor .htCore td').width()).forThemes(({ classic, main }) => {
+        classic.toBeGreaterThan(187);
+        main.toEqual(180);
+      });
     });
 
     it('should display the autocomplete list with correct dimensions, after updating the choice list from no match' +

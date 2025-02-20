@@ -5,7 +5,6 @@ import { HotTableModule } from '@handsontable/angular';
 import { AppComponent } from './app.component';
 
 @NgModule({
-  declarations: [],
   imports: [
     BrowserModule,
     HotTableModule,

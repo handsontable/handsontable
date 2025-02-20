@@ -85,7 +85,12 @@
     },
 
     mouseEvent: function( type, options ) {
-      var event, eventDoc, doc, body;
+      var position = { x: 1, y: 1 };
+
+      if (this.target instanceof HTMLElement) {
+        position = this.target.getBoundingClientRect();
+      }
+
       options = $.extend({
         bubbles: true,
         cancelable: (type !== "mousemove"),
@@ -93,8 +98,8 @@
         detail: 0,
         screenX: 0,
         screenY: 0,
-        clientX: 1,
-        clientY: 1,
+        clientX: position.x,
+        clientY: position.y,
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
@@ -103,73 +108,13 @@
         relatedTarget: undefined
       }, options );
 
-      if ( document.createEvent ) {
-        event = document.createEvent( "MouseEvents" );
-        event.initMouseEvent( type, options.bubbles, options.cancelable,
-          options.view, options.detail,
-          options.screenX, options.screenY, options.clientX, options.clientY,
-          options.ctrlKey, options.altKey, options.shiftKey, options.metaKey,
-          options.button, options.relatedTarget || document.body.parentNode );
+      var event = document.createEvent( "MouseEvents" );
 
-        // IE 9+ creates events with pageX and pageY set to 0.
-        // Trying to modify the properties throws an error,
-        // so we define getters to return the correct values.
-        if ( event.pageX === 0 && event.pageY === 0 && Object.defineProperty ) {
-          eventDoc = event.relatedTarget.ownerDocument || document;
-          doc = eventDoc.documentElement;
-          body = eventDoc.body;
-
-          try {
-            Object.defineProperty( event, "pageX", {
-              get: function() {
-                return options.clientX +
-                ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
-                ( doc && doc.clientLeft || body && body.clientLeft || 0 );
-              }
-            });
-          } catch (ex) {
-            // Fix for PhantomJS 2.1
-            event.__defineGetter__("pageX", function () {
-              return options.clientX +
-                ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) -
-                ( doc && doc.clientLeft || body && body.clientLeft || 0 );
-            });
-          }
-
-          try {
-            Object.defineProperty( event, "pageY", {
-              get: function() {
-                return options.clientY +
-                  ( doc && doc.scrollTop || body && body.scrollTop || 0 ) -
-                  ( doc && doc.clientTop || body && body.clientTop || 0 );
-              }
-            });
-          } catch (ex) {
-            // Fix for PhantomJS 2.1
-            event.__defineGetter__("pageY", function () {
-              return options.clientY +
-                ( doc && doc.scrollTop || body && body.scrollTop || 0 ) -
-                ( doc && doc.clientTop || body && body.clientTop || 0 );
-            });
-          }
-        }
-      } else if ( document.createEventObject ) {
-        try {
-          event = document.createEventObject(options);
-        } catch (e) {
-          event = document.createEventObject();
-          $.extend( event, options );
-        }
-
-        // standards event.button uses constants defined here: http://msdn.microsoft.com/en-us/library/ie/ff974877(v=vs.85).aspx
-        // old IE event.button uses constants defined here: http://msdn.microsoft.com/en-us/library/ie/ms533544(v=vs.85).aspx
-        // so we actually need to map the standard back to oldIE
-        event.button = {
-          0: 1,
-          1: 4,
-          2: 2
-        }[ event.button ] || ( event.button === -1 ? 0 : event.button );
-      }
+      event.initMouseEvent( type, options.bubbles, options.cancelable,
+        options.view, options.detail,
+        options.screenX, options.screenY, options.clientX, options.clientY,
+        options.ctrlKey, options.altKey, options.shiftKey, options.metaKey,
+        options.button, options.relatedTarget || document.body.parentNode );
 
       return event;
     },
@@ -188,38 +133,28 @@
         charCode: undefined
       }, options );
 
-      if ( document.createEvent ) {
-        try {
-          event = document.createEvent( "KeyEvents" );
-          event.initKeyEvent( type, options.bubbles, options.cancelable, options.view,
-            options.ctrlKey, options.altKey, options.shiftKey, options.metaKey,
-            options.keyCode, options.charCode );
-          // initKeyEvent throws an exception in WebKit
-          // see: http://stackoverflow.com/questions/6406784/initkeyevent-keypress-only-works-in-firefox-need-a-cross-browser-solution
-          // and also https://bugs.webkit.org/show_bug.cgi?id=13368
-          // fall back to a generic event until we decide to implement initKeyboardEvent
-        } catch( err ) {
-          event = document.createEvent( "Events" );
-          event.initEvent( type, options.bubbles, options.cancelable );
-          $.extend( event, {
-            view: options.view,
-            ctrlKey: options.ctrlKey,
-            altKey: options.altKey,
-            shiftKey: options.shiftKey,
-            metaKey: options.metaKey,
-            key: options.key,
-            keyCode: options.keyCode,
-            charCode: options.charCode
-          });
-        }
-      } else if ( document.createEventObject ) {
-        event = document.createEventObject();
-        $.extend( event, options );
-      }
-
-      if ( !!/msie [\w.]+/.exec( navigator.userAgent.toLowerCase() ) || (({}).toString.call( window.opera ) === "[object Opera]") ) {
-        event.keyCode = (options.charCode > 0) ? options.charCode : options.keyCode;
-        event.charCode = undefined;
+      try {
+        event = document.createEvent( "KeyEvents" );
+        event.initKeyEvent( type, options.bubbles, options.cancelable, options.view,
+          options.ctrlKey, options.altKey, options.shiftKey, options.metaKey,
+          options.keyCode, options.charCode );
+        // initKeyEvent throws an exception in WebKit
+        // see: http://stackoverflow.com/questions/6406784/initkeyevent-keypress-only-works-in-firefox-need-a-cross-browser-solution
+        // and also https://bugs.webkit.org/show_bug.cgi?id=13368
+        // fall back to a generic event until we decide to implement initKeyboardEvent
+      } catch( err ) {
+        event = document.createEvent( "Events" );
+        event.initEvent( type, options.bubbles, options.cancelable );
+        $.extend( event, {
+          view: options.view,
+          ctrlKey: options.ctrlKey,
+          altKey: options.altKey,
+          shiftKey: options.shiftKey,
+          metaKey: options.metaKey,
+          key: options.key,
+          keyCode: options.keyCode,
+          charCode: options.charCode
+        });
       }
 
       return event;

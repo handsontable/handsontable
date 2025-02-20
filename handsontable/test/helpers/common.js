@@ -2,7 +2,12 @@ const specContext = {};
 
 beforeEach(function() {
   specContext.spec = this;
+
+  if (typeof __ENV_ARGS__ !== 'undefined') {
+    this.loadedTheme = __ENV_ARGS__.HOT_THEME;
+  }
 });
+
 afterEach(() => {
   specContext.spec = null;
 });
@@ -152,7 +157,6 @@ export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
 export const propToCol = handsontableMethodFactory('propToCol');
-export const redo = handsontableMethodFactory('redo');
 export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const removeHook = handsontableMethodFactory('removeHook');
@@ -173,7 +177,6 @@ export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const toVisualRow = handsontableMethodFactory('toVisualRow');
-export const undo = handsontableMethodFactory('undo');
 export const unlisten = handsontableMethodFactory('unlisten');
 export const updateData = handsontableMethodFactory('updateData');
 export const updateSettings = handsontableMethodFactory('updateSettings');
@@ -280,8 +283,22 @@ export function setScrollLeft(x) {
  * @returns {Handsontable}
  */
 export function handsontable(options, explicitOptions = false, container = spec().$container) {
+  const loadedTheme = spec().loadedTheme;
+
   // Add a license key to every Handsontable instance.
-  if (options && !explicitOptions) {
+  if (!explicitOptions) {
+    if (!options) {
+      options = {};
+    }
+
+    if (
+      !options.themeName &&
+      loadedTheme &&
+      loadedTheme !== 'classic'
+    ) {
+      options.themeName = `ht-theme-${spec().loadedTheme}`;
+    }
+
     options.licenseKey = 'non-commercial-and-evaluation';
   }
 

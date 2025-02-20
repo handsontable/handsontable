@@ -131,6 +131,12 @@ class TableView {
    * @type {number}
    */
   #lastHeight = 0;
+  /**
+   * The last mouse position of the mousedown event.
+   *
+   * @type {{ x: number, y: number } | null}
+   */
+  #mouseDownLastPos = null;
 
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
@@ -872,6 +878,7 @@ class TableView {
 
         this.activeWt = wt;
         this.#mouseDown = true;
+        this.#mouseDownLastPos = { x: event.clientX, y: event.clientY };
 
         this.hot.runHooks('beforeOnCellMouseDown', event, visualCoords, TD, controller);
 
@@ -924,7 +931,6 @@ class TableView {
       },
       onCellMouseOver: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
-
         const controller = {
           row: false,
           column: false,
@@ -938,7 +944,17 @@ class TableView {
           return;
         }
 
-        if (this.#mouseDown) {
+        // Ignore mouseover events when the mouse has not moved. This solves an issue (#dev-1479) where
+        // column resizing triggered by the long text in the cell causes the mouseover event to be fired,
+        // thus selecting multiple cells with no user intention.
+        if (
+          this.#mouseDown &&
+          (
+            !this.#mouseDownLastPos ||
+            this.#mouseDownLastPos.x !== event.clientX ||
+            this.#mouseDownLastPos.y !== event.clientY
+          )
+        ) {
           handleMouseEvent(event, {
             coords: visualCoords,
             selection: this.hot.selection,
@@ -949,6 +965,7 @@ class TableView {
 
         this.hot.runHooks('afterOnCellMouseOver', event, visualCoords, TD);
         this.activeWt = this._wt;
+        this.#mouseDownLastPos = null;
       },
       onCellMouseUp: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);

@@ -34,6 +34,12 @@ export enum FilterConditions {
   Yesterday = 'Yesterday',
 }
 
+// eslint-disable-next-line no-shadow
+export enum LayoutDirection {
+  LTR = 'ltr',
+  RTL = 'rtl',
+}
+
 /**
  * Get the page instance.
  *
@@ -261,6 +267,17 @@ export async function selectFromDropdownMenu(option: string) {
   );
 
   await dropdownMenu.locator(option).click();
+}
+
+/**
+ * @param {string} option Cell locator.
+ */
+export async function selectFromContextMenu(option: string) {
+  const contextMenu = getPageInstance().locator(
+    helpers.selectors.contextMenu
+  );
+
+  await contextMenu.locator(option).click();
 }
 
 /**

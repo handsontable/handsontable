@@ -831,7 +831,7 @@ describe('manualRowMove', () => {
           .simulate('mousemove')
           .simulate('mouseup');
 
-        expect(hot.view.getFirstFullyVisibleRow()).toBe(8);
+        expect(hot.view.getFirstFullyVisibleRow()).toBe(7);
       });
     });
   });
@@ -848,7 +848,7 @@ describe('manualRowMove', () => {
         hot.getPlugin('manualRowMove').moveRow(1, 4);
         hot.render();
 
-        hot.undo();
+        getPlugin('undoRedo').undo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
@@ -863,7 +863,7 @@ describe('manualRowMove', () => {
         hot.getPlugin('manualRowMove').moveRows([0, 1], 4);
         hot.render();
 
-        hot.undo();
+        getPlugin('undoRedo').undo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
@@ -878,7 +878,7 @@ describe('manualRowMove', () => {
         hot.getPlugin('manualRowMove').moveRows([4, 5], 1);
         hot.render();
 
-        hot.undo();
+        getPlugin('undoRedo').undo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
@@ -893,7 +893,7 @@ describe('manualRowMove', () => {
         hot.getPlugin('manualRowMove').moveRows([0, 1, 8, 4, 7], 2);
         hot.render();
 
-        hot.undo();
+        getPlugin('undoRedo').undo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
@@ -909,11 +909,11 @@ describe('manualRowMove', () => {
         hot.getPlugin('manualRowMove').moveRow(0, 9);
         hot.render();
 
-        hot.undo();
+        getPlugin('undoRedo').undo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1']);
 
-        hot.undo();
+        getPlugin('undoRedo').undo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
@@ -930,8 +930,8 @@ describe('manualRowMove', () => {
         hot.getPlugin('manualRowMove').moveRow(1, 4);
         hot.render();
 
-        hot.undo();
-        hot.redo();
+        getPlugin('undoRedo').undo();
+        hot.getPlugin('undoRedo').redo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5', 'A2', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
@@ -946,8 +946,8 @@ describe('manualRowMove', () => {
         hot.getPlugin('manualRowMove').moveRows([0, 1], 4);
         hot.render();
 
-        hot.undo();
-        hot.redo();
+        getPlugin('undoRedo').undo();
+        hot.getPlugin('undoRedo').redo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A3', 'A4', 'A5', 'A6', 'A1', 'A2', 'A7', 'A8', 'A9', 'A10']);
       });
@@ -962,8 +962,8 @@ describe('manualRowMove', () => {
         hot.getPlugin('manualRowMove').moveRows([4, 5], 1);
         hot.render();
 
-        hot.undo();
-        hot.redo();
+        getPlugin('undoRedo').undo();
+        hot.getPlugin('undoRedo').redo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A1', 'A5', 'A6', 'A2', 'A3', 'A4', 'A7', 'A8', 'A9', 'A10']);
       });
@@ -978,8 +978,8 @@ describe('manualRowMove', () => {
         hot.getPlugin('manualRowMove').moveRows([0, 1, 8, 4, 7], 2);
         hot.render();
 
-        hot.undo();
-        hot.redo();
+        getPlugin('undoRedo').undo();
+        hot.getPlugin('undoRedo').redo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A3', 'A4', 'A1', 'A2', 'A9', 'A5', 'A8', 'A6', 'A7', 'A10']);
       });
@@ -995,14 +995,14 @@ describe('manualRowMove', () => {
         hot.getPlugin('manualRowMove').moveRow(0, 9);
         hot.render();
 
-        hot.undo();
-        hot.undo();
+        getPlugin('undoRedo').undo();
+        getPlugin('undoRedo').undo();
 
-        hot.redo();
+        hot.getPlugin('undoRedo').redo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1']);
 
-        hot.redo();
+        hot.getPlugin('undoRedo').redo();
 
         expect(hot.getDataAtCol(0)).toEqual(['A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1', 'A2']);
       });

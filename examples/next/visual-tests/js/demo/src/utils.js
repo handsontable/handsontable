@@ -28,12 +28,18 @@ function generateArabicData() {
   ]);
 }
 
-export function isArabicDemoEnabled() {
-  const urlParams = new URLSearchParams(location.search.replace(/^\?/, ""));
+export function getDirectionFromURL() {
+  const urlParams = new URLSearchParams(location.search);
 
-  return urlParams.get("arabicExample") === "1";
+  return urlParams.get("direction") ?? "ltr";
+}
+
+export function getThemeNameFromURL() {
+  const urlParams = new URLSearchParams(location.search);
+
+  return urlParams.get("theme") ? `ht-theme-${urlParams.get("theme")}` : undefined;
 }
 
 export function generateExampleData() {
-  return isArabicDemoEnabled() ? generateArabicData() : data;
+  return getDirectionFromURL() === "rtl" ? generateArabicData() : data;
 }

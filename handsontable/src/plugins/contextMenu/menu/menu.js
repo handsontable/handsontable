@@ -669,7 +669,7 @@ export class Menu {
         }
       }
 
-      className = className.replace(/[^A-z0-9]/g, '_');
+      className = className.replace(/[^A-Za-z0-9]/g, '_');
       className = `${this.options.className}Sub_${className}`;
 
       container = doc.querySelector(`.${this.options.className}.${className}`);
@@ -678,7 +678,7 @@ export class Menu {
     if (!container) {
       container = doc.createElement('div');
 
-      addClass(container, `htMenu ${this.options.className}`);
+      addClass(container, `htMenu handsontable ${this.options.className}`);
 
       if (className) {
         addClass(container, className);

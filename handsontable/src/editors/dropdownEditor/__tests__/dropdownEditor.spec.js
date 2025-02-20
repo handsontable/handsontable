@@ -14,6 +14,30 @@ describe('DropdownEditor', () => {
     }
   });
 
+  it('should have correct meta options set when defines as a type', () => {
+    handsontable({
+      type: 'dropdown',
+      source: choices,
+    });
+
+    selectCell(0, 0);
+
+    expect(getCellMeta(0, 0).filter).toBe(false);
+    expect(getCellMeta(0, 0).strict).toBe(true);
+  });
+
+  it('should have correct meta options set when defines as an editor', () => {
+    handsontable({
+      editor: 'dropdown',
+      source: choices,
+    });
+
+    selectCell(0, 0);
+
+    expect(getCellMeta(0, 0).filter).toBe(false);
+    expect(getCellMeta(0, 0).strict).toBe(true);
+  });
+
   it('should render an editor in specified position at cell 0, 0', () => {
     handsontable({
       columns: [
@@ -55,8 +79,8 @@ describe('DropdownEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
-  it('should render an editor in specified position while opening an editor from top to bottom when ' +
-     'top and bottom overlays are enabled', () => {
+  it.forTheme('classic')('should render an editor in specified position while opening an editor ' +
+    'from top to bottom when top and bottom overlays are enabled', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(8, 2),
       rowHeaders: true,
@@ -119,6 +143,84 @@ describe('DropdownEditor', () => {
 
     keyDownUp('enter');
     keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
+  it.forTheme('main')('should render an editor in specified position while opening an editor from top to bottom when ' +
+    'top and bottom overlays are enabled', async() => {
+    spec().$container[0].style.height = '252px';
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [
+        {
+          editor: 'dropdown',
+          source: choices,
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+    await sleep(50);
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -376,8 +478,14 @@ describe('DropdownEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).toBe(120);
-      expect(container.clientHeight).toBe(118);
+      expect(container.clientWidth).forThemes(({ classic, main }) => {
+        classic.toBe(120);
+        main.toBe(118);
+      });
+      expect(container.clientHeight).forThemes(({ classic, main }) => {
+        classic.toBe(118);
+        main.toBe(146);
+      });
     });
 
     it('should open editor with the correct size when there is scrollbar on the list', async() => {
@@ -399,8 +507,14 @@ describe('DropdownEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).toBe(120 + Handsontable.dom.getScrollbarWidth());
-      expect(container.clientHeight).toBe(72);
+      expect(container.clientWidth).forThemes(({ classic, main }) => {
+        classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
+        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+      });
+      expect(container.clientHeight).forThemes(({ classic, main }) => {
+        classic.toBe(72);
+        main.toBe(88);
+      });
     });
   });
 

@@ -930,4 +930,62 @@ describe('WalkontableOverlay', () => {
       wtOverlaysRef.wtTable
     ]);
   });
+
+  it('should attach the `wheel` event to each overlay even if they are disabled (#dev-512)', () => {
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      fixedColumnsStart: 0,
+      fixedRowsTop: 0,
+      fixedRowsBottom: 0,
+    });
+
+    wt.draw();
+
+    inlineStartOverlay().clone.wtTable.holder
+      .dispatchEvent(new WheelEvent('wheel', {
+        deltaX: 50,
+        deltaY: 60,
+      }));
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(50);
+    expect(topOverlay().getScrollPosition()).toBe(60);
+
+    topInlineStartCornerOverlay().clone.wtTable.holder
+      .dispatchEvent(new WheelEvent('wheel', {
+        deltaX: 50,
+        deltaY: 60,
+      }));
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(100);
+    expect(topOverlay().getScrollPosition()).toBe(120);
+
+    topOverlay().clone.wtTable.holder
+      .dispatchEvent(new WheelEvent('wheel', {
+        deltaX: 50,
+        deltaY: 60,
+      }));
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(150);
+    expect(topOverlay().getScrollPosition()).toBe(180);
+
+    bottomInlineStartCornerOverlay().clone.wtTable.holder
+      .dispatchEvent(new WheelEvent('wheel', {
+        deltaX: 50,
+        deltaY: 60,
+      }));
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(200);
+    expect(topOverlay().getScrollPosition()).toBe(240);
+
+    bottomOverlay().clone.wtTable.holder
+      .dispatchEvent(new WheelEvent('wheel', {
+        deltaX: 50,
+        deltaY: 60,
+      }));
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(250);
+    expect(topOverlay().getScrollPosition()).toBe(300);
+  });
 });

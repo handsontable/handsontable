@@ -1,11 +1,12 @@
-import path from 'path';
-import { testCrossBrowser } from '../../src/test-runner';
-import { selectColumnHeaderByNameAndOpenMenu } from '../../src/page-helpers';
+import { test } from '../../src/test-runner';
+import {
+  selectColumnHeaderByNameAndOpenMenu,
+  selectFromContextMenu
+} from '../../src/page-helpers';
 import { helpers } from '../../src/helpers';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-testCrossBrowser(__filename, async({ tablePage }) => {
-  await tablePage.goto('/two-tables-demo');
+test('Test columns add/remove', async({ goto, tablePage }) => {
+  await goto('/two-tables-demo');
 
   const tableTop = tablePage.locator('#tableTop > .handsontable');
   const tableBottom = tablePage.locator('#tableBottom > .handsontable');
@@ -14,16 +15,8 @@ testCrossBrowser(__filename, async({ tablePage }) => {
   tableBottom.waitFor();
 
   await selectColumnHeaderByNameAndOpenMenu('Industry', tableBottom);
-
-  await tablePage.getByText('Insert column left').click();
-
+  await selectFromContextMenu('"Insert column left"');
   await selectColumnHeaderByNameAndOpenMenu('Industry', tableBottom);
-
-  await tablePage.getByText('Insert column right').click();
-
-  const testFileName = path.basename(__filename, '.spec.ts');
-
-  await tablePage.screenshot({
-    path: helpers.screenshotMultiUrlPath(testFileName),
-  });
+  await selectFromContextMenu('"Insert column right"');
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

@@ -107,7 +107,10 @@ describe('manualRowMove', () => {
         $headers[0].simulate('mouseover');
         $headers[0].simulate('mousemove');
 
-        expect(spec().$container.find('.ht__manualRowMove--guideline')[0].offsetTop).toBe(-1);
+        expect(spec().$container.find('.ht__manualRowMove--guideline')[0].offsetTop).forThemes(({ classic, main }) => {
+          classic.toBe(-1);
+          main.toBe(0);
+        });
       });
     });
 
@@ -163,7 +166,7 @@ describe('manualRowMove', () => {
 
       describe('should be shown properly after undo action', () => {
         it('when moving multiple rows from the top to the bottom', () => {
-          const hot = handsontable({
+          handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             rowHeaders: true,
             manualRowMove: true
@@ -183,13 +186,13 @@ describe('manualRowMove', () => {
           });
           $rowHeader.simulate('mouseup');
 
-          hot.undo();
+          getPlugin('undoRedo').undo();
 
           expect(getSelected()).toEqual([[0, -1, 2, 9]]);
         });
 
         it('when moving multiple rows from the bottom to the top', () => {
-          const hot = handsontable({
+          handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 10),
             rowHeaders: true,
             manualRowMove: true
@@ -210,7 +213,7 @@ describe('manualRowMove', () => {
           });
           $rowHeader.simulate('mouseup');
 
-          hot.undo();
+          getPlugin('undoRedo').undo();
 
           expect(getSelected()).toEqual([[3, -1, 5, 9]]);
         });
@@ -238,8 +241,8 @@ describe('manualRowMove', () => {
           });
           $rowHeader.simulate('mouseup');
 
-          hot.undo();
-          hot.redo();
+          getPlugin('undoRedo').undo();
+          hot.getPlugin('undoRedo').redo();
 
           expect(getSelected()).toEqual([[1, -1, 3, 9]]);
         });
@@ -266,8 +269,8 @@ describe('manualRowMove', () => {
           });
           $rowHeader.simulate('mouseup');
 
-          hot.undo();
-          hot.redo();
+          getPlugin('undoRedo').undo();
+          hot.getPlugin('undoRedo').redo();
 
           expect(getSelected()).toEqual([[1, -1, 3, 9]]);
         });

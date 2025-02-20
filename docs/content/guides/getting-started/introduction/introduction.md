@@ -43,10 +43,10 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 
 <div class="boxes-list gray col3">
 
-- [Next.js](https://stackblitz.com/edit/stackblitz-starters-ie1h3d?file=README.md)
-- [Astro](https://stackblitz.com/edit/withastro-astro-1dnjnf?file=README.md) 
-- [Remix](https://stackblitz.com/edit/remix-run-remix-yewmxd?file=README.md)
-- [Nuxt](https://stackblitz.com/edit/nuxt-starter-zqydax?file=README.md)
+- [Next.js](https://stackblitz.com/edit/stackblitz-starters-wp9wzrnb?file=README.md)
+- [Astro](https://stackblitz.com/edit/withastro-astro-nabzqba4?file=README.md) 
+- [Remix](https://stackblitz.com/edit/remix-run-remix-owyjdkt5?file=README.md)
+- [Nuxt](https://stackblitz.com/edit/nuxt-starter-ljnxhaxa?file=README.md)
 
 </div>
 

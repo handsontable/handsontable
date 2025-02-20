@@ -364,16 +364,12 @@ class Overlays {
     ];
 
     overlays.forEach((overlay) => {
-      if (overlay && overlay.needFullRender) {
-        const { holder } = overlay.clone.wtTable; // todo rethink, maybe: overlay.getHolder()
-
-        this.eventManager.addEventListener(
-          holder,
-          'wheel',
-          event => this.onCloneWheel(event, preventWheel),
-          wheelEventOptions
-        );
-      }
+      this.eventManager.addEventListener(
+        overlay.clone.wtTable.holder,
+        'wheel',
+        event => this.onCloneWheel(event, preventWheel),
+        wheelEventOptions
+      );
     });
 
     let resizeTimeout;
@@ -393,13 +389,6 @@ class Overlays {
     if (!isScrollOnWindow) {
       this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
     }
-  }
-
-  /**
-   * Deregister all previously registered listeners.
-   */
-  deregisterListeners() {
-    this.eventManager.clearEvents(true);
   }
 
   /**
@@ -597,7 +586,7 @@ class Overlays {
    * Update the main scrollable elements for all the overlays.
    */
   updateMainScrollableElements() {
-    this.deregisterListeners();
+    this.eventManager.clearEvents(true);
 
     this.inlineStartOverlay.updateMainScrollableElement();
     this.topOverlay.updateMainScrollableElement();
@@ -623,7 +612,7 @@ class Overlays {
   destroy() {
     this.resizeObserver.disconnect();
     this.eventManager.destroy();
-    // todo, probably all below `destory` calls has no sense. To analyze
+    // todo, probably all below `destroy` calls has no sense. To analyze
     this.topOverlay.destroy();
 
     if (this.bottomOverlay.clone) {

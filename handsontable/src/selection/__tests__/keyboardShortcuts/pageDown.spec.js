@@ -26,10 +26,98 @@ describe('Selection navigation', () => {
   }
 
   describe('"PageDown"', () => {
-    it('should move the cell selection down by the height of the table viewport', () => {
+    it.forTheme('classic')('should move the cell selection down by the height of the table viewport', () => {
       handsontable({
         width: 180,
         height: 100, // 100/23 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
+        startRows: 15,
+        startCols: 3
+      });
+
+      selectCell(1, 1);
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
+
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
+
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 13,1']);
+
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 14,1 from: 14,1 to: 14,1']);
+    });
+
+    it.forTheme('main')('should move the cell selection down by the height of the table viewport', () => {
+      handsontable({
+        width: 180,
+        height: 126, // 126/29 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
         startRows: 15,
         startCols: 3
       });
@@ -237,6 +325,30 @@ describe('Selection navigation', () => {
         |   :   :   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,3 from: -3,3 to: -3,3']);
+    });
+
+    it('should move the cell selection down for oversized row', () => {
+      handsontable({
+        width: 180,
+        height: 100,
+        rowHeights: 200,
+        navigableHeaders: false,
+        startRows: 15,
+        startCols: 3
+      });
+
+      selectCell(0, 0);
+      keyDownUp('pagedown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
+
+      keyDownUp('pagedown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 2,0']);
+
+      keyDownUp('pagedown');
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,0 to: 3,0']);
     });
   });
 });

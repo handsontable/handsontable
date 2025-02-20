@@ -9,7 +9,7 @@
       width: 100%;
       padding: var(--ht-input-vertical-padding)
         var(--ht-input-horizontal-padding);
-      padding-right: calc(
+      padding-inline-end: calc(
         var(--ht-input-horizontal-padding) + var(--ht-icon-size)
       );
       margin: 0;
@@ -69,6 +69,17 @@
           color: var(--ht-input-focus-foreground-color);
           background-color: var(--ht-input-focus-background-color);
         }
+      }
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    .htUISelectCaption {
+      &::after {
+        right: auto;
+        left: calc(
+          var(--ht-input-horizontal-padding) - var(--ht-icon-size) / 4
+        );
       }
     }
   }
