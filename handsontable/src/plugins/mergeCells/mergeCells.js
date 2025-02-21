@@ -1504,7 +1504,6 @@ export class MergeCells extends BasePlugin {
    * @returns {number}
    */
   #sumCellsHeights(row, rowspan) {
-    const stylesHandler = this.hot.view.getStylesHandler();
     const defaultHeight = this.hot.view.getDefaultRowHeight();
     const autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
     let height = 0;
@@ -1512,10 +1511,6 @@ export class MergeCells extends BasePlugin {
     for (let i = row; i < row + rowspan; i++) {
       if (!this.hot.rowIndexMapper.isHidden(i)) {
         height += autoRowSizePlugin?.getRowHeight(i) ?? defaultHeight;
-
-        if (i === 0 && !stylesHandler.isClassicTheme()) {
-          height += 1; // border-top-width
-        }
       }
     }
 
