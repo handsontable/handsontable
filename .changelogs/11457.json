@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix editor border radius on mobile devices",
+  "type": "fixed",
+  "issueOrPR": 11457,
+  "breaking": false,
+  "framework": "none"
+}
