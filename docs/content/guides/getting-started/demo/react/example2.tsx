@@ -1289,6 +1289,7 @@ const App = () => {
       manualRowResize={true}
       manualColumnResize={true}
       navigableHeaders={true}
+      imeFastEdit={true}
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />
