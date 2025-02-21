@@ -11,6 +11,7 @@ import { initializeMergedCellsDemo } from './demos/mergedCells/mergedCellsDemo';
 import { initializeNestedHeadersDemo } from './demos/nestedHeaders/nestedHeadersDemo';
 import { initializeNestedRowsDemo } from './demos/nestedRows/nestedRowsDemo';
 import { initializeComplexDemo } from './demos/complex/complexDemo';
+import { initializeIframeDemo } from './demos/iframe/iframeDemo';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -167,5 +168,14 @@ router
         initializeComplexDemo();
       });
     },
+    '/iframe-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeIframeDemo();
+      });
+    }
   })
   .resolve();
