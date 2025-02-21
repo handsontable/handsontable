@@ -414,7 +414,7 @@ To modify just a subset of data passed to Handsontable, these are the methods yo
 
 ## Working with a copy of data
 
-When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
+When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `structuredClone(data)` or legacy `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
 
 ::: only-for javascript
 
