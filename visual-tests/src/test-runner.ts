@@ -105,8 +105,13 @@ const test = baseTest.extend<TestParams>({
       stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
 
       const table = page.locator(helpers.selectors.anyTable).first();
+      const tableIframe = page.frameLocator('iFrame').locator(helpers.selectors.anyTableIframe).first();
 
-      await table.waitFor();
+      if (page.url().includes('iframe')) {
+        await tableIframe.waitFor();
+      } else {
+        await table.waitFor();
+      }
     });
   }
 });

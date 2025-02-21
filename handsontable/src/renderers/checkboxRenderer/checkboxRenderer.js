@@ -1,6 +1,6 @@
 import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
-import { empty, addClass, setAttribute } from '../../helpers/dom/element';
+import { empty, addClass, setAttribute, isHTMLElement } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import { Hooks } from '../../core/hooks';
@@ -347,7 +347,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
           const cell = hotInstance.getCell(visualRow, visualColumn);
 
-          if (cell instanceof HTMLElement) {
+          if (isHTMLElement(cell)) {
             const checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
             if (checkboxes.length > 0) {
