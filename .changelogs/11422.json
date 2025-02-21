@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed table misalign after container size change",
+  "title": "Fixed context menu alter item activity",
   "type": "fixed",
-  "issueOrPR": 11324,
+  "issueOrPR": 11422,
   "breaking": false,
   "framework": "none"
 }

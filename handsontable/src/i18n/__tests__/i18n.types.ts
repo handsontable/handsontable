@@ -6,6 +6,7 @@ import {
   deDE,
   enUS,
   esMX,
+  faIR,
   frFR,
   hrHR,
   itIT,
@@ -28,6 +29,7 @@ const deCHCode: 'de-CH' = deCH.languageCode;
 const deDECode: 'de-DE' = deDE.languageCode;
 const enUSCode: 'en-US' = enUS.languageCode;
 const esMXCode: 'es-MX' = esMX.languageCode;
+const faIRCode: 'fa-IR' = faIR.languageCode;
 const frFRCode: 'fr-FR' = frFR.languageCode;
 const hrHRCode: 'hr-HR' = hrHR.languageCode;
 const itITCode: 'it-IT' = itIT.languageCode;
@@ -49,6 +51,7 @@ registerLanguageDictionary(deCH);
 registerLanguageDictionary(deDE);
 registerLanguageDictionary(enUS);
 registerLanguageDictionary(esMX);
+registerLanguageDictionary(faIR);
 registerLanguageDictionary(frFR);
 registerLanguageDictionary(hrHR);
 registerLanguageDictionary(itIT);

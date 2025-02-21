@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed undo/redo for filters.",
+  "title": "Add checkbox input visibility for the no-theme variant",
   "type": "fixed",
-  "issueOrPR": 11307,
+  "issueOrPR": 11427,
   "breaking": false,
   "framework": "none"
 }

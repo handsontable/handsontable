@@ -36,6 +36,11 @@ describe('NestedHeaders', () => {
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
+          <tr>
+          <th class=""></th>
+          <th class=""></th>
+          <th class=""></th>
+        </tr>
         </thead>
         <tbody>
           <tr class="ht__row_odd">
