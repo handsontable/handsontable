@@ -182,6 +182,8 @@ export class FocusManager {
       this.#hot.getSettings().imeFastEdit &&
       !this.#hot.getActiveEditor()?.isOpened()
     ) {
+      this.#hot.getActiveEditor()?.refreshValue?.();
+
       if (!this.#debouncedSelect.has(delay)) {
         this.#debouncedSelect.set(delay, debounce(() => {
           this.getRefocusElement()?.select();
