@@ -111,6 +111,11 @@ const restartServer = () => {
 };
 
 /**
+ * Debounced version of the `restartServer` function.
+ */
+const debouncedRestartServer = debounce(restartServer, 1000);
+
+/**
  * Used as method for onExitListener
  * Gracefully destroys the spawn process and exits the current process.
  *
@@ -132,7 +137,7 @@ onExitListener(exitHandler);
  * Watch for changes in the content folder and restart the server in content *.(html|js|css) files.
  */
 watcherJs.on('change', (path/* , _stat */) => {
-  debounce(restartServer, 1000)();
+  debouncedRestartServer();
   console.log(`File ${path} was changed`);
 });
 
