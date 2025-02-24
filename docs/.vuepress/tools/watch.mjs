@@ -1,25 +1,30 @@
-import watch from "glob-watcher";
-import { spawn, exec } from "node:child_process";
-import process from "node:process";
-import browserSync from "browser-sync";
+import watch from 'glob-watcher';
+import { spawn, exec } from 'node:child_process';
+import process from 'node:process';
+import browserSync from 'browser-sync';
+
+/* eslint-disable no-console, no-restricted-globals */
 
 const watcherJs = watch([
-  "./content/**/*.js",
-  "./content/**/*.html",
-  "./content/**/*.css",
-  "!./**/sidebar.js",
+  './content/**/*.js',
+  './content/**/*.html',
+  './content/**/*.css',
+  '!./**/sidebar.js',
 ]);
 
-const watcherTs = watch(["./content/**/*.ts", "./content/**/*.tsx"]);
+const watcherTs = watch(['./content/**/*.ts', './content/**/*.tsx']);
+
+const bs = browserSync.create();
 
 /**
  *
- * @param {function} callback
- * @param {number} wait
- * @returns
+ * @param {Function} callback - Function to be called after the timeout.
+ * @param {number} wait - Time to wait before calling the function.
+ * @returns {Function}
  */
 const debounce = (callback, wait) => {
   let timeoutId = null;
+
   return (...args) => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
@@ -31,35 +36,39 @@ const debounce = (callback, wait) => {
 /**
  * Kills the process and whole pid group, then starts a new one
  * Listens for the success message from vuepress and init or reloads the browser
- * Browser stack is creating a proxy to the vuepress server
- * @param {ChildProcess} docProcess
- * @returns ChildProcess
+ * Browser stack is creating a proxy to the vuepress server.
+ *
+ * @param {ChildProcess} docProcess - Spawn process of the vuepress server.
+ * @returns {ChildProcess}
  */
 const restartProcess = (docProcess) => {
   if (docProcess) {
     process.kill(-docProcess.pid);
     docProcess = null;
   }
-  let newDocProcess = spawn(
-    "npm",
+  const newDocProcess = spawn(
+    'npm',
     [
-      "run",
-      process.env.VUEPRESS_NO_CACHE ? "docs:start:no-cache" : "docs:start",
+      'run',
+      process.env.VUEPRESS_NO_CACHE ? 'docs:start:no-cache' : 'docs:start',
     ],
     {
-      stdio: "pipe",
+      stdio: 'pipe',
       detached: true,
     }
   );
 
-  newDocProcess.stdin.setEncoding("utf-8");
+  newDocProcess.stdin.setEncoding('utf-8');
   newDocProcess.stdout.pipe(process.stdout);
-  newDocProcess.stdout &&
-    newDocProcess.stdout.on("data", (data) => {
+
+  if (newDocProcess) {
+    newDocProcess.stdout.on('data', (data) => {
       // vue press dev is returning patter `success [10:06:15] Build 01050a finished in 83 ms! ( http://localhost:8080/docs/ )`
-      const test = new RegExp("success.*(http://localhost.*/)");
+      const test = new RegExp('success.*(http://localhost.*/)');
+
       if (data.toString().match(test)) {
         const url = data.toString().match(test)[1];
+
         if (bs.active) {
           bs.reload();
         } else {
@@ -69,71 +78,76 @@ const restartProcess = (docProcess) => {
         }
       }
     });
+  }
+
   return newDocProcess;
 };
-/**
- * Listen for exit events then calls the exitHandler
- * @param {function} exitHandler
+
+let docProcess = restartProcess();
+
+/** ......................................
+ * Listen for exit events then calls the exitHandler.
+ *
+ * @param {Function} exitHandler - Function to be called on exit.
  */
 const onExitListener = (exitHandler) => {
   // do something when app is closing
-  process.on("exit", exitHandler.bind(null, { cleanup: true }));
+  process.on('exit', exitHandler.bind(null, { cleanup: true }));
   // catches ctrl+c event
-  process.on("SIGINT", exitHandler.bind(null, { exit: true }));
+  process.on('SIGINT', exitHandler.bind(null, { exit: true }));
   // catches "kill pid" (for example: nodemon restart)
-  process.on("SIGUSR1", exitHandler.bind(null, { exit: true }));
-  process.on("SIGUSR2", exitHandler.bind(null, { exit: true }));
+  process.on('SIGUSR1', exitHandler.bind(null, { exit: true }));
+  process.on('SIGUSR2', exitHandler.bind(null, { exit: true }));
   // catches uncaught exceptions
-  process.on("uncaughtException", exitHandler.bind(null, { exit: true }));
+  process.on('uncaughtException', exitHandler.bind(null, { exit: true }));
 };
 
-let bs = browserSync.create();
-let docProcess = restartProcess();
-
 /**
- * Restarts the server by calling the `restartProcess` function
+ * Restarts the server by calling the `restartProcess` function.
  */
 const restartServer = () => {
-  console.log("Restarting the server");
+  console.log('Restarting the server');
   docProcess = restartProcess(docProcess);
 };
 
 /**
  * Used as method for onExitListener
- * Gracefully destroys the spawn process and exits the current process
- * @param {*} options
- * @param {*} _exitCode
+ * Gracefully destroys the spawn process and exits the current process.
+ *
+ * @param {object} options - Options for the exitHandler.
+ * @param {string} exitCode - Process exit code.
  */
-const exitHandler = (options, _exitCode) => {
+const exitHandler = (options, exitCode) => {
   if (docProcess) {
     process.kill(-docProcess.pid);
-    console.log("BYE BYE Handsontable developer !!!");
+    console.log('BYE BYE Handsontable developer !!!', 'Exit code', exitCode);
     docProcess = null;
   }
-  if (options.exit) process.exit();
+  if (options.exit) { process.exit(); }
 };
 
 onExitListener(exitHandler);
 
 /**
- * Watch for changes in the content folder and restart the server in content *.(html|js|css) files
+ * Watch for changes in the content folder and restart the server in content *.(html|js|css) files.
  */
-watcherJs.on("change", function (path, _stat) {
+watcherJs.on('change', (path/* , _stat */) => {
   debounce(restartServer, 1000)();
   console.log(`File ${path} was changed`);
 });
 
 /**
  * Watch for changes in the content folder and compiles typescript *.(ts|tsx) files
- * Once they are compiled watcher for js files is triggered
+ * Once they are compiled watcher for js files is triggered.
  */
-watcherTs.on("change", function (path, _stat) {
+watcherTs.on('change', (path/* , _stat */) => {
   console.log(`File ${path} was changed`);
   exec(
     `npm run docs:code-examples:generate-js ${path}`,
     (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
+
         return;
       }
       console.log(`stdout: ${stdout}`);
