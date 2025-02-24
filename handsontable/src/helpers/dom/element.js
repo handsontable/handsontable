@@ -1198,7 +1198,7 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
 /**
  * Check if the element is HTMLElement.
  *
- * @param {HTMLElement|number} element Element to check.
+ * @param {*} element Element to check.
  * @returns {boolean} `true` if the element is HTMLElement.
  */
 export function isHTMLElement(element) {

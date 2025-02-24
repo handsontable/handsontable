@@ -1,19 +1,19 @@
 import Handsontable from 'handsontable';
 
 const root = document.getElementById('root');
-const iframe = document.createElement('iframe');
-iframe.width = 500;
-iframe.height = 500;
-
-root.appendChild(iframe);
 
 export function initializeIframeDemo() {
+    const iframe = document.createElement('iframe');
+    iframe.width = 500;
+    iframe.height = 500;
+
+    root.appendChild(iframe);
     const doc = root.querySelector("iframe").contentDocument,
         container = doc.createElement("div");
 
     const link = document.createElement("link");
 
-    link.href = "https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.css";
+    link.href = "http://localhost:8082/assets/handsontable/dist/handsontable.full.css";
     link.rel = "stylesheet";
     link.type = "text/css";
 
