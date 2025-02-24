@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 15.0.0
- * Release date: 16/12/2024 (built at 16/12/2024 11:14:28)
+ * Version: 15.1.0
+ * Release date: 20/02/2025 (built at 19/02/2025 10:01:17)
  */
 /**
  * Fix for bootstrap styles
@@ -1988,6 +1988,10 @@ textarea.HandsontableCopyPaste {
 
 .handsontable thead th.hiddenHeader:not(:first-of-type) {
   display: none;
+}
+
+thead th.hiddenHeaderText .colHeader {
+  opacity: 0;
 }
 
 @charset "UTF-8";

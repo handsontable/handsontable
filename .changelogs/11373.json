@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Bump Hyperformula to v3",
-  "type": "changed",
-  "issueOrPR": 11373,
-  "breaking": false,
-  "framework": "none"
-}

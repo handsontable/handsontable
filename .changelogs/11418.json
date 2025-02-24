@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix merged cell height calculation in the new themes",
-  "type": "fixed",
-  "issueOrPR": 11418,
-  "breaking": false,
-  "framework": "none"
-}
