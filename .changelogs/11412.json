@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Improved performance of the horizontal scrolling",
-  "type": "changed",
-  "issueOrPR": 11412,
-  "breaking": false,
-  "framework": "none"
-}

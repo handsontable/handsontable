@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix borders styles for fixed rows and cols",
-  "type": "fixed",
-  "issueOrPR": 11369,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Pass normalized cell values to hooks for numeric cell types",
-  "type": "changed",
-  "issueOrPR": 11346,
-  "breaking": false,
-  "framework": "none"
-}

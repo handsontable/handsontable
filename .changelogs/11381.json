@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Remove filters active class name from parent elements in the nestedHeaders",
-  "type": "fixed",
-  "issueOrPR": 11381,
-  "breaking": false,
-  "framework": "none"
-}
