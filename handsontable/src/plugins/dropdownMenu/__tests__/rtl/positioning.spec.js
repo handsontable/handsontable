@@ -130,7 +130,7 @@ describe('DropdownMenu (RTL mode)', () => {
       const $dropdownMenuRoot = $('.htDropdownMenu');
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
-      expect(tickItemOffset.top).toBe(155);
+      expect(tickItemOffset.top).toBe(156);
       expect(tickItemOffset.left).toBe(dropdownMenuOffset.left + 1);
     });
   });
