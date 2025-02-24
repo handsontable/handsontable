@@ -63,6 +63,9 @@ const restartProcess = (docProcess) => {
 
   if (newDocProcess) {
     newDocProcess.stdout.on('data', (data) => {
+      if (data.toString().includes('Compiling Client')) {
+        console.log('Building ... (it could take 1-2 minutes to rebuild)"')
+      }
       // vue press dev is returning patter `success [10:06:15] Build 01050a finished in 83 ms! ( http://localhost:8080/docs/ )`
       const test = new RegExp('success.*(http://localhost.*/)');
 
