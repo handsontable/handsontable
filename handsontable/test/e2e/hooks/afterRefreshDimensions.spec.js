@@ -162,7 +162,7 @@ describe('Hook', () => {
 
         this.$iframeContainer = $('<div/>').appendTo(doc.body);
 
-        await sleep(50); // wait for iframe to load to prevent double resize events
+        await sleep(100); // wait for iframe to load to prevent double resize events
       });
 
       afterEach(function() {
