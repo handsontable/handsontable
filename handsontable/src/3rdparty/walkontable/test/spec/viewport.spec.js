@@ -270,6 +270,22 @@ describe('WalkontableViewport', () => {
 
       expect(wt.wtViewport.hasVerticalScroll()).toBe(true);
     });
+
+    it('should return `true` when the viewport height is the same as total height of all rows (#dev-2248)', () => {
+      createDataArray(13, 15);
+
+      spec().$wrapper.width(500).height(300);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      expect(wt.wtViewport.hasVerticalScroll()).toBe(true);
+    });
   });
 
   describe('hasHorizontalScroll()', () => {
@@ -302,6 +318,22 @@ describe('WalkontableViewport', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      expect(wt.wtViewport.hasHorizontalScroll()).toBe(true);
+    });
+
+    it('should return `true` when the viewport width is the same as total width of all columns (#dev-2248)', () => {
+      createDataArray(50, 10);
+
+      spec().$wrapper.width(500).height(300);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
       });
 
       wt.draw();
