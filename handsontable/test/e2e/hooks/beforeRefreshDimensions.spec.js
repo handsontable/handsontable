@@ -137,7 +137,7 @@ describe('Hook', () => {
     });
 
     describe('running in iframe', () => {
-      beforeEach(function() {
+      beforeEach(async function() {
         this.$iframe = $('<iframe width="500px" height="60px"/>').appendTo(this.$container);
 
         const doc = this.$iframe[0].contentDocument;
@@ -151,6 +151,8 @@ describe('Hook', () => {
         doc.close();
 
         this.$iframeContainer = $('<div/>').appendTo(doc.body);
+
+        await sleep(50); // wait for iframe to load to prevent double resize events
       });
 
       afterEach(function() {
@@ -167,7 +169,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].style.width = '50px';
 
-        await sleep(300);
+        await sleep(50);
 
         expect(beforeRefreshDimensions.calls.count()).toBe(1);
       });
@@ -185,7 +187,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].style.width = '50px';
 
-        await sleep(300);
+        await sleep(50);
 
         expect(beforeRefreshDimensions.calls.count()).toBe(1);
         expect(afterRefreshDimensions.calls.count()).toBe(0);
@@ -200,7 +202,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].style.width = '50px';
 
-        await sleep(500);
+        await sleep(50);
 
         expect(beforeRefreshDimensions).toHaveBeenCalledWith(
           { width: 469, height: 0 },
@@ -220,7 +222,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].style.width = '50px';
 
-        await sleep(500);
+        await sleep(50);
 
         expect(beforeRefreshDimensions).toHaveBeenCalledWith(
           { width: 300, height: 300 },
