@@ -85,7 +85,7 @@ const restartProcess = (docProcess) => {
 
 let docProcess = restartProcess();
 
-/** ......................................
+/**
  * Listen for exit events then calls the exitHandler.
  *
  * @param {Function} exitHandler - Function to be called on exit.
@@ -123,7 +123,7 @@ const exitHandler = (options, exitCode) => {
     console.log('BYE BYE Handsontable developer !!!', 'Exit code', exitCode);
     docProcess = null;
   }
-  if (options.exit) { process.exit(); }
+  process?.exit();
 };
 
 onExitListener(exitHandler);
