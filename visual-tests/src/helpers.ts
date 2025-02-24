@@ -11,7 +11,6 @@ export const helpers = {
 
   selectors: {
     anyTable: '#root .handsontable',
-    anyTableIframe: '.handsontable',
     mainTable: '#root > .handsontable',
     themesMainTable: '#root',
     mainTableBody: '> .ht_master.handsontable table tbody',
