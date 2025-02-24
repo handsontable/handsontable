@@ -94,7 +94,7 @@ docs                            # All documentation files
 │   │   ├── check-links.js      # The documentation's link checker
 │   │   ├── jsdoc-convert       # JSDoc-to-Markdown converter
 │   │   ├── utils.js            # Tools utilities
-│   │   ├── utils.js            # Watch script for running local server
+│   │   ├── watch.mjs           # Watch script for running local server
 │   ├── config.js               # VuePress configuration
 │   ├── docs-links.js           # Lets us link within the currently-selected docs version and framework with `@` (e.g. [link](@/guides/path/file/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
