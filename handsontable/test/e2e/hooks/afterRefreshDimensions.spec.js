@@ -156,13 +156,14 @@ describe('Hook', () => {
         doc.write(`
           <!doctype html>
           <head>
+            <link type="text/css" rel="stylesheet" href="lib/normalize.css">
             <link type="text/css" rel="stylesheet" href="../dist/handsontable.css">
           </head>`);
         doc.close();
 
         this.$iframeContainer = $('<div/>').appendTo(doc.body);
 
-        await sleep(200); // wait for iframe to load to prevent double resize events
+        await sleep(500); // wait for iframe to load to prevent double resize events
       });
 
       afterEach(function() {
@@ -177,7 +178,7 @@ describe('Hook', () => {
           afterRefreshDimensions,
         });
 
-        spec().$iframe[0].style.width = '50px';
+        spec().$iframe[0].width = '50px';
 
         await sleep(300);
 
@@ -191,13 +192,13 @@ describe('Hook', () => {
           afterRefreshDimensions,
         });
 
-        spec().$iframe[0].style.width = '50px';
+        spec().$iframe[0].width = '50px';
 
         await sleep(300);
 
         expect(afterRefreshDimensions).toHaveBeenCalledWith(
-          { width: 469, height: 0 },
-          { width: 19, height: 116 },
+          { width: 500, height: 0 },
+          { width: 35, height: 116 },
           true,
         );
       });
@@ -211,7 +212,7 @@ describe('Hook', () => {
           height: 300,
         });
 
-        spec().$iframe[0].style.width = '50px';
+        spec().$iframe[0].width = '50px';
 
         await sleep(300);
 
