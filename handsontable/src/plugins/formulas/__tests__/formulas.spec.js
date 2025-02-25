@@ -3234,7 +3234,7 @@ describe('Formulas general', () => {
 
       validateCells();
 
-      await sleep(50);
+      await sleep(100);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -3738,7 +3738,7 @@ describe('Formulas general', () => {
 
       validateCells();
 
-      await sleep(50);
+      await sleep(100);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
