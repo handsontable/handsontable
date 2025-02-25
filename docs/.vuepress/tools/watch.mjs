@@ -23,10 +23,9 @@ let jsReload = true;
  * Listens for the success message from vuepress and init or reloads the browser
  * Browser sync is creating a proxy to the vuepress server.
  *
- * @param {ChildProcess} docProcess - Spawn process of the vuepress server.
  * @returns {ChildProcess}
  */
-const startProcess = (docProcess) => {
+const startProcess = () => {
   const newDocProcess = spawn(
     'npm',
     [
@@ -45,13 +44,14 @@ const startProcess = (docProcess) => {
   if (newDocProcess) {
     newDocProcess.stdout.on('data', (data) => {
       if (data.toString().includes('Compiling Client')) {
-        console.log('Building ... (it could take 1-2 minutes to rebuild)"')
+        console.log('Building ... (it could take 1-2 minutes to rebuild)"');
       }
       // vue press dev is returning patter `success [10:06:15] Build 01050a finished in 83 ms! ( http://localhost:8080/docs/ )`
       const test = new RegExp('success.*(http://localhost.*/)');
 
       if (data.toString().match(test)) {
         const url = data.toString().match(test)[1];
+
         if (jsReload) {
           if (bs.active) {
             bs.reload();
@@ -107,10 +107,10 @@ const exitHandler = (options, exitCode) => {
 onExitListener(exitHandler);
 
 /**
- * Watch for changes in the content folder and set jsReload flat to true 
+ * Watch for changes in the content folder and set jsReload flat to true
  * which triggers the browser reload after vuepress is rebuilt.
- */ 
-watcherJs.on('change', (path/* , _stat */) => {
+ */
+watcherJs.on('change', (/* path , _stat */) => {
   jsReload = true;
 });
 
@@ -125,6 +125,7 @@ watcherTs.on('change', (path/* , _stat */) => {
     (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
+
         return;
       }
       console.log(`stdout: ${stdout}`);
