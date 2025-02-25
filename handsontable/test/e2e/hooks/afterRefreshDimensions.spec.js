@@ -163,7 +163,7 @@ describe('Hook', () => {
 
         this.$iframeContainer = $('<div/>').appendTo(doc.body);
 
-        await sleep(500); // wait for iframe to load to prevent double resize events
+        await sleep(50); // wait for iframe to load to prevent double resize events
       });
 
       afterEach(function() {
@@ -180,7 +180,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].width = '50px';
 
-        await sleep(300);
+        await sleep(50);
 
         expect(afterRefreshDimensions.calls.count()).toBe(1);
       });
@@ -194,7 +194,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].width = '50px';
 
-        await sleep(300);
+        await sleep(50);
 
         expect(afterRefreshDimensions).toHaveBeenCalledWith(
           { width: 500, height: 0 },
@@ -214,7 +214,7 @@ describe('Hook', () => {
 
         spec().$iframe[0].width = '50px';
 
-        await sleep(300);
+        await sleep(50);
 
         expect(afterRefreshDimensions).toHaveBeenCalledWith(
           { width: 300, height: 300 },
