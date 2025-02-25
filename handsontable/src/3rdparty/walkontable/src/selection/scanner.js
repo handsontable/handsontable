@@ -1,5 +1,5 @@
 /* eslint-disable no-continue */
-import { addClass } from '../../../../helpers/dom/element';
+import { addClass, isHTMLElement } from '../../../../helpers/dom/element';
 
 /**
  * Selection scanner module scans the rendered cells and headers and if it finds an intersection with
@@ -286,7 +286,7 @@ export class SelectionScanner {
     } else {
       const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(topRow, startColumn));
 
-      if (!(cell instanceof HTMLElement)) {
+      if (!isHTMLElement(cell)) {
         return;
       }
     }

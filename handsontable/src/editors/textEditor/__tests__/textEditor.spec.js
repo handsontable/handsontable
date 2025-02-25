@@ -650,7 +650,7 @@ describe('TextEditor', () => {
 
     expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main }) => {
       classic.toBe('24px');
-      main.toBe('29px');
+      main.toBe('30px');
     });
     expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
@@ -1959,7 +1959,7 @@ describe('TextEditor', () => {
 
     expect($editorInput.height()).forThemes(({ classic, main }) => {
       classic.toBe(83);
-      main.toBe(95);
+      main.toBe(94);
     });
   });
 
