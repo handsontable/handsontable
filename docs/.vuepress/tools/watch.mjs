@@ -7,6 +7,7 @@ import browserSync from 'browser-sync';
 
 const watcherJs = watch([
   './content/**/*.js',
+  './content/**/*.jsx',
   './content/**/*.html',
   './content/**/*.css',
   '!./**/sidebar.js',
@@ -15,37 +16,17 @@ const watcherJs = watch([
 const watcherTs = watch(['./content/**/*.ts', './content/**/*.tsx']);
 
 const bs = browserSync.create();
+let jsReload = true;
 
 /**
- *
- * @param {Function} callback - Function to be called after the timeout.
- * @param {number} wait - Time to wait before calling the function.
- * @returns {Function}
- */
-const debounce = (callback, wait) => {
-  let timeoutId = null;
-
-  return (...args) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
-      callback(...args);
-    }, wait);
-  };
-};
-
-/**
- * Kills the process and whole pid group, then starts a new one
+ * Start a new one process
  * Listens for the success message from vuepress and init or reloads the browser
- * Browser stack is creating a proxy to the vuepress server.
+ * Browser sync is creating a proxy to the vuepress server.
  *
  * @param {ChildProcess} docProcess - Spawn process of the vuepress server.
  * @returns {ChildProcess}
  */
-const restartProcess = (docProcess) => {
-  if (docProcess) {
-    process.kill(-docProcess.pid);
-    docProcess = null;
-  }
+const startProcess = (docProcess) => {
   const newDocProcess = spawn(
     'npm',
     [
@@ -71,14 +52,16 @@ const restartProcess = (docProcess) => {
 
       if (data.toString().match(test)) {
         const url = data.toString().match(test)[1];
-
-        if (bs.active) {
-          bs.reload();
-        } else {
-          bs.init({
-            proxy: url,
-          });
+        if (jsReload) {
+          if (bs.active) {
+            bs.reload();
+          } else {
+            bs.init({
+              proxy: url,
+            });
+          }
         }
+        jsReload = false;
       }
     });
   }
@@ -86,7 +69,7 @@ const restartProcess = (docProcess) => {
   return newDocProcess;
 };
 
-let docProcess = restartProcess();
+let docProcess = startProcess();
 
 /**
  * Listen for exit events then calls the exitHandler.
@@ -104,19 +87,6 @@ const onExitListener = (exitHandler) => {
   // catches uncaught exceptions
   process.on('uncaughtException', exitHandler.bind(null, { exit: true }));
 };
-
-/**
- * Restarts the server by calling the `restartProcess` function.
- */
-const restartServer = () => {
-  console.log('Restarting the server');
-  docProcess = restartProcess(docProcess);
-};
-
-/**
- * Debounced version of the `restartServer` function.
- */
-const debouncedRestartServer = debounce(restartServer, 1000);
 
 /**
  * Used as method for onExitListener
@@ -137,11 +107,11 @@ const exitHandler = (options, exitCode) => {
 onExitListener(exitHandler);
 
 /**
- * Watch for changes in the content folder and restart the server in content *.(html|js|css) files.
- */
+ * Watch for changes in the content folder and set jsReload flat to true 
+ * which triggers the browser reload after vuepress is rebuilt.
+ */ 
 watcherJs.on('change', (path/* , _stat */) => {
-  debouncedRestartServer();
-  console.log(`File ${path} was changed`);
+  jsReload = true;
 });
 
 /**
@@ -155,7 +125,6 @@ watcherTs.on('change', (path/* , _stat */) => {
     (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
-
         return;
       }
       console.log(`stdout: ${stdout}`);
