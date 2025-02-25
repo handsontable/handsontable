@@ -168,7 +168,7 @@ describe('Hook', () => {
           beforeRefreshDimensions,
         });
 
-        spec().$iframe[0].style.width = '50px';
+        spec().$iframe[0].width = '50px';
 
         await sleep(50);
 
@@ -186,7 +186,7 @@ describe('Hook', () => {
           afterRefreshDimensions,
         });
 
-        spec().$iframe[0].style.width = '50px';
+        spec().$iframe[0].width = '50px';
 
         await sleep(50);
 
@@ -201,7 +201,7 @@ describe('Hook', () => {
           beforeRefreshDimensions,
         });
 
-        spec().$iframe[0].style.width = '50px';
+        spec().$iframe[0].width = '50px';
 
         await sleep(50);
 
@@ -221,7 +221,7 @@ describe('Hook', () => {
           height: 300,
         });
 
-        spec().$iframe[0].style.width = '50px';
+        spec().$iframe[0].width = '50px';
 
         await sleep(50);
 
