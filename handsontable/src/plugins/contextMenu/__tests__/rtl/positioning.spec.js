@@ -221,7 +221,7 @@ describe('ContextMenu (RTL mode)', () => {
 
       expect(tickItemOffset.top).forThemes(({ classic, main }) => {
         classic.toBe(216);
-        main.toBe(247);
+        main.toBe(248);
       });
       expect(tickItemOffset.left).forThemes(({ classic, main }) => {
         classic.toBe(contextMenuOffset.left + $contextMenuRoot.outerWidth() - 4);

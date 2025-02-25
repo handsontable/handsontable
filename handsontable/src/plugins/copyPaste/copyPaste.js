@@ -6,7 +6,8 @@ import { sanitize } from '../../helpers/string';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
-  makeElementContentEditableAndSelectItsContent
+  makeElementContentEditableAndSelectItsContent,
+  isHTMLElement
 } from '../../helpers/dom/element';
 import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
@@ -632,7 +633,7 @@ export class CopyPaste extends BasePlugin {
     if (
       !this.hot.isListening() && !this.#isTriggeredByCopy ||
       this.isEditorOpened() ||
-      event.target instanceof HTMLElement && (
+      isHTMLElement(event.target) && (
         isHotInput && event.target !== focusedElement ||
         !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target
       )
@@ -682,7 +683,7 @@ export class CopyPaste extends BasePlugin {
     if (
       !this.hot.isListening() && !this.#isTriggeredByCut ||
       this.isEditorOpened() ||
-      event.target instanceof HTMLElement && (
+      isHTMLElement(event.target) && (
         isHotInput && event.target !== focusedElement ||
         !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target
       )
@@ -731,7 +732,7 @@ export class CopyPaste extends BasePlugin {
       !this.hot.isListening() ||
       this.isEditorOpened() ||
       !this.hot.getSelected() ||
-      event.target instanceof HTMLElement && (
+      isHTMLElement(event.target) && (
         isHotInput && event.target !== focusedElement ||
         !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target
       )
