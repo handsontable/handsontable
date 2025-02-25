@@ -1194,3 +1194,15 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
 
   removeContentEditableFromElementAndDeselect(element, invisibleSelection);
 }
+
+/**
+ * Check if the element is HTMLElement.
+ *
+ * @param {*} element Element to check.
+ * @returns {boolean} `true` if the element is HTMLElement.
+ */
+export function isHTMLElement(element) {
+  const OwnElement = element?.ownerDocument?.defaultView.Element;
+
+  return !!(OwnElement && OwnElement !== null && element instanceof OwnElement);
+}
