@@ -146,7 +146,7 @@ describe('autocompleteValidator', () => {
       setDataAtCell(0, 1);
       setDataAtCell(0, 2, '');
 
-      await sleep(10);
+      await sleep(50);
 
       expect(afterValidate.calls.argsFor(0)).toEqual([false, null, 0, 0]);
       expect(afterValidate.calls.argsFor(1)).toEqual([false, undefined, 0, 1]);
