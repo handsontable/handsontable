@@ -82,15 +82,15 @@
             th {
               border-top-width: 0;
             }
-          }
 
-          &:first-of-type {
-            th,
-            td {
-              height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) +
-                  1px
-              );
+            &:first-of-type {
+              th,
+              td {
+                height: calc(
+                  var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) +
+                    1px
+                );
+              }
             }
           }
         }
@@ -164,16 +164,6 @@
         &::selection {
           background: transparent;
         }
-      }
-    }
-
-    // compensates the top border width of the first row
-    tr:first-of-type {
-      th,
-      td {
-        height: calc(
-          var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
-        );
       }
     }
 
@@ -257,6 +247,16 @@
               color: var(--ht-header-row-active-foreground-color);
               background-color: var(--ht-header-row-active-background-color);
             }
+          }
+        }
+
+        // compensates the top border width of the first row
+        &:first-of-type {
+          th,
+          td {
+            height: calc(
+              var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
+            );
           }
         }
 
