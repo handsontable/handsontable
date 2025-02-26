@@ -26,7 +26,7 @@ describe('dropdownValidator', () => {
 
     setDataAtCell(0, 0, 'Some');
 
-    await sleep(10);
+    await sleep(50);
 
     expect(afterValidate).toHaveBeenCalledWith(false, 'Some', 0, 0);
   });
@@ -52,7 +52,7 @@ describe('dropdownValidator', () => {
       [1, 0, 'test5'],
     ]);
 
-    await sleep(10);
+    await sleep(50);
 
     expect(afterValidate.calls.argsFor(0)).toEqual([false, 'test5', 1, 0]);
     expect(afterValidate.calls.argsFor(1)).toEqual([true, 'data', 0, 3]);
@@ -76,7 +76,7 @@ describe('dropdownValidator', () => {
 
       setDataAtCell(0, 0, '');
 
-      await sleep(10);
+      await sleep(50);
 
       expect(afterValidate).toHaveBeenCalledWith(true, '', 0, 0);
     });
@@ -96,7 +96,7 @@ describe('dropdownValidator', () => {
 
       setDataAtCell(0, 0, '');
 
-      await sleep(10);
+      await sleep(50);
 
       expect(afterValidate).toHaveBeenCalledWith(true, '', 0, 0);
     });
@@ -116,7 +116,7 @@ describe('dropdownValidator', () => {
 
       setDataAtCell(0, 0, '');
 
-      await sleep(10);
+      await sleep(50);
 
       expect(afterValidate).toHaveBeenCalledWith(false, '', 0, 0);
     });
@@ -150,7 +150,7 @@ describe('dropdownValidator', () => {
       setDataAtCell(0, 1, '');
       setDataAtCell(0, 2, '');
 
-      await sleep(10);
+      await sleep(50);
 
       expect(afterValidate.calls.argsFor(0)).toEqual([true, '', 0, 0]);
       expect(afterValidate.calls.argsFor(1)).toEqual([false, '', 0, 1]);
@@ -186,7 +186,7 @@ describe('dropdownValidator', () => {
       setDataAtCell(0, 1);
       setDataAtCell(0, 2, '');
 
-      await sleep(10);
+      await sleep(50);
 
       expect(afterValidate.calls.argsFor(0)).toEqual([false, null, 0, 0]);
       expect(afterValidate.calls.argsFor(1)).toEqual([false, undefined, 0, 1]);
