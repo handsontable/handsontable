@@ -31,11 +31,12 @@
     "docs:test:example-checker": "node .vuepress/tools/example-checker",
     "docs:visual-test": "npx playwright test",
     "docs:visual-test:update-screenshot": "npx playwright test -u",
+    "docs:watch": "cross-env FORCE_COLOR=1 node .vuepress/tools/watch.mjs",
+    "docs:watch:no-cache": "cross-env VUEPRESS_NO_CACHE=1 FORCE_COLOR=1 node .vuepress/tools/watch.mjs",
     "postinstall": "patch-package"
   },
   "license": "CC BY 4.0",
   "devDependencies": {
-    "eslint": "^7.5.0",
     "@babel/eslint-parser": "^7.18.2",
     "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/plugin-proposal-decorators": "^7.13.5",
@@ -57,6 +58,7 @@
     "copy-webpack-plugin": "^5.1.2",
     "cross-env": "^7.0.3",
     "dmd": "^6.0.0",
+    "eslint": "^7.5.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^4.2.1",
     "front-matter": "^4.0.2",
@@ -92,9 +94,11 @@
   "dependencies": {
     "@docsearch/js": "^3.6.0",
     "@types/overlayscrollbars": "^1.12.5",
+    "browser-sync": "^3.0.3",
     "codesandbox": "^2.2.3",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",
+    "glob-watcher": "^6.0.0",
     "patch-package": "^8.0.0"
   }
 }
