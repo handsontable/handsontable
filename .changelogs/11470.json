@@ -3,6 +3,6 @@
   "title": "Updated CSS theme variables and added input radio variables",
   "type": "changed",
   "issueOrPR": 11470,
-  "breaking": false,
+  "breaking": true,
   "framework": "none"
 }
