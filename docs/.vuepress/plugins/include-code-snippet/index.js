@@ -14,7 +14,6 @@ module.exports = (options, context) => {
       if (!context.isProd) {
         const files = $page._content.matchAll(/@\[code\]\((.*)\)/ig);
 
-        // for (const file of files) {
         files.forEach((file) => {
           const includePath = file[1].trim().split('@').join('.');
 
@@ -27,7 +26,6 @@ module.exports = (options, context) => {
           }
         });
 
-        // }
       }
     },
     /**
