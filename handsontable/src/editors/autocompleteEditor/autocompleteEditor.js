@@ -343,7 +343,9 @@ export class AutocompleteEditor extends HandsontableEditor {
     let spaceAbove = editorRect.top;
 
     if (this.hot.view.isVerticallyScrollableByWindow()) {
-      spaceAbove += this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
+      const topOffset = this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
+
+      spaceAbove = Math.max(spaceAbove + topOffset, 0);
     }
 
     const dropdownHeight = this.getHeight();

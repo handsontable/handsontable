@@ -1111,6 +1111,46 @@ describe('AutocompleteEditor', () => {
       });
     });
 
+    it('should limit the list to the space size left below the editor (table has defined size)', async() => {
+      handsontable({
+        data: createEmptySpreadsheetData(30, 30),
+        editor: 'autocomplete',
+        source: choices,
+        visibleRows: 20,
+        width: 400,
+        height: getDefaultRowHeight() * 9,
+      });
+
+      mouseDoubleClick($(getCell(2, 0)));
+
+      await sleep(50);
+
+      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main }) => {
+        classic.toEqual(115);
+        main.toEqual(147);
+      });
+    });
+
+    it('should limit the list to the space size left above the editor (table has defined size)', async() => {
+      handsontable({
+        data: createEmptySpreadsheetData(30, 30),
+        editor: 'autocomplete',
+        source: choices,
+        visibleRows: 20,
+        width: 400,
+        height: getDefaultRowHeight() * 9,
+      });
+
+      mouseDoubleClick($(getCell(6, 0)));
+
+      await sleep(50);
+
+      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main }) => {
+        classic.toEqual(115);
+        main.toEqual(147);
+      });
+    });
+
     it('should display the dropdown above the editor, when there is not enough space below (table has not defined size)', async() => {
       spec().$container
         .css('overflow', '')
@@ -1178,6 +1218,50 @@ describe('AutocompleteEditor', () => {
       expect(container.offset()).forThemes(({ classic, main }) => {
         classic.toEqual({ top: 622, left: 0 });
         main.toEqual({ top: 610, left: 0 });
+      });
+    });
+
+    it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size, scrolled viewport)', async() => {
+      spec().$container
+        .css('overflow', '')
+        .css('width', '')
+        .css('height', '');
+
+      handsontable({
+        data: createEmptySpreadsheetData(100, 30),
+        editor: 'autocomplete',
+        source: choices,
+      });
+
+      window.scrollTo(0, 10000); // scroll to the bottom
+
+      await sleep(50);
+
+      mouseDoubleClick($(getCell(96, 0)));
+
+      await sleep(50);
+
+      const editor = getActiveEditor();
+      const container = $(editor.htContainer);
+
+      editor.TEXTAREA.value = 'r';
+      keyDownUp('r');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 2090, left: 0 });
+        main.toEqual({ top: 2638, left: 0 });
+      });
+
+      editor.TEXTAREA.value = 're';
+      keyDownUp('e');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 2232, left: 0 });
+        main.toEqual({ top: 2814, left: 0 });
       });
     });
   });
@@ -1622,7 +1706,7 @@ describe('AutocompleteEditor', () => {
   });
 
   describe('strict mode', () => {
-    it('strict mode should NOT use value if it DOES NOT match the list (sync reponse is empty)', async() => {
+    it('strict mode should NOT use value if it DOES NOT match the list (sync response is empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const syncSources = jasmine.createSpy('syncSources');
@@ -1663,7 +1747,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(1); // 1 for loadData (it is not called after failed edit)
     });
 
-    it('strict mode should use value if it DOES match the list (sync reponse is not empty)', async() => {
+    it('strict mode should use value if it DOES match the list (sync response is not empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const syncSources = jasmine.createSpy('asyncSources');
@@ -1704,7 +1788,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(2); // 1 for loadData and 1 for setDataAtCell
     });
 
-    it('strict mode should NOT use value if it DOES NOT match the list (async reponse is empty)', async() => {
+    it('strict mode should NOT use value if it DOES NOT match the list (async response is empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const asyncSources = jasmine.createSpy('asyncSources');
@@ -1747,7 +1831,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(1); // 1 for loadData (it is not called after failed edit)
     });
 
-    it('strict mode should use value if it DOES match the list (async reponse is not empty)', async() => {
+    it('strict mode should use value if it DOES match the list (async response is not empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const asyncSources = jasmine.createSpy('asyncSources');
@@ -1790,7 +1874,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(2); // 1 for loadData and 1 for setDataAtCell
     });
 
-    it('strict mode mark value as invalid if it DOES NOT match the list (sync reponse is empty)', async() => {
+    it('strict mode mark value as invalid if it DOES NOT match the list (sync response is empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const syncSources = jasmine.createSpy('syncSources');
