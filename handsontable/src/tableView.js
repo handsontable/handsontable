@@ -1824,6 +1824,15 @@ class TableView {
   }
 
   /**
+   * Gets the table's offset.
+   *
+   * @returns {{ left: number, top: number }}
+   */
+  getTableOffset() {
+    return this._wt.wtViewport.getWorkspaceOffset();
+  }
+
+  /**
    * Gets the row header width. If there are multiple row headers, the width of
    * the sum of all of them is returned.
    *

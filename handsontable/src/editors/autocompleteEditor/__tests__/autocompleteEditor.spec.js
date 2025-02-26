@@ -416,8 +416,7 @@ describe('AutocompleteEditor', () => {
       expect(isEditorVisible()).toBe(true);
     });
 
-    // see https://github.com/handsontable/handsontable/issues/3380
-    it('should not throw error while selecting the next cell by hitting enter key', () => {
+    it('should not throw error while selecting the next cell by hitting enter key (#3380)', () => {
       const spy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 
@@ -1054,94 +1053,132 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('tbody td:eq(5)').text()).toEqual('6');
     });
 
-    it('should display the dropdown above the editor, when there is not enough space below the cell AND' +
-       'there is more space above the cell', async() => {
+    it('should display the dropdown above the editor, when there is not enough space below (table has defined size)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: choices
-          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-        ],
+        data: createEmptySpreadsheetData(30, 30),
+        editor: 'autocomplete',
+        source: choices,
         width: 400,
-        height: 400
+        height: getDefaultRowHeight() * 9,
       });
 
-      setDataAtCell(29, 0, '');
-      selectCell(29, 0);
+      mouseDoubleClick($(getCell(6, 0)));
 
-      mouseDoubleClick($(getCell(29, 0)));
+      await sleep(50);
 
-      await sleep(200);
+      const container = $(getActiveEditor().htContainer);
 
-      const autocompleteEditor = $('.autocompleteEditor');
-
-      expect(autocompleteEditor.css('position')).toEqual('absolute');
-      expect(autocompleteEditor.css('top')).toEqual(`${(-1) * autocompleteEditor.height()}px`);
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 23, left: 0 });
+        main.toEqual({ top: 29, left: 0 });
+      });
     });
 
-    it('should not display the dropdown above the editor, when there is not enough space below when ' +
-       'the table uses the `preventOverflow` option', async() => {
+    it('should display the dropdown once above and once below the editor after the choices list is changed (table has defined size)', async() => {
+      handsontable({
+        data: createEmptySpreadsheetData(30, 5),
+        editor: 'autocomplete',
+        source: choices,
+        width: 400,
+        height: getDefaultRowHeight() * 9,
+      });
+
+      mouseDoubleClick($(getCell(5, 0)));
+
+      await sleep(50);
+
+      const editor = getActiveEditor();
+      const container = $(editor.htContainer);
+
+      editor.TEXTAREA.value = 'r';
+      keyDownUp('r');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 23, left: 0 });
+        main.toEqual({ top: 29, left: 0 });
+      });
+
+      editor.TEXTAREA.value = 're';
+      keyDownUp('e');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 139, left: 0 });
+        main.toEqual({ top: 175, left: 0 });
+      });
+    });
+
+    it('should display the dropdown above the editor, when there is not enough space below (table has not defined size)', async() => {
       spec().$container
         .css('overflow', '')
         .css('width', '')
         .css('height', '');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: choices
-          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-        ],
-        preventOverflow: 'horizontal',
+        data: createEmptySpreadsheetData(40, 30),
+        editor: 'autocomplete',
+        source: choices,
       });
 
-      setDataAtCell(29, 0, '');
-      selectCell(29, 0);
+      const cell = document.elementsFromPoint(
+        0, document.documentElement.clientHeight - (getDefaultRowHeight() * 4))[0];
 
-      mouseDoubleClick($(getCell(29, 0)));
+      mouseDoubleClick($(cell));
 
-      await sleep(200);
+      await sleep(50);
 
-      const autocompleteEditor = $('.autocompleteEditor');
+      const container = $(getActiveEditor().htContainer);
 
-      expect(autocompleteEditor.css('position')).toBe('relative');
-      expect(autocompleteEditor.css('top')).toBe('0px');
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 365, left: 0 });
+        main.toEqual({ top: 289, left: 0 });
+      });
     });
 
-    it('should flip the dropdown upwards when there is no more room left below the cell after filtering the choice list', async() => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: choices
-          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-        ],
-        width: 400,
-        height: 400
+    it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size)', async() => {
+      spec().$container
+        .css('overflow', '')
+        .css('width', '')
+        .css('height', '');
+
+      handsontable({
+        data: createEmptySpreadsheetData(40, 30),
+        editor: 'autocomplete',
+        source: choices,
       });
 
-      setDataAtCell(26, 0, 'b');
-      selectCell(26, 0);
+      const cell = document.elementsFromPoint(
+        0, document.documentElement.clientHeight - (getDefaultRowHeight() * 4))[0];
 
-      hot.view._wt.wtTable.holder.scrollTop = 999;
-      mouseDoubleClick($(getCell(26, 0)));
+      mouseDoubleClick($(cell));
 
-      const autocompleteEditor = $('.autocompleteEditor');
+      await sleep(50);
 
-      await sleep(100);
-      expect(autocompleteEditor.css('position')).toEqual('absolute');
+      const editor = getActiveEditor();
+      const container = $(editor.htContainer);
 
-      autocompleteEditor.siblings('textarea').first().val('');
-      keyDownUp('backspace');
-      await sleep(100);
+      editor.TEXTAREA.value = 'r';
+      keyDownUp('r');
 
-      expect(autocompleteEditor.css('position')).toEqual('absolute');
-      expect(autocompleteEditor.css('top')).toEqual(`${(-1) * autocompleteEditor.height()}px`);
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 480, left: 0 });
+        main.toEqual({ top: 434, left: 0 });
+      });
+
+      editor.TEXTAREA.value = 're';
+      keyDownUp('e');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 622, left: 0 });
+        main.toEqual({ top: 610, left: 0 });
+      });
     });
   });
 
