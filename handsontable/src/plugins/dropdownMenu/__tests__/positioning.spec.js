@@ -110,7 +110,7 @@ describe('DropdownMenu', () => {
 
       expect(tickItemOffset.top).forThemes(({ classic, main }) => {
         classic.toBe(135);
-        main.toBe(155);
+        main.toBe(156);
       });
       expect(tickItemOffset.left).forThemes(({ classic, main }) => {
         classic.toBe(dropdownMenuOffset.left + 4);

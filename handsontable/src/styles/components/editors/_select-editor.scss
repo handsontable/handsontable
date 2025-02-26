@@ -26,6 +26,7 @@
         0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
           var(--ht-cell-editor-shadow-color, transparent);
       border: none;
+      border-radius: 0;
       box-sizing: border-box;
       -webkit-appearance: none !important;
 

@@ -42,4 +42,25 @@ describe('Text Editor', () => {
 
     expect(cell.textContent).toBe('test');
   });
+
+  it('should have correct border radius value in editor textarea', async() => {
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'text',
+        }
+      ]
+    });
+
+    hot.getCell(0, 0);
+
+    selectCell(0, 0);
+
+    keyDownUp('enter');
+
+    const editor = getActiveEditor();
+    const compStyle = getComputedStyle(editor.TEXTAREA);
+
+    expect(compStyle.borderRadius).toBe('0px');
+  });
 });
