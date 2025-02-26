@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Bump Hyperformula to v3",
+  "title": "Speed up the rendering performance for themes",
   "type": "changed",
-  "issueOrPR": 11373,
+  "issueOrPR": 11443,
   "breaking": false,
   "framework": "none"
 }

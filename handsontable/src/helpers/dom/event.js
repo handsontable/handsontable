@@ -1,3 +1,5 @@
+import { isHTMLElement } from './element';
+
 /**
  * Prevent other listeners of the same event from being called.
  *
@@ -62,7 +64,7 @@ export function offsetRelativeTo(event, untilElement) {
   };
   let element = event.target;
 
-  if (!(untilElement instanceof HTMLElement) ||
+  if (!isHTMLElement(untilElement) ||
       element !== untilElement && element.contains(untilElement)) {
     return offset;
   }

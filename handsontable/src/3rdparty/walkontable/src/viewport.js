@@ -160,7 +160,21 @@ class Viewport {
    * @returns {boolean}
    */
   hasVerticalScroll() {
-    return this.wtTable.hider.offsetHeight > this.getWorkspaceHeight();
+    if (this.isVerticallyScrollableByWindow()) {
+      const documentElement = this.domBindings.rootDocument.documentElement;
+
+      return documentElement.scrollHeight > documentElement.clientHeight;
+    }
+
+    const { holder, hider } = this.wtTable;
+    const holderHeight = holder.clientHeight;
+    const hiderOffsetHeight = hider.offsetHeight;
+
+    if (holderHeight < hiderOffsetHeight) {
+      return true;
+    }
+
+    return hiderOffsetHeight > this.getWorkspaceHeight();
   }
 
   /**
@@ -169,7 +183,21 @@ class Viewport {
    * @returns {boolean}
    */
   hasHorizontalScroll() {
-    return this.wtTable.hider.offsetWidth > this.getWorkspaceWidth();
+    if (this.isVerticallyScrollableByWindow()) {
+      const documentElement = this.domBindings.rootDocument.documentElement;
+
+      return documentElement.scrollWidth > documentElement.clientWidth;
+    }
+
+    const { holder, hider } = this.wtTable;
+    const holderWidth = holder.clientWidth;
+    const hiderOffsetWidth = hider.offsetWidth;
+
+    if (holderWidth < hiderOffsetWidth) {
+      return true;
+    }
+
+    return hiderOffsetWidth > this.getWorkspaceWidth();
   }
 
   /**

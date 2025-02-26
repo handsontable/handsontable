@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix single cell selection inside iframe and new HTMLElement check",
+  "type": "fixed",
+  "issueOrPR": 11460,
+  "breaking": false,
+  "framework": "none"
+}

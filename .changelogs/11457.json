@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed Page Up/Down keyboard shortcuts for oversized rows",
+  "title": "Fix editor border radius on mobile devices",
   "type": "fixed",
-  "issueOrPR": 11301,
+  "issueOrPR": 11457,
   "breaking": false,
   "framework": "none"
 }

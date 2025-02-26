@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed data population via autofill handler for merged cells",
-  "type": "fixed",
-  "issueOrPR": 11291,
-  "breaking": false,
-  "framework": "none"
-}

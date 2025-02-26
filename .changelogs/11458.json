@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed undo/redo for filters.",
+  "title": "Fixed the wrong height of the first row",
   "type": "fixed",
-  "issueOrPR": 11307,
+  "issueOrPR": 11458,
   "breaking": false,
   "framework": "none"
 }

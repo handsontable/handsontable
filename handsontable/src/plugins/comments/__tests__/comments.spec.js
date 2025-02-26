@@ -851,6 +851,38 @@ describe('Comments', () => {
     expect(getActiveEditor().isOpened()).toBe(true);
   });
 
+  it('should not deselect the currently selected cell after clicking on the Comments\' editor element', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
+      rowHeaders: true,
+      colHeaders: true,
+      comments: {
+        displayDelay: 10
+      },
+      cell: [
+        { row: 1, col: 1, comment: { value: 'Hello world!' } }
+      ],
+    });
+
+    selectCell(1, 1);
+    $(getCell(1, 1)).simulate('mouseover', {
+      clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
+      clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
+    });
+
+    await sleep(50);
+
+    $(getPlugin('comments').getEditorInputElement())
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click');
+    getPlugin('comments').getEditorInputElement().focus();
+
+    await sleep(50);
+
+    expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+  });
+
   describe('Using the Context Menu', () => {
     it('should open the comment editor when clicking the "Add comment" entry', () => {
       const hot = handsontable({

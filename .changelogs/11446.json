@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem, where clicking on the Comments' editor element deselected the currently selected cells.",
+  "type": "fixed",
+  "issueOrPR": 11446,
+  "breaking": false,
+  "framework": "none"
+}

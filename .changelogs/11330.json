@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix autofill corner style for new themes",
-  "type": "fixed",
-  "issueOrPR": 11330,
-  "breaking": false,
-  "framework": "none"
-}
