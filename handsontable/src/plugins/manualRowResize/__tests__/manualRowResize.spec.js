@@ -1622,4 +1622,69 @@ describe('manualRowResize', () => {
       expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 6]);
     });
   });
+
+  describe('Test with zoom level 125%', () => {
+    beforeAll(() => {
+      document.body.style.zoom = '1.25';
+    });
+
+    afterAll(() => {
+      document.body.style.zoom = '1';
+    });
+
+    it('should properly set row height', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        manualRowResize: true,
+      });
+      const $rowHeaders = getInlineStartClone().find('tbody tr th');
+
+      expect($rowHeaders.eq(0).height()).forThemes(({ classic, main }) => {
+        classic.toBe(22.4);
+        main.toBe(28.4);
+      });
+    });
+
+    it('should properly set row height with multiline text', () => {
+      handsontable({
+        data: [
+          { name: 'Ted', lastName: 'Right' },
+          { name: 'Frank', lastName: 'Longer\ntext' },
+          { name: 'Joan', lastName: 'Well' },
+          { name: 'Sid', lastName: 'Strong' },
+          { name: 'Jane', lastName: 'Neat' }
+        ],
+        rowHeaders: true,
+        manualRowResize: true,
+      });
+      const $rowHeaders = getInlineStartClone().find('tbody tr th');
+
+      expect($rowHeaders.eq(1).height()).forThemes(({ classic, main }) => {
+        classic.toBe(42.2);
+        main.toBe(48.2);
+      });
+    });
+
+    it('should properly set row height when the column widths is set', () => {
+      handsontable({
+        data: [
+          { name: 'Ted', lastName: 'Right' },
+          { name: 'Frank', lastName: 'Longer text' },
+          { name: 'Joan', lastName: 'Well' },
+          { name: 'Sid', lastName: 'Strong' },
+          { name: 'Jane', lastName: 'Neat' }
+        ],
+        colWidths: 40,
+        rowHeaders: true,
+        manualRowResize: true,
+      });
+      const $rowHeaders = getInlineStartClone().find('tbody tr th');
+
+      expect($rowHeaders.eq(1).height()).forThemes(({ classic, main }) => {
+        classic.toBe(42.2);
+        main.toBe(48.2);
+      });
+    });
+  });
 });
