@@ -8,6 +8,7 @@ import {
   offset,
   outerHeight,
   outerWidth,
+  isHTMLElement,
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
 import { objectEach } from '../../../../../helpers/object';
@@ -421,7 +422,7 @@ class Border {
 
       fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
 
-      if (!(fromTD instanceof HTMLElement)) {
+      if (!isHTMLElement(fromTD)) {
         this.disappear();
 
         return;
