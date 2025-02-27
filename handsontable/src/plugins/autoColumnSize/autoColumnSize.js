@@ -380,6 +380,7 @@ export class AutoColumnSize extends BasePlugin {
       } else {
         cancelAnimationFrame(timer);
         this.inProgress = false;
+        this.#visualColumnsToRefresh = [];
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
         this.hot.view.adjustElementsSize();
@@ -398,6 +399,7 @@ export class AutoColumnSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
+      this.#visualColumnsToRefresh = [];
     }
   }
 
@@ -574,6 +576,8 @@ export class AutoColumnSize extends BasePlugin {
    * On before view render listener.
    */
   #onBeforeRender() {
+    console.log('onBeforeRender', this.#visualColumnsToRefresh);
+
     this.calculateVisibleColumnsWidth();
 
     if (!this.inProgress) {
@@ -637,6 +641,8 @@ export class AutoColumnSize extends BasePlugin {
    * On after Handsontable init fill plugin with all necessary values.
    */
   #onInit() {
+    console.log('#onInit', this.#visualColumnsToRefresh);
+
     this.#cachedColumnHeaders = this.hot.getColHeader();
     this.recalculateAllColumnsWidth();
   }
@@ -662,6 +668,7 @@ export class AutoColumnSize extends BasePlugin {
     }, []);
 
     this.#visualColumnsToRefresh.push(...changedColumns);
+    console.log('onAfterFormulasValuesUpdate', this.#visualColumnsToRefresh);
   }
 
   /**
