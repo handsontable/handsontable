@@ -74,6 +74,20 @@ describe('Focus Manager', () => {
       expect(getFocusManager().getFocusMode()).toEqual('mixed');
     });
 
+    it('should update value in editor textarea when `imeFastEdit` is enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        imeFastEdit: true,
+      });
+
+      selectCell(0, 0);
+
+      await sleep(10);
+
+      expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
+      expect(getActiveEditor().TEXTAREA.value).toEqual('A1');
+    });
+
     it('should be able to get and set the current `focusMode` with appropriate API options', () => {
       handsontable({});
 
