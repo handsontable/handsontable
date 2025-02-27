@@ -12,6 +12,7 @@
     --ht-cell-vertical-padding: 4px;
     --ht-font-size: 14px;
     --ht-line-height: 20px;
+    --ht-letter-spacing: 0;
     --ht-border-color: #222222;
     --ht-foreground-color: #222222;
     --ht-background-color: #ffffff;
@@ -50,7 +51,7 @@
     font-size: var(--ht-font-size);
     line-height: var(--ht-line-height);
     font-weight: var(--ht-font-weight);
-    letter-spacing: 0;
+    letter-spacing: var(--ht-letter-spacing);
     color: var(--ht-foreground-color);
     /* Miscellaneous */
     touch-action: manipulation;
