@@ -31,7 +31,7 @@ To start a local Handsontable documentation server:
    ```
 4. Start your local documentation server:
    ```bash
-   npm run docs:start:no-cache
+   npm run docs:watch:no-cache
    ```
 5. In your browser, go to: http://localhost:8080/docs/.
 
@@ -43,6 +43,8 @@ E.g.:
 1. Modify `content/guides/some/example.ts` file.
 2. Run `npm run docs:code-examples:generate-js content/guides/some/example.ts` to generate `content/guides/some/example.js`.
 3. Commit both `content/guides/some/example.ts` and `content/guides/some/example.js`.
+
+In `watch` mode, running local server with `npm run docs:watch:no-cache` or `npm run docs:watch` steps above are executed automatically. 
 
 In case of TSX file, the script will generate JSX version of the code example, so the workflow is the same as above.
 
@@ -92,6 +94,7 @@ docs                            # All documentation files
 │   │   ├── check-links.js      # The documentation's link checker
 │   │   ├── jsdoc-convert       # JSDoc-to-Markdown converter
 │   │   ├── utils.js            # Tools utilities
+│   │   ├── watch.mjs           # Watch script for running local server
 │   ├── config.js               # VuePress configuration
 │   ├── docs-links.js           # Lets us link within the currently-selected docs version and framework with `@` (e.g. [link](@/guides/path/file/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
