@@ -104,7 +104,7 @@ describe('ContextMenu', () => {
       expect($menu.width()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(215);
         main.toEqual(217);
-        horizon.toEqual(217);
+        horizon.toEqual(215);
       });
     });
 

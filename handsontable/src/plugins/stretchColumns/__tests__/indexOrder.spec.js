@@ -26,17 +26,41 @@ describe('StretchColumns cooperation with reordered indexes', () => {
     columnIndexMapper().setIndexesSequence([0, 2, 3, 1]);
     render();
 
-    expect(getColWidth(0)).toBe(79);
-    expect(getColWidth(1)).toBe(79);
-    expect(getColWidth(2)).toBe(79);
+    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(79);
+      main.toBe(79);
+      horizon.toBe(74);
+    });
+    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(79);
+      main.toBe(79);
+      horizon.toBe(74);
+    });
+    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(79);
+      main.toBe(79);
+      horizon.toBe(74);
+    });
     expect(getColWidth(3)).toBe(33);
 
     columnIndexMapper().setIndexesSequence([1, 0, 2, 3]);
     render();
 
     expect(getColWidth(0)).toBe(33);
-    expect(getColWidth(1)).toBe(79);
-    expect(getColWidth(2)).toBe(79);
-    expect(getColWidth(3)).toBe(79);
+    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(79);
+      main.toBe(79);
+      horizon.toBe(74);
+    });
+    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(79);
+      main.toBe(79);
+      horizon.toBe(74);
+    });
+    expect(getColWidth(3)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(79);
+      main.toBe(79);
+      horizon.toBe(74);
+    });
   });
 });

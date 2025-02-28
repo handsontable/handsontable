@@ -1105,7 +1105,11 @@ describe('TextEditor', () => {
       main.toBeAroundValue(-62);
       horizon.toBeAroundValue(-38);
     });
-    expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(50);
+    expect(parseInt(hot.getActiveEditor().textareaParentStyle.left, 10)).forThemes(({ classic, main, horizon }) => {
+      classic.toBeAroundValue(50);
+      main.toBeAroundValue(50);
+      horizon.toBeAroundValue(52);
+    });
   });
 
   it('should hide editor when quick navigation by click scrollbar was triggered', async() => {
@@ -2276,7 +2280,7 @@ describe('TextEditor', () => {
     expect($editorInput.height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(83);
       main.toBe(95);
-      horizon.toBe(95);
+      horizon.toBe(61);
     });
   });
 

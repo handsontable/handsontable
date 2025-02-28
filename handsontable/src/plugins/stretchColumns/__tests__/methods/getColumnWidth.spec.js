@@ -33,9 +33,21 @@ describe('StretchColumns', () => {
 
       const plugin = getPlugin('stretchColumns');
 
-      expect(plugin.getColumnWidth(0)).toBe(67);
-      expect(plugin.getColumnWidth(1)).toBe(67);
-      expect(plugin.getColumnWidth(2)).toBe(66);
+      expect(plugin.getColumnWidth(0)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(67);
+        main.toBe(67);
+        horizon.toBe(62);
+      });
+      expect(plugin.getColumnWidth(1)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(67);
+        main.toBe(67);
+        horizon.toBe(62);
+      });
+      expect(plugin.getColumnWidth(2)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(66);
+        main.toBe(66);
+        horizon.toBe(61);
+      });
     });
 
     it('should return correct column widths when stretching "last" is enabled', () => {
@@ -50,7 +62,11 @@ describe('StretchColumns', () => {
 
       expect(plugin.getColumnWidth(0)).toBe(null);
       expect(plugin.getColumnWidth(1)).toBe(null);
-      expect(plugin.getColumnWidth(2)).toBe(100);
+      expect(plugin.getColumnWidth(2)).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(100);
+        main.toBe(100);
+        horizon.toBe(85);
+      });
     });
   });
 });

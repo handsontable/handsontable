@@ -46,7 +46,7 @@ describe('ContextMenu (RTL mode)', () => {
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
-          horizon.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+          horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
         });
         expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
           // 3px comes from borders
@@ -54,7 +54,7 @@ describe('ContextMenu (RTL mode)', () => {
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
-          horizon.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
+          horizon.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
         });
       });
 
@@ -117,7 +117,7 @@ describe('ContextMenu (RTL mode)', () => {
         'bottom there\'s no space left', async() => {
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 29), 4),
+          data: createSpreadsheetData(Math.floor(window.innerHeight / 37), 4),
           contextMenu: true,
         });
 
@@ -135,9 +135,9 @@ describe('ContextMenu (RTL mode)', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         expect(subMenuOffset.top)
-          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 5, 0);
+          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 9, 0);
         expect(subMenuOffset.left)
-          .toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
+          .toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
       });
 
       it('should open subMenu on the right-bottom of the main menu if on the left there\'s no space left', async() => {
@@ -164,14 +164,14 @@ describe('ContextMenu (RTL mode)', () => {
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
-          horizon.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+          horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
         });
         expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
-          horizon.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
+          horizon.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
         });
       });
 
@@ -233,7 +233,7 @@ describe('ContextMenu (RTL mode)', () => {
         ' bottom there\'s no space left', async() => {
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 29), Math.floor(window.innerWidth / 50)),
+          data: createSpreadsheetData(Math.floor(window.innerHeight / 37), Math.floor(window.innerWidth / 53)),
           contextMenu: true,
         });
 
@@ -251,9 +251,9 @@ describe('ContextMenu (RTL mode)', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         expect(subMenuOffset.top)
-          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 5, 0);
+          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 9, 0);
         expect(subMenuOffset.left)
-          .toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
+          .toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
       });
     });
 
@@ -280,12 +280,12 @@ describe('ContextMenu (RTL mode)', () => {
       expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(216);
         main.toBe(247);
-        horizon.toBe(247);
+        horizon.toBe(314);
       });
       expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
         classic.toBe(contextMenuOffset.left + $contextMenuRoot.outerWidth() - 4);
         main.toBe(contextMenuOffset.left + 1);
-        horizon.toBe(contextMenuOffset.left + 1);
+        horizon.toBe(contextMenuOffset.left);
       });
     });
   });
@@ -314,7 +314,7 @@ describe('ContextMenu (RTL mode)', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
-        horizon.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+        horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
       });
       expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
         // 3px comes from borders
@@ -322,7 +322,7 @@ describe('ContextMenu (RTL mode)', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
-        horizon.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
+        horizon.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
       });
     });
 
@@ -354,14 +354,14 @@ describe('ContextMenu (RTL mode)', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
-        horizon.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+        horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
       });
       expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
         classic.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
-        horizon.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
+        horizon.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
       });
     });
   });

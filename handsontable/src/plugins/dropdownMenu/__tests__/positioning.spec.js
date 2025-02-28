@@ -47,7 +47,7 @@ describe('DropdownMenu', () => {
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
-          horizon.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+          horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
         });
         expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
           // 3px comes from borders
@@ -55,7 +55,7 @@ describe('DropdownMenu', () => {
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() - 1, 0);
-          horizon.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() - 1, 0);
+          horizon.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth(), 0);
         });
       });
 
@@ -83,14 +83,14 @@ describe('DropdownMenu', () => {
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
-          horizon.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+          horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
         });
         expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth()));
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth() + 1));
-          horizon.toBeCloseTo(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth() + 1));
+          horizon.toBeCloseTo(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth()));
         });
       });
     });
@@ -115,12 +115,12 @@ describe('DropdownMenu', () => {
       expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(135);
         main.toBe(155);
-        horizon.toBe(155);
+        horizon.toBe(194);
       });
       expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
         classic.toBe(dropdownMenuOffset.left + 4);
         main.toBe(dropdownMenuOffset.left + 1);
-        horizon.toBe(dropdownMenuOffset.left + 1);
+        horizon.toBe(dropdownMenuOffset.left);
       });
     });
   });
@@ -153,7 +153,7 @@ describe('DropdownMenu', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
-        horizon.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+        horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
       });
       expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
         // 3px comes from borders
@@ -161,7 +161,7 @@ describe('DropdownMenu', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() - 1, 0);
-        horizon.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() - 1, 0);
+        horizon.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth(), 0);
       });
     });
 
@@ -193,14 +193,14 @@ describe('DropdownMenu', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
-        horizon.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+        horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
       });
       expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
         classic.toBe(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth()));
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBe(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth() + 1));
-        horizon.toBe(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth() + 1));
+        horizon.toBe(Math.floor(dropdownOffset.left - $dropdownMenu.outerWidth()));
       });
     });
   });

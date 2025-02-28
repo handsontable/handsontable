@@ -343,6 +343,10 @@ describe('Comments (RTL mode)', () => {
             top: cell.offset().top,
             left: cell.offset().left - 1, // border compensation?
           });
+          horizon.toEqual({
+            top: cell.offset().top,
+            left: cell.offset().left - 1, // border compensation?
+          });
         });
 
         hot.destroy();

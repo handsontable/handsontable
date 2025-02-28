@@ -70,7 +70,7 @@ describe('CollapsibleColumns (RTL)', () => {
 
         const indicatorComputedStyle = window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'));
 
-        expect(indicatorComputedStyle.marginInlineStart).toEqual('4px');
+        expect(indicatorComputedStyle.marginInlineStart).toEqual('6px');
         expect(indicatorComputedStyle.position).toEqual('relative');
         expect(indicatorComputedStyle.float).toEqual('left');
       });

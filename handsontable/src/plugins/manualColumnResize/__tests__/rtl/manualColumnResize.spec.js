@@ -92,17 +92,17 @@ describe('manualColumnResize (RTL)', () => {
     expect($columnHeaders.eq(1).outerWidth()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(201);
       main.toBe(196);
-      horizon.toBe(196);
+      horizon.toBe(198);
     });
     expect($columnHeaders.eq(2).outerWidth()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(201);
       main.toBe(196);
-      horizon.toBe(196);
+      horizon.toBe(198);
     });
     expect($columnHeaders.eq(3).outerWidth()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(201);
       main.toBe(196);
-      horizon.toBe(196);
+      horizon.toBe(198);
     });
   });
 

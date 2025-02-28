@@ -108,7 +108,7 @@ describe('ContextMenu', () => {
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
-          horizon.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+          horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
         });
         expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
           // 3px comes from borders
@@ -116,7 +116,7 @@ describe('ContextMenu', () => {
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
-          horizon.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
+          horizon.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
         });
       });
 
@@ -170,7 +170,7 @@ describe('ContextMenu', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         expect(subMenuOffset.top)
-          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + -5, 0);
+          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 5, 0);
         expect(subMenuOffset.left)
           .toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
       });
@@ -179,7 +179,7 @@ describe('ContextMenu', () => {
         'bottom there\'s no space left', async() => {
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 29), 4),
+          data: createSpreadsheetData(Math.floor(window.innerHeight / 37), 4),
           contextMenu: true,
         });
 
@@ -197,9 +197,9 @@ describe('ContextMenu', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         expect(subMenuOffset.top)
-          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + -5, 0);
+          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 9, 0);
         expect(subMenuOffset.left)
-          .toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
+          .toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
       });
 
       it.forTheme('classic')('should open subMenu on the left-bottom of the main menu if on the right ' +
@@ -257,7 +257,7 @@ describe('ContextMenu', () => {
         'there\'s no space left', async() => {
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
+          data: createSpreadsheetData(4, Math.floor(window.innerWidth / 53)),
           contextMenu: true,
         });
 
@@ -274,9 +274,9 @@ describe('ContextMenu', () => {
         const subMenuOffset = subMenuRoot.offset();
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
-        expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 9, 0);
+        expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 13, 0);
         // 3px comes from right borders
-        expect(subMenuOffset.left).toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
+        expect(subMenuOffset.left).toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
       });
 
       it.forTheme('classic')('should open subMenu on the left-top of the main menu if on the right ' +
@@ -337,7 +337,7 @@ describe('ContextMenu', () => {
         'bottom there\'s no space left', async() => {
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 29), Math.floor(window.innerWidth / 50)),
+          data: createSpreadsheetData(Math.floor(window.innerHeight / 37), Math.floor(window.innerWidth / 53)),
           contextMenu: true,
         });
 
@@ -355,9 +355,9 @@ describe('ContextMenu', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         expect(subMenuOffset.top)
-          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 5, 0);
+          .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() - 9, 0);
         expect(subMenuOffset.left)
-          .toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
+          .toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
       });
     });
 
@@ -384,12 +384,12 @@ describe('ContextMenu', () => {
       expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(216);
         main.toBe(247);
-        horizon.toBe(247);
+        horizon.toBe(314);
       });
       expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
         classic.toBe(contextMenuOffset.left + 4);
         main.toBe(contextMenuOffset.left + 1);
-        horizon.toBe(contextMenuOffset.left + 1);
+        horizon.toBe(contextMenuOffset.left);
       });
     });
   });
@@ -421,13 +421,13 @@ describe('ContextMenu', () => {
       expect(subMenuOffset.top).forThemes(({ classic, main, horizon }) => {
         classic.toBeCloseTo(subMenuItemOffset.top - 1, 0);
         main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
-        horizon.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+        horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
       });
       expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
         // 3px comes from right borders
         classic.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() + 3, 0);
         main.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
-        horizon.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
+        horizon.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
       });
     });
 
@@ -455,14 +455,14 @@ describe('ContextMenu', () => {
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
-        horizon.toBeCloseTo(subMenuItemOffset.top - 9, 0);
+        horizon.toBeCloseTo(subMenuItemOffset.top - 13, 0);
       });
       expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
         classic.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
-        horizon.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
+        horizon.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
       });
     });
   });

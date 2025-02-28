@@ -1060,6 +1060,10 @@ describe('manualRowResize', () => {
         top: 140,
         left: 0,
       });
+      horizon.toEqual({
+        top: 140,
+        left: 0,
+      });
     });
 
     // after hovering over fixed row, resizer should be moved to the fixed row
@@ -1073,6 +1077,10 @@ describe('manualRowResize', () => {
         left: 0,
       });
       main.toEqual({
+        top: 82,
+        left: 0,
+      });
+      horizon.toEqual({
         top: 82,
         left: 0,
       });
@@ -1103,6 +1111,10 @@ describe('manualRowResize', () => {
         top: 140,
         left: 0,
       });
+      horizon.toEqual({
+        top: 140,
+        left: 0,
+      });
     });
 
     // after hovering over fixed row, resizer should be moved to the fixed row
@@ -1116,6 +1128,10 @@ describe('manualRowResize', () => {
         left: 0,
       });
       main.toEqual({
+        top: 24,
+        left: 0,
+      });
+      horizon.toEqual({
         top: 24,
         left: 0,
       });

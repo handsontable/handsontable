@@ -107,9 +107,9 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
     const bothInputBorders = 2;
-    const bothInputPaddings = 24;
-    const bothWrapperMargins = 16;
-    const bothCustomRendererPaddings = 24;
+    const bothInputPaddings = 32;
+    const bothWrapperMargins = 24;
+    const bothCustomRendererPaddings = 16;
     const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
 
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
@@ -293,9 +293,9 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfInput = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input').width();
     const bothInputBorders = 2;
-    const bothInputPaddings = 24;
-    const bothWrapperMargins = 16;
-    const bothCustomRendererPaddings = 24;
+    const bothInputPaddings = 32;
+    const bothWrapperMargins = 24;
+    const bothCustomRendererPaddings = 16;
     const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
 
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);

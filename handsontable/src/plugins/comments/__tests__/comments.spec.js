@@ -198,11 +198,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left, 0);
-          main.toBeCloseTo(cellOffset.left - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left, 0);
       });
 
       it.forTheme('main')('should display the comment editor on the right of the cell when the ' +
@@ -224,11 +220,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left, 0);
-          main.toBeCloseTo(cellOffset.left - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
 
       it.forTheme('horizon')('should display the comment editor on the right of the cell when the ' +
@@ -250,11 +242,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left, 0);
-          main.toBeCloseTo(cellOffset.left - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
       });
 
       it.forTheme('classic')('should display the comment editor on the right of the cell when the ' +
@@ -285,11 +273,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left, 0);
-          main.toBeCloseTo(cellOffset.left - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left, 0);
       });
 
       it.forTheme('main')('should display the comment editor on the right of the cell when the ' +
@@ -320,11 +304,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left, 0);
-          main.toBeCloseTo(cellOffset.left - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
 
       it.forTheme('horizon')('should display the comment editor on the right of the cell when the ' +
@@ -355,11 +335,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left, 0);
-          main.toBeCloseTo(cellOffset.left - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
       });
 
       it('should display the comment editor on the left of the cell when there is not enough space left on the right', async() => {
@@ -401,8 +377,8 @@ describe('Comments', () => {
         });
       });
 
-      it('should display the comment editor on the top-left of the cell when there is not enough space of the' +
-        ' bottom-right', async() => {
+      it('should display the comment editor on the top-left of the cell when there is not enough space of the ' +
+        'bottom-right', async() => {
         // For this configuration object "{ htmlDir: 'rtl', layoutDirection: 'ltr'}" it's necessary to force
         // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
         if (htmlDir === 'rtl' && layoutDirection === 'ltr') {
@@ -436,11 +412,15 @@ describe('Comments', () => {
         const editorWidth = $editor.outerWidth();
         const editorHeight = $editor.outerHeight();
 
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
+        expect(editorOffset.top).forThemes(({ classic, main, horizon }) => {
+          classic.toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
+          main.toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
+          horizon.toBeCloseTo(cellOffset.top - editorHeight + cellHeight + 1, 0);
+        });
         expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
-          horizon.toBeCloseTo(cellOffset.left - editorWidth - 2, 0); // border compensation?
+          main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0); // border compensation?
+          horizon.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
         });
       });
 
@@ -594,6 +574,10 @@ describe('Comments', () => {
       }).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(cell.offset());
         main.toEqual({
+          top: cell.offset().top,
+          left: cell.offset().left - 1, // border compensation?
+        });
+        horizon.toEqual({
           top: cell.offset().top,
           left: cell.offset().left - 1, // border compensation?
         });
@@ -1118,6 +1102,9 @@ describe('Comments', () => {
           style: { width: 313, height: 60 }
         }));
         main.toHaveBeenCalledWith(1, 1, 'comment', jasmine.objectContaining({
+          style: { width: 318, height: 60 }
+        }));
+        horizon.toHaveBeenCalledWith(1, 1, 'comment', jasmine.objectContaining({
           style: { width: 318, height: 60 }
         }));
       });
