@@ -86,7 +86,7 @@ describe('manualRowResize', () => {
   });
 
   it.forTheme('horizon')('should change the default row height with updateSettings', () => {
-    const themeDefaultRowHeight = 29;
+    const themeDefaultRowHeight = 37;
 
     handsontable({
       manualRowResize: true
@@ -125,7 +125,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
       classic.toEqual(31);
       main.toEqual(30);
-      horizon.toEqual(30);
+      horizon.toEqual(37);
     });
     expect(rowHeight(spec().$container, 1)).toEqual(80);
     expect(rowHeight(spec().$container, 2)).toEqual(100);
@@ -196,7 +196,7 @@ describe('manualRowResize', () => {
   });
 
   it.forTheme('horizon')('should change the row height to defaults when undefined is passed', () => {
-    const themeDefaultRowHeight = 29;
+    const themeDefaultRowHeight = 37;
 
     handsontable({
       manualRowResize: [60, 50, 80]
@@ -254,7 +254,7 @@ describe('manualRowResize', () => {
   });
 
   it.forTheme('horizon')('should reset row height', () => {
-    const themeDefaultRowHeight = 29;
+    const themeDefaultRowHeight = 37;
 
     handsontable({
       manualRowResize: true
@@ -312,7 +312,7 @@ describe('manualRowResize', () => {
   });
 
   it.forTheme('horizon')('should keep proper row heights after inserting row', () => {
-    const themeDefaultRowHeight = 29;
+    const themeDefaultRowHeight = 37;
 
     handsontable({
       manualRowResize: [undefined, undefined, 120]
@@ -370,7 +370,7 @@ describe('manualRowResize', () => {
   });
 
   it.forTheme('horizon')('should keep proper row heights after removing row', () => {
-    const themeDefaultRowHeight = 29;
+    const themeDefaultRowHeight = 37;
 
     handsontable({
       manualRowResize: [undefined, undefined, 120]
@@ -426,7 +426,7 @@ describe('manualRowResize', () => {
 
   it.forTheme('horizon')('should trigger beforeRowResize event after row height changes', () => {
     const beforeRowResizeCallback = jasmine.createSpy('beforeRowResizeCallback');
-    const themeDefaultRowHeight = 29;
+    const themeDefaultRowHeight = 37;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -452,7 +452,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
       classic.toEqual(24);
       main.toEqual(30);
-      horizon.toEqual(30);
+      horizon.toEqual(38);
     });
 
     hot.addHook('beforeRowResize', () => 100);
@@ -514,7 +514,7 @@ describe('manualRowResize', () => {
 
   it.forTheme('horizon')('should trigger afterRowResize event after row height changes', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 29;
+    const themeDefaultRowHeight = 37;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -567,7 +567,7 @@ describe('manualRowResize', () => {
 
   it.forTheme('horizon')('should not trigger afterRowResize event if row height does not change (delta = 0)', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 29;
+    const themeDefaultRowHeight = 37;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -639,7 +639,7 @@ describe('manualRowResize', () => {
   it.forTheme('horizon')('should not trigger afterRowResize event after if row height does not change ' +
     '(no mousemove event)', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 29;
+    const themeDefaultRowHeight = 37;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -726,7 +726,7 @@ describe('manualRowResize', () => {
 
   it.forTheme('horizon')('should trigger an afterRowResize after row size changes, after double click', async() => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 29;
+    const themeDefaultRowHeight = 37;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -788,7 +788,7 @@ describe('manualRowResize', () => {
       expect($rowHeaders.eq(0).height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(22);
         main.toBe(28);
-        horizon.toBe(28);
+        horizon.toBe(36);
       });
       expect($rowHeaders.eq(1).height()).toBe(119);
       expect($rowHeaders.eq(2).height()).toBe(159);
@@ -810,12 +810,12 @@ describe('manualRowResize', () => {
       expect($rowHeaders.eq(0).height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(22);
         main.toBe(28);
-        horizon.toBe(28);
+        horizon.toBe(36);
       });
       expect($rowHeaders.eq(1).height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(42);
         main.toBe(48);
-        horizon.toBe(48);
+        horizon.toBe(56);
       });
       expect($rowHeaders.eq(2).height()).toBe(159);
       expect($rowHeaders.eq(3).height()).toBe(59);
@@ -879,7 +879,7 @@ describe('manualRowResize', () => {
   it.forTheme('horizon')('should not trigger afterRowResize event after if row height does not change ' +
     '(no dblclick event)', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 29;
+    const themeDefaultRowHeight = 37;
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -922,7 +922,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(23, 3);
       main.toBeAroundValue(29, 3);
-      horizon.toBeAroundValue(29, 3);
+      horizon.toBeAroundValue(37, 3);
     });
   });
 
@@ -950,7 +950,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(23, 1);
       main.toBeAroundValue(29, 1);
-      horizon.toBeAroundValue(29, 1);
+      horizon.toBeAroundValue(37, 1);
     });
   });
 
@@ -981,17 +981,17 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(24);
       main.toBeAroundValue(29);
-      horizon.toBeAroundValue(29);
+      horizon.toBeAroundValue(37);
     });
     expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(24);
       main.toBeAroundValue(29);
-      horizon.toBeAroundValue(29);
+      horizon.toBeAroundValue(37);
     });
     expect(rowHeight(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(24);
       main.toBeAroundValue(29);
-      horizon.toBeAroundValue(29);
+      horizon.toBeAroundValue(37);
     });
   });
 
@@ -1031,9 +1031,21 @@ describe('manualRowResize', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
     $resizer.simulate('mouseup');
 
-    expect($rowsHeaders.eq(1).height()).toEqual(35);
-    expect($rowsHeaders.eq(2).height()).toEqual(35);
-    expect($rowsHeaders.eq(3).height()).toEqual(35);
+    expect($rowsHeaders.eq(1).height()).forThemes(({ classic, main, horizon }) => {
+      classic.toEqual(35);
+      main.toEqual(35);
+      horizon.toEqual(36);
+    });
+    expect($rowsHeaders.eq(2).height()).forThemes(({ classic, main, horizon }) => {
+      classic.toEqual(35);
+      main.toEqual(35);
+      horizon.toEqual(36);
+    });
+    expect($rowsHeaders.eq(3).height()).forThemes(({ classic, main, horizon }) => {
+      classic.toEqual(35);
+      main.toEqual(35);
+      horizon.toEqual(36);
+    });
   });
 
   it('should show resizer for fixed top rows', () => {
@@ -1061,7 +1073,7 @@ describe('manualRowResize', () => {
         left: 0,
       });
       horizon.toEqual({
-        top: 140,
+        top: 180,
         left: 0,
       });
     });
@@ -1081,7 +1093,7 @@ describe('manualRowResize', () => {
         left: 0,
       });
       horizon.toEqual({
-        top: 82,
+        top: 106,
         left: 0,
       });
     });
@@ -1112,7 +1124,7 @@ describe('manualRowResize', () => {
         left: 0,
       });
       horizon.toEqual({
-        top: 140,
+        top: 180,
         left: 0,
       });
     });
@@ -1132,7 +1144,7 @@ describe('manualRowResize', () => {
         left: 0,
       });
       horizon.toEqual({
-        top: 24,
+        top: 32,
         left: 0,
       });
     });
@@ -1159,17 +1171,17 @@ describe('manualRowResize', () => {
     expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(52);
       main.toBe(58);
-      horizon.toBe(58);
+      horizon.toBe(66);
     });
     expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(28);
-      horizon.toBe(28);
+      horizon.toBe(36);
     });
     expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(28);
-      horizon.toBe(28);
+      horizon.toBe(36);
     });
   });
 
@@ -1184,17 +1196,17 @@ describe('manualRowResize', () => {
     expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(28);
-      horizon.toBe(28);
+      horizon.toBe(36);
     });
     expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(28);
-      horizon.toBe(28);
+      horizon.toBe(36);
     });
     expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
       main.toBe(28);
-      horizon.toBe(28);
+      horizon.toBe(36);
     });
 
     selectAll();
@@ -1210,17 +1222,17 @@ describe('manualRowResize', () => {
     expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(52);
       main.toBe(57);
-      horizon.toBe(57);
+      horizon.toBe(65);
     });
     expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(52);
       main.toBe(58);
-      horizon.toBe(58);
+      horizon.toBe(66);
     });
     expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(52);
       main.toBe(58);
-      horizon.toBe(58);
+      horizon.toBe(66);
     });
   });
 
@@ -1405,19 +1417,19 @@ describe('manualRowResize', () => {
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
     });
 
@@ -1448,19 +1460,19 @@ describe('manualRowResize', () => {
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
 
       $(window).scrollTop(0);
@@ -1489,31 +1501,31 @@ describe('manualRowResize', () => {
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(22);
           main.toBe(28);
-          horizon.toBe(28);
+          horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(22);
           main.toBe(28);
-          horizon.toBe(28);
+          horizon.toBe(36);
         });
     });
 
@@ -1548,61 +1560,61 @@ describe('manualRowResize', () => {
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(22);
           main.toBe(28);
-          horizon.toBe(28);
+          horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(22);
           main.toBe(28);
-          horizon.toBe(28);
+          horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(22);
           main.toBe(28);
-          horizon.toBe(28);
+          horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(22);
           main.toBe(28);
-          horizon.toBe(28);
+          horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(7) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(8) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(22);
           main.toBe(28);
-          horizon.toBe(28);
+          horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(9) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(22);
           main.toBe(28);
-          horizon.toBe(28);
+          horizon.toBe(36);
         });
       expect(getInlineStartClone().find('tbody tr:eq(10) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(52);
           main.toBe(58);
-          horizon.toBe(58);
+          horizon.toBe(66);
         });
       expect(getInlineStartClone().find('tbody tr:eq(11) th:eq(0)').height())
         .forThemes(({ classic, main, horizon }) => {
           classic.toBe(22);
           main.toBe(28);
-          horizon.toBe(28);
+          horizon.toBe(36);
         });
     });
 
@@ -1627,12 +1639,12 @@ describe('manualRowResize', () => {
       expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(52);
         main.toBe(58);
-        horizon.toBe(58);
+        horizon.toBe(66);
       });
       expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(22);
         main.toBe(28);
-        horizon.toBe(28);
+        horizon.toBe(36);
       });
     });
   });
@@ -1914,12 +1926,12 @@ describe('manualRowResize', () => {
       expect(beforeRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([23, 2, false]);
         main.toEqual([29, 2, false]);
-        horizon.toEqual([29, 2, false]);
+        horizon.toEqual([37, 2, false]);
       });
       expect(afterRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([23, 2, false]);
         main.toEqual([29, 2, false]);
-        horizon.toEqual([29, 2, false]);
+        horizon.toEqual([37, 2, false]);
       });
 
       resizeRow(2, 100);
@@ -1932,12 +1944,12 @@ describe('manualRowResize', () => {
       expect(beforeRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([23, 2, false]);
         main.toEqual([29, 2, false]);
-        horizon.toEqual([29, 2, false]);
+        horizon.toEqual([37, 2, false]);
       });
       expect(afterRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([23, 2, false]);
         main.toEqual([29, 2, false]);
-        horizon.toEqual([29, 2, false]);
+        horizon.toEqual([37, 2, false]);
       });
     });
 

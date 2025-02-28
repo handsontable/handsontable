@@ -27,7 +27,7 @@ describe('HiddenRows', () => {
       expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(23);
         main.toEqual(29);
-        horizon.toEqual(29);
+        horizon.toEqual(37);
       });
 
       // Resize renderable row index `1` (within visual index term the index at 1 is hidden).
@@ -50,7 +50,7 @@ describe('HiddenRows', () => {
       expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(23);
         main.toEqual(29);
-        horizon.toEqual(29);
+        horizon.toEqual(37);
       });
 
       getPlugin('manualRowResize').setManualSize(2, 100);
@@ -191,7 +191,7 @@ describe('HiddenRows', () => {
       expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(53);
         main.toEqual(59);
-        horizon.toEqual(59);
+        horizon.toEqual(67);
       });
     });
   });

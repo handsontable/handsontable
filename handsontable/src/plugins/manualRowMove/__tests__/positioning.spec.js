@@ -474,7 +474,7 @@ describe('manualRowMove', () => {
       expect(backlight.outerHeight()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(46);
         main.toBe(58);
-        horizon.toBe(58);
+        horizon.toBe(74);
       });
       expect(backlight.offset().top).toBe(TH.offset().top);
     });

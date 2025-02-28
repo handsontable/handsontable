@@ -422,8 +422,8 @@ describe('HiddenRows', () => {
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
           expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
             classic.toBe(69); // 23 * 3
-            main.toBe(87);
-            horizon.toBe(87); // 29 * 3
+            main.toBe(87); // 29 * 3
+            horizon.toBe(111); // 37 * 3
           });
         });
 
@@ -484,8 +484,8 @@ describe('HiddenRows', () => {
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
           expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
             classic.toBe(69); // 23 * 3
-            main.toBe(87);
-            horizon.toBe(87); // 29 * 3
+            main.toBe(87); // 29 * 3
+            horizon.toBe(111); // 37 * 3
           });
         });
       });

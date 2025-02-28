@@ -1163,7 +1163,7 @@ describe('CustomBorders', () => {
       const instance = handsontable({
         data,
         customBorders,
-        height: 125,
+        height: 159,
         viewportRowRenderingOffset: 0
       });
 
@@ -1214,7 +1214,7 @@ describe('CustomBorders', () => {
       const instance = handsontable({
         data,
         customBorders,
-        height: 125,
+        height: 159,
         viewportRowRenderingOffset: 0
       });
       const mainHolder = instance.view._wt.wtTable.holder;

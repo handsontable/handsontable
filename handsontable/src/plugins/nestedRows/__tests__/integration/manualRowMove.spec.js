@@ -472,7 +472,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
 
     $targetHeader.simulate('mouseover');
     $targetHeader.simulate('mousemove', {
-      clientY: $targetHeader.offset().top + 15
+      clientY: $targetHeader.offset().top + 19
     });
 
     $targetHeader.simulate('mouseup');

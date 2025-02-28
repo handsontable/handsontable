@@ -561,7 +561,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: createSpreadsheetData(50, 50),
         width: 200,
-        height: 250,
+        height: 319,
       });
 
       selectCell(6, 2);

@@ -214,10 +214,73 @@ describe('DragToScroll', () => {
       expect(getMaster().find('.wtHolder').scrollLeft()).toBe(50);
     });
 
-    it('should not scroll the table to the right, when dragging the selection in that direction inside the table', () => {
+    it.forTheme('classic')('should not scroll the table to the right, when dragging the selection ' +
+      'in that direction inside the table', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 215,
+        height: 150,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      const $cell = $(getCell(0, 1));
+      const $nextCell = $(getCell(0, 2));
+
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
+
+      $cell
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('mousedown', {
+          clientX: $cell.offset().left,
+        });
+      $nextCell
+        .simulate('mouseover')
+        .simulate('mousemove', {
+          clientX: $nextCell.offset().left + ($nextCell.innerWidth() / 2)
+        })
+        .simulate('mouseup');
+
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
+    });
+
+    it.forTheme('main')('should not scroll the table to the right, when dragging the selection ' +
+      'in that direction inside the table', () => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 215,
+        height: 150,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      const $cell = $(getCell(0, 1));
+      const $nextCell = $(getCell(0, 2));
+
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
+
+      $cell
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('mousedown', {
+          clientX: $cell.offset().left,
+        });
+      $nextCell
+        .simulate('mouseover')
+        .simulate('mousemove', {
+          clientX: $nextCell.offset().left + ($nextCell.innerWidth() / 2)
+        })
+        .simulate('mouseup');
+
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
+    });
+
+    it.forTheme('horizon')('should not scroll the table to the right, when dragging the selection ' +
+      'in that direction inside the table', () => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 227,
         height: 150,
         rowHeaders: true,
         colHeaders: true,
@@ -472,8 +535,8 @@ describe('DragToScroll', () => {
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
         classic.toBeLessThan(105);
-        main.toBeLessThan(170);
-        horizon.toBeLessThan(170); // not sure if the correct value
+        main.toBeLessThan(170); // not sure if the correct value
+        horizon.toBeLessThan(260);
       });
     });
 
@@ -517,8 +580,8 @@ describe('DragToScroll', () => {
 
       expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
         classic.toBeLessThan(105);
-        main.toBeLessThan(170);
-        horizon.toBeLessThan(170); // not sure if the correct value
+        main.toBeLessThan(170); // not sure if the correct value
+        horizon.toBeLessThan(260); // not sure if the correct value
       });
     });
 

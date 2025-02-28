@@ -52,9 +52,21 @@ describe('manualRowResize (RTL mode)', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
     $resizer.simulate('mouseup');
 
-    expect($rowsHeaders.eq(1).height()).toBe(35);
-    expect($rowsHeaders.eq(2).height()).toBe(35);
-    expect($rowsHeaders.eq(3).height()).toBe(35);
+    expect($rowsHeaders.eq(1).height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(35);
+      main.toBe(35);
+      horizon.toBe(36);
+    });
+    expect($rowsHeaders.eq(2).height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(35);
+      main.toBe(35);
+      horizon.toBe(36);
+    });
+    expect($rowsHeaders.eq(3).height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(35);
+      main.toBe(35);
+      horizon.toBe(36);
+    });
   });
 
   describe('handle position in a table positioned using CSS\'s `transform`', () => {
