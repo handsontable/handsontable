@@ -1069,8 +1069,8 @@ describe('AutocompleteEditor', () => {
       const container = $(getActiveEditor().htContainer);
 
       expect(container.offset()).forThemes(({ classic, main }) => {
-        classic.toEqual({ top: 23, left: 0 });
-        main.toEqual({ top: 29, left: 0 });
+        classic.toEqual({ top: getDefaultRowHeight(), left: 0 });
+        main.toEqual({ top: getDefaultRowHeight(), left: 0 });
       });
     });
 
