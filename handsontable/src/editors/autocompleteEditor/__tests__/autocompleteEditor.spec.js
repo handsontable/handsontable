@@ -1059,6 +1059,7 @@ describe('AutocompleteEditor', () => {
         editor: 'autocomplete',
         source: choices,
         width: 400,
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
         height: getDefaultRowHeight() * 9,
       });
 
@@ -1080,6 +1081,7 @@ describe('AutocompleteEditor', () => {
         editor: 'autocomplete',
         source: choices,
         width: 400,
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
         height: getDefaultRowHeight() * 9,
       });
 
@@ -1118,6 +1120,7 @@ describe('AutocompleteEditor', () => {
         source: choices,
         visibleRows: 20,
         width: 400,
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
         height: getDefaultRowHeight() * 9,
       });
 
@@ -1138,6 +1141,7 @@ describe('AutocompleteEditor', () => {
         source: choices,
         visibleRows: 20,
         width: 400,
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
         height: getDefaultRowHeight() * 9,
       });
 
