@@ -433,5 +433,19 @@ describe('Core.alter', () => {
 
       expect(getCellMeta(1, 0).className).toEqual('test');
     });
+
+    it('should not throw an error after removing column from the table that has visible column headers only', () => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      alter('remove_row', 0, 2);
+
+      expect(() => {
+        alter('remove_col', 0, 1);
+      }).not.toThrow();
+    });
   });
 });
