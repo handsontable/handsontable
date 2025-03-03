@@ -323,7 +323,6 @@ export class AutocompleteEditor extends HandsontableEditor {
     if (choices.length > 0) {
       this.updateDropdownDimensions();
       this.flipDropdownIfNeeded();
-      this.updateDropdownWidth();
 
       if (this.cellProperties.strict === true) {
         this.highlightBestMatchingChoice(highlightIndex);
@@ -433,6 +432,17 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
+   * Fix width of the internal Handsontable's instance when editor has vertical scroll.
+   */
+  #fixDropdownWidth() {
+    if (this.htEditor.view.hasVerticalScroll()) {
+      this.htEditor.updateSettings({
+        width: this.htEditor.getSettings().width + getScrollbarWidth(this.hot.rootDocument),
+      });
+    }
+  }
+
+  /**
    * Updates width and height of the internal Handsontable's instance.
    *
    * @private
@@ -443,22 +453,9 @@ export class AutocompleteEditor extends HandsontableEditor {
       height: this.getHeight(),
     });
 
+    this.#fixDropdownWidth();
+
     this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
-  }
-
-  /**
-   * Updates width of the internal Handsontable's instance when editor has vertical scroll.
-   *
-   * @private
-   */
-  updateDropdownWidth() {
-    if (this.htEditor.view.hasVerticalScroll()) {
-      this.htEditor.updateSettings({
-        width: this.htEditor.getSettings().width + getScrollbarWidth(this.hot.rootDocument),
-      });
-
-      this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
-    }
   }
 
   /**
@@ -471,6 +468,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.updateSettings({
       height
     });
+
+    this.#fixDropdownWidth();
+
+    this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
   }
 
   /**
