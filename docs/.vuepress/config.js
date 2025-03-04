@@ -12,8 +12,9 @@ const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const headerAnchor = require('./plugins/markdown-it-header-anchor');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
-const includeCodeSnippet = require('./plugins/markdown-it-include-code-snippet');
 const tableWrapper = require('./plugins/markdown-it-table-wrapper');
+const includeCodeSnippetPlugin = require('./plugins/include-code-snippet');
+
 const {
   createSymlinks,
   getDocsBase,
@@ -69,7 +70,6 @@ const environmentHead = isProduction
 createSymlinks();
 
 module.exports = {
-  // by default this always returns true, this is a issue as it preloads every documentation pages content
   shouldPrefetch: (_, type) => {
     if (type === 'script') {
       return false;
@@ -204,8 +204,7 @@ module.exports = {
       rel: 'nofollow noopener noreferrer',
     },
     extendMarkdown(md) {
-      md.use(includeCodeSnippet)
-        .use(conditionalContainer)
+      md.use(conditionalContainer)
         .use(firstHeaderInjection)
         .use(headerAnchor)
         .use(tableWrapper);
@@ -230,6 +229,7 @@ module.exports = {
     },
   },
   plugins: [
+    includeCodeSnippetPlugin,
     extendPageDataPlugin,
     'tabs',
     [

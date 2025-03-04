@@ -11,6 +11,7 @@
     --ht-cell-vertical-padding: 4px;
     --ht-font-size: 14px;
     --ht-line-height: 20px;
+    --ht-letter-spacing: 0;
     --ht-border-color: #222222;
     --ht-foreground-color: #222222;
     --ht-background-color: #ffffff;
@@ -35,7 +36,7 @@
     font-size: var(--ht-font-size);
     line-height: var(--ht-line-height);
     font-weight: var(--ht-font-weight);
-    letter-spacing: 0;
+    letter-spacing: var(--ht-letter-spacing);
     color: var(--ht-foreground-color);
     /* Miscellaneous */
     touch-action: manipulation;
@@ -82,12 +83,16 @@
             th {
               border-top-width: 0;
             }
-          }
 
-          &:first-of-type td {
-            height: calc(
-              var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px
-            );
+            &:first-of-type {
+              th,
+              td {
+                height: calc(
+                  var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) +
+                    1px
+                );
+              }
+            }
           }
         }
       }
@@ -161,13 +166,6 @@
           background: transparent;
         }
       }
-    }
-
-    // compensates the top border width of the first row
-    tr:first-of-type td {
-      height: calc(
-        var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
-      );
     }
 
     // Cell
@@ -250,6 +248,16 @@
               color: var(--ht-header-row-active-foreground-color);
               background-color: var(--ht-header-row-active-background-color);
             }
+          }
+        }
+
+        // compensates the top border width of the first row
+        &:first-of-type {
+          th,
+          td {
+            height: calc(
+              var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
+            );
           }
         }
 
