@@ -1105,7 +1105,7 @@ describe('Comments', () => {
           style: { width: 318, height: 60 }
         }));
         horizon.toHaveBeenCalledWith(1, 1, 'comment', jasmine.objectContaining({
-          style: { width: 318, height: 60 }
+          style: { width: 326, height: 68 }
         }));
       });
     });

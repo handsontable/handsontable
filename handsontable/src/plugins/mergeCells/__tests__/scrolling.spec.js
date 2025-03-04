@@ -89,7 +89,7 @@ describe('MergeCells scrolling', () => {
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(115);
       main.toBe(145);
-      horizon.toBe(145);
+      horizon.toBe(185);
     });
   });
 

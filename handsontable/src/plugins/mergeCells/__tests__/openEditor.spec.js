@@ -137,7 +137,7 @@ describe('MergeCells open editor', () => {
       expect($(getActiveEditor().TEXTAREA_PARENT).offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 49, left: 50 });
         main.toEqual({ top: 58, left: 50 });
-        horizon.toEqual({ top: 58, left: 50 });
+        horizon.toEqual({ top: 74, left: 50 });
       });
     });
 
@@ -163,7 +163,7 @@ describe('MergeCells open editor', () => {
       expect($(getActiveEditor().TEXTAREA_PARENT).offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 27, left: 99 });
         main.toEqual({ top: 30, left: 100 });
-        horizon.toEqual({ top: 30, left: 100 });
+        horizon.toEqual({ top: 38, left: 108 });
       });
     });
   });

@@ -1312,7 +1312,7 @@ describe('TrimRows', () => {
     });
 
     it.forTheme('horizon')('should resize container for headers properly after insertion (pixel perfect)', () => {
-      const THEME_ROW_HEIGHT = 29;
+      const THEME_ROW_HEIGHT = 37;
       const insertedRows = 6;
 
       const hot = handsontable({
@@ -1386,7 +1386,7 @@ describe('TrimRows', () => {
     });
 
     it.forTheme('horizon')('should resize container for headers properly after removal (pixel perfect)', () => {
-      const THEME_ROW_HEIGHT = 29;
+      const THEME_ROW_HEIGHT = 37;
       const removedRows = 6;
 
       const hot = handsontable({
@@ -1462,7 +1462,7 @@ describe('TrimRows', () => {
 
     it.forTheme('horizon')('should resize container for headers properly after untrimming row ' +
       '(pixel perfect) #6276', () => {
-      const THEME_ROW_HEIGHT = 29;
+      const THEME_ROW_HEIGHT = 37;
 
       const hot = handsontable({
         rowHeaders: true,

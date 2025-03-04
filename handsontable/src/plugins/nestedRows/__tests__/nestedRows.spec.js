@@ -135,7 +135,7 @@ describe('NestedRows', () => {
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(56);
         main.toBe(61);
-        horizon.toBe(61);
+        horizon.toBe(69);
       });
     });
 
@@ -166,7 +166,7 @@ describe('NestedRows', () => {
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(70);
         main.toBe(71);
-        horizon.toBe(71);
+        horizon.toBe(79);
       });
 
       selectCell(3, 0);
@@ -176,7 +176,7 @@ describe('NestedRows', () => {
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(76);
         main.toBe(81);
-        horizon.toBe(81);
+        horizon.toBe(89);
       });
 
       selectCell(4, 0);
@@ -186,7 +186,7 @@ describe('NestedRows', () => {
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(86);
         main.toBe(91);
-        horizon.toBe(91);
+        horizon.toBe(99);
       });
     });
   });

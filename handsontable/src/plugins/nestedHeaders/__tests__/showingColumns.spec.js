@@ -1526,8 +1526,8 @@ describe('NestedHeaders', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
-        width: 500,
-        height: 482,
+        width: 450,
+        height: 615,
         viewportColumnRenderingOffset: 0,
       });
 

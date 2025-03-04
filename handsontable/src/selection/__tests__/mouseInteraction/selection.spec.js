@@ -792,7 +792,7 @@ describe('Selection using mouse interaction', () => {
   it.forTheme('horizon')('should select the entire column after column header is clicked', () => {
     handsontable({
       width: 200,
-      height: 126,
+      height: 161,
       startRows: 10,
       startCols: 5,
       colHeaders: true
@@ -891,7 +891,7 @@ describe('Selection using mouse interaction', () => {
     'header is clicked', () => {
     handsontable({
       width: 200,
-      height: 126,
+      height: 161,
       startRows: 10,
       startCols: 5,
       colHeaders: true,
@@ -1061,7 +1061,7 @@ describe('Selection using mouse interaction', () => {
     'after scroll horizontally', () => {
     handsontable({
       width: 200,
-      height: 126,
+      height: 161,
       startRows: 10,
       startCols: 10,
       colHeaders: true,
@@ -1204,7 +1204,7 @@ describe('Selection using mouse interaction', () => {
     'selection from a cell to a column header', async() => {
     handsontable({
       width: 200,
-      height: 252,
+      height: 322,
       startRows: 20,
       startCols: 20,
       colHeaders: true,
@@ -1368,7 +1368,7 @@ describe('Selection using mouse interaction', () => {
     'the selection from a cell to a row header', async() => {
     handsontable({
       width: 200,
-      height: 245,
+      height: 313,
       startRows: 20,
       startCols: 20,
       colHeaders: true,

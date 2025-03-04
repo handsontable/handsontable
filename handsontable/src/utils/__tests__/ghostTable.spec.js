@@ -57,7 +57,7 @@ describe('GhostTable', () => {
       expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(['ht-wrapper handsontable']);
         main.toEqual(['ht-wrapper handsontable ht-theme-main']);
-        horizon.toEqual(['ht-wrapper handsontable ht-theme-main']);
+        horizon.toEqual(['ht-wrapper handsontable ht-theme-horizon']);
       });
     });
 
@@ -128,13 +128,13 @@ describe('GhostTable', () => {
       expect(heightSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
         classic.toBe(64);
         main.toBe(69);
-        horizon.toBe(69);
+        horizon.toBe(77);
       });
       expect(heightSpy.calls.argsFor(2)[0]).toBe(2);
       expect(heightSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
         classic.toBe(43);
         main.toBe(49);
-        horizon.toBe(49);
+        horizon.toBe(57);
       });
     });
   });
@@ -176,7 +176,7 @@ describe('GhostTable', () => {
       expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(['ht-wrapper handsontable']);
         main.toEqual(['ht-wrapper handsontable ht-theme-main']);
-        horizon.toEqual(['ht-wrapper handsontable ht-theme-main']);
+        horizon.toEqual(['ht-wrapper handsontable ht-theme-horizon']);
       });
     });
 
@@ -243,19 +243,19 @@ describe('GhostTable', () => {
       expect(widthSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
         classic.toBe(66);
         main.toBe(84);
-        horizon.toBe(84);
+        horizon.toBe(92);
       });
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
       expect(widthSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
         classic.toBe(31);
         main.toBe(43);
-        horizon.toBe(43);
+        horizon.toBe(51);
       });
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
       expect(widthSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
         classic.toBe(53);
         main.toBe(68);
-        horizon.toBe(68);
+        horizon.toBe(76);
       });
     });
 

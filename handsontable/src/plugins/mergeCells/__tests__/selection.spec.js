@@ -227,7 +227,7 @@ describe('MergeCells Selection', () => {
     expect($borderTop.position().top).forThemes(({ classic, main, horizon }) => {
       classic.toBe(topPositionBefore + 23); // adds default row height
       main.toBe(topPositionBefore + 29);
-      horizon.toBe(topPositionBefore + 29);
+      horizon.toBe(topPositionBefore + 37);
     });
   });
 
@@ -435,7 +435,7 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
-      height: 248, // TODO: needs to be very specific to work, worth investigating if correct
+      height: 312, // TODO: needs to be very specific to work, worth investigating if correct
       viewportRowRenderingOffset: 0,
       mergeCells: {
         virtualized: true,
@@ -695,7 +695,7 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,
-      height: 248,
+      height: 313,
       viewportRowRenderingOffset: 1,
       fixedRowsTop: 2,
       mergeCells: {

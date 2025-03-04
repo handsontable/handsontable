@@ -338,22 +338,22 @@ describe('CheckboxRenderer', () => {
     expect(getCell(0, 2).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
       classic.toBe(getCell(0, 2).offsetWidth - 9);
       main.toBe(getCell(0, 2).offsetWidth - 17);
-      horizon.toBe(getCell(0, 2).offsetWidth - 17);
+      horizon.toBe(getCell(0, 2).offsetWidth - 25);
     });
     expect(getCell(0, 3).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
       classic.toBe(getCell(0, 3).offsetWidth - 9);
       main.toBe(getCell(0, 3).offsetWidth - 17);
-      horizon.toBe(getCell(0, 3).offsetWidth - 17);
+      horizon.toBe(getCell(0, 3).offsetWidth - 25);
     });
     expect(getCell(0, 4).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
       classic.toBe(getCell(0, 4).offsetWidth - 9);
       main.toBe(getCell(0, 4).offsetWidth - 17);
-      horizon.toBe(getCell(0, 4).offsetWidth - 17);
+      horizon.toBe(getCell(0, 4).offsetWidth - 25);
     });
     expect(getCell(0, 5).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
       classic.toBe(getCell(0, 5).offsetWidth - 9);
       main.toBe(getCell(0, 5).offsetWidth - 17);
-      horizon.toBe(getCell(0, 5).offsetWidth - 17);
+      horizon.toBe(getCell(0, 5).offsetWidth - 25);
     });
   });
 
