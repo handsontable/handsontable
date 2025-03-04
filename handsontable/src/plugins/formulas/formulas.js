@@ -813,25 +813,20 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+
     const visualRow = this.hot.toVisualRow(physicalRow);
 
     if (visualRow === null || visualColumn === null) {
       return;
     }
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
+    const cellType = this.getCellType(visualRow, visualColumn);
 
-    if (!isFormulaCellType) {
-      const cellType = this.getCellType(visualRow, visualColumn);
+    if (cellType === 'VALUE' || cellType === 'EMPTY') {
+      valueHolder.value = unescapeFormulaExpression(valueHolder.value);
 
-      if (cellType !== 'ARRAY') {
-        if (isEscapedFormulaExpression(valueHolder.value)) {
-          valueHolder.value = unescapeFormulaExpression(valueHolder.value);
-        }
-
-        return;
-      }
+      return;
     }
 
     const address = {
