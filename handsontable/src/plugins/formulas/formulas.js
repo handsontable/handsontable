@@ -879,15 +879,10 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
+    const cellType = this.getCellType(visualRow, visualColumn);
 
-    if (!isFormulaCellType) {
-      const cellType = this.getCellType(visualRow, visualColumn);
-
-      if (cellType !== 'ARRAY') {
-        return;
-      }
+    if (cellType === 'VALUE' || cellType === 'EMPTY') {
+      return;
     }
 
     const dimensions = this.engine.getSheetDimensions(this.engine.getSheetId(this.sheetName));
