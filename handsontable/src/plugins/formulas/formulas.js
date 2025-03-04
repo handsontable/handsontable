@@ -739,15 +739,14 @@ export class Formulas extends BasePlugin {
         const dateFormat = cellMeta.dateFormat;
 
         if (isDate(cellValue, cellMeta.type)) {
-          valueChanged = true;
-
           if (isDateValid(cellValue, dateFormat)) {
             // Rewriting date in HOT format to HF format.
             sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, dateFormat);
-
+            valueChanged = true;
           } else if (this.isFormulaCellType(rowIndex, columnIndex) === false) {
             // Escaping value from date parsing using "'" sign (HF feature).
             sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
+            valueChanged = true;
           }
         }
       });
