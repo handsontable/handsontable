@@ -730,7 +730,7 @@ export class Formulas extends BasePlugin {
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
    */
   #onAfterCellMetaReset() {
-    const sourceDataArray = this.hot.getSourceDataArray();
+    const sourceDataArray = this.hot.getSourceDataArray(); // getSourceDataRaw(); // 0.5 seconds gain (can I do it?)
     let valueChanged = false;
 
     sourceDataArray.forEach((rowData, rowIndex) => {
@@ -776,7 +776,9 @@ export class Formulas extends BasePlugin {
     this.sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
 
     if (!this.#hotWasInitializedWithEmptyData) {
-      const sourceDataArray = this.hot.getSourceDataArray();
+      const sourceDataArray = this.hot.getSourceDataArray(); // getSourceDataRaw(); // 0.5 seconds gain (can I do it?)
+
+      // convert dates here?
 
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
