@@ -416,8 +416,7 @@ describe('AutocompleteEditor', () => {
       expect(isEditorVisible()).toBe(true);
     });
 
-    // see https://github.com/handsontable/handsontable/issues/3380
-    it('should not throw error while selecting the next cell by hitting enter key', () => {
+    it('should not throw error while selecting the next cell by hitting enter key (#3380)', () => {
       const spy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 
@@ -1054,94 +1053,220 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('tbody td:eq(5)').text()).toEqual('6');
     });
 
-    it('should display the dropdown above the editor, when there is not enough space below the cell AND' +
-       'there is more space above the cell', async() => {
+    it('should display the dropdown above the editor, when there is not enough space below (table has defined size)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: choices
-          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-        ],
+        data: createEmptySpreadsheetData(30, 30),
+        editor: 'autocomplete',
+        source: choices,
         width: 400,
-        height: 400
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
+        height: getDefaultRowHeight() * 9,
       });
 
-      setDataAtCell(29, 0, '');
-      selectCell(29, 0);
+      mouseDoubleClick($(getCell(6, 0)));
 
-      mouseDoubleClick($(getCell(29, 0)));
+      await sleep(50);
 
-      await sleep(200);
+      const container = $(getActiveEditor().htContainer);
 
-      const autocompleteEditor = $('.autocompleteEditor');
-
-      expect(autocompleteEditor.css('position')).toEqual('absolute');
-      expect(autocompleteEditor.css('top')).toEqual(`${(-1) * autocompleteEditor.height()}px`);
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: getDefaultRowHeight(), left: 0 });
+        main.toEqual({ top: getDefaultRowHeight(), left: 0 });
+      });
     });
 
-    it('should not display the dropdown above the editor, when there is not enough space below when ' +
-       'the table uses the `preventOverflow` option', async() => {
+    it('should display the dropdown once above and once below the editor after the choices list is changed (table has defined size)', async() => {
+      handsontable({
+        data: createEmptySpreadsheetData(30, 5),
+        editor: 'autocomplete',
+        source: choices,
+        width: 400,
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
+        height: getDefaultRowHeight() * 9,
+      });
+
+      mouseDoubleClick($(getCell(5, 0)));
+
+      await sleep(50);
+
+      const editor = getActiveEditor();
+      const container = $(editor.htContainer);
+
+      editor.TEXTAREA.value = 'r';
+      keyDownUp('r');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 23, left: 0 });
+        main.toEqual({ top: 29, left: 0 });
+      });
+
+      editor.TEXTAREA.value = 're';
+      keyDownUp('e');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 139, left: 0 });
+        main.toEqual({ top: 175, left: 0 });
+      });
+    });
+
+    it('should limit the list to the space size left below the editor (table has defined size)', async() => {
+      handsontable({
+        data: createEmptySpreadsheetData(30, 30),
+        editor: 'autocomplete',
+        source: choices,
+        visibleRows: 20,
+        width: 400,
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
+        height: getDefaultRowHeight() * 9,
+      });
+
+      mouseDoubleClick($(getCell(2, 0)));
+
+      await sleep(50);
+
+      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main }) => {
+        classic.toEqual(115);
+        main.toEqual(147);
+      });
+    });
+
+    it('should limit the list to the space size left above the editor (table has defined size)', async() => {
+      handsontable({
+        data: createEmptySpreadsheetData(30, 30),
+        editor: 'autocomplete',
+        source: choices,
+        visibleRows: 20,
+        width: 400,
+        // set the height of the table so that 9 rows are always visible - no matter what theme is being tested
+        height: getDefaultRowHeight() * 9,
+      });
+
+      mouseDoubleClick($(getCell(6, 0)));
+
+      await sleep(50);
+
+      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main }) => {
+        classic.toEqual(115);
+        main.toEqual(147);
+      });
+    });
+
+    it('should display the dropdown above the editor, when there is not enough space below (table has not defined size)', async() => {
       spec().$container
         .css('overflow', '')
         .css('width', '')
         .css('height', '');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: choices
-          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-        ],
-        preventOverflow: 'horizontal',
+        data: createEmptySpreadsheetData(40, 30),
+        editor: 'autocomplete',
+        source: choices,
       });
 
-      setDataAtCell(29, 0, '');
-      selectCell(29, 0);
+      const cell = document.elementsFromPoint(
+        0, document.documentElement.clientHeight - (getDefaultRowHeight() * 4))[0];
 
-      mouseDoubleClick($(getCell(29, 0)));
+      mouseDoubleClick($(cell));
 
-      await sleep(200);
+      await sleep(50);
 
-      const autocompleteEditor = $('.autocompleteEditor');
+      const container = $(getActiveEditor().htContainer);
 
-      expect(autocompleteEditor.css('position')).toBe('relative');
-      expect(autocompleteEditor.css('top')).toBe('0px');
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 365, left: 0 });
+        main.toEqual({ top: 289, left: 0 });
+      });
     });
 
-    it('should flip the dropdown upwards when there is no more room left below the cell after filtering the choice list', async() => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: choices
-          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-        ],
-        width: 400,
-        height: 400
+    it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size)', async() => {
+      spec().$container
+        .css('overflow', '')
+        .css('width', '')
+        .css('height', '');
+
+      handsontable({
+        data: createEmptySpreadsheetData(40, 30),
+        editor: 'autocomplete',
+        source: choices,
       });
 
-      setDataAtCell(26, 0, 'b');
-      selectCell(26, 0);
+      const cell = document.elementsFromPoint(
+        0, document.documentElement.clientHeight - (getDefaultRowHeight() * 4))[0];
 
-      hot.view._wt.wtTable.holder.scrollTop = 999;
-      mouseDoubleClick($(getCell(26, 0)));
+      mouseDoubleClick($(cell));
 
-      const autocompleteEditor = $('.autocompleteEditor');
+      await sleep(50);
 
-      await sleep(100);
-      expect(autocompleteEditor.css('position')).toEqual('absolute');
+      const editor = getActiveEditor();
+      const container = $(editor.htContainer);
 
-      autocompleteEditor.siblings('textarea').first().val('');
-      keyDownUp('backspace');
-      await sleep(100);
+      editor.TEXTAREA.value = 'r';
+      keyDownUp('r');
 
-      expect(autocompleteEditor.css('position')).toEqual('absolute');
-      expect(autocompleteEditor.css('top')).toEqual(`${(-1) * autocompleteEditor.height()}px`);
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 480, left: 0 });
+        main.toEqual({ top: 434, left: 0 });
+      });
+
+      editor.TEXTAREA.value = 're';
+      keyDownUp('e');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 622, left: 0 });
+        main.toEqual({ top: 610, left: 0 });
+      });
+    });
+
+    it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size, scrolled viewport)', async() => {
+      spec().$container
+        .css('overflow', '')
+        .css('width', '')
+        .css('height', '');
+
+      handsontable({
+        data: createEmptySpreadsheetData(100, 30),
+        editor: 'autocomplete',
+        source: choices,
+      });
+
+      window.scrollTo(0, 10000); // scroll to the bottom
+
+      await sleep(50);
+
+      mouseDoubleClick($(getCell(96, 0)));
+
+      await sleep(50);
+
+      const editor = getActiveEditor();
+      const container = $(editor.htContainer);
+
+      editor.TEXTAREA.value = 'r';
+      keyDownUp('r');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 2090, left: 0 });
+        main.toEqual({ top: 2638, left: 0 });
+      });
+
+      editor.TEXTAREA.value = 're';
+      keyDownUp('e');
+
+      await sleep(50);
+
+      expect(container.offset()).forThemes(({ classic, main }) => {
+        classic.toEqual({ top: 2232, left: 0 });
+        main.toEqual({ top: 2814, left: 0 });
+      });
     });
   });
 
@@ -1585,7 +1710,7 @@ describe('AutocompleteEditor', () => {
   });
 
   describe('strict mode', () => {
-    it('strict mode should NOT use value if it DOES NOT match the list (sync reponse is empty)', async() => {
+    it('strict mode should NOT use value if it DOES NOT match the list (sync response is empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const syncSources = jasmine.createSpy('syncSources');
@@ -1626,7 +1751,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(1); // 1 for loadData (it is not called after failed edit)
     });
 
-    it('strict mode should use value if it DOES match the list (sync reponse is not empty)', async() => {
+    it('strict mode should use value if it DOES match the list (sync response is not empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const syncSources = jasmine.createSpy('asyncSources');
@@ -1667,7 +1792,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(2); // 1 for loadData and 1 for setDataAtCell
     });
 
-    it('strict mode should NOT use value if it DOES NOT match the list (async reponse is empty)', async() => {
+    it('strict mode should NOT use value if it DOES NOT match the list (async response is empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const asyncSources = jasmine.createSpy('asyncSources');
@@ -1710,7 +1835,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(1); // 1 for loadData (it is not called after failed edit)
     });
 
-    it('strict mode should use value if it DOES match the list (async reponse is not empty)', async() => {
+    it('strict mode should use value if it DOES match the list (async response is not empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const asyncSources = jasmine.createSpy('asyncSources');
@@ -1753,7 +1878,7 @@ describe('AutocompleteEditor', () => {
       expect(onAfterChange.calls.count()).toEqual(2); // 1 for loadData and 1 for setDataAtCell
     });
 
-    it('strict mode mark value as invalid if it DOES NOT match the list (sync reponse is empty)', async() => {
+    it('strict mode mark value as invalid if it DOES NOT match the list (sync response is empty)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       const onAfterChange = jasmine.createSpy('onAfterChange');
       const syncSources = jasmine.createSpy('syncSources');

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved table UI behavior after removing all rows and/or columns",
+  "type": "changed",
+  "issueOrPR": 11477,
+  "breaking": false,
+  "framework": "none"
+}
