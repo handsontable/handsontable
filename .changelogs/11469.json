@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved autocomplete/dropdown editor list behavior",
+  "type": "fixed",
+  "issueOrPR": 11469,
+  "breaking": false,
+  "framework": "none"
+}
