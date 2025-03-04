@@ -130,10 +130,15 @@ describe('ContextMenu', () => {
       const item = selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
-      expect(getData()).toEqual([]);
+      expect(getData()).toEqual([[null], [null], [null], [null], [null]]);
       expect(`
         |   |
         |===|
+        |   |
+        |   |
+        |   |
+        |   |
+        |   |
         `).toBeMatchToSelectionPattern();
     });
 

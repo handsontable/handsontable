@@ -5,9 +5,6 @@ import {
   getCaretPosition,
   getScrollbarWidth,
   getSelectionEndPosition,
-  getTrimmingContainer,
-  offset,
-  outerHeight,
   outerWidth,
   setAttribute,
   setCaretPosition,
@@ -341,24 +338,19 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {boolean}
    */
   flipDropdownIfNeeded() {
-    const trimmingContainer = getTrimmingContainer(this.hot.view._wt.wtTable.TABLE);
-    const isWindowAsScrollableElement = trimmingContainer === this.hot.rootWindow;
-    const preventOverflow = this.cellProperties.preventOverflow;
+    const editorRect = this.getEditedCellRect();
+    const editorHeight = editorRect.height;
+    let spaceAbove = editorRect.top;
 
-    if (isWindowAsScrollableElement ||
-        !isWindowAsScrollableElement && (preventOverflow || preventOverflow === 'horizontal')) {
-      return false;
+    if (this.hot.view.isVerticallyScrollableByWindow()) {
+      const topOffset = this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
+
+      spaceAbove = Math.max(spaceAbove + topOffset, 0);
     }
 
-    const textareaOffset = offset(this.TEXTAREA);
-    const textareaHeight = outerHeight(this.TEXTAREA);
     const dropdownHeight = this.getHeight();
-    const trimmingContainerScrollTop = trimmingContainer.scrollTop;
-    const headersHeight = outerHeight(this.hot.view._wt.wtTable.THEAD);
-    const containerOffset = offset(trimmingContainer);
-    const spaceAbove = textareaOffset.top - containerOffset.top - headersHeight + trimmingContainerScrollTop;
-    const spaceBelow = trimmingContainer.scrollHeight - spaceAbove - headersHeight - textareaHeight;
-    const flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow;
+    const spaceBelow = this.hot.view.getWorkspaceHeight() - spaceAbove - editorHeight;
+    const flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow + editorHeight;
 
     if (flipNeeded) {
       this.flipDropdown(dropdownHeight);

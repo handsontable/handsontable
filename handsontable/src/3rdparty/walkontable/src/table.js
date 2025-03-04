@@ -715,7 +715,7 @@ class Table {
     } else if (CONTAINER === this.THEAD) {
       row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
 
-    } else {
+    } else if (this.rowFilter) {
       row = this.rowFilter.renderedToSource(row);
     }
 
@@ -724,7 +724,7 @@ class Table {
       || overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)) {
       col = this.columnFilter.offsettedTH(col);
 
-    } else {
+    } else if (this.columnFilter) {
       col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
     }
 

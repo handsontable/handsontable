@@ -185,6 +185,20 @@ export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
 
 /**
+ * @returns {number} Returns the default row height based on the current theme.
+ */
+export function getDefaultRowHeight() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 29;
+    case 'horizon':
+      return 37;
+    default:
+      return 23; // classic
+  }
+}
+
+/**
  * @returns {object} Returns the spec object for currently running test.
  */
 export function spec() {
@@ -1128,6 +1142,16 @@ export function clearModernThemeStylesheetMock(container) {
  */
 export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);
+}
+
+/**
+ * Creates spreadsheet data as an array of arrays filled with an empty string.
+ *
+ * @param {*} args The arguments passed directly to the Handsontable helper.
+ * @returns {Array}
+ */
+export function createEmptySpreadsheetData(...args) {
+  return Handsontable.helper.createEmptySpreadsheetData(...args);
 }
 
 /**

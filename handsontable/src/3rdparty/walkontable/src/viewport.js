@@ -239,7 +239,7 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceOffset() {
-    return offset(this.wtTable.TABLE);
+    return offset(this.wtTable.holder);
   }
 
   /**
