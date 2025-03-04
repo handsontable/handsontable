@@ -98,7 +98,8 @@ export function keyTriggerFactory(type, key, { extend, target, ime }) {
     ev.keyCode = KEY_CODES_MAP.get(key);
 
   } else if (typeof key === 'string') {
-    ev.keyCode = key.codePointAt(0);
+    // the keyCode for lower case letters is the same as for upper case letters
+    ev.keyCode = key.toUpperCase().codePointAt(0);
   }
 
   ev.key = key;

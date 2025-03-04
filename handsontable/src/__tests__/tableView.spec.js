@@ -504,4 +504,15 @@ describe('TableView', () => {
       expect(hot.view._wt.wtViewport.isHorizontallyScrollableByWindow).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('getTableOffset()', () => {
+    it('should internally call `getWorkspaceOffset` method of the Viewport module of the Walkontable', () => {
+      const hot = handsontable({});
+
+      spyOn(hot.view._wt.wtViewport, 'getWorkspaceOffset').and.returnValue(true);
+
+      expect(hot.view.getTableOffset()).toBe(true);
+      expect(hot.view._wt.wtViewport.getWorkspaceOffset).toHaveBeenCalledTimes(1);
+    });
+  });
 });
