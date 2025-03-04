@@ -576,8 +576,6 @@ export class AutoColumnSize extends BasePlugin {
    * On before view render listener.
    */
   #onBeforeRender() {
-    console.log('onBeforeRender');
-
     this.calculateVisibleColumnsWidth();
 
     if (!this.inProgress) {
@@ -641,8 +639,6 @@ export class AutoColumnSize extends BasePlugin {
    * On after Handsontable init fill plugin with all necessary values.
    */
   #onInit() {
-    console.log('#onInit');
-
     this.#cachedColumnHeaders = this.hot.getColHeader();
     this.recalculateAllColumnsWidth();
   }
@@ -653,8 +649,6 @@ export class AutoColumnSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   #onAfterFormulasValuesUpdate(changes) {
-    console.log('onAfterFormulasValuesUpdate');
-
     const changedColumns = changes.reduce((acc, change) => {
       const physicalColumn = change.address?.col;
 
