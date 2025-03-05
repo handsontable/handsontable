@@ -182,8 +182,7 @@ export class Formulas extends BasePlugin {
       const newSheetName = this.addSheet(this.sheetName, this.hot.getSourceDataArray());
 
       if (newSheetName !== false) {
-        this.sheetName = newSheetName;
-        this.sheetId = this.engine.getSheetId(this.sheetName);
+        this.updateSheetNameAndSheetId(newSheetName);
       }
     }
 
@@ -342,8 +341,8 @@ export class Formulas extends BasePlugin {
         this.switchSheet(this.sheetName);
 
       } else {
-        this.sheetName = this.addSheet(sheetName ?? undefined, this.hot.getSourceDataArray());
-        this.sheetId = this.engine.getSheetId(this.sheetName);
+        const newSheetName = this.addSheet(sheetName ?? undefined, this.hot.getSourceDataArray());
+        this.updateSheetNameAndSheetId(newSheetName);
       }
     }
 
@@ -362,6 +361,16 @@ export class Formulas extends BasePlugin {
     this.engine = null;
 
     super.destroy();
+  }
+
+  /**
+   * Update sheetName and sheetId properties.
+   *
+   * @param {string} [sheetName] The new sheet name
+   */
+  updateSheetNameAndSheetId(sheetName) {
+    this.sheetName = sheetName;
+    this.sheetId = this.engine.getSheetId(this.sheetName);
   }
 
   /**
@@ -416,8 +425,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.sheetName = sheetName;
-    this.sheetId = this.engine.getSheetId(this.sheetName);
+    this.updateSheetNameAndSheetId(sheetName);
 
     const serialized = this.engine.getSheetSerialized(this.sheetId);
 
@@ -784,8 +792,8 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
-    this.sheetId = this.engine.getSheetId(this.sheetName);
+    const sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
+    this.updateSheetNameAndSheetId(sheetName);
 
     if (source === 'updateSettings') {
       // For performance reasons, the initialization will be done in afterCellMetaReset hook
@@ -1273,9 +1281,7 @@ export class Formulas extends BasePlugin {
    * @param {string} newDisplayName The new name of the sheet.
    */
   #onEngineSheetRenamed(oldDisplayName, newDisplayName) {
-    this.sheetName = newDisplayName;
-    this.sheetId = this.engine.getSheetId(this.sheetName);
-
+    this.updateSheetNameAndSheetId(newDisplayName);
     this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
   }
 
