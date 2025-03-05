@@ -6,6 +6,7 @@ describe('focusDetector', () => {
 
   beforeEach(() => {
     const rootElement = document.createElement('div');
+    const wtHolder = document.createElement('div');
 
     rootElement.className = 'handsontable';
     rootElement.innerHTML = '<div></div><div></div>';
@@ -17,6 +18,13 @@ describe('focusDetector', () => {
       getSettings: () => ({
         ariaTags: true,
       }),
+      view: {
+        _wt: {
+          wtTable: {
+            holder: wtHolder
+          }
+        }
+      }
     };
     hooks = {
       onFocusFromTop: jest.fn(),

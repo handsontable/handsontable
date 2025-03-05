@@ -15,9 +15,13 @@ export function installFocusDetector(hot, hooks = {}) {
   const rootElement = hot.rootElement;
   const inputTrapTop = createInputElement(hot);
   const inputTrapBottom = createInputElement(hot);
+  const wtHolder = hot.view._wt.wtTable.holder;
 
   inputTrapTop.addEventListener('focus', () => hooks?.onFocusFromTop());
   inputTrapBottom.addEventListener('focus', () => hooks?.onFocusFromBottom());
+  wtHolder.addEventListener('focusout', () => {
+    inputTrapTop.tabIndex = 0;
+  });
 
   rootElement.firstChild.before(inputTrapTop);
   rootElement.lastChild.after(inputTrapBottom);
@@ -28,7 +32,12 @@ export function installFocusDetector(hot, hooks = {}) {
      */
     activate() {
       hot._registerTimeout(() => {
-        inputTrapTop.tabIndex = 0;
+        if (hot.rootDocument.activeElement === wtHolder) {
+          inputTrapTop.tabIndex = -1;
+        } else {
+          inputTrapTop.tabIndex = 0;
+        }
+
         inputTrapBottom.tabIndex = 0;
       }, 10);
     },
