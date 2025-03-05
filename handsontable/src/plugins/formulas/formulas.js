@@ -13,7 +13,6 @@ import {
   getRegisteredHotInstances,
 } from './engine/register';
 import {
-  isEscapedFormulaExpression,
   unescapeFormulaExpression,
   isDate,
   isDateValid,
@@ -121,6 +120,12 @@ export class Formulas extends BasePlugin {
   engine = null;
 
   /**
+   * HyperFormula's sheet id.
+   *
+   * @type {number|null}
+   */
+  sheetId = null;
+  /**
    * HyperFormula's sheet name.
    *
    * @type {string|null}
@@ -144,16 +149,6 @@ export class Formulas extends BasePlugin {
    * @type {AxisSyncer|null}
    */
   columnAxisSyncer = null;
-
-  /**
-   * HyperFormula's sheet id.
-   *
-   * @type {number|null}
-   */
-  get sheetId() {
-    return this.sheetName === null ? null : this.engine.getSheetId(this.sheetName);
-  }
-
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link Formulas#enablePlugin} method is called.
@@ -188,6 +183,7 @@ export class Formulas extends BasePlugin {
 
       if (newSheetName !== false) {
         this.sheetName = newSheetName;
+        this.sheetId = this.engine.getSheetId(this.sheetName);
       }
     }
 
@@ -347,6 +343,7 @@ export class Formulas extends BasePlugin {
 
       } else {
         this.sheetName = this.addSheet(sheetName ?? undefined, this.hot.getSourceDataArray());
+        this.sheetId = this.engine.getSheetId(this.sheetName);
       }
     }
 
@@ -420,6 +417,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.sheetName = sheetName;
+    this.sheetId = this.engine.getSheetId(this.sheetName);
 
     const serialized = this.engine.getSheetSerialized(this.sheetId);
 
@@ -774,6 +772,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
+    this.sheetId = this.engine.getSheetId(this.sheetName);
 
     if (!this.#hotWasInitializedWithEmptyData) {
       const sourceDataArray = this.hot.getSourceDataArray(); // getSourceDataRaw(); // 0.5 seconds gain (can I do it?)
@@ -1259,6 +1258,7 @@ export class Formulas extends BasePlugin {
    */
   #onEngineSheetRenamed(oldDisplayName, newDisplayName) {
     this.sheetName = newDisplayName;
+    this.sheetId = this.engine.getSheetId(this.sheetName);
 
     this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
   }

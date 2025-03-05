@@ -3032,10 +3032,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return data;
   };
 
-  this.getSourceDataRaw = function() {
-    return dataSource.data;
-  };
-  
   /**
    * Returns the source data object as an arrays of arrays format even when source data was provided in another format.
    * Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
