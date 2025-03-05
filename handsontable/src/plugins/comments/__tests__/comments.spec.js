@@ -415,9 +415,10 @@ describe('Comments', () => {
         let editorHeight = $editor.outerHeight();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-        expect(editorOffset.left).forThemes(({ classic, main }) => {
+        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
           main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0); // border compensation?
+          horizon.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
         });
 
         // Set the comment editor height/width to 2 rows/columns + 5px, which should overlap the scrollbar by `5px`.
@@ -437,9 +438,10 @@ describe('Comments', () => {
         editorHeight = $editor.outerHeight();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-        expect(editorOffset.left).forThemes(({ classic, main }) => {
+        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0); // border compensation?
+          main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
+          horizon.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
         });
       });
 
@@ -469,25 +471,9 @@ describe('Comments', () => {
         const $editor = $(plugin.getEditorInputElement());
         const $cell = $(getCell(countRows() - 2, countCols() - 2));
         const cellOffset = $cell.offset();
-        const cellHeight = $cell.outerHeight();
         const cellWidth = $cell.outerWidth();
 
         plugin.showAtCell(countRows() - 2, countCols() - 2);
-
-        const editorHeight = $editor.outerHeight();
-        let editorOffset = $editor.offset();
-        let editorWidth = $editor.outerWidth();
-
-        expect(editorOffset.top).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-          main.toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-          horizon.toBeCloseTo(cellOffset.top - editorHeight + cellHeight + 1, 0);
-        });
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0); // border compensation?
-          horizon.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
-        });
 
         // Set the comment editor height to 2 rows + 5px, which should overlay the bottom scrollbar by `5px`, if it existed.
         // As it doesn't exist, the editor should not be flipped vertically.
@@ -501,13 +487,13 @@ describe('Comments', () => {
 
         plugin.showAtCell(countRows() - 2, countCols() - 2);
 
-        editorOffset = $editor.offset();
-        editorWidth = $editor.outerWidth();
+        const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main }) => {
+        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left + cellWidth, 0);
           main.toBeCloseTo(cellOffset.left + cellWidth - 1, 0);
+          horizon.toBeCloseTo(cellOffset.left + cellWidth - 1, 0);
         });
       });
 

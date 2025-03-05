@@ -1148,10 +1148,7 @@ describe('AutocompleteEditor', () => {
 
       const container = $(getActiveEditor().htContainer);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
-        classic.toEqual({ top: getDefaultRowHeight(), left: 0 });
-        main.toEqual({ top: getDefaultRowHeight(), left: 0 });
-      });
+      expect(container.offset()).toEqual({ top: getDefaultRowHeight(), left: 0 });
     });
 
     it('should display the dropdown once above and once below the editor after the choices list is changed (table has defined size)', async() => {
@@ -1176,9 +1173,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 23, left: 0 });
         main.toEqual({ top: 29, left: 0 });
+        horizon.toEqual({ top: 37, left: 0 });
       });
 
       editor.TEXTAREA.value = 're';
@@ -1186,9 +1184,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 139, left: 0 });
         main.toEqual({ top: 175, left: 0 });
+        horizon.toEqual({ top: 223, left: 0 });
       });
     });
 
@@ -1207,9 +1206,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main }) => {
+      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(115);
         main.toEqual(147);
+        horizon.toEqual(185);
       });
     });
 
@@ -1228,9 +1228,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main }) => {
+      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(115);
         main.toEqual(147);
+        horizon.toEqual(185);
       });
     });
 
@@ -1255,9 +1256,10 @@ describe('AutocompleteEditor', () => {
 
       const container = $(getActiveEditor().htContainer);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 365, left: 0 });
         main.toEqual({ top: 289, left: 0 });
+        horizon.toEqual({ top: 184, left: 0 });
       });
     });
 
@@ -1288,9 +1290,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 480, left: 0 });
         main.toEqual({ top: 434, left: 0 });
+        horizon.toEqual({ top: 369, left: 0 });
       });
 
       editor.TEXTAREA.value = 're';
@@ -1298,9 +1301,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 622, left: 0 });
         main.toEqual({ top: 610, left: 0 });
+        horizon.toEqual({ top: 593, left: 0 });
       });
     });
 
@@ -1332,9 +1336,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 2090, left: 0 });
         main.toEqual({ top: 2638, left: 0 });
+        horizon.toEqual({ top: 3366, left: 0 });
       });
 
       editor.TEXTAREA.value = 're';
@@ -1342,9 +1347,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 2232, left: 0 });
         main.toEqual({ top: 2814, left: 0 });
+        horizon.toEqual({ top: 3590, left: 0 });
       });
     });
   });
