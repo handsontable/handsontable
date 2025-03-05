@@ -2546,7 +2546,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       });
     }
 
-    instance.runHooks('afterCellMetaReset');
+    instance.runHooks('afterCellMetaReset', 'updateSettings');
 
     let currentHeight = instance.rootElement.style.height;
 

@@ -116,6 +116,7 @@ export const REGISTERED_HOOKS = [
    * Fired after resetting a cell's meta. This happens when the {@link Core#updateSettings} method is called.
    *
    * @event Hooks#afterCellMetaReset
+   * @param {string} source The source of the call
    */
   'afterCellMetaReset',
 

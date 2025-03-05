@@ -726,9 +726,17 @@ export class Formulas extends BasePlugin {
 
   /**
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
+   *
+   * @param {string} [source] Source of the call.
    */
-  #onAfterCellMetaReset() {
-    const sourceDataArray = this.hot.getSourceDataArray(); // getSourceDataRaw(); // 0.5 seconds gain (can I do it?)
+  #onAfterCellMetaReset(source = '') {
+    if (source === 'updateSettings' && this.#hotWasInitializedWithEmptyData) {
+      this.switchSheet(this.sheetName);
+
+      return;
+    }
+
+    const sourceDataArray = this.hot.getSourceDataArray();
     let valueChanged = false;
 
     sourceDataArray.forEach((rowData, rowIndex) => {
@@ -741,7 +749,7 @@ export class Formulas extends BasePlugin {
             // Rewriting date in HOT format to HF format.
             sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, dateFormat);
             valueChanged = true;
-          } else if (this.isFormulaCellType(rowIndex, columnIndex) === false) {
+          } else if (!cellValue.startsWith('=')) {
             // Escaping value from date parsing using "'" sign (HF feature).
             sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
             valueChanged = true;
@@ -750,10 +758,15 @@ export class Formulas extends BasePlugin {
       });
     });
 
-    if (valueChanged === true) {
+    if (source === 'updateSettings' || valueChanged === true) {
       this.#internalOperationPending = true;
 
-      this.engine.setSheetContent(this.sheetId, sourceDataArray);
+      const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
+
+      if (source === 'updateSettings') {
+        this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
+        this.renderDependentSheets(dependentCells);
+      }
 
       this.#internalOperationPending = false;
     }
@@ -774,10 +787,13 @@ export class Formulas extends BasePlugin {
     this.sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
     this.sheetId = this.engine.getSheetId(this.sheetName);
 
-    if (!this.#hotWasInitializedWithEmptyData) {
-      const sourceDataArray = this.hot.getSourceDataArray(); // getSourceDataRaw(); // 0.5 seconds gain (can I do it?)
+    if (source === 'updateSettings') {
+      // For performance reasons, the initialization will be done in afterCellMetaReset hook
+      return;
+    }
 
-      // convert dates here?
+    if (!this.#hotWasInitializedWithEmptyData) {
+      const sourceDataArray = this.hot.getSourceDataArray();
 
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
