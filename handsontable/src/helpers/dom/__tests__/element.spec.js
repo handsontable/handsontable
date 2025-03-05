@@ -111,4 +111,146 @@ describe('DOM helpers', () => {
       document.body.removeChild(wrapper);
     });
   });
+
+  describe('hasVerticalScrollbar', () => {
+    it('should return `true` if the provided HTML element has a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(50)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      element.style.width = '100px';
+      element.style.height = '100px';
+      element.style.overflow = 'auto';
+
+      expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(true);
+
+      element.style.overflow = 'scroll';
+
+      expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(true);
+
+      element.style.overflow = '';
+      element.style.overflowY = 'auto';
+      element.style.overflowX = 'hidden';
+
+      expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(true);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `false` if the provided HTML element doesn\'t have a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(50)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      element.style.width = '100px';
+      element.style.height = '100px';
+
+      element.style.overflowY = 'hidden';
+      element.style.overflowX = 'auto';
+
+      expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(false);
+
+      element.style.overflowY = '';
+      element.style.overflowX = '';
+      element.style.overflow = 'hidden';
+
+      expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(false);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `true` if the provided Window element has a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(1000)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      expect(Handsontable.dom.hasVerticalScrollbar(window)).toBe(true);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `false` if the provided Window element doesn\'t have a vertical scrollbar', () => {
+      expect(Handsontable.dom.hasVerticalScrollbar(window)).toBe(false);
+    });
+  });
+
+  describe('hasHorizontalScrollbar', () => {
+    it('should return `true` if the provided HTML element has a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(50)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      element.style.width = '100px';
+      element.style.height = '100px';
+
+      element.style.overflow = 'scroll';
+
+      expect(Handsontable.dom.hasHorizontalScrollbar(element)).toBe(true);
+
+      element.style.overflow = '';
+      element.style.overflowY = 'hidden';
+      element.style.overflowX = 'scroll';
+
+      expect(Handsontable.dom.hasHorizontalScrollbar(element)).toBe(true);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `false` if the provided HTML element doesn\'t have a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(50)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      element.style.width = '100px';
+      element.style.height = '100px';
+
+      element.style.overflowY = 'auto';
+      element.style.overflowX = 'hidden';
+
+      expect(Handsontable.dom.hasHorizontalScrollbar(element)).toBe(false);
+
+      element.style.overflowY = '';
+      element.style.overflowX = '';
+      element.style.overflow = 'hidden';
+
+      expect(Handsontable.dom.hasHorizontalScrollbar(element)).toBe(false);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `true` if the provided Window element has a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      element.style.height = '100%';
+      element.style.width = '500%';
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(1000)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      expect(Handsontable.dom.hasHorizontalScrollbar(window)).toBe(true);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `false` if the provided Window element doesn\'t have a vertical scrollbar', () => {
+      expect(Handsontable.dom.hasHorizontalScrollbar(window)).toBe(false);
+    });
+  });
 });
