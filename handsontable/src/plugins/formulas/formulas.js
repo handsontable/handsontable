@@ -342,6 +342,7 @@ export class Formulas extends BasePlugin {
 
       } else {
         const newSheetName = this.addSheet(sheetName ?? undefined, this.hot.getSourceDataArray());
+
         this.updateSheetNameAndSheetId(newSheetName);
       }
     }
@@ -366,7 +367,7 @@ export class Formulas extends BasePlugin {
   /**
    * Update sheetName and sheetId properties.
    *
-   * @param {string} [sheetName] The new sheet name
+   * @param {string} [sheetName] The new sheet name.
    */
   updateSheetNameAndSheetId(sheetName) {
     this.sheetName = sheetName;
@@ -793,6 +794,7 @@ export class Formulas extends BasePlugin {
     }
 
     const sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
+
     this.updateSheetNameAndSheetId(sheetName);
 
     if (source === 'updateSettings') {
