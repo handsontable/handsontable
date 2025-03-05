@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix menu missing initial styles problem",
-  "type": "fixed",
-  "issueOrPR": 11400,
-  "breaking": false,
-  "framework": "none"
-}

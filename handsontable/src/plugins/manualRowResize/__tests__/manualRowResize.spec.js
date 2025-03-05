@@ -72,9 +72,9 @@ describe('manualRowResize', () => {
       manualRowResize: true
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight); // + Double border
-    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight); // + Single border
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight); // + Single border
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1); // + Single border
+    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
 
     updateSettings({
       manualRowResize: [60, 50, 80]
@@ -190,7 +190,7 @@ describe('manualRowResize', () => {
       manualRowResize: undefined
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1); // + Single border
     expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
     expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
   });
@@ -240,7 +240,7 @@ describe('manualRowResize', () => {
       manualRowResize: true
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1); // + Single border
     expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
     expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
 
@@ -248,7 +248,7 @@ describe('manualRowResize', () => {
       manualRowResize: true
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1); // + Single border
     expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
     expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
   });
@@ -298,14 +298,14 @@ describe('manualRowResize', () => {
       manualRowResize: [undefined, undefined, 120]
     });
 
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1); // + Single border
     expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
     expect(rowHeight(spec().$container, 2)).toBe(120);
     expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);
 
     alter('insert_row_above', 0);
 
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1); // + Single border
     expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
     expect(rowHeight(spec().$container, 2)).toBe(themeDefaultRowHeight);
     expect(rowHeight(spec().$container, 3)).toBe(120);
@@ -356,14 +356,14 @@ describe('manualRowResize', () => {
       manualRowResize: [undefined, undefined, 120]
     });
 
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1); // + Single border
     expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
     expect(rowHeight(spec().$container, 2)).toBe(120);
     expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);
 
     alter('remove_row', 0);
 
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1); // + Single border
     expect(rowHeight(spec().$container, 1)).toBe(120);
     expect(rowHeight(spec().$container, 2)).toBe(themeDefaultRowHeight);
     expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);

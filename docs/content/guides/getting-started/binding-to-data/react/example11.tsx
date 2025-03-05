@@ -18,7 +18,7 @@ const data: Array<Array<string | number>> = [
 
 const ExampleComponent: FC = () => (
   <HotTable
-    data={JSON.parse(JSON.stringify(data))}
+    data={structuredClone(data)}
     height="auto"
     autoWrapRow={true}
     autoWrapCol={true}

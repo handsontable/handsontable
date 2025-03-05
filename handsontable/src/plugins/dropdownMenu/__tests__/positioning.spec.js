@@ -114,7 +114,7 @@ describe('DropdownMenu', () => {
 
       expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(135);
-        main.toBe(155);
+        main.toBe(156);
         horizon.toBe(194);
       });
       expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {

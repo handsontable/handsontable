@@ -96,7 +96,7 @@ describe('Filters UI Conditional component', () => {
 
     // 3px comes from borders
     expect(window.scrollY + rect.top - 3).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(757, 1);
+      classic.toBeAroundValue(755, 1);
       main.toBeAroundValue(715, 1);
       horizon.toBeAroundValue(673, 1);
     });

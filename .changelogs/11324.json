@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed table misalign after container size change",
-  "type": "fixed",
-  "issueOrPR": 11324,
-  "breaking": false,
-  "framework": "none"
-}

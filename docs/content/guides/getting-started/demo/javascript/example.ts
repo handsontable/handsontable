@@ -1305,6 +1305,7 @@ new Handsontable(example, {
   manualRowResize: true,
   manualColumnResize: true,
   navigableHeaders: true,
+  imeFastEdit: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 

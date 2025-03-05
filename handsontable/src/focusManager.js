@@ -1,5 +1,5 @@
 import { warn } from './helpers/console';
-import { isOutsideInput } from './helpers/dom/element';
+import { isHTMLElement, isOutsideInput } from './helpers/dom/element';
 import { debounce } from './helpers/function';
 
 /**
@@ -149,7 +149,7 @@ export class FocusManager {
         'modifyFocusedElement', currentHighlightCoords.row, currentHighlightCoords.col, element
       );
 
-      if (!(elementToBeFocused instanceof HTMLElement)) {
+      if (!isHTMLElement(elementToBeFocused)) {
         elementToBeFocused = element;
       }
 
@@ -182,6 +182,8 @@ export class FocusManager {
       this.#hot.getSettings().imeFastEdit &&
       !this.#hot.getActiveEditor()?.isOpened()
     ) {
+      this.#hot.getActiveEditor()?.refreshValue?.();
+
       if (!this.#debouncedSelect.has(delay)) {
         this.#debouncedSelect.set(delay, debounce(() => {
           this.getRefocusElement()?.select();

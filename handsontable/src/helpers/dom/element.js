@@ -1006,20 +1006,28 @@ export function getScrollbarWidth(rootDocument = document) {
 /**
  * Checks if the provided element has a vertical scrollbar.
  *
- * @param {HTMLElement} element An element to check.
+ * @param {HTMLElement|Window} element An element to check.
  * @returns {boolean}
  */
 export function hasVerticalScrollbar(element) {
+  if (element instanceof Window) {
+    return element.document.body.scrollHeight > element.innerHeight;
+  }
+
   return element.offsetWidth !== element.clientWidth;
 }
 
 /**
  * Checks if the provided element has a vertical scrollbar.
  *
- * @param {HTMLElement} element An element to check.
+ * @param {HTMLElement|Window} element An element to check.
  * @returns {boolean}
  */
 export function hasHorizontalScrollbar(element) {
+  if (element instanceof Window) {
+    return element.document.body.scrollWidth > element.innerWidth;
+  }
+
   return element.offsetHeight !== element.clientHeight;
 }
 
@@ -1193,4 +1201,16 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
   callback();
 
   removeContentEditableFromElementAndDeselect(element, invisibleSelection);
+}
+
+/**
+ * Check if the element is HTMLElement.
+ *
+ * @param {*} element Element to check.
+ * @returns {boolean} `true` if the element is HTMLElement.
+ */
+export function isHTMLElement(element) {
+  const OwnElement = element?.ownerDocument?.defaultView.Element;
+
+  return !!(OwnElement && OwnElement !== null && element instanceof OwnElement);
 }

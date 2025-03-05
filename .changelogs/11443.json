@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Speed up the rendering performance for themes",
+  "type": "changed",
+  "issueOrPR": 11443,
+  "breaking": false,
+  "framework": "none"
+}

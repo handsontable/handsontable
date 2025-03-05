@@ -328,7 +328,7 @@ describe('Comments keyboard shortcut', () => {
   });
 
   describe('"TAB"', () => {
-    it('should close the comment without saving the value and move the selection to the next cell (grid default for TAB)',
+    it('should close the comment, save the value and move the selection to the next cell (grid default for TAB)',
       async() => {
         handsontable({
           data: createSpreadsheetData(4, 4),
@@ -352,7 +352,7 @@ describe('Comments keyboard shortcut', () => {
 
         await sleep(50);
 
-        expect(getCellMeta(1, 1).comment).toEqual({ value: '' });
+        expect(getCellMeta(1, 1).comment).toEqual({ value: 'Test comment' });
         expect(commentsInput.parentNode.style.display).toEqual('none');
         expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
         expect(document.activeElement).toBe(getCell(1, 2));
@@ -360,7 +360,7 @@ describe('Comments keyboard shortcut', () => {
   });
 
   describe('"Shift + TAB"', () => {
-    it('should close the comment without saving the value and move the selection to the next cell (grid default for TAB)',
+    it('should close the comment, save the value and move the selection to the next cell (grid default for TAB)',
       async() => {
         handsontable({
           data: createSpreadsheetData(4, 4),
@@ -384,7 +384,7 @@ describe('Comments keyboard shortcut', () => {
 
         await sleep(50);
 
-        expect(getCellMeta(1, 1).comment).toEqual({ value: '' });
+        expect(getCellMeta(1, 1).comment).toEqual({ value: 'Test comment' });
         expect(commentsInput.parentNode.style.display).toEqual('none');
         expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
         expect(document.activeElement).toBe(getCell(1, 0));

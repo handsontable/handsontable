@@ -1,10 +1,13 @@
 import {
   addClass,
-  removeClass,
   closest,
-  isChildOf,
+  getScrollbarWidth,
   hasClass,
+  hasVerticalScrollbar,
+  hasHorizontalScrollbar,
+  isChildOf,
   outerHeight,
+  removeClass,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
@@ -299,7 +302,7 @@ export class Comments extends BasePlugin {
       keys: [['Shift', 'Tab'], ['Tab']],
       forwardToContext: manager.getContext('grid'),
       callback: () => {
-        this.#editor.setValue(this.#commentValueBeforeSave);
+        this.#editor.setValue(this.#editor.getValue());
         this.hide();
         manager.setActiveContextName('grid');
       },
@@ -332,6 +335,12 @@ export class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
     this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
     this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
+
+    this.eventManager.addEventListener(
+      this.getEditorInputElement(),
+      'mousedown',
+      event => this.#onInputElementMouseDown(event)
+    );
   }
 
   /**
@@ -585,6 +594,9 @@ export class Comments extends BasePlugin {
 
     const { innerWidth, innerHeight } = this.hot.rootWindow;
     const documentElement = this.hot.rootDocument.documentElement;
+    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
+    const verticalScrollbarWidth = hasVerticalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
+    const horizontalScrollbarWidth = hasHorizontalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
     let x = left + rootWindow.scrollX + lastColWidth;
     let y = top + rootWindow.scrollY + lastRowHeight;
 
@@ -593,14 +605,14 @@ export class Comments extends BasePlugin {
     }
 
     // flip to the right or left the comments editor position when it goes out of browser viewport
-    if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth) {
+    if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth - verticalScrollbarWidth) {
       x = left + rootWindow.scrollX - editorWidth - 1;
 
     } else if (this.hot.isRtl() && x < -(documentElement.scrollWidth - documentElement.clientWidth)) {
       x = left + rootWindow.scrollX + lastColWidth + 1;
     }
 
-    if (top + editorHeight > innerHeight) {
+    if (top + editorHeight > innerHeight - horizontalScrollbarWidth) {
       y -= (editorHeight - cellHeight + 1);
     }
 
@@ -678,6 +690,15 @@ export class Comments extends BasePlugin {
         this.hide();
       }
     }
+  }
+
+  /**
+   * Prevent recognizing clicking on the comment editor as clicking outside of table.
+   *
+   * @param {MouseEvent} event The `mousedown` event.
+   */
+  #onInputElementMouseDown(event) {
+    event.stopPropagation();
   }
 
   /**

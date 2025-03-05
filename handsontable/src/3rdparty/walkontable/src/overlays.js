@@ -583,6 +583,30 @@ class Overlays {
   }
 
   /**
+   * Update the main scrollable elements for all the overlays.
+   */
+  updateMainScrollableElements() {
+    this.eventManager.clearEvents(true);
+
+    this.inlineStartOverlay.updateMainScrollableElement();
+    this.topOverlay.updateMainScrollableElement();
+
+    if (this.bottomOverlay.needFullRender) {
+      this.bottomOverlay.updateMainScrollableElement();
+    }
+    const { wtTable } = this;
+    const { rootWindow } = this.domBindings;
+
+    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+      this.scrollableElement = wtTable.holder;
+    } else {
+      this.scrollableElement = getScrollableElement(wtTable.TABLE);
+    }
+
+    this.registerListeners();
+  }
+
+  /**
    *
    */
   destroy() {
