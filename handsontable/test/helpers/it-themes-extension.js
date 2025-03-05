@@ -52,13 +52,13 @@ const fit = (description, specDefinitions) => runOriginalFn(originalFit, descrip
 const xit = (description, specDefinitions) => runOriginalFn(originalXit, description, specDefinitions);
 
 it.forTheme = themeName => (description, specDefinition) =>
-    runOriginalFnUnderConditions(originalIt, themeName, description, specDefinition);
+  runOriginalFnUnderConditions(originalIt, themeName, description, specDefinition);
 
 fit.forTheme = themeName => (description, specDefinition) =>
-    runOriginalFnUnderConditions(originalFit, themeName, description, specDefinition);
+  runOriginalFnUnderConditions(originalFit, themeName, description, specDefinition);
 
 xit.forTheme = themeName => (description, specDefinition) =>
-    runOriginalFnUnderConditions(originalXit, themeName, description, specDefinition);
+  runOriginalFnUnderConditions(originalXit, themeName, description, specDefinition);
 
 global.it = it;
 global.fit = fit;
