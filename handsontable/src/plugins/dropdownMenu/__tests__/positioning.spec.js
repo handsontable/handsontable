@@ -120,7 +120,7 @@ describe('DropdownMenu', () => {
       expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
         classic.toBe(dropdownMenuOffset.left + 4);
         main.toBe(dropdownMenuOffset.left + 1);
-        horizon.toBe(dropdownMenuOffset.left);
+        horizon.toBe(dropdownMenuOffset.left + 1);
       });
     });
   });

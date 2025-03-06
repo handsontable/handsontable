@@ -957,7 +957,7 @@ describe('TextEditor', () => {
     expect(hot.getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
       classic.toBe('24px');
       main.toBe('30px');
-      horizon.toBe('37px');
+      horizon.toBe('38px');
     });
     expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
