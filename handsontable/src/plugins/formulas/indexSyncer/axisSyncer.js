@@ -105,7 +105,7 @@ class AxisSyncer {
 
     // Optimization:
     // notTrimmedIndexes is a subset of indexesSequence,
-    // so for every x indexesSequence.indexOf(x) is always > notTrimmedIndexes.indexOf(x)
+    // so for every x indexesSequence.indexOf(x) is always >= notTrimmedIndexes.indexOf(x)
     return indexesSequence.indexOf(notTrimmedIndexes[visualIndex], visualIndex);
   }
 
