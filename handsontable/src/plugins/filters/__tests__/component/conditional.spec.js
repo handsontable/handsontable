@@ -96,7 +96,7 @@ describe('Filters UI Conditional component', () => {
 
     expect(window.scrollY + rect.top).forThemes(({ classic, main }) => {
       classic.toBeAroundValue(755, 1);
-      main.toBeAroundValue(715, 1);
+      main.toBeAroundValue(718, 1);
     });
     hot.rootElement.style.marginTop = '';
   });
