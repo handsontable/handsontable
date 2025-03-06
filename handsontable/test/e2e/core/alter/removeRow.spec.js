@@ -123,10 +123,11 @@ describe('Core.alter', () => {
         expect(getData().length).toBe(5);
       });
 
-      it('should not display columns when every row have been removed (row header enabled)', () => {
+      it('should not display columns when every row have been removed (row header enabled, column header disabled)', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
-          rowHeaders: true
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: false,
         });
 
         alter('remove_row', 0, 5);
@@ -138,10 +139,28 @@ describe('Core.alter', () => {
         expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
       });
 
-      it('should not display columns when every row have been removed (column header enabled)', () => {
+      it('should display columns when every row have been removed (row header disabled, column header enabled)', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
-          colHeaders: true
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: false,
+          colHeaders: true,
+        });
+
+        alter('remove_row', 0, 5);
+
+        expect(countCols()).toBe(5);
+        expect(getData()).toEqual([]);
+        expect($('.ht_master .htCore td').length).toBe(0);
+        expect($('.ht_master .htCore tbody th').length).toBe(0);
+        expect($('.ht_master .htCore thead th').length).toBe(5);
+        expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
+      });
+
+      it('should display columns when every row have been removed (both headers disabled)', () => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: false,
+          colHeaders: false,
         });
 
         alter('remove_row', 0, 5);
@@ -156,18 +175,18 @@ describe('Core.alter', () => {
 
       it('should not display columns when every row have been removed (both headers enabled)', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           rowHeaders: true,
-          colHeaders: true
+          colHeaders: true,
         });
 
         alter('remove_row', 0, 5);
 
-        expect(countCols()).toBe(0);
+        expect(countCols()).toBe(5);
         expect(getData()).toEqual([]);
         expect($('.ht_master .htCore td').length).toBe(0);
         expect($('.ht_master .htCore tbody th').length).toBe(0);
-        expect($('.ht_master .htCore thead th').length).toBe(1);
+        expect($('.ht_master .htCore thead th').length).toBe(6); // 5 + corner
         expect($('.ht_master .htCore .cornerHeader').length).toBe(1); // Corner visible.
       });
 

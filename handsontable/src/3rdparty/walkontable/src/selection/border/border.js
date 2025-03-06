@@ -223,7 +223,12 @@ class Border {
    * Create multiple selector handler for mobile devices.
    */
   createMultipleSelectorHandles() {
-    const { rootDocument } = this.wot;
+    const { rootDocument, stylesHandler } = this.wot;
+    const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
+    const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
+    const cellMobileHandleBackgroundColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-background-color');
+    const cellMobileHandleBorderWidth = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-width');
+    const cellMobileHandleBorderColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-color');
 
     this.selectionHandles = {
       top: rootDocument.createElement('DIV'),
@@ -258,13 +263,20 @@ class Border {
       this.selectionHandles.styles.topHitArea[key] = value;
     });
 
-    const handleStyle = {
+    const handleStyle = stylesHandler.isClassicTheme() ? {
       position: 'absolute',
       height: `${width}px`,
       width: `${width}px`,
       'border-radius': `${parseInt(width / 1.5, 10)}px`,
       background: '#F5F5FF',
       border: '1px solid #4285c8'
+    } : {
+      position: 'absolute',
+      height: `${cellMobileHandleSize}px`,
+      width: `${cellMobileHandleSize}px`,
+      'border-radius': `${cellMobileHandleBorderRadius}px`,
+      background: `${cellMobileHandleBackgroundColor}`,
+      border: `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`
     };
 
     objectEach(handleStyle, (value, key) => {
