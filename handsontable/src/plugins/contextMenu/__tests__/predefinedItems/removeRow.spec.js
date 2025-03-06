@@ -122,8 +122,8 @@ describe('ContextMenu', () => {
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getData()).toEqual([]);
       expect(`
-        |   |
-        |===|
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
     });
 
