@@ -7,8 +7,8 @@ test('Test focus on Shift+Tab navigation', async({ goto, tablePage }) => {
   const tableTop = tablePage.locator('#tableTop > .handsontable');
   const tableBottom = tablePage.locator('#tableBottom > .handsontable');
 
-  tableTop.waitFor();
-  tableBottom.waitFor();
+  await tableTop.waitFor();
+  await tableBottom.waitFor();
 
   await tablePage.keyboard.press('Tab');
   await tablePage.waitForTimeout(50);
