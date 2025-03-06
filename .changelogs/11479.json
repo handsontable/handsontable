@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added mobile cell handle css variables to the themes",
+  "type": "added",
+  "issueOrPR": 11479,
+  "breaking": false,
+  "framework": "none"
+}
