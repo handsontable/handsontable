@@ -4846,7 +4846,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Adds listener to specified hook name (only for this.hot.view.getDefaultRowHeight() Handsontable instance). After the listener is triggered,
+   * Adds listener to specified hook name (only for this Handsontable instance). After the listener is triggered,
    * it will be automatically removed.
    *
    * @memberof Core#
