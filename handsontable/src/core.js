@@ -3870,6 +3870,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
+    const defaultRowHeight = this.view.getDefaultRowHeight();
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {
@@ -3881,15 +3882,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'function':
           height = height(row);
           break;
+
         default:
           break;
       }
+
       if (typeof height === 'string') {
         height = parseInt(height, 10);
       }
     }
 
-    return height;
+    return (height && height < defaultRowHeight) ? defaultRowHeight : height;
   };
 
   /**
@@ -4843,7 +4846,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Adds listener to specified hook name (only for this Handsontable instance). After the listener is triggered,
+   * Adds listener to specified hook name (only for this.hot.view.getDefaultRowHeight() Handsontable instance). After the listener is triggered,
    * it will be automatically removed.
    *
    * @memberof Core#
