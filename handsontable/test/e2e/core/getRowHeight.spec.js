@@ -28,38 +28,35 @@ describe('Core.getRowHeight', () => {
   });
 
   it('should return `rowHeights` if value is greater than `defaultHeight`', () => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeights: 50,
       rowHeaders: false,
       colHeaders: false,
     });
 
-    // value equal to `rowHeights` - 1px border width
-    expect(hot.getCell(0, 0).style.height).toBe('49px');
+    expect(getRowHeight(0)).toBe(50);
   });
 
-  it('should return `defaultHeight` if `rowHeights` is less than `defaultHeight`', () => {
-    const hot = handsontable({
+  it('should return `defaultRowHeight` if `rowHeights` is less than `defaultRowHeight`', () => {
+    handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeights: 12,
       rowHeaders: false,
       colHeaders: false,
     });
 
-    // value equal to `defaultHeight` - 1px border width
-    expect(hot.getCell(0, 0).style.height).toBe('22px');
+    expect(getRowHeight(0)).toBe(getDefaultRowHeight());
   });
 
-  it('should return `defaultHeight` if rowHeights is equal to 0', () => {
-    const hot = handsontable({
+  it('should return `defaultRowHeight` if rowHeights is equal to 0', () => {
+    handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeights: 0,
       rowHeaders: false,
       colHeaders: false,
     });
 
-    // value equal to `defaultHeight` - 1px border width
-    expect(hot.getCell(0, 0).style.height).toBe('22px');
+    expect(getRowHeight(0)).toBe(getDefaultRowHeight());
   });
 });
