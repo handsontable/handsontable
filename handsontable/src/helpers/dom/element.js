@@ -1006,20 +1006,28 @@ export function getScrollbarWidth(rootDocument = document) {
 /**
  * Checks if the provided element has a vertical scrollbar.
  *
- * @param {HTMLElement} element An element to check.
+ * @param {HTMLElement|Window} element An element to check.
  * @returns {boolean}
  */
 export function hasVerticalScrollbar(element) {
+  if (element instanceof Window) {
+    return element.document.body.scrollHeight > element.innerHeight;
+  }
+
   return element.offsetWidth !== element.clientWidth;
 }
 
 /**
  * Checks if the provided element has a vertical scrollbar.
  *
- * @param {HTMLElement} element An element to check.
+ * @param {HTMLElement|Window} element An element to check.
  * @returns {boolean}
  */
 export function hasHorizontalScrollbar(element) {
+  if (element instanceof Window) {
+    return element.document.body.scrollWidth > element.innerWidth;
+  }
+
   return element.offsetHeight !== element.clientHeight;
 }
 

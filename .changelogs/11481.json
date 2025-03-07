@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem with the Comments editor not flipping direction when overlapping the window's scrollbars.",
+  "type": "fixed",
+  "issueOrPR": 11481,
+  "breaking": false,
+  "framework": "none"
+}
