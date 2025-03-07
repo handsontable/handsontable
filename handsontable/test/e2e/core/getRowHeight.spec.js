@@ -49,7 +49,7 @@ describe('Core.getRowHeight', () => {
     expect(getRowHeight(0)).toBe(getDefaultRowHeight());
   });
 
-  it('should return `defaultRowHeight` if rowHeights is equal to 0', () => {
+  it('should return `defaultRowHeight` if `rowHeights` is equal to 0', () => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeights: 0,
