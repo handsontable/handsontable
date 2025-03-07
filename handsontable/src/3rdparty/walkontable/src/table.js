@@ -244,7 +244,7 @@ class Table {
       holder.className = 'wtHolder';
 
       setAttribute(holder, [
-         A11Y_TABINDEX(-1),
+        A11Y_TABINDEX(-1),
       ]);
 
       if (parent) {
