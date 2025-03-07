@@ -48,6 +48,8 @@ export declare class Filters extends BasePlugin {
   addCondition(column: number, name: string, args: any[], operationId?: OperationType): void;
   removeConditions(column: number): void;
   clearConditions(column?: number): void;
+  importConditions(conditions: ColumnConditions[]): void;
+  exportConditions(): ColumnConditions[];
   filter(): void;
   getSelectedColumn(): { physicalIndex: number, visualIndex: number } | null;
   getDataMapAtColumn(column?: number): CellLikeData[];
