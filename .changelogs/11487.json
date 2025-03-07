@@ -3,6 +3,6 @@
   "title": "Fixed problem with rowHeights when the value is lower than the default/min row height",
   "type": "fixed",
   "issueOrPR": 11487,
-  "breaking": true,
+  "breaking": false,
   "framework": "none"
 }
