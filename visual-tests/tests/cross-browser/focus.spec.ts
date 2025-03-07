@@ -36,7 +36,5 @@ test('Test focus on Shift+Tab navigation', async({ goto, tablePage }) => {
 
   await tablePage.keyboard.press('Shift+Tab');
   await tablePage.waitForTimeout(50);
-  await tablePage.keyboard.press('Shift+Tab');
-  await tablePage.waitForTimeout(50);
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
