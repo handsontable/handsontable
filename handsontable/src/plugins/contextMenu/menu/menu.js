@@ -626,7 +626,7 @@ export class Menu {
    * and adjusts the width and height of the menu's holder and hider elements accordingly.
    */
   updateMenuDimensions() {
-    const stylesHandler = this.hot.view.getStylesHandler();
+    const stylesHandler = this.hotMenu.view.getStylesHandler();
     const { wtTable } = this.hotMenu.view._wt;
     const data = this.hotMenu.getSettings().data;
     const hiderStyle = wtTable.hider.style;
