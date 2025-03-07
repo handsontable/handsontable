@@ -27,7 +27,7 @@ describe('Core.getRowHeight', () => {
     expect(modifyRowHeight).toHaveBeenCalledWith(50, 1);
   });
 
-  it('should return `rowHeights` if value is greater than `defaultHeight`', () => {
+  it('should return the same value as the `rowHeights` if the value is greater than minimum theme row height', () => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeights: 50,
