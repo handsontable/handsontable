@@ -3892,7 +3892,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
     }
 
-    return (height && height < defaultRowHeight) ? defaultRowHeight : height;
+    return (height !== undefined && height < defaultRowHeight) ? defaultRowHeight : height;
   };
 
   /**
