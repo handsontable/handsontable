@@ -49,8 +49,7 @@ describe('DropdownMenu', () => {
           main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
         });
         expect(subMenuOffset.left).forThemes(({ classic, main }) => {
-          // 3px comes from borders
-          classic.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() + 3, 0);
+          classic.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth(), 0);
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() - 1, 0);
@@ -149,8 +148,7 @@ describe('DropdownMenu', () => {
         main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
       });
       expect(subMenuOffset.left).forThemes(({ classic, main }) => {
-        // 3px comes from borders
-        classic.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() + 3, 0);
+        classic.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth(), 0);
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBeCloseTo(dropdownOffset.left + $dropdownMenu.outerWidth() - 1, 0);

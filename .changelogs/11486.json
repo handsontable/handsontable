@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed issue with context menu opening on classic theme",
+  "type": "fixed",
+  "issueOrPR": 11486,
+  "breaking": false,
+  "framework": "none"
+}
