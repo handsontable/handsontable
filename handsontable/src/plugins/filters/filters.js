@@ -134,6 +134,13 @@ export class Filters extends BasePlugin {
    * @type {WeakSet<Menu>}
    */
   #dropdownMenuTraces = new WeakSet();
+  /**
+   * Stores the previous state of the condition stack before the latest filter operation.
+   * This is used in the `beforeFilter` plugin to allow performing the undo operation.
+   *
+   * @type {Array}
+   */
+  #previousConditionStack = [];
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -507,6 +514,51 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Imports filter conditions to all columns to the plugin. The method accepts
+   * the array of conditions with the same structure as the {@link Filters#exportConditions} method returns.
+   * Importing conditions will replace the current conditions. Once replaced, the state of the condition
+   * will be reflected in the UI. To apply the changes and filter the table, call
+   * the {@link Filters#filter} method eventually.
+   *
+   * @param {Array} conditions Array of conditions.
+   */
+  importConditions(conditions) {
+    this.conditionCollection.importAllConditions(conditions);
+  }
+
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * Exports filter conditions for all columns from the plugin.
+   * The array represents the filter state for each column. For example:
+   *
+   * ```js
+   * [
+   *   {
+   *     column: 1,
+   *     operation: 'conjunction',
+   *     conditions: [
+   *       { name: 'gt', args: [95] },
+   *     ]
+   *   },
+   *   {
+   *     column: 7,
+   *     operation: 'conjunction',
+   *     conditions: [
+   *       { name: 'contains', args: ['mike'] },
+   *       { name: 'begins_with', args: ['m'] },
+   *     ]
+   *   },
+   * ]
+   * ```
+   *
+   * @returns {Array}
+   */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
+  exportConditions() {
+    return this.conditionCollection.exportAllConditions();
+  }
+
+  /**
    * Filters data based on added filter conditions.
    *
    * @fires Hooks#beforeFilter
@@ -518,11 +570,11 @@ export class Filters extends BasePlugin {
     const needToFilter = !this.conditionCollection.isEmpty();
     let visibleVisualRows = [];
 
-    const conditions = this.conditionCollection.exportAllConditions();
+    const conditions = this.exportConditions();
     const allowFiltering = this.hot.runHooks(
       'beforeFilter',
       conditions,
-      this.conditionCollection.previousConditionStack
+      this.#previousConditionStack
     );
 
     if (allowFiltering !== false) {
@@ -553,14 +605,15 @@ export class Filters extends BasePlugin {
       } else {
         this.filtersRowsMap.clear();
       }
+
+      this.#previousConditionStack = this.exportConditions();
+      this.hot.runHooks('afterFilter', conditions);
+      this.hot.view.adjustElementsSize();
+      this.hot.render();
+
+    } else {
+      this.importConditions(this.#previousConditionStack);
     }
-
-    this.hot.runHooks('afterFilter', conditions);
-
-    this.conditionCollection.setPreviousConditionStack(null);
-
-    this.hot.view.adjustElementsSize();
-    this.hot.render();
 
     if (this.hot.selection.isSelected()) {
       this.hot.selectCell(
@@ -788,7 +841,6 @@ export class Filters extends BasePlugin {
 
       this.conditionUpdateObserver.flush();
       this.components.forEach(component => component.saveState(physicalIndex));
-      this.filtersRowsMap.clear();
       this.filter();
     }
 
@@ -902,8 +954,25 @@ export class Filters extends BasePlugin {
       editedConditionStack: {
         conditions,
         column,
-      }
+      },
+      conditionArgsChange,
     } = conditionsState;
+
+    if (Array.isArray(conditionArgsChange)) {
+      // update the previous condition stack (only for 'by_value' condition) on each dataset
+      // change to make the undo/redo work properly
+      this.#previousConditionStack = this.#previousConditionStack.map((stack) => {
+        if (stack.column === column && conditions.length > 0) {
+          stack.conditions.forEach((condition) => {
+            if (condition.name === 'by_value') {
+              condition.args = [[...conditionArgsChange]];
+            }
+          });
+        }
+
+        return stack;
+      });
+    }
 
     const conditionsByValue = conditions.filter(condition => condition.name === CONDITION_BY_VALUE);
     const conditionsWithoutByValue = conditions.filter(condition => condition.name !== CONDITION_BY_VALUE);
