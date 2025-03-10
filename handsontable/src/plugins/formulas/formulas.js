@@ -750,7 +750,7 @@ export class Formulas extends BasePlugin {
 
     sourceDataArray.forEach((rowData, rowIndex) => {
       rowData.forEach((cellValue, columnIndex) => {
-        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
+        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex, { executeCellsFunction: false });
         const dateFormat = cellMeta.dateFormat;
 
         if (isDate(cellValue, cellMeta.type)) {

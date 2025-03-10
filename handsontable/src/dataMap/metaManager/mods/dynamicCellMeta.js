@@ -30,7 +30,7 @@ export class DynamicCellMetaMod {
   constructor(metaManager) {
     this.metaManager = metaManager;
 
-    metaManager.addLocalHook('afterGetCellMeta', cellMeta => this.extendCellMeta(cellMeta));
+    metaManager.addLocalHook('afterGetCellMeta', (...args) => this.extendCellMeta(...args));
 
     Hooks.getSingleton().add('beforeRender', (forceFullRender) => {
       if (forceFullRender) {
@@ -49,8 +49,10 @@ export class DynamicCellMetaMod {
    * To boost performance, the extending process is triggered only once per one slow Handsontable render cycle.
    *
    * @param {object} cellMeta The cell meta object.
+   * @param {object} options Execution options for the `extendCellMeta` method.
+   * @param {boolean} [options.executeCellsFunction] If `false`, disables the execution of the `cells` function. Default: `true`.
    */
-  extendCellMeta(cellMeta) {
+  extendCellMeta(cellMeta, options = { executeCellsFunction: true }) {
     const {
       row: physicalRow,
       col: physicalColumn,
@@ -71,22 +73,20 @@ export class DynamicCellMetaMod {
 
     hot.runHooks('beforeGetCellMeta', visualRow, visualCol, cellMeta);
 
-    // extend a `type` value, added or changed in the `beforeGetCellMeta` hook
-    const cellType = hasOwnProperty(cellMeta, 'type') ? cellMeta.type : null;
-    let cellSettings = isFunction(cellMeta.cells) ? cellMeta.cells(physicalRow, physicalColumn, prop) : null;
+    let additionalCellMeta = null;
 
-    if (cellType) {
-      if (cellSettings) {
-        cellSettings.type = cellSettings.type ?? cellType;
-      } else {
-        cellSettings = {
-          type: cellType,
-        };
-      }
+    if (options.executeCellsFunction && isFunction(cellMeta.cells)) {
+      additionalCellMeta = cellMeta.cells(physicalRow, physicalColumn, prop) ?? null;
     }
 
-    if (cellSettings) {
-      this.metaManager.updateCellMeta(physicalRow, physicalColumn, cellSettings);
+    // extend a `type` value, added or changed in the `beforeGetCellMeta` hook
+    if (hasOwnProperty(cellMeta, 'type')) {
+      additionalCellMeta = additionalCellMeta ?? {};
+      additionalCellMeta.type = additionalCellMeta.type ?? cellMeta.type;
+    }
+
+    if (additionalCellMeta) {
+      this.metaManager.updateCellMeta(physicalRow, physicalColumn, additionalCellMeta);
     }
 
     hot.runHooks('afterGetCellMeta', visualRow, visualCol, cellMeta);
