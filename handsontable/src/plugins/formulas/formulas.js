@@ -2,6 +2,8 @@ import { BasePlugin } from '../base';
 import staticRegister from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
 import { isNumeric } from '../../helpers/number';
+import { textRenderer } from '../../renderers/textRenderer';
+import { hyperlinkRenderer } from '../../renderers/hyperlinkRenderer';
 import {
   isDefined,
   isUndefined
@@ -830,7 +832,7 @@ export class Formulas extends BasePlugin {
         if (isEscapedFormulaExpression(valueHolder.value)) {
           valueHolder.value = unescapeFormulaExpression(valueHolder.value);
         }
-
+        this.removeHyperLink(visualRow, column)
         return;
       }
     }
@@ -840,6 +842,14 @@ export class Formulas extends BasePlugin {
       col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
       sheet: this.sheetId
     };
+
+    const hyperlink = this.engine.getCellHyperlink(address);
+    if (hyperlink !== undefined) {
+      this.addHyperLink(address.row, address.col, hyperlink)
+    } else {
+      this.removeHyperLink(address.row, address.col)
+    }
+
     let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
 
     // TODO: Workaround. We use HOT's `getCellsMeta` method instead of HOT's `getCellMeta` method. Getting cell meta
@@ -1285,5 +1295,34 @@ export class Formulas extends BasePlugin {
    */
   #onEngineSheetRemoved(removedSheetDisplayName, changes) {
     this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
+  }
+
+  /**
+   * Called when a cell changes and it is now a HYPERLINK.
+   *
+   * @private
+   * @fires Hooks#beforeSetCellMeta
+   * @fires Hooks#afterSetCellMeta
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} url The url of the HYPERLINK cell.
+   */
+  addHyperLink(row, col, url) {
+    this.hot.setCellMeta(row, col, 'formula.hyperlink', url)
+    this.hot.setCellMeta(row, col, 'renderer', hyperlinkRenderer)
+  }
+
+  /**
+   * Called when a cell changes and it is not a HYPERLINK.
+   *
+   * @private
+   * @fires Hooks#beforeSetCellMeta
+   * @fires Hooks#afterSetCellMeta
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   */
+  removeHyperLink(row, col) {
+    this.hot.setCellMeta(row, col, 'formula.hyperlink')
+    this.hot.setCellMeta(row, col, 'renderer', textRenderer)
   }
 }
