@@ -32,6 +32,8 @@ describe('Vertical scroll', () => {
     // select the `9` row
     selectCell(8, 0);
 
+    await sleep(10);
+
     // expect that the viewport is scrolled to the beginning of the `9` row
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(184);

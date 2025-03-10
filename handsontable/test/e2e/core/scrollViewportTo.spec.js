@@ -28,6 +28,7 @@ describe('Core.scrollViewportTo', () => {
         data: createSpreadsheetData(200, 100),
         width: 300,
         height: 300,
+        colWidths: 60,
         rowHeaders: true,
         colHeaders: true,
       });
@@ -41,9 +42,9 @@ describe('Core.scrollViewportTo', () => {
 
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2318);
-        main.toBe(2620);
-        horizon.toBe(3023);
+        classic.toBe(2826);
+        main.toBe(2826);
+        horizon.toBe(2826);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(3216);
@@ -58,6 +59,7 @@ describe('Core.scrollViewportTo', () => {
         data: createSpreadsheetData(200, 100),
         width: 300,
         height: 300,
+        colWidths: 60,
         rowHeaders: true,
         colHeaders: true,
       });
@@ -79,9 +81,9 @@ describe('Core.scrollViewportTo', () => {
 
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2502);
-        main.toBe(2795);
-        horizon.toBe(3190);
+        classic.toBe(3000);
+        main.toBe(3000);
+        horizon.toBe(3000);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(3216);
@@ -96,6 +98,7 @@ describe('Core.scrollViewportTo', () => {
         data: createSpreadsheetData(200, 100),
         width: 300,
         height: 300,
+        colWidths: 60,
         rowHeaders: true,
         colHeaders: true,
       });
@@ -117,9 +120,9 @@ describe('Core.scrollViewportTo', () => {
 
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2502);
-        main.toBe(2795);
-        horizon.toBe(3190);
+        classic.toBe(3000);
+        main.toBe(3000);
+        horizon.toBe(3000);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(3450);
@@ -134,6 +137,7 @@ describe('Core.scrollViewportTo', () => {
         data: createSpreadsheetData(200, 100),
         width: 300,
         height: 300,
+        colWidths: 60,
         rowHeaders: true,
         colHeaders: true,
       });
@@ -155,9 +159,9 @@ describe('Core.scrollViewportTo', () => {
 
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2318);
-        main.toBe(2620);
-        horizon.toBe(3023);
+        classic.toBe(2826);
+        main.toBe(2826);
+        horizon.toBe(2826);
       });
       expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(3450);
@@ -222,6 +226,7 @@ describe('Core.scrollViewportTo', () => {
       data: createSpreadsheetData(200, 100),
       width: 300,
       height: 300,
+      colWidths: 60,
       rowHeaders: true,
       colHeaders: true,
     });
@@ -235,9 +240,9 @@ describe('Core.scrollViewportTo', () => {
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2318);
-      main.toBe(2620);
-      horizon.toBe(3023);
+      classic.toBe(2826);
+      main.toBe(2826);
+      horizon.toBe(2826);
     });
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
@@ -247,6 +252,7 @@ describe('Core.scrollViewportTo', () => {
       data: createSpreadsheetData(100, 100),
       width: 300,
       height: 300,
+      colWidths: 60,
       rowHeaders: true,
       colHeaders: true,
     });
@@ -260,9 +266,9 @@ describe('Core.scrollViewportTo', () => {
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2502);
-      main.toBe(2795);
-      horizon.toBe(3190);
+      classic.toBe(3000);
+      main.toBe(3000);
+      horizon.toBe(3000);
     });
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });

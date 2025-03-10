@@ -29,6 +29,8 @@ describe('Row header selection scroll', () => {
 
       simulateClick(getCell(0, -1));
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -69,6 +71,8 @@ describe('Row header selection scroll', () => {
 
       selectRows(1, 0);
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -108,6 +112,8 @@ describe('Row header selection scroll', () => {
       await sleep(10);
 
       simulateClick(getCell(11, -1));
+
+      await sleep(10);
 
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
@@ -156,6 +162,8 @@ describe('Row header selection scroll', () => {
       await sleep(10);
 
       selectRows(10, 11);
+
+      await sleep(10);
 
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);

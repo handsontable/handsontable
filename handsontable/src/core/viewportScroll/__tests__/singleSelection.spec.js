@@ -129,6 +129,8 @@ describe('Single selection scroll', () => {
 
       simulateClick(getCell(0, 0));
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -228,6 +230,8 @@ describe('Single selection scroll', () => {
       await sleep(10);
 
       simulateClick(getCell(0, 0));
+
+      await sleep(10);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
     });

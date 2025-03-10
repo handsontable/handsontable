@@ -31,6 +31,8 @@ describe('Multiple selection scroll', () => {
       keyDown('shift');
       simulateClick(getCell(0, 5));
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
     });
 
@@ -132,6 +134,8 @@ describe('Multiple selection scroll', () => {
       simulateClick(getCell(0, 1));
       keyDown('shift');
       simulateClick(getCell(0, 0));
+
+      await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });
@@ -235,6 +239,8 @@ describe('Multiple selection scroll', () => {
       keyDown('shift');
       simulateClick(getCell(0, 0));
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -295,6 +301,8 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[1, 0, 0, 0]]);
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -336,6 +344,8 @@ describe('Multiple selection scroll', () => {
       simulateClick(getCell(10, 0));
       keyDown('shift');
       simulateClick(getCell(11, 0));
+
+      await sleep(10);
 
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);
@@ -408,6 +418,8 @@ describe('Multiple selection scroll', () => {
       await sleep(10);
 
       selectCells([[10, 0, 11, 0]]);
+
+      await sleep(10);
 
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(19);

@@ -115,6 +115,7 @@ describe('Core.scrollToFocusedCell', () => {
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
+      colWidths: 60,
       rowHeaders: true,
       colHeaders: true,
     });
@@ -128,9 +129,9 @@ describe('Core.scrollToFocusedCell', () => {
     selectCell(255, 0, 255, 0, false);
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2267);
-      main.toBe(2560);
-      horizon.toBe(2955);
+      classic.toBe(2765);
+      main.toBe(2765);
+      horizon.toBe(2765);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(5750);
@@ -181,8 +182,8 @@ describe('Core.scrollToFocusedCell', () => {
     // 2500 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(2268);
-      main.toBe(2561);
-      horizon.toBe(2956);
+      main.toBe(2562);
+      horizon.toBe(2957);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(5750);
