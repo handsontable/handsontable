@@ -1691,6 +1691,59 @@ describe('MergeCells', () => {
     `).toBeMatchToSelectionPattern();
   });
 
+  it('should correctly calculate the height of the merged cell for custom defined height (the first column as merged cell, row headers enabled)', () => {
+    handsontable({
+      data: createSpreadsheetData(6, 3),
+      rowHeaders: true,
+      rowHeights: 50,
+      mergeCells: [{ row: 0, col: 0, rowspan: 6, colspan: 1 }],
+    });
+
+    expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main }) => {
+      classic.toBe(301);
+      main.toBe(300);
+    });
+  });
+
+  it('should correctly calculate the height of the merged cell for custom defined height (the first column as merged cell, row headers disabled)', () => {
+    handsontable({
+      data: createSpreadsheetData(6, 3),
+      rowHeaders: false,
+      rowHeights: 50,
+      mergeCells: [{ row: 0, col: 0, rowspan: 6, colspan: 1 }],
+    });
+
+    expect(getCell(0, 0).offsetHeight).toBe(301);
+  });
+
+  it('should correctly calculate the height of the merged cell for custom defined height (the second column as merged cell)', () => {
+    handsontable({
+      data: createSpreadsheetData(6, 3),
+      rowHeaders: false,
+      rowHeights: 50,
+      mergeCells: [{ row: 0, col: 1, rowspan: 6, colspan: 1 }],
+    });
+
+    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main }) => {
+      classic.toBe(301);
+      main.toBe(300);
+    });
+  });
+
+  it('should correctly calculate the height of the merged cell for custom defined height (the second column as non-fully merged cell)', () => {
+    handsontable({
+      data: createSpreadsheetData(6, 3),
+      rowHeaders: false,
+      rowHeights: 50,
+      mergeCells: [{ row: 0, col: 1, rowspan: 4, colspan: 1 }],
+    });
+
+    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main }) => {
+      classic.toBe(201);
+      main.toBe(200);
+    });
+  });
+
   it.forTheme('classic')('should display properly high merged cell', () => {
     handsontable({
       data: createSpreadsheetData(50, 3),
