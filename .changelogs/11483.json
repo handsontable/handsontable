@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed problem with focus trap during Shift + Tab navigation",
+  "type": "fixed",
+  "issueOrPR": 11483,
+  "breaking": false,
+  "framework": "none"
+}

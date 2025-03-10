@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed conflicts between ColumnSorting and MultiColumnSorting plugins",
+  "type": "fixed",
+  "issueOrPR": 11492,
+  "breaking": false,
+  "framework": "none"
+}
