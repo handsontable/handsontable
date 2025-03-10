@@ -207,8 +207,8 @@ class DataSource {
       }
     }
 
-    if (!Number.isInteger(row)) {
-      // invalid row number
+    if (['__proto__', 'constructor', 'prototype'].includes(row)) {
+      // prevent prototype pollution
       return;
     }
 

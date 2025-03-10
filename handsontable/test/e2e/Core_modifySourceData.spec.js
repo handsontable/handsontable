@@ -177,6 +177,56 @@ describe('Core_modifySourceData', () => {
           expect(getSourceDataArray(0, 0, 1, 2)[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
         });
       });
+
+      it('should replace the source value for a cell using the `valueHolder` object of the hook callback for row values as a string', () => {
+        const changesList = [
+          ['0', '0', 'a'], ['0', '1', 'b'], ['0', '2', 'c'],
+          ['1', '0', 'd'], ['1', '1', 'e'], ['1', '2', 'f'],
+        ];
+
+        handsontable({
+          data: Handsontable.helper.createEmptySpreadsheetData(2, 3),
+          modifySourceData: (row, column, valueHolder, mode) => {
+            if (mode === 'set') {
+              valueHolder.value += `->${row}-${column}-${mode}`;
+            }
+          }
+        });
+
+        setSourceDataAtCell(changesList);
+
+        changesList.forEach((change) => {
+          const [rowIndex, columnIndex, dataCellValue] = change;
+          const modifiedSourceCellValue = `${dataCellValue}->${rowIndex}-${columnIndex}-set`;
+
+          expect(getDataAtCell(rowIndex, columnIndex)).toEqual(modifiedSourceCellValue);
+          expect(getDataAtRow(rowIndex)[columnIndex]).toEqual(modifiedSourceCellValue);
+          expect(getData()[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
+
+          // Check for multiple API endpoints
+          expect(getSourceDataAtCell(rowIndex, columnIndex)).toEqual(modifiedSourceCellValue);
+          expect(getSourceDataAtRow(rowIndex)[columnIndex]).toEqual(modifiedSourceCellValue);
+          expect(getSourceDataAtCol(columnIndex)[rowIndex]).toEqual(modifiedSourceCellValue);
+          expect(getSourceData()[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
+          expect(getSourceData(0, 0, 1, 2)[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
+          expect(getSourceDataArray()[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
+          expect(getSourceDataArray(0, 0, 1, 2)[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
+        });
+      });
+
+      it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype`', () => {
+        const changesList = [
+          ['__proto__', '0', 'a'], ['constructor', '1', 'b'], ['prototype', '2', 'c'],
+        ];
+
+        const hot = handsontable({
+          data: Handsontable.helper.createEmptySpreadsheetData(1, 3)
+        });
+
+        setSourceDataAtCell(changesList);
+
+        expect(hot.getData()[0]).toEqual(['', '', '']);
+      });
     });
 
     describe('array of objects datasource', () => {
