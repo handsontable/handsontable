@@ -17,7 +17,6 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       colHeaders: true,
       nestedRows: true,
-      columnSorting: true,
       multiColumnSorting: true,
     });
 

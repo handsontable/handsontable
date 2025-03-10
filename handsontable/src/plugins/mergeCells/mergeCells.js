@@ -1507,12 +1507,11 @@ export class MergeCells extends BasePlugin {
     const { view, rowIndexMapper } = this.hot;
     const stylesHandler = view.getStylesHandler();
     const defaultHeight = view.getDefaultRowHeight();
-    const autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
     let height = 0;
 
     for (let i = row; i < row + rowspan; i++) {
       if (!rowIndexMapper.isHidden(i)) {
-        height += autoRowSizePlugin?.getRowHeight(i) ?? defaultHeight;
+        height += this.hot.getRowHeight(i) ?? defaultHeight;
 
         if (i === 0 && !stylesHandler.isClassicTheme()) {
           height += 1; // border-top-width

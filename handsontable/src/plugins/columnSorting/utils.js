@@ -3,6 +3,8 @@ import { isObject } from '../../helpers/object';
 import { isRightClick } from '../../helpers/dom/event';
 import { isEmpty } from '../../helpers/mixed';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from './sortService';
+import { warn } from '../../helpers/console';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 export const ASC_SORT_STATE = 'asc';
 export const DESC_SORT_STATE = 'desc';
@@ -164,4 +166,15 @@ export function createDateTimeCompareFunction(sortOrder, format, columnPluginSet
 
     return DO_NOT_SWAP;
   };
+}
+
+/**
+ * Warn users about problems when using `columnSorting` and `multiColumnSorting` plugins simultaneously.
+ *
+ * @param {string} workingPlugin The plugin that will work.
+ * @param {string} disabledPlugin The plugin that will remain disabled.
+ */
+export function warnAboutPluginsConflict(workingPlugin, disabledPlugin) {
+  warn(toSingleLine`Plugins \`columnSorting\` and \`multiColumnSorting\` should not be enabled simultaneously.\x20
+    Only \`${workingPlugin}\` will work. The \`${disabledPlugin}\` plugin will remain disabled.`);
 }
