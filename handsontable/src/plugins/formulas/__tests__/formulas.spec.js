@@ -541,7 +541,7 @@ describe('Formulas general', () => {
     });
   });
 
-  it('should ??? while using `getDataAtCell` inside `cells` method with custom dateFormat', () => {
+  it('should return a correctly formatted date while using `getDataAtCell` inside `cells` method with custom dateFormat', () => {
     const data = [['02/28/1900', '03/01/1900', '=DATEDIF(A1, B1, "D")']];
 
     handsontable({

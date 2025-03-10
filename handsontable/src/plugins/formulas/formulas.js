@@ -1,33 +1,22 @@
-import { BasePlugin } from '../base';
+import {BasePlugin} from '../base';
 import staticRegister from '../../utils/staticRegister';
-import { error, warn } from '../../helpers/console';
-import { isNumeric } from '../../helpers/number';
+import {error, warn} from '../../helpers/console';
+import {isNumeric} from '../../helpers/number';
+import {isDefined, isUndefined} from '../../helpers/mixed';
+import {getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine,} from './engine/register';
 import {
-  isDefined,
-  isUndefined
-} from '../../helpers/mixed';
-import {
-  setupEngine,
-  setupSheet,
-  unregisterEngine,
-  getRegisteredHotInstances,
-} from './engine/register';
-import {
-  unescapeFormulaExpression,
+  getDateFromExcelDate,
+  getDateInHfFormat,
+  getDateInHotFormat,
   isDate,
   isDateValid,
-  getDateInHfFormat,
-  getDateFromExcelDate,
-  getDateInHotFormat,
   isFormula,
+  unescapeFormulaExpression,
 } from './utils';
-import {
-  getEngineSettingsWithOverrides,
-  haveEngineSettingsChanged
-} from './engine/settings';
-import { isArrayOfArrays } from '../../helpers/data';
-import { toUpperCaseFirst } from '../../helpers/string';
-import { Hooks } from '../../core/hooks';
+import {getEngineSettingsWithOverrides, haveEngineSettingsChanged} from './engine/settings';
+import {isArrayOfArrays} from '../../helpers/data';
+import {toUpperCaseFirst} from '../../helpers/string';
+import {Hooks} from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 
 export const PLUGIN_KEY = 'formulas';
@@ -859,25 +848,14 @@ export class Formulas extends BasePlugin {
     };
     let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
 
-    // TODO: Workaround. We use HOT's `getCellsMeta` method instead of HOT's `getCellMeta` method. Getting cell meta
-    // using the second method lead to execution of the `cells` method. Using the `getDataAtCell` (which may be useful)
-    // in a callback to the `cells` method leads to triggering the `modifyData` hook. Thus, the `onModifyData` callback
-    // is executed once again and it cause creation of an infinite loop.
-    let cellMeta = this.hot.getCellsMeta().find(singleCellMeta => singleCellMeta.visualRow === visualRow &&
-      singleCellMeta.visualCol === visualColumn);
-
-    if (cellMeta === undefined) {
-      cellMeta = {};
-    }
+    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { executeCellsFunction: false }) ?? {};
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
     }
 
     // If `cellValue` is an object it is expected to be an error
-    const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
-
-    valueHolder.value = value;
+    valueHolder.value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
   }
 
   /**
