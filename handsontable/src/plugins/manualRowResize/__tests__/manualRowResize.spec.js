@@ -210,7 +210,7 @@ describe('manualRowResize', () => {
       manualRowResize: undefined
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight);
+    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
     expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
     expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
   });

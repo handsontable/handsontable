@@ -532,7 +532,7 @@ describe('AutocompleteEditor', () => {
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(120);
         main.toBe(118);
-        horizon.toBe(118);
+        horizon.toBe(133);
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(118);
@@ -564,7 +564,7 @@ describe('AutocompleteEditor', () => {
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(52);
         main.toBe(62);
-        horizon.toBe(70);
+        horizon.toBe(85);
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(118);
@@ -624,13 +624,15 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
         main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(69);
         main.toBe(87);
+        horizon.toBe(111);
       });
     });
 

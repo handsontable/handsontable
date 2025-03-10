@@ -559,7 +559,7 @@ describe('DropdownEditor', () => {
       expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(120);
         main.toBe(118);
-        horizon.toBe(118);
+        horizon.toBe(133);
       });
       expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(118);

@@ -115,12 +115,12 @@ describe('DropdownMenu', () => {
       expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(135);
         main.toBe(156);
-        horizon.toBe(194);
+        horizon.toBe(195);
       });
       expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
         classic.toBe(dropdownMenuOffset.left + 4);
         main.toBe(dropdownMenuOffset.left + 1);
-        horizon.toBe(dropdownMenuOffset.left + 1);
+        horizon.toBe(dropdownMenuOffset.left);
       });
     });
   });
