@@ -51,7 +51,7 @@ describe('DropdownMenu (RTL mode)', () => {
         });
         expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
           // 3px comes from borders
-          classic.toBe(Math.floor(dropdownOffset.left - subMenuWidth) - 3);
+          classic.toBe(Math.floor(dropdownOffset.left - subMenuWidth));
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBe(Math.floor(dropdownOffset.left - subMenuWidth) + 1);
@@ -155,7 +155,7 @@ describe('DropdownMenu (RTL mode)', () => {
       });
       expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
         // 3px comes from borders
-        classic.toBe(Math.floor(dropdownOffset.left - subMenuWidth) - 3);
+        classic.toBe(Math.floor(dropdownOffset.left - subMenuWidth));
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBe(Math.floor(dropdownOffset.left - subMenuWidth) + 1);

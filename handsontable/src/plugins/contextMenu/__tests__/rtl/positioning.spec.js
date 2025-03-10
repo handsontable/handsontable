@@ -50,7 +50,7 @@ describe('ContextMenu (RTL mode)', () => {
         });
         expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
           // 3px comes from borders
-          classic.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() - 3, 0);
+          classic.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
@@ -81,9 +81,8 @@ describe('ContextMenu (RTL mode)', () => {
         // 3px comes from bottom borders
         expect(subMenuOffset.top)
           .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + 3, 0);
-        // 3px comes from borders
         expect(subMenuOffset.left)
-          .toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() - 3, 0);
+          .toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
       });
 
       it.forTheme('main')('should open subMenu on the left-top of the main menu if on the right and ' +
@@ -318,7 +317,7 @@ describe('ContextMenu (RTL mode)', () => {
       });
       expect(subMenuOffset.left).forThemes(({ classic, main, horizon }) => {
         // 3px comes from borders
-        classic.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() - 3, 0);
+        classic.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
 
         // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
         main.toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);

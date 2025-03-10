@@ -43,6 +43,11 @@
   --ht-cell-autofill-border-color: #ffffff;
   --ht-cell-autofill-background-color: #1a42e8;
   --ht-cell-autofill-fill-border-color: #222222;
+  --ht-cell-mobile-handle-size: 12px;
+  --ht-cell-mobile-handle-border-width: 1px;
+  --ht-cell-mobile-handle-border-radius: 6px;
+  --ht-cell-mobile-handle-border-color: #1a42e8;
+  --ht-cell-mobile-handle-background-color: rgba(26, 66, 232, 0.40);
   --ht-resize-indicator-color: rgba(34, 34, 34, 0.40);
   --ht-move-backlight-color: rgba(34, 34, 34, 0.08);
   --ht-move-indicator-color: #1a42e8;
@@ -248,6 +253,8 @@
   --ht-cell-autofill-border-color: #0f0f10;
   --ht-cell-autofill-background-color: #476af7;
   --ht-cell-autofill-fill-border-color: #c7c7c7;
+  --ht-cell-mobile-handle-border-color: #476af7;
+  --ht-cell-mobile-handle-background-color: rgba(71, 106, 247, 0.40);
   --ht-resize-indicator-color: rgba(199, 199, 199, 0.40);
   --ht-move-backlight-color: rgba(199, 199, 199, 0.08);
   --ht-move-indicator-color: #476af7;

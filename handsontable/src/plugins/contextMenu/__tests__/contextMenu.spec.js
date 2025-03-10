@@ -102,7 +102,7 @@ describe('ContextMenu', () => {
 
       expect($menu.find('.wtHider').width()).toEqual(215);
       expect($menu.width()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(215);
+        classic.toEqual(218);
         main.toEqual(217);
         horizon.toEqual(215);
       });

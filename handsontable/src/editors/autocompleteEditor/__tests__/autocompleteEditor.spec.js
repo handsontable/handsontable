@@ -604,6 +604,36 @@ describe('AutocompleteEditor', () => {
       });
     });
 
+    it('should open editor with the correct size when there is scrollbar on the list and table overflow is hidden', async() => {
+      handsontable({
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            visibleRows: choices.length,
+          }
+        ],
+        height: 'auto'
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).forThemes(({ classic, main }) => {
+        classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
+        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+      });
+      expect(container.clientHeight).forThemes(({ classic, main }) => {
+        classic.toBe(69);
+        main.toBe(87);
+      });
+    });
+
     it('should open editor with the correct size when there is scrollbar on the list (trimDropdown: false)', async() => {
       handsontable({
         colWidths: 120,
