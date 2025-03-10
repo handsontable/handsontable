@@ -1,9 +1,9 @@
-import {BasePlugin} from '../base';
+import { BasePlugin } from '../base';
 import staticRegister from '../../utils/staticRegister';
-import {error, warn} from '../../helpers/console';
-import {isNumeric} from '../../helpers/number';
-import {isDefined, isUndefined} from '../../helpers/mixed';
-import {getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine,} from './engine/register';
+import { error, warn } from '../../helpers/console';
+import { isNumeric } from '../../helpers/number';
+import { isDefined, isUndefined } from '../../helpers/mixed';
+import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
   getDateFromExcelDate,
   getDateInHfFormat,
@@ -13,10 +13,10 @@ import {
   isFormula,
   unescapeFormulaExpression,
 } from './utils';
-import {getEngineSettingsWithOverrides, haveEngineSettingsChanged} from './engine/settings';
-import {isArrayOfArrays} from '../../helpers/data';
-import {toUpperCaseFirst} from '../../helpers/string';
-import {Hooks} from '../../core/hooks';
+import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
+import { isArrayOfArrays } from '../../helpers/data';
+import { toUpperCaseFirst } from '../../helpers/string';
+import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 
 export const PLUGIN_KEY = 'formulas';
