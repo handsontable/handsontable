@@ -142,4 +142,60 @@ describe('Core.setSourceDataAtCell', () => {
       [1, 'foo', 'lorem', 'changed2']
     ]);
   });
+
+  it('should be possible to change the data source by passing an array of changes and a string as row value (dataset as array of arrays)', () => {
+    const changesList = [
+      ['0', '0', 'a'], ['0', '1', 'b'], ['0', '2', 'c'],
+    ];
+
+    const hot = handsontable({
+      data: Handsontable.helper.createEmptySpreadsheetData(1, 3)
+    });
+
+    setSourceDataAtCell(changesList);
+
+    expect(hot.getSourceData()).toEqual([['a', 'b', 'c']]);
+  });
+
+  it('should be possible to change the data source by passing an array of changes and a string as row value (dataset as array of objects)', () => {
+    const changesList = [
+      ['0', 'id', 'a'], ['0', 'name', 'b'], ['0', 'address', 'c'],
+    ];
+
+    const hot = handsontable({
+      data: { id: 1, name: 'Ted Right', address: '' }
+    });
+
+    setSourceDataAtCell(changesList);
+
+    expect(hot.getSourceData()).toEqual([{ id: 'a', name: 'b', address: 'c' }]);
+  });
+
+  it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype` with array of arrays data source', () => {
+    const changesList = [
+      ['__proto__', '0', 'a'], ['constructor', '1', 'b'], ['prototype', '2', 'c'],
+    ];
+
+    const hot = handsontable({
+      data: Handsontable.helper.createEmptySpreadsheetData(1, 3)
+    });
+
+    setSourceDataAtCell(changesList);
+
+    expect(hot.getSourceData()).toEqual([['', '', '']]);
+  });
+
+  it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype` with array of object data source', () => {
+    const changesList = [
+      ['__proto__', 'id', 'a'], ['constructor', 'name', 'b'], ['prototype', 'address', 'c'],
+    ];
+
+    const hot = handsontable({
+      data: { id: 1, name: 'Ted Right', address: '' }
+    });
+
+    setSourceDataAtCell(changesList);
+
+    expect(hot.getSourceData()).toEqual([{ id: 1, name: 'Ted Right', address: '' }]);
+  });
 });

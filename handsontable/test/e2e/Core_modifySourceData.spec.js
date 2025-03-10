@@ -213,20 +213,6 @@ describe('Core_modifySourceData', () => {
           expect(getSourceDataArray(0, 0, 1, 2)[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
         });
       });
-
-      it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype`', () => {
-        const changesList = [
-          ['__proto__', '0', 'a'], ['constructor', '1', 'b'], ['prototype', '2', 'c'],
-        ];
-
-        const hot = handsontable({
-          data: Handsontable.helper.createEmptySpreadsheetData(1, 3)
-        });
-
-        setSourceDataAtCell(changesList);
-
-        expect(hot.getData()[0]).toEqual(['', '', '']);
-      });
     });
 
     describe('array of objects datasource', () => {
