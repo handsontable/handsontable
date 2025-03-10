@@ -50,7 +50,6 @@ const ExampleComponent = () => {
           colHeaders={true}
           width="100%"
           height="100%"
-          rowHeights={23}
           colWidths={100}
           autoWrapRow={true}
           autoWrapCol={true}
