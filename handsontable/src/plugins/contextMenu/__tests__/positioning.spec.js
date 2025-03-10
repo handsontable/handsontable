@@ -110,8 +110,7 @@ describe('ContextMenu', () => {
           main.toBeCloseTo(subMenuItemOffset.top - 9, 0);
         });
         expect(subMenuOffset.left).forThemes(({ classic, main }) => {
-          // 3px comes from borders
-          classic.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() + 3, 0);
+          classic.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
 
           // https://github.com/handsontable/dev-handsontable/issues/2205#issuecomment-2612363401
           main.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
@@ -143,7 +142,7 @@ describe('ContextMenu', () => {
           .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + 3, 0);
         // 3px comes from right borders
         expect(subMenuOffset.left)
-          .toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() + 3, 0);
+          .toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
       });
 
       it.forTheme('main')('should open subMenu on the right-top of the main menu if on the left and ' +
@@ -340,7 +339,7 @@ describe('ContextMenu', () => {
       });
       expect(subMenuOffset.left).forThemes(({ classic, main }) => {
         // 3px comes from right borders
-        classic.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() + 3, 0);
+        classic.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
         main.toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
       });
     });

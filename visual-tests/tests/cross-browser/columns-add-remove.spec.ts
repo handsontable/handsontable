@@ -11,8 +11,8 @@ test('Test columns add/remove', async({ goto, tablePage }) => {
   const tableTop = tablePage.locator('#tableTop > .handsontable');
   const tableBottom = tablePage.locator('#tableBottom > .handsontable');
 
-  tableTop.waitFor();
-  tableBottom.waitFor();
+  await tableTop.waitFor();
+  await tableBottom.waitFor();
 
   await selectColumnHeaderByNameAndOpenMenu('Industry', tableBottom);
   await selectFromContextMenu('"Insert column left"');

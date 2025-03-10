@@ -318,7 +318,6 @@ export class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : undefined),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
 
@@ -626,6 +625,7 @@ export class Menu {
    * and adjusts the width and height of the menu's holder and hider elements accordingly.
    */
   updateMenuDimensions() {
+    const stylesHandler = this.hotMenu.view.getStylesHandler();
     const { wtTable } = this.hotMenu.view._wt;
     const data = this.hotMenu.getSettings().data;
     const hiderStyle = wtTable.hider.style;
@@ -640,8 +640,15 @@ export class Menu {
         return accumulator + (value.name === SEPARATOR ? 1 : currentRowHeight);
       }, 0);
 
-    holderStyle.width = `${currentHiderWidth}px`;
-    holderStyle.height = `${realHeight}px`;
+    if (stylesHandler.isClassicTheme()) {
+      // Additional 3px to menu's size because of additional border around its `table.htCore`.
+      holderStyle.width = `${currentHiderWidth + 3}px`;
+      holderStyle.height = `${realHeight + 3}px`;
+    } else {
+      holderStyle.width = `${currentHiderWidth}px`;
+      holderStyle.height = `${realHeight}px`;
+    }
+
     hiderStyle.height = holderStyle.height;
   }
 
