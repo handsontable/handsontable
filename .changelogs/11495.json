@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Revert `actionType` class field for UndoRedo actions",
+  "type": "changed",
+  "issueOrPR": 11495,
+  "breaking": false,
+  "framework": "none"
+}
