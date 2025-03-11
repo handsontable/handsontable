@@ -14,8 +14,8 @@ test('Copy between tables', async({ goto, tablePage, browserName }) => {
   const tableTop = tablePage.locator('#tableTop > .handsontable');
   const tableBottom = tablePage.locator('#tableBottom > .handsontable');
 
-  tableTop.waitFor();
-  tableBottom.waitFor();
+  await tableTop.waitFor();
+  await tableBottom.waitFor();
 
   await selectColumnHeaderByNameAndOpenMenu('OS', tableTop);
   await selectFromContextMenu('"Read only"');
@@ -45,7 +45,7 @@ test('Copy inside table', async({ goto, tablePage, browserName }) => {
 
   const tableTop = tablePage.locator('#tableTop > .handsontable');
 
-  tableTop.waitFor();
+  await tableTop.waitFor();
 
   const sourceCell = await selectCell(2, 2, tableTop);
 

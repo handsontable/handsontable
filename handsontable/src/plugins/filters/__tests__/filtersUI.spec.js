@@ -1697,4 +1697,30 @@ describe('Filters UI', () => {
 
     expect(dropdownMenuRootElement().offsetHeight).toBe(initialDropdownHeight);
   });
+
+  it('should not reset the previous filtering result after opening and accepting the dropdown menu when ' +
+     'the action is blocked via `beforeFilter` hook', () => {
+    const beforeFilter = jasmine.createSpy('beforeFilter');
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      filters: true,
+      dropdownMenu: true,
+      colHeaders: true,
+      beforeFilter,
+    });
+
+    const plugin = getPlugin('filters');
+
+    plugin.addCondition(0, 'contains', ['3']);
+    plugin.filter();
+
+    beforeFilter.and.returnValue(false);
+
+    dropdownMenu(1);
+    $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
+      .simulate('click');
+
+    expect(countRows()).toBe(1);
+  });
 });

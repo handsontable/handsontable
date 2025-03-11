@@ -7,7 +7,7 @@ test('Test collapsing nested headers', async({ goto, tablePage }) => {
 
   const table = tablePage.locator(helpers.selectors.mainTable);
 
-  table.waitFor();
+  await table.waitFor();
 
   await collapseNestedColumn('Category');
   await collapseNestedColumn('System');
