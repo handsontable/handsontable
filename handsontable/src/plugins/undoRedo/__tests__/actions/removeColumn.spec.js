@@ -25,7 +25,7 @@ describe('UndoRedo -> RemoveColumn action', () => {
     alter('remove_col', 1, 2);
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'remove_col',
       index: 1,
       indexes: [1, 2],
@@ -42,6 +42,6 @@ describe('UndoRedo -> RemoveColumn action', () => {
       rowPositions: [0, 1, 2, 3, 4],
       fixedColumnsStart: 0,
       removedCellMetas: [],
-    }));
+    });
   });
 });

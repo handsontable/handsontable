@@ -25,7 +25,7 @@ describe('UndoRedo -> RemoveRow action', () => {
     alter('remove_row', 1, 2);
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'remove_row',
       index: 1,
       data: [
@@ -36,6 +36,6 @@ describe('UndoRedo -> RemoveRow action', () => {
       fixedRowsTop: 0,
       fixedRowsBottom: 0,
       removedCellMetas: [],
-    }));
+    });
   });
 });

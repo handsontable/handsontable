@@ -26,10 +26,10 @@ describe('UndoRedo -> ColumnMove action', () => {
     getPlugin('manualColumnMove').moveColumns([1, 2], 2);
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'col_move',
       columns: [1, 2],
       finalColumnIndex: 2,
-    }));
+    });
   });
 });

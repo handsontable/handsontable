@@ -26,10 +26,10 @@ describe('UndoRedo -> ColumnSort action', () => {
     getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'col_sort',
       previousSortState: [],
       nextSortState: [{ column: 1, sortOrder: 'asc' }],
-    }));
+    });
   });
 });

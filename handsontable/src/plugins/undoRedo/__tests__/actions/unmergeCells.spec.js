@@ -26,13 +26,13 @@ describe('UndoRedo -> UnmergeCells action', () => {
     getPlugin('mergeCells').unmerge(1, 1, 3, 3);
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'unmerge_cells',
       cellRange: {
         highlight: { row: 1, col: 1 },
         from: { row: 1, col: 1 },
         to: { row: 3, col: 3 },
       },
-    }));
+    });
   });
 });

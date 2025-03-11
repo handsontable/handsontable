@@ -27,7 +27,7 @@ describe('UndoRedo -> Filters action', () => {
     getPlugin('filters').filter();
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'filter',
       conditionsStack: [{
         column: 1,
@@ -38,6 +38,6 @@ describe('UndoRedo -> Filters action', () => {
         }]
       }],
       previousConditionsStack: [],
-    }));
+    });
   });
 });

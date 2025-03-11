@@ -25,20 +25,20 @@ describe('UndoRedo -> CreateRow action', () => {
     alter('insert_row_above', 1, 2);
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'insert_row',
       index: 1,
       amount: 2,
-    }));
+    });
 
     afterUndo.calls.reset();
     alter('insert_row_below', 2, 3);
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'insert_row',
       index: 3,
       amount: 3,
-    }));
+    });
   });
 });

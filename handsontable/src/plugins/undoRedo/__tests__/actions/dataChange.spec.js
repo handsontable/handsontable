@@ -25,12 +25,12 @@ describe('UndoRedo -> DataChange action', () => {
     setDataAtCell(1, 2, 'test');
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'change',
       changes: [[1, 2, 'C2', 'test']],
       selected: [[1, 2]],
       countCols: 5,
       countRows: 5,
-    }));
+    });
   });
 });

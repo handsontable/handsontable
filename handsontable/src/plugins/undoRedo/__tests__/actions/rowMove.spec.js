@@ -26,10 +26,10 @@ describe('UndoRedo -> RowMove action', () => {
     getPlugin('manualRowMove').moveRows([1, 2], 2);
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'row_move',
       rows: [1, 2],
       finalRowIndex: 2,
-    }));
+    });
   });
 });
