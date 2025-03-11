@@ -58,7 +58,7 @@ export class RemoveColumnAction extends BaseAction {
     fixedColumnsStart,
     removedCellMetas
   }) {
-    super();
+    super('remove_col');
     this.index = index;
     this.indexes = indexes;
     this.data = data;

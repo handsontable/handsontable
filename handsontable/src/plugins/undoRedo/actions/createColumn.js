@@ -17,7 +17,7 @@ export class CreateColumnAction extends BaseAction {
   amount;
 
   constructor({ index, amount }) {
-    super();
+    super('insert_col');
     this.index = index;
     this.amount = amount;
   }
