@@ -21,13 +21,11 @@
 
       > input[type="radio"] {
         position: relative;
-        width: var(--ht-radio-size);
-        height: var(--ht-radio-size);
+        width: var(--ht-checkbox-size);
+        height: var(--ht-checkbox-size);
         margin: 0;
         appearance: none;
         cursor: pointer;
-        border-radius: calc(0.5 * var(--ht-radio-size));
-        outline: none;
 
         // Circle overlay
         &::before {
@@ -35,9 +33,9 @@
 
           position: absolute;
           inset: 0;
-          border-radius: calc(0.5 * var(--ht-radio-size));
-          border: 1px solid var(--ht-radio-border-color);
-          background-color: var(--ht-radio-background-color);
+          border-radius: calc(0.5 * var(--ht-checkbox-size));
+          border: 1px solid var(--ht-checkbox-border-color);
+          background-color: var(--ht-checkbox-background-color);
         }
 
         // Circle
@@ -45,19 +43,18 @@
           @include mixins.pseudo;
 
           position: absolute;
-          color: var(--ht-radio-icon-color);
+          color: var(--ht-checkbox-background-color);
         }
 
         &:checked {
           // Circle overlay
           &::before {
-            border-color: var(--ht-radio-checked-border-color);
-            background-color: var(--ht-radio-checked-background-color);
+            border-color: var(--ht-checkbox-checked-border-color);
           }
 
           // Circle
           &::after {
-            color: var(--ht-radio-checked-icon-color);
+            color: var(--ht-checkbox-checked-background-color);
           }
 
           &:disabled {
@@ -65,28 +62,24 @@
 
             // Circle overlay
             &::before {
-              border-color: var(--ht-radio-checked-disabled-border-color);
-              background-color: var(
-                --ht-radio-checked-disabled-background-color
-              );
+              border-color: var(--ht-checkbox-checked-disabled-border-color);
             }
 
             // Circle
             &::after {
-              color: var(--ht-radio-checked-disabled-icon-color);
+              color: var(--ht-checkbox-checked-disabled-background-color);
             }
           }
 
           &:focus {
             // Circle overlay
             &::before {
-              border-color: var(--ht-radio-checked-focus-border-color);
-              background-color: var(--ht-radio-checked-focus-background-color);
+              border-color: var(--ht-checkbox-checked-focus-background-color);
             }
 
             // Circle
             &::after {
-              color: var(--ht-radio-checked-focus-icon-color);
+              color: var(--ht-checkbox-checked-focus-background-color);
             }
           }
         }
@@ -96,27 +89,24 @@
 
           // Circle overlay
           &::before {
-            border-color: var(--ht-radio-disabled-border-color);
-            background-color: var(--ht-radio-disabled-background-color);
+            border-color: var(--ht-checkbox-disabled-border-color);
           }
 
           // Circle
           &::after {
-            color: var(--ht-radio-disabled-icon-color);
+            color: var(--ht-checkbox-disabled-background-color);
           }
         }
 
         &:focus {
           // Circle overlay
           &::before {
-            border-color: var(--ht-radio-focus-border-color);
-            background-color: var(--ht-radio-focus-background-color);
-            outline: 1px solid var(--ht-radio-focus-ring-color);
+            border-color: var(--ht-checkbox-focus-background-color);
           }
 
           // Circle
           &::after {
-            color: var(--ht-radio-focus-icon-color);
+            color: var(--ht-checkbox-focus-background-color);
           }
         }
       }

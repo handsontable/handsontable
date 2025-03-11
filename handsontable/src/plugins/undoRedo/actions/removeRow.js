@@ -42,7 +42,7 @@ export class RemoveRowAction extends BaseAction {
     rowIndexesSequence,
     removedCellMetas
   }) {
-    super();
+    super('remove_row');
     this.index = index;
     this.data = data;
     this.fixedRowsBottom = fixedRowsBottom;

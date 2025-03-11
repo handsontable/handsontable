@@ -7,10 +7,13 @@ import { BaseAction } from './_base';
  * @private
  */
 export class MergeCellsAction extends BaseAction {
+  /**
+   * @param {CellRange} cellRange The merged cell range.
+   */
   cellRange;
 
   constructor({ data, cellRange }) {
-    super();
+    super('merge_cells');
     this.cellRange = cellRange;
     this.data = data;
   }
