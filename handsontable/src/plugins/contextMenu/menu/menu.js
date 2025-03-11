@@ -318,7 +318,6 @@ export class Menu {
           this.openSubMenu(coords.row);
         }
       },
-      rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : undefined),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
 
