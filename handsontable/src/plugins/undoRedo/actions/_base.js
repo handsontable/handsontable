@@ -5,6 +5,15 @@
  * @private
  */
 export class BaseAction {
+  /**
+   * @param {string} actionType The action type.
+   */
+  actionType = '';
+
+  constructor(actionType) {
+    this.actionType = actionType;
+  }
+
   undo() {
     throw new Error('Not implemented');
   }

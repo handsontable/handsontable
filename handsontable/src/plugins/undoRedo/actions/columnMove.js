@@ -18,7 +18,7 @@ export class ColumnMoveAction extends BaseAction {
   finalColumnIndex;
 
   constructor({ columns, finalIndex }) {
-    super();
+    super('col_move');
     this.columns = columns.slice();
     this.finalColumnIndex = finalIndex;
   }

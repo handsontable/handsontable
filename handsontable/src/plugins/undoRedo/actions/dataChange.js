@@ -26,7 +26,7 @@ export class DataChangeAction extends BaseAction {
   countRows;
 
   constructor({ changes, selected, countCols, countRows }) {
-    super();
+    super('change');
     this.changes = changes;
     this.selected = selected;
     this.countCols = countCols;
