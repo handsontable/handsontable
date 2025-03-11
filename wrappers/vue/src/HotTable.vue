@@ -269,7 +269,13 @@
               cachedEntry.lastUsedTD = TD;
             }
           }
+          
+          const className = cellProperties?.className;
 
+          if (className !== void 0 && TD) {
+            TD.classList.add(className)
+          }
+          
           return TD;
         };
       },
