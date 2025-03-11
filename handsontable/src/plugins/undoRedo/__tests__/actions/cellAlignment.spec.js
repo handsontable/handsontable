@@ -38,7 +38,7 @@ describe('UndoRedo -> CellAlignment action', () => {
         from: { row: 1, col: 1 },
         to: { row: 2, col: 2 },
       }],
-      stateBefore: { 1: [ null, null, null ], 2: [ null, null, null ] },
+      stateBefore: { 1: [null, null, null], 2: [null, null, null] },
       type: 'horizontal',
     });
   });
