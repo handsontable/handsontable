@@ -59,7 +59,7 @@ export default class Core {
   getCell(row: number, column: number, topmost?: boolean): HTMLTableCellElement | null;
   getCellEditor(cellMeta: CellMeta): BaseEditor;
   getCellEditor(row: number, column: number): BaseEditor;
-  getCellMeta(row: number, column: number, options?: { executeCellsFunction: boolean }): CellProperties;
+  getCellMeta(row: number, column: number, options?: { skipMetaExtension: boolean }): CellProperties;
   getCellMetaAtRow(row: number): CellProperties[];
   getCellRenderer(cellMeta: CellMeta): BaseRenderer;
   getCellRenderer(row: number, column: number): BaseRenderer;
