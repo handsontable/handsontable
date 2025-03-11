@@ -246,5 +246,48 @@ describe('Filters keyboard shortcut', () => {
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(8);
     });
+
+    it.forTheme('horizon')('should react to both `Enter` and `Space`', async() => {
+      const countCheckedCheckboxes = () => {
+        return Array.from(
+          document.querySelectorAll('.htUIMultipleSelectHot input[type=checkbox]')
+        ).filter(el => el.checked).length;
+      };
+
+      handsontable({
+        data: getDataForFilters().splice(0, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        filters: true,
+        dropdownMenu: true,
+        navigableHeaders: true,
+      });
+
+      dropdownMenu(1);
+
+      document.querySelector('.htUIClearAll a').focus();
+
+      keyDownUp('enter');
+      await sleep(15);
+      expect(countCheckedCheckboxes()).toEqual(0);
+
+      document.querySelector('.htUISelectAll a').focus();
+
+      keyDownUp('enter');
+      await sleep(15);
+      expect(countCheckedCheckboxes()).toEqual(8);
+
+      document.querySelector('.htUIClearAll a').focus();
+
+      keyDownUp('space');
+      await sleep(15);
+      expect(countCheckedCheckboxes()).toEqual(0);
+
+      document.querySelector('.htUISelectAll a').focus();
+
+      keyDownUp('space');
+      await sleep(15);
+      expect(countCheckedCheckboxes()).toEqual(8);
+    });
   });
 });

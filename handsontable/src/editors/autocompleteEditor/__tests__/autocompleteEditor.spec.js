@@ -193,6 +193,76 @@ describe('AutocompleteEditor', () => {
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
 
+  it.forTheme('horizon')('should render an editor in specified position while opening an editor ' +
+    'from top to bottom when top and bottom overlays are enabled', () => {
+    spec().$container.css('height', '313px');
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [
+        {
+          editor: 'autocomplete',
+          source: choices,
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDownUp('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
   it('should render an editor in specified position while opening an editor from left to right when ' +
      'left overlay is enabled', () => {
     handsontable({
@@ -459,13 +529,15 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(120);
         main.toBe(118);
+        horizon.toBe(133);
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(118);
         main.toBe(146);
+        horizon.toBe(148);
       });
     });
 
@@ -489,13 +561,15 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(52);
         main.toBe(62);
+        horizon.toBe(85);
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(118);
         main.toBe(146);
+        horizon.toBe(148);
       });
     });
 
@@ -518,13 +592,15 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
         main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(72);
         main.toBe(88);
+        horizon.toBe(112);
       });
     });
 
@@ -548,13 +624,15 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
         main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(69);
         main.toBe(87);
+        horizon.toBe(111);
       });
     });
 
@@ -578,13 +656,15 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main }) => {
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(52 + Handsontable.dom.getScrollbarWidth());
         main.toBe(62 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(70 + Handsontable.dom.getScrollbarWidth());
       });
-      expect(container.clientHeight).forThemes(({ classic, main }) => {
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(72);
         main.toBe(88);
+        horizon.toBe(112);
       });
     });
   });
@@ -857,9 +937,10 @@ describe('AutocompleteEditor', () => {
       // -2 for transparent borders
       expect(editor.find('.autocompleteEditor .htCore td').width())
         .toEqual(editor.find('.handsontableInput').width() - 2);
-      expect(editor.find('.autocompleteEditor .htCore td').width()).forThemes(({ classic, main }) => {
+      expect(editor.find('.autocompleteEditor .htCore td').width()).forThemes(({ classic, main, horizon }) => {
         classic.toBeGreaterThan(187);
         main.toEqual(180);
+        horizon.toEqual(172);
       });
     });
 
@@ -1099,10 +1180,7 @@ describe('AutocompleteEditor', () => {
 
       const container = $(getActiveEditor().htContainer);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
-        classic.toEqual({ top: getDefaultRowHeight(), left: 0 });
-        main.toEqual({ top: getDefaultRowHeight(), left: 0 });
-      });
+      expect(container.offset()).toEqual({ top: getDefaultRowHeight(), left: 0 });
     });
 
     it('should display the dropdown once above and once below the editor after the choices list is changed (table has defined size)', async() => {
@@ -1127,9 +1205,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 23, left: 0 });
         main.toEqual({ top: 29, left: 0 });
+        horizon.toEqual({ top: 37, left: 0 });
       });
 
       editor.TEXTAREA.value = 're';
@@ -1137,9 +1216,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 139, left: 0 });
         main.toEqual({ top: 175, left: 0 });
+        horizon.toEqual({ top: 223, left: 0 });
       });
     });
 
@@ -1158,9 +1238,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main }) => {
+      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(115);
         main.toEqual(147);
+        horizon.toEqual(185);
       });
     });
 
@@ -1179,9 +1260,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main }) => {
+      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(115);
         main.toEqual(147);
+        horizon.toEqual(185);
       });
     });
 
@@ -1206,9 +1288,10 @@ describe('AutocompleteEditor', () => {
 
       const container = $(getActiveEditor().htContainer);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 365, left: 0 });
         main.toEqual({ top: 289, left: 0 });
+        horizon.toEqual({ top: 184, left: 0 });
       });
     });
 
@@ -1239,9 +1322,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 480, left: 0 });
         main.toEqual({ top: 434, left: 0 });
+        horizon.toEqual({ top: 369, left: 0 });
       });
 
       editor.TEXTAREA.value = 're';
@@ -1249,9 +1333,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 622, left: 0 });
         main.toEqual({ top: 610, left: 0 });
+        horizon.toEqual({ top: 593, left: 0 });
       });
     });
 
@@ -1283,9 +1368,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 2090, left: 0 });
         main.toEqual({ top: 2638, left: 0 });
+        horizon.toEqual({ top: 3366, left: 0 });
       });
 
       editor.TEXTAREA.value = 're';
@@ -1293,9 +1379,10 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      expect(container.offset()).forThemes(({ classic, main }) => {
+      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 2232, left: 0 });
         main.toEqual({ top: 2814, left: 0 });
+        horizon.toEqual({ top: 3590, left: 0 });
       });
     });
   });
@@ -2973,7 +3060,11 @@ describe('AutocompleteEditor', () => {
     const dropdownList = $('.autocompleteEditor tbody').first();
     const listLength = dropdownList.find('tr').size();
 
-    expect(listLength).toBe(9);
+    expect(listLength).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(9);
+      main.toBe(9);
+      horizon.toBe(8);
+    });
 
     for (let i = 1; i <= listLength; i++) {
       expect(dropdownList.find(`tr:nth-child(${i}) td`).text()).toEqual(choicesList[i - 1]);

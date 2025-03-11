@@ -36,9 +36,10 @@ describe('ContextMenu keyboard shortcut', () => {
       keyDownUp('arrowdown');
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
-      expect(window.scrollY).forThemes(({ classic, main }) => {
+      expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
         classic.toBe(1);
         main.toBe(10);
+        horizon.toBe(14);
       });
     });
 

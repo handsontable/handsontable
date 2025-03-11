@@ -96,19 +96,22 @@ describe('Core.batch', () => {
     });
 
     expect(getTopClone().width()).toBe(300);
-    expect(getTopClone().height()).forThemes(({ classic, main }) => {
+    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(26);
       main.toBe(29);
+      horizon.toBe(37);
     });
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+    expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(26);
       main.toBe(29);
+      horizon.toBe(37);
     });
     expect(getInlineStartClone().width()).toBe(50);
-    expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
+    expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(142);
       main.toBe(175);
+      horizon.toBe(223);
     });
 
     hot.batch(() => {
@@ -154,29 +157,34 @@ describe('Core.batch', () => {
     });
 
     expect(getTopClone().width()).toBe(250);
-    expect(getTopClone().height()).forThemes(({ classic, main }) => {
+    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(24);
       main.toBe(30);
+      horizon.toBe(38);
     });
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+    expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(24);
       main.toBe(30);
+      horizon.toBe(38);
     });
     expect(getInlineStartClone().width()).toBe(50);
-    expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
+    expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(116);
       main.toBe(147);
+      horizon.toBe(187);
     });
     expect(getBottomInlineStartClone().width()).toBe(50);
-    expect(getBottomInlineStartClone().height()).forThemes(({ classic, main }) => {
+    expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(24);
       main.toBe(30);
+      horizon.toBe(38);
     });
     expect(getBottomClone().width()).toBe(250);
-    expect(getBottomClone().height()).forThemes(({ classic, main }) => {
+    expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(24);
       main.toBe(30);
+      horizon.toBe(38);
     });
 
     hot.batch(() => {

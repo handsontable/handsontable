@@ -144,6 +144,19 @@ describe('NestedRows (RTL)', () => {
         expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });
+
+      it.forTheme('horizon')('should display indicators properly located', () => {
+        const hot = handsontable({
+          layoutDirection,
+          data: getMoreComplexNestedData(),
+          nestedRows: true,
+          rowHeaders: true
+        });
+
+        expect(hot.countRows()).toEqual(13);
+        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
+        expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
+      });
     });
   });
 });

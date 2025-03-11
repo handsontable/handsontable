@@ -27,26 +27,30 @@ describe('Core.scrollToFocusedCell', () => {
     });
     selectCell(255, 27, 255, 27, false);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);
       main.toBe(1289);
+      horizon.toBe(1484);
     });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(5750);
       main.toBe(7250);
+      horizon.toBe(9250);
     });
 
     scrollToFocusedCell();
 
     await sleep(10);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);
       main.toBe(1289);
+      horizon.toBe(1484);
     });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(5750);
       main.toBe(7250);
+      horizon.toBe(9250);
     });
   });
 
@@ -111,6 +115,7 @@ describe('Core.scrollToFocusedCell', () => {
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
+      colWidths: 60,
       rowHeaders: true,
       colHeaders: true,
     });
@@ -123,13 +128,15 @@ describe('Core.scrollToFocusedCell', () => {
     });
     selectCell(255, 0, 255, 0, false);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-      classic.toBe(2267);
-      main.toBe(2560);
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(2765);
+      main.toBe(2765);
+      horizon.toBe(2765);
     });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(5750);
       main.toBe(7250);
+      horizon.toBe(9250);
     });
 
     scrollToFocusedCell();
@@ -137,9 +144,10 @@ describe('Core.scrollToFocusedCell', () => {
     await sleep(10);
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(5750);
       main.toBe(7250);
+      horizon.toBe(9250);
     });
   });
 
@@ -148,6 +156,7 @@ describe('Core.scrollToFocusedCell', () => {
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
+      colWidths: 60,
       rowHeaders: true,
       colHeaders: true,
     });
@@ -161,9 +170,10 @@ describe('Core.scrollToFocusedCell', () => {
     selectCell(255, 49, 255, 49, false);
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(5750);
       main.toBe(7250);
+      horizon.toBe(9250);
     });
 
     scrollToFocusedCell();
@@ -171,13 +181,15 @@ describe('Core.scrollToFocusedCell', () => {
     await sleep(10);
 
     // 2500 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-      classic.toBe(2268);
-      main.toBe(2561);
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(2766);
+      main.toBe(2766);
+      horizon.toBe(2766);
     });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(5750);
       main.toBe(7250);
+      horizon.toBe(9250);
     });
   });
 
@@ -198,22 +210,25 @@ describe('Core.scrollToFocusedCell', () => {
     });
     selectCell(0, 27, 0, 27, false);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);
       main.toBe(1289);
+      horizon.toBe(1484);
     });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(5865);
       main.toBe(7395);
+      horizon.toBe(9435);
     });
 
     scrollToFocusedCell();
 
     await sleep(10);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);
       main.toBe(1289);
+      horizon.toBe(1484);
     });
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
@@ -235,26 +250,30 @@ describe('Core.scrollToFocusedCell', () => {
     });
     selectCell(499, 27, 499, 27, false);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);
       main.toBe(1289);
+      horizon.toBe(1484);
     });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(5865);
       main.toBe(7395);
+      horizon.toBe(9435);
     });
 
     scrollToFocusedCell();
 
     await sleep(10);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);
       main.toBe(1289);
+      horizon.toBe(1484);
     });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(11243);
       main.toBe(14246);
+      horizon.toBe(18254);
     });
   });
 });

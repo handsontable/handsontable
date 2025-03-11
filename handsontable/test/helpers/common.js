@@ -199,6 +199,20 @@ export function getDefaultRowHeight() {
 }
 
 /**
+ * @returns {number} Returns the default column header height based on the current theme.
+ */
+export function getDefaultColumnHeaderHeight() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 28;
+    case 'horizon':
+      return 36;
+    default:
+      return 25; // classic
+  }
+}
+
+/**
  * @returns {object} Returns the spec object for currently running test.
  */
 export function spec() {

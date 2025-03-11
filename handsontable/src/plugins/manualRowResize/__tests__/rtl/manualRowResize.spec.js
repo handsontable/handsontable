@@ -52,9 +52,21 @@ describe('manualRowResize (RTL mode)', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
     $resizer.simulate('mouseup');
 
-    expect($rowsHeaders.eq(1).height()).toBe(35);
-    expect($rowsHeaders.eq(2).height()).toBe(35);
-    expect($rowsHeaders.eq(3).height()).toBe(35);
+    expect($rowsHeaders.eq(1).height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(35);
+      main.toBe(35);
+      horizon.toBe(36);
+    });
+    expect($rowsHeaders.eq(2).height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(35);
+      main.toBe(35);
+      horizon.toBe(36);
+    });
+    expect($rowsHeaders.eq(3).height()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(35);
+      main.toBe(35);
+      horizon.toBe(36);
+    });
   });
 
   describe('handle position in a table positioned using CSS\'s `transform`', () => {
@@ -158,9 +170,10 @@ describe('manualRowResize (RTL mode)', () => {
 
         const $handle = $('.manualRowResizer');
 
-        expect($handle.offset().top).forThemes(({ classic, main }) => {
+        expect($handle.offset().top).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
           main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
+          horizon.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
         });
         expect($handle.offset().left).toBeCloseTo($headerTH.offset().left, 0);
         expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);

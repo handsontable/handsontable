@@ -31,6 +31,8 @@ describe('Multiple selection scroll', () => {
       keyDown('shift');
       simulateClick(getCell(0, 5));
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
     });
 
@@ -132,6 +134,8 @@ describe('Multiple selection scroll', () => {
       simulateClick(getCell(0, 1));
       keyDown('shift');
       simulateClick(getCell(0, 0));
+
+      await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });
@@ -235,6 +239,8 @@ describe('Multiple selection scroll', () => {
       keyDown('shift');
       simulateClick(getCell(0, 0));
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -295,6 +301,8 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[1, 0, 0, 0]]);
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -323,47 +331,37 @@ describe('Multiple selection scroll', () => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
-        height: 300,
+        height: getDefaultColumnHeaderHeight() + (12 * getDefaultRowHeight()), // height includes the scrollbar
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      expect(getLastFullyVisibleRow()).toBe(10);
 
       simulateClick(getCell(10, 0));
       keyDown('shift');
       simulateClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-        classic.toBe(19);
-        main.toBe(94);
-      });
+      await sleep(10);
+
+      expect(getLastFullyVisibleRow()).toBe(11);
     });
 
-    it('should scroll the viewport after navigating using ArrowDown key', async() => {
+    it('should scroll the viewport after navigating using ArrowDown key', () => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
-        height: 300,
+        height: getDefaultColumnHeaderHeight() + (12 * getDefaultRowHeight()), // height includes the scrollbar
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      expect(getLastFullyVisibleRow()).toBe(10);
 
       selectCell(10, 0);
       keyDownUp(['shift', 'arrowdown']);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-        classic.toBe(19);
-        main.toBe(94);
-      });
+      expect(getLastFullyVisibleRow()).toBe(11);
     });
 
     it('should not scroll the viewport after navigating through the row headers using ArrowDown key', async() => {
@@ -384,9 +382,10 @@ describe('Multiple selection scroll', () => {
       selectCell(10, -1);
       keyDownUp(['shift', 'arrowdown']);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
         main.toBe(65);
+        horizon.toBe(161);
       });
     });
 
@@ -394,22 +393,18 @@ describe('Multiple selection scroll', () => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
-        height: 300,
+        height: getDefaultColumnHeaderHeight() + (12 * getDefaultRowHeight()), // height includes the scrollbar
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      expect(getLastFullyVisibleRow()).toBe(10);
 
       selectCells([[10, 0, 11, 0]]);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-        classic.toBe(19);
-        main.toBe(94);
-      });
+      await sleep(10);
+
+      expect(getLastFullyVisibleRow()).toBe(11);
     });
 
     it('should scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
@@ -428,9 +423,10 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[11, 0, 10, 0]]);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
         main.toBe(65);
+        horizon.toBe(161);
       });
     });
   });

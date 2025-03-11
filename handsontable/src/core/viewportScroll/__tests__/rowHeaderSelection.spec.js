@@ -29,6 +29,8 @@ describe('Row header selection scroll', () => {
 
       simulateClick(getCell(0, -1));
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -69,6 +71,8 @@ describe('Row header selection scroll', () => {
 
       selectRows(1, 0);
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -97,68 +101,54 @@ describe('Row header selection scroll', () => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
-        height: 300,
+        height: getDefaultColumnHeaderHeight() + (12 * getDefaultRowHeight()), // height includes the scrollbar
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      expect(getLastFullyVisibleRow()).toBe(10);
 
       simulateClick(getCell(11, -1));
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-        classic.toBe(19);
-        main.toBe(94);
-      });
+      await sleep(10);
+
+      expect(getLastFullyVisibleRow()).toBe(11);
     });
 
-    it('should scroll the viewport after extending header selection using Shift key', async() => {
+    it('should scroll the viewport after extending header selection using Shift key', () => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
-        height: 300,
+        height: getDefaultColumnHeaderHeight() + (12 * getDefaultRowHeight()), // height includes the scrollbar
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      expect(getLastFullyVisibleRow()).toBe(10);
 
       simulateClick(getCell(10, -1));
       keyDown('shift');
       simulateClick(getCell(11, -1));
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-        classic.toBe(19);
-        main.toBe(94);
-      });
+      expect(getLastFullyVisibleRow()).toBe(11);
     });
 
     it('should scroll the viewport after using API (selecting fully visible row to partially visible row)', async() => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
-        height: 300,
+        height: getDefaultColumnHeaderHeight() + (12 * getDefaultRowHeight()), // height includes the scrollbar
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      expect(getLastFullyVisibleRow()).toBe(10);
 
       selectRows(10, 11);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-        classic.toBe(19);
-        main.toBe(94);
-      });
+      await sleep(10);
+
+      expect(getLastFullyVisibleRow()).toBe(11);
     });
 
     it('should scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
@@ -177,9 +167,10 @@ describe('Row header selection scroll', () => {
 
       selectRows(11, 10);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
         main.toBe(65);
+        horizon.toBe(161);
       });
     });
   });
