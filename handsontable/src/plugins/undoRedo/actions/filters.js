@@ -17,7 +17,7 @@ export class FiltersAction extends BaseAction {
   previousConditionsStack;
 
   constructor({ conditionsStack, previousConditionsStack }) {
-    super();
+    super('filter');
     this.conditionsStack = conditionsStack;
     this.previousConditionsStack = previousConditionsStack;
   }

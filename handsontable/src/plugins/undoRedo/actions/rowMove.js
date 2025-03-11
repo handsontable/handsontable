@@ -18,7 +18,7 @@ export class RowMoveAction extends BaseAction {
   finalRowIndex;
 
   constructor({ rows, finalIndex }) {
-    super();
+    super('row_move');
     this.rows = rows.slice();
     this.finalRowIndex = finalIndex;
   }

@@ -17,7 +17,7 @@ export class ColumnSortAction extends BaseAction {
   nextSortState;
 
   constructor({ currentSortState, newSortState }) {
-    super();
+    super('col_sort');
     this.previousSortState = currentSortState;
     this.nextSortState = newSortState;
   }
