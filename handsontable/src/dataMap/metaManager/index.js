@@ -137,10 +137,10 @@ export default class MetaManager {
    * @param {number} additionalCellMeta.visualRow The visual row index of the currently requested cell meta object.
    * @param {number} additionalCellMeta.visualColumn The visual column index of the currently requested cell meta object.
    * @param {object} options Execution options for the `getCellMeta` method.
-   * @param {boolean} [options.executeCellsFunction] If `false`, disables the execution of the `cells` function. Default: `true`.
+   * @param {boolean} [options.skipMetaExtension] If `true`, omits the `afterGetCellMeta` hook which calls the `extendCellMeta` method. Default: `false`.
    * @returns {object}
    */
-  getCellMeta(physicalRow, physicalColumn, { visualRow, visualColumn }, options = { executeCellsFunction: true }) {
+  getCellMeta(physicalRow, physicalColumn, { visualRow, visualColumn }, options = { skipMetaExtension: false }) {
     const cellMeta = this.cellMeta.getMeta(physicalRow, physicalColumn);
 
     cellMeta.visualRow = visualRow;
@@ -148,7 +148,9 @@ export default class MetaManager {
     cellMeta.row = physicalRow;
     cellMeta.col = physicalColumn;
 
-    this.runLocalHooks('afterGetCellMeta', cellMeta, options);
+    if (!options.skipMetaExtension) {
+      this.runLocalHooks('afterGetCellMeta', cellMeta);
+    }
 
     return cellMeta;
   }

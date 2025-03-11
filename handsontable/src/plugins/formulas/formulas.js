@@ -736,7 +736,7 @@ export class Formulas extends BasePlugin {
 
     sourceDataArray.forEach((rowData, rowIndex) => {
       rowData.forEach((cellValue, columnIndex) => {
-        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex, { executeCellsFunction: false });
+        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex, { skipMetaExtension: true });
         const dateFormat = cellMeta.dateFormat;
 
         if (isDate(cellValue, cellMeta.type)) {
@@ -837,7 +837,7 @@ export class Formulas extends BasePlugin {
     };
     let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
 
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { executeCellsFunction: false }) ?? {};
+    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true }) ?? {};
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);

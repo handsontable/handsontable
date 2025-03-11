@@ -3351,12 +3351,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @param {object} options Execution options for the `getCellMeta` method.
-   * @param {boolean} [options.executeCellsFunction] If `false`, disables the execution of the `cells` function. Default: `true`.
+   * @param {boolean} [options.skipMetaExtension] If `true`, skips extending the cell meta object. Default: `false`.
    * @returns {object} The cell properties object.
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
-  this.getCellMeta = function(row, column, options = { executeCellsFunction: true }) {
+  this.getCellMeta = function(row, column, options = { skipMetaExtension: false }) {
     let physicalRow = this.toPhysicalRow(row);
     let physicalColumn = this.toPhysicalColumn(column);
 
