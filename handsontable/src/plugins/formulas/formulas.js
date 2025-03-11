@@ -724,18 +724,15 @@ export class Formulas extends BasePlugin {
 
   /**
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
-   *
-   * @param {string} [source] Source of the call.
    */
-  #onAfterCellMetaReset(source = '') {
-    if (source === 'updateSettings' && this.#hotWasInitializedWithEmptyData) {
+  #onAfterCellMetaReset() {
+    if (this.#hotWasInitializedWithEmptyData) {
       this.switchSheet(this.sheetName);
 
       return;
     }
 
     const sourceDataArray = this.hot.getSourceDataArray();
-    let valueChanged = false;
 
     sourceDataArray.forEach((rowData, rowIndex) => {
       rowData.forEach((cellValue, columnIndex) => {
@@ -746,28 +743,20 @@ export class Formulas extends BasePlugin {
           if (isDateValid(cellValue, dateFormat)) {
             // Rewriting date in HOT format to HF format.
             sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, dateFormat);
-            valueChanged = true;
           } else if (!cellValue.startsWith('=')) {
             // Escaping value from date parsing using "'" sign (HF feature).
             sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
-            valueChanged = true;
           }
         }
       });
     });
 
-    if (source === 'updateSettings' || valueChanged === true) {
-      this.#internalOperationPending = true;
+    this.#internalOperationPending = true;
+    const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
 
-      const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
-
-      if (source === 'updateSettings') {
-        this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
-        this.renderDependentSheets(dependentCells);
-      }
-
-      this.#internalOperationPending = false;
-    }
+    this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
+    this.renderDependentSheets(dependentCells);
+    this.#internalOperationPending = false;
   }
 
   /**
