@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with data source modification for row values as a string",
+  "type": "fixed",
+  "issueOrPR": 11491,
+  "breaking": false,
+  "framework": "none"
+}
