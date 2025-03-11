@@ -171,7 +171,7 @@ export class Formulas extends BasePlugin {
       const newSheetName = this.addSheet(this.sheetName, this.hot.getSourceDataArray());
 
       if (newSheetName !== false) {
-        this.updateSheetNameAndSheetId(newSheetName);
+        this.#updateSheetNameAndSheetId(newSheetName);
       }
     }
 
@@ -332,7 +332,7 @@ export class Formulas extends BasePlugin {
       } else {
         const newSheetName = this.addSheet(sheetName ?? undefined, this.hot.getSourceDataArray());
 
-        this.updateSheetNameAndSheetId(newSheetName);
+        this.#updateSheetNameAndSheetId(newSheetName);
       }
     }
 
@@ -358,7 +358,7 @@ export class Formulas extends BasePlugin {
    *
    * @param {string} [sheetName] The new sheet name.
    */
-  updateSheetNameAndSheetId(sheetName) {
+  #updateSheetNameAndSheetId(sheetName) {
     this.sheetName = sheetName;
     this.sheetId = this.engine.getSheetId(this.sheetName);
   }
@@ -415,7 +415,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.updateSheetNameAndSheetId(sheetName);
+    this.#updateSheetNameAndSheetId(sheetName);
 
     const serialized = this.engine.getSheetSerialized(this.sheetId);
 
@@ -773,7 +773,7 @@ export class Formulas extends BasePlugin {
 
     const sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
 
-    this.updateSheetNameAndSheetId(sheetName);
+    this.#updateSheetNameAndSheetId(sheetName);
 
     if (source === 'updateSettings') {
       // For performance reasons, the initialization will be done in afterCellMetaReset hook
@@ -1250,7 +1250,7 @@ export class Formulas extends BasePlugin {
    * @param {string} newDisplayName The new name of the sheet.
    */
   #onEngineSheetRenamed(oldDisplayName, newDisplayName) {
-    this.updateSheetNameAndSheetId(newDisplayName);
+    this.#updateSheetNameAndSheetId(newDisplayName);
     this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
   }
 
