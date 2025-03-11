@@ -156,6 +156,7 @@ describe('Core.scrollToFocusedCell', () => {
       data: createSpreadsheetData(500, 50),
       width: 300,
       height: 300,
+      colWidths: 60,
       rowHeaders: true,
       colHeaders: true,
     });
@@ -181,9 +182,9 @@ describe('Core.scrollToFocusedCell', () => {
 
     // 2500 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2268);
-      main.toBe(2562);
-      horizon.toBe(2957);
+      classic.toBe(2766);
+      main.toBe(2766);
+      horizon.toBe(2766);
     });
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(5750);

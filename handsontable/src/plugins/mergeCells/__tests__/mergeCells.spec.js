@@ -1713,9 +1713,10 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 6, colspan: 1 }],
     });
 
-    expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main }) => {
+    expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(301);
       main.toBe(300);
+      horizon.toBe(300);
     });
   });
 
@@ -1738,9 +1739,10 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 1, rowspan: 6, colspan: 1 }],
     });
 
-    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main }) => {
+    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(301);
       main.toBe(300);
+      horizon.toBe(300);
     });
   });
 
@@ -1752,9 +1754,10 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 1, rowspan: 4, colspan: 1 }],
     });
 
-    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main }) => {
+    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(201);
       main.toBe(200);
+      horizon.toBe(200);
     });
   });
 
