@@ -3371,7 +3371,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return metaManager.getCellMeta(physicalRow, physicalColumn, {
       visualRow: row,
       visualColumn: column,
-    }, options);
+      ...options
+    });
   };
 
   /**
