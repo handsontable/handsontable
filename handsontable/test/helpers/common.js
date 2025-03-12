@@ -1148,6 +1148,28 @@ export function clearModernThemeStylesheetMock(container) {
 }
 
 /**
+ * Scrolls the overlay to a specific position and waits for the scroll event to fire.
+ *
+ * @param {object} overlay The overlay object.
+ * @param {number} amount The amount to scroll.
+ * @returns {Promise} A promise that resolves when the scroll event fires.
+ */
+export async function scrollOverlay(overlay, amount) {
+  const scrollPromise = new Promise((resolve) => {
+    const scrollHandler = () => {
+      overlay.mainTableScrollableElement.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    overlay.mainTableScrollableElement.addEventListener('scroll', scrollHandler);
+  });
+
+  overlay.setScrollPosition(amount);
+
+  return scrollPromise;
+}
+
+/**
  * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label
  * values (e.q "A1", "A2"...).
  *
