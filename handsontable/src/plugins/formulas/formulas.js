@@ -798,13 +798,13 @@ export class Formulas extends BasePlugin {
   /**
    * `modifyData` hook callback.
    *
-   * @param {number} physicalRow Physical row index.
+   * @param {number} visualRow Visual row index.
    * @param {number} visualColumn Visual column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
-  #onModifyData(physicalRow, visualColumn, valueHolder, ioMode) {
+  #onModifyData(visualRow, visualColumn, valueHolder, ioMode) {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
@@ -813,8 +813,6 @@ export class Formulas extends BasePlugin {
     ) {
       return;
     }
-
-    const visualRow = this.hot.toVisualRow(physicalRow);
 
     if (visualRow === null || visualColumn === null) {
       return;
