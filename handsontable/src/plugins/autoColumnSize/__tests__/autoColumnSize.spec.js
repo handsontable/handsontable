@@ -1302,7 +1302,23 @@ describe('AutoColumnSize', () => {
     });
   });
 
-  describe('adjust to HyperFormula calculation result', () => {
+  describe('should work together with formulas plugin', () => {
+    it('should calculate widths only once during the initialization of Handsontable with formulas plugin enabled', () => {
+      const columnWidthCalculationSpy = spyOn(
+        Handsontable.plugins.AutoColumnSize.prototype,
+        'addColumnToGhostTableForWidthCalculation'
+      ).and.callThrough();
+
+      handsontable({
+        data: [[42], ['=A1']],
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      expect(columnWidthCalculationSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('should increase width if result become to be longer', async() => {
       handsontable({
         data: [
