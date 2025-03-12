@@ -9,6 +9,46 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [15.2.0] - 2025-03-19
+
+### Added
+- Added Farsi translations [#11388](https://github.com/handsontable/handsontable/pull/11388)
+- Added support for className as an array in numeric renderer [#11420](https://github.com/handsontable/handsontable/pull/11420)
+- Updated Italian translation for new context menu labels (PR-10117-fix) [#11436](https://github.com/handsontable/handsontable/pull/11436)
+- Updated Serbian translation for new context menu labels (PR-10115-fix) [#11437](https://github.com/handsontable/handsontable/pull/11437)
+- Added mobile cell handle css variables to the themes [#11479](https://github.com/handsontable/handsontable/pull/11479)
+- Improved execution flow of the Filters plugin and added two new methods [#11488](https://github.com/handsontable/handsontable/pull/11488)
+
+### Changed
+- Speed up the rendering performance for themes [#11443](https://github.com/handsontable/handsontable/pull/11443)
+- Improved table UI behavior after removing all rows and/or columns [#11477](https://github.com/handsontable/handsontable/pull/11477)
+- Revert `actionType` class field for UndoRedo actions [#11495](https://github.com/handsontable/handsontable/pull/11495)
+
+### Removed
+- Removed broken, unsupported and undocumented `rendererTemplate` option [#11424](https://github.com/handsontable/handsontable/pull/11424)
+
+### Fixed
+- Fixed default (fallback) date format for Date editor [#11419](https://github.com/handsontable/handsontable/pull/11419)
+- Fixed context menu alter item activity [#11422](https://github.com/handsontable/handsontable/pull/11422)
+- Add checkbox input visibility for the no-theme variant [#11427](https://github.com/handsontable/handsontable/pull/11427)
+- Fix copy paste for chrome version 133 [#11428](https://github.com/handsontable/handsontable/pull/11428)
+- Fix cell text reading when imeFastEdit is enabled [#11442](https://github.com/handsontable/handsontable/pull/11442)
+- Fixed a problem, where clicking on the Comments' editor element deselected the currently selected cells. [#11446](https://github.com/handsontable/handsontable/pull/11446)
+- Fixed `hasVerticalScroll` and `hasHorizontalScroll` methods [#11455](https://github.com/handsontable/handsontable/pull/11455)
+- Fix editor border radius on mobile devices [#11457](https://github.com/handsontable/handsontable/pull/11457)
+- Fixed the wrong height of the first row [#11458](https://github.com/handsontable/handsontable/pull/11458)
+- Fix single cell selection inside iframe and new HTMLElement check [#11460](https://github.com/handsontable/handsontable/pull/11460)
+- Fixed an issue with row header misalignment [#11465](https://github.com/handsontable/handsontable/pull/11465)
+- Improved autocomplete/dropdown editor list behavior [#11469](https://github.com/handsontable/handsontable/pull/11469)
+- Fixed problem with horizontal scroll in autocomplete dropdown [#11473](https://github.com/handsontable/handsontable/pull/11473)
+- Fixed merged cells height for custom defined row heights [#11478](https://github.com/handsontable/handsontable/pull/11478)
+- Fixed a problem with the Comments editor not flipping direction when overlapping the window's scrollbars. [#11481](https://github.com/handsontable/handsontable/pull/11481)
+- Fixed problem with focus trap during Shift + Tab navigation [#11483](https://github.com/handsontable/handsontable/pull/11483)
+- Fixed issue with context menu opening on classic theme [#11486](https://github.com/handsontable/handsontable/pull/11486)
+- Fixed problem with rowHeights when the value is lower than the default/min row height [#11487](https://github.com/handsontable/handsontable/pull/11487)
+- Fixed an issue with data source modification for row values as a string [#11491](https://github.com/handsontable/handsontable/pull/11491)
+- Fixed conflicts between ColumnSorting and MultiColumnSorting plugins [#11492](https://github.com/handsontable/handsontable/pull/11492)
+
 ## [15.1.0] - 2025-02-20
 
 ### Added

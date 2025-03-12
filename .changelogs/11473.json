@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed problem with horizontal scroll in autocomplete dropdown",
-  "type": "fixed",
-  "issueOrPR": 11473,
-  "breaking": false,
-  "framework": "none"
-}
