@@ -1312,17 +1312,19 @@ describe('MergeCells', () => {
 
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
-      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main }) => {
+      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(47);
         main.toBe(59);
+        horizon.toBe(75);
       });
       expect(getCell(0, 1).innerText).toBe('A1');
       expect(getDataAtCell(0, 0)).toBe('A1');
       // Already populated merged cell.
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
-      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main }) => {
+      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(46);
         main.toBe(58);
+        horizon.toBe(74);
       });
       expect(getCell(2, 1).innerText).toBe('A1');
       expect(getDataAtCell(2, 0)).toBe('A1');
@@ -1336,33 +1338,37 @@ describe('MergeCells', () => {
 
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
-      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main }) => {
+      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(47);
         main.toBe(59);
+        horizon.toBe(75);
       });
       expect(getCell(0, 1).innerText).toBe('A1');
       expect(getDataAtCell(0, 0)).toBe('A1');
       // Previously populated merged cell.
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
-      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main }) => {
+      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(46);
         main.toBe(58);
+        horizon.toBe(74);
       });
       expect(getCell(2, 1).innerText).toBe('A1');
       expect(getDataAtCell(2, 0)).toBe('A1');
       // Already populated merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetWidth).toBe(100);
-      expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetHeight).forThemes(({ classic, main }) => {
+      expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(47);
         main.toBe(59);
+        horizon.toBe(75);
       });
       expect(getCell(0, 3).innerText).toBe('A1');
       expect(getDataAtCell(0, 2)).toBe('A1');
 
       expect($(getHtCore())[0].offsetWidth).toBe(5 * 50);
-      expect($(getHtCore())[0].offsetHeight).forThemes(({ classic, main }) => {
+      expect($(getHtCore())[0].offsetHeight).forThemes(({ classic, main, horizon }) => {
         classic.toBe(24 + (4 * 23)); // First row is 1px higher than others.
         main.toBe(30 + (4 * 29));
+        horizon.toBe(38 + (4 * 37));
       });
     });
   });
@@ -1480,9 +1486,10 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 5 }],
     });
 
-    expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main }) => {
+    expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(70);
       main.toBe(88);
+      horizon.toBe(112);
     });
   });
 
@@ -1497,27 +1504,30 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 1 }],
     });
 
-    expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main }) => {
+    expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(116);
       main.toBe(146);
+      horizon.toBe(186);
     });
 
     updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 2 }],
     });
 
-    expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main }) => {
+    expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(116);
       main.toBe(146);
+      horizon.toBe(186);
     });
 
     updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 3 }],
     });
 
-    expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main }) => {
+    expect(getInlineStartClone().find('.htCore').height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(116);
       main.toBe(146);
+      horizon.toBe(186);
     });
   });
 
@@ -1561,13 +1571,15 @@ describe('MergeCells', () => {
       ],
     });
 
-    expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+    expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(70);
       main.toBe(88);
+      horizon.toBe(112);
     });
-    expect(getTopClone().height()).forThemes(({ classic, main }) => {
+    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(70);
       main.toBe(88);
+      horizon.toBe(112);
     });
     expect(getInlineStartClone().height()).toBe(400);
   });
@@ -1592,13 +1604,15 @@ describe('MergeCells', () => {
     getActiveEditor().TEXTAREA.value = 'test\n\ntest';
     keyDownUp('enter');
 
-    expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+    expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(111);
       main.toBe(128);
+      horizon.toBe(152);
     });
-    expect(getTopClone().height()).forThemes(({ classic, main }) => {
+    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(111);
       main.toBe(128);
+      horizon.toBe(152);
     });
     expect(getInlineStartClone().height()).toBe(400);
   });
@@ -1699,9 +1713,10 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 6, colspan: 1 }],
     });
 
-    expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main }) => {
+    expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(301);
       main.toBe(300);
+      horizon.toBe(300);
     });
   });
 
@@ -1724,9 +1739,10 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 1, rowspan: 6, colspan: 1 }],
     });
 
-    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main }) => {
+    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(301);
       main.toBe(300);
+      horizon.toBe(300);
     });
   });
 
@@ -1738,9 +1754,10 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 1, rowspan: 4, colspan: 1 }],
     });
 
-    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main }) => {
+    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(201);
       main.toBe(200);
+      horizon.toBe(200);
     });
   });
 
@@ -1934,6 +1951,101 @@ describe('MergeCells', () => {
     `).toBeMatchToSelectionPattern();
   });
 
+  it.forTheme('horizon')('should display properly high merged cell', () => {
+    handsontable({
+      data: createSpreadsheetData(50, 3),
+      width: 200,
+      height: 313,
+      viewportRowRenderingOffset: 0,
+      mergeCells: true,
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 20, 0);
+    selectCell(0, 0);
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
+    expect(`
+      | # :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is partially visible
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
+    expect(`
+      | # :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
+    expect(`
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
   it.forTheme('classic')('should display properly high virtualized merged cell', () => {
     handsontable({
       data: createSpreadsheetData(50, 30),
@@ -2002,6 +2114,69 @@ describe('MergeCells', () => {
       data: createSpreadsheetData(50, 30),
       width: 200,
       height: 248,
+      viewportRowRenderingOffset: 0,
+      mergeCells: {
+        virtualized: true,
+      },
+    });
+
+    getPlugin('mergeCells').merge(0, 0, 20, 0);
+    selectCell(0, 0);
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
+    expect(`
+      | # :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 27, col: 0 }); // the merged cell is partially visible
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A29');
+    expect(`
+      | # :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is not visible (out of the viewport)
+    render();
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
+    expect(`
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it.forTheme('horizon')('should display properly high virtualized merged cell', () => {
+    handsontable({
+      data: createSpreadsheetData(50, 30),
+      width: 200,
+      height: 312,
       viewportRowRenderingOffset: 0,
       mergeCells: {
         virtualized: true,

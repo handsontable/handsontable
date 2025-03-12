@@ -17,7 +17,7 @@ export class CreateRowAction extends BaseAction {
   amount;
 
   constructor({ index, amount }) {
-    super();
+    super('insert_row');
     this.index = index;
     this.amount = amount;
   }

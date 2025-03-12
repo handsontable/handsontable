@@ -34,6 +34,8 @@ describe('Multiple selection scroll (RTL mode)', () => {
       keyDown('shift');
       simulateClick(getCell(0, 5));
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
     });
 
@@ -137,6 +139,8 @@ describe('Multiple selection scroll (RTL mode)', () => {
       simulateClick(getCell(0, 1));
       keyDown('shift');
       simulateClick(getCell(0, 0));
+
+      await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });

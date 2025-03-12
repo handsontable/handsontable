@@ -699,7 +699,8 @@ describe('ColumnSummarySpec', () => {
         .toEqual('[[0,2],[10,10],[3,6]]');
     });
 
-    it('should shift the visual calculation result position when a row was moved outside the endpoint range', function() {
+    it.forTheme('classic')('should shift the visual calculation result position when a row ' +
+      'was moved outside the endpoint range', function() {
       const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
@@ -729,10 +730,135 @@ describe('ColumnSummarySpec', () => {
       expect($(hot.getCell(6, 3)).hasClass('htDimmed')).toBe(true);
     });
 
-    it('should shift the visual calculation result position when a row was moved inside the endpoint range', function() {
+    it.forTheme('main')('should shift the visual calculation result position when a row ' +
+      'was moved outside the endpoint range', function() {
+      const hot = handsontable({
+        data: createNumericData(40, 40),
+        height: 252,
+        width: 200,
+        manualRowMove: true,
+        columnSummary: [
+          {
+            destinationColumn: 3,
+            destinationRow: 7,
+            ranges: [
+              [0, 6]
+            ],
+            type: 'sum'
+          }]
+      });
+
+      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(this.$container.find('.htDimmed').size()).toEqual(1);
+      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+
+      hot.getPlugin('manualRowMove').moveRow(3, 10);
+
+      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(this.$container.find('.htDimmed').size()).toEqual(1);
+      expect($(hot.getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(hot.getCell(6, 3)).hasClass('htDimmed')).toBe(true);
+    });
+
+    it.forTheme('horizon')('should shift the visual calculation result position when a row ' +
+      'was moved outside the endpoint range', function() {
+      const hot = handsontable({
+        data: createNumericData(40, 40),
+        height: 321,
+        width: 200,
+        manualRowMove: true,
+        columnSummary: [
+          {
+            destinationColumn: 3,
+            destinationRow: 7,
+            ranges: [
+              [0, 6]
+            ],
+            type: 'sum'
+          }]
+      });
+
+      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(this.$container.find('.htDimmed').size()).toEqual(1);
+      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+
+      hot.getPlugin('manualRowMove').moveRow(3, 10);
+
+      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(this.$container.find('.htDimmed').size()).toEqual(1);
+      expect($(hot.getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(hot.getCell(6, 3)).hasClass('htDimmed')).toBe(true);
+    });
+
+    it.forTheme('classic')('should shift the visual calculation result position when a row ' +
+      'was moved inside the endpoint range', function() {
       const hot = handsontable({
         data: createNumericData(40, 40),
         height: 200,
+        width: 200,
+        manualRowMove: true,
+        columnSummary: [
+          {
+            destinationColumn: 3,
+            destinationRow: 7,
+            ranges: [
+              [0, 6]
+            ],
+            type: 'sum'
+          }]
+      });
+
+      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(this.$container.find('.htDimmed').size()).toEqual(1);
+      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+
+      hot.getPlugin('manualRowMove').moveRow(10, 3);
+
+      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(this.$container.find('.htDimmed').size()).toEqual(1);
+      expect($(hot.getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(hot.getCell(8, 3)).hasClass('htDimmed')).toBe(true);
+    });
+
+    it.forTheme('main')('should shift the visual calculation result position when a row ' +
+      'was moved inside the endpoint range', function() {
+      const hot = handsontable({
+        data: createNumericData(40, 40),
+        height: 252,
+        width: 200,
+        manualRowMove: true,
+        columnSummary: [
+          {
+            destinationColumn: 3,
+            destinationRow: 7,
+            ranges: [
+              [0, 6]
+            ],
+            type: 'sum'
+          }]
+      });
+
+      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(this.$container.find('.htDimmed').size()).toEqual(1);
+      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+
+      hot.getPlugin('manualRowMove').moveRow(10, 3);
+
+      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(this.$container.find('.htDimmed').size()).toEqual(1);
+      expect($(hot.getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(hot.getCell(8, 3)).hasClass('htDimmed')).toBe(true);
+    });
+
+    it.forTheme('horizon')('should shift the visual calculation result position when a row ' +
+      'was moved inside the endpoint range', function() {
+      const hot = handsontable({
+        data: createNumericData(40, 40),
+        height: 321,
         width: 200,
         manualRowMove: true,
         columnSummary: [

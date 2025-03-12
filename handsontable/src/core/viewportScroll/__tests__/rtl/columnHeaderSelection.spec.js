@@ -32,6 +32,8 @@ describe('Column header selection scroll (RTL mode)', () => {
 
       simulateClick(getCell(-1, 5));
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
     });
 
@@ -151,6 +153,8 @@ describe('Column header selection scroll (RTL mode)', () => {
       await sleep(10);
 
       selectColumns(1, 0);
+
+      await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });

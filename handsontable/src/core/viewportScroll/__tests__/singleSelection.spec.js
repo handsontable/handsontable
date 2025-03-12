@@ -16,20 +16,20 @@ describe('Single selection scroll', () => {
     it('should not scroll the viewport after mouse click', async() => {
       handsontable({
         data: createSpreadsheetData(5, 10),
-        width: 300,
+        width: 400,
         height: 300,
+        colWidths: 60,
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `F1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
+      expect(getLastFullyVisibleColumn()).toBe(4);
 
       await sleep(10);
 
       simulateClick(getCell(0, 5));
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(25);
+      expect(getLastFullyVisibleColumn()).toBe(4);
     });
 
     it('should scroll the viewport after double mouse click (cell editing)', async() => {
@@ -128,6 +128,8 @@ describe('Single selection scroll', () => {
       await sleep(10);
 
       simulateClick(getCell(0, 0));
+
+      await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });
@@ -229,6 +231,8 @@ describe('Single selection scroll', () => {
 
       simulateClick(getCell(0, 0));
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
@@ -313,117 +317,89 @@ describe('Single selection scroll', () => {
   });
 
   describe('for partially visible cell on the bottom table\'s edge', () => {
-    it('should not scroll the viewport after mouse click', async() => {
+    it('should not scroll the viewport after mouse click', () => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
-        height: 300,
+        height: getDefaultColumnHeaderHeight() + (12 * getDefaultRowHeight()),
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      expect(getLastFullyVisibleRow()).toBe(10);
 
       simulateClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-        classic.toBe(5);
-        main.toBe(94);
-      });
+      expect(getLastFullyVisibleRow()).toBe(10);
     });
 
     it('should scroll the viewport after double mouse click (cell editing)', async() => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
-        height: 300,
+        height: getDefaultColumnHeaderHeight() + (12 * getDefaultRowHeight()) + 5, // 5px to show part of A12
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      expect(getLastFullyVisibleRow()).toBe(10);
 
       mouseDoubleClick(getCell(11, 0));
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-        classic.toBe(19);
-        main.toBe(94);
-      });
+      await sleep(10);
+
+      expect(getLastFullyVisibleRow()).toBe(11);
     });
 
-    it('should scroll the viewport after navigating using ArrowDown key', async() => {
+    it('should scroll the viewport after navigating using ArrowDown key', () => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
-        height: 300,
+        height: getDefaultColumnHeaderHeight() + (12 * getDefaultRowHeight()), // height includes the scrollbar
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      expect(getLastFullyVisibleRow()).toBe(10);
 
       selectCell(10, 0);
       keyDownUp('arrowdown');
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-        classic.toBe(19);
-        main.toBe(94);
-      });
+      expect(getLastFullyVisibleRow()).toBe(11);
     });
 
-    it('should scroll the viewport after navigating through the row headers using ArrowDown key', async() => {
+    it('should scroll the viewport after navigating through the row headers using ArrowDown key', () => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
-        height: 300,
+        height: getDefaultColumnHeaderHeight() + (12 * getDefaultRowHeight()), // height includes the scrollbar
         rowHeaders: true,
         colHeaders: true,
         navigableHeaders: true,
       });
 
-      // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      expect(getLastFullyVisibleRow()).toBe(10);
 
       selectCell(10, -1);
       keyDownUp('arrowdown');
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-        classic.toBe(19);
-        main.toBe(94);
-      });
+      expect(getLastFullyVisibleRow()).toBe(11);
     });
 
     it('should scroll the viewport after using API', async() => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
-        height: 300,
+        height: getDefaultColumnHeaderHeight() + (12 * getDefaultRowHeight()), // height includes the scrollbar
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      expect(getLastFullyVisibleRow()).toBe(10);
 
       selectCell(11, 0);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
-        classic.toBe(19);
-        main.toBe(94);
-      });
+      expect(getLastFullyVisibleRow()).toBe(11);
     });
   });
 });

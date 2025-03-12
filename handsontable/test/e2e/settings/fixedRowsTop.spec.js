@@ -215,41 +215,49 @@ describe('settings', () => {
 
       alter('insert_row_above', 0);
 
-      expect(getMaster().height()).forThemes(({ classic, main }) => {
+      expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50); // 25px corner + 25px added row
         main.toBe(59);
+        horizon.toBe(75);
       });
-      expect(getTopClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
         main.toBe(59);
+        horizon.toBe(75);
       });
-      expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
         main.toBe(59);
+        horizon.toBe(75);
       });
-      expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
+      expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
         main.toBe(59);
+        horizon.toBe(75);
       });
       expect(getBottomClone().height()).toBe(0);
 
       alter('insert_row_above', 0);
 
-      expect(getMaster().height()).forThemes(({ classic, main }) => {
+      expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);
         main.toBe(88);
+        horizon.toBe(112);
       });
-      expect(getTopClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);
         main.toBe(88);
+        horizon.toBe(112);
       });
-      expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);
         main.toBe(88);
+        horizon.toBe(112);
       });
-      expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
+      expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);
         main.toBe(88);
+        horizon.toBe(112);
       });
       expect(getBottomClone().height()).toBe(0);
     });

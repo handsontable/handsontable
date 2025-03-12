@@ -1633,12 +1633,330 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should maintain the collapse functionality, when the table has been scrolled', async() => {
+    it.forTheme('classic')('should maintain the collapse functionality, when the table has been scrolled', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
         width: 400,
+        height: 300
+      });
+
+      // Scrolling to viewport does not work precisely without delay.
+      await sleep(50);
+
+      scrollViewportTo({
+        col: 37,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
+
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "AP2"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "AU1"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="8">AC1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK1</th>
+            <th class="collapsibleIndicator expanded" colspan="3">AL1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT1</th>
+            <th class="collapsibleIndicator collapsed" colspan="4">AU1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC1</th>
+            <th class="collapsibleIndicator expanded" colspan="8">BD1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="4">AC2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="4">AG2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK2</th>
+            <th class="collapsibleIndicator collapsed">AL2</th>
+            <th class="collapsibleIndicator collapsed" colspan="2">AP2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">AU2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">BD2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="2">AC3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AE3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AG3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AI3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK3</th>
+            <th class="collapsibleIndicator collapsed">AL3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">AP3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">AU3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AW3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">BD3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">BF3</th>
+          </tr>
+          <tr>
+            <th class="">AC4</th>
+            <th class="">AD4</th>
+            <th class="">AE4</th>
+            <th class="">AF4</th>
+            <th class="">AG4</th>
+            <th class="">AH4</th>
+            <th class="">AI4</th>
+            <th class="">AJ4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+            <th class="">AP4</th>
+            <th class="">AQ4</th>
+            <th class="">AT4</th>
+            <th class="">AU4</th>
+            <th class="">AV4</th>
+            <th class="">AW4</th>
+            <th class="">AX4</th>
+            <th class="">BC4</th>
+            <th class="">BD4</th>
+            <th class="">BE4</th>
+            <th class="">BF4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">AC1</td>
+            <td class="">AD1</td>
+            <td class="">AE1</td>
+            <td class="">AF1</td>
+            <td class="">AG1</td>
+            <td class="">AH1</td>
+            <td class="">AI1</td>
+            <td class="">AJ1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+            <td class="">AP1</td>
+            <td class="">AQ1</td>
+            <td class="">AT1</td>
+            <td class="">AU1</td>
+            <td class="">AV1</td>
+            <td class="">AW1</td>
+            <td class="">AX1</td>
+            <td class="">BC1</td>
+            <td class="">BD1</td>
+            <td class="">BE1</td>
+            <td class="">BF1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it.forTheme('main')('should maintain the collapse functionality, when the table has been scrolled', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        nestedHeaders: generateComplexSetup(4, 70, true),
+        collapsibleColumns: true,
+        width: 400,
+        height: 300
+      });
+
+      // Scrolling to viewport does not work precisely without delay.
+      await sleep(50);
+
+      scrollViewportTo({
+        col: 37,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
+
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "AP2"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "AU1"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="8">AC1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK1</th>
+            <th class="collapsibleIndicator expanded" colspan="3">AL1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT1</th>
+            <th class="collapsibleIndicator collapsed" colspan="4">AU1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC1</th>
+            <th class="collapsibleIndicator expanded" colspan="8">BD1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="4">AC2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="4">AG2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK2</th>
+            <th class="collapsibleIndicator collapsed">AL2</th>
+            <th class="collapsibleIndicator collapsed" colspan="2">AP2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">AU2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">BD2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="2">AC3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AE3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AG3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AI3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK3</th>
+            <th class="collapsibleIndicator collapsed">AL3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">AP3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">AU3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AW3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">BD3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">BF3</th>
+          </tr>
+          <tr>
+            <th class="">AC4</th>
+            <th class="">AD4</th>
+            <th class="">AE4</th>
+            <th class="">AF4</th>
+            <th class="">AG4</th>
+            <th class="">AH4</th>
+            <th class="">AI4</th>
+            <th class="">AJ4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+            <th class="">AP4</th>
+            <th class="">AQ4</th>
+            <th class="">AT4</th>
+            <th class="">AU4</th>
+            <th class="">AV4</th>
+            <th class="">AW4</th>
+            <th class="">AX4</th>
+            <th class="">BC4</th>
+            <th class="">BD4</th>
+            <th class="">BE4</th>
+            <th class="">BF4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">AC1</td>
+            <td class="">AD1</td>
+            <td class="">AE1</td>
+            <td class="">AF1</td>
+            <td class="">AG1</td>
+            <td class="">AH1</td>
+            <td class="">AI1</td>
+            <td class="">AJ1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+            <td class="">AP1</td>
+            <td class="">AQ1</td>
+            <td class="">AT1</td>
+            <td class="">AU1</td>
+            <td class="">AV1</td>
+            <td class="">AW1</td>
+            <td class="">AX1</td>
+            <td class="">BC1</td>
+            <td class="">BD1</td>
+            <td class="">BE1</td>
+            <td class="">BF1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it.forTheme('horizon')('should maintain the collapse functionality, when the table has been scrolled', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        nestedHeaders: generateComplexSetup(4, 70, true),
+        collapsibleColumns: true,
+        width: 500,
         height: 300
       });
 
@@ -2497,12 +2815,352 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should maintain the expand functionality, when the table has been scrolled', async() => {
+    it.forTheme('classic')('should maintain the expand functionality, when the table has been scrolled', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
         width: 400,
+        height: 300
+      });
+
+      // Scrolling to viewport does not work precisely without delay.
+      await sleep(50);
+
+      scrollViewportTo({
+        col: 37,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
+
+      // collapsing
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "AP2"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "AU1"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      // expanding
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="8">AC1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK1</th>
+            <th class="collapsibleIndicator expanded" colspan="6">AL1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT1</th>
+            <th class="collapsibleIndicator collapsed" colspan="4">AU1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC1</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="4">AC2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="4">AG2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">AL2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator collapsed" colspan="2">AP2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">AU2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC2</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="2">AC3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AE3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AG3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AI3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">AL3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AN3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AP3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">AU3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AW3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC3</th>
+          </tr>
+          <tr>
+            <th class="">AC4</th>
+            <th class="">AD4</th>
+            <th class="">AE4</th>
+            <th class="">AF4</th>
+            <th class="">AG4</th>
+            <th class="">AH4</th>
+            <th class="">AI4</th>
+            <th class="">AJ4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+            <th class="">AM4</th>
+            <th class="">AN4</th>
+            <th class="">AO4</th>
+            <th class="">AP4</th>
+            <th class="">AQ4</th>
+            <th class="">AT4</th>
+            <th class="">AU4</th>
+            <th class="">AV4</th>
+            <th class="">AW4</th>
+            <th class="">AX4</th>
+            <th class="">BC4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">AC1</td>
+            <td class="">AD1</td>
+            <td class="">AE1</td>
+            <td class="">AF1</td>
+            <td class="">AG1</td>
+            <td class="">AH1</td>
+            <td class="">AI1</td>
+            <td class="">AJ1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+            <td class="">AM1</td>
+            <td class="">AN1</td>
+            <td class="">AO1</td>
+            <td class="">AP1</td>
+            <td class="">AQ1</td>
+            <td class="">AT1</td>
+            <td class="">AU1</td>
+            <td class="">AV1</td>
+            <td class="">AW1</td>
+            <td class="">AX1</td>
+            <td class="">BC1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it.forTheme('main')('should maintain the expand functionality, when the table has been scrolled', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        nestedHeaders: generateComplexSetup(4, 70, true),
+        collapsibleColumns: true,
+        width: 400,
+        height: 300
+      });
+
+      // Scrolling to viewport does not work precisely without delay.
+      await sleep(50);
+
+      scrollViewportTo({
+        col: 37,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
+
+      // collapsing
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "AP2"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "AU1"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      // expanding
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="8">AC1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK1</th>
+            <th class="collapsibleIndicator expanded" colspan="6">AL1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT1</th>
+            <th class="collapsibleIndicator collapsed" colspan="4">AU1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC1</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="4">AC2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="4">AG2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">AL2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator collapsed" colspan="2">AP2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">AU2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC2</th>
+          </tr>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="2">AC3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AE3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AG3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AI3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">AL3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AN3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AP3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">AU3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AW3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC3</th>
+          </tr>
+          <tr>
+            <th class="">AC4</th>
+            <th class="">AD4</th>
+            <th class="">AE4</th>
+            <th class="">AF4</th>
+            <th class="">AG4</th>
+            <th class="">AH4</th>
+            <th class="">AI4</th>
+            <th class="">AJ4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+            <th class="">AM4</th>
+            <th class="">AN4</th>
+            <th class="">AO4</th>
+            <th class="">AP4</th>
+            <th class="">AQ4</th>
+            <th class="">AT4</th>
+            <th class="">AU4</th>
+            <th class="">AV4</th>
+            <th class="">AW4</th>
+            <th class="">AX4</th>
+            <th class="">BC4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">AC1</td>
+            <td class="">AD1</td>
+            <td class="">AE1</td>
+            <td class="">AF1</td>
+            <td class="">AG1</td>
+            <td class="">AH1</td>
+            <td class="">AI1</td>
+            <td class="">AJ1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+            <td class="">AM1</td>
+            <td class="">AN1</td>
+            <td class="">AO1</td>
+            <td class="">AP1</td>
+            <td class="">AQ1</td>
+            <td class="">AT1</td>
+            <td class="">AU1</td>
+            <td class="">AV1</td>
+            <td class="">AW1</td>
+            <td class="">AX1</td>
+            <td class="">BC1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it.forTheme('horizon')('should maintain the expand functionality, when the table has been scrolled', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        nestedHeaders: generateComplexSetup(4, 70, true),
+        collapsibleColumns: true,
+        width: 500,
         height: 300
       });
 
@@ -2710,6 +3368,24 @@ describe('CollapsibleColumns', () => {
         const indicatorComputedStyle = window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'));
 
         expect(indicatorComputedStyle.marginInlineStart).toEqual('4px');
+        expect(indicatorComputedStyle.position).toEqual('relative');
+        expect(indicatorComputedStyle.float).toEqual('right');
+      });
+
+      it.forTheme('horizon')('should be placed in correct place', () => {
+        handsontable({
+          layoutDirection,
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          nestedHeaders: [
+            ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
+            ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ],
+          collapsibleColumns: true
+        });
+
+        const indicatorComputedStyle = window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'));
+
+        expect(indicatorComputedStyle.marginInlineStart).toEqual('6px');
         expect(indicatorComputedStyle.position).toEqual('relative');
         expect(indicatorComputedStyle.float).toEqual('right');
       });

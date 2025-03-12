@@ -557,6 +557,27 @@ describe('CopyPaste', () => {
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });
 
+    it.forTheme('horizon')('should paste data without scrolling the viewport', async() => {
+      handsontable({
+        data: createSpreadsheetData(50, 50),
+        width: 200,
+        height: 319,
+      });
+
+      selectCell(6, 2);
+      triggerPaste([
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+      ].join('\n'));
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    });
+
     it('should sanitize pasted HTML', async() => {
       handsontable();
 
