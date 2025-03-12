@@ -324,21 +324,12 @@ export class AutoColumnSize extends BasePlugin {
 
       if (overwriteCache || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
           !this.hot._getColWidthFromSettings(physicalColumn))) {
-        const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
-
-        samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
+        this.#addColumnToGhostTableForWidthCalculation(visualColumn, rowsRange);
       }
     });
 
     if (this.ghostTable.columns.length) {
-      this.hot.batchExecution(() => {
-        this.ghostTable.getWidths((visualColumn, width) => {
-          const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-          this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
-        });
-      }, true);
-
+      this.#updateColumnWidthsMapBasedOnGhostTable();
       this.measuredColumns = columnsRange.to + 1;
       this.ghostTable.clean();
     }
@@ -380,7 +371,7 @@ export class AutoColumnSize extends BasePlugin {
       } else {
         cancelAnimationFrame(timer);
         this.inProgress = false;
-        this.#visualColumnsToRefresh = [];
+        // this.#visualColumnsToRefresh = [];
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
         this.hot.view.adjustElementsSize();
@@ -399,7 +390,7 @@ export class AutoColumnSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
-      this.#visualColumnsToRefresh = [];
+      // this.#visualColumnsToRefresh = [];
     }
   }
 
@@ -422,23 +413,42 @@ export class AutoColumnSize extends BasePlugin {
       }
 
       if (!this.hot._getColWidthFromSettings(physicalColumn)) {
-        const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
-
-        samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
+        this.#addColumnToGhostTableForWidthCalculation(visualColumn, rowsRange);
       }
     });
 
     if (this.ghostTable.columns.length) {
-      this.hot.batchExecution(() => {
-        this.ghostTable.getWidths((visualColumn, width) => {
-          const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-          this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
-        });
-      }, true);
-
+      this.#updateColumnWidthsMapBasedOnGhostTable();
       this.ghostTable.clean();
     }
+  }
+
+  /**
+   * Processes a single column for width calculation.
+   *
+   * @private
+   * @param {number} visualColumn Visual column index.
+   * @param {object} rowsRange Range of rows to process.
+   */
+  #addColumnToGhostTableForWidthCalculation(visualColumn, rowsRange) {
+    const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
+
+    samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
+  }
+
+  /**
+   * Updates the column widths map with calculated widths from the ghost table.
+   *
+   * @private
+   */
+  #updateColumnWidthsMapBasedOnGhostTable() {
+    this.hot.batchExecution(() => {
+      this.ghostTable.getWidths((visualColumn, width) => {
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+        this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
+      });
+    }, true);
   }
 
   /**
