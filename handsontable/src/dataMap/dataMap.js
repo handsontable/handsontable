@@ -781,7 +781,7 @@ class DataMap {
     if (this.hot.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(value);
 
-      this.hot.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'get');
+      this.hot.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         value = valueHolder.value;
@@ -826,7 +826,7 @@ class DataMap {
     if (this.hot.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(newValue);
 
-      this.hot.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'set');
+      this.hot.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'set');
 
       if (valueHolder.isTouched()) {
         newValue = valueHolder.value;
