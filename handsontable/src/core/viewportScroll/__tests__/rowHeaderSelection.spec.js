@@ -23,9 +23,7 @@ describe('Row header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      topOverlay().setScrollPosition(15);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 15);
 
       simulateClick(getCell(0, -1));
 
@@ -44,9 +42,7 @@ describe('Row header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      topOverlay().setScrollPosition(15);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 15);
 
       simulateClick(getCell(1, -1));
       keyDown('shift');
@@ -65,9 +61,7 @@ describe('Row header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      topOverlay().setScrollPosition(15);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 15);
 
       selectRows(1, 0);
 
@@ -86,9 +80,7 @@ describe('Row header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      topOverlay().setScrollPosition(15);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 15);
 
       selectRows(0, 1);
 
@@ -161,9 +153,7 @@ describe('Row header selection scroll', () => {
       });
 
       // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 5);
 
       selectRows(11, 10);
 

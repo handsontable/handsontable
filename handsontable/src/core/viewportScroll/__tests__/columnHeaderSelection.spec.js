@@ -23,9 +23,7 @@ describe('Column header selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(-1, 5));
 
@@ -44,9 +42,7 @@ describe('Column header selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(-1, 4));
       keyDown('shift');
@@ -65,9 +61,7 @@ describe('Column header selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectColumns(4, 5);
 
@@ -84,9 +78,7 @@ describe('Column header selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectColumns(5, 4);
 
@@ -105,9 +97,7 @@ describe('Column header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(-1, 0));
 
@@ -126,9 +116,7 @@ describe('Column header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(-1, 1));
       keyDown('shift');
@@ -147,9 +135,7 @@ describe('Column header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectColumns(1, 0);
 
@@ -166,9 +152,7 @@ describe('Column header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectColumns(0, 1);
 

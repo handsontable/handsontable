@@ -26,9 +26,7 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(0, 3));
       keyDown('control/meta');
@@ -49,9 +47,7 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 3], [0, 5]]);
 
@@ -68,9 +64,7 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 5], [0, 3]]);
 
@@ -89,9 +83,7 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(0, 1));
       keyDown('control/meta');
@@ -112,9 +104,7 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 1], [0, 0]]);
 
@@ -131,9 +121,7 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 0], [0, 1]]);
 
