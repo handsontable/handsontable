@@ -1,4 +1,4 @@
-import {HyperFormula} from "hyperformula";
+import { HyperFormula } from 'hyperformula';
 
 describe('AutoRowSize', () => {
   const id = 'testContainer';
