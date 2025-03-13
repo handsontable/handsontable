@@ -1865,14 +1865,14 @@ describe('manualRowResize', () => {
 
       $handle.simulate('mousedown', { clientY: resizerPosition.top });
 
-      // To watch whether color has changed.
-      expect(getComputedStyle($handle[0]).opacity).toBe('0');
+      // To watch whether opacity has changed.
+      expect(getComputedStyle($handle[0]).opacity).toBe('1');
 
       $handle.simulate('contextmenu');
 
       await sleep(0);
 
-      expect(getComputedStyle($handle[0]).opacity).not.toBe('0');
+      expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
 
     it.forTheme('horizon')('should remove resize handler when user clicks RMB', async() => {
@@ -1891,14 +1891,14 @@ describe('manualRowResize', () => {
 
       $handle.simulate('mousedown', { clientY: resizerPosition.top });
 
-      // To watch whether color has changed.
-      expect(getComputedStyle($handle[0]).opacity).toBe('0');
+      // To watch whether opacity has changed.
+      expect(getComputedStyle($handle[0]).opacity).toBe('1');
 
       $handle.simulate('contextmenu');
 
       await sleep(0);
 
-      expect(getComputedStyle($handle[0]).opacity).not.toBe('0');
+      expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
   });
 
