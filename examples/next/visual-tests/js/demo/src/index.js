@@ -2,16 +2,17 @@ import "./styles/styles.css";
 
 // Import JavaScript modules
 import Navigo from 'navigo';
-import { initializeDataGrid } from './datagrid';
-import { initializeTwoTablesDemo } from './demos/twoTables/twoTablesDemo';
-import { initializeCellTypeDemo } from './demos/cellTypes/cellTypesDemo';
-import { initializeArabicRtlDemo } from './demos/arabicRtl/arabicRtlDemo';
-import { initializeCustomStyleDemo } from './demos/customStyle/customStyleDemo';
-import { initializeMergedCellsDemo } from './demos/mergedCells/mergedCellsDemo';
-import { initializeNestedHeadersDemo } from './demos/nestedHeaders/nestedHeadersDemo';
-import { initializeNestedRowsDemo } from './demos/nestedRows/nestedRowsDemo';
-import { initializeComplexDemo } from './demos/complex/complexDemo';
-import { initializeBasicTwoTablesDemo } from "./demos/basicTwoTables/basicTwoTables";
+import { init as initDefaultDemo } from './demos/default';
+import { init as initTwoTablesDemo } from './demos/twoTables';
+import { init as initCellTypeDemo } from './demos/cellTypes';
+import { init as initArabicRtlDemo } from './demos/arabicRtl';
+import { init as initCustomStyleDemo } from './demos/customStyle';
+import { init as initMergedCellsDemo } from './demos/mergedCells';
+import { init as initNestedHeadersDemo } from './demos/nestedHeaders';
+import { init as initNestedRowsDemo } from './demos/nestedRows';
+import { init as initComplexDemo } from './demos/complex';
+import { init as initBasicTwoTablesDemo } from "./demos/basicTwoTables";
+import { init as initContextMenuDemo } from "./demos/contextMenu";
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -87,7 +88,7 @@ router
         loadCSS('./assets/styles.css'),
         loadThemeCSS(),
       ]).then(() => {
-        initializeDataGrid();
+        initDefaultDemo();
       });
     },
     '/two-tables-demo': function () {
@@ -97,7 +98,7 @@ router
         loadCSS('./assets/two-tables-demo.css'),
         loadThemeCSS(),
       ]).then(() => {
-        initializeTwoTablesDemo();
+        initTwoTablesDemo();
       });
     },
     '/cell-types-demo': function () {
@@ -107,7 +108,7 @@ router
         loadCSS('./assets/cell-types-demo.css'),
         loadThemeCSS(),
       ]).then(() => {
-        initializeCellTypeDemo();
+        initCellTypeDemo();
       });
     },
     '/arabic-rtl-demo': function () {
@@ -116,7 +117,7 @@ router
       Promise.all([
         loadThemeCSS(),
       ]).then(() => {
-        initializeArabicRtlDemo();
+        initArabicRtlDemo();
       });
     },
     '/custom-style-demo': function () {
@@ -126,7 +127,7 @@ router
         loadCSS('./assets/custom-style-demo.css'),
         loadThemeCSS(),
       ]).then(() => {
-        initializeCustomStyleDemo();
+        initCustomStyleDemo();
       });
     },
     '/merged-cells-demo': function () {
@@ -136,7 +137,7 @@ router
         loadCSS('./assets/merged-cells-demo.css'),
         loadThemeCSS(),
       ]).then(() => {
-        initializeMergedCellsDemo();
+        initMergedCellsDemo();
       });
     },
     '/nested-headers-demo': function () {
@@ -146,7 +147,7 @@ router
         loadCSS('./assets/nested-headers-demo.css'),
         loadThemeCSS(),
       ]).then(() => {
-        initializeNestedHeadersDemo();
+        initNestedHeadersDemo();
       });
     },
     '/nested-rows-demo': function () {
@@ -156,7 +157,7 @@ router
         loadCSS('./assets/nested-rows-demo.css'),
         loadThemeCSS(),
       ]).then(() => {
-        initializeNestedRowsDemo();
+        initNestedRowsDemo();
       });
     },
     '/complex-demo': function () {
@@ -165,7 +166,7 @@ router
       Promise.all([
         loadThemeCSS(),
       ]).then(() => {
-        initializeComplexDemo();
+        initComplexDemo();
       });
     },
     '/basic-two-tables-demo': function () {
@@ -174,7 +175,16 @@ router
       Promise.all([
         loadThemeCSS(),
       ]).then(() => {
-        initializeBasicTwoTablesDemo();
+        initBasicTwoTablesDemo();
+      });
+    },
+    '/context-menu-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initContextMenuDemo();
       });
     },
   })

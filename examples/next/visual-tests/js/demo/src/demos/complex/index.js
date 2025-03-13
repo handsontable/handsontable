@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import { data } from './complexData';
+import { data } from './data';
 import { getThemeNameFromURL, getDirectionFromURL } from '../../utils';
 
 const root = document.getElementById('root');
@@ -7,7 +7,7 @@ const container = document.createElement('div');
 
 root.appendChild(container);
 
-export function initializeComplexDemo() {
+export function init() {
   new Handsontable(container, {
     data,
     themeName: getThemeNameFromURL(),

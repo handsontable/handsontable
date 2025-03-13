@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 
-export function initializeBasicTwoTablesDemo() {
+export function init() {
   const root = document.getElementById('root');
 
   const topTable = document.createElement('div');

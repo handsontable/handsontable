@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import { data } from './nestedHeadersData';
+import { data } from './data';
 import { getThemeNameFromURL } from '../../utils';
 
 const root = document.getElementById('root');
@@ -11,7 +11,7 @@ const container = document.createElement('div');
 root.appendChild(container);
 
 
-export function initializeNestedHeadersDemo() {
+export function init() {
   const hot = new Handsontable(container, {
     data: data,
     themeName: getThemeNameFromURL(),

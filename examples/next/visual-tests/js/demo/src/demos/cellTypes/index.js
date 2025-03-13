@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import { data, subData } from '././cellTypesData';
+import { data, subData } from './data';
 import { getThemeNameFromURL } from '../../utils';
 
 const root = document.getElementById('root');
@@ -39,7 +39,7 @@ function operationalStatusRenderer(
   }
 }
 
-export function initializeCellTypeDemo() {
+export function init() {
   new Handsontable(container, {
     data,
     colHeaders: [

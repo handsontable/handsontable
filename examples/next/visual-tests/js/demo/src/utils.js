@@ -1,4 +1,4 @@
-import { data } from './constants';
+import { data } from './data';
 
 const randomName = () =>
   ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];

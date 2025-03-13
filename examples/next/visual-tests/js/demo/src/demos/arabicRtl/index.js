@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
-import { generateArabicData } from './arabicRtlData';
+import { generateArabicData } from './data';
 import { getThemeNameFromURL } from '../../utils';
 
 registerLanguageDictionary(arAR);
@@ -10,7 +10,7 @@ const root = document.getElementById('root');
 const container = document.createElement('div');
 root.appendChild(container);
 
-export function initializeArabicRtlDemo() {
+export function init() {
  new Handsontable(container, {
     licenseKey: 'non-commercial-and-evaluation',
     data: generateArabicData(),

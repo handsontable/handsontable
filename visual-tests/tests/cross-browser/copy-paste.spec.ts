@@ -18,7 +18,7 @@ test('Copy between tables', async({ goto, tablePage, browserName }) => {
   await tableBottom.waitFor();
 
   await selectColumnHeaderByNameAndOpenMenu('OS', tableTop);
-  await selectFromContextMenu('"Read only"');
+  await selectFromContextMenu('Read only');
   await (await selectCell(2, 4, tableBottom)).click();
   await tablePage.keyboard.press(`${helpers.modifier}+c`);
 

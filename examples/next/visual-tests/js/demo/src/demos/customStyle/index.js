@@ -1,6 +1,5 @@
 import Handsontable from 'handsontable';
-
-import { data } from './customStyleData';
+import { data } from './data';
 
 const root = document.getElementById('root');
 
@@ -14,7 +13,7 @@ const mergedCells = [
   { row: 10, col: 0, rowspan: 3, colspan: 3 },
 ];
 
-export function initializeCustomStyleDemo() {
+export function init() {
   const hot = new Handsontable(container, {
     data,
     height: 450,
