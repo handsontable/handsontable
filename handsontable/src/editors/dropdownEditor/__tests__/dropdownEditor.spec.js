@@ -675,9 +675,7 @@ describe('DropdownEditor', () => {
 
       await sleep(100);
 
-      const $editorInput = $('.handsontableInput');
-
-      expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(6);
+      expect(Handsontable.dom.getCaretPosition(getActiveEditor().TEXTAREA)).toBe(6);
     });
   });
 
