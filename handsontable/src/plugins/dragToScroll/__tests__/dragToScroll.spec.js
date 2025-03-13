@@ -326,7 +326,7 @@ describe('DragToScroll', () => {
         horizontalSnap: 'start',
       });
 
-      await sleep(10);
+      await sleep(30);
 
       const $cell = $(getCell(0, 8));
       const $nextElement = $(document.body);

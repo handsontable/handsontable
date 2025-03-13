@@ -25,9 +25,7 @@ describe('Horizontal scroll', () => {
     });
 
     // make sure that the `I` column is partially visible
-    inlineStartOverlay().setScrollPosition(415);
-
-    await sleep(10);
+    await scrollOverlay(inlineStartOverlay(), 415);
 
     // select the `I` column
     selectCell(0, 8);

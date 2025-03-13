@@ -21,10 +21,8 @@ describe('Corner selection scroll', () => {
       colHeaders: true,
     });
 
-    inlineStartOverlay().setScrollPosition(25);
-    topOverlay().setScrollPosition(50);
-
-    await sleep(10);
+    await scrollOverlay(inlineStartOverlay(), 25);
+    await scrollOverlay(topOverlay(), 50);
 
     simulateClick(getCell(-1, -1));
 

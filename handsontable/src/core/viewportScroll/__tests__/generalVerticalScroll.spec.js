@@ -25,9 +25,7 @@ describe('Vertical scroll', () => {
     });
 
     // make sure that the `9` row is partially visible
-    topOverlay().setScrollPosition(195);
-
-    await sleep(10);
+    await scrollOverlay(topOverlay(), 195);
 
     // select the `9` row
     selectCell(8, 0);
