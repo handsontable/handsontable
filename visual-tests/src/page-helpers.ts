@@ -590,7 +590,8 @@ export async function clickRelativeToViewport(offsetX: number, offsetY: number, 
  * Scrolls the Handsontable to the most bottom.
  */
 export async function scrollTableToTheBottom() {
-  await getPageInstance().evaluate(async selector => {
+  await getPageInstance().evaluate(async (selector) => {
+    // eslint-disable-next-line no-restricted-globals
     const element = document.querySelector(selector);
 
     if (element) {
@@ -601,6 +602,7 @@ export async function scrollTableToTheBottom() {
           element.removeEventListener('scroll', listener);
           resolve(selector);
         };
+
         element.addEventListener('scroll', listener);
       });
     }
@@ -611,7 +613,8 @@ export async function scrollTableToTheBottom() {
  * Scrolls the Handsontable to the most end (horizontally).
  */
 export async function scrollTableToTheInlineEnd() {
-  await getPageInstance().evaluate(async selector => {
+  await getPageInstance().evaluate(async (selector) => {
+    // eslint-disable-next-line no-restricted-globals
     const element = document.querySelector(selector);
 
     if (element) {
@@ -626,6 +629,7 @@ export async function scrollTableToTheInlineEnd() {
           element.removeEventListener('scroll', listener);
           resolve(selector);
         };
+
         element.addEventListener('scroll', listener);
       });
     }

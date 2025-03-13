@@ -2,7 +2,6 @@ import { test } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import {
   clickRelativeToViewport,
-  takeScreenshot,
   closeTheMenu,
 } from '../../../src/page-helpers';
 
@@ -16,20 +15,20 @@ test(__filename, async({ goto, tablePage }) => {
   );
 
   await clickRelativeToViewport(80, 80, 'right'); // top-left
-  await takeScreenshot();
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await closeTheMenu();
 
   await clickRelativeToViewport(-80, 80, 'right'); // top-right
-  await takeScreenshot();
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await closeTheMenu();
 
   await clickRelativeToViewport(80, -80, 'right'); // bottom-left
-  await takeScreenshot();
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await closeTheMenu();
 
   await clickRelativeToViewport(-80, -80, 'right'); // bottom-right
-  await takeScreenshot();
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
