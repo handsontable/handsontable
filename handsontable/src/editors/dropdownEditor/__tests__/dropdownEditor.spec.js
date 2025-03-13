@@ -663,17 +663,17 @@ describe('DropdownEditor', () => {
       const editor = hot.getActiveEditor();
       const htContainer = editor.htContainer;
 
-      await sleep(50);
+      await sleep(100);
 
       simulateClick(htContainer.querySelector('.wtHolder'));
       htContainer.querySelector('.wtHolder').scrollTo(0, 40);
 
-      await sleep(50);
+      await sleep(100);
 
       keyDownUp('a');
       keyDownUp('a');
 
-      await sleep(50);
+      await sleep(100);
 
       const $editorInput = $('.handsontableInput');
 
