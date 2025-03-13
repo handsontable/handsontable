@@ -30,6 +30,7 @@ import {
   A11Y_SETSIZE,
   A11Y_TEXT
 } from '../../helpers/a11y';
+import { debounce } from '../../helpers/function';
 
 export const EDITOR_TYPE = 'autocomplete';
 
@@ -87,6 +88,13 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
+   * Runs focus method after debounce.
+   */
+  #focusDebounced = debounce(() => {
+    this.focus();
+  }, 100);
+
+  /**
    * Creates an editor's elements and adds necessary CSS classnames.
    */
   createElements() {
@@ -141,6 +149,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.showEditableElement();
     this.focus();
     this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
+    this.htEditor.addHook('afterScroll', this.#focusDebounced);
 
     this.htEditor.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : undefined,
@@ -429,7 +438,7 @@ export class AutocompleteEditor extends HandsontableEditor {
   #fixDropdownWidth() {
     if (this.htEditor.view.hasVerticalScroll()) {
       this.htEditor.updateSettings({
-        width: this.htEditor.getSettings().width + getScrollbarWidth(this.hot.rootDocument),
+        width: this.getWidth() + getScrollbarWidth(this.hot.rootDocument),
       });
     }
   }

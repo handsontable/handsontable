@@ -598,6 +598,87 @@ describe('DropdownEditor', () => {
         horizon.toBe(112);
       });
     });
+
+    it('should open editor with the correct size when there is scrollbar on the list and table', async() => {
+      handsontable({
+        colWidths: 120,
+        height: 100,
+        columns: [
+          {
+            editor: 'dropdown',
+            source: choices,
+            visibleRows: 3,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      const container = getActiveEditor().htContainer;
+
+      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(120 + Handsontable.dom.getScrollbarWidth());
+        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
+        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
+      });
+      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(72);
+        main.toBe(58);
+        horizon.toBe(37);
+      });
+    });
+
+    it('should set textarea caret position at the end of the input, after moving scrollbar', async() => {
+      const hot = handsontable({
+        data: [
+          ['yellow'],
+          ['red'],
+          ['orange'],
+          ['green'],
+          ['blue'],
+          ['gray'],
+          ['black'],
+          ['white'],
+          ['purple'],
+          ['lime'],
+          ['olive'],
+          ['cyan'],
+        ],
+        colWidths: 120,
+        columns: [
+          {
+            editor: 'dropdown',
+            source: choices,
+            visibleRows: 3,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      const editor = hot.getActiveEditor();
+      const htContainer = editor.htContainer;
+
+      await sleep(50);
+
+      simulateClick(htContainer.querySelector('.wtHolder'));
+      htContainer.querySelector('.wtHolder').scrollTo(0, 40);
+
+      await sleep(50);
+
+      keyDownUp('a');
+      keyDownUp('a');
+
+      await sleep(50);
+
+      const $editorInput = $('.handsontableInput');
+
+      expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(6);
+    });
   });
 
   describe('closing the editor', () => {
