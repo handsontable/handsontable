@@ -199,6 +199,14 @@ export class AutoColumnSize extends BasePlugin {
   columnWidthsMap = new IndexToValueMap();
 
   /**
+   * `true` value indicates that the #onInit() function has been already called.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #isInitialized = false;
+
+  /**
    * Cached column header names. It is used to diff current column headers with previous state and detect which
    * columns width should be updated.
    *
@@ -651,6 +659,7 @@ export class AutoColumnSize extends BasePlugin {
   #onInit() {
     this.#cachedColumnHeaders = this.hot.getColHeader();
     this.recalculateAllColumnsWidth();
+    this.#isInitialized = true;
   }
 
   /**
@@ -659,6 +668,10 @@ export class AutoColumnSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   #onAfterFormulasValuesUpdate(changes) {
+    if (!this.#isInitialized) {
+      return;
+    }
+
     const changedColumns = changes.reduce((acc, change) => {
       const physicalColumn = change.address?.col;
 
