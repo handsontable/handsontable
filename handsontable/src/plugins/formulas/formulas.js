@@ -839,7 +839,7 @@ export class Formulas extends BasePlugin {
     };
     let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
 
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true }) ?? {};
+    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
