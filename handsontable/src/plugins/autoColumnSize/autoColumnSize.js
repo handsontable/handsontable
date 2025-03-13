@@ -379,7 +379,6 @@ export class AutoColumnSize extends BasePlugin {
       } else {
         cancelAnimationFrame(timer);
         this.inProgress = false;
-        this.#visualColumnsToRefresh = [];
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
         this.hot.view.adjustElementsSize();
@@ -398,7 +397,6 @@ export class AutoColumnSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
-      this.#visualColumnsToRefresh = [];
     }
   }
 
