@@ -200,7 +200,6 @@ export class AutoRowSize extends BasePlugin {
   /**
    * `true` value indicates that the #onInit() function has been already called.
    *
-   * @private
    * @type {boolean}
    */
   #isInitialized = false;

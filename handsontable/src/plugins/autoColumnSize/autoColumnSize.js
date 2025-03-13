@@ -201,7 +201,6 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * `true` value indicates that the #onInit() function has been already called.
    *
-   * @private
    * @type {boolean}
    */
   #isInitialized = false;
@@ -432,7 +431,6 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * Processes a single column for width calculation.
    *
-   * @private
    * @param {number} visualColumn Visual column index.
    * @param {object} rowsRange Range of rows to process.
    */
@@ -445,7 +443,6 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * Updates the column widths map with calculated widths from the ghost table.
    *
-   * @private
    */
   #updateColumnWidthsMapBasedOnGhostTable() {
     this.hot.batchExecution(() => {
