@@ -197,6 +197,14 @@ export class AutoRowSize extends BasePlugin {
    */
   #visualRowsToRefresh = [];
 
+  /**
+   * `true` value indicates that the #onInit() function has been already called.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #isInitialized = false;
+
   constructor(hotInstance) {
     super(hotInstance);
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
@@ -625,6 +633,7 @@ export class AutoRowSize extends BasePlugin {
    */
   #onInit() {
     this.recalculateAllRowsHeight();
+    this.#isInitialized = true;
   }
 
   /**
@@ -633,6 +642,10 @@ export class AutoRowSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   #onAfterFormulasValuesUpdate(changes) {
+    if (!this.#isInitialized) {
+      return;
+    }
+
     const changedRows = changes.reduce((acc, change) => {
       const physicalRow = change.address?.row;
 
