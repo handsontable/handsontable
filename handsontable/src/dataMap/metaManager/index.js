@@ -136,7 +136,7 @@ export default class MetaManager {
    * @param {object} options Options for the `getCellMeta` method.
    * @param {number} options.visualRow The visual row index of the currently requested cell meta object.
    * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
-   * @param {boolean} [options.skipMetaExtension] If `true`, omits the `afterGetCellMeta` hook which calls the `extendCellMeta` method. Default: `false`.
+   * @param {boolean} [options.skipMetaExtension=false] If `true`, omits the `afterGetCellMeta` hook which calls the `extendCellMeta` method.
    * @returns {object}
    */
   getCellMeta(physicalRow, physicalColumn, options) {

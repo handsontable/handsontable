@@ -3351,7 +3351,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @param {object} options Execution options for the `getCellMeta` method.
-   * @param {boolean} [options.skipMetaExtension] If `true`, skips extending the cell meta object. Default: `false`.
+   * @param {boolean} [options.skipMetaExtension=false] If `true`, skips extending the cell meta object. This means, the `cells` function, as well as the `afterGetCellMeta` and `beforeGetCellMeta` hooks, will not be called.
    * @returns {object} The cell properties object.
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
