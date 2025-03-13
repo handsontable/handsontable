@@ -590,14 +590,14 @@ export async function clickRelativeToViewport(offsetX: number, offsetY: number, 
  * Scrolls the Handsontable to the most bottom.
  */
 export async function scrollTableToTheBottom() {
-  await getPageInstance().evaluate(async (selector) => {
+  await getPageInstance().evaluate(async(selector) => {
     // eslint-disable-next-line no-restricted-globals
     const element = document.querySelector(selector);
 
     if (element) {
       element.scrollTop = element.scrollHeight;
 
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         const listener = () => {
           element.removeEventListener('scroll', listener);
           resolve(selector);
@@ -613,7 +613,7 @@ export async function scrollTableToTheBottom() {
  * Scrolls the Handsontable to the most end (horizontally).
  */
 export async function scrollTableToTheInlineEnd() {
-  await getPageInstance().evaluate(async (selector) => {
+  await getPageInstance().evaluate(async(selector) => {
     // eslint-disable-next-line no-restricted-globals
     const element = document.querySelector(selector);
 
@@ -624,7 +624,7 @@ export async function scrollTableToTheInlineEnd() {
         element.scrollLeft = element.scrollWidth;
       }
 
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         const listener = () => {
           element.removeEventListener('scroll', listener);
           resolve(selector);
