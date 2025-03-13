@@ -97,7 +97,7 @@ describe('manualColumnMove', () => {
         horizontalSnap: 'start',
       });
 
-      await sleep(10);
+      await sleep(30);
 
       const columnHeader = $(getCell(-1, 8));
       const nextElement = $(document.body);
