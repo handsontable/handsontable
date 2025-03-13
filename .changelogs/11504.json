@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed copy, cut an paste actions on tables with a selection reaching outside of the rendered viewport.",
+  "type": "fixed",
+  "issueOrPR": 11504,
+  "breaking": false,
+  "framework": "none"
+}
