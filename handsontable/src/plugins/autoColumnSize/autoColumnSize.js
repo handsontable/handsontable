@@ -332,7 +332,7 @@ export class AutoColumnSize extends BasePlugin {
 
       if (overwriteCache || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
           !this.hot._getColWidthFromSettings(physicalColumn))) {
-        this.addColumnToGhostTableForWidthCalculation(visualColumn, rowsRange);
+        this.#fillGhostTableWithSamples(visualColumn, rowsRange);
       }
     });
 
@@ -419,7 +419,7 @@ export class AutoColumnSize extends BasePlugin {
       }
 
       if (!this.hot._getColWidthFromSettings(physicalColumn)) {
-        this.addColumnToGhostTableForWidthCalculation(visualColumn, rowsRange);
+        this.#fillGhostTableWithSamples(visualColumn, rowsRange);
       }
     });
 
@@ -436,7 +436,7 @@ export class AutoColumnSize extends BasePlugin {
    * @param {number} visualColumn Visual column index.
    * @param {object} rowsRange Range of rows to process.
    */
-  addColumnToGhostTableForWidthCalculation(visualColumn, rowsRange) {
+  #fillGhostTableWithSamples(visualColumn, rowsRange) {
     const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
 
     samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
