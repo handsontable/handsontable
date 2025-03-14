@@ -56,6 +56,7 @@ hot.getActiveEditor();
 hot.getCell(123, 123, true)!.focus();
 hot.getCellEditor(123, 123);
 hot.getCellMeta(123, 123).type === "text";
+hot.getCellMeta(123, 123, { skipMetaExtension: true }).type === "text";
 hot.getCellMetaAtRow(123).forEach(meta => meta.type === "text");
 hot.getCellRenderer(123, 123)(hot, mockTD, 1, 2, 'prop', '', cellProperties);
 hot.getCellsMeta()[0].visualRow;

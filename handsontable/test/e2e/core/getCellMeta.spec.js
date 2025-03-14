@@ -321,4 +321,48 @@ describe('Core.getCellMeta', () => {
     expect(rowInsideHook).toBe(4);
     expect(colInsideHook).toBe(4);
   });
+
+  describe('when skipMetaExtension =', () => {
+    let cellsSpy;
+    let beforeGetCellMetaSpy;
+    let afterGetCellMetaSpy;
+
+    beforeEach(() => {
+      cellsSpy = jasmine.createSpy('cells');
+      beforeGetCellMetaSpy = jasmine.createSpy('beforeGetCellMeta');
+      afterGetCellMetaSpy = jasmine.createSpy('afterGetCellMeta');
+
+      handsontable({
+        data: createSpreadsheetData(1, 1),
+        columns: [
+          { type: 'date', dateFormat: 'DD/MM/YYYY' },
+        ],
+        cells: cellsSpy,
+        beforeGetCellMeta: beforeGetCellMetaSpy,
+        afterGetCellMeta: afterGetCellMetaSpy,
+      });
+
+      runHooks('beforeRender', true); // Clear DynamicCellMetaMod cache
+
+      cellsSpy.calls.reset();
+      beforeGetCellMetaSpy.calls.reset();
+      afterGetCellMetaSpy.calls.reset();
+    });
+
+    it('false (default), should call `cells`, `beforeGetCellMeta` and `afterGetCellMeta`', () => {
+      getCellMeta(0, 0);
+
+      expect(cellsSpy).toHaveBeenCalledTimes(1);
+      expect(beforeGetCellMetaSpy).toHaveBeenCalledTimes(1);
+      expect(afterGetCellMetaSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('true, should not call `cells`, `beforeGetCellMeta` nor `afterGetCellMeta`', () => {
+      getCellMeta(0, 0, { skipMetaExtension: true });
+
+      expect(cellsSpy).not.toHaveBeenCalled();
+      expect(beforeGetCellMetaSpy).not.toHaveBeenCalled();
+      expect(afterGetCellMetaSpy).not.toHaveBeenCalled();
+    });
+  });
 });
