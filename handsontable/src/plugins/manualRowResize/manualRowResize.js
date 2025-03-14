@@ -321,7 +321,7 @@ export class ManualRowResize extends BasePlugin {
   setupGuidePosition() {
     const handleWidth = parseInt(outerWidth(this.#handle), 10);
     const handleEndPosition = parseInt(this.#handle.style[this.inlineDir], 10) + handleWidth;
-    const tableWidth = parseInt(this.hot.view.getTableWidth(), 10);
+    const tableWidth = this.hot.view.getTableWidth();
 
     addClass(this.#handle, 'active');
     addClass(this.#guide, 'active');
