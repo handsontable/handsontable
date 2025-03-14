@@ -96,5 +96,21 @@ describe('WalkontableTable', () => {
 
       expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
     });
+
+    it('should return `null` when the cell element doesn`t contain a parent node', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+
+      wt.draw();
+
+      const $td2 = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+
+      $td2.remove();
+
+      expect(wt.wtTable.getCoords($td2[0])).toEqual(null);
+    });
   });
 });
