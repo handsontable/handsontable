@@ -254,13 +254,19 @@ export async function makeSelectionFromCell(cell: Locator, size: number) {
 }
 
 /**
- * @param {string} columnName The column name.
+ * @param {string | number} columnNameOrIndex The column name or index.
  */
-export async function openHeaderDropdownMenu(columnName: string) {
+export async function openHeaderDropdownMenu(columnNameOrIndex: string | number) {
   const table = getDefaultTableInstance();
+  let element: Locator;
 
-  await table.locator(`.ht_clone_top th:has-text("${columnName}") .changeType`)
-    .click();
+  if (typeof columnNameOrIndex === 'number') {
+    element = table.locator(helpers.findDropdownMenuExpander({ col: columnNameOrIndex }));
+  } else {
+    element = table.locator(`.ht_clone_top th:has-text("${columnNameOrIndex}") .changeType`)
+  }
+
+  await element.click();
 }
 
 /**
@@ -363,10 +369,10 @@ export async function rowsCount() {
 }
 
 /**
- * @param {string} columnName Column name.
+ * @param {string | number} columnNameOrIndex Column name or index.
  */
-export async function clearColumn(columnName: string) {
-  openHeaderDropdownMenu(columnName);
+export async function clearColumn(columnNameOrIndex: string | number) {
+  openHeaderDropdownMenu(columnNameOrIndex);
 
   await getPageInstance().getByText('Clear column').click();
 
