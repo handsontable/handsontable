@@ -16,6 +16,12 @@ category: Getting started
 
 # Installation
 
+::: only-for angular
+
+Install Handsontable ... angular docs
+
+:::
+
 ::: only-for javascript
 
 Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.
@@ -31,6 +37,19 @@ Install Handsontable through your preferred package manager, and control your gr
 [[toc]]
 
 <div class="instalationPage">
+
+::: only-for angular
+
+Example only for angular
+
+::: example :angular --html 1 --js 2
+
+@[code](@/content/guides/getting-started/installation/angular/example1.html)
+@[code](@/content/guides/getting-started/installation/angular/example1.js)
+
+:::
+
+:::
 
 ::: only-for javascript
 

@@ -33,6 +33,7 @@ function setCookie(name, value) {
 const frameworkIdToFullName = new Map([
   ['javascript', { name: 'JavaScript' }],
   ['react', { name: 'React' }],
+  ['angular', { name: 'Angular' }],
 ]);
 
 export default {
