@@ -44,7 +44,7 @@ export const helpers = {
   testedPageUrl: '',
 
   cssPath(file: string) {
-    return `./tests-css/${file}`;
+    return path.resolve(__dirname, '../tests-css', file);
   },
 
   init() {
