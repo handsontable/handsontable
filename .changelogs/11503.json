@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with autocomplete caret position after using scroll on a list of choices and dropdown width fixer",
+  "type": "fixed",
+  "issueOrPR": 11503,
+  "breaking": false,
+  "framework": "none"
+}
