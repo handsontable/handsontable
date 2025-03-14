@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the initialization time of Handsontable with formulas enabled",
+  "type": "changed",
+  "issueOrPR": 11474,
+  "breaking": false,
+  "framework": "none"
+}
