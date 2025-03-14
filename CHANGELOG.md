@@ -31,7 +31,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed default (fallback) date format for Date editor [#11419](https://github.com/handsontable/handsontable/pull/11419)
 - Fixed context menu alter item activity [#11422](https://github.com/handsontable/handsontable/pull/11422)
 - Add checkbox input visibility for the no-theme variant [#11427](https://github.com/handsontable/handsontable/pull/11427)
-- Fix copy paste for chrome version 133 [#11428](https://github.com/handsontable/handsontable/pull/11428)
 - Fix cell text reading when imeFastEdit is enabled [#11442](https://github.com/handsontable/handsontable/pull/11442)
 - Fixed a problem, where clicking on the Comments' editor element deselected the currently selected cells. [#11446](https://github.com/handsontable/handsontable/pull/11446)
 - Fixed `hasVerticalScroll` and `hasHorizontalScroll` methods [#11455](https://github.com/handsontable/handsontable/pull/11455)
@@ -48,6 +47,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed problem with rowHeights when the value is lower than the default/min row height [#11487](https://github.com/handsontable/handsontable/pull/11487)
 - Fixed an issue with data source modification for row values as a string [#11491](https://github.com/handsontable/handsontable/pull/11491)
 - Fixed conflicts between ColumnSorting and MultiColumnSorting plugins [#11492](https://github.com/handsontable/handsontable/pull/11492)
+- Fixed copy, cut an paste actions on tables with a selection reaching outside of the rendered viewport. [#11504](https://github.com/handsontable/handsontable/pull/11504)
 
 ## [15.1.0] - 2025-02-20
 
