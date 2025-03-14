@@ -263,7 +263,7 @@ export async function openHeaderDropdownMenu(columnNameOrIndex: string | number)
   if (typeof columnNameOrIndex === 'number') {
     element = table.locator(helpers.findDropdownMenuExpander({ col: columnNameOrIndex }));
   } else {
-    element = table.locator(`.ht_clone_top th:has-text("${columnNameOrIndex}") .changeType`)
+    element = table.locator(`.ht_clone_top th:has-text("${columnNameOrIndex}") .changeType`);
   }
 
   await element.click();
