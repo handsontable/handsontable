@@ -1,3 +1,5 @@
+import { HyperFormula } from 'hyperformula';
+
 describe('AutoRowSize', () => {
   const id = 'testContainer';
 
@@ -905,5 +907,28 @@ describe('AutoRowSize', () => {
     });
 
     $(style).remove();
+  });
+
+  describe('should work together with formulas plugin', () => {
+    it('should calculate heights only once during the initialization of Handsontable with formulas plugin enabled', () => {
+      const beforeInit = function() {
+        spyOn(this.getPlugin('autoRowSize').ghostTable, 'addRow').and.callThrough();
+      };
+
+      Handsontable.hooks.add('beforeInit', beforeInit);
+
+      handsontable({
+        data: [
+          [42, '=A1'],
+        ],
+        autoRowSize: true,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      expect(getPlugin('autoRowSize').ghostTable.addRow).toHaveBeenCalledTimes(1);
+      Handsontable.hooks.remove('beforeInit', beforeInit);
+    });
   });
 });

@@ -1422,7 +1422,25 @@ describe('AutoColumnSize', () => {
     });
   });
 
-  describe('adjust to HyperFormula calculation result', () => {
+  describe('should work together with formulas plugin', () => {
+    it('should calculate widths only once during the initialization of Handsontable with formulas plugin enabled', () => {
+      const beforeInit = function() {
+        spyOn(this.getPlugin('autoColumnSize').ghostTable, 'addColumn').and.callThrough();
+      };
+
+      Handsontable.hooks.add('beforeInit', beforeInit);
+
+      handsontable({
+        data: [[42], ['=A1']],
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      expect(getPlugin('autoColumnSize').ghostTable.addColumn).toHaveBeenCalledTimes(1);
+      Handsontable.hooks.remove('beforeInit', beforeInit);
+    });
+
     it('should increase width if result become to be longer', async() => {
       handsontable({
         data: [
