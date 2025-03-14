@@ -700,6 +700,11 @@ class Table {
     }
 
     const TR = cellElement.parentNode;
+
+    if (!TR) {
+      return null;
+    }
+
     const CONTAINER = TR.parentNode;
     let row = index(TR);
     let col = cellElement.cellIndex;
