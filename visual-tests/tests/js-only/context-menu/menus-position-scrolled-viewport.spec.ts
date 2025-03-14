@@ -3,6 +3,7 @@ import { helpers } from '../../../src/helpers';
 import {
   clickRelativeToViewport,
   selectFromContextMenu,
+  scrollTableToTheInlineEnd,
   scrollTableToTheBottom,
   closeTheMenu,
 } from '../../../src/page-helpers';
@@ -16,6 +17,7 @@ test(__filename, async({ goto, tablePage }) => {
       .getFullUrl()
   );
 
+  await scrollTableToTheInlineEnd();
   await scrollTableToTheBottom();
 
   await clickRelativeToViewport(80, 80, 'right'); // top-left

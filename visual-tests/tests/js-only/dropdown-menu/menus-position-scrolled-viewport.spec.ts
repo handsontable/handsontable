@@ -3,6 +3,7 @@ import { helpers } from '../../../src/helpers';
 import {
   openHeaderDropdownMenu,
   selectFromDropdownMenu,
+  scrollTableToTheInlineEnd,
   scrollTableToTheBottom,
   closeTheMenu,
 } from '../../../src/page-helpers';
@@ -16,9 +17,10 @@ test(__filename, async({ goto, tablePage }) => {
       .getFullUrl()
   );
 
+  await scrollTableToTheInlineEnd();
   await scrollTableToTheBottom();
 
-  await openHeaderDropdownMenu('A');
+  await openHeaderDropdownMenu('AM');
   await selectFromDropdownMenu('Alignment');
   await tablePage.keyboard.press('ArrowUp');
   await tablePage.keyboard.press('ArrowDown'); // selects "Left" submenu option
@@ -26,7 +28,7 @@ test(__filename, async({ goto, tablePage }) => {
 
   await closeTheMenu();
 
-  await openHeaderDropdownMenu('L');
+  await openHeaderDropdownMenu('AX');
   await selectFromDropdownMenu('Alignment');
   await tablePage.keyboard.press('ArrowUp');
   await tablePage.keyboard.press('ArrowDown'); // selects "Left" submenu option
