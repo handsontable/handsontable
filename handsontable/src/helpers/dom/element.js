@@ -38,7 +38,7 @@ export function getParent(element, level = 0) {
  * @param {HTMLElement} thisHotContainer The Handsontable container.
  * @returns {boolean}
  */
-export function isThisHotChild(element, thisHotContainer) {
+export function isInternalElement(element, thisHotContainer) {
   const closestHandsontableContainer = element.closest('.handsontable');
 
   return !!closestHandsontableContainer &&
