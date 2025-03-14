@@ -1,0 +1,12 @@
+$ find . -type f -name '*.js' | xargs wc | tail -1
+
+handsontable/handsontable/src
+92524  293132 3069362 total
+
+handsontable/handsontable/src/plugins
+66370  198746 2215555 total
+
+Removed all plugins, all validators, almost all cellTypes, renderers and editors, selection tests, walkontable tests
+
+handsontable/handsontable/src
+83685  274117 2805264 total
