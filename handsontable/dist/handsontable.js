@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 15.2.0
- * Release date: 19/03/2025 (built at 12/03/2025 10:22:58)
+ * Release date: 19/03/2025 (built at 14/03/2025 12:16:17)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "12/03/2025 10:22:58";
+Handsontable.buildDate = "14/03/2025 12:16:17";
 Handsontable.version = "15.2.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -8665,8 +8665,8 @@ exports.isChildOf = isChildOf;
 exports.isDetached = isDetached;
 exports.isHTMLElement = isHTMLElement;
 exports.isInput = isInput;
+exports.isInternalElement = isInternalElement;
 exports.isOutsideInput = isOutsideInput;
-exports.isThisHotChild = isThisHotChild;
 exports.isVisible = isVisible;
 exports.makeElementContentEditableAndSelectItsContent = makeElementContentEditableAndSelectItsContent;
 exports.matchesCSSRules = matchesCSSRules;
@@ -8727,7 +8727,7 @@ function getParent(element) {
  * @param {HTMLElement} thisHotContainer The Handsontable container.
  * @returns {boolean}
  */
-function isThisHotChild(element, thisHotContainer) {
+function isInternalElement(element, thisHotContainer) {
   const closestHandsontableContainer = element.closest('.handsontable');
   return !!closestHandsontableContainer && (closestHandsontableContainer.parentNode === thisHotContainer || closestHandsontableContainer === thisHotContainer);
 }
@@ -50273,7 +50273,7 @@ class TextEditor extends _baseEditor.BaseEditor {
    */
   close() {
     this.autoResize.unObserve();
-    if ((0, _element.isThisHotChild)(this.hot.rootDocument.activeElement, this.hot.rootElement)) {
+    if ((0, _element.isInternalElement)(this.hot.rootDocument.activeElement, this.hot.rootElement)) {
       this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
     }
     this.hideEditableElement();
@@ -66794,12 +66794,10 @@ class CopyPaste extends _base.BasePlugin {
    * @private
    */
   onCopy(event) {
-    var _event$target, _this$hot$getSelected;
+    var _event$target;
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = (_event$target = event.target) === null || _event$target === void 0 ? void 0 : _event$target.hasAttribute('data-hot-input');
-    const selectedCell = (_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight;
-    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
-    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCopy, this) || this.isEditorOpened() || (0, _element.isHTMLElement)(event.target) && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
+    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCopy, this) || this.isEditorOpened() || (0, _element.isHTMLElement)(event.target) && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && !(0, _element.isInternalElement)(event.target, this.hot.rootElement))) {
       return;
     }
     event.preventDefault();
@@ -66829,12 +66827,10 @@ class CopyPaste extends _base.BasePlugin {
    * @private
    */
   onCut(event) {
-    var _event$target2, _this$hot$getSelected2;
+    var _event$target2;
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = (_event$target2 = event.target) === null || _event$target2 === void 0 ? void 0 : _event$target2.hasAttribute('data-hot-input');
-    const selectedCell = (_this$hot$getSelected2 = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected2 === void 0 ? void 0 : _this$hot$getSelected2.highlight;
-    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
-    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCut, this) || this.isEditorOpened() || (0, _element.isHTMLElement)(event.target) && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
+    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCut, this) || this.isEditorOpened() || (0, _element.isHTMLElement)(event.target) && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && !(0, _element.isInternalElement)(event.target, this.hot.rootElement))) {
       return;
     }
     event.preventDefault();
@@ -66863,12 +66859,10 @@ class CopyPaste extends _base.BasePlugin {
    * @private
    */
   onPaste(event) {
-    var _event$target3, _this$hot$getSelected3;
+    var _event$target3;
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = (_event$target3 = event.target) === null || _event$target3 === void 0 ? void 0 : _event$target3.hasAttribute('data-hot-input');
-    const selectedCell = (_this$hot$getSelected3 = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected3 === void 0 ? void 0 : _this$hot$getSelected3.highlight;
-    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
-    if (!this.hot.isListening() || this.isEditorOpened() || !this.hot.getSelected() || (0, _element.isHTMLElement)(event.target) && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
+    if (!this.hot.isListening() || this.isEditorOpened() || !this.hot.getSelected() || (0, _element.isHTMLElement)(event.target) && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && !(0, _element.isInternalElement)(event.target, this.hot.rootElement))) {
       return;
     }
     event.preventDefault();
