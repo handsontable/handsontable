@@ -13,6 +13,7 @@ import { init as initNestedRowsDemo } from './demos/nestedRows';
 import { init as initComplexDemo } from './demos/complex';
 import { init as initBasicTwoTablesDemo } from "./demos/basicTwoTables";
 import { init as initContextMenuDemo } from "./demos/contextMenu";
+import { init as initDropdownMenuDemo } from "./demos/dropdownMenu";
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -185,6 +186,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initContextMenuDemo();
+      });
+    },
+    '/dropdown-menu-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initDropdownMenuDemo();
       });
     },
   })

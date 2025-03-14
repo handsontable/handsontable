@@ -21,9 +21,7 @@ describe('ContextMenu (RTL mode)', () => {
       $('html').attr('dir', htmlDir);
     });
 
-    describe('subMenu opening', () => {
-      // all E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/context-menu/
-    });
+    // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/context-menu/
 
     it('should show tick from "Read only" element at proper place', () => {
       handsontable({

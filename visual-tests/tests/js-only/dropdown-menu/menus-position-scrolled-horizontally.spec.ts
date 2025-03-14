@@ -1,7 +1,8 @@
 import { test } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import {
-  clickRelativeToViewport,
+  openHeaderDropdownMenu,
+  selectFromDropdownMenu,
   scrollTableToTheInlineEnd,
   closeTheMenu,
 } from '../../../src/page-helpers';
@@ -11,27 +12,23 @@ test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript fr
 test(__filename, async({ goto, tablePage }) => {
   await goto(
     helpers
-      .setBaseUrl('/context-menu-demo')
+      .setBaseUrl('/dropdown-menu-demo')
       .getFullUrl()
   );
 
   await scrollTableToTheInlineEnd();
 
-  await clickRelativeToViewport(80, 80, 'right'); // top-left
+  await openHeaderDropdownMenu('AM');
+  await selectFromDropdownMenu('Alignment');
+  await tablePage.keyboard.press('ArrowUp');
+  await tablePage.keyboard.press('ArrowDown'); // selects "Left" submenu option
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await closeTheMenu();
 
-  await clickRelativeToViewport(-80, 80, 'right'); // top-right
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
-  await closeTheMenu();
-
-  await clickRelativeToViewport(80, -80, 'right'); // bottom-left
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
-  await closeTheMenu();
-
-  await clickRelativeToViewport(-80, -80, 'right'); // bottom-right
+  await openHeaderDropdownMenu('AX');
+  await selectFromDropdownMenu('Alignment');
+  await tablePage.keyboard.press('ArrowUp');
+  await tablePage.keyboard.press('ArrowDown'); // selects "Left" submenu option
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

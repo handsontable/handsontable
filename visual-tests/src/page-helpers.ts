@@ -254,26 +254,31 @@ export async function makeSelectionFromCell(cell: Locator, size: number) {
 }
 
 /**
- * @param {number} columnIndex Cell locator.
+ * @param {string} columnName The column name.
  */
-export async function openHeaderDropdownMenu(columnIndex: number) {
+export async function openHeaderDropdownMenu(columnName: string) {
   const table = getDefaultTableInstance();
-  const changeTypeButton = table.locator(
-    helpers.findDropdownMenuExpander({ col: columnIndex })
-  );
 
-  await changeTypeButton.click();
+  await table.locator(`.ht_clone_top th:has-text("${columnName}") .changeType`)
+    .click();
 }
 
 /**
  * @param {string} option Cell locator.
  */
 export async function selectFromDropdownMenu(option: string) {
-  const dropdownMenu = getPageInstance().locator(
+  const contextMenu = getPageInstance().locator(
     helpers.selectors.dropdownMenu
   );
 
-  await dropdownMenu.locator(option).click();
+  const element = contextMenu.locator(`[aria-label="${option}"]`);
+  const elementClass = await element.getAttribute('class');
+
+  await element.click();
+
+  if (elementClass?.includes('htSubmenu')) {
+    await waitForDropdownSubmenuToAppear(option);
+  }
 }
 
 /**
@@ -290,7 +295,7 @@ export async function selectFromContextMenu(option: string) {
   await element.click();
 
   if (elementClass?.includes('htSubmenu')) {
-    await waitForSubmenuToAppear(option);
+    await waitForContextSubmenuToAppear(option);
   }
 }
 
@@ -358,10 +363,11 @@ export async function rowsCount() {
 }
 
 /**
- * @param {number} index Column index.
+ * @param {string} columnName Column name.
  */
-export async function clearColumn(index: number) {
-  openHeaderDropdownMenu(index);
+export async function clearColumn(columnName: string) {
+  openHeaderDropdownMenu(columnName);
+
   await getPageInstance().getByText('Clear column').click();
 
 }
@@ -637,10 +643,19 @@ export async function scrollTableToTheInlineEnd() {
 }
 
 /**
- * Waits for the submenu to appear on the page.
+ * Waits for the context submenu to appear on the page.
  *
  * @param {string} submenuName The name of the submenu.
  */
-export async function waitForSubmenuToAppear(submenuName: string) {
+export async function waitForContextSubmenuToAppear(submenuName: string) {
   await getPageInstance().waitForSelector(`.htContextMenuSub_${submenuName}`);
+}
+
+/**
+ * Waits for the dropdown submenu to appear on the page.
+ *
+ * @param {string} submenuName The name of the submenu.
+ */
+export async function waitForDropdownSubmenuToAppear(submenuName: string) {
+  await getPageInstance().waitForSelector(`.htDropdownMenuSub_${submenuName}`);
 }
