@@ -353,14 +353,14 @@ export class ManualColumnResize extends BasePlugin {
   setupGuidePosition() {
     const handleHeight = parseInt(outerHeight(this.#handle), 10);
     const handleBottomPosition = parseInt(this.#handle.style.top, 10) + handleHeight;
-    const maximumVisibleElementHeight = parseInt(this.hot.view.maximumVisibleElementHeight(0), 10);
+    const tableHeight = this.hot.view.getTableHeight();
 
     addClass(this.#handle, 'active');
     addClass(this.#guide, 'active');
 
     this.#guide.style.top = `${handleBottomPosition}px`;
     this.refreshGuidePosition();
-    this.#guide.style.height = `${maximumVisibleElementHeight - handleHeight}px`;
+    this.#guide.style.height = `${tableHeight - handleHeight}px`;
     this.hot.rootElement.appendChild(this.#guide);
   }
 
