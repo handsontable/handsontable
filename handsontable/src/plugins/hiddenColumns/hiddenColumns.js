@@ -195,9 +195,9 @@ export class HiddenColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
-
     super.disablePlugin();
+
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     this.resetCellsMeta();
   }
 
