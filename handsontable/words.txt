@@ -1,12 +1,33 @@
-$ find . -type f -name '*.js' | xargs wc | tail -1
+Count words in src:
+find . -type f -name '*.js' -print0 > jsFiles && wc --files0-from jsFiles && rm jsFiles
 
-handsontable/handsontable/src
-92524  293132 3069362 total
+Count words in src subdirs:
+for dir in */ ; do echo `find $dir -type f -name '*.js' | xargs wc -w | tail -1` $dir ; done | sort -n
 
-handsontable/handsontable/src/plugins
-66370  198746 2215555 total
 
-Removed all plugins, all validators, almost all cellTypes, renderers and editors, selection tests, walkontable tests
 
-handsontable/handsontable/src
-83685  274117 2805264 total
+Initially:
+341501  1012392 11199527 total
+
+Removed all plugins, all validators, almost all cellTypes, renderers and editors, all tests
+52089  191216 1754323 total
+
+Dirs:
+0 __tests__/
+0 styles/
+216 total validators/
+386 total cellTypes/
+428 total mixins/
+656 total renderers/
+1887 total plugins/
+2842 total shortcuts/
+3305 total shortcutContexts/
+3940 total editors/
+7040 total translations/
+7280 total i18n/
+7620 total utils/
+12011 total selection/
+12886 total helpers/
+19775 total core/
+35756 total dataMap/
+44280 total 3rdparty/
