@@ -541,6 +541,27 @@ describe('Formulas general', () => {
     });
   });
 
+  it('should return a correctly formatted date while using `getDataAtCell` inside `cells` method with custom dateFormat', () => {
+    const data = [['02/28/1900', '03/01/1900', '=DATEDIF(A1, B1, "D")']];
+
+    handsontable({
+      data,
+      formulas: {
+        engine: HyperFormula
+      },
+      cells(row, col) {
+        if (col === 2) {
+          expect(this.instance.getDataAtCell(row, col)).toBe(1);
+        }
+      },
+      columns: [
+        { type: 'date', dateFormat: 'MM/DD/YYYY' },
+        { type: 'date', dateFormat: 'MM/DD/YYYY' },
+        { type: 'numeric' }
+      ]
+    });
+  });
+
   // Discussion on why `null` instead of `#REF!` at
   // https://github.com/handsontable/handsontable/issues/7668
   describe('Out of range cells', () => {

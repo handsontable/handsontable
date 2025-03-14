@@ -164,7 +164,7 @@ describe('Comments', () => {
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
 
-        await sleep(10);
+        await sleep(30);
 
         plugin.showAtCell(countRows() - 10, countCols() - 10);
 
@@ -265,7 +265,7 @@ describe('Comments', () => {
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
 
-        await sleep(10);
+        await sleep(30);
 
         plugin.showAtCell(countRows() - 2, countCols() - 5);
 
@@ -296,7 +296,7 @@ describe('Comments', () => {
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
 
-        await sleep(10);
+        await sleep(30);
 
         plugin.showAtCell(countRows() - 2, countCols() - 8);
 
@@ -327,7 +327,7 @@ describe('Comments', () => {
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
 
-        await sleep(10);
+        await sleep(30);
 
         plugin.showAtCell(countRows() - 2, countCols() - 8);
 
@@ -361,7 +361,7 @@ describe('Comments', () => {
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
 
-        await sleep(10);
+        await sleep(30);
 
         plugin.showAtCell(countRows() - 5, countCols() - 2);
 
@@ -399,7 +399,7 @@ describe('Comments', () => {
           horizontalSnap: 'start',
         });
 
-        await sleep(10);
+        await sleep(30);
 
         const defaultRowHeight = getDefaultRowHeight();
         const plugin = getPlugin('comments');
@@ -520,7 +520,7 @@ describe('Comments', () => {
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
 
-        await sleep(10);
+        await sleep(30);
 
         plugin.showAtCell(countRows() - 1, 0);
 
@@ -637,7 +637,7 @@ describe('Comments', () => {
         clientY: cell.offset().top + 5,
       });
 
-      await sleep(10);
+      await sleep(30);
 
       const commentEditorOffset = $(hot.getPlugin('comments').getEditorInputElement()).offset();
 
@@ -679,7 +679,7 @@ describe('Comments', () => {
       horizontalSnap: 'start',
     });
 
-    await sleep(10);
+    await sleep(30);
 
     const plugin = hot.getPlugin('comments');
     const editor = plugin.getEditorInputElement();

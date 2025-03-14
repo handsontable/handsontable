@@ -26,9 +26,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(0, 5));
 
@@ -45,9 +43,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       mouseDoubleClick(getCell(0, 5));
 
@@ -64,9 +60,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(0, 4);
       keyDownUp('arrowleft');
@@ -85,9 +79,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(-1, 4);
       keyDownUp('arrowleft');
@@ -105,9 +97,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(0, 5);
 
@@ -126,9 +116,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(0, 0));
 
@@ -147,9 +135,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       mouseDoubleClick(getCell(0, 0));
 
@@ -166,9 +152,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(0, 1);
       keyDownUp('arrowright');
@@ -187,9 +171,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(-1, 1);
       keyDownUp('arrowright');
@@ -207,9 +189,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(0, 0);
 

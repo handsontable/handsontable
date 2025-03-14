@@ -26,9 +26,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(0, 4));
       keyDown('shift');
@@ -49,9 +47,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(0, 4);
       keyDownUp(['shift', 'arrowleft']);
@@ -70,9 +66,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(-1, 4);
       keyDownUp(['shift', 'arrowleft']);
@@ -90,15 +84,13 @@ describe('Multiple selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 4, 0, 5]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
 
-      inlineStartOverlay().setScrollPosition(25);
+      await scrollOverlay(inlineStartOverlay(), 25);
     });
 
     it('should not scroll the viewport after using API (selecting partially visible column to fully visible column)', async() => {
@@ -111,9 +103,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 5, 0, 4]]);
 
@@ -132,9 +122,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(0, 1));
       keyDown('shift');
@@ -155,9 +143,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(0, 1);
       keyDownUp(['shift', 'arrowright']);
@@ -176,9 +162,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(-1, 1);
       keyDownUp(['shift', 'arrowright']);
@@ -196,9 +180,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 1, 0, 0]]);
 
@@ -215,9 +197,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 0, 0, 1]]);
 

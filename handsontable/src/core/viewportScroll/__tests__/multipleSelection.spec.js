@@ -23,9 +23,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(0, 4));
       keyDown('shift');
@@ -46,9 +44,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(0, 4);
       keyDownUp(['shift', 'arrowright']);
@@ -67,9 +63,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(-1, 4);
       keyDownUp(['shift', 'arrowright']);
@@ -87,9 +81,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 4, 0, 5]]);
 
@@ -106,9 +98,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 5, 0, 4]]);
 
@@ -127,9 +117,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       simulateClick(getCell(0, 1));
       keyDown('shift');
@@ -150,9 +138,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(0, 1);
       keyDownUp(['shift', 'arrowleft']);
@@ -171,9 +157,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(-1, 1);
       keyDownUp(['shift', 'arrowleft']);
@@ -191,9 +175,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 1, 0, 0]]);
 
@@ -210,9 +192,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      inlineStartOverlay().setScrollPosition(25);
-
-      await sleep(10);
+      await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCells([[0, 0, 0, 1]]);
 
@@ -231,9 +211,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      topOverlay().setScrollPosition(15);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 15);
 
       simulateClick(getCell(1, 0));
       keyDown('shift');
@@ -254,9 +232,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      topOverlay().setScrollPosition(15);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 15);
 
       selectCell(1, 0);
       keyDownUp(['shift', 'arrowup']);
@@ -275,9 +251,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      topOverlay().setScrollPosition(15);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 15);
 
       selectCell(1, -1);
       keyDownUp(['shift', 'arrowup']);
@@ -295,9 +269,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      topOverlay().setScrollPosition(15);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 15);
 
       selectCells([[1, 0, 0, 0]]);
 
@@ -316,9 +288,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      topOverlay().setScrollPosition(15);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 15);
 
       selectCells([[0, 0, 1, 0]]);
 
@@ -375,9 +345,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 5);
 
       selectCell(10, -1);
       keyDownUp(['shift', 'arrowdown']);
@@ -417,9 +385,7 @@ describe('Multiple selection scroll', () => {
       });
 
       // make sure that the `A12` cell is partially visible on the bottom side of the table
-      topOverlay().setScrollPosition(5);
-
-      await sleep(10);
+      await scrollOverlay(topOverlay(), 5);
 
       selectCells([[11, 0, 10, 0]]);
 
