@@ -126,7 +126,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('should skip processing the event when the target element has not the "data-hot-input" attribute and it\'s not a BODY element', () => {
+    it('should skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s not a BODY element', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -143,7 +143,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.preventDefault).not.toHaveBeenCalled();
     });
 
-    it('should not skip processing the event when the target element has not the "data-hot-input" attribute and it\'s a BODY element', () => {
+    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a BODY element', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -160,7 +160,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('should not skip processing the event when the target element has not the "data-hot-input" attribute and it\'s a TD element (#dev-2225)', () => {
+    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a TD element (#dev-2225)', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -175,6 +175,27 @@ describe('CopyPaste', () => {
       plugin.onCut(copyEvent); // trigger the plugin's method that is normally triggered by the native "cut" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
+    });
+
+    it('should be possible to cut the content that starts outside of the rendered viewport (#dev-2298)', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 50),
+        width: 100,
+        height: 50,
+      });
+
+      const cutEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+      const expectedResult = getDataAtRow(0).join('\t');
+
+      selectCells([[0, 0, 0, 49]]);
+
+      await sleep(10);
+
+      cutEvent.target = document.activeElement;
+      plugin.onCut(cutEvent); // emulate native "cut" event
+
+      expect(cutEvent.clipboardData.getData('text/plain')).toBe(expectedResult);
     });
   });
 });
