@@ -18,7 +18,7 @@ test(__filename, async({ goto, tablePage }) => {
       .setBaseUrl('/complex-demo')
       .getFullUrl()
   );
-  await openHeaderDropdownMenu(4);
+  await openHeaderDropdownMenu('Age');
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   const cell = await selectCell(5, 1);

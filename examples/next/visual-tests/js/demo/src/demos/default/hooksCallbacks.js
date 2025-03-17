@@ -1,8 +1,7 @@
 import Handsontable from "handsontable";
-import {
-  SELECTED_CLASS,
-  ODD_ROW_CLASS
-} from "./constants";
+
+const SELECTED_CLASS = "selected";
+const ODD_ROW_CLASS = "odd";
 
 export function addClassesToRows(TD, row, column, prop, value, cellProperties) {
   // Adding classes to `TR` just while rendering first visible `TD` element

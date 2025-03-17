@@ -8,7 +8,7 @@ container.id = 'hot';
 
 root.appendChild(container);
 
-export function initializeLargeDatasetDemo() {
+export function init() {
   new Handsontable(container, {
     data: Handsontable.helper.createSpreadsheetData(150, 150),
     colHeaders: true,

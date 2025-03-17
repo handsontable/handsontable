@@ -10,12 +10,12 @@ test('Test column hiding', async({ tablePage }) => {
   expect(await columnsCount()).toBe(9);
 
   await selectColumnHeaderByNameAndOpenMenu('Name');
-  await selectFromContextMenu('"Hide column"');
+  await selectFromContextMenu('Hide column');
 
   expect(await columnsCount()).toBe(8);
 
   await selectColumnHeaderByNameAndOpenMenu('In stock');
-  await selectFromContextMenu('"Hide column"');
+  await selectFromContextMenu('Hide column');
 
   expect(await columnsCount()).toBe(7);
 
@@ -25,7 +25,7 @@ test('Test column hiding', async({ tablePage }) => {
 
   await selectColumnHeaderByNameAndOpenMenu('Progress');
 
-  await selectFromContextMenu('"Show columns"');
+  await selectFromContextMenu('Show columns');
 
   expect(await columnsCount()).toBe(9);
 

@@ -1,8 +1,13 @@
 import Handsontable from "handsontable/base";
 
-import { generateExampleData, getDirectionFromURL, getThemeNameFromURL } from "./utils";
+import { generateExampleData, getDirectionFromURL, getThemeNameFromURL } from "../../utils";
 import { progressBarRenderer, starRenderer } from "./customRenderers";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
+import {
+  addClassesToRows,
+  changeCheckboxCell,
+  drawCheckboxInRowHeaders
+} from "./hooksCallbacks";
 
 // choose cell types you want to use and import them
 import {
@@ -49,17 +54,11 @@ registerCellType(NumericCellType);
 
 registerLanguageDictionary(arAR);
 
-import {
-  addClassesToRows,
-  changeCheckboxCell,
-  drawCheckboxInRowHeaders
-} from "./hooksCallbacks";
-
 const root = document.getElementById('root');
 const example = document.createElement('div');
 root.appendChild(example);
 
-export function initializeDataGrid() {
+export function init() {
   new Handsontable(example, {
     data: generateExampleData(),
     layoutDirection: getDirectionFromURL(),

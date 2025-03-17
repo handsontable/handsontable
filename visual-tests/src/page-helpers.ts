@@ -124,6 +124,13 @@ export async function openContextMenu(cell: Locator) {
 }
 
 /**
+ * Closes any menu (context or dropdown).
+ */
+export async function closeTheMenu() {
+  await clickRelativeToViewport(0, 0, 'left');
+}
+
+/**
  * @param {string} alignment The alignment to set.
  * @param {Locator} cell The locator of the cell.
  */
@@ -247,26 +254,37 @@ export async function makeSelectionFromCell(cell: Locator, size: number) {
 }
 
 /**
- * @param {number} columnIndex Cell locator.
+ * @param {string | number} columnNameOrIndex The column name or index.
  */
-export async function openHeaderDropdownMenu(columnIndex: number) {
+export async function openHeaderDropdownMenu(columnNameOrIndex: string | number) {
   const table = getDefaultTableInstance();
-  const changeTypeButton = table.locator(
-    helpers.findDropdownMenuExpander({ col: columnIndex })
-  );
+  let element: Locator;
 
-  await changeTypeButton.click();
+  if (typeof columnNameOrIndex === 'number') {
+    element = table.locator(helpers.findDropdownMenuExpander({ col: columnNameOrIndex }));
+  } else {
+    element = table.locator(`.ht_clone_top th:has-text("${columnNameOrIndex}") .changeType`);
+  }
+
+  await element.click();
 }
 
 /**
  * @param {string} option Cell locator.
  */
 export async function selectFromDropdownMenu(option: string) {
-  const dropdownMenu = getPageInstance().locator(
+  const contextMenu = getPageInstance().locator(
     helpers.selectors.dropdownMenu
   );
 
-  await dropdownMenu.locator(option).click();
+  const element = contextMenu.locator(`[aria-label="${option}"]`);
+  const elementClass = await element.getAttribute('class');
+
+  await element.click();
+
+  if (elementClass?.includes('htSubmenu')) {
+    await waitForDropdownSubmenuToAppear(option);
+  }
 }
 
 /**
@@ -277,7 +295,14 @@ export async function selectFromContextMenu(option: string) {
     helpers.selectors.contextMenu
   );
 
-  await contextMenu.locator(option).click();
+  const element = contextMenu.locator(`[aria-label="${option}"]`);
+  const elementClass = await element.getAttribute('class');
+
+  await element.click();
+
+  if (elementClass?.includes('htSubmenu')) {
+    await waitForContextSubmenuToAppear(option);
+  }
 }
 
 /**
@@ -344,10 +369,11 @@ export async function rowsCount() {
 }
 
 /**
- * @param {number} index Column index.
+ * @param {string | number} columnNameOrIndex Column name or index.
  */
-export async function clearColumn(index: number) {
-  openHeaderDropdownMenu(index);
+export async function clearColumn(columnNameOrIndex: string | number) {
+  openHeaderDropdownMenu(columnNameOrIndex);
+
   await getPageInstance().getByText('Clear column').click();
 
 }
@@ -540,4 +566,102 @@ export async function resizeRow(rowIndex: number, resizeAmount: number, tableLoc
     await getPageInstance().mouse.move(box.x + (box.width / 2), box.y + box.height + resizeAmount, { steps: 10 }); // Adjust the value to resize the row
     await getPageInstance().mouse.up();
   }
+}
+
+/**
+ * Clicks the page at the specified offset relative to the viewport.
+ *
+ * @param {number} offsetX The offset X. Positive values move the mouse from the left position (0), negative
+ * values move the mouse from the right position (viewport width).
+ * @param {number} offsetY The offset Y. Positive values move the mouse from the top position (0), negative
+ * values move the mouse from the bottom position (viewport height).
+ * @param {string} button The button to click.
+ */
+export async function clickRelativeToViewport(offsetX: number, offsetY: number, button: 'left' | 'right' = 'left') {
+  const viewportSize = getPageInstance().viewportSize();
+
+  let x = offsetX;
+  let y = offsetY;
+
+  if (offsetX < 0) {
+    x = Math.max(0, viewportSize!.width + offsetX);
+  }
+  if (offsetY < 0) {
+    y = Math.max(0, viewportSize!.height + offsetY);
+  }
+
+  x = Math.min(x, viewportSize!.width);
+  y = Math.min(y, viewportSize!.height);
+
+  await getPageInstance().mouse.click(x, y, {
+    button,
+  });
+}
+
+/**
+ * Scrolls the Handsontable to the most bottom.
+ */
+export async function scrollTableToTheBottom() {
+  await getPageInstance().evaluate(async(selector) => {
+    // eslint-disable-next-line no-restricted-globals
+    const element = document.querySelector(selector);
+
+    if (element) {
+      element.scrollTop = element.scrollHeight;
+
+      await new Promise((resolve) => {
+        const listener = () => {
+          element.removeEventListener('scroll', listener);
+          resolve(selector);
+        };
+
+        element.addEventListener('scroll', listener);
+      });
+    }
+  }, `${helpers.selectors.mainTable} .wtHolder`);
+}
+
+/**
+ * Scrolls the Handsontable to the most end (horizontally).
+ */
+export async function scrollTableToTheInlineEnd() {
+  await getPageInstance().evaluate(async(selector) => {
+    // eslint-disable-next-line no-restricted-globals
+    const element = document.querySelector(selector);
+
+    if (element) {
+      if (element.parentElement?.getAttribute('dir') === 'rtl') {
+        element.scrollLeft = -element.scrollWidth;
+      } else {
+        element.scrollLeft = element.scrollWidth;
+      }
+
+      await new Promise((resolve) => {
+        const listener = () => {
+          element.removeEventListener('scroll', listener);
+          resolve(selector);
+        };
+
+        element.addEventListener('scroll', listener);
+      });
+    }
+  }, `${helpers.selectors.mainTable} .wtHolder`);
+}
+
+/**
+ * Waits for the context submenu to appear on the page.
+ *
+ * @param {string} submenuName The name of the submenu.
+ */
+export async function waitForContextSubmenuToAppear(submenuName: string) {
+  await getPageInstance().waitForSelector(`.htContextMenuSub_${submenuName}`);
+}
+
+/**
+ * Waits for the dropdown submenu to appear on the page.
+ *
+ * @param {string} submenuName The name of the submenu.
+ */
+export async function waitForDropdownSubmenuToAppear(submenuName: string) {
+  await getPageInstance().waitForSelector(`.htDropdownMenuSub_${submenuName}`);
 }

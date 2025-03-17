@@ -1,7 +1,5 @@
 import Handsontable from 'handsontable/base';
-
-import { scenarioDataTop, scenarioDataBottom } from './twoTablesData';
-
+import { scenarioDataTop, scenarioDataBottom } from './data';
 import { getDirectionFromURL, getThemeNameFromURL } from '../../utils';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 
@@ -50,7 +48,7 @@ registerCellType(NumericCellType);
 
 registerLanguageDictionary(arAR);
 
-export function initializeTwoTablesDemo() {
+export function init() {
   const root = document.getElementById('root');
 
   const topTable = document.createElement('div');

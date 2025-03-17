@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import { data } from './mergedCellsData';
+import { data } from './data';
 import { getThemeNameFromURL } from '../../utils';
 
 const root = document.getElementById('root');
@@ -14,7 +14,7 @@ const mergedCells = [
   { row: 10, col: 0, rowspan: 3, colspan: 3 },
 ];
 
-export function initializeMergedCellsDemo() {
+export function init() {
   const hot = new Handsontable(container, {
     data,
     themeName: getThemeNameFromURL(),
