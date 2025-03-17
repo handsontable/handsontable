@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 15.1.0
- * Release date: 20/02/2025 (built at 14/03/2025 11:32:57)
+ * Release date: 20/02/2025 (built at 19/02/2025 10:01:09)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "14/03/2025 11:32:57";
+Handsontable.buildDate = "19/02/2025 10:01:09";
 Handsontable.version = "15.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -3216,16 +3216,11 @@ function Core(rootElement, userSettings) {
    * @function getCellMeta
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
-   * @param {object} options Execution options for the `getCellMeta` method.
-   * @param {boolean} [options.skipMetaExtension=false] If `true`, skips extending the cell meta object. This means, the `cells` function, as well as the `afterGetCellMeta` and `beforeGetCellMeta` hooks, will not be called.
    * @returns {object} The cell properties object.
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
   this.getCellMeta = function (row, column) {
-    let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
-      skipMetaExtension: false
-    };
     let physicalRow = this.toPhysicalRow(row);
     let physicalColumn = this.toPhysicalColumn(column);
     if (physicalRow === null) {
@@ -3236,8 +3231,7 @@ function Core(rootElement, userSettings) {
     }
     return metaManager.getCellMeta(physicalRow, physicalColumn, {
       visualRow: row,
-      visualColumn: column,
-      ...options
+      visualColumn: column
     });
   };
 
@@ -3693,7 +3687,6 @@ function Core(rootElement, userSettings) {
    * @returns {number}
    */
   this._getRowHeightFromSettings = function (row) {
-    const defaultRowHeight = this.view.getDefaultRowHeight();
     let height = tableMeta.rowHeights;
     if (height !== undefined && height !== null) {
       switch (typeof height) {
@@ -3711,7 +3704,7 @@ function Core(rootElement, userSettings) {
         height = parseInt(height, 10);
       }
     }
-    return height !== undefined && height !== null && height < defaultRowHeight ? defaultRowHeight : height;
+    return height;
   };
 
   /**
@@ -4826,6 +4819,42 @@ function Core(rootElement, userSettings) {
   this._getEditorManager = function () {
     return editorManager;
   };
+
+  /**
+   * Check if currently it is RTL direction.
+   *
+   * @private
+   * @memberof Core#
+   * @function isRtl
+   * @returns {boolean} True if RTL.
+   */
+  this.isRtl = function () {
+    return instance.rootWindow.getComputedStyle(instance.rootElement).direction === 'rtl';
+  };
+
+  /**
+   * Check if currently it is LTR direction.
+   *
+   * @private
+   * @memberof Core#
+   * @function isLtr
+   * @returns {boolean} True if LTR.
+   */
+  this.isLtr = function () {
+    return !instance.isRtl();
+  };
+
+  /**
+   * Returns 1 for LTR; -1 for RTL. Useful for calculations.
+   *
+   * @private
+   * @memberof Core#
+   * @function getDirectionFactor
+   * @returns {number} Returns 1 for LTR; -1 for RTL.
+   */
+  this.getDirectionFactor = function () {
+    return instance.isLtr() ? 1 : -1;
+  };
   const shortcutManager = (0, _shortcuts.createShortcutManager)({
     handleEvent() {
       return instance.isListening();
@@ -5614,10 +5643,10 @@ var SHARED = '__core-js_shared__';
 var store = module.exports = globalThis[SHARED] || defineGlobalProperty(SHARED, {});
 
 (store.versions || (store.versions = [])).push({
-  version: '3.41.0',
+  version: '3.40.0',
   mode: IS_PURE ? 'pure' : 'global',
   copyright: '© 2014-2025 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.41.0/LICENSE',
+  license: 'https://github.com/zloirock/core-js/blob/v3.40.0/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
@@ -8669,7 +8698,6 @@ exports.innerHeight = innerHeight;
 exports.innerWidth = innerWidth;
 exports.isChildOf = isChildOf;
 exports.isDetached = isDetached;
-exports.isHTMLElement = isHTMLElement;
 exports.isInput = isInput;
 exports.isOutsideInput = isOutsideInput;
 exports.isThisHotChild = isThisHotChild;
@@ -9638,26 +9666,20 @@ function getScrollbarWidth() {
 /**
  * Checks if the provided element has a vertical scrollbar.
  *
- * @param {HTMLElement|Window} element An element to check.
+ * @param {HTMLElement} element An element to check.
  * @returns {boolean}
  */
 function hasVerticalScrollbar(element) {
-  if (element instanceof Window) {
-    return element.document.body.scrollHeight > element.innerHeight;
-  }
   return element.offsetWidth !== element.clientWidth;
 }
 
 /**
  * Checks if the provided element has a vertical scrollbar.
  *
- * @param {HTMLElement|Window} element An element to check.
+ * @param {HTMLElement} element An element to check.
  * @returns {boolean}
  */
 function hasHorizontalScrollbar(element) {
-  if (element instanceof Window) {
-    return element.document.body.scrollWidth > element.innerWidth;
-  }
   return element.offsetHeight !== element.clientHeight;
 }
 
@@ -9818,18 +9840,6 @@ function runWithSelectedContendEditableElement(element, callback) {
   makeElementContentEditableAndSelectItsContent(element, invisibleSelection);
   callback();
   removeContentEditableFromElementAndDeselect(element, invisibleSelection);
-}
-
-/**
- * Check if the element is HTMLElement.
- *
- * @param {*} element Element to check.
- * @returns {boolean} `true` if the element is HTMLElement.
- */
-function isHTMLElement(element) {
-  var _element$ownerDocumen;
-  const OwnElement = element === null || element === void 0 || (_element$ownerDocumen = element.ownerDocument) === null || _element$ownerDocumen === void 0 ? void 0 : _element$ownerDocumen.defaultView.Element;
-  return !!(OwnElement && OwnElement !== null && element instanceof OwnElement);
 }
 
 /***/ }),
@@ -12278,7 +12288,7 @@ function isKey(keyCode, baseCode) {
 
 /***/ }),
 /* 175 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
@@ -12290,7 +12300,6 @@ exports.isRightClick = isRightClick;
 exports.isTouchEvent = isTouchEvent;
 exports.offsetRelativeTo = offsetRelativeTo;
 exports.stopImmediatePropagation = stopImmediatePropagation;
-var _element = __webpack_require__(155);
 /**
  * Prevent other listeners of the same event from being called.
  *
@@ -12354,7 +12363,7 @@ function offsetRelativeTo(event, untilElement) {
     y: event.offsetY
   };
   let element = event.target;
-  if (!(0, _element.isHTMLElement)(untilElement) || element !== untilElement && element.contains(untilElement)) {
+  if (!(untilElement instanceof HTMLElement) || element !== untilElement && element.contains(untilElement)) {
     return offset;
   }
   while (element !== untilElement) {
@@ -16437,7 +16446,7 @@ class FocusManager {
         return;
       }
       let elementToBeFocused = _classPrivateFieldGet(_hot, this).runHooks('modifyFocusedElement', currentHighlightCoords.row, currentHighlightCoords.col, element);
-      if (!(0, _element.isHTMLElement)(elementToBeFocused)) {
+      if (!(elementToBeFocused instanceof HTMLElement)) {
         elementToBeFocused = element;
       }
       if (elementToBeFocused && !((_classPrivateFieldGet4 = _classPrivateFieldGet(_hot, this).getActiveEditor()) !== null && _classPrivateFieldGet4 !== void 0 && _classPrivateFieldGet4.isOpened())) {
@@ -16464,8 +16473,6 @@ class FocusManager {
     let delay = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _classPrivateFieldGet(_refocusDelay, this);
     // Re-focus on the editor's `TEXTAREA` element (or a predefined element) if the `imeFastEdit` option is enabled.
     if (_classPrivateFieldGet(_hot, this).getSettings().imeFastEdit && !((_classPrivateFieldGet5 = _classPrivateFieldGet(_hot, this).getActiveEditor()) !== null && _classPrivateFieldGet5 !== void 0 && _classPrivateFieldGet5.isOpened())) {
-      var _classPrivateFieldGet6, _classPrivateFieldGet7;
-      (_classPrivateFieldGet6 = _classPrivateFieldGet(_hot, this).getActiveEditor()) === null || _classPrivateFieldGet6 === void 0 || (_classPrivateFieldGet7 = _classPrivateFieldGet6.refreshValue) === null || _classPrivateFieldGet7 === void 0 || _classPrivateFieldGet7.call(_classPrivateFieldGet6);
       if (!_classPrivateFieldGet(_debouncedSelect, this).has(delay)) {
         _classPrivateFieldGet(_debouncedSelect, this).set(delay, (0, _function.debounce)(() => {
           var _this$getRefocusEleme;
@@ -16478,8 +16485,8 @@ class FocusManager {
 }
 exports.FocusManager = FocusManager;
 function _getSelectedCell(callback) {
-  var _classPrivateFieldGet8;
-  const highlight = (_classPrivateFieldGet8 = _classPrivateFieldGet(_hot, this).getSelectedRangeLast()) === null || _classPrivateFieldGet8 === void 0 ? void 0 : _classPrivateFieldGet8.highlight;
+  var _classPrivateFieldGet6;
+  const highlight = (_classPrivateFieldGet6 = _classPrivateFieldGet(_hot, this).getSelectedRangeLast()) === null || _classPrivateFieldGet6 === void 0 ? void 0 : _classPrivateFieldGet6.highlight;
   if (!highlight || !_classPrivateFieldGet(_hot, this).selection.isCellVisible(highlight)) {
     callback(null);
     return;
@@ -17199,7 +17206,6 @@ function unifyPluginArguments(pluginName, pluginClass, priority) {
 exports.__esModule = true;
 exports.createPriorityMap = createPriorityMap;
 __webpack_require__(5);
-__webpack_require__(115);
 __webpack_require__(142);
 var _number = __webpack_require__(200);
 var _function = __webpack_require__(163);
@@ -17289,7 +17295,6 @@ __webpack_require__(107);
 __webpack_require__(109);
 __webpack_require__(111);
 __webpack_require__(113);
-__webpack_require__(115);
 __webpack_require__(142);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -19330,15 +19335,6 @@ class TableView {
    */
   getTableHeight() {
     return this._wt.wtTable.getHeight();
-  }
-
-  /**
-   * Gets the table's offset.
-   *
-   * @returns {{ left: number, top: number }}
-   */
-  getTableOffset() {
-    return this._wt.wtViewport.getWorkspaceOffset();
   }
 
   /**
@@ -23556,7 +23552,6 @@ class Table {
       holder = this.domBindings.rootDocument.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
-      (0, _element.setAttribute)(holder, [(0, _a11y.A11Y_TABINDEX)(-1)]);
       if (parent) {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
         parent.insertBefore(holder, hider);
@@ -23953,12 +23948,12 @@ class Table {
       row = totalRows - CONTAINER.childNodes.length + row;
     } else if (CONTAINER === this.THEAD) {
       row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
-    } else if (this.rowFilter) {
+    } else {
       row = this.rowFilter.renderedToSource(row);
     }
     if ((0, _element.overlayContainsElement)(_overlay.CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement) || (0, _element.overlayContainsElement)(_overlay.CLONE_INLINE_START, cellElement, this.wtRootElement) || (0, _element.overlayContainsElement)(_overlay.CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)) {
       col = this.columnFilter.offsettedTH(col);
-    } else if (this.columnFilter) {
+    } else {
       col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
     }
     const hookResult = this.wtSettings.getSetting('onModifyGetCoordsElement', row, col);
@@ -25358,7 +25353,6 @@ exports.ViewDiffer = ViewDiffer;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(242);
-__webpack_require__(115);
 __webpack_require__(142);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
 /**
@@ -29877,7 +29871,7 @@ function _scanCellsRange(callback) {
     }
   } else {
     const cell = wtTable.getCell(_classPrivateFieldGet(_activeOverlaysWot, this).createCellCoords(topRow, startColumn));
-    if (!(0, _element.isHTMLElement)(cell)) {
+    if (!(cell instanceof HTMLElement)) {
       return;
     }
   }
@@ -30104,14 +30098,8 @@ class Border {
    */
   createMultipleSelectorHandles() {
     const {
-      rootDocument,
-      stylesHandler
+      rootDocument
     } = this.wot;
-    const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
-    const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
-    const cellMobileHandleBackgroundColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-background-color');
-    const cellMobileHandleBorderWidth = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-width');
-    const cellMobileHandleBorderColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-color');
     this.selectionHandles = {
       top: rootDocument.createElement('DIV'),
       topHitArea: rootDocument.createElement('DIV'),
@@ -30140,20 +30128,13 @@ class Border {
       this.selectionHandles.styles.bottomHitArea[key] = value;
       this.selectionHandles.styles.topHitArea[key] = value;
     });
-    const handleStyle = stylesHandler.isClassicTheme() ? {
+    const handleStyle = {
       position: 'absolute',
       height: `${width}px`,
       width: `${width}px`,
       'border-radius': `${parseInt(width / 1.5, 10)}px`,
       background: '#F5F5FF',
       border: '1px solid #4285c8'
-    } : {
-      position: 'absolute',
-      height: `${cellMobileHandleSize}px`,
-      width: `${cellMobileHandleSize}px`,
-      'border-radius': `${cellMobileHandleBorderRadius}px`,
-      background: `${cellMobileHandleBackgroundColor}`,
-      border: `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`
     };
     (0, _object.objectEach)(handleStyle, (value, key) => {
       this.selectionHandles.styles.bottom[key] = value;
@@ -30278,7 +30259,7 @@ class Border {
       fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
     } else {
       fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
-      if (!(0, _element.isHTMLElement)(fromTD)) {
+      if (!(fromTD instanceof HTMLElement)) {
         this.disappear();
         return;
       }
@@ -31691,7 +31672,6 @@ var _default = exports["default"] = MasterTable;
 
 
 exports.__esModule = true;
-__webpack_require__(115);
 __webpack_require__(142);
 var _element = __webpack_require__(155);
 var _object = __webpack_require__(165);
@@ -31814,20 +31794,7 @@ class Viewport {
    * @returns {boolean}
    */
   hasVerticalScroll() {
-    if (this.isVerticallyScrollableByWindow()) {
-      const documentElement = this.domBindings.rootDocument.documentElement;
-      return documentElement.scrollHeight > documentElement.clientHeight;
-    }
-    const {
-      holder,
-      hider
-    } = this.wtTable;
-    const holderHeight = holder.clientHeight;
-    const hiderOffsetHeight = hider.offsetHeight;
-    if (holderHeight < hiderOffsetHeight) {
-      return true;
-    }
-    return hiderOffsetHeight > this.getWorkspaceHeight();
+    return this.wtTable.hider.offsetHeight > this.getWorkspaceHeight();
   }
 
   /**
@@ -31836,20 +31803,7 @@ class Viewport {
    * @returns {boolean}
    */
   hasHorizontalScroll() {
-    if (this.isVerticallyScrollableByWindow()) {
-      const documentElement = this.domBindings.rootDocument.documentElement;
-      return documentElement.scrollWidth > documentElement.clientWidth;
-    }
-    const {
-      holder,
-      hider
-    } = this.wtTable;
-    const holderWidth = holder.clientWidth;
-    const hiderOffsetWidth = hider.offsetWidth;
-    if (holderWidth < hiderOffsetWidth) {
-      return true;
-    }
-    return hiderOffsetWidth > this.getWorkspaceWidth();
+    return this.wtTable.hider.offsetWidth > this.getWorkspaceWidth();
   }
 
   /**
@@ -31889,7 +31843,7 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceOffset() {
-    return (0, _element.offset)(this.wtTable.holder);
+    return (0, _element.offset)(this.wtTable.TABLE);
   }
 
   /**
@@ -32868,8 +32822,8 @@ class DataSource {
         value = valueHolder.value;
       }
     }
-    if (['__proto__', 'constructor', 'prototype'].includes(row)) {
-      // prevent prototype pollution
+    if (!Number.isInteger(row)) {
+      // invalid row number
       return;
     }
     if (!Number.isInteger(column)) {
@@ -34356,7 +34310,6 @@ exports.IndexMap = IndexMap;
 exports.__esModule = true;
 exports.getListWithInsertedItems = getListWithInsertedItems;
 exports.getListWithRemovedItems = getListWithRemovedItems;
-__webpack_require__(115);
 __webpack_require__(142);
 var _function = __webpack_require__(163);
 var _array = __webpack_require__(161);
@@ -34401,7 +34354,6 @@ function getListWithRemovedItems(indexedValues, removedIndexes) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-__webpack_require__(115);
 __webpack_require__(142);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
 var _indexMap = __webpack_require__(298);
@@ -38983,7 +38935,7 @@ class DataMap {
     this.metaManager = metaManager;
     this.tableMeta = metaManager.getTableMeta();
     this.dataSource = data;
-    this.refreshDuckSchema();
+    this.duckSchema = this.createDuckSchema();
     this.createMap();
   }
 
@@ -39346,10 +39298,14 @@ class DataMap {
     // List of removed indexes might be changed in the `beforeRemoveRow` hook. There may be new values.
     const numberOfRemovedIndexes = removedPhysicalIndexes.length;
     this.filterData(rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes);
+
+    // TODO: Function `removeRow` should validate fully, probably above.
     if (rowIndex < this.hot.countRows()) {
       this.hot.rowIndexMapper.removeIndexes(removedPhysicalIndexes);
-      const preserveColumns = (0, _mixed.isDefined)(this.tableMeta.columns) || (0, _mixed.isDefined)(this.tableMeta.dataSchema) || this.tableMeta.colHeaders;
-      if (this.hot.rowIndexMapper.getNotTrimmedIndexesLength() === 0 && !preserveColumns) {
+      const customDefinedColumns = (0, _mixed.isDefined)(this.tableMeta.columns) || (0, _mixed.isDefined)(this.tableMeta.dataSchema);
+
+      // All rows have been removed. There shouldn't be any columns.
+      if (this.hot.rowIndexMapper.getNotTrimmedIndexesLength() === 0 && customDefinedColumns === false) {
         this.hot.columnIndexMapper.setIndexesSequence([]);
       }
     }
@@ -39412,9 +39368,13 @@ class DataMap {
         }
       }
     }
+
+    // TODO: Function `removeCol` should validate fully, probably above.
     if (columnIndex < this.hot.countCols()) {
       this.hot.columnIndexMapper.removeIndexes(removedPhysicalIndexes);
-      if (!this.tableMeta.rowHeaders && this.hot.columnIndexMapper.getNotTrimmedIndexesLength() === 0) {
+
+      // All columns have been removed. There shouldn't be any rows.
+      if (this.hot.columnIndexMapper.getNotTrimmedIndexesLength() === 0) {
         this.hot.rowIndexMapper.setIndexesSequence([]);
       }
     }
@@ -40095,21 +40055,22 @@ class MetaManager {
    *
    * @param {number} physicalRow The physical row index.
    * @param {number} physicalColumn The physical column index.
-   * @param {object} options Options for the `getCellMeta` method.
+   * @param {object} options Additional options that are used to extend the cell meta object.
    * @param {number} options.visualRow The visual row index of the currently requested cell meta object.
    * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
-   * @param {boolean} [options.skipMetaExtension=false] If `true`, omits the `afterGetCellMeta` hook which calls the `extendCellMeta` method.
    * @returns {object}
    */
-  getCellMeta(physicalRow, physicalColumn, options) {
+  getCellMeta(physicalRow, physicalColumn, _ref) {
+    let {
+      visualRow,
+      visualColumn
+    } = _ref;
     const cellMeta = this.cellMeta.getMeta(physicalRow, physicalColumn);
-    cellMeta.visualRow = options.visualRow;
-    cellMeta.visualCol = options.visualColumn;
+    cellMeta.visualRow = visualRow;
+    cellMeta.visualCol = visualColumn;
     cellMeta.row = physicalRow;
     cellMeta.col = physicalColumn;
-    if (!options.skipMetaExtension) {
-      this.runLocalHooks('afterGetCellMeta', cellMeta);
-    }
+    this.runLocalHooks('afterGetCellMeta', cellMeta);
     return cellMeta;
   }
 
@@ -44417,8 +44378,8 @@ var _default = () => {
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
      *
-     * In the rendering process, the default row height is `classic: 23px`, `main: 29px`, `horizon: 37px` (in the classic theme: 22px + 1px of the row's bottom border) or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
-     * You can change it to equal or greater than the default value, by setting the `rowHeights` option to one of the following:
+     * In the rendering process, the default row height is 23 px (in the classic theme: 22 px + 1 px of the row's bottom border) or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
+     * You can change it to equal or greater than the defautl value, by setting the `rowHeights` option to one of the following:
      *
      * | Setting     | Description                                                                                         | Example                                                      |
      * | ----------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
@@ -46433,7 +46394,6 @@ var _function = __webpack_require__(163);
  */
 class DynamicCellMetaMod {
   constructor(metaManager) {
-    var _this = this;
     /**
      * @type {MetaManager}
      */
@@ -46443,9 +46403,7 @@ class DynamicCellMetaMod {
      */
     (0, _defineProperty2.default)(this, "metaSyncMemo", new Map());
     this.metaManager = metaManager;
-    metaManager.addLocalHook('afterGetCellMeta', function () {
-      return _this.extendCellMeta(...arguments);
-    });
+    metaManager.addLocalHook('afterGetCellMeta', cellMeta => this.extendCellMeta(cellMeta));
     _hooks.Hooks.getSingleton().add('beforeRender', forceFullRender => {
       if (forceFullRender) {
         this.metaSyncMemo.clear();
@@ -49751,7 +49709,6 @@ exports.createContext = createContext;
 
 
 exports.__esModule = true;
-__webpack_require__(115);
 __webpack_require__(142);
 // This file handles key-name discrepancies between browsers.
 // For the list of discrepancies, go to: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
@@ -50893,9 +50850,18 @@ function textRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   if (cellProperties.trimWhitespace) {
     escaped = escaped.trim();
   }
-
-  // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
-  (0, _element.fastInnerText)(TD, escaped);
+  if (cellProperties.rendererTemplate) {
+    (0, _element.empty)(TD);
+    const TEMPLATE = hotInstance.rootDocument.createElement('TEMPLATE');
+    TEMPLATE.setAttribute('bind', '{{}}');
+    TEMPLATE.innerHTML = cellProperties.rendererTemplate;
+    HTMLTemplateElement.decorate(TEMPLATE);
+    TEMPLATE.model = hotInstance.getSourceDataAtRow(row);
+    TD.appendChild(TEMPLATE);
+  } else {
+    // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
+    (0, _element.fastInnerText)(TD, escaped);
+  }
 }
 textRenderer.RENDERER_TYPE = RENDERER_TYPE;
 
@@ -51124,7 +51090,6 @@ var _string = __webpack_require__(156);
 var _unicode = __webpack_require__(174);
 var _textRenderer = __webpack_require__(426);
 var _a11y = __webpack_require__(162);
-function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
 function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
@@ -51136,14 +51101,9 @@ const EDITOR_TYPE = exports.EDITOR_TYPE = 'autocomplete';
  * @class AutocompleteEditor
  */
 var _idPrefix = /*#__PURE__*/new WeakMap();
-var _AutocompleteEditor_brand = /*#__PURE__*/new WeakSet();
 class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
   constructor() {
     super(...arguments);
-    /**
-     * Fix width of the internal Handsontable's instance when editor has vertical scroll.
-     */
-    _classPrivateMethodInitSpec(this, _AutocompleteEditor_brand);
     /**
      * Query string to turn available values over.
      *
@@ -51451,16 +51411,21 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
    * @returns {boolean}
    */
   flipDropdownIfNeeded() {
-    const editorRect = this.getEditedCellRect();
-    const editorHeight = editorRect.height;
-    let spaceAbove = editorRect.top;
-    if (this.hot.view.isVerticallyScrollableByWindow()) {
-      const topOffset = this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
-      spaceAbove = Math.max(spaceAbove + topOffset, 0);
+    const trimmingContainer = (0, _element.getTrimmingContainer)(this.hot.view._wt.wtTable.TABLE);
+    const isWindowAsScrollableElement = trimmingContainer === this.hot.rootWindow;
+    const preventOverflow = this.cellProperties.preventOverflow;
+    if (isWindowAsScrollableElement || !isWindowAsScrollableElement && (preventOverflow || preventOverflow === 'horizontal')) {
+      return false;
     }
+    const textareaOffset = (0, _element.offset)(this.TEXTAREA);
+    const textareaHeight = (0, _element.outerHeight)(this.TEXTAREA);
     const dropdownHeight = this.getHeight();
-    const spaceBelow = this.hot.view.getWorkspaceHeight() - spaceAbove - editorHeight;
-    const flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow + editorHeight;
+    const trimmingContainerScrollTop = trimmingContainer.scrollTop;
+    const headersHeight = (0, _element.outerHeight)(this.hot.view._wt.wtTable.THEAD);
+    const containerOffset = (0, _element.offset)(trimmingContainer);
+    const spaceAbove = textareaOffset.top - containerOffset.top - headersHeight + trimmingContainerScrollTop;
+    const spaceBelow = trimmingContainer.scrollHeight - spaceAbove - headersHeight - textareaHeight;
+    const flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow;
     if (flipNeeded) {
       this.flipDropdown(dropdownHeight);
     } else {
@@ -51520,6 +51485,7 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
     dropdownStyle.top = '';
     this.htEditor.flipped = undefined;
   }
+
   /**
    * Updates width and height of the internal Handsontable's instance.
    *
@@ -51530,7 +51496,11 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
       width: this.getWidth(),
       height: this.getHeight()
     });
-    _assertClassBrand(_AutocompleteEditor_brand, this, _fixDropdownWidth).call(this);
+    if (this.htEditor.view.hasVerticalScroll()) {
+      this.htEditor.updateSettings({
+        width: this.htEditor.getSettings().width + (0, _element.getScrollbarWidth)(this.hot.rootDocument)
+      });
+    }
     this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
   }
 
@@ -51544,8 +51514,6 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
     this.htEditor.updateSettings({
       height
     });
-    _assertClassBrand(_AutocompleteEditor_brand, this, _fixDropdownWidth).call(this);
-    this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
   }
 
   /**
@@ -51669,13 +51637,6 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
   }
 }
 exports.AutocompleteEditor = AutocompleteEditor;
-function _fixDropdownWidth() {
-  if (this.htEditor.view.hasVerticalScroll()) {
-    this.htEditor.updateSettings({
-      width: this.htEditor.getSettings().width + (0, _element.getScrollbarWidth)(this.hot.rootDocument)
-    });
-  }
-}
 
 /***/ }),
 /* 434 */
@@ -52064,27 +52025,21 @@ var _element = __webpack_require__(155);
 var _object = __webpack_require__(165);
 var _unicode = __webpack_require__(174);
 var _browser = __webpack_require__(164);
-function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
-function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
-function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const EDITOR_TYPE = exports.EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
-const DEFAULT_DATE_FORMAT = 'DD/MM/YYYY';
 
 /**
  * @private
  * @class DateEditor
  */
-var _DateEditor_brand = /*#__PURE__*/new WeakSet();
 class DateEditor extends _textEditor.TextEditor {
   constructor() {
     super(...arguments);
+    // TODO: Move this option to general settings
     /**
-     * Gets the current date format for this cell.
-     *
-     * @returns {string}
+     * @type {string}
      */
-    _classPrivateMethodInitSpec(this, _DateEditor_brand);
+    (0, _defineProperty2.default)(this, "defaultDateFormat", 'DD/MM/YYYY');
     /**
      * @type {boolean}
      */
@@ -52250,7 +52205,7 @@ class DateEditor extends _textEditor.TextEditor {
    * @param {Event} event The event object.
    */
   showDatepicker(event) {
-    const dateFormat = _assertClassBrand(_DateEditor_brand, this, _getDateFormat).call(this);
+    const dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
     const isMouseDown = this.hot.view.isMouseDown();
     const isMeta = event ? (0, _unicode.isFunctionKey)(event.keyCode) : false;
     let dateStr;
@@ -52302,7 +52257,6 @@ class DateEditor extends _textEditor.TextEditor {
    * @returns {object}
    */
   getDatePickerConfig() {
-    var _options$format;
     const htInput = this.TEXTAREA;
     const options = {};
     if (this.cellProperties && this.cellProperties.datePickerConfig) {
@@ -52315,7 +52269,7 @@ class DateEditor extends _textEditor.TextEditor {
     options.container = this.datePicker;
     options.bound = false;
     options.keyboardInput = false;
-    options.format = (_options$format = options.format) !== null && _options$format !== void 0 ? _options$format : _assertClassBrand(_DateEditor_brand, this, _getDateFormat).call(this);
+    options.format = options.format || this.defaultDateFormat;
     options.reposition = options.reposition || false;
     // Set the RTL to `false`. Due to the https://github.com/Pikaday/Pikaday/issues/647 bug, the layout direction
     // of the date picker is controlled by juggling the "dir" attribute of the root date picker element.
@@ -52324,7 +52278,7 @@ class DateEditor extends _textEditor.TextEditor {
     options.onSelect = value => {
       let dateStr = value;
       if (!isNaN(dateStr.getTime())) {
-        dateStr = (0, _moment.default)(dateStr).format(_assertClassBrand(_DateEditor_brand, this, _getDateFormat).call(this));
+        dateStr = (0, _moment.default)(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
       }
       this.setValue(dateStr);
       if (origOnSelect) {
@@ -52392,10 +52346,6 @@ class DateEditor extends _textEditor.TextEditor {
   }
 }
 exports.DateEditor = DateEditor;
-function _getDateFormat() {
-  var _this$cellProperties$;
-  return (_this$cellProperties$ = this.cellProperties.dateFormat) !== null && _this$cellProperties$ !== void 0 ? _this$cellProperties$ : DEFAULT_DATE_FORMAT;
-}
 
 /***/ }),
 /* 440 */
@@ -53413,7 +53363,7 @@ function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellProperties
             continue;
           }
           const cell = hotInstance.getCell(visualRow, visualColumn);
-          if ((0, _element.isHTMLElement)(cell)) {
+          if (cell instanceof HTMLElement) {
             const checkboxes = cell.querySelectorAll('input[type=checkbox]');
             if (checkboxes.length > 0) {
               return true;
@@ -53681,16 +53631,8 @@ function getRenderedValue(value, cellProperties) {
 function numericRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   let newValue = value;
   if ((0, _number.isNumeric)(newValue)) {
-    let classArr = [];
-    if (Array.isArray(cellProperties.className)) {
-      classArr = cellProperties.className;
-    } else {
-      var _cellProperties$class;
-      const className = (_cellProperties$class = cellProperties.className) !== null && _cellProperties$class !== void 0 ? _cellProperties$class : '';
-      if (className.length) {
-        classArr = className.split(' ');
-      }
-    }
+    const className = cellProperties.className || '';
+    const classArr = className.length ? className.split(' ') : [];
     newValue = getRenderedValue(newValue, cellProperties);
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 && classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
       classArr.push('htRight');
@@ -54673,23 +54615,23 @@ var _mergeCells = __webpack_require__(688);
 exports.MergeCells = _mergeCells.MergeCells;
 var _multiColumnSorting = __webpack_require__(702);
 exports.MultiColumnSorting = _multiColumnSorting.MultiColumnSorting;
-var _multipleSelectionHandles = __webpack_require__(706);
+var _multipleSelectionHandles = __webpack_require__(707);
 exports.MultipleSelectionHandles = _multipleSelectionHandles.MultipleSelectionHandles;
-var _nestedHeaders = __webpack_require__(708);
+var _nestedHeaders = __webpack_require__(709);
 exports.NestedHeaders = _nestedHeaders.NestedHeaders;
-var _nestedRows = __webpack_require__(724);
+var _nestedRows = __webpack_require__(725);
 exports.NestedRows = _nestedRows.NestedRows;
-var _persistentState = __webpack_require__(732);
+var _persistentState = __webpack_require__(733);
 exports.PersistentState = _persistentState.PersistentState;
-var _search = __webpack_require__(735);
+var _search = __webpack_require__(736);
 exports.Search = _search.Search;
-var _stretchColumns = __webpack_require__(737);
+var _stretchColumns = __webpack_require__(738);
 exports.StretchColumns = _stretchColumns.StretchColumns;
-var _touchScroll = __webpack_require__(743);
+var _touchScroll = __webpack_require__(744);
 exports.TouchScroll = _touchScroll.TouchScroll;
-var _trimRows = __webpack_require__(745);
+var _trimRows = __webpack_require__(746);
 exports.TrimRows = _trimRows.TrimRows;
-var _undoRedo = __webpack_require__(747);
+var _undoRedo = __webpack_require__(748);
 exports.UndoRedo = _undoRedo.UndoRedo;
 var _registry = __webpack_require__(198);
 exports.registerPlugin = _registry.registerPlugin;
@@ -54882,7 +54824,6 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-var _isInitialized = /*#__PURE__*/new WeakMap();
 var _cachedColumnHeaders = /*#__PURE__*/new WeakMap();
 var _visualColumnsToRefresh = /*#__PURE__*/new WeakMap();
 var _AutoColumnSize_brand = /*#__PURE__*/new WeakSet();
@@ -54972,12 +54913,6 @@ class AutoColumnSize extends _base.BasePlugin {
      * @type {PhysicalIndexToValueMap}
      */
     (0, _defineProperty2.default)(this, "columnWidthsMap", new _translations.PhysicalIndexToValueMap());
-    /**
-     * `true` value indicates that the #onInit() function has been already called.
-     *
-     * @type {boolean}
-     */
-    _classPrivateFieldInitSpec(this, _isInitialized, false);
     /**
      * Cached column header names. It is used to diff current column headers with previous state and detect which
      * columns width should be updated.
@@ -55116,11 +55051,17 @@ class AutoColumnSize extends _base.BasePlugin {
         physicalColumn = visualColumn;
       }
       if (overwriteCache || this.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !this.hot._getColWidthFromSettings(physicalColumn)) {
-        _assertClassBrand(_AutoColumnSize_brand, this, _fillGhostTableWithSamples).call(this, visualColumn, rowsRange);
+        const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
+        samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
       }
     });
     if (this.ghostTable.columns.length) {
-      _assertClassBrand(_AutoColumnSize_brand, this, _updateColumnWidthsMapBasedOnGhostTable).call(this);
+      this.hot.batchExecution(() => {
+        this.ghostTable.getWidths((visualColumn, width) => {
+          const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+          this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
+        });
+      }, true);
       this.measuredColumns = columnsRange.to + 1;
       this.ghostTable.clean();
     }
@@ -55331,35 +55272,19 @@ function _calculateSpecificColumnsWidth(visualColumns) {
       return;
     }
     if (!this.hot._getColWidthFromSettings(physicalColumn)) {
-      _assertClassBrand(_AutoColumnSize_brand, this, _fillGhostTableWithSamples).call(this, visualColumn, rowsRange);
+      const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
+      samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
     }
   });
   if (this.ghostTable.columns.length) {
-    _assertClassBrand(_AutoColumnSize_brand, this, _updateColumnWidthsMapBasedOnGhostTable).call(this);
+    this.hot.batchExecution(() => {
+      this.ghostTable.getWidths((visualColumn, width) => {
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+        this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
+      });
+    }, true);
     this.ghostTable.clean();
   }
-}
-/**
- * Processes a single column for width calculation.
- *
- * @param {number} visualColumn Visual column index.
- * @param {object} rowsRange Range of rows to process.
- */
-function _fillGhostTableWithSamples(visualColumn, rowsRange) {
-  const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
-  samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
-}
-/**
- * Updates the column widths map with calculated widths from the ghost table.
- *
- */
-function _updateColumnWidthsMapBasedOnGhostTable() {
-  this.hot.batchExecution(() => {
-    this.ghostTable.getWidths((visualColumn, width) => {
-      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-      this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
-    });
-  }, true);
 }
 function _onBeforeRender() {
   this.calculateVisibleColumnsWidth();
@@ -55417,7 +55342,6 @@ function _onBeforeColumnResize(size, column, isDblClick) {
 function _onInit() {
   _classPrivateFieldSet(_cachedColumnHeaders, this, this.hot.getColHeader());
   this.recalculateAllColumnsWidth();
-  _classPrivateFieldSet(_isInitialized, this, true);
 }
 /**
  * After formulas values updated listener.
@@ -55425,9 +55349,6 @@ function _onInit() {
  * @param {Array} changes An array of modified data.
  */
 function _onAfterFormulasValuesUpdate(changes) {
-  if (!_classPrivateFieldGet(_isInitialized, this)) {
-    return;
-  }
   const changedColumns = changes.reduce((acc, change) => {
     var _change$address;
     const physicalColumn = (_change$address = change.address) === null || _change$address === void 0 ? void 0 : _change$address.col;
@@ -57281,7 +57202,6 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 var _visualRowsToRefresh = /*#__PURE__*/new WeakMap();
-var _isInitialized = /*#__PURE__*/new WeakMap();
 var _AutoRowSize_brand = /*#__PURE__*/new WeakSet();
 class AutoRowSize extends _base.BasePlugin {
   static get PLUGIN_KEY() {
@@ -57384,12 +57304,6 @@ class AutoRowSize extends _base.BasePlugin {
      * @type {number[]}
      */
     _classPrivateFieldInitSpec(this, _visualRowsToRefresh, []);
-    /**
-     * `true` value indicates that the #onInit() function has been already called.
-     *
-     * @type {boolean}
-     */
-    _classPrivateFieldInitSpec(this, _isInitialized, false);
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
@@ -57820,7 +57734,6 @@ function _onBeforeChange(changes) {
  */
 function _onInit() {
   this.recalculateAllRowsHeight();
-  _classPrivateFieldSet(_isInitialized, this, true);
 }
 /**
  * After formulas values updated listener.
@@ -57828,9 +57741,6 @@ function _onInit() {
  * @param {Array} changes An array of modified data.
  */
 function _onAfterFormulasValuesUpdate(changes) {
-  if (!_classPrivateFieldGet(_isInitialized, this)) {
-    return;
-  }
   const changedRows = changes.reduce((acc, change) => {
     var _change$address;
     const physicalRow = (_change$address = change.address) === null || _change$address === void 0 ? void 0 : _change$address.row;
@@ -58759,13 +58669,6 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
 _hooks.Hooks.getSingleton().register('beforeColumnSort');
 _hooks.Hooks.getSingleton().register('afterColumnSort');
 
-/**
- * Tracks the conflicts between `columnSorting` and `multiColumnSorting` options.
- * Only one plugin can be enabled for Handsontable instance. Once one of them is enabled,
- * the other should remain disabled even if it's set to `true`.
- */
-const pluginConflictsState = new WeakMap();
-
 // DIFF - MultiColumnSorting & ColumnSorting: changed configuration documentation.
 /**
  * @plugin ColumnSorting
@@ -58874,17 +58777,9 @@ class ColumnSorting extends _base.BasePlugin {
    */
   enablePlugin() {
     var _this = this;
-    if (pluginConflictsState.has(this.hot) && pluginConflictsState.get(this.hot) !== this.pluginKey) {
-      this.hot.updateSettings({
-        [this.pluginKey]: false
-      });
-      (0, _utils.warnAboutPluginsConflict)(pluginConflictsState.get(this.hot), this.pluginKey);
-      return;
-    }
     if (this.enabled) {
       return;
     }
-    pluginConflictsState.set(this.hot, this.pluginKey);
     this.columnStatesManager = new _columnStatesManager.ColumnStatesManager(this.hot, `${this.pluginKey}.sortingStates`);
     this.columnMetaCache = new _translations.PhysicalIndexToValueMap(physicalIndex => {
       let visualIndex = this.hot.toVisualColumn(physicalIndex);
@@ -58929,7 +58824,6 @@ class ColumnSorting extends _base.BasePlugin {
       }
       this.updateHeaderClasses(headerSpanElement);
     };
-    pluginConflictsState.delete(this.hot);
 
     // Changing header width and removing indicator.
     this.hot.addHook('afterGetColHeader', clearColHeader);
@@ -59407,7 +59301,7 @@ class ColumnSorting extends _base.BasePlugin {
    * @param {object} newSettings New settings object.
    */
   onUpdateSettings(newSettings) {
-    super.onUpdateSettings(newSettings);
+    super.onUpdateSettings();
     if (this.columnMetaCache !== null) {
       // Column meta cache base on settings, thus we should re-init the map.
       this.columnMetaCache.init(this.hot.columnIndexMapper.getNumberOfIndexes());
@@ -59537,7 +59431,6 @@ function _onBeforeOnCellMouseDown(event, coords, TD, controller) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-__webpack_require__(115);
 __webpack_require__(142);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
 var _object = __webpack_require__(165);
@@ -59766,7 +59659,6 @@ exports.createDateTimeCompareFunction = createDateTimeCompareFunction;
 exports.getHeaderSpanElement = getHeaderSpanElement;
 exports.getNextSortOrder = getNextSortOrder;
 exports.isFirstLevelColumnHeader = isFirstLevelColumnHeader;
-exports.warnAboutPluginsConflict = warnAboutPluginsConflict;
 exports.wasHeaderClickedProperly = wasHeaderClickedProperly;
 __webpack_require__(91);
 __webpack_require__(102);
@@ -59783,8 +59675,6 @@ var _object = __webpack_require__(165);
 var _event = __webpack_require__(175);
 var _mixed = __webpack_require__(158);
 var _sortService = __webpack_require__(526);
-var _console = __webpack_require__(178);
-var _templateLiteralTag = __webpack_require__(160);
 const ASC_SORT_STATE = exports.ASC_SORT_STATE = 'asc';
 const DESC_SORT_STATE = exports.DESC_SORT_STATE = 'desc';
 const HEADER_SPAN_CLASS = exports.HEADER_SPAN_CLASS = 'colHeader';
@@ -59935,17 +59825,6 @@ function createDateTimeCompareFunction(sortOrder, format, columnPluginSettings) 
     }
     return _sortService.DO_NOT_SWAP;
   };
-}
-
-/**
- * Warn users about problems when using `columnSorting` and `multiColumnSorting` plugins simultaneously.
- *
- * @param {string} workingPlugin The plugin that will work.
- * @param {string} disabledPlugin The plugin that will remain disabled.
- */
-function warnAboutPluginsConflict(workingPlugin, disabledPlugin) {
-  (0, _console.warn)((0, _templateLiteralTag.toSingleLine)`Plugins \`columnSorting\` and \`multiColumnSorting\` should not be enabled simultaneously.\x20
-    Only \`${workingPlugin}\` will work. The \`${disabledPlugin}\` plugin will remain disabled.`);
 }
 
 /***/ }),
@@ -62072,9 +61951,6 @@ class Comments extends _base.BasePlugin {
       innerHeight
     } = this.hot.rootWindow;
     const documentElement = this.hot.rootDocument.documentElement;
-    const scrollbarWidth = (0, _element.getScrollbarWidth)(this.hot.rootDocument);
-    const verticalScrollbarWidth = (0, _element.hasVerticalScrollbar)(this.hot.rootWindow) ? scrollbarWidth : 0;
-    const horizontalScrollbarWidth = (0, _element.hasHorizontalScrollbar)(this.hot.rootWindow) ? scrollbarWidth : 0;
     let x = left + rootWindow.scrollX + lastColWidth;
     let y = top + rootWindow.scrollY + lastRowHeight;
     if (this.hot.isRtl()) {
@@ -62082,12 +61958,12 @@ class Comments extends _base.BasePlugin {
     }
 
     // flip to the right or left the comments editor position when it goes out of browser viewport
-    if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth - verticalScrollbarWidth) {
+    if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth) {
       x = left + rootWindow.scrollX - editorWidth - 1;
     } else if (this.hot.isRtl() && x < -(documentElement.scrollWidth - documentElement.clientWidth)) {
       x = left + rootWindow.scrollX + lastColWidth + 1;
     }
-    if (top + editorHeight > innerHeight - horizontalScrollbarWidth) {
+    if (top + editorHeight > innerHeight) {
       y -= editorHeight - cellHeight + 1;
     }
     _classPrivateFieldGet(_editor, this).setPosition(x, y);
@@ -63287,14 +63163,19 @@ function columnLeftItem() {
         return true;
       }
       const range = this.getSelectedRangeLast();
-      if (!range || this.selection.isSelectedByRowHeader() || range.isSingleHeader() && range.highlight.col < 0 || this.countSourceCols() >= this.getSettings().maxCols) {
+      if (!range) {
+        return true;
+      }
+      if (range.isSingleHeader() && range.highlight.col < 0) {
         return true;
       }
       if (this.selection.isSelectedByCorner()) {
+        const totalColumns = this.countCols();
+
         // Enable "Insert column left" only when there is at least one column.
-        return this.countCols() === 0;
+        return totalColumns === 0;
       }
-      return false;
+      return this.selection.isSelectedByRowHeader() || this.countCols() >= this.getSettings().maxCols;
     },
     hidden() {
       return !this.getSettings().allowInsertColumn;
@@ -63335,10 +63216,17 @@ function columnRightItem() {
         return true;
       }
       const range = this.getSelectedRangeLast();
-      if (!range || this.selection.isSelectedByRowHeader() || range.isSingleHeader() && range.highlight.col < 0 || this.countSourceCols() >= this.getSettings().maxCols) {
+      if (!range) {
         return true;
       }
-      return false;
+      if (range.isSingleHeader() && range.highlight.col < 0) {
+        return true;
+      }
+      if (this.selection.isSelectedByCorner()) {
+        // Enable "Insert column right" always when the menu is triggered by corner click.
+        return false;
+      }
+      return this.selection.isSelectedByRowHeader() || this.countCols() >= this.getSettings().maxCols;
     },
     hidden() {
       return !this.getSettings().allowInsertColumn;
@@ -63608,14 +63496,19 @@ function rowAboveItem() {
     },
     disabled() {
       const range = this.getSelectedRangeLast();
-      if (!range || this.selection.isSelectedByColumnHeader() || range.isSingleHeader() && range.highlight.row < 0 || this.countSourceRows() >= this.getSettings().maxRows) {
+      if (!range) {
+        return true;
+      }
+      if (range.isSingleHeader() && range.highlight.row < 0) {
         return true;
       }
       if (this.selection.isSelectedByCorner()) {
+        const totalRows = this.countRows();
+
         // Enable "Insert row above" only when there is at least one row.
-        return this.countRows() === 0;
+        return totalRows === 0;
       }
-      return false;
+      return this.selection.isSelectedByColumnHeader() || this.countRows() >= this.getSettings().maxRows;
     },
     hidden() {
       return !this.getSettings().allowInsertRow;
@@ -63652,10 +63545,17 @@ function rowBelowItem() {
     },
     disabled() {
       const range = this.getSelectedRangeLast();
-      if (!range || this.selection.isSelectedByColumnHeader() || range.isSingleHeader() && range.highlight.row < 0 || this.countSourceRows() >= this.getSettings().maxRows) {
+      if (!range) {
         return true;
       }
-      return false;
+      if (range.isSingleHeader() && range.highlight.row < 0) {
+        return true;
+      }
+      if (this.selection.isSelectedByCorner()) {
+        // Enable "Insert row below" always when the menu is triggered by corner click.
+        return false;
+      }
+      return this.selection.isSelectedByColumnHeader() || this.countRows() >= this.getSettings().maxRows;
     },
     hidden() {
       return !this.getSettings().allowInsertRow;
@@ -64842,6 +64742,7 @@ class Menu {
           this.openSubMenu(coords.row);
         }
       },
+      rowHeights: row => filteredItems[row].name === _predefinedItems.SEPARATOR ? 1 : undefined,
       afterOnCellContextMenu: event => {
         event.preventDefault();
 
@@ -65112,7 +65013,6 @@ class Menu {
    * and adjusts the width and height of the menu's holder and hider elements accordingly.
    */
   updateMenuDimensions() {
-    const stylesHandler = this.hotMenu.view.getStylesHandler();
     const {
       wtTable
     } = this.hotMenu.view._wt;
@@ -65125,14 +65025,8 @@ class Menu {
       const currentRowHeight = itemCell ? (0, _element.outerHeight)(this.hotMenu.getCell(index, 0)) : 0;
       return accumulator + (value.name === _predefinedItems.SEPARATOR ? 1 : currentRowHeight);
     }, 0);
-    if (stylesHandler.isClassicTheme()) {
-      // Additional 3px to menu's size because of additional border around its `table.htCore`.
-      holderStyle.width = `${currentHiderWidth + 3}px`;
-      holderStyle.height = `${realHeight + 3}px`;
-    } else {
-      holderStyle.width = `${currentHiderWidth}px`;
-      holderStyle.height = `${realHeight}px`;
-    }
+    holderStyle.width = `${currentHiderWidth}px`;
+    holderStyle.height = `${realHeight}px`;
     hiderStyle.height = holderStyle.height;
   }
 
@@ -66839,7 +66733,7 @@ class CopyPaste extends _base.BasePlugin {
     const isHotInput = (_event$target = event.target) === null || _event$target === void 0 ? void 0 : _event$target.hasAttribute('data-hot-input');
     const selectedCell = (_this$hot$getSelected = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected === void 0 ? void 0 : _this$hot$getSelected.highlight;
     const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
-    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCopy, this) || this.isEditorOpened() || (0, _element.isHTMLElement)(event.target) && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
+    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCopy, this) || this.isEditorOpened() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
       return;
     }
     event.preventDefault();
@@ -66874,7 +66768,7 @@ class CopyPaste extends _base.BasePlugin {
     const isHotInput = (_event$target2 = event.target) === null || _event$target2 === void 0 ? void 0 : _event$target2.hasAttribute('data-hot-input');
     const selectedCell = (_this$hot$getSelected2 = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected2 === void 0 ? void 0 : _this$hot$getSelected2.highlight;
     const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
-    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCut, this) || this.isEditorOpened() || (0, _element.isHTMLElement)(event.target) && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
+    if (!this.hot.isListening() && !_classPrivateFieldGet(_isTriggeredByCut, this) || this.isEditorOpened() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
       return;
     }
     event.preventDefault();
@@ -66908,7 +66802,7 @@ class CopyPaste extends _base.BasePlugin {
     const isHotInput = (_event$target3 = event.target) === null || _event$target3 === void 0 ? void 0 : _event$target3.hasAttribute('data-hot-input');
     const selectedCell = (_this$hot$getSelected3 = this.hot.getSelectedRangeLast()) === null || _this$hot$getSelected3 === void 0 ? void 0 : _this$hot$getSelected3.highlight;
     const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
-    if (!this.hot.isListening() || this.isEditorOpened() || !this.hot.getSelected() || (0, _element.isHTMLElement)(event.target) && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
+    if (!this.hot.isListening() || this.isEditorOpened() || !this.hot.getSelected() || event.target instanceof HTMLElement && (isHotInput && event.target !== focusedElement || !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target)) {
       return;
     }
     event.preventDefault();
@@ -70106,7 +70000,6 @@ function typeFactory(type, dataProvider, options) {
 
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
-__webpack_require__(115);
 __webpack_require__(142);
 var _array = __webpack_require__(161);
 var _mixed = __webpack_require__(158);
@@ -70361,7 +70254,6 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  */
 var _menuFocusNavigator = /*#__PURE__*/new WeakMap();
 var _dropdownMenuTraces = /*#__PURE__*/new WeakMap();
-var _previousConditionStack = /*#__PURE__*/new WeakMap();
 var _Filters_brand = /*#__PURE__*/new WeakSet();
 class Filters extends _base.BasePlugin {
   static get PLUGIN_KEY() {
@@ -70433,13 +70325,6 @@ class Filters extends _base.BasePlugin {
      * @type {WeakSet<Menu>}
      */
     _classPrivateFieldInitSpec(this, _dropdownMenuTraces, new WeakSet());
-    /**
-     * Stores the previous state of the condition stack before the latest filter operation.
-     * This is used in the `beforeFilter` plugin to allow performing the undo operation.
-     *
-     * @type {Array}
-     */
-    _classPrivateFieldInitSpec(this, _previousConditionStack, []);
     this.hot.addHook('afterGetColHeader', function () {
       for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
@@ -70783,51 +70668,6 @@ class Filters extends _base.BasePlugin {
   }
 
   /**
-   * Imports filter conditions to all columns to the plugin. The method accepts
-   * the array of conditions with the same structure as the {@link Filters#exportConditions} method returns.
-   * Importing conditions will replace the current conditions. Once replaced, the state of the condition
-   * will be reflected in the UI. To apply the changes and filter the table, call
-   * the {@link Filters#filter} method eventually.
-   *
-   * @param {Array} conditions Array of conditions.
-   */
-  importConditions(conditions) {
-    this.conditionCollection.importAllConditions(conditions);
-  }
-
-  /* eslint-disable jsdoc/require-description-complete-sentence */
-  /**
-   * Exports filter conditions for all columns from the plugin.
-   * The array represents the filter state for each column. For example:
-   *
-   * ```js
-   * [
-   *   {
-   *     column: 1,
-   *     operation: 'conjunction',
-   *     conditions: [
-   *       { name: 'gt', args: [95] },
-   *     ]
-   *   },
-   *   {
-   *     column: 7,
-   *     operation: 'conjunction',
-   *     conditions: [
-   *       { name: 'contains', args: ['mike'] },
-   *       { name: 'begins_with', args: ['m'] },
-   *     ]
-   *   },
-   * ]
-   * ```
-   *
-   * @returns {Array}
-   */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
-  exportConditions() {
-    return this.conditionCollection.exportAllConditions();
-  }
-
-  /**
    * Filters data based on added filter conditions.
    *
    * @fires Hooks#beforeFilter
@@ -70840,8 +70680,8 @@ class Filters extends _base.BasePlugin {
     const dataFilter = this._createDataFilter();
     const needToFilter = !this.conditionCollection.isEmpty();
     let visibleVisualRows = [];
-    const conditions = this.exportConditions();
-    const allowFiltering = this.hot.runHooks('beforeFilter', conditions, _classPrivateFieldGet(_previousConditionStack, this));
+    const conditions = this.conditionCollection.exportAllConditions();
+    const allowFiltering = this.hot.runHooks('beforeFilter', conditions, this.conditionCollection.previousConditionStack);
     if (allowFiltering !== false) {
       if (needToFilter) {
         const trimmedRows = [];
@@ -70864,13 +70704,11 @@ class Filters extends _base.BasePlugin {
       } else {
         this.filtersRowsMap.clear();
       }
-      _classPrivateFieldSet(_previousConditionStack, this, this.exportConditions());
-      this.hot.runHooks('afterFilter', conditions);
-      this.hot.view.adjustElementsSize();
-      this.hot.render();
-    } else {
-      this.importConditions(_classPrivateFieldGet(_previousConditionStack, this));
     }
+    this.hot.runHooks('afterFilter', conditions);
+    this.conditionCollection.setPreviousConditionStack(null);
+    this.hot.view.adjustElementsSize();
+    this.hot.render();
     if (this.hot.selection.isSelected()) {
       this.hot.selectCell(navigableHeaders ? -1 : 0, this.hot.getSelectedRangeLast().highlight.col);
     }
@@ -71233,6 +71071,7 @@ function _onActionBarSubmit(submitType) {
     }
     this.conditionUpdateObserver.flush();
     this.components.forEach(component => component.saveState(physicalIndex));
+    this.filtersRowsMap.clear();
     this.filter();
   }
   (_this$dropdownMenuPlu3 = this.dropdownMenuPlugin) === null || _this$dropdownMenuPlu3 === void 0 || _this$dropdownMenuPlu3.close();
@@ -71274,23 +71113,8 @@ function _updateComponents(conditionsState) {
     editedConditionStack: {
       conditions,
       column
-    },
-    conditionArgsChange
+    }
   } = conditionsState;
-  if (Array.isArray(conditionArgsChange)) {
-    // update the previous condition stack (only for 'by_value' condition) on each dataset
-    // change to make the undo/redo work properly
-    _classPrivateFieldSet(_previousConditionStack, this, _classPrivateFieldGet(_previousConditionStack, this).map(stack => {
-      if (stack.column === column && conditions.length > 0) {
-        stack.conditions.forEach(condition => {
-          if (condition.name === 'by_value') {
-            condition.args = [[...conditionArgsChange]];
-          }
-        });
-      }
-      return stack;
-    }));
-  }
   const conditionsByValue = conditions.filter(condition => condition.name === _constants2.CONDITION_BY_VALUE);
   const conditionsWithoutByValue = conditions.filter(condition => condition.name !== _constants2.CONDITION_BY_VALUE);
   if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
@@ -74734,6 +74558,13 @@ class ConditionCollection {
      * @type {LinkedPhysicalIndexToValueMap}
      */
     (0, _defineProperty2.default)(this, "filteringStates", new _translations.LinkedPhysicalIndexToValueMap());
+    /**
+     * Stores the previous state of the condition stack before the latest filter operation.
+     * This is used in the `beforeFilter` plugin to allow performing the undo operation.
+     *
+     * @type {null|Array}
+     */
+    (0, _defineProperty2.default)(this, "previousConditionStack", null);
     this.hot = hot;
     this.isMapRegistrable = isMapRegistrable;
     if (this.isMapRegistrable === true) {
@@ -74802,6 +74633,13 @@ class ConditionCollection {
     const localeForColumn = this.hot.getCellMeta(0, column).locale;
     const args = conditionDefinition.args.map(v => typeof v === 'string' ? v.toLocaleLowerCase(localeForColumn) : v);
     const name = conditionDefinition.name || conditionDefinition.command.key;
+
+    // If there's no previous condition stack defined (which means the condition stack was not cleared after the
+    // previous filter operation or that there was no filter operation performed yet), store the current conditions as
+    // the previous condition stack.
+    if (this.previousConditionStack === null) {
+      this.setPreviousConditionStack(this.exportAllConditions());
+    }
     this.runLocalHooks('beforeAdd', column);
     const columnType = this.getOperation(column);
     if (columnType) {
@@ -74930,6 +74768,8 @@ class ConditionCollection {
    * @fires ConditionCollection#afterRemove
    */
   removeConditions(column) {
+    // Store the current conditions as the previous condition stack before it's cleared.
+    this.setPreviousConditionStack(this.exportAllConditions());
     this.runLocalHooks('beforeRemove', column);
     this.filteringStates.clearValue(column);
     this.runLocalHooks('afterRemove', column);
@@ -74961,6 +74801,16 @@ class ConditionCollection {
       return conditions.some(condition => condition.name === name);
     }
     return conditions.length > 0;
+  }
+
+  /**
+   * Updates the `previousConditionStack` property with the provided stack.
+   * It is used to store the current conditions before they are modified, allowing for undo operations.
+   *
+   * @param {Array|null} previousConditionStack The stack of previous conditions.
+   */
+  setPreviousConditionStack(previousConditionStack) {
+    this.previousConditionStack = previousConditionStack;
   }
 
   /**
@@ -75525,6 +75375,7 @@ __webpack_require__(111);
 __webpack_require__(113);
 __webpack_require__(115);
 __webpack_require__(289);
+__webpack_require__(185);
 __webpack_require__(133);
 __webpack_require__(142);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
@@ -75582,9 +75433,13 @@ class Formulas extends _base.BasePlugin {
     super(...arguments);
     _this = this;
     /**
-     * Update sheetName and sheetId properties.
+     * The hook allows to translate the formula value to calculated value before it goes to the
+     * validator function.
      *
-     * @param {string} [sheetName] The new sheet name.
+     * @param {*} value The cell value to validate.
+     * @param {number} visualRow The visual row index.
+     * @param {number|string} prop The visual column index or property name of the column.
+     * @returns {*} Returns value to validate.
      */
     _classPrivateMethodInitSpec(this, _Formulas_brand);
     /**
@@ -75652,12 +75507,6 @@ class Formulas extends _base.BasePlugin {
      */
     (0, _defineProperty2.default)(this, "engine", null);
     /**
-     * HyperFormula's sheet id.
-     *
-     * @type {number|null}
-     */
-    (0, _defineProperty2.default)(this, "sheetId", null);
-    /**
      * HyperFormula's sheet name.
      *
      * @type {string|null}
@@ -75692,6 +75541,15 @@ class Formulas extends _base.BasePlugin {
     return [PLUGIN_KEY, ...SETTING_KEYS];
   }
   /**
+   * HyperFormula's sheet id.
+   *
+   * @type {number|null}
+   */
+  get sheetId() {
+    return this.sheetName === null ? null : this.engine.getSheetId(this.sheetName);
+  }
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link Formulas#enablePlugin} method is called.
    *
@@ -75721,7 +75579,7 @@ class Formulas extends _base.BasePlugin {
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
       const newSheetName = this.addSheet(this.sheetName, this.hot.getSourceDataArray());
       if (newSheetName !== false) {
-        _assertClassBrand(_Formulas_brand, this, _updateSheetNameAndSheetId).call(this, newSheetName);
+        this.sheetName = newSheetName;
       }
     }
     this.addHook('beforeLoadData', function () {
@@ -75952,8 +75810,7 @@ class Formulas extends _base.BasePlugin {
       if (sheetName && this.engine.doesSheetExist(sheetName)) {
         this.switchSheet(this.sheetName);
       } else {
-        const newSheetName = this.addSheet(sheetName !== null && sheetName !== void 0 ? sheetName : undefined, this.hot.getSourceDataArray());
-        _assertClassBrand(_Formulas_brand, this, _updateSheetNameAndSheetId).call(this, newSheetName);
+        this.sheetName = this.addSheet(sheetName !== null && sheetName !== void 0 ? sheetName : undefined, this.hot.getSourceDataArray());
       }
     }
     super.updatePlugin(newSettings);
@@ -75973,6 +75830,7 @@ class Formulas extends _base.BasePlugin {
     this.engine = null;
     super.destroy();
   }
+
   /**
    * Add a sheet to the shared HyperFormula instance.
    *
@@ -76015,7 +75873,7 @@ class Formulas extends _base.BasePlugin {
       (0, _console.error)(`The sheet named \`${sheetName}\` does not exist, switch aborted.`);
       return;
     }
-    _assertClassBrand(_Formulas_brand, this, _updateSheetNameAndSheetId).call(this, sheetName);
+    this.sheetName = sheetName;
     const serialized = this.engine.getSheetSerialized(this.sheetId);
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${(0, _string.toUpperCaseFirst)(PLUGIN_KEY)}.switchSheet`);
@@ -76175,22 +76033,8 @@ class Formulas extends _base.BasePlugin {
     }
     return this.engine.setCellContents(address, newValue);
   }
-
-  /**
-   * The hook allows to translate the formula value to calculated value before it goes to the
-   * validator function.
-   *
-   * @param {*} value The cell value to validate.
-   * @param {number} visualRow The visual row index.
-   * @param {number|string} prop The visual column index or property name of the column.
-   * @returns {*} Returns value to validate.
-   */
 }
 exports.Formulas = Formulas;
-function _updateSheetNameAndSheetId(sheetName) {
-  this.sheetName = sheetName;
-  this.sheetId = this.engine.getSheetId(this.sheetName);
-}
 function _onBeforeValidate(value, visualRow, prop) {
   const visualColumn = this.hot.propToCol(prop);
   if (this.isFormulaCellType(visualRow, visualColumn)) {
@@ -76318,33 +76162,29 @@ function _onBeforeLoadData(sourceData, initialLoad) {
  * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
  */
 function _onAfterCellMetaReset() {
-  if (_classPrivateFieldGet(_hotWasInitializedWithEmptyData, this)) {
-    this.switchSheet(this.sheetName);
-    return;
-  }
   const sourceDataArray = this.hot.getSourceDataArray();
+  let valueChanged = false;
   sourceDataArray.forEach((rowData, rowIndex) => {
     rowData.forEach((cellValue, columnIndex) => {
-      const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex, {
-        skipMetaExtension: true
-      });
+      const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
       const dateFormat = cellMeta.dateFormat;
       if ((0, _utils.isDate)(cellValue, cellMeta.type)) {
+        valueChanged = true;
         if ((0, _utils.isDateValid)(cellValue, dateFormat)) {
           // Rewriting date in HOT format to HF format.
           sourceDataArray[rowIndex][columnIndex] = (0, _utils.getDateInHfFormat)(cellValue, dateFormat);
-        } else if (!cellValue.startsWith('=')) {
+        } else if (this.isFormulaCellType(rowIndex, columnIndex) === false) {
           // Escaping value from date parsing using "'" sign (HF feature).
           sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
         }
       }
     });
   });
-  _classPrivateFieldSet(_internalOperationPending, this, true);
-  const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
-  this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
-  this.renderDependentSheets(dependentCells);
-  _classPrivateFieldSet(_internalOperationPending, this, false);
+  if (valueChanged === true) {
+    _classPrivateFieldSet(_internalOperationPending, this, true);
+    this.engine.setSheetContent(this.sheetId, sourceDataArray);
+    _classPrivateFieldSet(_internalOperationPending, this, false);
+  }
 }
 /**
  * `afterLoadData` hook callback.
@@ -76358,12 +76198,7 @@ function _onAfterLoadData(sourceData, initialLoad) {
   if (source.includes((0, _string.toUpperCaseFirst)(PLUGIN_KEY))) {
     return;
   }
-  const sheetName = (0, _register.setupSheet)(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
-  _assertClassBrand(_Formulas_brand, this, _updateSheetNameAndSheetId).call(this, sheetName);
-  if (source === 'updateSettings') {
-    // For performance reasons, the initialization will be done in afterCellMetaReset hook
-    return;
-  }
+  this.sheetName = (0, _register.setupSheet)(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
   if (!_classPrivateFieldGet(_hotWasInitializedWithEmptyData, this)) {
     const sourceDataArray = this.hot.getSourceDataArray();
     if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
@@ -76394,10 +76229,17 @@ function _onModifyData(physicalRow, visualColumn, valueHolder, ioMode) {
   if (visualRow === null || visualColumn === null) {
     return;
   }
-  const cellType = this.getCellType(visualRow, visualColumn);
-  if (cellType === 'VALUE' || cellType === 'EMPTY') {
-    valueHolder.value = (0, _utils.unescapeFormulaExpression)(valueHolder.value);
-    return;
+
+  // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+  const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
+  if (!isFormulaCellType) {
+    const cellType = this.getCellType(visualRow, visualColumn);
+    if (cellType !== 'ARRAY') {
+      if ((0, _utils.isEscapedFormulaExpression)(valueHolder.value)) {
+        valueHolder.value = (0, _utils.unescapeFormulaExpression)(valueHolder.value);
+      }
+      return;
+    }
   }
   const address = {
     row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
@@ -76406,15 +76248,21 @@ function _onModifyData(physicalRow, visualColumn, valueHolder, ioMode) {
   };
   let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
 
-  const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, {
-    skipMetaExtension: true
-  });
+  // TODO: Workaround. We use HOT's `getCellsMeta` method instead of HOT's `getCellMeta` method. Getting cell meta
+  // using the second method lead to execution of the `cells` method. Using the `getDataAtCell` (which may be useful)
+  // in a callback to the `cells` method leads to triggering the `modifyData` hook. Thus, the `onModifyData` callback
+  // is executed once again and it cause creation of an infinite loop.
+  let cellMeta = this.hot.getCellsMeta().find(singleCellMeta => singleCellMeta.visualRow === visualRow && singleCellMeta.visualCol === visualColumn);
+  if (cellMeta === undefined) {
+    cellMeta = {};
+  }
   if (cellMeta.type === 'date' && (0, _number.isNumeric)(cellValue)) {
     cellValue = (0, _utils.getDateFromExcelDate)(cellValue, cellMeta.dateFormat);
   }
 
   // If `cellValue` is an object it is expected to be an error
-  valueHolder.value = typeof cellValue === 'object' && cellValue !== null ? cellValue.value : cellValue;
+  const value = typeof cellValue === 'object' && cellValue !== null ? cellValue.value : cellValue;
+  valueHolder.value = value;
 }
 /**
  * `modifySourceData` hook callback.
@@ -76434,9 +76282,14 @@ function _onModifySourceData(row, columnOrProp, valueHolder, ioMode) {
   if (visualRow === null || visualColumn === null) {
     return;
   }
-  const cellType = this.getCellType(visualRow, visualColumn);
-  if (cellType === 'VALUE' || cellType === 'EMPTY') {
-    return;
+
+  // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+  const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
+  if (!isFormulaCellType) {
+    const cellType = this.getCellType(visualRow, visualColumn);
+    if (cellType !== 'ARRAY') {
+      return;
+    }
   }
   const dimensions = this.engine.getSheetDimensions(this.engine.getSheetId(this.sheetName));
 
@@ -76745,7 +76598,7 @@ function _onEngineSheetAdded(addedSheetDisplayName) {
  * @param {string} newDisplayName The new name of the sheet.
  */
 function _onEngineSheetRenamed(oldDisplayName, newDisplayName) {
-  _assertClassBrand(_Formulas_brand, this, _updateSheetNameAndSheetId).call(this, newDisplayName);
+  this.sheetName = newDisplayName;
   this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
 }
 /**
@@ -77559,11 +77412,7 @@ class AxisSyncer {
   getHfIndexFromVisualIndex(visualIndex) {
     const indexesSequence = _classPrivateFieldGet(_indexMapper, this).getIndexesSequence();
     const notTrimmedIndexes = _classPrivateFieldGet(_indexMapper, this).getNotTrimmedIndexes();
-
-    // Optimization:
-    // notTrimmedIndexes is a subset of indexesSequence,
-    // so for every x indexesSequence.indexOf(x) is always >= notTrimmedIndexes.indexOf(x)
-    return indexesSequence.indexOf(notTrimmedIndexes[visualIndex], visualIndex);
+    return indexesSequence.indexOf(notTrimmedIndexes[visualIndex]);
   }
 
   /**
@@ -84110,17 +83959,14 @@ function _onModifyRowHeightByOverlayName(height, row, overlayType) {
  * @returns {number}
  */
 function _sumCellsHeights(row, rowspan) {
-  const {
-    view,
-    rowIndexMapper
-  } = this.hot;
-  const stylesHandler = view.getStylesHandler();
-  const defaultHeight = view.getDefaultRowHeight();
+  const stylesHandler = this.hot.view.getStylesHandler();
+  const defaultHeight = this.hot.view.getDefaultRowHeight();
+  const autoRowSizePlugin = this.hot.getPlugin('autoRowSize');
   let height = 0;
   for (let i = row; i < row + rowspan; i++) {
-    if (!rowIndexMapper.isHidden(i)) {
-      var _this$hot$getRowHeigh;
-      height += (_this$hot$getRowHeigh = this.hot.getRowHeight(i)) !== null && _this$hot$getRowHeigh !== void 0 ? _this$hot$getRowHeigh : defaultHeight;
+    if (!this.hot.rowIndexMapper.isHidden(i)) {
+      var _autoRowSizePlugin$ge;
+      height += (_autoRowSizePlugin$ge = autoRowSizePlugin === null || autoRowSizePlugin === void 0 ? void 0 : autoRowSizePlugin.getRowHeight(i)) !== null && _autoRowSizePlugin$ge !== void 0 ? _autoRowSizePlugin$ge : defaultHeight;
       if (i === 0 && !stylesHandler.isClassicTheme()) {
         height += 1; // border-top-width
       }
@@ -86420,10 +86266,12 @@ var _sortService = __webpack_require__(526);
 var _utils = __webpack_require__(525);
 var _element = __webpack_require__(155);
 var _rootComparator = __webpack_require__(704);
-var _domHelpers = __webpack_require__(705);
+var _utils2 = __webpack_require__(705);
+var _domHelpers = __webpack_require__(706);
 var _shortcutContexts = __webpack_require__(352);
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'multiColumnSorting';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 170;
+const CONFLICTED_PLUGIN_KEY = 'columnSorting';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 (0, _sortService.registerRootComparator)(PLUGIN_KEY, _rootComparator.rootComparator);
 
@@ -86503,13 +86351,17 @@ class MultiColumnSorting extends _columnSorting.ColumnSorting {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings()[this.pluginKey];
+    return super.isEnabled();
   }
 
   /**
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
+    if (!this.enabled && this.hot.getSettings()[this.pluginKey] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY]) {
+      (0, _utils2.warnAboutPluginsConflict)();
+      this.hot.getPlugin(CONFLICTED_PLUGIN_KEY).disablePlugin();
+    }
     super.enablePlugin();
   }
 
@@ -86682,6 +86534,20 @@ class MultiColumnSorting extends _columnSorting.ColumnSorting {
   }
 
   /**
+   * Overwriting base plugin's `onUpdateSettings` method. Please keep in mind that `onAfterUpdateSettings` isn't called
+   * for `updateSettings` in specific situations.
+   *
+   * @private
+   * @param {object} newSettings New settings object.
+   */
+  onUpdateSettings(newSettings) {
+    if (this.hot.getSettings()[this.pluginKey] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY]) {
+      (0, _utils2.warnAboutPluginsConflict)();
+    }
+    super.onUpdateSettings(newSettings);
+  }
+
+  /**
    * Callback for the `onAfterOnCellMouseDown` hook.
    *
    * @private
@@ -86755,6 +86621,25 @@ function rootComparator(sortingOrders, columnMetas) {
 
 
 exports.__esModule = true;
+exports.warnAboutPluginsConflict = warnAboutPluginsConflict;
+var _console = __webpack_require__(178);
+var _templateLiteralTag = __webpack_require__(160);
+/**
+ * Warn users about problems when using `columnSorting` and `multiColumnSorting` plugins simultaneously.
+ */
+function warnAboutPluginsConflict() {
+  (0, _console.warn)((0, _templateLiteralTag.toSingleLine)`Plugins \`columnSorting\` and \`multiColumnSorting\` should not be enabled simultaneously. 
+    Only \`multiColumnSorting\` will work. The \`columnSorting\` plugin will be disabled.`);
+}
+
+/***/ }),
+/* 706 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+exports.__esModule = true;
 exports.getClassesToAdd = getClassesToAdd;
 exports.getClassesToRemove = getClassesToRemove;
 __webpack_require__(87);
@@ -86794,20 +86679,20 @@ function getClassesToRemove(htmlElement) {
 }
 
 /***/ }),
-/* 706 */
+/* 707 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _multipleSelectionHandles = __webpack_require__(707);
+var _multipleSelectionHandles = __webpack_require__(708);
 exports.PLUGIN_KEY = _multipleSelectionHandles.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _multipleSelectionHandles.PLUGIN_PRIORITY;
 exports.MultipleSelectionHandles = _multipleSelectionHandles.MultipleSelectionHandles;
 
 /***/ }),
-/* 707 */
+/* 708 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -87146,20 +87031,20 @@ class MultipleSelectionHandles extends _base.BasePlugin {
 exports.MultipleSelectionHandles = MultipleSelectionHandles;
 
 /***/ }),
-/* 708 */
+/* 709 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _nestedHeaders = __webpack_require__(709);
+var _nestedHeaders = __webpack_require__(710);
 exports.PLUGIN_KEY = _nestedHeaders.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _nestedHeaders.PLUGIN_PRIORITY;
 exports.NestedHeaders = _nestedHeaders.NestedHeaders;
 
 /***/ }),
-/* 709 */
+/* 710 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -87179,8 +87064,8 @@ var _event = __webpack_require__(175);
 var _console = __webpack_require__(178);
 var _selection = __webpack_require__(318);
 var _base = __webpack_require__(507);
-var _stateManager2 = _interopRequireDefault(__webpack_require__(710));
-var _ghostTable = _interopRequireDefault(__webpack_require__(723));
+var _stateManager2 = _interopRequireDefault(__webpack_require__(711));
+var _ghostTable = _interopRequireDefault(__webpack_require__(724));
 function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
 function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
@@ -88065,11 +87950,9 @@ function _onBeforeSelectColumns(from, to, highlight) {
  * @param {Array} renderersArray Array of renderers.
  */
 function _onAfterGetColumnHeaderRenderers(renderersArray) {
-  if (_classPrivateFieldGet(_stateManager, this).getLayersCount() > 0) {
-    renderersArray.length = 0;
-    for (let headerLayer = 0; headerLayer < _classPrivateFieldGet(_stateManager, this).getLayersCount(); headerLayer++) {
-      renderersArray.push(this.headerRendererFactory(headerLayer));
-    }
+  renderersArray.length = 0;
+  for (let headerLayer = 0; headerLayer < _classPrivateFieldGet(_stateManager, this).getLayersCount(); headerLayer++) {
+    renderersArray.push(this.headerRendererFactory(headerLayer));
   }
 }
 /**
@@ -88168,7 +88051,7 @@ function _onAfterLoadData(sourceData, initialLoad) {
 }
 
 /***/ }),
-/* 710 */
+/* 711 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -88178,14 +88061,13 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(5);
 __webpack_require__(87);
-__webpack_require__(115);
 __webpack_require__(142);
 var _array = __webpack_require__(161);
-var _sourceSettings2 = _interopRequireDefault(__webpack_require__(711));
-var _headersTree2 = _interopRequireDefault(__webpack_require__(714));
-var _nodeModifiers = __webpack_require__(716);
-var _matrixGenerator = __webpack_require__(722);
-var _tree = __webpack_require__(715);
+var _sourceSettings2 = _interopRequireDefault(__webpack_require__(712));
+var _headersTree2 = _interopRequireDefault(__webpack_require__(715));
+var _nodeModifiers = __webpack_require__(717);
+var _matrixGenerator = __webpack_require__(723);
+var _tree = __webpack_require__(716);
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
 function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
@@ -88660,7 +88542,7 @@ class StateManager {
 exports["default"] = StateManager;
 
 /***/ }),
-/* 711 */
+/* 712 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -88671,7 +88553,7 @@ __webpack_require__(5);
 __webpack_require__(87);
 var _object = __webpack_require__(165);
 var _array = __webpack_require__(161);
-var _settingsNormalizer = __webpack_require__(712);
+var _settingsNormalizer = __webpack_require__(713);
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
 function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
@@ -88882,7 +88764,7 @@ class SourceSettings {
 exports["default"] = SourceSettings;
 
 /***/ }),
-/* 712 */
+/* 713 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -88894,7 +88776,7 @@ __webpack_require__(87);
 var _array = __webpack_require__(161);
 var _object = __webpack_require__(165);
 var _mixed = __webpack_require__(158);
-var _utils = __webpack_require__(713);
+var _utils = __webpack_require__(714);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -88996,7 +88878,7 @@ function normalizeSettings(sourceSettings) {
 }
 
 /***/ }),
-/* 713 */
+/* 714 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -89073,7 +88955,7 @@ function createPlaceholderHeaderSettings() {
 }
 
 /***/ }),
-/* 714 */
+/* 715 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89083,7 +88965,7 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(5);
 var _array = __webpack_require__(161);
-var _tree = _interopRequireDefault(__webpack_require__(715));
+var _tree = _interopRequireDefault(__webpack_require__(716));
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
 function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
@@ -89311,7 +89193,7 @@ class HeadersTree {
 exports["default"] = HeadersTree;
 
 /***/ }),
-/* 715 */
+/* 716 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89530,7 +89412,7 @@ class TreeNode {
 exports["default"] = TreeNode;
 
 /***/ }),
-/* 716 */
+/* 717 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89539,10 +89421,10 @@ exports["default"] = TreeNode;
 exports.__esModule = true;
 exports.triggerNodeModification = triggerNodeModification;
 __webpack_require__(5);
-var _collapse = __webpack_require__(717);
-var _expand = __webpack_require__(718);
-var _hideColumn = __webpack_require__(720);
-var _showColumn = __webpack_require__(721);
+var _collapse = __webpack_require__(718);
+var _expand = __webpack_require__(719);
+var _hideColumn = __webpack_require__(721);
+var _showColumn = __webpack_require__(722);
 /**
  * The NodeModifiers module is responsible for the modification of a tree structure
  * in a way to achieve new column headers state.
@@ -89572,7 +89454,7 @@ function triggerNodeModification(actionName, nodeToProcess, gridColumnIndex) {
 }
 
 /***/ }),
-/* 717 */
+/* 718 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89588,8 +89470,8 @@ __webpack_require__(109);
 __webpack_require__(111);
 __webpack_require__(113);
 var _array = __webpack_require__(161);
-var _expand = __webpack_require__(718);
-var _tree = __webpack_require__(719);
+var _expand = __webpack_require__(719);
+var _tree = __webpack_require__(720);
 /**
  * Collapsing a node is a process where the processing node is collapsed
  * to the colspan width of the first child. All node children, except the
@@ -89682,7 +89564,7 @@ function collapseNode(nodeToProcess) {
 }
 
 /***/ }),
-/* 718 */
+/* 719 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89698,8 +89580,8 @@ __webpack_require__(109);
 __webpack_require__(111);
 __webpack_require__(113);
 var _array = __webpack_require__(161);
-var _collapse = __webpack_require__(717);
-var _tree = __webpack_require__(719);
+var _collapse = __webpack_require__(718);
+var _tree = __webpack_require__(720);
 /**
  * Expanding a node is a process where the processing node is expanded to
  * its original colspan width. To restore an original state of all node
@@ -89787,7 +89669,7 @@ function expandNode(nodeToProcess) {
 }
 
 /***/ }),
-/* 719 */
+/* 720 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -89858,7 +89740,7 @@ function isNodeReflectsFirstChildColspan(node) {
 }
 
 /***/ }),
-/* 720 */
+/* 721 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89921,7 +89803,7 @@ the last node, the hide column modification can be applied.`);
 }
 
 /***/ }),
-/* 721 */
+/* 722 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89982,7 +89864,7 @@ the last node, the show column modification can be applied.`);
 }
 
 /***/ }),
-/* 722 */
+/* 723 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -89992,7 +89874,7 @@ exports.__esModule = true;
 exports.generateMatrix = generateMatrix;
 __webpack_require__(87);
 var _array = __webpack_require__(161);
-var _utils = __webpack_require__(713);
+var _utils = __webpack_require__(714);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -90088,7 +89970,7 @@ function createNestedArrayIfNecessary(array, index) {
 }
 
 /***/ }),
-/* 723 */
+/* 724 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -90244,20 +90126,20 @@ class GhostTable {
 var _default = exports["default"] = GhostTable;
 
 /***/ }),
-/* 724 */
+/* 725 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _nestedRows = __webpack_require__(725);
+var _nestedRows = __webpack_require__(726);
 exports.PLUGIN_KEY = _nestedRows.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _nestedRows.PLUGIN_PRIORITY;
 exports.NestedRows = _nestedRows.NestedRows;
 
 /***/ }),
-/* 725 */
+/* 726 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -90279,15 +90161,15 @@ __webpack_require__(133);
 __webpack_require__(196);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
 var _base = __webpack_require__(507);
-var _dataManager = _interopRequireDefault(__webpack_require__(726));
-var _collapsing = _interopRequireDefault(__webpack_require__(727));
-var _headers = _interopRequireDefault(__webpack_require__(729));
-var _contextMenu = _interopRequireDefault(__webpack_require__(730));
+var _dataManager = _interopRequireDefault(__webpack_require__(727));
+var _collapsing = _interopRequireDefault(__webpack_require__(728));
+var _headers = _interopRequireDefault(__webpack_require__(730));
+var _contextMenu = _interopRequireDefault(__webpack_require__(731));
 var _console = __webpack_require__(178);
 var _data = __webpack_require__(288);
 var _translations = __webpack_require__(291);
 var _shortcutContexts = __webpack_require__(352);
-var _rowMoveController = _interopRequireDefault(__webpack_require__(731));
+var _rowMoveController = _interopRequireDefault(__webpack_require__(732));
 function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
 function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
@@ -90819,7 +90701,7 @@ function _onBeforeLoadData(data) {
 }
 
 /***/ }),
-/* 726 */
+/* 727 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -91535,7 +91417,7 @@ class DataManager {
 var _default = exports["default"] = DataManager;
 
 /***/ }),
-/* 727 */
+/* 728 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -91548,8 +91430,8 @@ var _event = __webpack_require__(175);
 var _array = __webpack_require__(161);
 var _number = __webpack_require__(200);
 var _element = __webpack_require__(155);
-var _base = _interopRequireDefault(__webpack_require__(728));
-var _headers = _interopRequireDefault(__webpack_require__(729));
+var _base = _interopRequireDefault(__webpack_require__(729));
+var _headers = _interopRequireDefault(__webpack_require__(730));
 /**
  * Class responsible for the UI for collapsing and expanding groups.
  *
@@ -92010,7 +91892,7 @@ class CollapsingUI extends _base.default {
 var _default = exports["default"] = CollapsingUI;
 
 /***/ }),
-/* 728 */
+/* 729 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -92044,7 +91926,7 @@ class BaseUI {
 var _default = exports["default"] = BaseUI;
 
 /***/ }),
-/* 729 */
+/* 730 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -92055,7 +91937,7 @@ exports.__esModule = true;
 var _array = __webpack_require__(161);
 var _number = __webpack_require__(200);
 var _element = __webpack_require__(155);
-var _base = _interopRequireDefault(__webpack_require__(728));
+var _base = _interopRequireDefault(__webpack_require__(729));
 var _a11y = __webpack_require__(162);
 /**
  * Class responsible for the UI in the Nested Rows' row headers.
@@ -92188,7 +92070,7 @@ class HeadersUI extends _base.default {
 var _default = exports["default"] = HeadersUI;
 
 /***/ }),
-/* 730 */
+/* 731 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -92201,7 +92083,7 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
 var _number = __webpack_require__(200);
 var _array = __webpack_require__(161);
 var C = _interopRequireWildcard(__webpack_require__(317));
-var _base = _interopRequireDefault(__webpack_require__(728));
+var _base = _interopRequireDefault(__webpack_require__(729));
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
@@ -92307,7 +92189,7 @@ class ContextMenuUI extends _base.default {
 var _default = exports["default"] = ContextMenuUI;
 
 /***/ }),
-/* 731 */
+/* 732 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -92596,20 +92478,20 @@ class RowMoveController {
 exports["default"] = RowMoveController;
 
 /***/ }),
-/* 732 */
+/* 733 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _persistentState = __webpack_require__(733);
+var _persistentState = __webpack_require__(734);
 exports.PLUGIN_KEY = _persistentState.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _persistentState.PLUGIN_PRIORITY;
 exports.PersistentState = _persistentState.PersistentState;
 
 /***/ }),
-/* 733 */
+/* 734 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -92619,7 +92501,7 @@ var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
 var _base = __webpack_require__(507);
-var _storage = _interopRequireDefault(__webpack_require__(734));
+var _storage = _interopRequireDefault(__webpack_require__(735));
 var _hooks = __webpack_require__(177);
 _hooks.Hooks.getSingleton().register('persistentStateSave');
 _hooks.Hooks.getSingleton().register('persistentStateLoad');
@@ -92760,7 +92642,7 @@ class PersistentState extends _base.BasePlugin {
 exports.PersistentState = PersistentState;
 
 /***/ }),
-/* 734 */
+/* 735 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -92884,20 +92766,20 @@ class Storage {
 var _default = exports["default"] = Storage;
 
 /***/ }),
-/* 735 */
+/* 736 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _search = __webpack_require__(736);
+var _search = __webpack_require__(737);
 exports.PLUGIN_KEY = _search.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _search.PLUGIN_PRIORITY;
 exports.Search = _search.Search;
 
 /***/ }),
-/* 736 */
+/* 737 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -93205,20 +93087,20 @@ function _onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
 }
 
 /***/ }),
-/* 737 */
+/* 738 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _stretchColumns = __webpack_require__(738);
+var _stretchColumns = __webpack_require__(739);
 exports.PLUGIN_KEY = _stretchColumns.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _stretchColumns.PLUGIN_PRIORITY;
 exports.StretchColumns = _stretchColumns.StretchColumns;
 
 /***/ }),
-/* 738 */
+/* 739 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -93229,7 +93111,7 @@ __webpack_require__(5);
 __webpack_require__(115);
 __webpack_require__(133);
 var _base = __webpack_require__(507);
-var _calculator = __webpack_require__(739);
+var _calculator = __webpack_require__(740);
 function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
 function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
@@ -93446,7 +93328,7 @@ function _onBeforeRender(fullRender) {
 }
 
 /***/ }),
-/* 739 */
+/* 740 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -93458,8 +93340,8 @@ __webpack_require__(115);
 __webpack_require__(133);
 var _src = __webpack_require__(206);
 var _element = __webpack_require__(155);
-var _all = __webpack_require__(740);
-var _last = __webpack_require__(742);
+var _all = __webpack_require__(741);
+var _last = __webpack_require__(743);
 function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
 function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
@@ -93614,7 +93496,7 @@ function _overwriteColumnWidthFn(columnWidth, columnVisualIndex) {
 }
 
 /***/ }),
-/* 740 */
+/* 741 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -93626,7 +93508,7 @@ __webpack_require__(115);
 __webpack_require__(133);
 __webpack_require__(196);
 var _src = __webpack_require__(206);
-var _base = __webpack_require__(741);
+var _base = __webpack_require__(742);
 /**
  * The strategy calculates the column widths by stretching all columns evenly.
  *
@@ -93691,7 +93573,7 @@ class StretchAllStrategy extends _base.StretchStrategy {
 exports.StretchAllStrategy = StretchAllStrategy;
 
 /***/ }),
-/* 741 */
+/* 742 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -93780,7 +93662,7 @@ class StretchStrategy {
 exports.StretchStrategy = StretchStrategy;
 
 /***/ }),
-/* 742 */
+/* 743 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -93790,7 +93672,7 @@ exports.__esModule = true;
 __webpack_require__(5);
 __webpack_require__(115);
 __webpack_require__(196);
-var _base = __webpack_require__(741);
+var _base = __webpack_require__(742);
 function _classPrivateFieldInitSpec(e, t, a) { _checkPrivateRedeclaration(e, t), t.set(e, a); }
 function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
@@ -93865,20 +93747,20 @@ class StretchLastStrategy extends _base.StretchStrategy {
 exports.StretchLastStrategy = StretchLastStrategy;
 
 /***/ }),
-/* 743 */
+/* 744 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _touchScroll = __webpack_require__(744);
+var _touchScroll = __webpack_require__(745);
 exports.PLUGIN_KEY = _touchScroll.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _touchScroll.PLUGIN_PRIORITY;
 exports.TouchScroll = _touchScroll.TouchScroll;
 
 /***/ }),
-/* 744 */
+/* 745 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -94067,20 +93949,20 @@ function _onAfterMomentumScroll() {
 }
 
 /***/ }),
-/* 745 */
+/* 746 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _trimRows = __webpack_require__(746);
+var _trimRows = __webpack_require__(747);
 exports.PLUGIN_KEY = _trimRows.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _trimRows.PLUGIN_PRIORITY;
 exports.TrimRows = _trimRows.TrimRows;
 
 /***/ }),
-/* 746 */
+/* 747 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -94412,20 +94294,20 @@ function _onMapInit() {
 }
 
 /***/ }),
-/* 747 */
+/* 748 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
 exports.__esModule = true;
-var _undoRedo = __webpack_require__(748);
+var _undoRedo = __webpack_require__(749);
 exports.PLUGIN_KEY = _undoRedo.PLUGIN_KEY;
 exports.PLUGIN_PRIORITY = _undoRedo.PLUGIN_PRIORITY;
 exports.UndoRedo = _undoRedo.UndoRedo;
 
 /***/ }),
-/* 748 */
+/* 749 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -94448,7 +94330,7 @@ var _hooks = __webpack_require__(177);
 var _object = __webpack_require__(165);
 var _templateLiteralTag = __webpack_require__(160);
 var _console = __webpack_require__(178);
-var _actions = __webpack_require__(749);
+var _actions = __webpack_require__(750);
 function _classPrivateMethodInitSpec(e, a) { _checkPrivateRedeclaration(e, a), a.add(e); }
 function _checkPrivateRedeclaration(e, t) { if (t.has(e)) throw new TypeError("Cannot initialize the same private elements twice on an object"); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
@@ -94818,7 +94700,7 @@ function _removeAPIFromCore() {
 }
 
 /***/ }),
-/* 749 */
+/* 750 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -94828,18 +94710,18 @@ exports.__esModule = true;
 exports.registerActions = registerActions;
 __webpack_require__(115);
 __webpack_require__(133);
-var _cellAlignment = __webpack_require__(750);
-var _columnMove = __webpack_require__(752);
-var _columnSort = __webpack_require__(753);
-var _createColumn = __webpack_require__(754);
-var _createRow = __webpack_require__(755);
-var _dataChange = __webpack_require__(756);
-var _filters = __webpack_require__(757);
-var _mergeCells = __webpack_require__(758);
-var _removeColumn = __webpack_require__(759);
-var _removeRow = __webpack_require__(762);
-var _rowMove = __webpack_require__(763);
-var _unmergeCells = __webpack_require__(764);
+var _cellAlignment = __webpack_require__(751);
+var _columnMove = __webpack_require__(753);
+var _columnSort = __webpack_require__(754);
+var _createColumn = __webpack_require__(755);
+var _createRow = __webpack_require__(756);
+var _dataChange = __webpack_require__(757);
+var _filters = __webpack_require__(758);
+var _mergeCells = __webpack_require__(759);
+var _removeColumn = __webpack_require__(760);
+var _removeRow = __webpack_require__(763);
+var _rowMove = __webpack_require__(764);
+var _unmergeCells = __webpack_require__(765);
 /**
  * Register all undo/redo actions.
  *
@@ -94851,7 +94733,7 @@ function registerActions(hot, undoRedoPlugin) {
 }
 
 /***/ }),
-/* 750 */
+/* 751 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -94860,7 +94742,7 @@ function registerActions(hot, undoRedoPlugin) {
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
+var _base = __webpack_require__(752);
 var _utils = __webpack_require__(547);
 var _array = __webpack_require__(161);
 /**
@@ -94877,7 +94759,7 @@ class CellAlignmentAction extends _base.BaseAction {
       type,
       alignment
     } = _ref;
-    super('cell_alignment');
+    super();
     /**
      * @param {Array} stateBefore The previous state.
      */
@@ -94940,16 +94822,14 @@ class CellAlignmentAction extends _base.BaseAction {
 exports.CellAlignmentAction = CellAlignmentAction;
 
 /***/ }),
-/* 751 */
+/* 752 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 __webpack_require__(5);
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
 /**
  * An abstract class that defines the structure of an undo/redo action.
  *
@@ -94957,13 +94837,6 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
  * @private
  */
 class BaseAction {
-  constructor(actionType) {
-    /**
-     * @param {string} actionType The action type.
-     */
-    (0, _defineProperty2.default)(this, "actionType", '');
-    this.actionType = actionType;
-  }
   undo() {
     throw new Error('Not implemented');
   }
@@ -94974,7 +94847,7 @@ class BaseAction {
 exports.BaseAction = BaseAction;
 
 /***/ }),
-/* 752 */
+/* 753 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -94985,7 +94858,7 @@ exports.__esModule = true;
 __webpack_require__(115);
 __webpack_require__(133);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
+var _base = __webpack_require__(752);
 var _moves = __webpack_require__(661);
 /**
  * Action that tracks column move changes.
@@ -94999,7 +94872,7 @@ class ColumnMoveAction extends _base.BaseAction {
       columns,
       finalIndex
     } = _ref;
-    super('col_move');
+    super();
     /**
      * @param {number[]} columns An array with moved columns.
      */
@@ -95062,7 +94935,7 @@ class ColumnMoveAction extends _base.BaseAction {
 exports.ColumnMoveAction = ColumnMoveAction;
 
 /***/ }),
-/* 753 */
+/* 754 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -95071,7 +94944,7 @@ exports.ColumnMoveAction = ColumnMoveAction;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
+var _base = __webpack_require__(752);
 /**
  * Action that tracks column sort changes.
  *
@@ -95084,7 +94957,7 @@ class ColumnSortAction extends _base.BaseAction {
       currentSortState,
       newSortState
     } = _ref;
-    super('col_sort');
+    super();
     /**
      * @param {Array} currentSortState The current sort state.
      */
@@ -95139,7 +95012,7 @@ class ColumnSortAction extends _base.BaseAction {
 exports.ColumnSortAction = ColumnSortAction;
 
 /***/ }),
-/* 754 */
+/* 755 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -95148,7 +95021,7 @@ exports.ColumnSortAction = ColumnSortAction;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
+var _base = __webpack_require__(752);
 /**
  * Action that tracks column creation.
  *
@@ -95161,7 +95034,7 @@ class CreateColumnAction extends _base.BaseAction {
       index,
       amount
     } = _ref;
-    super('insert_col');
+    super();
     /**
      * @param {number} index The visual column index.
      */
@@ -95203,7 +95076,7 @@ class CreateColumnAction extends _base.BaseAction {
 exports.CreateColumnAction = CreateColumnAction;
 
 /***/ }),
-/* 755 */
+/* 756 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -95212,7 +95085,7 @@ exports.CreateColumnAction = CreateColumnAction;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
+var _base = __webpack_require__(752);
 /**
  * Action that tracks row creation.
  *
@@ -95225,7 +95098,7 @@ class CreateRowAction extends _base.BaseAction {
       index,
       amount
     } = _ref;
-    super('insert_row');
+    super();
     /**
      * @param {number} index The visual row index.
      */
@@ -95272,7 +95145,7 @@ class CreateRowAction extends _base.BaseAction {
 exports.CreateRowAction = CreateRowAction;
 
 /***/ }),
-/* 756 */
+/* 757 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -95286,7 +95159,7 @@ __webpack_require__(185);
 __webpack_require__(133);
 __webpack_require__(196);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
+var _base = __webpack_require__(752);
 var _object = __webpack_require__(165);
 /**
  * Action that tracks data changes.
@@ -95302,7 +95175,7 @@ class DataChangeAction extends _base.BaseAction {
       countCols,
       countRows
     } = _ref;
-    super('change');
+    super();
     /**
      * @param {Array} changes 2D array containing information about each of the edited cells.
      */
@@ -95399,7 +95272,7 @@ class DataChangeAction extends _base.BaseAction {
 exports.DataChangeAction = DataChangeAction;
 
 /***/ }),
-/* 757 */
+/* 758 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -95410,7 +95283,7 @@ exports.__esModule = true;
 __webpack_require__(115);
 __webpack_require__(127);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
+var _base = __webpack_require__(752);
 /**
  * Action that tracks filter changes.
  *
@@ -95423,7 +95296,7 @@ class FiltersAction extends _base.BaseAction {
       conditionsStack,
       previousConditionsStack
     } = _ref;
-    super('filter');
+    super();
     /**
      * @param {Array} previousConditionsStack An array of the previous filter conditions.
      */
@@ -95451,7 +95324,7 @@ class FiltersAction extends _base.BaseAction {
   undo(hot, undoneCallback) {
     const filters = hot.getPlugin('filters');
     hot.addHookOnce('afterViewRender', undoneCallback);
-    filters.importConditions(this.previousConditionsStack);
+    filters.conditionCollection.importAllConditions(this.previousConditionsStack);
     filters.filter();
   }
 
@@ -95462,14 +95335,14 @@ class FiltersAction extends _base.BaseAction {
   redo(hot, redoneCallback) {
     const filters = hot.getPlugin('filters');
     hot.addHookOnce('afterViewRender', redoneCallback);
-    filters.importConditions(this.conditionsStack);
+    filters.conditionCollection.importAllConditions(this.conditionsStack);
     filters.filter();
   }
 }
 exports.FiltersAction = FiltersAction;
 
 /***/ }),
-/* 758 */
+/* 759 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -95478,7 +95351,7 @@ exports.FiltersAction = FiltersAction;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
+var _base = __webpack_require__(752);
 /**
  * Action that tracks changes in merged cells.
  *
@@ -95491,10 +95364,7 @@ class MergeCellsAction extends _base.BaseAction {
       data,
       cellRange
     } = _ref;
-    super('merge_cells');
-    /**
-     * @param {CellRange} cellRange The merged cell range.
-     */
+    super();
     (0, _defineProperty2.default)(this, "cellRange", void 0);
     this.cellRange = cellRange;
     this.data = data;
@@ -95539,7 +95409,7 @@ class MergeCellsAction extends _base.BaseAction {
 exports.MergeCellsAction = MergeCellsAction;
 
 /***/ }),
-/* 759 */
+/* 760 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -95551,8 +95421,8 @@ __webpack_require__(87);
 __webpack_require__(115);
 __webpack_require__(133);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
-var _utils = __webpack_require__(760);
+var _base = __webpack_require__(752);
+var _utils = __webpack_require__(761);
 var _number = __webpack_require__(200);
 var _array = __webpack_require__(161);
 /**
@@ -95567,14 +95437,13 @@ class RemoveColumnAction extends _base.BaseAction {
       index,
       indexes,
       data,
-      amount,
       headers,
       columnPositions,
       rowPositions,
       fixedColumnsStart,
       removedCellMetas
     } = _ref;
-    super('remove_col');
+    super();
     /**
      * @param {number} index The visual column index.
      */
@@ -95614,7 +95483,7 @@ class RemoveColumnAction extends _base.BaseAction {
     this.index = index;
     this.indexes = indexes;
     this.data = data;
-    this.amount = amount;
+    this.amount = this.data[0].length;
     this.headers = headers;
     this.columnPositions = columnPositions.slice(0);
     this.rowPositions = rowPositions.slice(0);
@@ -95652,7 +95521,6 @@ class RemoveColumnAction extends _base.BaseAction {
           index: columnIndex,
           indexes,
           data: removedData,
-          amount,
           headers,
           columnPositions: columnsMap,
           rowPositions: rowsMap,
@@ -95721,7 +95589,7 @@ class RemoveColumnAction extends _base.BaseAction {
 exports.RemoveColumnAction = RemoveColumnAction;
 
 /***/ }),
-/* 760 */
+/* 761 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -95730,7 +95598,7 @@ exports.RemoveColumnAction = RemoveColumnAction;
 exports.__esModule = true;
 exports.getCellMetas = getCellMetas;
 __webpack_require__(87);
-__webpack_require__(761);
+__webpack_require__(762);
 __webpack_require__(115);
 __webpack_require__(127);
 var _number = __webpack_require__(200);
@@ -95764,7 +95632,7 @@ function getCellMetas(hot, fromRow, toRow, fromColumn, toColumn) {
 }
 
 /***/ }),
-/* 761 */
+/* 762 */
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -95787,7 +95655,7 @@ $({ target: 'Object', stat: true }, {
 
 
 /***/ }),
-/* 762 */
+/* 763 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -95799,8 +95667,8 @@ __webpack_require__(87);
 __webpack_require__(115);
 __webpack_require__(133);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
-var _utils = __webpack_require__(760);
+var _base = __webpack_require__(752);
+var _utils = __webpack_require__(761);
 var _object = __webpack_require__(165);
 /**
  * Action that tracks changes in row removal.
@@ -95818,7 +95686,7 @@ class RemoveRowAction extends _base.BaseAction {
       rowIndexesSequence,
       removedCellMetas
     } = _ref;
-    super('remove_row');
+    super();
     /**
      * @param {number} index The visual row index.
      */
@@ -95910,7 +95778,7 @@ class RemoveRowAction extends _base.BaseAction {
 exports.RemoveRowAction = RemoveRowAction;
 
 /***/ }),
-/* 763 */
+/* 764 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -95921,7 +95789,7 @@ exports.__esModule = true;
 __webpack_require__(115);
 __webpack_require__(133);
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
+var _base = __webpack_require__(752);
 var _moves = __webpack_require__(661);
 /**
  * Action that tracks row move changes.
@@ -95935,7 +95803,7 @@ class RowMoveAction extends _base.BaseAction {
       rows,
       finalIndex
     } = _ref;
-    super('row_move');
+    super();
     /**
      * @param {number[]} rows An array with moved rows.
      */
@@ -95998,7 +95866,7 @@ class RowMoveAction extends _base.BaseAction {
 exports.RowMoveAction = RowMoveAction;
 
 /***/ }),
-/* 764 */
+/* 765 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -96007,7 +95875,7 @@ exports.RowMoveAction = RowMoveAction;
 var _interopRequireDefault = __webpack_require__(1);
 exports.__esModule = true;
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(170));
-var _base = __webpack_require__(751);
+var _base = __webpack_require__(752);
 /**
  * Action that tracks changes in merged cells.
  *
@@ -96019,10 +95887,7 @@ class UnmergeCellsAction extends _base.BaseAction {
     let {
       cellRange
     } = _ref;
-    super('unmerge_cells');
-    /**
-     * @param {CellRange} cellRange The merged cell range.
-     */
+    super();
     (0, _defineProperty2.default)(this, "cellRange", void 0);
     this.cellRange = cellRange;
   }
@@ -96061,7 +95926,7 @@ class UnmergeCellsAction extends _base.BaseAction {
 exports.UnmergeCellsAction = UnmergeCellsAction;
 
 /***/ }),
-/* 765 */
+/* 766 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -96170,7 +96035,7 @@ exports.CellRange = _base.CellRange;
 var _registry = __webpack_require__(430);
 var _eventManager = _interopRequireWildcard(__webpack_require__(188));
 var _translations = __webpack_require__(291);
-var _jquery = _interopRequireDefault(__webpack_require__(765));
+var _jquery = _interopRequireDefault(__webpack_require__(766));
 var _ghostTable = _interopRequireDefault(__webpack_require__(509));
 var parseTableHelpers = _interopRequireWildcard(__webpack_require__(190));
 var arrayHelpers = _interopRequireWildcard(__webpack_require__(161));
