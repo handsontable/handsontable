@@ -10,7 +10,7 @@ Initially:
 341501  1012392 11199527 total
 
 Removed all plugins, all validators, almost all cellTypes, renderers and editors, all tests
-52089  191216 1754323 total
+49724  185129 1654402 total
 
 Dirs:
 0 __tests__/
