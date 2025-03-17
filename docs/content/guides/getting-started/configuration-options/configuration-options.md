@@ -546,25 +546,12 @@ const hot = new Handsontable(container, {
   height: 'auto',
   rowHeaders: true,
   colHeaders: true,
-  // in the top-level grid options, all cells are read-only
-  readOnly: false,
-  cell: [
-    {
-      // bottom-level cell options overwrite the top-level grid options
-      // apply only to a cell with coordinates (1, 1)
-      row: 1,
-      col: 1,
-      readOnly: true,
-    }
-  ]
 });
 
-// for cell (0, 0), the `readOnly` option is the default (`false`)
-// returns `false`
-hot.getCellMeta(0, 0).readOnly;
+// changes the `readOnly` option of cell (1, 1) back to `false`
+hot.setCellMeta(1, 1, 'readOnly', false);
 
-// for cell (1, 1), the `cell` option overwrote the default `readOnly` value
-// returns `true`
+// returns `false`
 hot.getCellMeta(1, 1).readOnly;
 ```
 
