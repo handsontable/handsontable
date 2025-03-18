@@ -553,10 +553,10 @@ export class Filters extends BasePlugin {
    *
    * @returns {Array}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   exportConditions() {
     return this.conditionCollection.exportAllConditions();
   }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Filters data based on added filter conditions.
