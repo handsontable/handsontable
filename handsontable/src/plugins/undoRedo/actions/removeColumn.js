@@ -15,7 +15,7 @@ export class RemoveColumnAction extends BaseAction {
    */
   index;
   /**
-   * @param {number[]} indexes The visual column indexes.
+   * @param {number[]} indexes The physical column indexes.
    */
   indexes;
   /**
@@ -101,17 +101,14 @@ export class RemoveColumnAction extends BaseAction {
           });
         }
 
-        const columnsMap = hot.columnIndexMapper.getIndexesSequence();
-        const rowsMap = hot.rowIndexMapper.getIndexesSequence();
-
         return new RemoveColumnAction({
           index: columnIndex,
           indexes,
           data: removedData,
           amount,
           headers,
-          columnPositions: columnsMap,
-          rowPositions: rowsMap,
+          columnPositions: hot.columnIndexMapper.getIndexesSequence(),
+          rowPositions: hot.rowIndexMapper.getIndexesSequence(),
           fixedColumnsStart: hot.getSettings().fixedColumnsStart,
           removedCellMetas: getCellMetas(hot, 0, hot.countRows(), columnIndex, lastColumnIndex),
         });
@@ -144,7 +141,21 @@ export class RemoveColumnAction extends BaseAction {
     const sortedHeaders = arrayMap(this.headers, sortByIndexes);
     const changes = [];
 
-    hot.alter('insert_col_start', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
+    // The indexes sequence have to be applied twice.
+    //  * First for proper index translation. The alter method accepts a visual index
+    //    and we are able to retrieve the correct index indicating where to add a new row based
+    //    only on the previous order state of the columns;
+    //  * The alter method shifts the indexes (a side-effect), so we need to reapply the indexes sequence
+    //    the same as it was in the previous state;
+    hot.columnIndexMapper.setIndexesSequence(this.columnPositions);
+    hot.alter('insert_col_start', hot.toVisualColumn(this.indexes[0]), this.indexes.length, 'UndoRedo.undo');
+
+    hot.batchExecution(() => {
+      // Restore row sequence in a case when all columns are removed. the original
+      // row sequence is lost in that case.
+      hot.rowIndexMapper.setIndexesSequence(this.rowPositions);
+      hot.columnIndexMapper.setIndexesSequence(this.columnPositions);
+    }, true);
 
     arrayEach(hot.getSourceDataArray(), (rowData, rowIndex) => {
       arrayEach(ascendingIndexes, (changedIndex, contiquesIndex) => {
@@ -153,8 +164,6 @@ export class RemoveColumnAction extends BaseAction {
         changes.push([rowIndex, changedIndex, rowData[changedIndex]]);
       });
     });
-
-    hot.setSourceDataAtCell(changes, undefined, undefined, 'UndoRedo.undo');
 
     if (typeof this.headers !== 'undefined') {
       arrayEach(sortedHeaders, (headerData, columnIndex) => {
@@ -166,15 +175,8 @@ export class RemoveColumnAction extends BaseAction {
       hot.setCellMetaObject(rowIndex, columnIndex, cellMeta);
     });
 
-    hot.batchExecution(() => {
-      // Restore row sequence in a case when all columns are removed. the original
-      // row sequence is lost in that case.
-      hot.rowIndexMapper.setIndexesSequence(this.rowPositions);
-      hot.columnIndexMapper.setIndexesSequence(this.columnPositions);
-    }, true);
-
     hot.addHookOnce('afterViewRender', undoneCallback);
-    hot.render();
+    hot.setSourceDataAtCell(changes, null, null, 'UndoRedo.undo');
   }
 
   /**
