@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 15.2.0
- * Release date: 19/03/2025 (built at 14/03/2025 12:16:17)
+ * Release date: 19/03/2025 (built at 18/03/2025 11:40:38)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "14/03/2025 12:16:17";
+Handsontable.buildDate = "18/03/2025 11:40:38";
 Handsontable.version = "15.2.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -70776,10 +70776,10 @@ class Filters extends _base.BasePlugin {
    *
    * @returns {Array}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   exportConditions() {
     return this.conditionCollection.exportAllConditions();
   }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Filters data based on added filter conditions.
