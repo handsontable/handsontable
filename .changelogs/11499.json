@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with class name assignment in component-based renderer in Vue 2 wrapper",
+  "type": "fixed",
+  "issueOrPR": 11499,
+  "breaking": false,
+  "framework": "vue"
+}
