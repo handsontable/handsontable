@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with empty parentNode in the table getCords method",
+  "type": "fixed",
+  "issueOrPR": 11509,
+  "breaking": false,
+  "framework": "none"
+}
