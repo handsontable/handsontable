@@ -1770,7 +1770,11 @@ describe('MergeCells', () => {
     });
 
     expect(getCell(0, 0).offsetHeight).toBe(201);
-    expect(getCell(0, 1).offsetHeight).toBe(52);
+    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(52);
+      main.toBe(52);
+      horizon.toBe(51);
+    });
     expect(getCell(1, 1).offsetHeight).toBe(50);
     expect(getCell(2, 1).offsetHeight).toBe(50);
     expect(getCell(3, 1).offsetHeight).toBe(50);
