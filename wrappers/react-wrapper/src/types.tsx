@@ -55,7 +55,7 @@ type ReplaceRenderersEditors<T extends Pick<Handsontable.GridSettings, 'renderer
   hotRenderer?: T['renderer'],
   renderer?: ComponentType<HotRendererProps>,
   hotEditor?: T['editor'],
-  editor?: ComponentType,
+  editor?: ComponentType | boolean,
 }
 
 /**
