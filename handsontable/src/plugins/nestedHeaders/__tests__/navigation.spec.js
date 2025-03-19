@@ -1536,37 +1536,55 @@ describe('NestedHeaders', () => {
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       // 300 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(inlineStartOverlay().getScrollPosition()).toBe(66);
+      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(66);
+        main.toBe(66);
+        horizon.toBe(74);
+      });
 
       keyDownUp('arrowright'); // "D"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(266);
+      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(266);
+        main.toBe(266);
+        horizon.toBe(279);
+      });
 
       keyDownUp('arrowright'); // "E"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(516);
+      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(516);
+        main.toBe(516);
+        horizon.toBe(539);
+      });
 
       keyDownUp('arrowright'); // "F"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(866);
+      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe(866);
+        main.toBe(866);
+        horizon.toBe(900);
+      });
 
       keyDownUp('arrowright'); // "G"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(1266);
         main.toBe(1280);
+        horizon.toBe(1354);
       });
 
       keyDownUp('arrowright'); // "H"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(1316);
         main.toBe(1333);
+        horizon.toBe(1415);
       });
     });
 

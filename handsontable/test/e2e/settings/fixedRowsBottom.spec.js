@@ -210,56 +210,68 @@ describe('settings', () => {
 
       alter('insert_row_above', 0);
 
-      expect(getMaster().height()).forThemes(({ classic, main }) => {
+      expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50); // 25px corner + 25px added row
         main.toBe(59);
+        horizon.toBe(75);
       });
-      expect(getTopClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26); // 26px as rowHeaders is enabled
         main.toBe(29);
+        horizon.toBe(37);
       });
-      expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26); // 26px as rowHeaders is enabled
         main.toBe(29);
+        horizon.toBe(37);
       });
-      expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
+      expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
         main.toBe(59);
+        horizon.toBe(75);
       });
-      expect(getBottomClone().height()).forThemes(({ classic, main }) => {
+      expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(24);
         main.toBe(30);
+        horizon.toBe(38);
       });
-      expect(getBottomInlineStartClone().height()).forThemes(({ classic, main }) => {
+      expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(24);
         main.toBe(30);
+        horizon.toBe(38);
       });
 
       alter('insert_row_above', 0);
 
-      expect(getMaster().height()).forThemes(({ classic, main }) => {
+      expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);
         main.toBe(88);
+        horizon.toBe(112);
       });
-      expect(getTopClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
         main.toBe(29);
+        horizon.toBe(37);
       });
-      expect(getTopInlineStartClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
         main.toBe(29);
+        horizon.toBe(37);
       });
-      expect(getInlineStartClone().height()).forThemes(({ classic, main }) => {
+      expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);
         main.toBe(88);
+        horizon.toBe(112);
       });
-      expect(getBottomClone().height()).forThemes(({ classic, main }) => {
+      expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(47);
         main.toBe(59);
+        horizon.toBe(75);
       });
-      expect(getBottomInlineStartClone().height()).forThemes(({ classic, main }) => {
+      expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(47);
         main.toBe(59);
+        horizon.toBe(75);
       });
     });
 
@@ -271,31 +283,35 @@ describe('settings', () => {
         columns: [{}]
       });
 
-      expect(getTopClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
         main.toBe(29);
+        horizon.toBe(37);
       });
 
       updateSettings({ fixedRowsBottom: 0 });
 
-      expect(getTopClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
         main.toBe(29);
+        horizon.toBe(37);
       });
 
       updateSettings({ fixedRowsBottom: 1 });
 
-      expect(getTopClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
         main.toBe(29);
+        horizon.toBe(37);
       });
 
       updateSettings({ data: [] });
 
       // The only header (when there is no cells - even when the `fixedRowsBottom` isn't defined) has such height.
-      expect(getTopClone().height()).forThemes(({ classic, main }) => {
+      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(27);
         main.toBe(30);
+        horizon.toBe(38);
       });
     });
   });

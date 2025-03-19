@@ -36,6 +36,11 @@ describe('NestedHeaders', () => {
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
+          <tr>
+          <th class=""></th>
+          <th class=""></th>
+          <th class=""></th>
+        </tr>
         </thead>
         <tbody>
           <tr class="ht__row_odd">
@@ -999,13 +1004,535 @@ describe('NestedHeaders', () => {
       }
     });
 
-    it('should render the setup properly after the table being scrolled', () => {
+    it.forTheme('classic')('should render the setup properly after the table being scrolled', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
         width: 400,
         height: 300,
+        viewportColumnRenderingOffset: 0,
+      });
+
+      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+
+      // Show every second column for range A to AT
+      for (let i = 0; i <= 45; i++) {
+        hidingMap.setValueAtIndex(i, i % 2 !== 0);
+      }
+
+      scrollViewportTo({ // Scroll to column AA4
+        col: 25,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="" colspan="4">K1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">S1</th>
+            <th class="" colspan="4">T1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4">AC1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK1</th>
+            <th class="" colspan="4">AL1</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="" colspan="2">K2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">O2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">S2</th>
+            <th class="" colspan="2">T2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">X2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AC2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AG2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK2</th>
+            <th class="" colspan="2">AL2</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">K3</th>
+            <th class="">M3</th>
+            <th class="">O3</th>
+            <th class="">Q3</th>
+            <th class="">S3</th>
+            <th class="">T3</th>
+            <th class="">V3</th>
+            <th class="">X3</th>
+            <th class="">Z3</th>
+            <th class="">AC3</th>
+            <th class="">AE3</th>
+            <th class="">AG3</th>
+            <th class="">AI3</th>
+            <th class="">AK3</th>
+            <th class="">AL3</th>
+            <th class="">AN3</th>
+          </tr>
+          <tr>
+            <th class="">K4</th>
+            <th class="">M4</th>
+            <th class="">O4</th>
+            <th class="">Q4</th>
+            <th class="">S4</th>
+            <th class="">U4</th>
+            <th class="">W4</th>
+            <th class="">Y4</th>
+            <th class="">AA4</th>
+            <th class="">AC4</th>
+            <th class="">AE4</th>
+            <th class="">AG4</th>
+            <th class="">AI4</th>
+            <th class="">AK4</th>
+            <th class="">AM4</th>
+            <th class="">AO4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">K1</td>
+            <td class="">M1</td>
+            <td class="">O1</td>
+            <td class="">Q1</td>
+            <td class="">S1</td>
+            <td class="">U1</td>
+            <td class="">W1</td>
+            <td class="">Y1</td>
+            <td class="">AA1</td>
+            <td class="">AC1</td>
+            <td class="">AE1</td>
+            <td class="">AG1</td>
+            <td class="">AI1</td>
+            <td class="">AK1</td>
+            <td class="">AM1</td>
+            <td class="">AO1</td>
+          </tr>
+        </tbody>
+        `);
+
+      hidingMap.setValueAtIndex(31, false); // Show column that contains cells AF{n}
+      hidingMap.setValueAtIndex(33, false); // Show column that contains cells AH{n}
+      hidingMap.setValueAtIndex(35, false); // Show column that contains cells AJ{n}
+      hidingMap.setValueAtIndex(37, false); // Show column that contains cells AL{n}
+      hidingMap.setValueAtIndex(39, false); // Show column that contains cells AN{n}
+      hidingMap.setValueAtIndex(41, false); // Show column that contains cells AP{n}
+      hidingMap.setValueAtIndex(43, false); // Show column that contains cells AR{n}
+      hidingMap.setValueAtIndex(45, false); // Show column that contains cells AT{n}
+      hot.render();
+
+      scrollViewportTo({ // Scroll to column AM4
+        col: 38,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="" colspan="4">T1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="7">AC1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK1</th>
+            <th class="" colspan="8">AL1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT1</th>
+          </tr>
+          <tr>
+            <th class="" colspan="2">T2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">X2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="3">AC2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4">AG2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK2</th>
+            <th class="" colspan="4">AL2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4">AP2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT2</th>
+          </tr>
+          <tr>
+            <th class="">T3</th>
+            <th class="">V3</th>
+            <th class="">X3</th>
+            <th class="">Z3</th>
+            <th class="">AC3</th>
+            <th class="" colspan="2">AE3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AG3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AI3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK3</th>
+            <th class="" colspan="2">AL3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AN3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AP3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AR3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT3</th>
+          </tr>
+          <tr>
+            <th class="">U4</th>
+            <th class="">W4</th>
+            <th class="">Y4</th>
+            <th class="">AA4</th>
+            <th class="">AC4</th>
+            <th class="">AE4</th>
+            <th class="">AF4</th>
+            <th class="">AG4</th>
+            <th class="">AH4</th>
+            <th class="">AI4</th>
+            <th class="">AJ4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+            <th class="">AM4</th>
+            <th class="">AN4</th>
+            <th class="">AO4</th>
+            <th class="">AP4</th>
+            <th class="">AQ4</th>
+            <th class="">AR4</th>
+            <th class="">AS4</th>
+            <th class="">AT4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">U1</td>
+            <td class="">W1</td>
+            <td class="">Y1</td>
+            <td class="">AA1</td>
+            <td class="">AC1</td>
+            <td class="">AE1</td>
+            <td class="">AF1</td>
+            <td class="">AG1</td>
+            <td class="">AH1</td>
+            <td class="">AI1</td>
+            <td class="">AJ1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+            <td class="">AM1</td>
+            <td class="">AN1</td>
+            <td class="">AO1</td>
+            <td class="">AP1</td>
+            <td class="">AQ1</td>
+            <td class="">AR1</td>
+            <td class="">AS1</td>
+            <td class="">AT1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it.forTheme('main')('should render the setup properly after the table being scrolled', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        colHeaders: true,
+        nestedHeaders: generateComplexSetup(4, 70, true),
+        width: 400,
+        height: 300,
+        viewportColumnRenderingOffset: 0,
+      });
+
+      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+
+      // Show every second column for range A to AT
+      for (let i = 0; i <= 45; i++) {
+        hidingMap.setValueAtIndex(i, i % 2 !== 0);
+      }
+
+      scrollViewportTo({ // Scroll to column AA4
+        col: 25,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="" colspan="4">K1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">S1</th>
+            <th class="" colspan="4">T1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4">AC1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK1</th>
+            <th class="" colspan="4">AL1</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="" colspan="2">K2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">O2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">S2</th>
+            <th class="" colspan="2">T2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">X2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AC2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AG2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK2</th>
+            <th class="" colspan="2">AL2</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">K3</th>
+            <th class="">M3</th>
+            <th class="">O3</th>
+            <th class="">Q3</th>
+            <th class="">S3</th>
+            <th class="">T3</th>
+            <th class="">V3</th>
+            <th class="">X3</th>
+            <th class="">Z3</th>
+            <th class="">AC3</th>
+            <th class="">AE3</th>
+            <th class="">AG3</th>
+            <th class="">AI3</th>
+            <th class="">AK3</th>
+            <th class="">AL3</th>
+            <th class="">AN3</th>
+          </tr>
+          <tr>
+            <th class="">K4</th>
+            <th class="">M4</th>
+            <th class="">O4</th>
+            <th class="">Q4</th>
+            <th class="">S4</th>
+            <th class="">U4</th>
+            <th class="">W4</th>
+            <th class="">Y4</th>
+            <th class="">AA4</th>
+            <th class="">AC4</th>
+            <th class="">AE4</th>
+            <th class="">AG4</th>
+            <th class="">AI4</th>
+            <th class="">AK4</th>
+            <th class="">AM4</th>
+            <th class="">AO4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">K1</td>
+            <td class="">M1</td>
+            <td class="">O1</td>
+            <td class="">Q1</td>
+            <td class="">S1</td>
+            <td class="">U1</td>
+            <td class="">W1</td>
+            <td class="">Y1</td>
+            <td class="">AA1</td>
+            <td class="">AC1</td>
+            <td class="">AE1</td>
+            <td class="">AG1</td>
+            <td class="">AI1</td>
+            <td class="">AK1</td>
+            <td class="">AM1</td>
+            <td class="">AO1</td>
+          </tr>
+        </tbody>
+        `);
+
+      hidingMap.setValueAtIndex(31, false); // Show column that contains cells AF{n}
+      hidingMap.setValueAtIndex(33, false); // Show column that contains cells AH{n}
+      hidingMap.setValueAtIndex(35, false); // Show column that contains cells AJ{n}
+      hidingMap.setValueAtIndex(37, false); // Show column that contains cells AL{n}
+      hidingMap.setValueAtIndex(39, false); // Show column that contains cells AN{n}
+      hidingMap.setValueAtIndex(41, false); // Show column that contains cells AP{n}
+      hidingMap.setValueAtIndex(43, false); // Show column that contains cells AR{n}
+      hidingMap.setValueAtIndex(45, false); // Show column that contains cells AT{n}
+      hot.render();
+
+      scrollViewportTo({ // Scroll to column AM4
+        col: 38,
+        verticalSnap: 'top',
+        horizontalSnap: 'start',
+      });
+      render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="" colspan="4">T1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="7">AC1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK1</th>
+            <th class="" colspan="8">AL1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT1</th>
+          </tr>
+          <tr>
+            <th class="" colspan="2">T2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">X2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="3">AC2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4">AG2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK2</th>
+            <th class="" colspan="4">AL2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4">AP2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT2</th>
+          </tr>
+          <tr>
+            <th class="">T3</th>
+            <th class="">V3</th>
+            <th class="">X3</th>
+            <th class="">Z3</th>
+            <th class="">AC3</th>
+            <th class="" colspan="2">AE3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AG3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AI3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AK3</th>
+            <th class="" colspan="2">AL3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AN3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AP3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AR3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT3</th>
+          </tr>
+          <tr>
+            <th class="">U4</th>
+            <th class="">W4</th>
+            <th class="">Y4</th>
+            <th class="">AA4</th>
+            <th class="">AC4</th>
+            <th class="">AE4</th>
+            <th class="">AF4</th>
+            <th class="">AG4</th>
+            <th class="">AH4</th>
+            <th class="">AI4</th>
+            <th class="">AJ4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+            <th class="">AM4</th>
+            <th class="">AN4</th>
+            <th class="">AO4</th>
+            <th class="">AP4</th>
+            <th class="">AQ4</th>
+            <th class="">AR4</th>
+            <th class="">AS4</th>
+            <th class="">AT4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">U1</td>
+            <td class="">W1</td>
+            <td class="">Y1</td>
+            <td class="">AA1</td>
+            <td class="">AC1</td>
+            <td class="">AE1</td>
+            <td class="">AF1</td>
+            <td class="">AG1</td>
+            <td class="">AH1</td>
+            <td class="">AI1</td>
+            <td class="">AJ1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
+            <td class="">AM1</td>
+            <td class="">AN1</td>
+            <td class="">AO1</td>
+            <td class="">AP1</td>
+            <td class="">AQ1</td>
+            <td class="">AR1</td>
+            <td class="">AS1</td>
+            <td class="">AT1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it.forTheme('horizon')('should render the setup properly after the table being scrolled', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        colHeaders: true,
+        nestedHeaders: generateComplexSetup(4, 70, true),
+        width: 450,
+        height: 615,
         viewportColumnRenderingOffset: 0,
       });
 

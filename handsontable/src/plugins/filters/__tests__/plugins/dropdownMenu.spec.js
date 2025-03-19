@@ -80,6 +80,41 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
   });
 
+  it.forTheme('horizon')('should scale text input showed after condition selection (pixel perfect)', () => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      colHeaders: true,
+      dropdownMenu: {
+        items: {
+          custom: {
+            name: 'This is very long text which should expand the drop-down menu...'
+          },
+          filter_by_condition: {},
+          filter_operators: {},
+          filter_by_condition2: {},
+          filter_by_value: {}
+        }
+      },
+      filters: true
+    });
+
+    dropdownMenu(1);
+
+    openDropdownByConditionMenu();
+    selectDropdownByConditionMenuOption('Begins with');
+
+    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
+    const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
+    const bothInputBorders = 2;
+    const bothInputPaddings = 32;
+    const bothWrapperMargins = 24;
+    const bothCustomRendererPaddings = 16;
+    const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
+
+    expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
+  });
+
   it.forTheme('classic')('should scale a condition select (pixel perfect)', () => {
     handsontable({
       data: getDataForFilters(),
@@ -111,6 +146,36 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it.forTheme('main')('should scale a condition select (pixel perfect)', () => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      colHeaders: true,
+      dropdownMenu: {
+        items: {
+          custom: {
+            name: 'This is very long text which should expand the drop-down menu...'
+          },
+          filter_by_condition: {},
+          filter_operators: {},
+          filter_by_condition2: {},
+          filter_by_value: {}
+        }
+      },
+      filters: true
+    });
+
+    dropdownMenu(1);
+
+    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
+    const widthOfSelect = $(conditionSelectRootElements().first).width();
+    const bothWrapperMargins = 16;
+    const bothCustomRendererPaddings = 24;
+    const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings;
+
+    expect(widthOfSelect).toEqual(widthOfMenu - parentsPaddings);
+  });
+
+  it.forTheme('horizon')('should scale a condition select (pixel perfect)', () => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -204,6 +269,38 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
   });
 
+  it.forTheme('horizon')('should scale search input of the value box (pixel perfect)', () => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      colHeaders: true,
+      dropdownMenu: {
+        items: {
+          custom: {
+            name: 'This is very long text which should expand the drop-down menu...'
+          },
+          filter_by_condition: {},
+          filter_operators: {},
+          filter_by_condition2: {},
+          filter_by_value: {}
+        }
+      },
+      filters: true
+    });
+
+    dropdownMenu(1);
+
+    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
+    const widthOfInput = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input').width();
+    const bothInputBorders = 2;
+    const bothInputPaddings = 32;
+    const bothWrapperMargins = 24;
+    const bothCustomRendererPaddings = 16;
+    const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
+
+    expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
+  });
+
   it.forTheme('classic')('should scale the value box element (pixel perfect)', () => {
     handsontable({
       data: getDataForFilters(),
@@ -241,6 +338,38 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it.forTheme('main')('should scale the value box element (pixel perfect)', () => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      colHeaders: true,
+      dropdownMenu: {
+        items: {
+          custom: {
+            name: 'This is very long text which should expand the drop-down menu...'
+          },
+          filter_by_condition: {},
+          filter_operators: {},
+          filter_by_condition2: {},
+          filter_by_value: {}
+        }
+      },
+      filters: true
+    });
+
+    dropdownMenu(1);
+
+    openDropdownByConditionMenu();
+    $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
+      .simulate('mousedown')
+      .simulate('mouseup');
+
+    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
+    const widthOfValueBox = $(byValueBoxRootElement()).width();
+
+    expect(widthOfValueBox).toEqual(widthOfMenu);
+  });
+
+  it.forTheme('horizon')('should scale the value box element (pixel perfect)', () => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),

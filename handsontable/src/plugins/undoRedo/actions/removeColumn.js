@@ -51,17 +51,18 @@ export class RemoveColumnAction extends BaseAction {
     index,
     indexes,
     data,
+    amount,
     headers,
     columnPositions,
     rowPositions,
     fixedColumnsStart,
     removedCellMetas
   }) {
-    super();
+    super('remove_col');
     this.index = index;
     this.indexes = indexes;
     this.data = data;
-    this.amount = this.data[0].length;
+    this.amount = amount;
     this.headers = headers;
     this.columnPositions = columnPositions.slice(0);
     this.rowPositions = rowPositions.slice(0);
@@ -107,6 +108,7 @@ export class RemoveColumnAction extends BaseAction {
           index: columnIndex,
           indexes,
           data: removedData,
+          amount,
           headers,
           columnPositions: columnsMap,
           rowPositions: rowsMap,

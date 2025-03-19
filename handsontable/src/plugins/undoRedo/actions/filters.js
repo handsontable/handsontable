@@ -17,7 +17,7 @@ export class FiltersAction extends BaseAction {
   previousConditionsStack;
 
   constructor({ conditionsStack, previousConditionsStack }) {
-    super();
+    super('filter');
     this.conditionsStack = conditionsStack;
     this.previousConditionsStack = previousConditionsStack;
   }
@@ -40,7 +40,7 @@ export class FiltersAction extends BaseAction {
 
     hot.addHookOnce('afterViewRender', undoneCallback);
 
-    filters.conditionCollection.importAllConditions(this.previousConditionsStack);
+    filters.importConditions(this.previousConditionsStack);
     filters.filter();
   }
 
@@ -53,7 +53,7 @@ export class FiltersAction extends BaseAction {
 
     hot.addHookOnce('afterViewRender', redoneCallback);
 
-    filters.conditionCollection.importAllConditions(this.conditionsStack);
+    filters.importConditions(this.conditionsStack);
     filters.filter();
   }
 }

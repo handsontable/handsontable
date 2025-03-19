@@ -38,9 +38,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       const scrollPosition = getCurrentScrollPosition();
 
-      expect(scrollPosition).forThemes(({ classic, main }) => {
+      expect(scrollPosition).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 45, y: 15 });
         main.toEqual({ x: 57, y: 93 });
+        horizon.toEqual({ x: 121, y: 197 });
       });
 
       keyDownUp(['control/meta', 'backspace']);
@@ -116,9 +117,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       const scrollPosition = getCurrentScrollPosition();
 
-      expect(scrollPosition).forThemes(({ classic, main }) => {
+      expect(scrollPosition).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 45, y: 0 });
         main.toEqual({ x: 57, y: 0 });
+        horizon.toEqual({ x: 121, y: 0 });
       });
 
       keyDownUp(['control/meta', 'backspace']);
@@ -145,9 +147,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 0, y: 1932 });
         main.toEqual({ x: 0, y: 2494 });
+        horizon.toEqual({ x: 0, y: 3219 });
       });
     });
 
@@ -170,9 +173,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 1850, y: 0 });
         main.toEqual({ x: 2001, y: 0 });
+        horizon.toEqual({ x: 2292, y: 0 });
       });
     });
 
@@ -195,9 +199,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 350, y: 0 });
         main.toEqual({ x: 412, y: 0 });
+        horizon.toEqual({ x: 476, y: 0 });
       });
     });
 
@@ -220,9 +225,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 0, y: 92 });
         main.toEqual({ x: 0, y: 174 });
+        horizon.toEqual({ x: 0, y: 259 });
       });
     });
 
@@ -245,9 +251,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 1100, y: 1012 });
         main.toEqual({ x: 1132, y: 1334 });
+        horizon.toEqual({ x: 1303, y: 1739 });
       });
     });
 
@@ -273,9 +280,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 1100, y: 1836 });
         main.toEqual({ x: 1187, y: 2385 });
+        horizon.toEqual({ x: 1366, y: 3121 });
       });
     });
 
@@ -345,11 +353,12 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         // 2050 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
         classic.toEqual({ x: 1747, y: 1035 });
 
         main.toEqual({ x: 1942, y: 1334 });
+        horizon.toEqual({ x: 2265, y: 1739 });
       });
     });
 
@@ -372,9 +381,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 0, y: 1035 });
         main.toEqual({ x: 0, y: 1334 });
+        horizon.toEqual({ x: 0, y: 1739 });
       });
     });
 
@@ -397,9 +407,10 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 0, y: 1035 });
         main.toEqual({ x: 0, y: 1334 });
+        horizon.toEqual({ x: 0, y: 1739 });
       });
     });
 
@@ -423,18 +434,20 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       await sleep(100);
 
-      expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         // 1300 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
         classic.toEqual({ x: 996, y: 916 });
 
         main.toEqual({ x: 1035, y: 1225 });
+        horizon.toEqual({ x: 1238, y: 1641 });
       });
 
       keyDownUp(['control/meta', 'backspace']);
 
-      expect(getCurrentScrollPosition()).forThemes(({ classic, main }) => {
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 996, y: 916 });
         main.toEqual({ x: 1035, y: 1225 });
+        horizon.toEqual({ x: 1238, y: 1641 });
       });
     });
   });

@@ -45,10 +45,8 @@ writableStream._write = (chunk, encoding, next) => {
   process.stdout.write(chunk, encoding, next);
 }
 
-(async function() {
-  await concurrently(argv.cmdToListen, {
-    prefix: 'none',
-    killOthers: ['failure', 'success'],
-    outputStream: writableStream,
-  });
-})();
+await concurrently(argv.cmdToListen, {
+  prefix: 'none',
+  killOthers: ['failure', 'success'],
+  outputStream: writableStream,
+});

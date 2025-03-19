@@ -557,6 +557,27 @@ describe('CopyPaste', () => {
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });
 
+    it.forTheme('horizon')('should paste data without scrolling the viewport', async() => {
+      handsontable({
+        data: createSpreadsheetData(50, 50),
+        width: 200,
+        height: 319,
+      });
+
+      selectCell(6, 2);
+      triggerPaste([
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+        'test\ttest\ttest\ttest\ttest\ttest',
+      ].join('\n'));
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    });
+
     it('should sanitize pasted HTML', async() => {
       handsontable();
 
@@ -635,7 +656,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('should skip processing the event when the target element has not the "data-hot-input" attribute and it\'s not a BODY element', () => {
+    it('should skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s not a BODY element', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -652,7 +673,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.preventDefault).not.toHaveBeenCalled();
     });
 
-    it('should not skip processing the event when the target element has not the "data-hot-input" attribute and it\'s a BODY element', () => {
+    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a BODY element', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -669,7 +690,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('should not skip processing the event when the target element has not the "data-hot-input" attribute and it\'s a TD element (#dev-2225)', () => {
+    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a TD element (#dev-2225)', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -684,6 +705,28 @@ describe('CopyPaste', () => {
       plugin.onPaste(copyEvent); // trigger the plugin's method that is normally triggered by the native "paste" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
+    });
+
+    it('should be possible to paste data having selected a range that reaches outside of the rendered viewport (#dev-2298)', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 50),
+        width: 100,
+        height: 50,
+      });
+
+      const pasteEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      spyOn(pasteEvent, 'preventDefault');
+
+      selectCells([[0, 0, 0, 49]]);
+
+      await sleep(10);
+
+      pasteEvent.target = document.activeElement;
+      plugin.onPaste(pasteEvent); // emulate native "paste" event
+
+      expect(pasteEvent.preventDefault).toHaveBeenCalled();
     });
   });
 });

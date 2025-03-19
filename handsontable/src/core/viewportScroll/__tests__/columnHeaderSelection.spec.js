@@ -29,6 +29,8 @@ describe('Column header selection scroll', () => {
 
       simulateClick(getCell(-1, 5));
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
     });
 
@@ -108,6 +110,8 @@ describe('Column header selection scroll', () => {
       await sleep(10);
 
       simulateClick(getCell(-1, 0));
+
+      await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });

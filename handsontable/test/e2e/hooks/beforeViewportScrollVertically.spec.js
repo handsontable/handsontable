@@ -144,9 +144,10 @@ describe('Hook', () => {
       scrollViewportTo({ row: 10 });
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(686);
         main.toBe(935);
+        horizon.toBe(1271);
       });
     });
 
@@ -176,9 +177,10 @@ describe('Hook', () => {
         value: 'auto',
       }));
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(157);
         main.toBe(268);
+        horizon.toBe(420);
       });
     });
 

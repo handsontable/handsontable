@@ -45,4 +45,5 @@ export function isInput(element: HTMLElement): boolean;
 export function isOutsideInput(element: HTMLElement): boolean;
 export function selectElementIfAllowed(element: HTMLElement): void;
 export function isDetached(element: HTMLElement): boolean;
+export function isHTMLElement(element: any): boolean;
 export const HTML_CHARACTERS: RegExp;

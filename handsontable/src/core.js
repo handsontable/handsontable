@@ -3870,6 +3870,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
+    const defaultRowHeight = this.view.getDefaultRowHeight();
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {
@@ -3881,15 +3882,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'function':
           height = height(row);
           break;
+
         default:
           break;
       }
+
       if (typeof height === 'string') {
         height = parseInt(height, 10);
       }
     }
 
-    return height;
+    return (height !== undefined && height !== null && height < defaultRowHeight) ? defaultRowHeight : height;
   };
 
   /**
@@ -5037,42 +5040,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this._getEditorManager = function() {
     return editorManager;
-  };
-
-  /**
-   * Check if currently it is RTL direction.
-   *
-   * @private
-   * @memberof Core#
-   * @function isRtl
-   * @returns {boolean} True if RTL.
-   */
-  this.isRtl = function() {
-    return instance.rootWindow.getComputedStyle(instance.rootElement).direction === 'rtl';
-  };
-
-  /**
-   * Check if currently it is LTR direction.
-   *
-   * @private
-   * @memberof Core#
-   * @function isLtr
-   * @returns {boolean} True if LTR.
-   */
-  this.isLtr = function() {
-    return !instance.isRtl();
-  };
-
-  /**
-   * Returns 1 for LTR; -1 for RTL. Useful for calculations.
-   *
-   * @private
-   * @memberof Core#
-   * @function getDirectionFactor
-   * @returns {number} Returns 1 for LTR; -1 for RTL.
-   */
-  this.getDirectionFactor = function() {
-    return instance.isLtr() ? 1 : -1;
   };
 
   const shortcutManager = createShortcutManager({

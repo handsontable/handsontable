@@ -36,9 +36,21 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(0)).toBe(67);
-    expect(getColWidth(1)).toBe(67);
-    expect(getColWidth(2)).toBe(66);
+    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(67);
+      main.toBe(67);
+      horizon.toBe(62);
+    });
+    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(67);
+      main.toBe(67);
+      horizon.toBe(62);
+    });
+    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(66);
+      main.toBe(66);
+      horizon.toBe(61);
+    });
 
     updateSettings({
       stretchH: 'last',
@@ -46,7 +58,11 @@ describe('StretchColumns', () => {
 
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);
-    expect(getColWidth(2)).toBe(100);
+    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(100);
+      main.toBe(100);
+      horizon.toBe(85);
+    });
 
     updateSettings({
       stretchH: 'none',
@@ -90,9 +106,21 @@ describe('StretchColumns', () => {
       width: 500,
     });
 
-    expect(getColWidth(0)).toBe(150);
-    expect(getColWidth(1)).toBe(150);
-    expect(getColWidth(2)).toBe(150);
+    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(150);
+      main.toBe(150);
+      horizon.toBe(145);
+    });
+    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(150);
+      main.toBe(150);
+      horizon.toBe(145);
+    });
+    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(150);
+      main.toBe(150);
+      horizon.toBe(145);
+    });
   });
 
   it.forTheme('classic')('should correctly stretch columns after vertical scroll appears (defined table size)', () => {
@@ -105,9 +133,21 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(0)).toBe(90);
-    expect(getColWidth(1)).toBe(90);
-    expect(getColWidth(2)).toBe(90);
+    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(90);
+      main.toBe(90);
+      horizon.toBe(85);
+    });
+    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(90);
+      main.toBe(90);
+      horizon.toBe(85);
+    });
+    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(90);
+      main.toBe(90);
+      horizon.toBe(85);
+    });
 
     updateSettings({
       height: 141,
@@ -121,9 +161,21 @@ describe('StretchColumns', () => {
       height: 142,
     });
 
-    expect(getColWidth(0)).toBe(90);
-    expect(getColWidth(1)).toBe(90);
-    expect(getColWidth(2)).toBe(90);
+    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(90);
+      main.toBe(90);
+      horizon.toBe(85);
+    });
+    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(90);
+      main.toBe(90);
+      horizon.toBe(85);
+    });
+    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(90);
+      main.toBe(90);
+      horizon.toBe(85);
+    });
   });
 
   it.forTheme('main')('should correctly stretch columns after vertical scroll appears (defined table size)', () => {
@@ -150,6 +202,37 @@ describe('StretchColumns', () => {
 
     updateSettings({
       height: 179,
+    });
+
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
+  });
+
+  it.forTheme('horizon')('should correctly stretch columns after vertical scroll appears (defined table size)', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 3),
+      colHeaders: true,
+      rowHeaders: true,
+      width: 320,
+      height: 228,
+      stretchH: 'all',
+    });
+
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
+
+    updateSettings({
+      height: 211,
+    });
+
+    expect(getColWidth(0)).toBe(85);
+    expect(getColWidth(1)).toBe(85);
+    expect(getColWidth(2)).toBe(85);
+
+    updateSettings({
+      height: 228,
     });
 
     expect(getColWidth(0)).toBe(90);
@@ -254,13 +337,15 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(0)).forThemes(({ classic, main }) => {
+    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(404);
       main.toBe(418);
+      horizon.toBe(420);
     });
-    expect(getColWidth(1)).forThemes(({ classic, main }) => {
+    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(96);
       main.toBe(82);
+      horizon.toBe(80);
     });
   });
 
@@ -306,9 +391,10 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(4)).forThemes(({ classic, main }) => {
+    expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(259);
       main.toBe(311);
+      horizon.toBe(319);
     });
 
     setDataAtCell(0, 4, 'text');
@@ -317,9 +403,10 @@ describe('StretchColumns', () => {
 
     setDataAtCell(0, 4, 'very long text is here to make the column wider');
 
-    expect(getColWidth(4)).forThemes(({ classic, main }) => {
+    expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(259);
       main.toBe(311);
+      horizon.toBe(319);
     });
   });
 });

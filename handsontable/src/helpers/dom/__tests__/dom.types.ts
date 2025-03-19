@@ -69,3 +69,4 @@ Handsontable.dom.setCaretPosition(domElement, 0, 0);
 Handsontable.dom.setOverlayPosition(domElement, 0, 0);
 Handsontable.dom.selectElementIfAllowed(domElement);
 Handsontable.dom.stopImmediatePropagation(domEvent);
+Handsontable.dom.isHTMLElement(domElement);

@@ -958,16 +958,18 @@ describe('DropdownMenu', () => {
 
     await sleep(10);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(651); // 900 column width - 250 viewport width + 1 header border compensation
       main.toBe(666);
+      horizon.toBe(666);
     });
 
     dropdownMenu(6); // click on the column `G` header button
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main }) => {
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(651);
       main.toBe(666);
+      horizon.toBe(666);
     });
   });
 });

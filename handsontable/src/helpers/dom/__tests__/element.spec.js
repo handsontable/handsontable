@@ -23,7 +23,7 @@ describe('DOM helpers', () => {
     });
   });
 
-  describe('isThisHotChild', () => {
+  describe('isInternalElement', () => {
     it('should recognize if the provided element is a child of the container of the Handsontable container provided' +
       ' as the second argument', () => {
       const createDivWithId = (id) => {
@@ -45,7 +45,7 @@ describe('DOM helpers', () => {
         fixedColumnsStart: 3
       });
       const { rootElement } = hot;
-      const isThisHotChild = Handsontable.dom.isThisHotChild;
+      const isInternalElement = Handsontable.dom.isInternalElement;
 
       hot.selectCell(0, 0);
 
@@ -57,30 +57,30 @@ describe('DOM helpers', () => {
       // Overlay elements
       const topOverlayTableElement = hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE;
 
-      expect(isThisHotChild(topOverlayTableElement, rootElement)).toBe(true);
-      expect(isThisHotChild(topOverlayTableElement.parentNode, rootElement)).toBe(true);
-      expect(isThisHotChild(topOverlayTableElement.parentNode.parentNode, rootElement)).toBe(true);
-      expect(isThisHotChild(topOverlayTableElement.parentNode.parentNode.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(topOverlayTableElement, rootElement)).toBe(true);
+      expect(isInternalElement(topOverlayTableElement.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(topOverlayTableElement.parentNode.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(topOverlayTableElement.parentNode.parentNode.parentNode, rootElement)).toBe(true);
 
       const mainOverlayTableElement = hot.view._wt.wtOverlays.wtTable.TABLE;
 
-      expect(isThisHotChild(mainOverlayTableElement, rootElement)).toBe(true);
-      expect(isThisHotChild(mainOverlayTableElement.parentNode, rootElement)).toBe(true);
-      expect(isThisHotChild(mainOverlayTableElement.parentNode.parentNode, rootElement)).toBe(true);
-      expect(isThisHotChild(mainOverlayTableElement.parentNode.parentNode.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(mainOverlayTableElement, rootElement)).toBe(true);
+      expect(isInternalElement(mainOverlayTableElement.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(mainOverlayTableElement.parentNode.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(mainOverlayTableElement.parentNode.parentNode.parentNode, rootElement)).toBe(true);
 
       // Cell elements
-      expect(isThisHotChild(hot.getCell(0, 0, true), rootElement)).toBe(true);
-      expect(isThisHotChild(hot.getCell(3, 3, true), rootElement)).toBe(true);
-      expect(isThisHotChild(hot.getCell(9, 9, true), rootElement)).toBe(true);
+      expect(isInternalElement(hot.getCell(0, 0, true), rootElement)).toBe(true);
+      expect(isInternalElement(hot.getCell(3, 3, true), rootElement)).toBe(true);
+      expect(isInternalElement(hot.getCell(9, 9, true), rootElement)).toBe(true);
 
       // Misc
-      expect(isThisHotChild(document.querySelector('.htFocusCatcher'), rootElement)).toBe(true);
-      expect(isThisHotChild(document.querySelector('.handsontableInputHolder'), rootElement)).toBe(true);
-      expect(isThisHotChild(document.querySelector('#rootChild'), rootElement)).toBe(true);
+      expect(isInternalElement(document.querySelector('.htFocusCatcher'), rootElement)).toBe(true);
+      expect(isInternalElement(document.querySelector('.handsontableInputHolder'), rootElement)).toBe(true);
+      expect(isInternalElement(document.querySelector('#rootChild'), rootElement)).toBe(true);
 
-      expect(isThisHotChild(document.querySelector('#rootSibling'), rootElement)).toBe(false);
-      expect(isThisHotChild(document.body, rootElement)).toBe(false);
+      expect(isInternalElement(document.querySelector('#rootSibling'), rootElement)).toBe(false);
+      expect(isInternalElement(document.body, rootElement)).toBe(false);
 
       hot.destroy();
       document.body.removeChild(document.querySelector('#rootSibling'));
@@ -109,6 +109,148 @@ describe('DOM helpers', () => {
       expect(Number.isFinite(elementOffset.left)).toBe(true);
 
       document.body.removeChild(wrapper);
+    });
+  });
+
+  describe('hasVerticalScrollbar', () => {
+    it('should return `true` if the provided HTML element has a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(50)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      element.style.width = '100px';
+      element.style.height = '100px';
+      element.style.overflow = 'auto';
+
+      expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(true);
+
+      element.style.overflow = 'scroll';
+
+      expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(true);
+
+      element.style.overflow = '';
+      element.style.overflowY = 'auto';
+      element.style.overflowX = 'hidden';
+
+      expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(true);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `false` if the provided HTML element doesn\'t have a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(50)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      element.style.width = '100px';
+      element.style.height = '100px';
+
+      element.style.overflowY = 'hidden';
+      element.style.overflowX = 'auto';
+
+      expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(false);
+
+      element.style.overflowY = '';
+      element.style.overflowX = '';
+      element.style.overflow = 'hidden';
+
+      expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(false);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `true` if the provided Window element has a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(1000)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      expect(Handsontable.dom.hasVerticalScrollbar(window)).toBe(true);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `false` if the provided Window element doesn\'t have a vertical scrollbar', () => {
+      expect(Handsontable.dom.hasVerticalScrollbar(window)).toBe(false);
+    });
+  });
+
+  describe('hasHorizontalScrollbar', () => {
+    it('should return `true` if the provided HTML element has a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(50)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      element.style.width = '100px';
+      element.style.height = '100px';
+
+      element.style.overflow = 'scroll';
+
+      expect(Handsontable.dom.hasHorizontalScrollbar(element)).toBe(true);
+
+      element.style.overflow = '';
+      element.style.overflowY = 'hidden';
+      element.style.overflowX = 'scroll';
+
+      expect(Handsontable.dom.hasHorizontalScrollbar(element)).toBe(true);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `false` if the provided HTML element doesn\'t have a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(50)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      element.style.width = '100px';
+      element.style.height = '100px';
+
+      element.style.overflowY = 'auto';
+      element.style.overflowX = 'hidden';
+
+      expect(Handsontable.dom.hasHorizontalScrollbar(element)).toBe(false);
+
+      element.style.overflowY = '';
+      element.style.overflowX = '';
+      element.style.overflow = 'hidden';
+
+      expect(Handsontable.dom.hasHorizontalScrollbar(element)).toBe(false);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `true` if the provided Window element has a vertical scrollbar', () => {
+      const element = document.createElement('div');
+
+      element.style.height = '100%';
+      element.style.width = '500%';
+
+      document.body.appendChild(element);
+
+      element.innerText = new Array(1000)
+        .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
+
+      expect(Handsontable.dom.hasHorizontalScrollbar(window)).toBe(true);
+
+      document.body.removeChild(element);
+    });
+
+    it('should return `false` if the provided Window element doesn\'t have a vertical scrollbar', () => {
+      expect(Handsontable.dom.hasHorizontalScrollbar(window)).toBe(false);
     });
   });
 });

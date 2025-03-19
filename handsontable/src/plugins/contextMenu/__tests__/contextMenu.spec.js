@@ -101,9 +101,10 @@ describe('ContextMenu', () => {
       await sleep(300);
 
       expect($menu.find('.wtHider').width()).toEqual(215);
-      expect($menu.width()).forThemes(({ classic, main }) => {
-        classic.toEqual(215);
+      expect($menu.width()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual(218);
         main.toEqual(217);
+        horizon.toEqual(215);
       });
     });
 

@@ -211,13 +211,15 @@ describe('ContextMenu keyboard shortcut', () => {
         left: cellRect.width,
         above: -cellRect.height,
       });
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(1766);
         main.toBe(1961);
+        horizon.toBe(2284);
       });
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main }) => {
+      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(8939);
         main.toBe(11345);
+        horizon.toBe(14553);
       });
     });
 

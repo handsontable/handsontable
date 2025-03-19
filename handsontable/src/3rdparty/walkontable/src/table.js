@@ -24,7 +24,7 @@ import {
   CLONE_TOP_INLINE_START_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
-import { A11Y_PRESENTATION } from '../../../helpers/a11y';
+import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../helpers/a11y';
 
 /**
  * @todo These mixes are never added to the class Table, however their members are used here.
@@ -242,6 +242,10 @@ class Table {
       holder = this.domBindings.rootDocument.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
+
+      setAttribute(holder, [
+        A11Y_TABINDEX(-1),
+      ]);
 
       if (parent) {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
@@ -715,7 +719,7 @@ class Table {
     } else if (CONTAINER === this.THEAD) {
       row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
 
-    } else {
+    } else if (this.rowFilter) {
       row = this.rowFilter.renderedToSource(row);
     }
 
@@ -724,7 +728,7 @@ class Table {
       || overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)) {
       col = this.columnFilter.offsettedTH(col);
 
-    } else {
+    } else if (this.columnFilter) {
       col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
     }
 

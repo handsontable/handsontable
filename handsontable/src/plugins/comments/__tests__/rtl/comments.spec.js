@@ -61,9 +61,10 @@ describe('Comments (RTL mode)', () => {
         const editorWidth = $editor.outerWidth();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main }) => {
+        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left - editorWidth, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
+          main.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
+          horizon.toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
         });
       });
 
@@ -99,9 +100,10 @@ describe('Comments (RTL mode)', () => {
         const editorWidth = $editor.outerWidth();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main }) => {
+        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left - editorWidth, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
+          main.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
+          horizon.toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
         });
       });
 
@@ -124,9 +126,10 @@ describe('Comments (RTL mode)', () => {
         const editorWidth = $editor.outerWidth();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main }) => {
+        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left - editorWidth, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
+          main.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
+          horizon.toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
         });
       });
 
@@ -158,9 +161,10 @@ describe('Comments (RTL mode)', () => {
         const editorWidth = $editor.outerWidth();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main }) => {
+        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left - editorWidth, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
+          main.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
+          horizon.toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
         });
       });
 
@@ -195,9 +199,10 @@ describe('Comments (RTL mode)', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main }) => {
+        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left + 1, 0);
-          main.toBeCloseTo(cellOffset.left, 0); // border compensation?
+          main.toBeCloseTo(cellOffset.left, 0);
+          horizon.toBeCloseTo(cellOffset.left, 0); // border compensation?
         });
       });
 
@@ -237,9 +242,10 @@ describe('Comments (RTL mode)', () => {
         const editorHeight = $editor.outerHeight();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-        expect(editorOffset.left).forThemes(({ classic, main }) => {
+        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left + cellWidth + 1, 0);
-          main.toBeCloseTo(cellOffset.left + cellWidth, 0); // border compensation?
+          main.toBeCloseTo(cellOffset.left + cellWidth, 0);
+          horizon.toBeCloseTo(cellOffset.left + cellWidth, 0); // border compensation?
         });
       });
 
@@ -278,9 +284,10 @@ describe('Comments (RTL mode)', () => {
         const editorWidth = $editor.outerWidth();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-        expect(editorOffset.left).forThemes(({ classic, main }) => {
+        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left - editorWidth, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
+          main.toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
+          horizon.toBeCloseTo(cellOffset.left - editorWidth - 1, 0); // border compensation?
         });
       });
     });
@@ -330,9 +337,13 @@ describe('Comments (RTL mode)', () => {
         expect({
           top: commentEditorOffset.top,
           left: commentEditorOffset.left + commentEditorWidth,
-        }).forThemes(({ classic, main }) => {
+        }).forThemes(({ classic, main, horizon }) => {
           classic.toEqual(cell.offset());
           main.toEqual({
+            top: cell.offset().top,
+            left: cell.offset().left - 1, // border compensation?
+          });
+          horizon.toEqual({
             top: cell.offset().top,
             left: cell.offset().left - 1, // border compensation?
           });

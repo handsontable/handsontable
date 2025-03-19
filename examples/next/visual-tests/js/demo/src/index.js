@@ -11,6 +11,8 @@ import { initializeMergedCellsDemo } from './demos/mergedCells/mergedCellsDemo';
 import { initializeNestedHeadersDemo } from './demos/nestedHeaders/nestedHeadersDemo';
 import { initializeNestedRowsDemo } from './demos/nestedRows/nestedRowsDemo';
 import { initializeComplexDemo } from './demos/complex/complexDemo';
+import { initializeBasicTwoTablesDemo } from './demos/basicTwoTables/basicTwoTables';
+import { initializeLargeDatasetDemo } from './demos/largeDataset/largeDatasetDemo';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -128,6 +130,15 @@ router
         initializeCustomStyleDemo();
       });
     },
+    '/large-dataset-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeLargeDatasetDemo();
+      });
+    },
     '/merged-cells-demo': function () {
       removeCSS();
 
@@ -165,6 +176,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initializeComplexDemo();
+      });
+    },
+    '/basic-two-tables-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeBasicTwoTablesDemo();
       });
     },
   })

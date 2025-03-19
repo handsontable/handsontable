@@ -48,6 +48,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Separa celle',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Copia',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Copia con intestazione', 'Copia con intestazioni'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: 'Copia con intestazione completa',
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Copia solo intestazione', 'Copia solo intestazioni'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Taglia',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Inserisci riga figlia',

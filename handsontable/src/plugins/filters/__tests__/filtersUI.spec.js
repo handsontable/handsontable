@@ -1311,7 +1311,8 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(3);
     });
 
-    it('Two conditionals chosen & unchecked value which won\'t be filtered by conditions -> filter operation', async() => {
+    it.forTheme('classic')('Two conditionals chosen & unchecked value which won\'t be filtered ' +
+      'by conditions -> filter operation', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1355,6 +1356,115 @@ describe('Filters UI', () => {
 
       // Mathis Boone, 23th element
       $multipleSelectElements.eq(9).simulate('click');
+
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toBe(2);
+    });
+
+    it.forTheme('main')('Two conditionals chosen & unchecked value which won\'t be filtered ' +
+      'by conditions -> filter operation', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(1);
+      openDropdownByConditionMenu();
+      selectDropdownByConditionMenuOption('Begins with');
+
+      await sleep(200);
+
+      document.activeElement.value = 'm';
+      keyUp('m');
+
+      openDropdownByConditionMenu('second');
+      selectDropdownByConditionMenuOption('Ends with', 'second');
+
+      await sleep(200);
+      document.activeElement.value = 'e';
+      keyUp('e');
+
+      let $multipleSelectElements = $(byValueMultipleSelect().element
+        .querySelectorAll('.htUIMultipleSelectHot td input'));
+
+      $multipleSelectElements.get(4).scrollIntoView();
+
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.get(8).scrollIntoView();
+
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.get(12).scrollIntoView();
+
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.get(13).scrollIntoView();
+
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+
+      // Mathis Boone, 23th element
+      $multipleSelectElements.eq(9).simulate('click');
+
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(10);
+
+      expect(getData().length).toBe(2);
+    });
+
+    it.forTheme('horizon')('Two conditionals chosen & unchecked value which won\'t be filtered ' +
+      'by conditions -> filter operation', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(1);
+      openDropdownByConditionMenu();
+      selectDropdownByConditionMenuOption('Begins with');
+
+      await sleep(200);
+
+      document.activeElement.value = 'm';
+      keyUp('m');
+
+      openDropdownByConditionMenu('second');
+      selectDropdownByConditionMenuOption('Ends with', 'second');
+
+      await sleep(200);
+      document.activeElement.value = 'e';
+      keyUp('e');
+
+      let $multipleSelectElements = $(byValueMultipleSelect().element
+        .querySelectorAll('.htUIMultipleSelectHot td input'));
+
+      $multipleSelectElements.get(3).scrollIntoView();
+
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.get(6).scrollIntoView();
+
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.get(9).scrollIntoView();
+
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.get(10).scrollIntoView();
+
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      $multipleSelectElements.get(13).scrollIntoView();
+
+      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+
+      // Mathis Boone, 23th element
+      $multipleSelectElements.eq(12).simulate('click');
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
@@ -1696,5 +1806,31 @@ describe('Filters UI', () => {
     await sleep(100);
 
     expect(dropdownMenuRootElement().offsetHeight).toBe(initialDropdownHeight);
+  });
+
+  it('should not reset the previous filtering result after opening and accepting the dropdown menu when ' +
+     'the action is blocked via `beforeFilter` hook', () => {
+    const beforeFilter = jasmine.createSpy('beforeFilter');
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      filters: true,
+      dropdownMenu: true,
+      colHeaders: true,
+      beforeFilter,
+    });
+
+    const plugin = getPlugin('filters');
+
+    plugin.addCondition(0, 'contains', ['3']);
+    plugin.filter();
+
+    beforeFilter.and.returnValue(false);
+
+    dropdownMenu(1);
+    $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
+      .simulate('click');
+
+    expect(countRows()).toBe(1);
   });
 });

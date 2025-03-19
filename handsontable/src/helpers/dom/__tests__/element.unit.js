@@ -12,6 +12,7 @@ import {
   fastInnerHTML,
   isVisible,
   findFirstParentWithClass,
+  isHTMLElement,
 } from 'handsontable/helpers/dom/element';
 
 describe('DomElement helper', () => {
@@ -814,6 +815,23 @@ describe('DomElement helper', () => {
       expect(isVisible(elementParent)).toBe(false);
 
       elementParent.remove();
+    });
+  });
+
+  //
+  // Handsontable.helper.isHTMLElement
+  //
+  describe('isHTMLElement', () => {
+    it('should return `false` when the element is not na HTML Element', () => {
+      const element = 3;
+
+      expect(isHTMLElement(element)).toBe(false);
+    });
+
+    it('should return `true` when the element is an HTML Element', () => {
+      const element = document.createElement('div');
+
+      expect(isHTMLElement(element)).toBe(true);
     });
   });
 });

@@ -9,6 +9,7 @@ import { isMobileBrowser } from '../../helpers/browser';
 
 export const EDITOR_TYPE = 'date';
 const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
+const DEFAULT_DATE_FORMAT = 'DD/MM/YYYY';
 
 /**
  * @private
@@ -19,11 +20,6 @@ export class DateEditor extends TextEditor {
     return EDITOR_TYPE;
   }
 
-  // TODO: Move this option to general settings
-  /**
-   * @type {string}
-   */
-  defaultDateFormat = 'DD/MM/YYYY';
   /**
    * @type {boolean}
    */
@@ -203,7 +199,7 @@ export class DateEditor extends TextEditor {
    * @param {Event} event The event object.
    */
   showDatepicker(event) {
-    const dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
+    const dateFormat = this.#getDateFormat();
     const isMouseDown = this.hot.view.isMouseDown();
     const isMeta = event ? isFunctionKey(event.keyCode) : false;
     let dateStr;
@@ -279,7 +275,7 @@ export class DateEditor extends TextEditor {
     options.container = this.datePicker;
     options.bound = false;
     options.keyboardInput = false;
-    options.format = options.format || this.defaultDateFormat;
+    options.format = options.format ?? this.#getDateFormat();
     options.reposition = options.reposition || false;
     // Set the RTL to `false`. Due to the https://github.com/Pikaday/Pikaday/issues/647 bug, the layout direction
     // of the date picker is controlled by juggling the "dir" attribute of the root date picker element.
@@ -289,7 +285,7 @@ export class DateEditor extends TextEditor {
       let dateStr = value;
 
       if (!isNaN(dateStr.getTime())) {
-        dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
+        dateStr = moment(dateStr).format(this.#getDateFormat());
       }
 
       this.setValue(dateStr);
@@ -365,5 +361,14 @@ export class DateEditor extends TextEditor {
     } else {
       this.hideDatepicker();
     }
+  }
+
+  /**
+   * Gets the current date format for this cell.
+   *
+   * @returns {string}
+   */
+  #getDateFormat() {
+    return this.cellProperties.dateFormat ?? DEFAULT_DATE_FORMAT;
   }
 }

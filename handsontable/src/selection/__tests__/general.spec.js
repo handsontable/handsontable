@@ -1747,4 +1747,45 @@ describe('Selection', () => {
     hot2.destroy();
     container2.remove();
   });
+
+  describe('running in iframe', () => {
+    beforeEach(function() {
+      this.$iframe = $('<iframe width="300px" height="300px"/>').appendTo(this.$container);
+
+      const doc = this.$iframe[0].contentDocument;
+
+      doc.open('text/html', 'replace');
+      doc.write(`
+        <!doctype html>
+        <head>
+          <link type="text/css" rel="stylesheet" href="../dist/handsontable.css">
+        </head>`);
+      doc.close();
+
+      this.$iframeContainer = $('<div/>').appendTo(doc.body);
+    });
+
+    afterEach(function() {
+      this.$iframeContainer.handsontable('destroy');
+      this.$iframe.remove();
+    });
+
+    it('should add `current` css class to selected cell', () => {
+      const iframeHot = spec().$iframeContainer.handsontable().handsontable('getInstance');
+
+      iframeHot.selectCell(1, 1);
+
+      expect(iframeHot.getCell(1, 1).classList.contains('current')).toBeTrue();
+    });
+
+    it('should set correct `wtBorder` top position of selected cell', async() => {
+      const iframeHot = spec().$iframeContainer.handsontable().handsontable('getInstance');
+
+      iframeHot.selectCell(1, 1);
+
+      await sleep(100);
+
+      expect(spec().$iframeContainer.find('.wtBorder.current')[0].style.top).toEqual('23px');
+    });
+  });
 });

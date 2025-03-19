@@ -31,13 +31,29 @@ describe('StretchColumns cooperation with hidden columns', () => {
     hot().view.adjustElementsSize();
 
     expect(getColWidth(0)).toBe(50);
-    expect(getColWidth(1)).toBe(68);
-    expect(getColWidth(2)).toBe(68);
+    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(68);
+      main.toBe(68);
+      horizon.toBe(64);
+    });
+    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(68);
+      main.toBe(68);
+      horizon.toBe(64);
+    });
     expect(getColWidth(3)).toBe(50);
     expect(getColWidth(4)).toBe(50);
-    expect(getColWidth(5)).toBe(68);
+    expect(getColWidth(5)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(68);
+      main.toBe(68);
+      horizon.toBe(64);
+    });
     expect(getColWidth(6)).toBe(50);
-    expect(getColWidth(7)).toBe(66);
+    expect(getColWidth(7)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(66);
+      main.toBe(66);
+      horizon.toBe(63);
+    });
     expect(getColWidth(8)).toBe(50);
   });
 });
