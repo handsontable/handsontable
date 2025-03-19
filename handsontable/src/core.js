@@ -272,6 +272,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.runHooks('afterRowSequenceChange', source);
   });
 
+  eventManager.addEventListener(this.rootDocument.documentElement, 'compositionstart', (event) => {
+    instance.runHooks('beforeCompositionstart', event);
+  });
+
   dataSource = new DataSource(instance);
 
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {

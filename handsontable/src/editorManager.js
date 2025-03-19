@@ -65,14 +65,7 @@ class EditorManager {
     this.eventManager = new EventManager(hotInstance);
 
     this.hot.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
-
-    // Open editor when text composition is started (IME editor)
-    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'compositionstart', (event) => {
-      if (!this.destroyed && this.hot.isListening()) {
-        this.openEditor('', event);
-      }
-    });
-
+    this.hot.addHook('beforeCompositionstart', event => this.#onAfterDocumentKeyDown(event));
     this.hot.view._wt.update('onCellDblClick', (event, coords, elem) => this.#onCellDblClick(event, coords, elem));
   }
 
