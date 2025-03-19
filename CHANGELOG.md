@@ -32,7 +32,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed the Context Menu's items' state rendering. [#11422](https://github.com/handsontable/handsontable/pull/11422)
 - Corrected the checkbox visibility in the no-theme variant. [#11427](https://github.com/handsontable/handsontable/pull/11427)
 - Fixed problems with the cell content reading with `imeFastEdit` enabled. [#11442](https://github.com/handsontable/handsontable/pull/11442)
-- Fixed a problem, where clicking on the Comments' editor element deselected the currently selected cells. [#11446](https://github.com/handsontable/handsontable/pull/11446)
 - Fixed `hasVerticalScroll` and `hasHorizontalScroll` methods. [#11455](https://github.com/handsontable/handsontable/pull/11455)
 - Fixed the editor border radius on mobile devices. [#11457](https://github.com/handsontable/handsontable/pull/11457)
 - Fixed the wrong height of the first row. [#11458](https://github.com/handsontable/handsontable/pull/11458)
