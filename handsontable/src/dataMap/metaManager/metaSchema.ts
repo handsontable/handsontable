@@ -1,5 +1,6 @@
 import { isEmpty } from '../../helpers/mixed';
 import { isObjectEqual } from '../../helpers/object';
+import { MetaObject } from '../types';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -48,50 +49,14 @@ import { isObjectEqual } from '../../helpers/object';
  * });
  * ```
  * :::
- *
- * ::: only-for react
- *
- * To apply configuration options, pass them as individual props
- * of the [`HotTable`](@/guides/getting-started/installation/installation.md#_4-use-the-hottable-component)
- * or [`HotColumn`](@/guides/columns/react-hot-column/react-hot-column.md) components.
- *
- * Read more on the [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) page.
- *
- * ```jsx
- * <HotTable
- *   // configuration options, in the object literal notation
- *   licenseKey='non-commercial-and-evaluation'
- *   data={[
- *     ['A1', 'B1', 'C1', 'D1', 'E1'],
- *     ['A2', 'B2', 'C2', 'D2', 'E2'],
- *     ['A3', 'B3', 'C3', 'D3', 'E3'],
- *     ['A4', 'B4', 'C4', 'D4', 'E4'],
- *     ['A5', 'B5', 'C5', 'D5', 'E5'],
- *   ]}
- *   width={400}
- *   height={300}
- *   colHeaders={true}
- *   rowHeaders={true}
- *   customBorders={true}
- *   dropdownMenu={true}
- *   multiColumnSorting={true}
- *   filters={true}
- *   manualRowMove={true}
- * />
- * ```
- * :::
- *
- * Depending on your needs, you can apply [configuration options](@/api/options.md) to different elements of your grid:
- * - [The entire grid](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options)
- * - [Individual columns](@/guides/getting-started/configuration-options/configuration-options.md#set-column-options)
- * - [Individual rows](@/guides/getting-started/configuration-options/configuration-options.md#set-row-options)
- * - [Individual cells](@/guides/getting-started/configuration-options/configuration-options.md#set-cell-options)
- * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/configuration-options/configuration-options.md#implementing-custom-logic)
- *
- * Read more:
- * - [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md)
  */
-export default () => {
+
+/**
+ * Returns the default options as a plain object.
+ *
+ * @returns {MetaObject} The default options object.
+ */
+export default function metaSchemaFactory(): MetaObject {
   return {
 
     /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -3749,7 +3714,7 @@ export default () => {
      *       col: 0,
      *       readOnly: true,
      *     },
-     * };
+     * ];
      * ```
      */
     readOnly: false,
@@ -5067,4 +5032,4 @@ export default () => {
 
     /* eslint-enable jsdoc/require-description-complete-sentence */
   };
-};
+}

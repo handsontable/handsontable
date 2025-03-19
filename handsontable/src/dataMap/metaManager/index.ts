@@ -4,6 +4,7 @@ import ColumnMeta from './metaLayers/columnMeta';
 import CellMeta from './metaLayers/cellMeta';
 import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
+import { MetaManager as MetaManagerInterface, MetaObject, CellMetaOptions, Handsontable } from '../types';
 
 /**
  * With the Meta Manager class, it can be possible to manage with meta objects for different layers in
@@ -32,8 +33,35 @@ import { mixin } from '../../helpers/object';
  *
  * A more detailed description of the specific layers can be found in the "metaLayers/" modules description.
  */
-export default class MetaManager {
-  constructor(hot, customSettings = {}, metaMods = []) {
+export default class MetaManager implements MetaManagerInterface {
+  /**
+   * @type {Handsontable}
+   */
+  hot: Handsontable;
+  /**
+   * @type {GlobalMeta}
+   */
+  globalMeta: GlobalMeta;
+  /**
+   * @type {TableMeta}
+   */
+  tableMeta: TableMeta;
+  /**
+   * @type {ColumnMeta}
+   */
+  columnMeta: ColumnMeta;
+  /**
+   * @type {CellMeta}
+   */
+  cellMeta: CellMeta;
+  
+  // Properties added by the localHooks mixin
+  _localHooks: Record<string, Function[]>;
+  addLocalHook: (key: string, callback: Function) => this;
+  runLocalHooks: (key: string, ...args: any[]) => void;
+  clearLocalHooks: () => this;
+
+  constructor(hot: Handsontable, customSettings: MetaObject = {}, metaMods: any[] = []) {
     /**
      * @type {Handsontable}
      */
@@ -67,7 +95,7 @@ export default class MetaManager {
    *
    * @returns {object}
    */
-  getGlobalMeta() {
+  getGlobalMeta(): MetaObject {
     return this.globalMeta.getMeta();
   }
 
@@ -76,7 +104,7 @@ export default class MetaManager {
    *
    * @param {object} settings An object to merge with.
    */
-  updateGlobalMeta(settings) {
+  updateGlobalMeta(settings: MetaObject): void {
     this.globalMeta.updateMeta(settings);
   }
 
@@ -87,7 +115,7 @@ export default class MetaManager {
    *
    * @returns {TableMeta}
    */
-  getTableMeta() {
+  getTableMeta(): MetaObject {
     return this.tableMeta.getMeta();
   }
 
@@ -96,51 +124,49 @@ export default class MetaManager {
    *
    * @param {object} settings An object to merge with.
    */
-  updateTableMeta(settings) {
+  updateTableMeta(settings: MetaObject): void {
     this.tableMeta.updateMeta(settings);
   }
 
   /**
-   * Gets column meta object that is a root of all settings defined in the column property of the Handsontable
-   * settings. Each column in the Handsontable is associated with a unique meta object which identified by
-   * the physical column index. Adding, removing, or changing property in that object has a direct reflection
-   * only for the CellMeta layer. The reflection will be visible only if the property doesn't exist in the lower
-   * layers (prototype lookup).
+   * Gets settings object for the specific column. That layer contains all default settings
+   * inherited from the GlobalMeta layer. Adding, removing, or changing property in that
+   * object has a direct reflection only for the specified column.
    *
    * @param {number} physicalColumn The physical column index.
    * @returns {object}
    */
-  getColumnMeta(physicalColumn) {
+  getColumnMeta(physicalColumn: number): MetaObject {
     return this.columnMeta.getMeta(physicalColumn);
   }
 
   /**
-   * Updates column meta object by merging settings with the current state.
+   * Updates column settings object by merging settings with the current state.
    *
    * @param {number} physicalColumn The physical column index which points what column meta object is updated.
    * @param {object} settings An object to merge with.
    */
-  updateColumnMeta(physicalColumn, settings) {
+  updateColumnMeta(physicalColumn: number, settings: MetaObject): void {
     this.columnMeta.updateMeta(physicalColumn, settings);
   }
 
   /**
-   * Gets the cell meta object that is a root of all settings defined for the specific cell rendered by
-   * the Handsontable. Each cell meta inherits settings from higher layers. When a property doesn't
-   * exist in that layer, it is looked up through a prototype to the highest layer. Starting
-   * from CellMeta -> ColumnMeta and ending to GlobalMeta, which stores default settings. Adding,
-   * removing, or changing property in that object has no direct reflection on any other layers.
+   * Gets settings object for the specific cell. That layer contains all default settings
+   * inherited from the ColumnMeta layer. Adding, removing, or changing property in that
+   * object has a direct reflection only for the specified cell.
    *
    * @param {number} physicalRow The physical row index.
    * @param {number} physicalColumn The physical column index.
-   * @param {object} options Options for the `getCellMeta` method.
-   * @param {number} options.visualRow The visual row index of the currently requested cell meta object.
-   * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
-   * @param {boolean} [options.skipMetaExtension=false] If `true`, omits the `afterGetCellMeta` hook which calls the `extendCellMeta` method.
+   * @param {object} options Additional options that can be used to customize meta options.
+   * @param {boolean} [options.visibleRowsOnly=false] If `true`, will only check visible rows.
+   * @param {boolean} [options.skipRowHooks=false] If `true`, the row hooks will not be triggered.
+   * @param {number} [options.visualRow] The visual row index.
+   * @param {number} [options.visualColumn] The visual column index.
+   * @param {boolean} [options.skipMetaExtension=false] If `true`, omits the `afterGetCellMeta` hook.
    * @returns {object}
    */
-  getCellMeta(physicalRow, physicalColumn, options) {
-    const cellMeta = this.cellMeta.getMeta(physicalRow, physicalColumn);
+  getCellMeta(physicalRow: number, physicalColumn: number, options: CellMetaOptions = {}): MetaObject {
+    const cellMeta = this.cellMeta.getMeta(physicalRow, physicalColumn, undefined);
 
     cellMeta.visualRow = options.visualRow;
     cellMeta.visualCol = options.visualColumn;
@@ -155,14 +181,14 @@ export default class MetaManager {
   }
 
   /**
-   * Gets a value (defined by the `key` property) from the cell meta object.
+   * Gets one meta property for the specified cell meta object.
    *
    * @param {number} physicalRow The physical row index.
    * @param {number} physicalColumn The physical column index.
-   * @param {string} key Defines the value that will be returned from the cell meta object.
-   * @returns {*}
+   * @param {string} key The property name to query.
+   * @returns {object}
    */
-  getCellMetaKeyValue(physicalRow, physicalColumn, key) {
+  getCellMetaKeyValue(physicalRow: number, physicalColumn: number, key: string): any {
     if (typeof key !== 'string') {
       throw new Error('The passed cell meta object key is not a string');
     }
@@ -171,116 +197,116 @@ export default class MetaManager {
   }
 
   /**
-   * Sets settings object for cell meta object defined by "key" property.
+   * Sets one meta property for the specified cell meta object.
    *
    * @param {number} physicalRow The physical row index.
    * @param {number} physicalColumn The physical column index.
    * @param {string} key The property name to set.
    * @param {*} value Value to save.
    */
-  setCellMeta(physicalRow, physicalColumn, key, value) {
+  setCellMeta(physicalRow: number, physicalColumn: number, key: string, value: any): void {
     this.cellMeta.setMeta(physicalRow, physicalColumn, key, value);
   }
 
   /**
-   * Updates cell meta object by merging settings with the current state.
+   * Updates cell settings object by merging settings with the current state.
    *
    * @param {number} physicalRow The physical row index which points what cell meta object is updated.
    * @param {number} physicalColumn The physical column index which points what cell meta object is updated.
    * @param {object} settings An object to merge with.
    */
-  updateCellMeta(physicalRow, physicalColumn, settings) {
+  updateCellMeta(physicalRow: number, physicalColumn: number, settings: MetaObject): void {
     this.cellMeta.updateMeta(physicalRow, physicalColumn, settings);
   }
 
   /**
-   * Removes a property defined by the "key" argument from the cell meta object.
+   * Removes one property defined by the key for the cell meta object.
    *
    * @param {number} physicalRow The physical row index.
    * @param {number} physicalColumn The physical column index.
    * @param {string} key The property name to remove.
    */
-  removeCellMeta(physicalRow, physicalColumn, key) {
+  removeCellMeta(physicalRow: number, physicalColumn: number, key: string): void {
     this.cellMeta.removeMeta(physicalRow, physicalColumn, key);
   }
 
   /**
-   * Returns all cell meta objects that were created during the Handsontable operation. As cell meta
-   * objects are created lazy, the length of the returned collection depends on how and when the
-   * table has asked for access to that meta objects.
+   * Returns all cell meta objects that were created during the Handsontable initialization phase.
    *
-   * @returns {object[]}
+   * @returns {Array}
    */
-  getCellsMeta() {
-    return this.cellMeta.getMetas();
+  getCellsMeta(): MetaObject[] {
+    return this.cellMeta.getMetas() as unknown as MetaObject[];
   }
 
   /**
-   * Returns all cell meta objects that were created during the Handsontable operation but for
-   * specific row index.
+   * Returns all cell meta objects that were created during the Handsontable initialization phase for
+   * the specified row index.
    *
    * @param {number} physicalRow The physical row index.
-   * @returns {object[]}
+   * @returns {Array}
    */
-  getCellsMetaAtRow(physicalRow) {
-    return this.cellMeta.getMetasAtRow(physicalRow);
+  getCellsMetaAtRow(physicalRow: number): MetaObject[] {
+    return this.cellMeta.getMetasAtRow(physicalRow) as MetaObject[];
   }
 
   /**
    * Creates one or more rows at specific position.
    *
-   * @param {number} physicalRow The physical row index which points from what position the row is added.
-   * @param {number} [amount=1] An amount of rows to add.
+   * @param {number|null} physicalRow The physical row index which points from what position the row is created.
+   *                                  If it's `null` the rows will be created at the end of the meta collections.
+   * @param {number} [amount=1] An amount of rows to create.
    */
-  createRow(physicalRow, amount = 1) {
+  createRow(physicalRow: number | null, amount: number = 1): void {
     this.cellMeta.createRow(physicalRow, amount);
   }
 
   /**
-   * Removes one or more rows from the collection.
+   * Removes one or more rows from the meta collections.
    *
    * @param {number} physicalRow The physical row index which points from what position the row is removed.
-   * @param {number} [amount=1] An amount rows to remove.
+   * @param {number} [amount=1] An amount of rows to remove.
    */
-  removeRow(physicalRow, amount = 1) {
+  removeRow(physicalRow: number, amount: number = 1): void {
     this.cellMeta.removeRow(physicalRow, amount);
   }
 
   /**
    * Creates one or more columns at specific position.
    *
-   * @param {number} physicalColumn The physical column index which points from what position the column is added.
-   * @param {number} [amount=1] An amount of columns to add.
+   * @param {number|null} physicalColumn The physical column index which points from what position the column is created.
+   *                                     If it's `null` the columns will be created at the end of the meta collections.
+   * @param {number} [amount=1] An amount of columns to create.
    */
-  createColumn(physicalColumn, amount = 1) {
-    this.cellMeta.createColumn(physicalColumn, amount);
+  createColumn(physicalColumn: number | null, amount: number = 1): void {
     this.columnMeta.createColumn(physicalColumn, amount);
+    this.cellMeta.createColumn(physicalColumn, amount);
   }
 
   /**
-   * Removes one or more columns from the collection.
+   * Removes one or more columns from the meta collections.
    *
    * @param {number} physicalColumn The physical column index which points from what position the column is removed.
    * @param {number} [amount=1] An amount of columns to remove.
    */
-  removeColumn(physicalColumn, amount = 1) {
-    this.cellMeta.removeColumn(physicalColumn, amount);
+  removeColumn(physicalColumn: number, amount: number = 1): void {
     this.columnMeta.removeColumn(physicalColumn, amount);
+    this.cellMeta.removeColumn(physicalColumn, amount);
   }
 
   /**
-   * Clears all saved cell meta objects. It keeps column meta, table meta, and global meta intact.
+   * Clear all cell meta objects from all layers. It sets the meta back to the initial state.
    */
-  clearCellsCache() {
+  clearCellsCache(): void {
     this.cellMeta.clearCache();
   }
 
   /**
-   * Clears all saved cell and columns meta objects.
+   * Clear all meta objects from all layers. It sets the meta back to the initial state.
    */
-  clearCache() {
-    this.cellMeta.clearCache();
+  clearCache(): void {
     this.columnMeta.clearCache();
+    this.cellMeta.clearCache();
   }
 }
 

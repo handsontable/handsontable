@@ -1,6 +1,7 @@
 import { extend } from '../../../helpers/object';
 import { columnFactory, extendByMetaType } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
+import { MetaObject } from '../../types';
 
 /**
  * List of props which have to be cleared in the column meta-layer. That props have a
@@ -43,16 +44,16 @@ export default class ColumnMeta {
    *
    * @type {GlobalMeta}
    */
-  globalMeta;
+  globalMeta: any;
   /**
    * The LazyFactoryMap structure, holder for column meta objects where each column meta is
    * stored under the physical column index.
    *
    * @type {LazyFactoryMap}
    */
-  metas = new LazyFactoryMap(() => this._createMeta());
+  metas: LazyFactoryMap = new LazyFactoryMap(() => this._createMeta());
 
-  constructor(globalMeta) {
+  constructor(globalMeta: any) {
     this.globalMeta = globalMeta;
     this.metas = new LazyFactoryMap(() => this._createMeta());
   }
@@ -63,10 +64,11 @@ export default class ColumnMeta {
    * @param {number} physicalColumn The physical column index which points what column meta object is updated.
    * @param {object} settings An object to merge with.
    */
-  updateMeta(physicalColumn, settings) {
+  updateMeta(physicalColumn: number, settings: MetaObject): void {
     const meta = this.getMeta(physicalColumn);
 
     extend(meta, settings);
+    // @ts-ignore
     extendByMetaType(meta, settings);
   }
 
@@ -76,7 +78,7 @@ export default class ColumnMeta {
    * @param {number} physicalColumn The physical column index which points from what position the column is added.
    * @param {number} amount An amount of columns to add.
    */
-  createColumn(physicalColumn, amount) {
+  createColumn(physicalColumn: number | null, amount: number): void {
     this.metas.insert(physicalColumn, amount);
   }
 
@@ -86,7 +88,7 @@ export default class ColumnMeta {
    * @param {number} physicalColumn The physical column index which points from what position the column is removed.
    * @param {number} amount An amount columns to remove.
    */
-  removeColumn(physicalColumn, amount) {
+  removeColumn(physicalColumn: number, amount: number): void {
     this.metas.remove(physicalColumn, amount);
   }
 
@@ -96,7 +98,7 @@ export default class ColumnMeta {
    * @param {number} physicalColumn The physical column index.
    * @returns {object}
    */
-  getMeta(physicalColumn) {
+  getMeta(physicalColumn: number): MetaObject {
     return this.metas.obtain(physicalColumn);
   }
 
@@ -106,14 +108,14 @@ export default class ColumnMeta {
    * @param {number} physicalColumn The physical column index.
    * @returns {Function}
    */
-  getMetaConstructor(physicalColumn) {
+  getMetaConstructor(physicalColumn: number): any {
     return this.metas.obtain(physicalColumn).constructor;
   }
 
   /**
    * Clears all saved column meta objects.
    */
-  clearCache() {
+  clearCache(): void {
     this.metas.clear();
   }
 
@@ -123,7 +125,7 @@ export default class ColumnMeta {
    * @private
    * @returns {object}
    */
-  _createMeta() {
+  _createMeta(): MetaObject {
     return columnFactory(this.globalMeta.getMetaConstructor(), COLUMNS_PROPS_CONFLICTS).prototype;
   }
 }

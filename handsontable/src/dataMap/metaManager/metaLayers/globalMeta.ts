@@ -1,6 +1,10 @@
 import { extend } from '../../../helpers/object';
 import { extendByMetaType } from '../utils';
 import metaSchemaFactory from '../metaSchema';
+import { MetaObject, Handsontable } from '../../types';
+
+// Extend the extendByMetaType function declaration to allow optional third parameter
+declare function extendByMetaType(metaObject: any, settings: any, settingsToCompareWith?: any): void;
 
 /**
  * @typedef {Options} TableMeta
@@ -42,15 +46,15 @@ export default class GlobalMeta {
    *
    * @type {TableMeta}
    */
-  metaCtor = createTableMetaEmptyClass();
+  metaCtor: any = createTableMetaEmptyClass();
   /**
    * Main object (prototype of the internal TableMeta class), holder for all default settings.
    *
    * @type {object}
    */
-  meta;
+  meta: MetaObject;
 
-  constructor(hot) {
+  constructor(hot: Handsontable) {
     this.meta = this.metaCtor.prototype;
 
     extend(this.meta, metaSchemaFactory());
@@ -63,7 +67,7 @@ export default class GlobalMeta {
    *
    * @returns {Function}
    */
-  getMetaConstructor() {
+  getMetaConstructor(): any {
     return this.metaCtor;
   }
 
@@ -72,7 +76,7 @@ export default class GlobalMeta {
    *
    * @returns {object}
    */
-  getMeta() {
+  getMeta(): MetaObject {
     return this.meta;
   }
 
@@ -81,11 +85,11 @@ export default class GlobalMeta {
    *
    * @param {object} settings An object to merge with.
    */
-  updateMeta(settings) {
+  updateMeta(settings: MetaObject): void {
     extend(this.meta, settings);
-    extendByMetaType(this.meta, {
+    void extendByMetaType(this.meta, {
       ...settings,
       type: settings.type ?? this.meta.type,
-    }, settings);
+    });
   }
 }

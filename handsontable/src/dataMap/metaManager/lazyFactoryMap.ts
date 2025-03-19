@@ -122,26 +122,26 @@ import { assert, isUnsignedNumber, isNullish } from './utils';
  * The hole index is taken from the hole collection which act as FIFO (First In First Out).
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-export default class LazyFactoryMap {
+export default class LazyFactoryMap<K extends number = number, V = any> {
   /**
    * The data factory function.
    *
    * @type {Function}
    */
-  valueFactory;
+  valueFactory: (key: K) => V;
   /**
    * An array which contains data.
    *
    * @type {Array}
    */
-  data = [];
+  data: (V | undefined)[] = [];
   /**
    * An array of indexes where the key of the array is mapped to the value which points to the
    * specific position of the data array.
    *
    * @type {number[]}
    */
-  index = [];
+  index: number[] = [];
   /**
    * The collection of indexes that points to the data items which can be replaced by obtaining new
    * ones. The "holes" are an intended effect of deleting entries.
@@ -151,9 +151,9 @@ export default class LazyFactoryMap {
    *
    * @type {Set<number>}
    */
-  holes = new Set();
+  holes: Set<number> = new Set();
 
-  constructor(valueFactory) {
+  constructor(valueFactory: (key: K) => V) {
     this.valueFactory = valueFactory;
   }
 
@@ -163,14 +163,14 @@ export default class LazyFactoryMap {
    * @param {number} key The item key as zero-based index.
    * @returns {*}
    */
-  obtain(key) {
+  obtain(key: K): V {
     assert(() => isUnsignedNumber(key), 'Expecting an unsigned number.');
 
     const dataIndex = this._getStorageIndexByKey(key);
-    let result;
+    let result: V;
 
     if (dataIndex >= 0) {
-      result = this.data[dataIndex];
+      result = this.data[dataIndex] as V;
 
       if (result === undefined) {
         result = this.valueFactory(key);
@@ -199,13 +199,13 @@ export default class LazyFactoryMap {
    * Inserts an empty data to the map. This method creates an empty space for obtaining
    * new data.
    *
-   * @param {number} key The key as volatile zero-based index at which to begin inserting space for new data.
+   * @param {number|null} key The key as volatile zero-based index at which to begin inserting space for new data.
    * @param {number} [amount=1] Amount of data to insert.
    */
-  insert(key, amount = 1) {
+  insert(key: K | null | undefined, amount: number = 1): void {
     assert(() => (isUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned number or null/undefined argument.');
 
-    const newIndexes = [];
+    const newIndexes: number[] = [];
     const dataLength = this.data.length;
 
     for (let i = 0; i < amount; i++) {
@@ -213,7 +213,7 @@ export default class LazyFactoryMap {
       this.data.push(undefined);
     }
 
-    const insertionIndex = isNullish(key) ? this.index.length : key;
+    const insertionIndex = isNullish(key) ? this.index.length : key as number;
 
     this.index = [...this.index.slice(0, insertionIndex), ...newIndexes, ...this.index.slice(insertionIndex)];
   }
@@ -221,13 +221,14 @@ export default class LazyFactoryMap {
   /**
    * Removes (soft remove) data from "index" and according to the amount of data.
    *
-   * @param {number} key The key as volatile zero-based index at which to begin removing the data.
+   * @param {number|null} key The key as volatile zero-based index at which to begin removing the data.
    * @param {number} [amount=1] Amount data to remove.
    */
-  remove(key, amount = 1) {
+  remove(key: K | null | undefined, amount: number = 1): void {
     assert(() => (isUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned number or null/undefined argument.');
 
-    const removed = this.index.splice(isNullish(key) ? this.index.length - amount : key, amount);
+    const spliceIndex = isNullish(key) ? this.index.length - amount : key as number;
+    const removed = this.index.splice(spliceIndex, amount);
 
     for (let i = 0; i < removed.length; i++) {
       const removedIndex = removed[i];
@@ -243,7 +244,7 @@ export default class LazyFactoryMap {
    *
    * @returns {number}
    */
-  size() {
+  size(): number {
     return this.data.length - this.holes.size;
   }
 
@@ -252,10 +253,10 @@ export default class LazyFactoryMap {
    *
    * @returns {Iterator}
    */
-  values() {
+  values(): IterableIterator<V> {
     return this.data.filter((meta, index) => {
       return meta !== undefined && !this.holes.has(index);
-    })[Symbol.iterator]();
+    })[Symbol.iterator]() as IterableIterator<V>;
   }
 
   /**
@@ -263,21 +264,21 @@ export default class LazyFactoryMap {
    *
    * @returns {Iterator}
    */
-  entries() {
-    const validEntries = [];
+  entries(): Iterator<[K, V]> {
+    const validEntries: [K, V][] = [];
 
     for (let i = 0; i < this.data.length; i++) {
       const keyIndex = this._getKeyByStorageIndex(i);
 
       if (keyIndex !== -1 && this.data[i] !== undefined) {
-        validEntries.push([keyIndex, this.data[i]]);
+        validEntries.push([keyIndex as K, this.data[i] as V]);
       }
     }
 
     let dataIndex = 0;
 
     return {
-      next: () => {
+      next: (): IteratorResult<[K, V]> => {
         if (dataIndex < validEntries.length) {
           const value = validEntries[dataIndex];
 
@@ -286,7 +287,7 @@ export default class LazyFactoryMap {
           return { value, done: false };
         }
 
-        return { done: true };
+        return { done: true } as IteratorResult<[K, V]>;
       }
     };
   }
@@ -294,7 +295,7 @@ export default class LazyFactoryMap {
   /**
    * Clears the map.
    */
-  clear() {
+  clear(): void {
     this.data = [];
     this.index = [];
     this.holes.clear();
@@ -306,7 +307,7 @@ export default class LazyFactoryMap {
    * @param {number} key Volatile zero-based index.
    * @returns {number} Returns index 0-N or -1 if no storage index found.
    */
-  _getStorageIndexByKey(key) {
+  _getStorageIndexByKey(key: K): number {
     return this.index.length > key ? this.index[key] : -1;
   }
 
@@ -316,7 +317,7 @@ export default class LazyFactoryMap {
    * @param {number} dataIndex Zero-based storage index.
    * @returns {number} Returns index 0-N or -1 if no key found.
    */
-  _getKeyByStorageIndex(dataIndex) {
+  _getKeyByStorageIndex(dataIndex: number): number {
     return this.index.indexOf(dataIndex);
   }
 
@@ -325,7 +326,7 @@ export default class LazyFactoryMap {
    *
    * @returns {Iterator}
    */
-  [Symbol.iterator]() {
+  [Symbol.iterator](): Iterator<[K, V]> {
     return this.entries();
   }
 }

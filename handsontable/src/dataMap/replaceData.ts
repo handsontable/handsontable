@@ -4,6 +4,15 @@ import DataMap from './dataMap';
 import { deepClone } from '../helpers/object';
 import { setAttribute } from '../helpers/dom/element';
 import { A11Y_COLCOUNT, A11Y_ROWCOUNT } from '../helpers/a11y';
+import {
+  DataMapSettings,
+  DataSource,
+  DataSourceObject,
+  Handsontable,
+  MetaManager,
+  ReplaceDataConfig,
+  SourceType
+} from './types';
 
 /**
  * Loads new data to Handsontable.
@@ -26,7 +35,12 @@ import { A11Y_COLCOUNT, A11Y_ROWCOUNT } from '../helpers/a11y';
  * @fires Hooks#afterUpdateData
  * @fires Hooks#afterChange
  */
-function replaceData(data, setDataMapFunction, callbackFunction, config) {
+function replaceData(
+  data: DataSource,
+  setDataMapFunction: (dataMap: DataMap) => void,
+  callbackFunction: (dataMap: DataMap) => void,
+  config: ReplaceDataConfig
+): void {
   const {
     hotInstance,
     dataMap,
@@ -63,19 +77,19 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
     if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
       // when data is not an array, attempt to make a single-row array of it
       // eslint-disable-next-line no-param-reassign
-      data = [data];
+      data = [data] as any[];
     }
 
   } else if (data === null) {
     const dataSchema = newDataMap.getSchema();
 
     // eslint-disable-next-line no-param-reassign
-    data = [];
-    let row;
+    data = [] as any[];
+    let row: any;
     let r = 0;
     let rlen = 0;
 
-    for (r = 0, rlen = tableMeta.startRows; r < rlen; r++) {
+    for (r = 0, rlen = tableMeta.startRows || 0; r < rlen; r++) {
       if ((hotInstance.dataType === 'object' || hotInstance.dataType === 'function') && tableMeta.dataSchema) {
         row = deepClone(dataSchema);
         data.push(row);
@@ -87,7 +101,7 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
       } else {
         row = [];
 
-        for (let c = 0, clen = tableMeta.startCols; c < clen; c++) {
+        for (let c = 0, clen = tableMeta.startCols || 0; c < clen; c++) {
           row.push(null);
         }
 
@@ -106,7 +120,7 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
   tableMeta.data = data;
 
   newDataMap.dataSource = data;
-  dataSource.data = data;
+  (dataSource as any).data = data;
   dataSource.dataType = hotInstance.dataType;
   dataSource.colToProp = newDataMap.colToProp.bind(newDataMap);
   dataSource.propToCol = newDataMap.propToCol.bind(newDataMap);
@@ -124,6 +138,7 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
   }
 
   if (hotInstance.getSettings().ariaTags) {
+    // @ts-ignore
     setAttribute(hotInstance.rootElement, [
       A11Y_ROWCOUNT(-1),
       // If run after initialization, add the number of row headers.

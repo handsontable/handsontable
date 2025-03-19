@@ -1,5 +1,6 @@
 import { extend } from '../../../helpers/object';
 import { extendByMetaType } from '../utils';
+import { MetaObject } from '../../types';
 
 /**
  * The table meta object is a layer that keeps all settings of the Handsontable that was passed in
@@ -32,9 +33,9 @@ export default class TableMeta {
    *
    * @type {TableMeta}
    */
-  meta;
+  meta: MetaObject;
 
-  constructor(globalMeta) {
+  constructor(globalMeta: any) {
     const MetaCtor = globalMeta.getMetaConstructor();
 
     this.meta = new MetaCtor();
@@ -45,7 +46,7 @@ export default class TableMeta {
    *
    * @returns {TableMeta}
    */
-  getMeta() {
+  getMeta(): MetaObject {
     return this.meta;
   }
 
@@ -54,8 +55,9 @@ export default class TableMeta {
    *
    * @param {object} settings An object to merge with.
    */
-  updateMeta(settings) {
+  updateMeta(settings: MetaObject): void {
     extend(this.meta, settings);
+    // @ts-ignore
     extendByMetaType(this.meta, settings, settings);
   }
 }

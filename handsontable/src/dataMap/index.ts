@@ -4,6 +4,7 @@ import metaSchemaFactory from './metaManager/metaSchema';
 import { replaceData } from './replaceData';
 import { DynamicCellMetaMod } from './metaManager/mods/dynamicCellMeta';
 import { ExtendMetaPropertiesMod } from './metaManager/mods/extendMetaProperties';
+import * as types from './types';
 
 export {
   DataMap,
@@ -11,5 +12,6 @@ export {
   DynamicCellMetaMod,
   ExtendMetaPropertiesMod,
   metaSchemaFactory,
-  replaceData
+  replaceData,
+  types
 };

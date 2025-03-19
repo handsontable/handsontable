@@ -1,5 +1,6 @@
 import { hasOwnProperty, isObject, objectEach, inherit, extend } from '../../helpers/object';
 import { getCellType } from '../../cellTypes/registry';
+import { MetaObject } from '../types';
 
 /**
  * Checks if the given property can be overwritten.
@@ -8,7 +9,7 @@ import { getCellType } from '../../cellTypes/registry';
  * @param {object} metaObject The current object meta settings.
  * @returns {boolean}
  */
-function canBeOverwritten(propertyName, metaObject) {
+function canBeOverwritten(propertyName: string, metaObject: MetaObject): boolean {
   if (propertyName === 'CELL_TYPE') {
     return false;
   }
@@ -29,9 +30,13 @@ function canBeOverwritten(propertyName, metaObject) {
  *
  * @param {object} metaObject The meta object.
  * @param {object} settings The settings object with the "type" setting.
- * @param {object} settingsToCompareWith The object to compare which properties need to be updated.
+ * @param {object} [settingsToCompareWith=metaObject] The object to compare which properties need to be updated.
  */
-export function extendByMetaType(metaObject, settings, settingsToCompareWith = metaObject) {
+export function extendByMetaType(
+  metaObject: MetaObject,
+  settings: MetaObject,
+  settingsToCompareWith: MetaObject = metaObject
+): void {
   const validType = typeof settings.type === 'string' ? getCellType(settings.type) : settings.type;
 
   if (metaObject._automaticallyAssignedMetaProps) {
@@ -46,7 +51,7 @@ export function extendByMetaType(metaObject, settings, settingsToCompareWith = m
     metaObject._automaticallyAssignedMetaProps = new Set();
   }
 
-  const expandedType = {};
+  const expandedType: Record<string, any> = {};
 
   objectEach(validType, (value, property) => {
     if (canBeOverwritten(property, settingsToCompareWith)) {
@@ -55,6 +60,7 @@ export function extendByMetaType(metaObject, settings, settingsToCompareWith = m
     }
   });
 
+  // @ts-expect-error: The third parameter is optional but TypeScript reports it as required
   extend(metaObject, expandedType);
 }
 
@@ -62,12 +68,12 @@ export function extendByMetaType(metaObject, settings, settingsToCompareWith = m
  * Creates new class which extends properties from TableMeta layer class.
  *
  * @param {TableMeta} TableMeta The TableMeta which the new ColumnMeta is created from.
- * @param {string[]} [conflictList] List of the properties which are conflicted with the column meta layer.
+ * @param {string[]} [conflictList=[]] List of the properties which are conflicted with the column meta layer.
  *                                  Conflicted properties are overwritten by `undefined` value, to separate them
  *                                  from the TableMeta layer.
  * @returns {ColumnMeta} Returns constructor ready to initialize with `new` operator.
  */
-export function columnFactory(TableMeta, conflictList = []) {
+export function columnFactory<T>(TableMeta: T, conflictList: string[] = []): T {
   // Do not use ES6 "class extends" syntax here. It seems that the babel produces code
   // which drastically decreases the performance of the ColumnMeta class creation.
 
@@ -76,14 +82,14 @@ export function columnFactory(TableMeta, conflictList = []) {
    */
   function ColumnMeta() {}
 
-  inherit(ColumnMeta, TableMeta);
+  inherit(ColumnMeta, TableMeta as any);
 
   // Clear conflict settings
   for (let i = 0; i < conflictList.length; i++) {
     ColumnMeta.prototype[conflictList[i]] = undefined;
   }
 
-  return ColumnMeta;
+  return ColumnMeta as unknown as T;
 }
 
 /**
@@ -92,7 +98,7 @@ export function columnFactory(TableMeta, conflictList = []) {
  * @param {*} value Value to check.
  * @returns {boolean}
  */
-export function isUnsignedNumber(value) {
+export function isUnsignedNumber(value: any): boolean {
   return Number.isInteger(value) && value >= 0;
 }
 
@@ -102,7 +108,7 @@ export function isUnsignedNumber(value) {
  * @param {Function} condition Function with custom logic. The condition has to return boolean values.
  * @param {string} errorMessage String which describes assertion error.
  */
-export function assert(condition, errorMessage) {
+export function assert(condition: () => boolean, errorMessage: string): void {
   if (!condition()) {
     throw new Error(`Assertion failed: ${errorMessage}`);
   }
@@ -114,6 +120,6 @@ export function assert(condition, errorMessage) {
  * @param {*} variable Variable to check.
  * @returns {boolean}
  */
-export function isNullish(variable) {
+export function isNullish(variable: any): boolean {
   return variable === null || variable === undefined;
 }

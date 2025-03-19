@@ -9,6 +9,7 @@ import { countFirstRowKeys } from '../helpers/data';
 import { arrayEach } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isFunction } from '../helpers/function';
+import { DataSource as DataSourceType, PropDescriptor, Handsontable, CellCoords, CellValue } from './types';
 
 /**
  * @class DataSource
@@ -20,25 +21,26 @@ class DataSource {
    *
    * @type {Handsontable}
    */
-  hot;
+  hot: Handsontable;
   /**
    * Data source.
    *
    * @type {Array}
    */
-  data;
+  data: DataSourceType;
   /**
    * Type of data source.
    *
    * @type {string}
    * @default 'array'
    */
-  dataType = 'array';
+  dataType: string = 'array';
 
-  colToProp = () => {};
-  propToCol = () => {};
+  colToProp: (column: number) => PropDescriptor = () => '';
+  propToCol: (prop: PropDescriptor) => number = () => 0;
+  countCachedColumns: () => number = () => 0;
 
-  constructor(hotInstance, dataSource = []) {
+  constructor(hotInstance: Handsontable, dataSource: DataSourceType = []) {
     this.hot = hotInstance;
     this.data = dataSource;
   }
@@ -50,8 +52,8 @@ class DataSource {
    * @param {number} rowIndex Row index.
    * @returns {Array|object} Source or modified row of data.
    */
-  modifyRowData(rowIndex) {
-    let modifyRowData;
+  modifyRowData(rowIndex: number): any[] | Record<string, any> {
+    let modifyRowData: any;
 
     if (this.hot.hasHook('modifyRowData')) {
       modifyRowData = this.hot.runHooks('modifyRowData', rowIndex);
@@ -67,7 +69,7 @@ class DataSource {
    *                                  in another format.
    * @returns {Array}
    */
-  getData(toArray = false) {
+  getData(toArray: boolean = false): DataSourceType {
     if (!this.data || this.data.length === 0) {
       return this.data;
     }
@@ -84,7 +86,7 @@ class DataSource {
    *
    * @param {Array} data The new data.
    */
-  setData(data) {
+  setData(data: DataSourceType): void {
     this.data = data;
   }
 
@@ -94,8 +96,8 @@ class DataSource {
    * @param {number} column Visual column index.
    * @returns {Array}
    */
-  getAtColumn(column) {
-    const result = [];
+  getAtColumn(column: number): any[] {
+    const result: any[] = [];
 
     arrayEach(this.data, (row, rowIndex) => {
       const value = this.getAtCell(rowIndex, column);
@@ -116,11 +118,11 @@ class DataSource {
    * @param {boolean} [toArray=false] `true` if the returned value should be forced to be presented as an array.
    * @returns {Array|object}
    */
-  getAtRow(row, startColumn, endColumn, toArray = false) {
+  getAtRow(row: number, startColumn?: number, endColumn?: number, toArray: boolean = false): any[] | Record<string, any> {
     const getAllProps = startColumn === undefined && endColumn === undefined;
     const { dataDotNotation } = this.hot.getSettings();
-    let dataRow = null;
-    let newDataRow = null;
+    let dataRow: any = null;
+    let newDataRow: any = null;
 
     dataRow = this.modifyRowData(row);
 
@@ -134,8 +136,8 @@ class DataSource {
 
       } else {
         // Only the columns from the provided range
-        rangeEach(startColumn, endColumn, (column) => {
-          newDataRow[column - startColumn] = this.getAtPhysicalCell(row, column, dataRow);
+        rangeEach(startColumn as number, endColumn as number, (column) => {
+          newDataRow[column - (startColumn as number)] = this.getAtPhysicalCell(row, column, dataRow);
         });
       }
 
@@ -160,10 +162,10 @@ class DataSource {
               newDataRow.push(cellValue);
 
             } else if (dataDotNotation) {
-              setProperty(newDataRow, prop, cellValue);
+              setProperty(newDataRow, prop as string, cellValue);
 
             } else {
-              newDataRow[prop] = cellValue;
+              newDataRow[prop as string] = cellValue;
             }
           }
         });
@@ -191,8 +193,8 @@ class DataSource {
    * @param {number|string} column Property name / physical column index.
    * @param {*} value The value to be set at the provided coordinates.
    */
-  setAtCell(row, column, value) {
-    if (row >= this.countRows() || column >= this.countFirstRowKeys()) {
+  setAtCell(row: number, column: number | string, value: CellValue): void {
+    if (row >= this.countRows() || (typeof column === 'number' && column >= this.countFirstRowKeys())) {
       // Not enough rows and/or columns.
       return;
     }
@@ -207,7 +209,7 @@ class DataSource {
       }
     }
 
-    if (['__proto__', 'constructor', 'prototype'].includes(row)) {
+    if (['__proto__', 'constructor', 'prototype'].includes(row as any)) {
       // prevent prototype pollution
       return;
     }
@@ -229,8 +231,8 @@ class DataSource {
    * @param {Array|object} dataRow A representation of a data row.
    * @returns {*} Value at the provided coordinates.
    */
-  getAtPhysicalCell(row, column, dataRow) {
-    let result = null;
+  getAtPhysicalCell(row: number, column: PropDescriptor, dataRow: any): CellValue {
+    let result: CellValue = null;
 
     if (dataRow) {
       if (typeof column === 'string') {
@@ -266,10 +268,10 @@ class DataSource {
    * @param {number} columnOrProp Visual column index or property.
    * @returns {*}
    */
-  getAtCell(row, columnOrProp) {
+  getAtCell(row: number, columnOrProp: number | string): CellValue {
     const dataRow = this.modifyRowData(row);
 
-    return this.getAtPhysicalCell(row, this.colToProp(columnOrProp), dataRow);
+    return this.getAtPhysicalCell(row, typeof columnOrProp === 'number' ? this.colToProp(columnOrProp) : columnOrProp, dataRow);
   }
 
   /**
@@ -281,12 +283,12 @@ class DataSource {
    *                                  in another format.
    * @returns {Array}
    */
-  getByRange(start = null, end = null, toArray = false) {
+  getByRange(start: CellCoords | null = null, end: CellCoords | null = null, toArray: boolean = false): any[] {
     let getAllProps = false;
-    let startRow = null;
-    let startCol = null;
-    let endRow = null;
-    let endCol = null;
+    let startRow: number = 0;
+    let startCol: number | null = null;
+    let endRow: number = 0;
+    let endCol: number | null = null;
 
     if (start === null || end === null) {
       getAllProps = true;
@@ -300,13 +302,13 @@ class DataSource {
       endCol = Math.max(start.col, end.col);
     }
 
-    const result = [];
+    const result: any[] = [];
 
     rangeEach(startRow, endRow, (currentRow) => {
       result.push((
         getAllProps ?
           this.getAtRow(currentRow, undefined, undefined, toArray) :
-          this.getAtRow(currentRow, startCol, endCol, toArray)
+          this.getAtRow(currentRow, startCol as number, endCol as number, toArray)
       ));
     });
 
@@ -318,7 +320,7 @@ class DataSource {
    *
    * @returns {number}
    */
-  countRows() {
+  countRows(): number {
     if (this.hot.hasHook('modifySourceLength')) {
       const modifiedSourceLength = this.hot.runHooks('modifySourceLength');
 
@@ -335,16 +337,16 @@ class DataSource {
    *
    * @returns {number}
    */
-  countFirstRowKeys() {
+  countFirstRowKeys(): number {
     return countFirstRowKeys(this.data);
   }
 
   /**
    * Destroy instance.
    */
-  destroy() {
-    this.data = null;
-    this.hot = null;
+  destroy(): void {
+    this.data = null as any;
+    this.hot = null as any;
   }
 }
 

@@ -1,6 +1,7 @@
 import { Hooks } from '../../../core/hooks';
 import { hasOwnProperty } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';
+import { MetaObject } from '../../types';
 
 /**
  * @class DynamicCellMetaMod
@@ -21,18 +22,19 @@ export class DynamicCellMetaMod {
   /**
    * @type {MetaManager}
    */
-  metaManager;
+  metaManager: any;
   /**
    * @type {Map}
    */
-  metaSyncMemo = new Map();
+  metaSyncMemo: Map<number, Set<number>> = new Map();
 
-  constructor(metaManager) {
+  constructor(metaManager: any) {
     this.metaManager = metaManager;
 
-    metaManager.addLocalHook('afterGetCellMeta', (...args) => this.extendCellMeta(...args));
+    metaManager.addLocalHook('afterGetCellMeta', (cellMeta: MetaObject) => this.extendCellMeta(cellMeta));
 
-    Hooks.getSingleton().add('beforeRender', (forceFullRender) => {
+    // @ts-ignore
+    Hooks.getSingleton().add('beforeRender', (forceFullRender: boolean) => {
       if (forceFullRender) {
         this.metaSyncMemo.clear();
       }
@@ -50,7 +52,7 @@ export class DynamicCellMetaMod {
    *
    * @param {object} cellMeta The cell meta object.
    */
-  extendCellMeta(cellMeta) {
+  extendCellMeta(cellMeta: MetaObject): void {
     const {
       row: physicalRow,
       col: physicalColumn,
@@ -95,6 +97,6 @@ export class DynamicCellMetaMod {
       this.metaSyncMemo.set(physicalRow, new Set());
     }
 
-    this.metaSyncMemo.get(physicalRow).add(physicalColumn);
+    this.metaSyncMemo.get(physicalRow)!.add(physicalColumn);
   }
 }
