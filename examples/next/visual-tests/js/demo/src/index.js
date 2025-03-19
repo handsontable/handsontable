@@ -141,6 +141,15 @@ router
         initLargeDatasetDemo();
       });
     },
+    '/large-dataset-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initializeLargeDatasetDemo();
+      });
+    },
     '/merged-cells-demo': function () {
       removeCSS();
 
