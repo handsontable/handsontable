@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed comments for IME and add a new `beforeCompositionstart` hook.",
+  "type": "added",
+  "issueOrPR": 11521,
+  "breaking": false,
+  "framework": "none"
+}
