@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Improved execution flow of the Filters plugin and added two new methods",
-  "type": "added",
-  "issueOrPR": 11488,
-  "breaking": false,
-  "framework": "none"
-}

@@ -9,6 +9,46 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [15.2.0] - 2025-03-19
+
+### Added
+- Added the Farsi translation. [#11388](https://github.com/handsontable/handsontable/pull/11388)
+- Added support for class names passed as an array for the numeric cell renderer. [#11420](https://github.com/handsontable/handsontable/pull/11420)
+- Updated the Italian translation for the new Context Menu labels. [#11436](https://github.com/handsontable/handsontable/pull/11436)
+- Updated the Serbian translation for the new Context Menu labels. [#11437](https://github.com/handsontable/handsontable/pull/11437)
+- Added the mobile cell handle CSS variables to the themes. [#11479](https://github.com/handsontable/handsontable/pull/11479)
+- Improved the execution flow of the Filters plugin and added two new methods (`importConditions` and `exportConditions`). [#11488](https://github.com/handsontable/handsontable/pull/11488)
+
+### Changed
+- Sped up the rendering performance for themes. [#11443](https://github.com/handsontable/handsontable/pull/11443)
+- Improved the table UI behavior after removing all rows and/or columns. [#11477](https://github.com/handsontable/handsontable/pull/11477)
+- Reverted the removal of `actionType` class field for UndoRedo actions. [#11495](https://github.com/handsontable/handsontable/pull/11495)
+
+### Removed
+- Removed the broken, unsupported and undocumented `rendererTemplate` Text Renderer option. [#11424](https://github.com/handsontable/handsontable/pull/11424)
+
+### Fixed
+- Fixed the default (fallback) date format for the Date editor. [#11419](https://github.com/handsontable/handsontable/pull/11419)
+- Fixed the Context Menu's items' state rendering. [#11422](https://github.com/handsontable/handsontable/pull/11422)
+- Corrected the checkbox visibility in the no-theme variant. [#11427](https://github.com/handsontable/handsontable/pull/11427)
+- Fixed problems with the cell content reading with `imeFastEdit` enabled. [#11442](https://github.com/handsontable/handsontable/pull/11442)
+- Fixed a problem, where clicking on the Comments' editor element deselected the currently selected cells. [#11446](https://github.com/handsontable/handsontable/pull/11446)
+- Fixed `hasVerticalScroll` and `hasHorizontalScroll` methods. [#11455](https://github.com/handsontable/handsontable/pull/11455)
+- Fixed the editor border radius on mobile devices. [#11457](https://github.com/handsontable/handsontable/pull/11457)
+- Fixed the wrong height of the first row. [#11458](https://github.com/handsontable/handsontable/pull/11458)
+- Fixed the single cell selection inside iframes. [#11460](https://github.com/handsontable/handsontable/pull/11460)
+- Fixed an issue with row header misalignment. [#11465](https://github.com/handsontable/handsontable/pull/11465)
+- Improved the Autocomplete/Dropdown Editor list behavior. [#11469](https://github.com/handsontable/handsontable/pull/11469)
+- Fixed a problem with horizontal scrollbar in the Autocomplete dropdown. [#11473](https://github.com/handsontable/handsontable/pull/11473)
+- Fixed the merged cells height for custom row heights. [#11478](https://github.com/handsontable/handsontable/pull/11478)
+- Fixed a problem with the Comments editor not flipping direction when overlapping the window's scrollbars. [#11481](https://github.com/handsontable/handsontable/pull/11481)
+- Fixed a problem with the focus trap during `Shift` + `Tab` navigation. [#11483](https://github.com/handsontable/handsontable/pull/11483)
+- Fixed an issue with the Context Menu opening on Classic theme. [#11486](https://github.com/handsontable/handsontable/pull/11486)
+- Fixed a problem with `rowHeights` when the provided value was lower than the default/minimal row height. [#11487](https://github.com/handsontable/handsontable/pull/11487)
+- Fixed an issue with the data source modification for row values passed as strings. [#11491](https://github.com/handsontable/handsontable/pull/11491)
+- Fixed the conflicts between ColumnSorting and MultiColumnSorting plugins. [#11492](https://github.com/handsontable/handsontable/pull/11492)
+- Fixed copy, cut an paste actions on tables with a selection reaching outside of the rendered viewport. [#11504](https://github.com/handsontable/handsontable/pull/11504)
+
 ## [15.1.0] - 2025-02-20
 
 ### Added

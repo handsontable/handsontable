@@ -2721,6 +2721,7 @@ export default () => {
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
+     * | `'fa-IR'`           | Persian - Iran              |
      * | `'fr-FR'`           | French - France             |
      * | `'hr-HR'`           | Croatian - Croatia          |
      * | `'it-IT'`           | Italian - Italy             |
