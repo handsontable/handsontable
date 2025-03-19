@@ -362,6 +362,40 @@ describe('NestedRows', () => {
     expect(getData()).toEqual(dataAtStart);
   });
 
+  it('should move child data using the `dragRow` and `dragRows` methods', () => {
+    const warnSpy = spyOn(console, 'warn');
+
+    const hot = handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true,
+      manualRowMove: true
+    });
+
+    const dataManager = hot.getPlugin('nestedRows').dataManager;
+    const row = dataManager.getDataObject(1);
+
+    expect(dataManager.getDataObject(1)).toEqual(row);
+
+    getPlugin('manualRowMove').dragRow(1, 4);
+
+    expect(warnSpy.calls.count()).toEqual(0);
+    expect(dataManager.getDataObject(1)).not.toEqual(row);
+    expect(dataManager.getDataObject(3)).toEqual(row);
+
+    const rows = [dataManager.getDataObject(1), dataManager.getDataObject(2)];
+    expect(dataManager.getDataObject(1)).toEqual(rows[0]);
+    expect(dataManager.getDataObject(2)).toEqual(rows[1]);
+
+    getPlugin('manualRowMove').dragRows([1, 2], 5);
+
+    expect(warnSpy.calls.count()).toEqual(0);
+    expect(dataManager.getDataObject(1)).not.toEqual(rows[0]);
+    expect(dataManager.getDataObject(2)).not.toEqual(rows[1]);
+
+    expect(dataManager.getDataObject(3)).toEqual(rows[0]);
+    expect(dataManager.getDataObject(4)).toEqual(rows[1]);
+  });
+
   it('should display the right amount of entries when calling loadData ' +
     'after being initialized with empty data', async() => {
     const hot = handsontable({
