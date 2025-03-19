@@ -383,6 +383,7 @@ describe('NestedRows', () => {
     expect(dataManager.getDataObject(3)).toEqual(row);
 
     const rows = [dataManager.getDataObject(1), dataManager.getDataObject(2)];
+
     expect(dataManager.getDataObject(1)).toEqual(rows[0]);
     expect(dataManager.getDataObject(2)).toEqual(rows[1]);
 
