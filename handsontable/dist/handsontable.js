@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 15.2.0
- * Release date: 19/03/2025 (built at 18/03/2025 11:40:38)
+ * Release date: 19/03/2025 (built at 19/03/2025 09:41:55)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "18/03/2025 11:40:38";
+Handsontable.buildDate = "19/03/2025 09:41:55";
 Handsontable.version = "15.2.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -43203,6 +43203,7 @@ var _default = () => {
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
+     * | `'fa-IR'`           | Persian - Iran              |
      * | `'fr-FR'`           | French - France             |
      * | `'hr-HR'`           | Croatian - Croatia          |
      * | `'it-IT'`           | Italian - Italy             |
