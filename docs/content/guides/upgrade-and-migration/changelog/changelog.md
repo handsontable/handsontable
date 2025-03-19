@@ -30,7 +30,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on March 19, 2025
 
 For more information about this release see:
-- [Blog post (15.2.0)](https://handsontable.com/blog/handsontable-15-2-0-improved-rtl-support-and-better-undo-redo)
+- [Blog post (15.2.0)](https://handsontable.com/blog/handsontable-15.2.0-stability-improvements)
 - [Documentation (15.2)](https://handsontable.com/docs/15.2)
 
 #### Added
