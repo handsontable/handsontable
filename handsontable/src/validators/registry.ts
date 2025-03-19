@@ -1,4 +1,5 @@
 import staticRegister from '../utils/staticRegister';
+import { ValidatorFunction, TypedValidator, ValidatorRegistry } from './types';
 
 const {
   register,
@@ -6,7 +7,7 @@ const {
   hasItem,
   getNames,
   getValues,
-} = staticRegister('validators');
+}: ValidatorRegistry = staticRegister('validators');
 
 /**
  * Retrieve validator function.
@@ -14,9 +15,9 @@ const {
  * @param {string} name Validator identification.
  * @returns {Function} Returns validator function.
  */
-function _getItem(name) {
+function _getItem(name: string | ValidatorFunction): ValidatorFunction {
   if (typeof name === 'function') {
-    return name;
+    return name as ValidatorFunction;
   }
   if (!hasItem(name)) {
     throw Error(`No registered validator found under "${name}" name`);
@@ -31,13 +32,14 @@ function _getItem(name) {
  * @param {string|Function} name Validator's alias or validator function with its descriptor.
  * @param {Function} [validator] Validator function.
  */
-function _register(name, validator) {
+function _register(name: string | TypedValidator, validator?: ValidatorFunction): void {
   if (typeof name !== 'string') {
-    validator = name;
-    name = validator.VALIDATOR_TYPE;
+    // Treating the TypedValidator as both a validator function and an object with VALIDATOR_TYPE
+    validator = name as unknown as ValidatorFunction;
+    name = (name as TypedValidator).VALIDATOR_TYPE;
   }
 
-  register(name, validator);
+  register(name, validator as ValidatorFunction);
 }
 
 export {
