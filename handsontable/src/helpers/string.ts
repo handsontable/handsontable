@@ -1,5 +1,6 @@
 import DOMPurify from 'dompurify';
 import { stringify } from './mixed';
+import { AnyObject } from './types';
 
 /**
  * Convert string to upper case first letter.
@@ -7,7 +8,7 @@ import { stringify } from './mixed';
  * @param {string} string String to convert.
  * @returns {string}
  */
-export function toUpperCaseFirst(string) {
+export function toUpperCaseFirst(string: string): string {
   return string[0].toUpperCase() + string.substr(1);
 }
 
@@ -17,8 +18,8 @@ export function toUpperCaseFirst(string) {
  * @param {...string} strings Strings to compare.
  * @returns {boolean}
  */
-export function equalsIgnoreCase(...strings) {
-  const unique = [];
+export function equalsIgnoreCase(...strings: any[]): boolean {
+  const unique: string[] = [];
   let length = strings.length;
 
   while (length) {
@@ -38,11 +39,11 @@ export function equalsIgnoreCase(...strings) {
  *
  * @returns {string} Returns 16-long character random string (eq. `'92b1bfc74ec4'`).
  */
-export function randomString() {
+export function randomString(): string {
   /**
    * @returns {string}
    */
-  function s4() {
+  function s4(): string {
     return Math.floor((1 + Math.random()) * 0x10000)
       .toString(16)
       .substring(1);
@@ -57,7 +58,7 @@ export function randomString() {
  * @param {string} value The value to check.
  * @returns {boolean}
  */
-export function isPercentValue(value) {
+export function isPercentValue(value: string): boolean {
   return /^([0-9][0-9]?%$)|(^100%$)/.test(value);
 }
 
@@ -69,7 +70,7 @@ export function isPercentValue(value) {
  * @param {object} variables Object which contains all available values which can be injected into template.
  * @returns {string}
  */
-export function substitute(template, variables = {}) {
+export function substitute(template: string, variables: AnyObject = {}): string {
   return (`${template}`).replace(/(?:\\)?\[([^[\]]+)]/g, (match, name) => {
     if (match.charAt(0) === '\\') {
       return match.substr(1, match.length - 1);
@@ -85,7 +86,7 @@ export function substitute(template, variables = {}) {
  * @param {string} string String to cut HTML from.
  * @returns {string}
  */
-export function stripTags(string) {
+export function stripTags(string: string): string {
   return sanitize(`${string}`, { ALLOWED_TAGS: [] });
 }
 
@@ -96,6 +97,6 @@ export function stripTags(string) {
  * @param {object} [options] DOMPurify's configuration object.
  * @returns {string}
  */
-export function sanitize(string, options) {
-  return DOMPurify.sanitize(string, options);
+export function sanitize(string: string, options?: {[key: string]: any}): string {
+  return DOMPurify.sanitize(string, options) as string;
 }

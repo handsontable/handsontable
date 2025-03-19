@@ -1,4 +1,12 @@
 /**
+ * Interface for move operation.
+ */
+interface MoveOperation {
+  from: number;
+  to: number;
+}
+
+/**
  * Gets first position where to move element (respecting the fact that some element will be sooner or later
  * taken out of the dataset in order to move them).
  *
@@ -7,7 +15,7 @@
  * @param {number} numberOfIndexes Number of indexes in a dataset.
  * @returns {number} Index informing where to move the first element.
  */
-function getMoveLine(movedIndexes, finalIndex, numberOfIndexes) {
+function getMoveLine(movedIndexes: number[], finalIndex: number, numberOfIndexes: number): number {
   const notMovedElements = Array.from(Array(numberOfIndexes).keys())
     .filter(index => movedIndexes.includes(index) === false);
 
@@ -25,11 +33,11 @@ function getMoveLine(movedIndexes, finalIndex, numberOfIndexes) {
  * @param {number} moveLine Final place where to move rows.
  * @returns {Array<{from: number, to: number}>} Initially calculated move positions.
  */
-function getInitiallyCalculatedMoves(movedIndexes, moveLine) {
-  const moves = [];
+function getInitiallyCalculatedMoves(movedIndexes: number[], moveLine: number): MoveOperation[] {
+  const moves: MoveOperation[] = [];
 
   movedIndexes.forEach((movedIndex) => {
-    const move = {
+    const move: MoveOperation = {
       from: movedIndex,
       to: moveLine,
     };
@@ -61,7 +69,7 @@ function getInitiallyCalculatedMoves(movedIndexes, moveLine) {
  * @param {Array<{from: number, to: number}>} moves Initially calculated move positions.
  * @returns {Array<{from: number, to: number}>} Finally calculated move positions (after adjusting).
  */
-function adjustedCalculatedMoves(moves) {
+function adjustedCalculatedMoves(moves: MoveOperation[]): MoveOperation[] {
   moves.forEach((move, index) => {
     const nextMoved = moves.slice(index + 1);
 
@@ -85,7 +93,7 @@ function adjustedCalculatedMoves(moves) {
  * @param {number} numberOfIndexes Number of indexes in a dataset.
  * @returns {Array<{from: number, to: number}>}
  */
-export function getMoves(movedIndexes, finalIndex, numberOfIndexes) {
+export function getMoves(movedIndexes: number[], finalIndex: number, numberOfIndexes: number): MoveOperation[] {
   const moves = getInitiallyCalculatedMoves(movedIndexes, getMoveLine(movedIndexes, finalIndex, numberOfIndexes));
 
   return adjustedCalculatedMoves(moves);

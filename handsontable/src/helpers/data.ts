@@ -1,4 +1,5 @@
 import { deepObjectSize, isObject } from './object';
+import { AnyObject } from './types';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
@@ -9,15 +10,15 @@ const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
  * @param {number} index Column index.
  * @returns {string}
  */
-export function spreadsheetColumnLabel(index) {
+export function spreadsheetColumnLabel(index: number): string {
   let dividend = index + 1;
   let columnLabel = '';
-  let modulo;
+  let modulo: number;
 
   while (dividend > 0) {
     modulo = (dividend - 1) % COLUMN_LABEL_BASE_LENGTH;
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-    dividend = parseInt((dividend - modulo) / COLUMN_LABEL_BASE_LENGTH, 10);
+    dividend = parseInt(((dividend - modulo) / COLUMN_LABEL_BASE_LENGTH).toString(), 10);
   }
 
   return columnLabel;
@@ -29,7 +30,7 @@ export function spreadsheetColumnLabel(index) {
  * @param {string} label Column label.
  * @returns {number}
  */
-export function spreadsheetColumnIndex(label) {
+export function spreadsheetColumnIndex(label: string): number {
   let result = 0;
 
   if (label) {
@@ -49,13 +50,13 @@ export function spreadsheetColumnIndex(label) {
  * @param {number} columns Number of columns to generate.
  * @returns {Array}
  */
-export function createSpreadsheetData(rows = 100, columns = 4) {
-  const _rows = [];
-  let i;
-  let j;
+export function createSpreadsheetData(rows: number = 100, columns: number = 4): string[][] {
+  const _rows: string[][] = [];
+  let i: number;
+  let j: number;
 
   for (i = 0; i < rows; i++) {
-    const row = [];
+    const row: string[] = [];
 
     for (j = 0; j < columns; j++) {
       row.push(spreadsheetColumnLabel(j) + (i + 1));
@@ -73,13 +74,13 @@ export function createSpreadsheetData(rows = 100, columns = 4) {
  * @param {number} colCount Number of columns to generate.
  * @returns {Array}
  */
-export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
-  const _rows = [];
-  let i;
-  let j;
+export function createSpreadsheetObjectData(rows: number = 100, colCount: number = 4): AnyObject[] {
+  const _rows: AnyObject[] = [];
+  let i: number;
+  let j: number;
 
   for (i = 0; i < rows; i++) {
-    const row = {};
+    const row: AnyObject = {};
 
     for (j = 0; j < colCount; j++) {
       row[`prop${j}`] = spreadsheetColumnLabel(j) + (i + 1);
@@ -97,9 +98,9 @@ export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
  * @param {number} columns Number of columns to generate.
  * @returns {Array}
  */
-export function createEmptySpreadsheetData(rows, columns) {
-  const data = [];
-  let row;
+export function createEmptySpreadsheetData(rows: number, columns: number): string[][] {
+  const data: string[][] = [];
+  let row: string[];
 
   for (let i = 0; i < rows; i++) {
     row = [];
@@ -121,15 +122,18 @@ export function createEmptySpreadsheetData(rows, columns) {
  * @param {number} rowOffset Row offset to be passed to the resulting change list. Defaults to `0`.
  * @returns {Array} Array of changes (in a form of an array).
  */
-export function dataRowToChangesArray(dataRow, rowOffset = 0) {
+export function dataRowToChangesArray(
+  dataRow: string[] | AnyObject | Array<string[] | AnyObject>, 
+  rowOffset: number = 0
+): Array<[number, string | number, any]> {
   let dataRows = dataRow;
-  const changesArray = [];
+  const changesArray: Array<[number, string | number, any]> = [];
 
   if (!Array.isArray(dataRow) || !Array.isArray(dataRow[0])) {
     dataRows = [dataRow];
   }
 
-  dataRows.forEach((row, rowIndex) => {
+  (dataRows as Array<string[] | AnyObject>).forEach((row, rowIndex) => {
     if (Array.isArray(row)) {
       row.forEach((value, column) => {
         changesArray.push([
@@ -160,7 +164,7 @@ export function dataRowToChangesArray(dataRow, rowOffset = 0) {
  * @param {Array} data The dataset.
  * @returns {number} Number of keys in the first row of the dataset.
  */
-export function countFirstRowKeys(data) {
+export function countFirstRowKeys(data: any[] | AnyObject): number {
   let result = 0;
 
   if (Array.isArray(data)) {
@@ -181,7 +185,7 @@ export function countFirstRowKeys(data) {
  * @param {Array} data Dataset to be checked.
  * @returns {boolean} `true` if data is an array of arrays, `false` otherwise.
  */
-export function isArrayOfArrays(data) {
+export function isArrayOfArrays(data: any[]): data is any[][] {
   return !!(Array.isArray(data) && data.length && data.every(el => Array.isArray(el)));
 }
 
@@ -191,7 +195,7 @@ export function isArrayOfArrays(data) {
  * @param {Array} data Dataset to be checked.
  * @returns {boolean} `true` if data is an array of objects, `false` otherwise.
  */
-export function isArrayOfObjects(data) {
+export function isArrayOfObjects(data: any[]): data is AnyObject[] {
   return !!(Array.isArray(data) &&
     data.length &&
     data.every(el => typeof el === 'object' && !Array.isArray(el) && el !== null));

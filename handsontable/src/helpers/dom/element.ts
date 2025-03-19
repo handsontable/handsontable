@@ -1,5 +1,28 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
+import { DOMElement } from '../types';
+
+interface MatchedElement {
+  element: HTMLElement | undefined;
+  classNames: string[];
+}
+
+interface AttributeInfo {
+  [key: string]: string | number | boolean;
+}
+
+interface CustomShadowRoot extends DocumentFragment {
+  host: HTMLElement & {
+    impl?: HTMLElement;
+  };
+}
+
+interface FilterRegexesResult {
+  regexFree: string[];
+  regexes: RegExp[];
+}
+
+type AttributeValue = string | number | boolean;
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -8,10 +31,10 @@ import { A11Y_HIDDEN } from '../a11y';
  * @param {number} [level=0] Traversing deep level.
  * @returns {HTMLElement|null}
  */
-export function getParent(element, level = 0) {
+export function getParent(element: HTMLElement, level = 0): HTMLElement | null {
   let iteration = -1;
-  let parent = null;
-  let elementToCheck = element;
+  let parent: HTMLElement | null = null;
+  let elementToCheck: HTMLElement | null = element;
 
   while (elementToCheck !== null) {
     if (iteration === level) {
@@ -19,12 +42,14 @@ export function getParent(element, level = 0) {
       break;
     }
 
-    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      elementToCheck = elementToCheck.host;
+    const shadowRoot = elementToCheck as unknown as CustomShadowRoot;
+    if (shadowRoot.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = shadowRoot.host;
 
     } else {
       iteration += 1;
-      elementToCheck = elementToCheck.parentNode;
+      const parentElement = elementToCheck.parentElement;
+      elementToCheck = parentElement ? parentElement as HTMLElement : null;
     }
   }
 
@@ -38,7 +63,7 @@ export function getParent(element, level = 0) {
  * @param {HTMLElement} thisHotContainer The Handsontable container.
  * @returns {boolean}
  */
-export function isInternalElement(element, thisHotContainer) {
+export function isInternalElement(element: HTMLElement, thisHotContainer: HTMLElement): boolean {
   const closestHandsontableContainer = element.closest('.handsontable');
 
   return !!closestHandsontableContainer &&
@@ -54,8 +79,12 @@ export function isInternalElement(element, thisHotContainer) {
  * @param {Window} frame Frame from which should be get frameElement in safe way.
  * @returns {HTMLIFrameElement|null}
  */
-export function getFrameElement(frame) {
-  return Object.getPrototypeOf(frame.parent) && frame.frameElement;
+export function getFrameElement(frame: Window): HTMLIFrameElement | null {
+  try {
+    return frame.frameElement as HTMLIFrameElement;
+  } catch (e) {
+    return null;
+  }
 }
 
 /**
@@ -64,8 +93,19 @@ export function getFrameElement(frame) {
  * @param {Window} frame Frame from which should get frameElement in a safe way.
  * @returns {Window|null}
  */
-export function getParentWindow(frame) {
-  return getFrameElement(frame) && frame.parent;
+export function getParentWindow(frame: Window): Window | null {
+  let rootWindow = frame;
+  let frameElement: HTMLIFrameElement | null;
+
+  while (rootWindow !== rootWindow.parent) {
+    frameElement = getFrameElement(rootWindow);
+    if (!frameElement) {
+      break;
+    }
+    rootWindow = rootWindow.parent;
+  }
+
+  return rootWindow;
 }
 
 /**
@@ -74,7 +114,7 @@ export function getParentWindow(frame) {
  * @param {Window} frame Frame from which should get frameElement in a safe way.
  * @returns {boolean}
  */
-export function hasAccessToParentWindow(frame) {
+export function hasAccessToParentWindow(frame: Window): boolean {
   return !!Object.getPrototypeOf(frame.parent);
 }
 
@@ -87,9 +127,9 @@ export function hasAccessToParentWindow(frame) {
  * @param {Node} [until] The element until the traversing ends.
  * @returns {Node|null}
  */
-export function closest(element, nodes = [], until) {
+export function closest(element: Node, nodes: Array<string | Node> = [], until?: Node): Node | null {
   const { ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE } = Node;
-  let elementToCheck = element;
+  let elementToCheck: Node | null = element;
 
   while (elementToCheck !== null && elementToCheck !== undefined && elementToCheck !== until) {
     const { nodeType, nodeName } = elementToCheck;
@@ -98,10 +138,9 @@ export function closest(element, nodes = [], until) {
       return elementToCheck;
     }
 
-    const { host } = elementToCheck;
-
-    if (host && nodeType === DOCUMENT_FRAGMENT_NODE) {
-      elementToCheck = host;
+    const shadowRoot = elementToCheck as unknown as CustomShadowRoot;
+    if (shadowRoot.host && nodeType === DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = shadowRoot.host;
 
     } else {
       elementToCheck = elementToCheck.parentNode;
@@ -119,23 +158,28 @@ export function closest(element, nodes = [], until) {
  * @param {HTMLElement} [until] The list of elements until the traversing ends.
  * @returns {HTMLElement|null}
  */
-export function closestDown(element, nodes, until) {
-  const matched = [];
-  let elementToCheck = element;
+export function closestDown(element: HTMLElement, nodes: Array<string | Node>, until?: HTMLElement): HTMLElement | null {
+  const matched: HTMLElement[] = [];
+  let elementToCheck: Element | null = element;
 
   while (elementToCheck) {
-    elementToCheck = closest(elementToCheck, nodes, until);
+    const found = closest(elementToCheck, nodes, until);
+    if (!found) {
+      break;
+    }
+    elementToCheck = found as HTMLElement;
 
     if (!elementToCheck || (until && !until.contains(elementToCheck))) {
       break;
     }
     matched.push(elementToCheck);
 
-    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      elementToCheck = elementToCheck.host;
+    const shadowRoot = elementToCheck as unknown as CustomShadowRoot;
+    if (shadowRoot.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = shadowRoot.host;
 
     } else {
-      elementToCheck = elementToCheck.parentNode;
+      elementToCheck = elementToCheck.parentElement;
     }
   }
   const length = matched.length;
@@ -151,25 +195,23 @@ export function closestDown(element, nodes, until) {
  * @param {string|RegExp} className - The class name or class name regular expression to check.
  * @returns {{element: HTMLElement, classNames: string[]}} - Returns an object containing the matched parent element and an array of matched class names.
  */
-export function findFirstParentWithClass(element, className) {
-  const matched = {
+export function findFirstParentWithClass(element: HTMLElement, className: string | RegExp): MatchedElement {
+  const matched: MatchedElement = {
     element: undefined,
     classNames: []
   };
-  let elementToCheck = element;
+  let elementToCheck: Element | null = element;
 
   while (elementToCheck !== null && elementToCheck !== element.ownerDocument.documentElement && !matched.element) {
     if (typeof className === 'string' && elementToCheck.classList.contains(className)) {
-
-      matched.element = elementToCheck;
+      matched.element = elementToCheck as HTMLElement;
       matched.classNames.push(className);
 
     } else if (className instanceof RegExp) {
-      const matchingClasses = Array.from(elementToCheck.classList).filter(cls => className.test(cls));
+      const matchingClasses = Array.from(elementToCheck.classList).filter((cls: string) => className.test(cls));
 
       if (matchingClasses.length) {
-
-        matched.element = elementToCheck;
+        matched.element = elementToCheck as HTMLElement;
         matched.classNames.push(...matchingClasses);
       }
     }
@@ -188,15 +230,16 @@ export function findFirstParentWithClass(element, className) {
  *                               If string provided, function returns `true` for the first occurrence of element with that class.
  * @returns {boolean}
  */
-export function isChildOf(child, parent) {
-  let node = child.parentNode;
-  let queriedParents = [];
+export function isChildOf(child: HTMLElement, parent: HTMLElement | string): boolean {
+  let node: Node | null = child.parentNode;
+  const queriedParents: Node[] = [];
 
   if (typeof parent === 'string') {
-    if (child.defaultView) {
-      queriedParents = Array.prototype.slice.call(child.querySelectorAll(parent), 0);
+    const doc = child.ownerDocument;
+    if (doc.defaultView) {
+      queriedParents.push(...Array.from(doc.querySelectorAll(parent)));
     } else {
-      queriedParents = Array.prototype.slice.call(child.ownerDocument.querySelectorAll(parent), 0);
+      queriedParents.push(...Array.from(doc.querySelectorAll(parent)));
     }
   } else {
     queriedParents.push(parent);
@@ -221,7 +264,7 @@ export function isChildOf(child, parent) {
  * @param {Element} element The element to check.
  * @returns {number}
  */
-export function index(element) {
+export function index(element: Element): number {
   let i = 0;
   let elementToCheck = element;
 
@@ -243,8 +286,12 @@ export function index(element) {
  * @param {HTMLElement} root The root element.
  * @returns {boolean}
  */
-export function overlayContainsElement(overlayType, element, root) {
-  const overlayElement = root.parentElement.querySelector(`.ht_clone_${overlayType}`);
+export function overlayContainsElement(overlayType: string, element: HTMLElement, root: HTMLElement): boolean | null {
+  const parentElement = root.parentElement;
+  if (!parentElement) {
+    return null;
+  }
+  const overlayElement = parentElement.querySelector(`.ht_clone_${overlayType}`);
 
   return overlayElement ? overlayElement.contains(element) : null;
 }
@@ -253,7 +300,7 @@ export function overlayContainsElement(overlayType, element, root) {
  * @param {string[]} classNames The element "class" attribute string.
  * @returns {string[]}
  */
-function filterEmptyClassNames(classNames) {
+function filterEmptyClassNames(classNames: string[]): string[] {
   if (!classNames || !classNames.length) {
     return [];
   }
@@ -268,13 +315,13 @@ function filterEmptyClassNames(classNames) {
  * @param {boolean} [returnBoth] If `true`, both the array without regexes and an array of regexes will be returned.
  * @returns {string[]|{regexFree: string[], regexes: RegExp[]}}
  */
-function filterRegexes(list, returnBoth) {
+function filterRegexes(list: Array<string | RegExp>, returnBoth?: boolean): string[] | FilterRegexesResult {
   if (!list || !list.length) {
     return returnBoth ? { regexFree: [], regexes: [] } : [];
   }
 
-  const regexes = [];
-  const regexFree = [];
+  const regexes: RegExp[] = [];
+  const regexFree: string[] = [];
 
   regexFree.push(...list.filter((entry) => {
     const isRegex = entry instanceof RegExp;
@@ -299,7 +346,7 @@ function filterRegexes(list, returnBoth) {
  * @param {string} className Class name to check.
  * @returns {boolean}
  */
-export function hasClass(element, className) {
+export function hasClass(element: HTMLElement, className: string): boolean {
   if (element.classList === undefined || typeof className !== 'string' || className === '') {
     return false;
   }
@@ -313,7 +360,7 @@ export function hasClass(element, className) {
  * @param {HTMLElement} element An element to process.
  * @param {string|Array} className Class name as string or array of strings.
  */
-export function addClass(element, className) {
+export function addClass(element: HTMLElement, className: string | string[]): void {
   if (typeof className === 'string') {
     className = className.split(' ');
   }
@@ -331,7 +378,7 @@ export function addClass(element, className) {
  * @param {HTMLElement} element An element to process.
  * @param {string|RegExp|Array<string|RegExp>} className Class name as string or array of strings.
  */
-export function removeClass(element, className) {
+export function removeClass(element: HTMLElement, className: string | RegExp | Array<string | RegExp>): void {
   if (typeof className === 'string') {
     className = className.split(' ');
 
@@ -339,19 +386,14 @@ export function removeClass(element, className) {
     className = [className];
   }
 
-  let {
-    regexFree: stringClasses,
-    // eslint-disable-next-line prefer-const
-    regexes: regexClasses
-  } = filterRegexes(className, true);
-
-  stringClasses = filterEmptyClassNames(stringClasses);
+  const result = filterRegexes(className, true) as FilterRegexesResult;
+  const stringClasses = filterEmptyClassNames(result.regexFree);
 
   if (stringClasses.length > 0) {
     element.classList.remove(...stringClasses);
   }
 
-  regexClasses.forEach((regexClassName) => {
+  result.regexes.forEach((regexClassName) => {
     element.classList.forEach((currentClassName) => {
       if (regexClassName.test(currentClassName)) {
         element.classList.remove(currentClassName);
@@ -370,14 +412,14 @@ export function removeClass(element, className) {
  * @param {string|number|undefined} [attributeValue] If setting a single attribute, `attributeValue` holds the attribute
  * value.
  */
-export function setAttribute(domElement, attributes = [], attributeValue) {
+export function setAttribute(domElement: HTMLElement, attributes: string | Array<[string, AttributeValue]>, attributeValue?: AttributeValue): void {
   if (!Array.isArray(attributes)) {
-    attributes = [[attributes, attributeValue]];
+    attributes = [[attributes, attributeValue as AttributeValue]];
   }
 
-  attributes.forEach((attributeInfo) => {
+  (attributes as Array<[string, AttributeValue]>).forEach((attributeInfo) => {
     if (Array.isArray(attributeInfo) && attributeInfo[0] !== '') {
-      domElement.setAttribute(...attributeInfo);
+      domElement.setAttribute(attributeInfo[0], String(attributeInfo[1]));
     }
   });
 }
@@ -390,7 +432,7 @@ export function setAttribute(domElement, attributes = [], attributeValue) {
  * holds an array of attribute names to be removed from the provided element. If removing a single attribute, it
  * holds the attribute name.
  */
-export function removeAttribute(domElement, attributesToRemove = []) {
+export function removeAttribute(domElement: HTMLElement, attributesToRemove: string | Array<string | RegExp>): void {
   if (typeof attributesToRemove === 'string') {
     attributesToRemove = attributesToRemove.split(' ');
 
@@ -398,10 +440,8 @@ export function removeAttribute(domElement, attributesToRemove = []) {
     attributesToRemove = [attributesToRemove];
   }
 
-  const {
-    regexFree: stringAttributes,
-    regexes: regexAttributes
-  } = filterRegexes(attributesToRemove, true);
+  const result = filterRegexes(attributesToRemove, true) as FilterRegexesResult;
+  const stringAttributes = filterEmptyClassNames(result.regexFree);
 
   stringAttributes.forEach((attributeNameToRemove) => {
     if (attributeNameToRemove !== '') {
@@ -409,7 +449,7 @@ export function removeAttribute(domElement, attributesToRemove = []) {
     }
   });
 
-  regexAttributes.forEach((attributeRegex) => {
+  result.regexes.forEach((attributeRegex) => {
     domElement.getAttributeNames().forEach((attributeName) => {
       if (attributeRegex.test(attributeName)) {
         domElement.removeAttribute(attributeName);
@@ -421,15 +461,20 @@ export function removeAttribute(domElement, attributesToRemove = []) {
 /**
  * @param {HTMLElement} element An element from the text is removed.
  */
-export function removeTextNodes(element) {
+export function removeTextNodes(element: HTMLElement): void {
   if (element.nodeType === 3) {
-    element.parentNode.removeChild(element); // bye text nodes!
-
+    const parentNode = element.parentNode;
+    if (parentNode) {
+      parentNode.removeChild(element);
+    }
   } else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
     const childs = element.childNodes;
 
     for (let i = childs.length - 1; i >= 0; i--) {
-      removeTextNodes(childs[i]);
+      const child = childs[i];
+      if (child instanceof HTMLElement) {
+        removeTextNodes(child);
+      }
     }
   }
 }
@@ -442,7 +487,7 @@ export function removeTextNodes(element) {
  *
  * @param {HTMLElement} element An element to clear.
  */
-export function empty(element) {
+export function empty(element: HTMLElement): void {
   let child;
 
   /* eslint-disable no-cond-assign */
@@ -460,7 +505,7 @@ export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
  * @param {string} content The text to write.
  * @param {boolean} [sanitizeContent=true] If `true`, the content will be sanitized before writing to the element.
  */
-export function fastInnerHTML(element, content, sanitizeContent = true) {
+export function fastInnerHTML(element: HTMLElement, content: string, sanitizeContent = true): void {
   if (HTML_CHARACTERS.test(content)) {
     element.innerHTML = sanitizeContent ? sanitize(content) : content;
   } else {
@@ -474,7 +519,7 @@ export function fastInnerHTML(element, content, sanitizeContent = true) {
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
  */
-export function fastInnerText(element, content) {
+export function fastInnerText(element: HTMLElement, content: string): void {
   const child = element.firstChild;
 
   if (child && child.nodeType === 3 && child.nextSibling === null) {
@@ -494,24 +539,28 @@ export function fastInnerText(element, content) {
  * @param {HTMLElement} element An element to check.
  * @returns {boolean}
  */
-export function isVisible(element) {
+export function isVisible(element: HTMLElement): boolean {
   const documentElement = element.ownerDocument.documentElement;
   const windowElement = element.ownerDocument.defaultView;
-  let next = element;
+  if (!windowElement) {
+    return false;
+  }
+  let next: HTMLElement | null = element;
 
   while (next !== documentElement) { // until <html> reached
     if (next === null) { // parent detached from DOM
       return false;
 
     } else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      if (next.host) { // this is Web Components Shadow DOM
+      const shadowRoot = next as unknown as CustomShadowRoot;
+      if (shadowRoot.host) { // this is Web Components Shadow DOM
         // see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
         // according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
-        if (next.host.impl) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
-          return isVisible(next.host.impl);
+        if (shadowRoot.host.impl) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
+          return isVisible(shadowRoot.host.impl);
 
-        } else if (next.host) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
-          return isVisible(next.host);
+        } else if (shadowRoot.host) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
+          return isVisible(shadowRoot.host);
         }
         throw new Error('Lost in Web Components world');
 
@@ -523,7 +572,11 @@ export function isVisible(element) {
       return false;
     }
 
-    next = next.parentNode;
+    const parentElement = next.parentElement;
+    if (!parentElement) {
+      return false;
+    }
+    next = parentElement;
   }
 
   return true;
@@ -535,7 +588,7 @@ export function isVisible(element) {
  * @param {HTMLElement} element An element to get the offset position from.
  * @returns {object} Returns object with `top` and `left` props.
  */
-export function offset(element) {
+export function offset(element: HTMLElement): { top: number; left: number } {
   const rootDocument = element.ownerDocument;
   const rootWindow = rootDocument.defaultView;
   const documentElement = rootDocument.documentElement;
@@ -584,7 +637,7 @@ export function offset(element) {
  * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
-export function getWindowScrollTop(rootWindow = window) {
+export function getWindowScrollTop(rootWindow: Window = window): number {
   return rootWindow.scrollY;
 }
 
@@ -595,7 +648,7 @@ export function getWindowScrollTop(rootWindow = window) {
  * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
-export function getWindowScrollLeft(rootWindow = window) {
+export function getWindowScrollLeft(rootWindow: Window = window): number {
   return rootWindow.scrollX;
 }
 
@@ -607,7 +660,7 @@ export function getWindowScrollLeft(rootWindow = window) {
  * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
-export function getScrollTop(element, rootWindow = window) {
+export function getScrollTop(element: HTMLElement | Window, rootWindow: Window = window): number {
   if (element === rootWindow) {
     return getWindowScrollTop(rootWindow);
   }
@@ -623,7 +676,7 @@ export function getScrollTop(element, rootWindow = window) {
  * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
-export function getScrollLeft(element, rootWindow = window) {
+export function getScrollLeft(element: HTMLElement | Window, rootWindow: Window = window): number {
   if (element === rootWindow) {
     return getWindowScrollLeft(rootWindow);
   }
@@ -637,7 +690,7 @@ export function getScrollLeft(element, rootWindow = window) {
  * @param {HTMLElement} element An element to get the scrollable element from.
  * @returns {HTMLElement} Element's scrollable parent.
  */
-export function getScrollableElement(element) {
+export function getScrollableElement(element: HTMLElement): HTMLElement | Window {
   let rootDocument = element.ownerDocument;
   let rootWindow = rootDocument ? rootDocument.defaultView : undefined;
 
@@ -683,7 +736,7 @@ export function getScrollableElement(element) {
  * @param {HTMLElement} element The element to get the maximum scroll top value from.
  * @returns {number} The maximum scroll top value.
  */
-export function getMaximumScrollTop(element) {
+export function getMaximumScrollTop(element: HTMLElement): number {
   return element.scrollHeight - element.clientHeight;
 }
 
@@ -693,7 +746,7 @@ export function getMaximumScrollTop(element) {
  * @param {HTMLElement} element The element to get the maximum scroll left value from.
  * @returns {number} The maximum scroll left value.
  */
-export function getMaximumScrollLeft(element) {
+export function getMaximumScrollLeft(element: HTMLElement): number {
   return element.scrollWidth - element.clientWidth;
 }
 
@@ -703,7 +756,7 @@ export function getMaximumScrollLeft(element) {
  * @param {HTMLElement} base Base element.
  * @returns {HTMLElement} Base element's trimming parent.
  */
-export function getTrimmingContainer(base) {
+export function getTrimmingContainer(base: HTMLElement): HTMLElement | Window {
   const rootDocument = base.ownerDocument;
   const rootWindow = rootDocument.defaultView;
 
@@ -741,7 +794,7 @@ export function getTrimmingContainer(base) {
  * @returns {string|undefined} Element's style property.
  */
 // eslint-disable-next-line no-restricted-globals
-export function getStyle(element, prop, rootWindow = window) {
+export function getStyle(element: HTMLElement | Window, prop: string, rootWindow: Window = window): string | undefined {
   if (!element) {
     return;
 
@@ -776,7 +829,7 @@ export function getStyle(element, prop, rootWindow = window) {
  * @param {CSSRule} rule Selector text from CSSRule.
  * @returns {boolean}
  */
-export function matchesCSSRules(element, rule) {
+export function matchesCSSRules(element: Element, rule: CSSRule): boolean {
   const { selectorText } = rule;
   let result = false;
 
@@ -798,7 +851,7 @@ export function matchesCSSRules(element, rule) {
  * @param {HTMLElement} element An element to get the width from.
  * @returns {number} Element's outer width.
  */
-export function outerWidth(element) {
+export function outerWidth(element: HTMLElement): number {
   return element.offsetWidth;
 }
 
@@ -808,7 +861,7 @@ export function outerWidth(element) {
  * @param {HTMLElement} element An element to get the height from.
  * @returns {number} Element's outer height.
  */
-export function outerHeight(element) {
+export function outerHeight(element: HTMLElement): number {
   return element.offsetHeight;
 }
 
@@ -818,7 +871,7 @@ export function outerHeight(element) {
  * @param {HTMLElement} element An element to get the height from.
  * @returns {number} Element's inner height.
  */
-export function innerHeight(element) {
+export function innerHeight(element: HTMLElement): number {
   return element.clientHeight || element.innerHeight;
 }
 
@@ -828,7 +881,7 @@ export function innerHeight(element) {
  * @param {HTMLElement} element An element to get the width from.
  * @returns {number} Element's inner width.
  */
-export function innerWidth(element) {
+export function innerWidth(element: HTMLElement): number {
   return element.clientWidth || element.innerWidth;
 }
 
@@ -837,7 +890,7 @@ export function innerWidth(element) {
  * @param {string} event The event name.
  * @param {Function} callback The callback to add.
  */
-export function addEvent(element, event, callback) {
+export function addEvent(element: HTMLElement, event: string, callback: EventListener): void {
   element.addEventListener(event, callback, false);
 }
 
@@ -846,7 +899,7 @@ export function addEvent(element, event, callback) {
  * @param {string} event The event name.
  * @param {Function} callback The function reference to remove.
  */
-export function removeEvent(element, event, callback) {
+export function removeEvent(element: HTMLElement, event: string, callback: EventListener): void {
   element.removeEventListener(event, callback, false);
 }
 
@@ -857,7 +910,7 @@ export function removeEvent(element, event, callback) {
  * @param {HTMLElement} el An element to check.
  * @returns {number}
  */
-export function getCaretPosition(el) {
+export function getCaretPosition(el: HTMLElement): number {
   if (el.selectionStart) {
     return el.selectionStart;
   }
@@ -871,7 +924,7 @@ export function getCaretPosition(el) {
  * @param {HTMLElement} el An element to check.
  * @returns {number}
  */
-export function getSelectionEndPosition(el) {
+export function getSelectionEndPosition(el: HTMLElement): number {
   if (el.selectionEnd) {
     return el.selectionEnd;
   }
@@ -886,7 +939,7 @@ export function getSelectionEndPosition(el) {
  * @returns {string}
  */
 // eslint-disable-next-line no-restricted-globals
-export function getSelectionText(rootWindow = window) {
+export function getSelectionText(rootWindow: Window = window): string {
   const rootDocument = rootWindow.document;
   let text = '';
 
@@ -906,7 +959,7 @@ export function getSelectionText(rootWindow = window) {
  * @param {Window} [rootWindow] The document window owner.
  */
 // eslint-disable-next-line no-restricted-globals
-export function clearTextSelection(rootWindow = window) {
+export function clearTextSelection(rootWindow: Window = window): void {
   // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
   if (rootWindow.getSelection) {
     if (rootWindow.getSelection().empty) { // Chrome
@@ -925,7 +978,7 @@ export function clearTextSelection(rootWindow = window) {
  * @param {number} pos The selection start position.
  * @param {number} endPos The selection end position.
  */
-export function setCaretPosition(element, pos, endPos) {
+export function setCaretPosition(element: Element, pos: number, endPos?: number): void {
   if (endPos === undefined) {
     endPos = pos;
   }
@@ -945,7 +998,7 @@ export function setCaretPosition(element, pos, endPos) {
   }
 }
 
-let cachedScrollbarWidth;
+let cachedScrollbarWidth: number;
 
 /**
  * Helper to calculate scrollbar width.
@@ -956,7 +1009,7 @@ let cachedScrollbarWidth;
  * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
-function walkontableCalculateScrollbarWidth(rootDocument = document) {
+function walkontableCalculateScrollbarWidth(rootDocument: Document = document): number {
   const inner = rootDocument.createElement('div');
 
   inner.style.height = '200px';
@@ -995,7 +1048,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
  * @returns {number} Width.
  */
 // eslint-disable-next-line no-restricted-globals
-export function getScrollbarWidth(rootDocument = document) {
+export function getScrollbarWidth(rootDocument: Document = document): number {
   if (cachedScrollbarWidth === undefined) {
     cachedScrollbarWidth = walkontableCalculateScrollbarWidth(rootDocument);
   }
@@ -1009,7 +1062,7 @@ export function getScrollbarWidth(rootDocument = document) {
  * @param {HTMLElement|Window} element An element to check.
  * @returns {boolean}
  */
-export function hasVerticalScrollbar(element) {
+export function hasVerticalScrollbar(element: HTMLElement | Window): boolean {
   if (element instanceof Window) {
     return element.document.body.scrollHeight > element.innerHeight;
   }
@@ -1023,7 +1076,7 @@ export function hasVerticalScrollbar(element) {
  * @param {HTMLElement|Window} element An element to check.
  * @returns {boolean}
  */
-export function hasHorizontalScrollbar(element) {
+export function hasHorizontalScrollbar(element: HTMLElement | Window): boolean {
   if (element instanceof Window) {
     return element.document.body.scrollWidth > element.innerWidth;
   }
@@ -1038,7 +1091,7 @@ export function hasHorizontalScrollbar(element) {
  * @param {number|string} left The left position of the overlay.
  * @param {number|string} top The top position of the overlay.
  */
-export function setOverlayPosition(overlayElem, left, top) {
+export function setOverlayPosition(overlayElem: HTMLElement, left: number | string, top: number | string): void {
   overlayElem.style.transform = `translate3d(${left},${top},0)`;
 }
 
@@ -1046,7 +1099,7 @@ export function setOverlayPosition(overlayElem, left, top) {
  * @param {HTMLElement} element An element to process.
  * @returns {number|Array}
  */
-export function getCssTransform(element) {
+export function getCssTransform(element: HTMLElement): number | [string, string] {
   let transform;
 
   if (element.style.transform && (transform = element.style.transform) !== '') {
@@ -1059,7 +1112,7 @@ export function getCssTransform(element) {
 /**
  * @param {HTMLElement} element An element to process.
  */
-export function resetCssTransform(element) {
+export function resetCssTransform(element: HTMLElement): void {
   if (element.style.transform && element.style.transform !== '') {
     element.style.transform = '';
   }
@@ -1072,7 +1125,7 @@ export function resetCssTransform(element) {
  * @param {HTMLElement} element - DOM element.
  * @returns {boolean}
  */
-export function isInput(element) {
+export function isInput(element: HTMLElement): boolean {
   const inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
   return element && (inputs.indexOf(element.nodeName) > -1 || element.contentEditable === 'true');
@@ -1085,7 +1138,7 @@ export function isInput(element) {
  * @param {HTMLElement} element - DOM element.
  * @returns {boolean}
  */
-export function isOutsideInput(element) {
+export function isOutsideInput(element: HTMLElement): boolean {
   return isInput(element) && element.hasAttribute('data-hot-input') === false;
 }
 
@@ -1094,7 +1147,7 @@ export function isOutsideInput(element) {
  *
  * @param {HTMLElement} element - DOM element.
  */
-export function selectElementIfAllowed(element) {
+export function selectElementIfAllowed(element: HTMLElement): void {
   const activeElement = element.ownerDocument.activeElement;
 
   if (!isOutsideInput(activeElement)) {
@@ -1108,7 +1161,7 @@ export function selectElementIfAllowed(element) {
  * @param {HTMLElement} element HTML element to be checked.
  * @returns {boolean} `true` if the element is detached, `false` otherwise.
  */
-export function isDetached(element) {
+export function isDetached(element: HTMLElement): boolean {
   return !element.parentNode;
 }
 
@@ -1119,7 +1172,7 @@ export function isDetached(element) {
  * @param {HTMLElement} elementToBeObserved Element to be observed.
  * @param {Function} callback The callback function.
  */
-export function observeVisibilityChangeOnce(elementToBeObserved, callback) {
+export function observeVisibilityChangeOnce(elementToBeObserved: HTMLElement, callback: () => void): void {
   const visibilityObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting && elementToBeObserved.offsetParent !== null) {
@@ -1142,7 +1195,7 @@ export function observeVisibilityChangeOnce(elementToBeObserved, callback) {
  * @param {boolean} [invisibleSelection=true] `true` if the class should be added to the element.
  * @param {boolean} [ariaHidden=true] `true` if the `aria-hidden` attribute should be added to the processed element.
  */
-export function makeElementContentEditableAndSelectItsContent(element, invisibleSelection = true, ariaHidden = true) {
+export function makeElementContentEditableAndSelectItsContent(element: HTMLElement, invisibleSelection = true, ariaHidden = true): void {
   const ownerDocument = element.ownerDocument;
   const range = ownerDocument.createRange();
   const sel = ownerDocument.defaultView.getSelection();
@@ -1171,7 +1224,7 @@ export function makeElementContentEditableAndSelectItsContent(element, invisible
  * @param {HTMLElement} selectedElement The element to be deselected.
  * @param {boolean} [removeInvisibleSelectionClass=true] `true` if the class should be removed from the element.
  */
-export function removeContentEditableFromElementAndDeselect(selectedElement, removeInvisibleSelectionClass = true) {
+export function removeContentEditableFromElementAndDeselect(selectedElement: HTMLElement, removeInvisibleSelectionClass = true): void {
   const sel = selectedElement.ownerDocument.defaultView.getSelection();
 
   if (selectedElement.hasAttribute('aria-hidden')) {
@@ -1195,7 +1248,7 @@ export function removeContentEditableFromElementAndDeselect(selectedElement, rem
  * @param {Function} callback Callback to be called.
  * @param {boolean} [invisibleSelection=true] `true` if the selection should be invisible.
  */
-export function runWithSelectedContendEditableElement(element, callback, invisibleSelection = true) {
+export function runWithSelectedContendEditableElement(element: HTMLElement, callback: () => void, invisibleSelection = true): void {
   makeElementContentEditableAndSelectItsContent(element, invisibleSelection);
 
   callback();
@@ -1209,7 +1262,7 @@ export function runWithSelectedContendEditableElement(element, callback, invisib
  * @param {*} element Element to check.
  * @returns {boolean} `true` if the element is HTMLElement.
  */
-export function isHTMLElement(element) {
+export function isHTMLElement(element: unknown): boolean {
   const OwnElement = element?.ownerDocument?.defaultView.Element;
 
   return !!(OwnElement && OwnElement !== null && element instanceof OwnElement);

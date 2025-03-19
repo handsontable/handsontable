@@ -7,8 +7,8 @@ import { arrayReduce } from '../helpers/array';
  * @param {...string} expressions Expressions converted to strings, which are added to the entire string.
  * @returns {string}
  */
-export function toSingleLine(strings, ...expressions) {
-  const result = arrayReduce(strings, (previousValue, currentValue, index) => {
+export function toSingleLine(strings: TemplateStringsArray | string[], ...expressions: any[]): string {
+  const result = arrayReduce(strings, (previousValue: string, currentValue: string, index: number) => {
 
     const valueWithoutWhiteSpaces = currentValue.replace(/\r?\n\s*/g, '');
     const expressionForIndex = expressions[index] ? expressions[index] : '';

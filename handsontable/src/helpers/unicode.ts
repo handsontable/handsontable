@@ -1,7 +1,14 @@
 import { arrayEach } from './array';
 import { isMacOS, isFirefox } from './browser';
 
-export const KEY_CODES = {
+/**
+ * Interface for keyboard key codes
+ */
+export interface KeyCodes {
+  [key: string]: number;
+}
+
+export const KEY_CODES: KeyCodes = {
   ALT: 18,
   ARROW_DOWN: 40,
   ARROW_LEFT: 37,
@@ -70,7 +77,7 @@ export const KEY_CODES = {
   Z: 90,
 };
 
-const FUNCTION_KEYS = [
+const FUNCTION_KEYS: number[] = [
   KEY_CODES.ALT,
   KEY_CODES.ARROW_DOWN,
   KEY_CODES.ARROW_LEFT,
@@ -126,7 +133,7 @@ const FUNCTION_KEYS = [
  * @param {number} keyCode The keyboard key code.
  * @returns {boolean}
  */
-export function isPrintableChar(keyCode) {
+export function isPrintableChar(keyCode: number): boolean {
   return ((keyCode === 32) || // space
       (keyCode >= 48 && keyCode <= 57) || // 0-9
       (keyCode >= 96 && keyCode <= 111) || // numpad
@@ -140,7 +147,7 @@ export function isPrintableChar(keyCode) {
  * @param {number} keyCode The keyboard key code.
  * @returns {boolean}
  */
-export function isFunctionKey(keyCode) {
+export function isFunctionKey(keyCode: number): boolean {
   return FUNCTION_KEYS.includes(keyCode);
 }
 
@@ -151,8 +158,8 @@ export function isFunctionKey(keyCode) {
  * @param {number} keyCode The keyboard key code.
  * @returns {boolean}
  */
-export function isCtrlKey(keyCode) {
-  const keys = [];
+export function isCtrlKey(keyCode: number): boolean {
+  const keys: number[] = [];
 
   if (isMacOS()) {
     keys.push(KEY_CODES.COMMAND_LEFT, KEY_CODES.COMMAND_RIGHT, KEY_CODES.COMMAND_FIREFOX);
@@ -170,7 +177,7 @@ export function isCtrlKey(keyCode) {
  * @param {number} keyCode The keyboard key code.
  * @returns {boolean}
  */
-export function isCtrlMetaKey(keyCode) {
+export function isCtrlMetaKey(keyCode: number): boolean {
   return [
     KEY_CODES.CONTROL,
     KEY_CODES.COMMAND_LEFT,
@@ -184,11 +191,11 @@ export function isCtrlMetaKey(keyCode) {
  * @param {string} baseCode The list of the key codes to compare with.
  * @returns {boolean}
  */
-export function isKey(keyCode, baseCode) {
+export function isKey(keyCode: number, baseCode: string): boolean {
   const keys = baseCode.split('|');
   let result = false;
 
-  arrayEach(keys, (key) => {
+  arrayEach(keys, (key: string) => {
     if (keyCode === KEY_CODES[key]) {
       result = true;
 

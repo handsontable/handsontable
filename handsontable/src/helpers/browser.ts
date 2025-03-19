@@ -1,50 +1,83 @@
 import { objectEach } from './object';
 import { isCSR } from './feature';
 
-const tester = (testerFunc) => {
-  const result = {
+interface TesterResult {
+  value: boolean;
+  test: (ua: string, vendor?: string) => void;
+}
+
+interface BrowserCollection {
+  chrome: TesterResult;
+  chromeWebKit: TesterResult;
+  edge: TesterResult;
+  edgeWebKit: TesterResult;
+  firefox: TesterResult;
+  firefoxWebKit: TesterResult;
+  mobile: TesterResult;
+  safari: TesterResult;
+}
+
+interface PlatformCollection {
+  mac: TesterResult;
+  win: TesterResult;
+  linux: TesterResult;
+  ios: TesterResult;
+}
+
+const tester = (testerFunc: (ua: string, vendor?: string) => boolean): TesterResult => {
+  const result: TesterResult = {
     value: false,
+    test: () => {},
   };
 
-  result.test = (ua, vendor) => {
+  result.test = (ua: string, vendor?: string) => {
     result.value = testerFunc(ua, vendor);
   };
 
   return result;
 };
 
-const browsers = {
-  chrome: tester((ua, vendor) => /Chrome/.test(ua) && /Google/.test(vendor)),
+const browsers: BrowserCollection = {
+  chrome: tester((ua, vendor) => /Chrome/.test(ua) && /Google/.test(vendor || '')),
   chromeWebKit: tester(ua => /CriOS/.test(ua)),
   edge: tester(ua => /Edge/.test(ua)),
   edgeWebKit: tester(ua => /EdgiOS/.test(ua)),
   firefox: tester(ua => /Firefox/.test(ua)),
   firefoxWebKit: tester(ua => /FxiOS/.test(ua)),
   mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
-  safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
+  safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor || '')),
 };
 
-const platforms = {
+const platforms: PlatformCollection = {
   mac: tester(platform => /^Mac/.test(platform)),
   win: tester(platform => /^Win/.test(platform)),
   linux: tester(platform => /^Linux/.test(platform)),
   ios: tester(ua => /iPhone|iPad|iPod/i.test(ua))
 };
 
+interface BrowserMetaOptions {
+  userAgent?: string;
+  vendor?: string;
+}
+
 /**
  * @param {object} [metaObject] The browser identity collection.
  * @param {object} [metaObject.userAgent] The user agent reported by browser.
  * @param {object} [metaObject.vendor] The vendor name reported by browser.
  */
-export function setBrowserMeta({ userAgent = navigator.userAgent, vendor = navigator.vendor } = {}) {
+export function setBrowserMeta({ userAgent = navigator.userAgent, vendor = navigator.vendor }: BrowserMetaOptions = {}): void {
   objectEach(browsers, ({ test }) => void test(userAgent, vendor));
+}
+
+interface PlatformMetaOptions {
+  platform?: string;
 }
 
 /**
  * @param {object} [metaObject] The platform identity collection.
  * @param {object} [metaObject.platform] The platform ID.
  */
-export function setPlatformMeta({ platform = navigator.platform } = {}) {
+export function setPlatformMeta({ platform = navigator.platform }: PlatformMetaOptions = {}): void {
   objectEach(platforms, ({ test }) => void test(platform));
 }
 
@@ -56,64 +89,68 @@ if (isCSR()) {
 /**
  * @returns {boolean}
  */
-export function isChrome() {
+export function isChrome(): boolean {
   return browsers.chrome.value;
 }
 
 /**
  * @returns {boolean}
  */
-export function isChromeWebKit() {
+export function isChromeWebKit(): boolean {
   return browsers.chromeWebKit.value;
 }
 
 /**
  * @returns {boolean}
  */
-export function isFirefox() {
+export function isFirefox(): boolean {
   return browsers.firefox.value;
 }
 
 /**
  * @returns {boolean}
  */
-export function isFirefoxWebKit() {
+export function isFirefoxWebKit(): boolean {
   return browsers.firefoxWebKit.value;
 }
 
 /**
  * @returns {boolean}
  */
-export function isSafari() {
+export function isSafari(): boolean {
   return browsers.safari.value;
 }
 
 /**
  * @returns {boolean}
  */
-export function isEdge() {
+export function isEdge(): boolean {
   return browsers.edge.value;
 }
 
 /**
  * @returns {boolean}
  */
-export function isEdgeWebKit() {
+export function isEdgeWebKit(): boolean {
   return browsers.edgeWebKit.value;
 }
 
 /**
  * @returns {boolean}
  */
-export function isMobileBrowser() {
+export function isMobileBrowser(): boolean {
   return browsers.mobile.value;
 }
 
 /**
  * @returns {boolean}
  */
-export function isIOS() {
+export function isIOS(): boolean {
   return platforms.ios.value;
+}
+
+interface IpadOSOptions {
+  maxTouchPoints?: number;
 }
 
 /**
@@ -124,27 +161,27 @@ export function isIOS() {
  * @param {number} [metaObject.maxTouchPoints] The maximum number of simultanous touch points.
  * @returns {boolean}
  */
-export function isIpadOS({ maxTouchPoints } = navigator) {
+export function isIpadOS({ maxTouchPoints = navigator.maxTouchPoints }: IpadOSOptions = {}): boolean {
   return maxTouchPoints > 2 && platforms.mac.value;
 }
 
 /**
  * @returns {boolean}
  */
-export function isWindowsOS() {
+export function isWindowsOS(): boolean {
   return platforms.win.value;
 }
 
 /**
  * @returns {boolean}
  */
-export function isMacOS() {
+export function isMacOS(): boolean {
   return platforms.mac.value;
 }
 
 /**
  * @returns {boolean}
  */
-export function isLinuxOS() {
+export function isLinuxOS(): boolean {
   return platforms.linux.value;
 }

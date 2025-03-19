@@ -6,7 +6,7 @@
  * @param {string} dateString String representing the date.
  * @returns {Date} The proper Date object.
  */
-export function getNormalizedDate(dateString) {
+export function getNormalizedDate(dateString: string): Date {
   const nativeDate = new Date(dateString);
 
   // NaN if dateString is not in ISO format

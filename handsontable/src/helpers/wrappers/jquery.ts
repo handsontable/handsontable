@@ -1,15 +1,27 @@
+interface JQuery {
+  first(): JQuery;
+  data(key: string, value?: any): any;
+  removeData(): JQuery;
+  handsontable(action?: any, ...args: any[]): any;
+  fn: Record<string, any>;
+}
+
+interface Window {
+  jQuery?: JQuery;
+}
+
 /**
  * @param {Core} Handsontable The Handsontable instance.
  */
-export default function jQueryWrapper(Handsontable) {
+export default function jQueryWrapper(Handsontable: any): void {
   // eslint-disable-next-line
-  const jQuery = typeof window === 'undefined' ? false : window.jQuery;
+  const jQuery = typeof window === 'undefined' ? false : (window as Window).jQuery;
 
   if (!jQuery) {
     return;
   }
 
-  jQuery.fn.handsontable = function(action, ...args) {
+  jQuery.fn.handsontable = function(action?: any, ...args: any[]): any {
     const $this = this.first(); // Use only first element from list
     let instance = $this.data('handsontable');
 

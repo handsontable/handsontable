@@ -6,7 +6,7 @@ import { findFirstParentWithClass } from './dom/element';
  * @param {HTMLElement} rootElement - The root element from which to start searching for the theme class.
  * @returns {string} - The theme class name regex.
  */
-export function getThemeClassName(rootElement) {
+export function getThemeClassName(rootElement: HTMLElement): string | undefined {
   const { classNames } = findFirstParentWithClass(rootElement, /ht-theme-[a-zA-Z0-9_-]+/);
 
   return classNames.pop();

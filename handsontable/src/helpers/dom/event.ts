@@ -5,7 +5,7 @@ import { isHTMLElement } from './element';
  *
  * @param {Event} event The mouse event object.
  */
-export function stopImmediatePropagation(event) {
+export function stopImmediatePropagation(event: Event & { isImmediatePropagationEnabled?: boolean }): void {
   event.isImmediatePropagationEnabled = false;
   event.cancelBubble = true;
 }
@@ -16,7 +16,7 @@ export function stopImmediatePropagation(event) {
  * @param {Event} event The mouse event object.
  * @returns {boolean}
  */
-export function isImmediatePropagationStopped(event) {
+export function isImmediatePropagationStopped(event: Event & { isImmediatePropagationEnabled?: boolean }): boolean {
   return event.isImmediatePropagationEnabled === false;
 }
 
@@ -26,7 +26,7 @@ export function isImmediatePropagationStopped(event) {
  * @param {Event} event The mouse event object.
  * @returns {boolean}
  */
-export function isRightClick(event) {
+export function isRightClick(event: MouseEvent): boolean {
   return event.button === 2;
 }
 
@@ -36,7 +36,7 @@ export function isRightClick(event) {
  * @param {Event} event The mouse event object.
  * @returns {boolean}
  */
-export function isLeftClick(event) {
+export function isLeftClick(event: MouseEvent): boolean {
   return event.button === 0;
 }
 
@@ -46,7 +46,7 @@ export function isLeftClick(event) {
  * @param {Event} event The event object.
  * @returns {boolean}
  */
-export function isTouchEvent(event) {
+export function isTouchEvent(event: Event): boolean {
   return event instanceof TouchEvent;
 }
 
@@ -57,23 +57,36 @@ export function isTouchEvent(event) {
  * @param {HTMLElement|undefined} [untilElement] The element to which the offset will be calculated.
  * @returns {{ x: number, y: number }}
  */
-export function offsetRelativeTo(event, untilElement) {
+export function offsetRelativeTo(event: MouseEvent | TouchEvent, untilElement?: HTMLElement): { x: number, y: number } {
   const offset = {
-    x: event.offsetX,
-    y: event.offsetY,
+    x: 0,
+    y: 0,
   };
-  let element = event.target;
-
-  if (!isHTMLElement(untilElement) ||
-      element !== untilElement && element.contains(untilElement)) {
+  
+  if (event instanceof MouseEvent) {
+    offset.x = event.offsetX;
+    offset.y = event.offsetY;
+  }
+  
+  const target = event.target;
+  
+  if (!(target instanceof HTMLElement) || 
+      !untilElement ||
+      target !== untilElement && target.contains(untilElement)) {
     return offset;
   }
+
+  let element: HTMLElement = target;
 
   while (element !== untilElement) {
     offset.x += element.offsetLeft;
     offset.y += element.offsetTop;
 
-    element = element.offsetParent;
+    const parent = element.offsetParent;
+    if (!(parent instanceof HTMLElement)) {
+      break;
+    }
+    element = parent;
   }
 
   return offset;

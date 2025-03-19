@@ -15,7 +15,7 @@ import { isDefined } from './mixed';
  *
  * @param {...*} args Values which will be logged.
  */
-export function log(...args) {
+export function log(...args: any[]): void {
   if (isDefined(console)) {
     console.log(...args);
   }
@@ -26,7 +26,7 @@ export function log(...args) {
  *
  * @param {...*} args Values which will be logged.
  */
-export function warn(...args) {
+export function warn(...args: any[]): void {
   if (isDefined(console)) {
     console.warn(...args);
   }
@@ -37,7 +37,7 @@ export function warn(...args) {
  *
  * @param {...*} args Values which will be logged.
  */
-export function info(...args) {
+export function info(...args: any[]): void {
   if (isDefined(console)) {
     console.info(...args);
   }
@@ -48,7 +48,7 @@ export function info(...args) {
  *
  * @param {...*} args Values which will be logged.
  */
-export function error(...args) {
+export function error(...args: any[]): void {
   if (isDefined(console)) {
     console.error(...args);
   }

@@ -19,7 +19,7 @@
  * @param {string[]} additionalDelimiters An additional delimiters to be used while checking the numeric value.
  * @returns {boolean}
  */
-export function isNumeric(value, additionalDelimiters = []) {
+export function isNumeric(value: any, additionalDelimiters: string[] = []): boolean {
   const type = typeof value;
 
   if (type === 'number') {
@@ -55,7 +55,7 @@ export function isNumeric(value, additionalDelimiters = []) {
  * @param {*} value The value to check.
  * @returns {boolean}
  */
-export function isNumericLike(value) {
+export function isNumericLike(value: any): boolean {
   return isNumeric(value, [',']);
 }
 
@@ -66,7 +66,7 @@ export function isNumericLike(value) {
  * @param {number|Function} rangeTo The number where finish iterate or function as a iteratee.
  * @param {Function} [iteratee] The function invoked per iteration.
  */
-export function rangeEach(rangeFrom, rangeTo, iteratee) {
+export function rangeEach(rangeFrom: number, rangeTo: number | ((index: number) => boolean | void), iteratee?: (index: number) => boolean | void): void {
   let index = -1;
 
   if (typeof rangeTo === 'function') {
@@ -78,7 +78,7 @@ export function rangeEach(rangeFrom, rangeTo, iteratee) {
 
   /* eslint-disable-next-line no-plusplus */
   while (++index <= rangeTo) {
-    if (iteratee(index) === false) {
+    if (iteratee!(index) === false) {
       break;
     }
   }
@@ -91,7 +91,7 @@ export function rangeEach(rangeFrom, rangeTo, iteratee) {
  * @param {number|Function} rangeTo The number where finish iterate or function as a iteratee.
  * @param {Function} [iteratee] The function invoked per iteration.
  */
-export function rangeEachReverse(rangeFrom, rangeTo, iteratee) {
+export function rangeEachReverse(rangeFrom: number, rangeTo: number | ((index: number) => boolean | void), iteratee?: (index: number) => boolean | void): void {
   let index = rangeFrom + 1;
 
   if (typeof rangeTo === 'function') {
@@ -100,7 +100,7 @@ export function rangeEachReverse(rangeFrom, rangeTo, iteratee) {
   }
   /* eslint-disable-next-line no-plusplus */
   while (--index >= rangeTo) {
-    if (iteratee(index) === false) {
+    if (iteratee!(index) === false) {
       break;
     }
   }
@@ -113,11 +113,11 @@ export function rangeEachReverse(rangeFrom, rangeTo, iteratee) {
  * @param {string|number} percent Can be number or string (eq. `'33%'`).
  * @returns {number}
  */
-export function valueAccordingPercent(value, percent) {
+export function valueAccordingPercent(value: number, percent: string | number): number {
   percent = parseInt(percent.toString().replace('%', ''), 10);
   percent = isNaN(percent) ? 0 : percent;
 
-  return parseInt(value * percent / 100, 10);
+  return parseInt((value * percent / 100).toString(), 10);
 }
 
 /**
@@ -128,7 +128,7 @@ export function valueAccordingPercent(value, percent) {
  * @param {number} maxValue The min number value.
  * @returns {number}
  */
-export function clamp(value, minValue, maxValue) {
+export function clamp(value: number, minValue: number, maxValue: number): number {
   if (Math.min(value, minValue) === value) {
     return minValue;
 

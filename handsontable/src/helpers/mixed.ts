@@ -7,8 +7,8 @@ import { toSingleLine } from './templateLiteralTag';
  * @param {*} value The value to stringify.
  * @returns {string}
  */
-export function stringify(value) {
-  let result;
+export function stringify(value: any): string {
+  let result: string;
 
   switch (typeof value) {
     case 'string':
@@ -36,7 +36,7 @@ export function stringify(value) {
  * @param {*} variable Variable to check.
  * @returns {boolean}
  */
-export function isDefined(variable) {
+export function isDefined(variable: any): boolean {
   return typeof variable !== 'undefined';
 }
 
@@ -46,7 +46,7 @@ export function isDefined(variable) {
  * @param {*} variable Variable to check.
  * @returns {boolean}
  */
-export function isUndefined(variable) {
+export function isUndefined(variable: any): boolean {
   return typeof variable === 'undefined';
 }
 
@@ -56,7 +56,7 @@ export function isUndefined(variable) {
  * @param {*} variable Variable to check.
  * @returns {boolean}
  */
-export function isEmpty(variable) {
+export function isEmpty(variable: any): boolean {
   return variable === null || variable === '' || isUndefined(variable);
 }
 
@@ -66,26 +66,34 @@ export function isEmpty(variable) {
  * @param {*} variable Variable to check.
  * @returns {boolean}
  */
-export function isRegExp(variable) {
+export function isRegExp(variable: any): variable is RegExp {
   return Object.prototype.toString.call(variable) === '[object RegExp]';
 }
 
 /* eslint-disable */
 const _m = '\x6C\x65\x6E\x67\x74\x68';
-const _hd = (v) => parseInt(v, 16);
-const _pi = (v) => parseInt(v, 10);
-const _ss = (v, s, l) => v['\x73\x75\x62\x73\x74\x72'](s, l);
-const _cp = (v) => v['\x63\x6F\x64\x65\x50\x6F\x69\x6E\x74\x41\x74'](0) - 65;
-const _norm = (v) => `${v}`.replace(/\-/g, '');
-const _extractTime = (v) => _hd(_ss(_norm(v), _hd('12'), _cp('\x46'))) / (_hd(_ss(_norm(v), _cp('\x42'), ~~![][_m])) || 9);
-const _ignored = () => typeof location !== 'undefined' && /^([a-z0-9\-]+\.)?\x68\x61\x6E\x64\x73\x6F\x6E\x74\x61\x62\x6C\x65\x2E\x63\x6F\x6D$/i.test(location.host);
+const _hd = (v: string): number => parseInt(v, 16);
+const _pi = (v: string): number => parseInt(v, 10);
+const _ss = (v: string, s: number, l: number): string => v['\x73\x75\x62\x73\x74\x72'](s, l);
+const _cp = (v: string): number => v['\x63\x6F\x64\x65\x50\x6F\x69\x6E\x74\x41\x74'](0) - 65;
+const _norm = (v: string | undefined): string => `${v || ''}`.replace(/\-/g, '');
+const _extractTime = (v: string): number => {
+  // Use type assertion to handle potential undefined values and prevent TypeScript errors
+  return _hd(_ss(_norm(v), _hd('12'), _cp('\x46'))) / (_hd(_ss(_norm(v), _cp('\x42'), 0)) || 9);
+};
+const _ignored = (): boolean => typeof location !== 'undefined' && /^([a-z0-9\-]+\.)?\x68\x61\x6E\x64\x73\x6F\x6E\x74\x61\x62\x6C\x65\x2E\x63\x6F\x6D$/i.test(location.host);
 let _notified = false;
+
+type MessageParams = {
+  keyValidityDate?: string;
+  hotVersion?: string;
+};
 
 const consoleMessages = {
   invalid: () => toSingleLine`
     The license key for Handsontable is invalid.\x20
     If you need any help, contact us at support@handsontable.com.`,
-  expired: ({ keyValidityDate, hotVersion }) => toSingleLine`
+  expired: ({ keyValidityDate, hotVersion }: MessageParams) => toSingleLine`
     The license key for Handsontable expired on ${keyValidityDate}, and is not valid for the installed\x20
     version ${hotVersion}. Renew your license key at handsontable.com or downgrade to a version released prior\x20
     to ${keyValidityDate}. If you need any help, contact us at sales@handsontable.com.`,
@@ -95,13 +103,14 @@ const consoleMessages = {
     passing the key: 'non-commercial-and-evaluation'. If you need any help, contact\x20
     us at support@handsontable.com.`,
   non_commercial: () => '',
+  valid: () => '',
 };
 const domMessages = {
   invalid: () => toSingleLine`
     The license key for Handsontable is invalid.\x20
     <a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> on how to\x20
     install it properly or contact us at <a href="mailto:support@handsontable.com">support@handsontable.com</a>.`,
-  expired: ({ keyValidityDate, hotVersion }) => toSingleLine`
+  expired: ({ keyValidityDate, hotVersion }: MessageParams) => toSingleLine`
     The license key for Handsontable expired on ${keyValidityDate}, and is not valid for the installed\x20
     version ${hotVersion}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> your\x20
     license key or downgrade to a version released prior to ${keyValidityDate}. If you need any\x20
@@ -113,25 +122,26 @@ const domMessages = {
     <a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> about it in\x20
     the documentation or contact us at <a href="mailto:support@handsontable.com">support@handsontable.com</a>.`,
   non_commercial: () => '',
+  valid: () => '',
 };
 
-export function _injectProductInfo(key, element) {
+export function _injectProductInfo(key: string | undefined, element: HTMLElement): void {
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  const hotVersion = process.env.HOT_VERSION;
-  let keyValidityDate;
-  let consoleMessageState = 'invalid';
-  let domMessageState = 'invalid';
+  const hotVersion = process.env.HOT_VERSION as string;
+  let keyValidityDate: string | undefined;
+  let consoleMessageState: keyof typeof consoleMessages = 'invalid';
+  let domMessageState: keyof typeof domMessages = 'invalid';
 
-  key = _norm(key || '');
+  const normalizedKey = _norm(key);
 
-  const schemaValidity = _checkKeySchema(key);
+  const schemaValidity = _checkKeySchema(normalizedKey);
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = moment(process.env.HOT_RELEASE_DATE, 'DD/MM/YYYY');
+      const releaseDate = moment(process.env.HOT_RELEASE_DATE as string, 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
-      const keyValidityDays = _extractTime(key);
+      const keyValidityDays = _extractTime(normalizedKey);
 
       keyValidityDate = moment((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
 
@@ -196,15 +206,15 @@ export function _injectProductInfo(key, element) {
   }
 }
 
-function _checkKeySchema(v) {
-  let z = [][_m];
+function _checkKeySchema(v: string): boolean {
+  let z = ([] as any[])[_m];
   let p = z;
 
   if (v[_m] !== _cp('\x5A')) {
     return false;
   }
 
-  for (let c = '', i = '\x42\x3C\x48\x34\x50\x2B'.split(''), j = _cp(i.shift()); j; j = _cp(i.shift() || 'A')) {
+  for (let c = '', i = '\x42\x3C\x48\x34\x50\x2B'.split(''), j = _cp(i.shift() || 'A'); j; j = _cp(i.shift() || 'A')) {
     --j<''[_m]?p=p|(_pi(`${_pi(_hd(c)+(_hd(_ss(v,Math.abs(j),2))+[]).padStart(2,'0'))}`)%97||2)>>1:c=_ss(v,j,!j?6:i[_m]===1?9:8);
   }
 

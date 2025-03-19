@@ -1,5 +1,6 @@
 import { arrayReduce } from './array';
 import { isDefined } from './mixed';
+import { AnyFunction } from './types';
 
 /**
  * Checks if given variable is function.
@@ -7,8 +8,12 @@ import { isDefined } from './mixed';
  * @param {*} func Variable to check.
  * @returns {boolean}
  */
-export function isFunction(func) {
+export function isFunction(func: any): func is Function {
   return typeof func === 'function';
+}
+
+interface ThrottleResult {
+  lastCallThrottled: boolean;
 }
 
 /**
@@ -18,18 +23,18 @@ export function isFunction(func) {
  * @param {number} wait Delay in miliseconds.
  * @returns {Function}
  */
-export function throttle(func, wait = 200) {
+export function throttle<T extends AnyFunction>(func: T, wait: number = 200): ((...args: Parameters<T>) => ThrottleResult) {
   let lastCalled = 0;
-  const result = {
+  const result: ThrottleResult = {
     lastCallThrottled: true
   };
-  let lastTimer = null;
+  let lastTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * @param {...*} args The list of arguments passed during the function invocation.
    * @returns {object}
    */
-  function _throttle(...args) {
+  function _throttle(this: any, ...args: Parameters<T>): ThrottleResult {
     const stamp = Date.now();
     let needCall = false;
 
@@ -52,7 +57,7 @@ export function throttle(func, wait = 200) {
         result.lastCallThrottled = false;
         func.apply(this, args);
         lastCalled = 0;
-        lastTimer = undefined;
+        lastTimer = null;
       }, remaining);
     }
 
@@ -60,6 +65,11 @@ export function throttle(func, wait = 200) {
   }
 
   return _throttle;
+}
+
+interface ThrottleAfterHitsFunction<T extends AnyFunction> {
+  (...args: Parameters<T>): ReturnType<T> | ThrottleResult;
+  clearHits: () => void;
 }
 
 /**
@@ -71,25 +81,29 @@ export function throttle(func, wait = 200) {
  * @param {number} hits Number of hits after throttling will be applied.
  * @returns {Function}
  */
-export function throttleAfterHits(func, wait = 200, hits = 10) {
+export function throttleAfterHits<T extends AnyFunction>(
+  func: T, 
+  wait: number = 200, 
+  hits: number = 10
+): ThrottleAfterHitsFunction<T> {
   const funcThrottle = throttle(func, wait);
   let remainHits = hits;
 
   /**
    *
    */
-  function _clearHits() {
+  function _clearHits(): void {
     remainHits = hits;
   }
   /**
    * @param {*} args The list of arguments passed during the function invocation.
    * @returns {*}
    */
-  function _throttleAfterHits(...args) {
+  function _throttleAfterHits(this: any, ...args: Parameters<T>): ReturnType<T> | ThrottleResult {
     if (remainHits) {
       remainHits -= 1;
 
-      return func.apply(this, args);
+      return func.apply(this, args) as ReturnType<T>;
     }
 
     return funcThrottle.apply(this, args);
@@ -107,20 +121,20 @@ export function throttleAfterHits(func, wait = 200, hits = 10) {
  * @param {number} wait Delay in milliseconds.
  * @returns {Function}
  */
-export function debounce(func, wait = 200) {
-  let lastTimer = null;
-  let result;
+export function debounce<T extends AnyFunction>(func: T, wait: number = 200): (...args: Parameters<T>) => ReturnType<T> | undefined {
+  let lastTimer: ReturnType<typeof setTimeout> | null = null;
+  let result: ReturnType<T> | undefined;
 
   /**
    * @param {*} args The list of arguments passed during the function invocation.
    * @returns {*}
    */
-  function _debounce(...args) {
+  function _debounce(this: any, ...args: Parameters<T>): ReturnType<T> | undefined {
     if (lastTimer) {
       clearTimeout(lastTimer);
     }
     lastTimer = setTimeout(() => {
-      result = func.apply(this, args);
+      result = func.apply(this, args) as ReturnType<T>;
     }, wait);
 
     return result;
@@ -136,10 +150,10 @@ export function debounce(func, wait = 200) {
  * @param {Function} functions Functions to compose.
  * @returns {Function}
  */
-export function pipe(...functions) {
+export function pipe<T>(...functions: Array<(arg: any) => any>): (...args: any[]) => T {
   const [firstFunc, ...restFunc] = functions;
 
-  return function _pipe(...args) {
+  return function _pipe(this: any, ...args: any[]): T {
     return arrayReduce(restFunc, (acc, fn) => fn(acc), firstFunc.apply(this, args));
   };
 }
@@ -151,8 +165,11 @@ export function pipe(...functions) {
  * @param {Array} params Function arguments to cache.
  * @returns {Function}
  */
-export function partial(func, ...params) {
-  return function _partial(...restParams) {
+export function partial<T extends AnyFunction>(
+  func: T,
+  ...params: any[]
+): (...args: any[]) => ReturnType<T> {
+  return function _partial(this: any, ...restParams: any[]): ReturnType<T> {
     return func.apply(this, params.concat(restParams));
   };
 }
@@ -179,15 +196,15 @@ export function partial(func, ...params) {
  * @param {Function} func Function to currying.
  * @returns {Function}
  */
-export function curry(func) {
+export function curry<T extends AnyFunction>(func: T): (...args: any[]) => any {
   const argsLength = func.length;
 
   /**
    * @param {*} argsSoFar The list of arguments passed during the function invocation.
    * @returns {Function}
    */
-  function given(argsSoFar) {
-    return function _curry(...params) {
+  function given(argsSoFar: any[]): (...args: any[]) => any {
+    return function _curry(this: any, ...params: any[]): any {
       const passedArgsSoFar = argsSoFar.concat(params);
       let result;
 
@@ -226,15 +243,15 @@ export function curry(func) {
  * @param {Function} func Function to currying.
  * @returns {Function}
  */
-export function curryRight(func) {
+export function curryRight<T extends AnyFunction>(func: T): (...args: any[]) => any {
   const argsLength = func.length;
 
   /**
    * @param {*} argsSoFar The list of arguments passed during the function invocation.
    * @returns {Function}
    */
-  function given(argsSoFar) {
-    return function _curry(...params) {
+  function given(argsSoFar: any[]): (...args: any[]) => any {
+    return function _curry(this: any, ...params: any[]): any {
       const passedArgsSoFar = argsSoFar.concat(params.reverse());
       let result;
 
@@ -267,7 +284,16 @@ export function curryRight(func) {
  * @param {*} [arg6] An argument passed to `func` function.
  * @returns {*}
  */
-export function fastCall(func, context, arg1, arg2, arg3, arg4, arg5, arg6) {
+export function fastCall<T extends AnyFunction>(
+  func: T,
+  context: any,
+  arg1?: any,
+  arg2?: any,
+  arg3?: any,
+  arg4?: any,
+  arg5?: any,
+  arg6?: any
+): ReturnType<T> {
   if (isDefined(arg6)) {
     return func.call(context, arg1, arg2, arg3, arg4, arg5, arg6);
 

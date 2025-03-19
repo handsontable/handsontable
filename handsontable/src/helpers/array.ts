@@ -1,12 +1,14 @@
+import { ArrayLike } from './types';
+
 /**
  * @param {Array} arr An array to process.
  */
-export function to2dArray(arr) {
+export function to2dArray<T>(arr: T[]): void {
   const ilen = arr.length;
   let i = 0;
 
   while (i < ilen) {
-    arr[i] = [arr[i]];
+    arr[i] = [arr[i]] as unknown as T;
     i += 1;
   }
 }
@@ -15,7 +17,7 @@ export function to2dArray(arr) {
  * @param {Array} arr An array to extend.
  * @param {Array} extension The data to extend from.
  */
-export function extendArray(arr, extension) {
+export function extendArray<T>(arr: T[], extension: T[]): void {
   const ilen = extension.length;
   let i = 0;
 
@@ -29,8 +31,8 @@ export function extendArray(arr, extension) {
  * @param {Array} arr An array to pivot.
  * @returns {Array}
  */
-export function pivot(arr) {
-  const pivotedArr = [];
+export function pivot<T>(arr: T[][]): T[][] {
+  const pivotedArr: T[][] = [];
 
   if (!arr || arr.length === 0 || !arr[0] || arr[0].length === 0) {
     return pivotedArr;
@@ -64,19 +66,24 @@ export function pivot(arr) {
  * @param {boolean} [initFromArray] Specify using the first element of `array` as the initial value.
  * @returns {*} Returns the accumulated value.
  */
-export function arrayReduce(array, iteratee, accumulator, initFromArray) {
+export function arrayReduce<T, U>(
+  array: ArrayLike<T>, 
+  iteratee: (accumulator: U, value: T, index: number, array: ArrayLike<T>) => U, 
+  accumulator: U, 
+  initFromArray?: boolean
+): U {
   let index = -1;
   let iterable = array;
   let result = accumulator;
 
   if (!Array.isArray(array)) {
-    iterable = Array.from(array);
+    iterable = Array.from(array as unknown as Iterable<T>);
   }
   const length = iterable.length;
 
   if (initFromArray && length) {
     index += 1;
-    result = iterable[index];
+    result = iterable[index] as unknown as U;
   }
 
   index += 1;
@@ -99,16 +106,19 @@ export function arrayReduce(array, iteratee, accumulator, initFromArray) {
  * @param {Function} predicate The function invoked per iteration.
  * @returns {Array} Returns the new filtered array.
  */
-export function arrayFilter(array, predicate) {
+export function arrayFilter<T>(
+  array: ArrayLike<T>, 
+  predicate: (value: T, index: number, array: ArrayLike<T>) => boolean
+): T[] {
   let index = 0;
   let iterable = array;
 
   if (!Array.isArray(array)) {
-    iterable = Array.from(array);
+    iterable = Array.from(array as unknown as Iterable<T>);
   }
 
   const length = iterable.length;
-  const result = [];
+  const result: T[] = [];
   let resIndex = -1;
 
   while (index < length) {
@@ -133,16 +143,19 @@ export function arrayFilter(array, predicate) {
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {Array} Returns the new filtered array.
  */
-export function arrayMap(array, iteratee) {
+export function arrayMap<T, U>(
+  array: ArrayLike<T>, 
+  iteratee: (value: T, index: number, array: ArrayLike<T>) => U
+): U[] {
   let index = 0;
   let iterable = array;
 
   if (!Array.isArray(array)) {
-    iterable = Array.from(array);
+    iterable = Array.from(array as unknown as Iterable<T>);
   }
 
   const length = iterable.length;
-  const result = [];
+  const result: U[] = [];
   let resIndex = -1;
 
   while (index < length) {
@@ -166,12 +179,15 @@ export function arrayMap(array, iteratee) {
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {Array} Returns `array`.
  */
-export function arrayEach(array, iteratee) {
+export function arrayEach<T>(
+  array: ArrayLike<T>, 
+  iteratee: (value: T, index: number, array: ArrayLike<T>) => boolean | void
+): ArrayLike<T> {
   let index = 0;
   let iterable = array;
 
   if (!Array.isArray(array)) {
-    iterable = Array.from(array);
+    iterable = Array.from(array as unknown as Iterable<T>);
   }
 
   const length = iterable.length;
@@ -193,7 +209,7 @@ export function arrayEach(array, iteratee) {
  * @param {Array} array The array to process.
  * @returns {number} Returns calculated sum value.
  */
-export function arraySum(array) {
+export function arraySum(array: number[]): number {
   return arrayReduce(array, (a, b) => (a + b), 0);
 }
 
@@ -204,8 +220,11 @@ export function arraySum(array) {
  * @param {Array} array The array to process.
  * @returns {number} Returns the highest value from an array.
  */
-export function arrayMax(array) {
-  return arrayReduce(array, (a, b) => (a > b ? a : b), Array.isArray(array) ? array[0] : undefined);
+export function arrayMax<T extends number | string>(array: T[]): T | undefined {
+  if (!array.length) {
+    return undefined;
+  }
+  return arrayReduce(array, (a, b) => (a > b ? a : b), array[0]);
 }
 
 /**
@@ -215,8 +234,11 @@ export function arrayMax(array) {
  * @param {Array} array The array to process.
  * @returns {number} Returns the lowest value from an array.
  */
-export function arrayMin(array) {
-  return arrayReduce(array, (a, b) => (a < b ? a : b), Array.isArray(array) ? array[0] : undefined);
+export function arrayMin<T extends number | string>(array: T[]): T | undefined {
+  if (!array.length) {
+    return undefined;
+  }
+  return arrayReduce(array, (a, b) => (a < b ? a : b), array[0]);
 }
 
 /**
@@ -225,7 +247,7 @@ export function arrayMin(array) {
  * @param {Array} array The array to process.
  * @returns {number} Returns calculated average value.
  */
-export function arrayAvg(array) {
+export function arrayAvg(array: number[]): number {
   if (!array.length) {
     return 0;
   }
@@ -239,8 +261,8 @@ export function arrayAvg(array) {
  * @param {Array} array Array of Arrays.
  * @returns {Array}
  */
-export function arrayFlatten(array) {
-  return arrayReduce(array, (initial, value) => initial.concat(Array.isArray(value) ? arrayFlatten(value) : value), []);
+export function arrayFlatten<T>(array: Array<T | T[]>): T[] {
+  return arrayReduce(array, (initial: T[], value) => initial.concat(Array.isArray(value) ? arrayFlatten(value) : value), []);
 }
 
 /**
@@ -249,8 +271,8 @@ export function arrayFlatten(array) {
  * @param {Array} array The array to process.
  * @returns {Array}
  */
-export function arrayUnique(array) {
-  const unique = [];
+export function arrayUnique<T>(array: T[]): T[] {
+  const unique: T[] = [];
 
   arrayEach(array, (value) => {
     if (unique.indexOf(value) === -1) {
@@ -267,7 +289,7 @@ export function arrayUnique(array) {
  * @param {...Array} arrays Array of strings or array of numbers.
  * @returns {Array} Returns the difference between arrays.
  */
-export function getDifferenceOfArrays(...arrays) {
+export function getDifferenceOfArrays<T>(...arrays: Array<T[]>): T[] {
   const [first, ...rest] = [...arrays];
   let filteredFirstArray = first;
 
@@ -284,7 +306,7 @@ export function getDifferenceOfArrays(...arrays) {
  * @param {...Array} arrays Array of strings or array of numbers.
  * @returns {Array} Returns elements that exists in every array.
  */
-export function getIntersectionOfArrays(...arrays) {
+export function getIntersectionOfArrays<T>(...arrays: Array<T[]>): T[] {
   const [first, ...rest] = [...arrays];
   let filteredFirstArray = first;
 
@@ -301,7 +323,7 @@ export function getIntersectionOfArrays(...arrays) {
  * @param {...Array} arrays Array of strings or array of numbers.
  * @returns {Array} Returns the elements that exist in any of the arrays, without duplicates.
  */
-export function getUnionOfArrays(...arrays) {
+export function getUnionOfArrays<T>(...arrays: Array<T[]>): T[] {
   const [first, ...rest] = [...arrays];
   const set = new Set(first);
 
@@ -323,6 +345,6 @@ export function getUnionOfArrays(...arrays) {
  * @param {string|RegExp} delimiter The pattern describing where each split should occur.
  * @returns {string[]} Returns array of string or empty array.
  */
-export function stringToArray(value, delimiter = ' ') {
+export function stringToArray(value: string, delimiter: string | RegExp = ' '): string[] {
   return value.split(delimiter);
 }
