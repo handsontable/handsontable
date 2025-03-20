@@ -1,5 +1,6 @@
 import { arrayEach } from './../helpers/array';
 import { defineGetter, objectEach } from './../helpers/object';
+import { HooksRefRegistererMixin, WithHotInstance } from './types';
 
 const MIXIN_NAME = 'hooksRefRegisterer';
 
@@ -8,7 +9,7 @@ const MIXIN_NAME = 'hooksRefRegisterer';
  *
  * @type {object}
  */
-const hooksRefRegisterer = {
+const hooksRefRegisterer: Omit<HooksRefRegistererMixin, 'MIXIN_NAME'> & ThisType<HooksRefRegistererMixin & WithHotInstance> = {
   /**
    * Internal hooks storage.
    */
@@ -21,7 +22,7 @@ const hooksRefRegisterer = {
    * @param {Function} callback The hook callback.
    * @returns {object}
    */
-  addHook(key, callback) {
+  addHook(key: string, callback: Function): HooksRefRegistererMixin & WithHotInstance {
     if (!this._hooksStorage[key]) {
       this._hooksStorage[key] = [];
     }
@@ -37,8 +38,8 @@ const hooksRefRegisterer = {
    *
    * @param {string} key The hook name.
    */
-  removeHooksByKey(key) {
-    arrayEach(this._hooksStorage[key] || [], (callback) => {
+  removeHooksByKey(key: string): void {
+    arrayEach(this._hooksStorage[key] || [], (callback: Function) => {
       this.hot.removeHook(key, callback);
     });
   },
@@ -46,8 +47,8 @@ const hooksRefRegisterer = {
   /**
    * Clear all added hooks.
    */
-  clearHooks() {
-    objectEach(this._hooksStorage, (callbacks, name) => this.removeHooksByKey(name));
+  clearHooks(): void {
+    objectEach(this._hooksStorage, (callbacks: Function[], name: string) => this.removeHooksByKey(name));
 
     this._hooksStorage = {};
   },
@@ -58,4 +59,4 @@ defineGetter(hooksRefRegisterer, 'MIXIN_NAME', MIXIN_NAME, {
   enumerable: false,
 });
 
-export default hooksRefRegisterer;
+export default hooksRefRegisterer as HooksRefRegistererMixin;

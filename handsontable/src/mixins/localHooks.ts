@@ -1,5 +1,6 @@
 import { defineGetter } from './../helpers/object';
 import { fastCall } from './../helpers/function';
+import { LocalHooksMixin } from './types';
 
 const MIXIN_NAME = 'localHooks';
 
@@ -8,7 +9,7 @@ const MIXIN_NAME = 'localHooks';
  *
  * @type {object}
  */
-const localHooks = {
+const localHooks: Omit<LocalHooksMixin, 'MIXIN_NAME'> = {
   /**
    * Internal hooks storage.
    */
@@ -21,7 +22,7 @@ const localHooks = {
    * @param {Function} callback The hook callback.
    * @returns {object}
    */
-  addLocalHook(key, callback) {
+  addLocalHook(key: string, callback: Function): LocalHooksMixin {
     if (!this._localHooks[key]) {
       this._localHooks[key] = [];
     }
@@ -41,7 +42,7 @@ const localHooks = {
    * @param {*} [arg5] An additional parameter passed to the callback function.
    * @param {*} [arg6] An additional parameter passed to the callback function.
    */
-  runLocalHooks(key, arg1, arg2, arg3, arg4, arg5, arg6) {
+  runLocalHooks(key: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any): void {
     if (this._localHooks[key]) {
       const length = this._localHooks[key].length;
 
@@ -59,7 +60,7 @@ const localHooks = {
    *
    * @returns {object}
    */
-  clearLocalHooks() {
+  clearLocalHooks(): LocalHooksMixin {
     this._localHooks = {};
 
     return this;
@@ -71,4 +72,4 @@ defineGetter(localHooks, 'MIXIN_NAME', MIXIN_NAME, {
   enumerable: false,
 });
 
-export default localHooks;
+export default localHooks as LocalHooksMixin;
