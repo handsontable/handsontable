@@ -1,5 +1,6 @@
 import { shortcutsEditorContext } from './editor';
 import { shortcutsGridContext } from './grid';
+import { HotInstance } from './types';
 
 export * from './constants';
 
@@ -8,7 +9,7 @@ export * from './constants';
  *
  * @param {Handsontable} hotInstance The Handsontable instance.
  */
-export function registerAllShortcutContexts(hotInstance) {
+export function registerAllShortcutContexts(hotInstance: HotInstance): void {
   [
     shortcutsGridContext,
     shortcutsEditorContext,

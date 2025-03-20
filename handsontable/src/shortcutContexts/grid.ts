@@ -1,31 +1,32 @@
 import { isDefined } from '../helpers/mixed';
 import { GRID_GROUP, EDITOR_EDIT_GROUP } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
+import { HotInstance, ShortcutConfig } from './types';
 
 /**
  * The context that defines shortcut list available for selected cell or cells.
  *
  * @param {Handsontable} hot The Handsontable instance.
  */
-export function shortcutsGridContext(hot) {
+export function shortcutsGridContext(hot: HotInstance): void {
   const context = hot.getShortcutManager().addContext('grid');
   const commandsPool = createKeyboardShortcutCommandsPool(hot);
-  const config = {
-    runOnlyIf: () => {
+  const config: ShortcutConfig = {
+    runOnlyIf: (): boolean => {
       const { navigableHeaders } = hot.getSettings();
 
       return isDefined(hot.getSelected()) &&
-        (navigableHeaders || !navigableHeaders && hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0);
+        (!!navigableHeaders || !navigableHeaders && hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0);
     },
     group: GRID_GROUP,
   };
 
   context.addShortcuts([{
     keys: [['F2']],
-    callback: event => commandsPool.editorFastOpen(event),
+    callback: (event?: KeyboardEvent) => commandsPool.editorFastOpen(event),
   }, {
     keys: [['Enter'], ['Enter', 'Shift']],
-    callback: (event, keys) => commandsPool.editorOpen(event, keys),
+    callback: (event?: KeyboardEvent, keys?: string[]) => commandsPool.editorOpen(event, keys),
   }, {
     keys: [['Backspace'], ['Delete']],
     callback: () => commandsPool.emptySelectedCells(),
@@ -37,11 +38,17 @@ export function shortcutsGridContext(hot) {
   context.addShortcuts([{
     keys: [['Control/Meta', 'A']],
     callback: () => commandsPool.selectAllCells(),
-    runOnlyIf: () => !hot.getSelectedRangeLast()?.highlight.isHeader(),
+    runOnlyIf: () => {
+      const selectedRange = hot.getSelectedRangeLast();
+      return selectedRange ? !selectedRange.highlight.isHeader() : false;
+    },
   }, {
     keys: [['Control/Meta', 'A']],
     callback: () => {},
-    runOnlyIf: () => hot.getSelectedRangeLast()?.highlight.isHeader(),
+    runOnlyIf: () => {
+      const selectedRange = hot.getSelectedRangeLast();
+      return selectedRange ? !!selectedRange.highlight.isHeader() : false;
+    },
     preventDefault: true,
   }, {
     keys: [['Control/Meta', 'Shift', 'Space']],
@@ -50,7 +57,8 @@ export function shortcutsGridContext(hot) {
     keys: [['Control/Meta', 'Enter']],
     callback: () => commandsPool.populateSelectedCellsData(),
     runOnlyIf: () => {
-      return !hot.getSelectedRangeLast()?.highlight.isHeader() && hot.getSelectedRangeLast()?.getCellsCount() > 1;
+      const selectedRange = hot.getSelectedRangeLast();
+      return selectedRange ? (!selectedRange.highlight.isHeader() && selectedRange.getCellsCount() > 1) : false;
     },
   }, {
     keys: [['Control', 'Space']],
@@ -162,12 +170,12 @@ export function shortcutsGridContext(hot) {
     keys: [['Tab']],
     // The property value is controlled by focusCatcher module (https://github.com/handsontable/handsontable/blob/master/handsontable/src/core/focusCatcher/index.js)
     preventDefault: false,
-    callback: event => commandsPool.moveCellSelectionInlineStart(event),
+    callback: (event?: KeyboardEvent) => commandsPool.moveCellSelectionInlineStart(event),
   }, {
     keys: [['Shift', 'Tab']],
     // The property value is controlled by focusCatcher module (https://github.com/handsontable/handsontable/blob/master/handsontable/src/core/focusCatcher/index.js)
     preventDefault: false,
-    callback: event => commandsPool.moveCellSelectionInlineEnd(event),
+    callback: (event?: KeyboardEvent) => commandsPool.moveCellSelectionInlineEnd(event),
   }, {
     keys: [['Control/Meta', 'Backspace']],
     callback: () => commandsPool.scrollToFocusedCell(),
