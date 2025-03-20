@@ -10,7 +10,7 @@ import { deepClone } from '../../../helpers/object';
  */
 export class RemoveRowAction extends BaseAction {
   /**
-   * @param {number} index The visual row index.
+   * @param {number} index The physical row index.
    */
   index;
   /**
@@ -97,7 +97,15 @@ export class RemoveRowAction extends BaseAction {
       });
     });
 
-    hot.alter('insert_row_above', this.index, this.data.length, 'UndoRedo.undo');
+    // The indexes sequence have to be applied twice.
+    //  * First for proper index translation. The alter method accepts a visual index
+    //    and we are able to retrieve the correct index indicating where to add a new row based
+    //    only on the previous order state of the rows;
+    //  * The alter method shifts the indexes (a side-effect), so we need to reapply the indexes sequence
+    //    the same as it was in the previous state;
+    hot.rowIndexMapper.setIndexesSequence(this.rowIndexesSequence);
+    hot.alter('insert_row_above', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.undo');
+    hot.rowIndexMapper.setIndexesSequence(this.rowIndexesSequence);
 
     this.removedCellMetas.forEach(([rowIndex, columnIndex, cellMeta]) => {
       hot.setCellMetaObject(rowIndex, columnIndex, cellMeta);
@@ -105,7 +113,6 @@ export class RemoveRowAction extends BaseAction {
 
     hot.addHookOnce('afterViewRender', undoneCallback);
     hot.setSourceDataAtCell(changes, null, null, 'UndoRedo.undo');
-    hot.rowIndexMapper.setIndexesSequence(this.rowIndexesSequence);
   }
 
   /**
@@ -114,6 +121,6 @@ export class RemoveRowAction extends BaseAction {
    */
   redo(hot, redoneCallback) {
     hot.addHookOnce('afterRemoveRow', redoneCallback);
-    hot.alter('remove_row', this.index, this.data.length, 'UndoRedo.redo');
+    hot.alter('remove_row', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.redo');
   }
 }

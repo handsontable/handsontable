@@ -12,6 +12,65 @@ describe('UndoRedo', () => {
     }
   });
 
+  it('should exposed new methods when plugin is enabled', () => {
+    const hot = handsontable({
+      undo: false
+    });
+
+    expect(hot.undo).toBeUndefined();
+    expect(hot.redo).toBeUndefined();
+    expect(hot.isUndoAvailable).toBeUndefined();
+    expect(hot.isRedoAvailable).toBeUndefined();
+    expect(hot.clearUndo).toBeUndefined();
+
+    updateSettings({
+      undo: true
+    });
+
+    expect(typeof hot.undo).toEqual('function');
+    expect(typeof hot.redo).toEqual('function');
+    expect(typeof hot.isUndoAvailable).toEqual('function');
+    expect(typeof hot.isRedoAvailable).toEqual('function');
+    expect(typeof hot.clearUndo).toEqual('function');
+  });
+
+  it('should remove exposed methods when plugin is disabled', () => {
+    const hot = handsontable({
+      undo: true
+    });
+
+    expect(typeof hot.undo).toEqual('function');
+    expect(typeof hot.redo).toEqual('function');
+    expect(typeof hot.isUndoAvailable).toEqual('function');
+    expect(typeof hot.isRedoAvailable).toEqual('function');
+    expect(typeof hot.clearUndo).toEqual('function');
+
+    updateSettings({
+      undo: false
+    });
+
+    expect(hot.undo).toBeUndefined();
+    expect(hot.redo).toBeUndefined();
+    expect(hot.isUndoAvailable).toBeUndefined();
+    expect(hot.isRedoAvailable).toBeUndefined();
+    expect(hot.clearUndo).toBeUndefined();
+  });
+
+  it('should not undo changes in the other cells if editor is open', () => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+    });
+
+    selectCell(0, 0);
+    setDataAtCell(0, 0, 'new value');
+
+    selectCell(1, 0);
+    keyDownUp('enter');
+    keyDownUp(['control/meta', 'z']);
+
+    expect(getDataAtCell(0, 0)).toBe('new value');
+  });
+
   describe('updateSettings', () => {
     it('should be possible to enable the undo/redo feature', () => {
       handsontable({

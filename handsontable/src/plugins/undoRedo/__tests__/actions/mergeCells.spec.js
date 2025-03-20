@@ -40,4 +40,66 @@ describe('UndoRedo -> MergeCells action', () => {
       ],
     });
   });
+
+  it('should not throw an error after undoing cell merging triggered when the row header was selected', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      contextMenu: true,
+      mergeCells: true,
+    });
+
+    selectRows(1);
+    getPlugin('contextMenu').executeCommand('mergeCells');
+
+    expect(() => {
+      getPlugin('undoRedo').undo();
+    }).not.toThrowError();
+  });
+
+  it('should not throw an error after undoing cell merging triggered when the column header was selected', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      contextMenu: true,
+      mergeCells: true,
+    });
+
+    selectColumns(1);
+    getPlugin('contextMenu').executeCommand('mergeCells');
+
+    expect(() => {
+      getPlugin('undoRedo').undo();
+    }).not.toThrowError();
+  });
+
+  it('should not throw an error after redoing cell merging triggered when the row header was selected', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      contextMenu: true,
+      mergeCells: true,
+    });
+
+    selectRows(1);
+    getPlugin('contextMenu').executeCommand('mergeCells');
+    getPlugin('undoRedo').undo();
+
+    expect(() => {
+      getPlugin('undoRedo').redo();
+    }).not.toThrowError();
+  });
+
+  it('should not throw an error after redoing cell merging triggered when the column header was selected', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      contextMenu: true,
+      mergeCells: true,
+    });
+
+    selectColumns(1);
+    getPlugin('contextMenu').executeCommand('mergeCells');
+    getPlugin('undoRedo').undo();
+
+    expect(() => {
+      getPlugin('undoRedo').redo();
+    }).not.toThrowError();
+  });
 });

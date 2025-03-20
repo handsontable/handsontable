@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved undo/redo working for removed rows/columns",
+  "type": "fixed",
+  "issueOrPR": 11515,
+  "breaking": false,
+  "framework": "none"
+}

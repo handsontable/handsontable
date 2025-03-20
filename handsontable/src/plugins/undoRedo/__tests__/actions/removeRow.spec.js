@@ -38,4 +38,30 @@ describe('UndoRedo -> RemoveRow action', () => {
       removedCellMetas: [],
     });
   });
+
+  it('should undo and redo the remove action after row moving (#dev-2071)', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      manualRowMove: true,
+    });
+
+    getPlugin('manualRowMove').moveRow(4, 0);
+    render();
+    alter('remove_row', 1, 1);
+    getPlugin('undoRedo').undo();
+
+    expect(getDataAtCol(0)).toEqual(['A5', 'A1', 'A2', 'A3', 'A4']);
+
+    getPlugin('undoRedo').undo();
+
+    expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
+
+    getPlugin('undoRedo').redo();
+
+    expect(getDataAtCol(0)).toEqual(['A5', 'A1', 'A2', 'A3', 'A4']);
+
+    getPlugin('undoRedo').redo();
+
+    expect(getDataAtCol(0)).toEqual(['A5', 'A2', 'A3', 'A4']);
+  });
 });
