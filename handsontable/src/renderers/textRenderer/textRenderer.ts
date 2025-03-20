@@ -1,6 +1,7 @@
 import { baseRenderer } from '../baseRenderer';
 import { fastInnerText } from '../../helpers/dom/element';
 import { stringify } from '../../helpers/mixed';
+import { TypedRenderer } from '../types';
 
 export const RENDERER_TYPE = 'text';
 
@@ -16,7 +17,19 @@ export const RENDERER_TYPE = 'text';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
-export function textRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+export function textRenderer(
+  hotInstance: any, 
+  TD: HTMLTableCellElement, 
+  row: number, 
+  col: number, 
+  prop: number | string, 
+  value: any, 
+  cellProperties: {
+    placeholder?: string;
+    trimWhitespace?: boolean;
+    [key: string]: any;
+  }
+): void {
   baseRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
   let escaped = value;
 
@@ -34,4 +47,4 @@ export function textRenderer(hotInstance, TD, row, col, prop, value, cellPropert
   fastInnerText(TD, escaped);
 }
 
-textRenderer.RENDERER_TYPE = RENDERER_TYPE;
+(textRenderer as TypedRenderer).RENDERER_TYPE = RENDERER_TYPE;

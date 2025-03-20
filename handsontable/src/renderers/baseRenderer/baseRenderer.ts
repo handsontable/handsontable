@@ -8,6 +8,7 @@ import {
   setAttribute
 } from '../../helpers/dom/element';
 import { A11Y_INVALID, A11Y_READONLY } from '../../helpers/a11y';
+import { TypedRenderer } from '../types';
 
 export const RENDERER_TYPE = 'base';
 
@@ -20,19 +21,40 @@ export const RENDERER_TYPE = 'base';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
-export function baseRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+export function baseRenderer(
+  hotInstance: any, 
+  TD: HTMLTableCellElement, 
+  row: number, 
+  col: number, 
+  prop: number | string, 
+  value: any, 
+  cellProperties: {
+    className?: string;
+    readOnly?: boolean;
+    readOnlyCellClassName?: string;
+    ariaTags?: boolean;
+    valid?: boolean;
+    invalidCellClassName?: string;
+    wordWrap?: boolean;
+    noWordWrapClassName?: string;
+    placeholder?: string;
+    placeholderCellClassName?: string;
+  }
+): void {
   const ariaEnabled = cellProperties.ariaTags;
-  const classesToAdd = [];
-  const classesToRemove = [];
-  const attributesToRemove = [];
-  const attributesToAdd = [];
+  const classesToAdd: string[] = [];
+  const classesToRemove: string[] = [];
+  const attributesToRemove: string[] = [];
+  const attributesToAdd: [string, string][] = [];
 
   if (cellProperties.className) {
     addClass(TD, cellProperties.className);
   }
 
   if (cellProperties.readOnly) {
-    classesToAdd.push(cellProperties.readOnlyCellClassName);
+    if (cellProperties.readOnlyCellClassName) {
+      classesToAdd.push(cellProperties.readOnlyCellClassName);
+    }
 
     if (ariaEnabled) {
       attributesToAdd.push(A11Y_READONLY());
@@ -50,7 +72,9 @@ export function baseRenderer(hotInstance, TD, row, col, prop, value, cellPropert
     }
 
   } else {
-    classesToRemove.push(cellProperties.invalidCellClassName);
+    if (cellProperties.invalidCellClassName) {
+      classesToRemove.push(cellProperties.invalidCellClassName);
+    }
 
     if (ariaEnabled) {
       attributesToRemove.push(A11Y_INVALID()[0]);
@@ -61,7 +85,7 @@ export function baseRenderer(hotInstance, TD, row, col, prop, value, cellPropert
     classesToAdd.push(cellProperties.noWordWrapClassName);
   }
 
-  if (!value && cellProperties.placeholder) {
+  if (!value && cellProperties.placeholder && cellProperties.placeholderCellClassName) {
     classesToAdd.push(cellProperties.placeholderCellClassName);
   }
 
@@ -72,4 +96,4 @@ export function baseRenderer(hotInstance, TD, row, col, prop, value, cellPropert
   setAttribute(TD, attributesToAdd);
 }
 
-baseRenderer.RENDERER_TYPE = RENDERER_TYPE;
+(baseRenderer as TypedRenderer).RENDERER_TYPE = RENDERER_TYPE;

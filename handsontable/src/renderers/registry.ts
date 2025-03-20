@@ -1,4 +1,5 @@
 import staticRegister from '../utils/staticRegister';
+import { RendererFunction, TypedRenderer } from './types';
 
 const {
   register,
@@ -14,9 +15,9 @@ const {
  * @param {string} name Renderer identification.
  * @returns {Function} Returns renderer function.
  */
-function _getItem(name) {
+function _getItem(name: string | RendererFunction): RendererFunction {
   if (typeof name === 'function') {
-    return name;
+    return name as RendererFunction;
   }
   if (!hasItem(name)) {
     throw Error(`No registered renderer found under "${name}" name`);
@@ -31,13 +32,13 @@ function _getItem(name) {
  * @param {string|Function} name Renderer's alias or renderer function with its descriptor.
  * @param {Function} [renderer] Renderer function.
  */
-function _register(name, renderer) {
+function _register(name: string | TypedRenderer, renderer?: RendererFunction): void {
   if (typeof name !== 'string') {
     renderer = name;
-    name = renderer.RENDERER_TYPE;
+    name = (renderer as TypedRenderer).RENDERER_TYPE;
   }
 
-  register(name, renderer);
+  register(name as string, renderer as RendererFunction);
 }
 
 export {
