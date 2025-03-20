@@ -5,10 +5,11 @@ import { toUpperCaseFirst } from '../helpers/string';
 import { createPriorityMap } from '../utils/dataStructures/priorityMap';
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createUniqueSet } from '../utils/dataStructures/uniqueSet';
+import { PluginClass } from './types';
 
-const ERROR_PLUGIN_REGISTERED = pluginName => `There is already registered "${pluginName}" plugin.`;
-const ERROR_PRIORITY_REGISTERED = priority => `There is already registered plugin on priority "${priority}".`;
-const ERROR_PRIORITY_NAN = priority => `The priority "${priority}" is not a number.`;
+const ERROR_PLUGIN_REGISTERED = (pluginName: string): string => `There is already registered "${pluginName}" plugin.`;
+const ERROR_PRIORITY_REGISTERED = (priority: number): string => `There is already registered plugin on priority "${priority}".`;
+const ERROR_PRIORITY_NAN = (priority: any): string => `The priority "${priority}" is not a number.`;
 
 /**
  * Stores plugins' names' queue with their priorities.
@@ -26,7 +27,7 @@ const uniquePluginsQueue = createUniqueSet({
 /**
  * Stores plugins references between their name and class.
  */
-const uniquePluginsList = createUniqueMap({
+const uniquePluginsList = createUniqueMap<string, PluginClass>({
   errorIdExists: ERROR_PLUGIN_REGISTERED,
 });
 
@@ -37,10 +38,10 @@ const uniquePluginsList = createUniqueMap({
  *
  * @returns {string[]}
  */
-export function getPluginsNames() {
+export function getPluginsNames(): string[] {
   return [
-    ...priorityPluginsQueue.getItems(),
-    ...uniquePluginsQueue.getItems(),
+    ...priorityPluginsQueue.getItems() as string[],
+    ...uniquePluginsQueue.getItems() as string[],
   ];
 }
 
@@ -50,7 +51,7 @@ export function getPluginsNames() {
  * @param {string} pluginName Plugin's name.
  * @returns {BasePlugin}
  */
-export function getPlugin(pluginName) {
+export function getPlugin(pluginName: string): PluginClass | undefined {
   const unifiedPluginName = toUpperCaseFirst(pluginName);
 
   return uniquePluginsList.getItem(unifiedPluginName);
@@ -62,7 +63,7 @@ export function getPlugin(pluginName) {
  * @param {string} pluginName Plugin's name.
  * @returns {boolean}
  */
-export function hasPlugin(pluginName) {
+export function hasPlugin(pluginName: string): boolean {
   /* eslint-disable no-unneeded-ternary */
   return getPlugin(pluginName) ? true : false;
 }
@@ -74,11 +75,15 @@ export function hasPlugin(pluginName) {
  * @param {Function} [pluginClass] The plugin class.
  * @param {number} [priority] The plugin priority.
  */
-export function registerPlugin(pluginName, pluginClass, priority) {
+export function registerPlugin(
+  pluginName: string | PluginClass, 
+  pluginClass?: PluginClass, 
+  priority?: number
+): void {
   [pluginName, pluginClass, priority] = unifyPluginArguments(pluginName, pluginClass, priority);
 
-  if (getPlugin(pluginName) === undefined) {
-    _registerPlugin(pluginName, pluginClass, priority);
+  if (getPlugin(pluginName as string) === undefined) {
+    _registerPlugin(pluginName as string, pluginClass as PluginClass, priority);
   }
 }
 
@@ -89,7 +94,11 @@ export function registerPlugin(pluginName, pluginClass, priority) {
  * @param {Function} [pluginClass] The plugin class.
  * @param {number} [priority] The plugin priority.
  */
-function _registerPlugin(pluginName, pluginClass, priority) {
+function _registerPlugin(
+  pluginName: string, 
+  pluginClass: PluginClass, 
+  priority?: number
+): void {
   const unifiedPluginName = toUpperCaseFirst(pluginName);
 
   if (uniquePluginsList.hasItem(unifiedPluginName)) {
@@ -113,7 +122,11 @@ function _registerPlugin(pluginName, pluginClass, priority) {
  * @param {number} [priority] The plugin priority.
  * @returns {Array}
  */
-function unifyPluginArguments(pluginName, pluginClass, priority) {
+function unifyPluginArguments(
+  pluginName: string | PluginClass, 
+  pluginClass?: PluginClass, 
+  priority?: number
+): [string | PluginClass, PluginClass | undefined, number | undefined] {
   if (typeof pluginName === 'function') {
     pluginClass = pluginName;
     pluginName = pluginClass.PLUGIN_KEY;

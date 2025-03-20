@@ -1,7 +1,7 @@
 /**
  * Registers all available plugins.
  */
-export function registerAllPlugins() {
+export function registerAllPlugins(): void {
 };
 
 export {

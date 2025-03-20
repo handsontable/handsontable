@@ -6,8 +6,11 @@ import { hasEditor } from '../../editors/registry';
 import { hasRenderer } from '../../renderers/registry';
 import { hasValidator } from '../../validators/registry';
 import EventManager from '../../eventManager';
+import { Core, BasePluginInterface } from '../types';
 
-const DEPS_TYPE_CHECKERS = new Map([
+interface TypeCheckerMap extends Map<string, (name: string) => boolean> {}
+
+const DEPS_TYPE_CHECKERS: TypeCheckerMap = new Map([
   ['plugin', hasPlugin],
   ['cell-type', hasCellType],
   ['editor', hasEditor],
@@ -17,17 +20,22 @@ const DEPS_TYPE_CHECKERS = new Map([
 
 export const defaultMainSettingSymbol = Symbol('mainSetting');
 export const PLUGIN_KEY = 'base';
-const missingDepsMsgs = [];
-let initializedPlugins = null;
+const missingDepsMsgs: string[] = [];
+let initializedPlugins: string[] | null = null;
 
 /**
  * @util
  * @property {Core} hot Handsontable instance.
  */
-export class BasePlugin {
-  static get PLUGIN_KEY() {
+export class BasePlugin implements BasePluginInterface {
+  static get PLUGIN_KEY(): string {
     return PLUGIN_KEY;
   }
+
+  /**
+   * Plugin dependencies
+   */
+  static PLUGIN_DEPS?: string[];
 
   /**
    * The `SETTING_KEYS` getter defines the keys that, when present in the config object, trigger the plugin update
@@ -38,7 +46,7 @@ export class BasePlugin {
    *
    * @returns {string[] | boolean}
    */
-  static get SETTING_KEYS() {
+  static get SETTING_KEYS(): string[] | boolean {
     return [
       this.PLUGIN_KEY
     ];
@@ -49,7 +57,7 @@ export class BasePlugin {
    *
    * @returns {object}
    */
-  static get DEFAULT_SETTINGS() {
+  static get DEFAULT_SETTINGS(): Record<string, any> {
     return {};
   }
 
@@ -58,36 +66,46 @@ export class BasePlugin {
    *
    * @type {EventManager}
    */
-  eventManager = new EventManager(this);
+  eventManager = new EventManager(this as unknown as null);
   /**
    * @type {string}
    */
-  pluginName = null;
+  pluginName: string | null = null;
   /**
    * @type {Function[]}
    */
-  pluginsInitializedCallbacks = [];
+  pluginsInitializedCallbacks: Function[] = [];
   /**
    * @type {boolean}
    */
-  isPluginsReady = false;
+  isPluginsReady: boolean = false;
   /**
    * @type {boolean}
    */
-  enabled = false;
+  enabled: boolean = false;
   /**
    * @type {boolean}
    */
-  initialized = false;
+  initialized: boolean = false;
+  /**
+   * Handsontable instance.
+   *
+   * @type {Core}
+   */
+  hot!: Core;
+  /**
+   * For private API usage only
+   */
+  t?: any;
   /**
    * Collection of the reference to the plugins hooks.
    */
-  #hooks = {};
+  #hooks: Record<string, Function[]> = {};
 
   /**
    * @param {object} hotInstance Handsontable instance.
    */
-  constructor(hotInstance) {
+  constructor(hotInstance: Core) {
     /**
      * Handsontable instance.
      *
@@ -100,18 +118,18 @@ export class BasePlugin {
     initializedPlugins = null;
 
     this.hot.addHook('afterPluginsInitialized', () => this.onAfterPluginsInitialized());
-    this.hot.addHook('afterUpdateSettings', newSettings => this.onUpdateSettings(newSettings));
+    this.hot.addHook('afterUpdateSettings', (newSettings: any) => this.onUpdateSettings(newSettings));
     this.hot.addHook('beforeInit', () => this.init());
   }
 
-  init() {
+  init(): void {
     this.pluginName = this.hot.getPluginName(this);
 
-    const pluginDeps = this.constructor.PLUGIN_DEPS;
+    const pluginDeps = (this.constructor as typeof BasePlugin).PLUGIN_DEPS;
     const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
 
     if (deps.length > 0) {
-      const missingDependencies = [];
+      const missingDependencies: string[] = [];
 
       deps.forEach((dependency) => {
         const [type, moduleName] = dependency.split(':');
@@ -120,7 +138,7 @@ export class BasePlugin {
           throw new Error(`Unknown plugin dependency type "${type}" was found.`);
         }
 
-        if (!DEPS_TYPE_CHECKERS.get(type)(moduleName)) {
+        if (!DEPS_TYPE_CHECKERS.get(type)!(moduleName)) {
           missingDependencies.push(` - ${moduleName} (${type})`);
         }
       });
@@ -139,8 +157,11 @@ export class BasePlugin {
       initializedPlugins = getPluginsNames();
     }
 
-    if (initializedPlugins.indexOf(this.pluginName) >= 0) {
-      initializedPlugins.splice(initializedPlugins.indexOf(this.pluginName), 1);
+    if (initializedPlugins && this.pluginName) {
+      const index = initializedPlugins.indexOf(this.pluginName);
+      if (index >= 0) {
+        initializedPlugins.splice(index, 1);
+      }
     }
 
     this.hot.addHookOnce('afterPluginsInitialized', () => {
@@ -149,7 +170,7 @@ export class BasePlugin {
       }
     });
 
-    const isAllPluginsAreInitialized = initializedPlugins.length === 0;
+    const isAllPluginsAreInitialized = initializedPlugins && initializedPlugins.length === 0;
 
     if (isAllPluginsAreInitialized) {
       if (missingDepsMsgs.length > 0) {
@@ -172,14 +193,14 @@ export class BasePlugin {
   /**
    * Enable plugin for this Handsontable instance.
    */
-  enablePlugin() {
+  enablePlugin(): void {
     this.enabled = true;
   }
 
   /**
    * Disable plugin for this Handsontable instance.
    */
-  disablePlugin() {
+  disablePlugin(): void {
     this.eventManager?.clear();
     this.clearHooks();
     this.enabled = false;
@@ -193,18 +214,19 @@ export class BasePlugin {
    * the whole plugin's settings object.
    * @returns {*}
    */
-  getSetting(settingName) {
-    const pluginSettings = this.hot.getSettings()[this.constructor.PLUGIN_KEY];
+  getSetting(settingName?: string): any {
+    const pluginSettings = this.hot.getSettings()[(this.constructor as typeof BasePlugin).PLUGIN_KEY];
 
     if (settingName === undefined) {
       return pluginSettings;
     }
 
-    const defaultSettings = this.constructor.DEFAULT_SETTINGS;
+    const defaultSettings = (this.constructor as typeof BasePlugin).DEFAULT_SETTINGS;
+    const mainSettingKey = defaultMainSettingSymbol as unknown as string;
 
     if (
       (Array.isArray(pluginSettings) || isObject(pluginSettings)) &&
-      defaultSettings[defaultMainSettingSymbol] === settingName
+      defaultSettings[mainSettingKey] === settingName
     ) {
       if (Array.isArray(pluginSettings)) {
         return pluginSettings;
@@ -230,7 +252,7 @@ export class BasePlugin {
    *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
    *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
    */
-  addHook(name, callback, orderIndex) {
+  addHook(name: string, callback: Function, orderIndex?: number): void {
     this.#hooks[name] = (this.#hooks[name] || []);
 
     const hooks = this.#hooks[name];
@@ -245,7 +267,7 @@ export class BasePlugin {
    *
    * @param {string} name The hook name.
    */
-  removeHooks(name) {
+  removeHooks(name: string): void {
     arrayEach(this.#hooks[name] || [], (callback) => {
       this.hot.removeHook(name, callback);
     });
@@ -254,11 +276,11 @@ export class BasePlugin {
   /**
    * Clear all hooks.
    */
-  clearHooks() {
+  clearHooks(): void {
     const hooks = this.#hooks;
 
     objectEach(hooks, (callbacks, name) => this.removeHooks(name));
-    hooks.length = 0;
+    (hooks as any).length = 0;
   }
 
   /**
@@ -266,7 +288,7 @@ export class BasePlugin {
    *
    * @param {Function} callback The listener function to call.
    */
-  callOnPluginsReady(callback) {
+  callOnPluginsReady(callback: Function): void {
     if (this.isPluginsReady) {
       callback();
     } else {
@@ -283,12 +305,12 @@ export class BasePlugin {
    * @param {Handsontable.DefaultSettings} settings The config object passed to `updateSettings`.
    * @returns {boolean}
    */
-  #isRelevantToSettings(settings) {
+  #isRelevantToSettings(settings: any): boolean {
     if (!settings) {
       return false;
     }
 
-    const settingKeys = this.constructor.SETTING_KEYS;
+    const settingKeys = (this.constructor as typeof BasePlugin).SETTING_KEYS;
 
     // If SETTING_KEYS is declared as `true` -> update the plugin regardless of the settings declared in
     // `updateSettings`.
@@ -312,7 +334,7 @@ export class BasePlugin {
    *
    * @private
    */
-  onAfterPluginsInitialized() {
+  onAfterPluginsInitialized(): void {
     arrayEach(this.pluginsInitializedCallbacks, callback => callback());
     this.pluginsInitializedCallbacks.length = 0;
     this.isPluginsReady = true;
@@ -324,7 +346,7 @@ export class BasePlugin {
    * @private
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
-  onUpdateSettings(newSettings) {
+  onUpdateSettings(newSettings: any): void {
     const relevantToSettings = this.#isRelevantToSettings(newSettings);
 
     if (this.isEnabled) {
@@ -351,23 +373,39 @@ export class BasePlugin {
    *
    * @private
    */
-  updatePlugin() {
-
+  updatePlugin(newSettings?: any): void {
+    // Empty hook for plugin overwrite
   }
 
   /**
    * Destroy plugin.
    */
-  destroy() {
+  destroy(): void {
     this.eventManager?.destroy();
     this.clearHooks();
 
     objectEach(this, (value, property) => {
       if (property !== 'hot') {
-        this[property] = null;
+        (this as any)[property] = null;
       }
     });
-    delete this.t;
-    delete this.hot;
+    
+    // Use type assertion to avoid the TypeScript error
+    const instance = this as any;
+    if (instance.t) {
+      delete instance.t;
+    }
+    if (instance.hot) {
+      delete instance.hot;
+    }
+  }
+
+  /**
+   * Checks if plugin is enabled.
+   *
+   * @returns {boolean}
+   */
+  isEnabled(): boolean {
+    return this.enabled;
   }
 }
