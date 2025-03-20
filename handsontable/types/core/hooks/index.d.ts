@@ -167,7 +167,7 @@ export interface Events {
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void | boolean;
   beforeColumnWrap?: (isActionInterrupted: { value: boolean }, newCoords: CellCoords, isColumnFlipped: boolean) => void;
   beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void | boolean;
-  beforeCompositionstart?: (event: CompositionEvent) => void;
+  beforeCompositionStart?: (event: CompositionEvent) => void;
   beforeContextMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
   beforeContextMenuShow?: (context: ContextMenu) => void;
   beforeCopy?: (data: CellValue[][], coords: RangeType[], copiedHeadersCount: { columnHeadersCount: number }) => void | boolean;

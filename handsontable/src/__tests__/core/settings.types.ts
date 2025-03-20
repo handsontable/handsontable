@@ -285,7 +285,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnSequenceChange: (source) => {},
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
-  beforeCompositionstart: (event) => {
+  beforeCompositionStart: (event) => {
     const _event: CompositionEvent = event;
   },
   afterContextMenuDefaultOptions: (predefinedItems) => {},

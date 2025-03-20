@@ -12,13 +12,13 @@ describe('Hook', () => {
     }
   });
 
-  describe('beforeCompositionstart', () => {
+  describe('beforeCompositionStart', () => {
     it('should be fired after typing characters using IME', () => {
-      const beforeCompositionstart = jasmine.createSpy('beforeCompositionstart');
+      const beforeCompositionStart = jasmine.createSpy('beforeCompositionStart');
 
       handsontable({
         data: createSpreadsheetData(5, 5),
-        beforeCompositionstart,
+        beforeCompositionStart,
       });
 
       listen();
@@ -29,7 +29,7 @@ describe('Hook', () => {
 
       document.documentElement.dispatchEvent(event);
 
-      expect(beforeCompositionstart).toHaveBeenCalledTimes(1);
+      expect(beforeCompositionStart).toHaveBeenCalledTimes(1);
     });
   });
 });

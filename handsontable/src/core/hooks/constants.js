@@ -357,11 +357,11 @@ export const REGISTERED_HOOKS = [
   /**
    * Hook fired after `compositionstart` event is handled.
    *
-   * @event Hooks#afterDocumentKeyDown
+   * @event Hooks#beforeCompositionStart
    * @since 15.3.0
    * @param {Event} event A native `composition` event object.
    */
-  'beforeCompositionstart',
+  'beforeCompositionStart',
 
   /**
    * Fired after getting the cell settings.

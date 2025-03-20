@@ -65,7 +65,7 @@ class EditorManager {
     this.eventManager = new EventManager(hotInstance);
 
     this.hot.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
-    this.hot.addHook('beforeCompositionstart', event => this.#onAfterDocumentKeyDown(event));
+    this.hot.addHook('beforeCompositionStart', event => this.#onAfterDocumentKeyDown(event));
     this.hot.view._wt.update('onCellDblClick', (event, coords, elem) => this.#onCellDblClick(event, coords, elem));
   }
 

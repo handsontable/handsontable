@@ -273,7 +273,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   eventManager.addEventListener(this.rootDocument.documentElement, 'compositionstart', (event) => {
-    instance.runHooks('beforeCompositionstart', event);
+    instance.runHooks('beforeCompositionStart', event);
   });
 
   dataSource = new DataSource(instance);
