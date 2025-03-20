@@ -4,7 +4,7 @@ import { requestAnimationFrame, cancelAnimationFrame } from './../helpers/featur
  * @class Interval
  */
 class Interval {
-  static create(func, delay) {
+  static create(func: () => void, delay: number | string): Interval {
     return new Interval(func, delay);
   }
 
@@ -13,40 +13,40 @@ class Interval {
    *
    * @type {number}
    */
-  delay;
+  delay: number;
   /**
    * Animation frame request id.
    *
    * @type {number}
    */
-  #timer = null;
+  #timer: number | null = null;
   /**
    * Function to invoke repeatedly.
    *
    * @type {Function}
    */
-  #func;
+  #func: () => void;
   /**
    * Flag which indicates if interval object was stopped.
    *
    * @type {boolean}
    * @default true
    */
-  #stopped = true;
+  #stopped: boolean = true;
   /**
    * Interval time (in milliseconds) of the last callback call.
    *
    * @type {number}
    */
-  #then = null;
+  #then: number | null = null;
   /**
    * Bounded function `func`.
    *
    * @type {Function}
    */
-  #callback;
+  #callback: () => void;
 
-  constructor(func, delay) {
+  constructor(func: () => void, delay: number | string) {
     this.#func = func;
     this.delay = parseDelay(delay);
     this.#callback = () => this.#__callback();
@@ -57,7 +57,7 @@ class Interval {
    *
    * @returns {Interval}
    */
-  start() {
+  start(): Interval {
     if (this.#stopped) {
       this.#then = Date.now();
       this.#stopped = false;
@@ -72,10 +72,10 @@ class Interval {
    *
    * @returns {Interval}
    */
-  stop() {
+  stop(): Interval {
     if (!this.#stopped) {
       this.#stopped = true;
-      cancelAnimationFrame(this.#timer);
+      cancelAnimationFrame(this.#timer as number);
       this.#timer = null;
     }
 
@@ -85,12 +85,12 @@ class Interval {
   /**
    * Loop callback, fired on every animation frame.
    */
-  #__callback() {
+  #__callback(): void {
     this.#timer = requestAnimationFrame(this.#callback);
 
     if (this.delay) {
       const now = Date.now();
-      const elapsed = now - this.#then;
+      const elapsed = now - (this.#then as number);
 
       if (elapsed > this.delay) {
         this.#then = now - (elapsed % this.delay);
@@ -110,12 +110,12 @@ export default Interval;
  * @param {number|string} delay The delay in FPS (frame per second) or number format.
  * @returns {number}
  */
-export function parseDelay(delay) {
+export function parseDelay(delay: number | string): number {
   let result = delay;
 
   if (typeof result === 'string' && /fps$/.test(result)) {
-    result = 1000 / parseInt(result.replace('fps', '') || 0, 10);
+    result = 1000 / parseInt(result.replace('fps', '') || '0', 10);
   }
 
-  return result;
+  return result as number;
 }

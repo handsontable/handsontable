@@ -1,14 +1,24 @@
-export const collection = new Map();
+type Collection = Map<string, Map<string, any>>;
+
+export const collection: Collection = new Map();
+
+interface StaticRegisterAPI {
+  register(name: string, item: any): void;
+  getItem(name: string): any;
+  hasItem(name: string): boolean;
+  getNames(): string[];
+  getValues(): any[];
+}
 
 /**
  * @param {string} namespace The namespace for the storage.
  * @returns {object}
  */
-export default function staticRegister(namespace = 'common') {
+export default function staticRegister(namespace = 'common'): StaticRegisterAPI {
   if (!collection.has(namespace)) {
     collection.set(namespace, new Map());
   }
-  const subCollection = collection.get(namespace);
+  const subCollection = collection.get(namespace)!;
 
   /**
    * Register an item to the collection. If the item under the same was exist earlier then this item will be replaced with new one.
@@ -16,7 +26,7 @@ export default function staticRegister(namespace = 'common') {
    * @param {string} name Identification of the item.
    * @param {*} item Item to save in the collection.
    */
-  function register(name, item) {
+  function register(name: string, item: any): void {
     subCollection.set(name, item);
   }
 
@@ -26,7 +36,7 @@ export default function staticRegister(namespace = 'common') {
    * @param {string} name Identification of the item.
    * @returns {*} Returns item which was saved in the collection.
    */
-  function getItem(name) {
+  function getItem(name: string): any {
     return subCollection.get(name);
   }
 
@@ -36,7 +46,7 @@ export default function staticRegister(namespace = 'common') {
    * @param {string} name Identification of the item.
    * @returns {boolean} Returns `true` or `false` depends on if element exists in the collection.
    */
-  function hasItem(name) {
+  function hasItem(name: string): boolean {
     return subCollection.has(name);
   }
 
@@ -45,7 +55,7 @@ export default function staticRegister(namespace = 'common') {
    *
    * @returns {Array} Returns an array of strings with all names under which objects are stored.
    */
-  function getNames() {
+  function getNames(): string[] {
     return [...subCollection.keys()];
   }
 
@@ -54,7 +64,7 @@ export default function staticRegister(namespace = 'common') {
    *
    * @returns {Array} Returns an array with all values stored in the collection.
    */
-  function getValues() {
+  function getValues(): any[] {
     return [...subCollection.values()];
   }
 

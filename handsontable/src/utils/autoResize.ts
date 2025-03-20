@@ -6,6 +6,27 @@
  * Licensed under the MIT license
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
+
+/**
+ * Configuration for the input element resizer.
+ */
+interface InputElementResizerConfig {
+  minWidth?: number | string;
+  maxWidth?: number | string;
+  minHeight?: number | string;
+  maxHeight?: number | string;
+  textContent?: (element: HTMLElement) => string;
+}
+
+/**
+ * Interface for the input element resizer.
+ */
+interface InputElementResizer {
+  init(elementToObserve: HTMLElement, config: InputElementResizerConfig, doObserve?: boolean): void;
+  resize(): void;
+  unObserve(): void;
+}
+
 /**
  * Attaches an event listener to the given element.
  *
@@ -13,7 +34,7 @@
  * @param {string} eventName The name of the event to listen for.
  * @param {Function} handler The function to call when the event is triggered.
  */
-function observe(element, eventName, handler) {
+function observe(element: HTMLElement, eventName: string, handler: EventListenerOrEventListenerObject): void {
   element.addEventListener(eventName, handler, false);
 }
 
@@ -24,7 +45,7 @@ function observe(element, eventName, handler) {
  * @param {string} eventName The name of the event to remove.
  * @param {Function} handler The function to remove as a listener.
  */
-function unObserve(element, eventName, handler) {
+function unObserve(element: HTMLElement, eventName: string, handler: EventListenerOrEventListenerObject): void {
   element.removeEventListener(eventName, handler, false);
 }
 
@@ -34,24 +55,10 @@ function unObserve(element, eventName, handler) {
  * @param {Element} element The element to get the computed style from.
  * @returns {CSSStyleDeclaration} The computed style of the element.
  */
-function getComputedStyle(element) {
-  return element.ownerDocument.defaultView.getComputedStyle(element);
+function getComputedStyle(element: Element): CSSStyleDeclaration {
+  return element.ownerDocument.defaultView!.getComputedStyle(element);
 }
 
-/**
- * @typedef InputElementResizerConfig
- * @property {number} minWidth The minimum width of the element.
- * @property {number} maxWidth The maximum width of the element.
- * @property {number} minHeight The minimum height of the element.
- * @property {number} maxHeight The maximum height of the element.
- * @property {function(HTMLElement): string} textContent The function that returns the text content to measure.
- */
-/**
- * @typedef InputElementResizer
- * @property {function(HTMLElement, InputElementResizerConfig, boolean): void} init Initializes the resizer.
- * @property {function(): void} resize Resizes the element.
- * @property {function(): void} unObserve Removes the event listeners.
- */
 /**
  * Creates an input element resizer.
  *
@@ -59,24 +66,32 @@ function getComputedStyle(element) {
  * @param {InputElementResizerConfig} initialOptions The configuration to extend the defaults with.
  * @returns {InputElementResizer}
  */
-export function createInputElementResizer(ownerDocument, initialOptions = {}) {
+export function createInputElementResizer(ownerDocument: Document, initialOptions: InputElementResizerConfig = {}): InputElementResizer {
   const defaults = {
     minHeight: 200,
     maxHeight: 300,
     minWidth: 100,
     maxWidth: 300,
-    textContent: element => element.value,
+    textContent: (element: HTMLElement) => {
+      // Handle element as HTMLInputElement or HTMLTextAreaElement which have 'value' property
+      return (element as HTMLInputElement).value;
+    },
     ...initialOptions,
   };
   const body = ownerDocument.body;
   const textHolder = ownerDocument.createTextNode('');
   const textContainer = ownerDocument.createElement('span');
-  let observedElement;
+  let observedElement: HTMLElement | null = null;
+  let delayedResizeTimeout: number | null = null;
 
   /**
    * Resizes the element.
    */
-  function resize() {
+  function resize(): void {
+    if (!observedElement) {
+      return;
+    }
+
     textHolder.textContent = defaults.textContent(observedElement);
     // Won't expand the element size for displaying body as for example, `grid`, `inline-grid` or `flex` with
     // `flex-direction` set as `column`.
@@ -87,8 +102,8 @@ export function createInputElementResizer(ownerDocument, initialOptions = {}) {
 
     body.appendChild(textContainer);
 
-    const paddingStart = parseInt(getComputedStyle(observedElement)?.paddingInlineStart || 0, 10);
-    const paddingEnd = parseInt(getComputedStyle(observedElement)?.paddingInlineEnd || 0, 10);
+    const paddingStart = parseInt(getComputedStyle(observedElement)?.paddingInlineStart || '0', 10);
+    const paddingEnd = parseInt(getComputedStyle(observedElement)?.paddingInlineEnd || '0', 10);
 
     const width = textContainer.clientWidth + paddingStart + paddingEnd + 1;
 
@@ -98,10 +113,10 @@ export function createInputElementResizer(ownerDocument, initialOptions = {}) {
 
     elementStyle.height = `${defaults.minHeight}px`;
 
-    if (defaults.minWidth > width) {
+    if (Number(defaults.minWidth) > width) {
       elementStyle.width = `${defaults.minWidth}px`;
 
-    } else if (width > defaults.maxWidth) {
+    } else if (width > Number(defaults.maxWidth)) {
       elementStyle.width = `${defaults.maxWidth}px`;
 
     } else {
@@ -110,10 +125,10 @@ export function createInputElementResizer(ownerDocument, initialOptions = {}) {
 
     const scrollHeight = observedElement.scrollHeight ? observedElement.scrollHeight - 1 : 0;
 
-    if (defaults.minHeight > scrollHeight) {
+    if (Number(defaults.minHeight) > scrollHeight) {
       elementStyle.height = `${defaults.minHeight}px`;
 
-    } else if (defaults.maxHeight < scrollHeight) {
+    } else if (Number(defaults.maxHeight) < scrollHeight) {
       elementStyle.height = `${defaults.maxHeight}px`;
       elementStyle.overflowY = 'visible';
 
@@ -125,8 +140,11 @@ export function createInputElementResizer(ownerDocument, initialOptions = {}) {
   /**
    * Resizes the element after a delay.
    */
-  function delayedResize() {
-    ownerDocument.defaultView.setTimeout(resize, 0);
+  function delayedResize(): void {
+    if (delayedResizeTimeout) {
+      clearTimeout(delayedResizeTimeout);
+    }
+    delayedResizeTimeout = window.setTimeout(resize, 0);
   }
 
   /**
@@ -134,12 +152,12 @@ export function createInputElementResizer(ownerDocument, initialOptions = {}) {
    *
    * @param {InputElementResizerConfig} config The configuration to extend the defaults with.
    */
-  function extendDefaults(config) {
+  function extendDefaults(config: InputElementResizerConfig): void {
     if (config && config.minHeight) {
       if (config.minHeight === 'inherit') {
-        defaults.minHeight = observedElement.clientHeight;
+        defaults.minHeight = observedElement?.clientHeight || 0;
       } else {
-        const minHeight = parseInt(config.minHeight, 10);
+        const minHeight = parseInt(config.minHeight as string, 10);
 
         if (!isNaN(minHeight)) {
           defaults.minHeight = minHeight;
@@ -149,9 +167,9 @@ export function createInputElementResizer(ownerDocument, initialOptions = {}) {
 
     if (config && config.maxHeight) {
       if (config.maxHeight === 'inherit') {
-        defaults.maxHeight = observedElement.clientHeight;
+        defaults.maxHeight = observedElement?.clientHeight || 0;
       } else {
-        const maxHeight = parseInt(config.maxHeight, 10);
+        const maxHeight = parseInt(config.maxHeight as string, 10);
 
         if (!isNaN(maxHeight)) {
           defaults.maxHeight = maxHeight;
@@ -161,9 +179,9 @@ export function createInputElementResizer(ownerDocument, initialOptions = {}) {
 
     if (config && config.minWidth) {
       if (config.minWidth === 'inherit') {
-        defaults.minWidth = observedElement.clientWidth;
+        defaults.minWidth = observedElement?.clientWidth || 0;
       } else {
-        const minWidth = parseInt(config.minWidth, 10);
+        const minWidth = parseInt(config.minWidth as string, 10);
 
         if (!isNaN(minWidth)) {
           defaults.minWidth = minWidth;
@@ -173,9 +191,9 @@ export function createInputElementResizer(ownerDocument, initialOptions = {}) {
 
     if (config && config.maxWidth) {
       if (config.maxWidth === 'inherit') {
-        defaults.maxWidth = observedElement.clientWidth;
+        defaults.maxWidth = observedElement?.clientWidth || 0;
       } else {
-        const maxWidth = parseInt(config.maxWidth, 10);
+        const maxWidth = parseInt(config.maxWidth as string, 10);
 
         if (!isNaN(maxWidth)) {
           defaults.maxWidth = maxWidth;
@@ -197,7 +215,7 @@ export function createInputElementResizer(ownerDocument, initialOptions = {}) {
    * @param {InputElementResizerConfig} config The configuration to extend the defaults with.
    * @param {boolean} [doObserve=false] Whether to observe the element and resize it on every input change.
    */
-  function init(elementToObserve, config, doObserve = false) {
+  function init(elementToObserve: HTMLElement, config: InputElementResizerConfig, doObserve: boolean = false): void {
     observedElement = elementToObserve;
 
     extendDefaults(config);
@@ -223,8 +241,10 @@ export function createInputElementResizer(ownerDocument, initialOptions = {}) {
     init,
     resize,
     unObserve() {
-      unObserve(observedElement, 'input', resize);
-      unObserve(observedElement, 'keydown', delayedResize);
+      if (observedElement) {
+        unObserve(observedElement, 'input', resize);
+        unObserve(observedElement, 'keydown', delayedResize);
+      }
     },
   };
 }

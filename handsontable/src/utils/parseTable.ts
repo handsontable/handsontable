@@ -1,6 +1,40 @@
 import { isEmpty } from './../helpers/mixed';
 
-const ESCAPED_HTML_CHARS = {
+interface EscapedHtmlChars {
+  [key: string]: string;
+}
+
+// Using previously defined HotInstance interface or creating a minimal version for Core
+interface Core {
+  hasColHeaders: () => boolean;
+  hasRowHeaders: () => boolean;
+  countRows: () => number;
+  countCols: () => number;
+  getData: (...coords: number[]) => any[][];
+  getColHeader: (index: number) => string;
+  getRowHeader: (index: number) => string;
+  getCellMeta: (row: number, column: number) => CellMeta;
+}
+
+interface CellMeta {
+  hidden?: boolean;
+  rowspan?: number;
+  colspan?: number;
+  [key: string]: any;
+}
+
+interface GridSettings {
+  nestedHeaders?: Array<Array<string | { label: string, colspan: number }>>;
+  colHeaders?: string[];
+  fixedRowsTop?: number;
+  fixedRowsBottom?: number;
+  mergeCells?: Array<{ row: number, col: number, rowspan: number, colspan: number }>;
+  rowHeaders?: string[];
+  data?: any[][];
+  [key: string]: any;
+}
+
+const ESCAPED_HTML_CHARS: EscapedHtmlChars = {
   '&nbsp;': '\x20',
   '&amp;': '&',
   '&lt;': '<',
@@ -14,7 +48,7 @@ const regEscapedChars = new RegExp(Object.keys(ESCAPED_HTML_CHARS).map(key => `(
  * @param {Node} element Node to verify if it's an HTMLTable.
  * @returns {boolean}
  */
-function isHTMLTable(element) {
+function isHTMLTable(element: Node | null | undefined): boolean {
   return (element && element.nodeName || '') === 'TABLE';
 }
 
@@ -24,7 +58,7 @@ function isHTMLTable(element) {
  * @param {Core} instance The Handsontable instance.
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
-export function instanceToHTML(instance) {
+export function instanceToHTML(instance: Core): string {
   const hasColumnHeaders = instance.hasColHeaders();
   const hasRowHeaders = instance.hasRowHeaders();
   const coords = [
@@ -44,7 +78,7 @@ export function instanceToHTML(instance) {
 
   for (let row = 0; row < countRows; row += 1) {
     const isColumnHeadersRow = hasColumnHeaders && row === 0;
-    const CELLS = [];
+    const CELLS: string[] = [];
 
     for (let column = 0; column < countCols; column += 1) {
       const isRowHeadersColumn = !isColumnHeadersRow && hasRowHeaders && column === 0;
@@ -61,7 +95,7 @@ export function instanceToHTML(instance) {
         const { hidden, rowspan, colspan } = instance.getCellMeta(row - columnModifier, column - rowModifier);
 
         if (!hidden) {
-          const attrs = [];
+          const attrs: string[] = [];
 
           if (rowspan) {
             attrs.push(`rowspan="${rowspan}"`);
@@ -108,14 +142,14 @@ export function instanceToHTML(instance) {
  * @returns {string} OuterHTML of the HTMLTableElement.
  */
 // eslint-disable-next-line no-restricted-globals
-export function _dataToHTML(input) {
+export function _dataToHTML(input: any[][]): string {
   const inputLen = input.length;
-  const result = ['<table>'];
+  const result: string[] = ['<table>'];
 
   for (let row = 0; row < inputLen; row += 1) {
     const rowData = input[row];
     const columnsLen = rowData.length;
-    const columnsResult = [];
+    const columnsResult: string[] = [];
 
     if (row === 0) {
       result.push('<tbody>');
@@ -130,7 +164,7 @@ export function _dataToHTML(input) {
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
           .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
-          .replace(/\x20{2,}/gi, (substring) => {
+          .replace(/\x20{2,}/gi, (substring: string) => {
             // The way how Excel serializes data with at least two spaces.
             return `<span style="mso-spacerun: yes">${'&nbsp;'.repeat(substring.length - 1)} </span>`;
           })
@@ -159,18 +193,19 @@ export function _dataToHTML(input) {
  * @returns {object} Return configuration object. Contains keys as DefaultSettings.
  */
 // eslint-disable-next-line no-restricted-globals
-export function htmlToGridSettings(element, rootDocument = document) {
-  const settingsObj = {};
+export function htmlToGridSettings(element: Element | string, rootDocument: Document = document): GridSettings | undefined {
+  const settingsObj: GridSettings = {};
   const fragment = rootDocument.createDocumentFragment();
   const tempElem = rootDocument.createElement('div');
 
   fragment.appendChild(tempElem);
 
-  let checkElement = element;
+  let checkElement = element as Element | string;
 
   if (typeof checkElement === 'string') {
-    const escapedAdjacentHTML = checkElement.replace(/<td\b[^>]*?>([\s\S]*?)<\/\s*td>/g, (cellFragment) => {
-      const openingTag = cellFragment.match(/<td\b[^>]*?>/g)[0];
+    const escapedAdjacentHTML = checkElement.replace(/<td\b[^>]*?>([\s\S]*?)<\/\s*td>/g, (cellFragment: string) => {
+      const matchedTags = cellFragment.match(/<td\b[^>]*?>/g);
+      const openingTag = matchedTags ? matchedTags[0] : '';
       const paragraphRegexp = /<p.*?>/g;
       const cellValue = cellFragment
         .substring(openingTag.length, cellFragment.lastIndexOf('<'))
@@ -187,26 +222,27 @@ export function htmlToGridSettings(element, rootDocument = document) {
     });
 
     tempElem.insertAdjacentHTML('afterbegin', `${escapedAdjacentHTML}`);
-    checkElement = tempElem.querySelector('table');
+    checkElement = tempElem.querySelector('table') as HTMLTableElement;
   }
 
-  if (!checkElement || !isHTMLTable(checkElement)) {
+  if (!checkElement || !isHTMLTable(checkElement as Element)) {
     return;
   }
 
-  const generator = tempElem.querySelector('meta[name$="enerator"]');
-  const hasRowHeaders = checkElement.querySelector('tbody th') !== null;
-  const trElement = checkElement.querySelector('tr');
+  const htmlTableElement = checkElement as HTMLTableElement;
+  const generator = tempElem.querySelector('meta[name$="enerator"]') as HTMLMetaElement;
+  const hasRowHeaders = htmlTableElement.querySelector('tbody th') !== null;
+  const trElement = htmlTableElement.querySelector('tr');
   const countCols = !trElement ? 0 : Array.from(trElement.cells)
     .reduce((cols, cell) => cols + cell.colSpan, 0) - (hasRowHeaders ? 1 : 0);
-  const fixedRowsBottom = checkElement.tFoot && Array.from(checkElement.tFoot.rows) || [];
-  const fixedRowsTop = [];
+  const fixedRowsBottom = htmlTableElement.tFoot && Array.from(htmlTableElement.tFoot.rows) || [];
+  const fixedRowsTop: HTMLTableRowElement[] = [];
   let hasColHeaders = false;
   let thRowsLen = 0;
   let countRows = 0;
 
-  if (checkElement.tHead) {
-    const thRows = Array.from(checkElement.tHead.rows).filter((tr) => {
+  if (htmlTableElement.tHead) {
+    const thRows = Array.from(htmlTableElement.tHead.rows).filter((tr) => {
       const isDataRow = tr.querySelector('td') !== null;
 
       if (isDataRow) {
@@ -220,8 +256,8 @@ export function htmlToGridSettings(element, rootDocument = document) {
     hasColHeaders = thRowsLen > 0;
 
     if (thRowsLen > 1) {
-      settingsObj.nestedHeaders = Array.from(thRows).reduce((rows, row) => {
-        const headersRow = Array.from(row.cells).reduce((headers, header, currentIndex) => {
+      settingsObj.nestedHeaders = Array.from(thRows).reduce((rows: Array<Array<string | { label: string, colspan: number }>>, row) => {
+        const headersRow = Array.from(row.cells).reduce((headers: Array<string | { label: string, colspan: number }>, header, currentIndex) => {
           if (hasRowHeaders && currentIndex === 0) {
             return headers;
           }
@@ -243,12 +279,12 @@ export function htmlToGridSettings(element, rootDocument = document) {
       }, []);
 
     } else if (hasColHeaders) {
-      settingsObj.colHeaders = Array.from(thRows[0].children).reduce((headers, header, index) => {
+      settingsObj.colHeaders = Array.from(thRows[0].children).reduce((headers: string[], header, index) => {
         if (hasRowHeaders && index === 0) {
           return headers;
         }
 
-        headers.push(header.innerHTML);
+        headers.push((header as HTMLElement).innerHTML);
 
         return headers;
       }, []);
@@ -264,7 +300,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
 
   const dataRows = [
     ...fixedRowsTop,
-    ...Array.from(checkElement.tBodies).reduce((sections, section) => {
+    ...Array.from(htmlTableElement.tBodies).reduce((sections: HTMLTableRowElement[], section) => {
       sections.push(...Array.from(section.rows));
 
       return sections;
@@ -279,8 +315,8 @@ export function htmlToGridSettings(element, rootDocument = document) {
     dataArr[r] = new Array(countCols);
   }
 
-  const mergeCells = [];
-  const rowHeaders = [];
+  const mergeCells: Array<{ col: number, row: number, rowspan: number, colspan: number }> = [];
+  const rowHeaders: string[] = [];
 
   for (let row = 0; row < countRows; row++) {
     const tr = dataRows[row];
@@ -288,7 +324,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
     const cellsLen = cells.length;
 
     for (let cellId = 0; cellId < cellsLen; cellId++) {
-      const cell = cells[cellId];
+      const cell = cells[cellId] as HTMLTableCellElement;
       const {
         nodeName,
         innerHTML,
@@ -325,7 +361,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
           cellValue = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n');
         }
 
-        dataArr[row][col] = cellValue.replace(regEscapedChars, match => ESCAPED_HTML_CHARS[match]);
+        dataArr[row][col] = cellValue.replace(regEscapedChars, (match: string) => ESCAPED_HTML_CHARS[match]);
 
       } else {
         rowHeaders.push(innerHTML);

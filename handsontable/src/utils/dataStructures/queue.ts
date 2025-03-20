@@ -2,13 +2,15 @@
  * @class Queue
  * @util
  */
-class Queue {
-  constructor(initial = []) {
-    /**
-     * Items collection.
-     *
-     * @type {Array}
-     */
+class Queue<T> {
+  /**
+   * Items collection.
+   *
+   * @type {Array}
+   */
+  private items: T[];
+  
+  constructor(initial: T[] = []) {
     this.items = initial;
   }
 
@@ -17,7 +19,7 @@ class Queue {
    *
    * @param {*} items An item to add.
    */
-  enqueue(...items) {
+  enqueue(...items: T[]): void {
     this.items.push(...items);
   }
 
@@ -26,7 +28,7 @@ class Queue {
    *
    * @returns {*}
    */
-  dequeue() {
+  dequeue(): T | undefined {
     return this.items.shift();
   }
 
@@ -35,7 +37,7 @@ class Queue {
    *
    * @returns {*}
    */
-  peek() {
+  peek(): T | undefined {
     return this.isEmpty() ? undefined : this.items[0];
   }
 
@@ -44,7 +46,7 @@ class Queue {
    *
    * @returns {boolean}
    */
-  isEmpty() {
+  isEmpty(): boolean {
     return !this.size();
   }
 
@@ -53,7 +55,7 @@ class Queue {
    *
    * @returns {number}
    */
-  size() {
+  size(): number {
     return this.items.length;
   }
 }

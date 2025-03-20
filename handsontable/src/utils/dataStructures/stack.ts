@@ -2,13 +2,15 @@
  * @class Stack
  * @util
  */
-class Stack {
-  constructor(initial = []) {
-    /**
-     * Items collection.
-     *
-     * @type {Array}
-     */
+class Stack<T> {
+  /**
+   * Items collection.
+   *
+   * @type {Array}
+   */
+  private items: T[];
+  
+  constructor(initial: T[] = []) {
     this.items = initial;
   }
 
@@ -17,7 +19,7 @@ class Stack {
    *
    * @param {*} items An item to add.
    */
-  push(...items) {
+  push(...items: T[]): void {
     this.items.push(...items);
   }
 
@@ -26,7 +28,7 @@ class Stack {
    *
    * @returns {*}
    */
-  pop() {
+  pop(): T | undefined {
     return this.items.pop();
   }
 
@@ -35,7 +37,7 @@ class Stack {
    *
    * @returns {*}
    */
-  peek() {
+  peek(): T | undefined {
     return this.isEmpty() ? undefined : this.items[this.items.length - 1];
   }
 
@@ -44,7 +46,7 @@ class Stack {
    *
    * @returns {boolean}
    */
-  isEmpty() {
+  isEmpty(): boolean {
     return !this.size();
   }
 
@@ -53,7 +55,7 @@ class Stack {
    *
    * @returns {number}
    */
-  size() {
+  size(): number {
     return this.items.length;
   }
 }

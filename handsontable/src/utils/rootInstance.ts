@@ -1,4 +1,4 @@
-export const holder = new WeakMap();
+export const holder = new WeakMap<object, boolean>();
 
 export const rootInstanceSymbol = Symbol('rootInstance');
 
@@ -7,7 +7,7 @@ export const rootInstanceSymbol = Symbol('rootInstance');
  *
  * @param  {object} object An object to associate with root instance flag.
  */
-export function registerAsRootInstance(object) {
+export function registerAsRootInstance(object: object): void {
   holder.set(object, true);
 }
 
@@ -17,7 +17,7 @@ export function registerAsRootInstance(object) {
  * @param  {symbol} rootSymbol A symbol as a source of truth.
  * @returns {boolean}
  */
-export function hasValidParameter(rootSymbol) {
+export function hasValidParameter(rootSymbol: symbol | undefined): boolean {
   return rootSymbol === rootInstanceSymbol;
 }
 
@@ -27,6 +27,6 @@ export function hasValidParameter(rootSymbol) {
  * @param  {object} object An object to check.
  * @returns {boolean}
  */
-export function isRootInstance(object) {
+export function isRootInstance(object: object): boolean {
   return holder.has(object);
 }

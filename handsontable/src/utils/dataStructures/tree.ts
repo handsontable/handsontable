@@ -4,12 +4,27 @@
  * @type {string}
  */
 export const TRAVERSAL_DF_PRE = 'DF-pre-order';
+
+// Forward declaration without export default
+class TreeNodeBase<T = any> {
+  data: T = {} as T;
+  parent: TreeNodeBase<T> | null = null;
+  childs: TreeNodeBase<T>[] = [];
+  constructor(data: T) {
+    this.data = data;
+  }
+  addChild(node: TreeNodeBase<T>): void {
+    node.parent = this;
+    this.childs.push(node);
+  }
+}
+
 /**
  * @param {Function} callback A callback which will be called on each visited node.
  * @param {*} context A context to pass through.
  * @returns {boolean}
  */
-export function depthFirstPreOrder(callback, context) {
+export function depthFirstPreOrder<T, U>(this: TreeNodeBase<T>, callback: (node: TreeNodeBase<T>) => boolean | void, context: U): boolean | void {
   let continueTraverse = callback.call(context, this);
 
   for (let i = 0; i < this.childs.length; i++) {
@@ -34,7 +49,7 @@ export const TRAVERSAL_DF_POST = 'DF-post-order';
  * @param {*} context A context to pass through.
  * @returns {boolean}
  */
-function depthFirstPostOrder(callback, context) {
+function depthFirstPostOrder<T, U>(this: TreeNodeBase<T>, callback: (node: TreeNodeBase<T>) => boolean | void, context: U): boolean | void {
   for (let i = 0; i < this.childs.length; i++) {
     const continueTraverse = depthFirstPostOrder.call(this.childs[i], callback, context);
 
@@ -56,18 +71,18 @@ export const TRAVERSAL_BF = 'BF';
  * @param {Function} callback A callback which will be called on each visited node.
  * @param {*} context A context to pass through.
  */
-function breadthFirst(callback, context) {
-  const queue = [this];
+function breadthFirst<T, U>(this: TreeNodeBase<T>, callback: (node: TreeNodeBase<T>) => boolean | void, context: U): void {
+  const queue: TreeNodeBase<T>[] = [this];
 
   /**
    * Internal processor.
    */
-  function process() {
+  function process(): void {
     if (queue.length === 0) {
       return;
     }
 
-    const node = queue.shift();
+    const node = queue.shift() as TreeNodeBase<T>;
 
     queue.push(...node.childs);
 
@@ -85,12 +100,17 @@ function breadthFirst(callback, context) {
  * @type {string}
  */
 const DEFAULT_TRAVERSAL_STRATEGY = TRAVERSAL_BF;
+
+export type TraversalStrategy = typeof TRAVERSAL_DF_PRE | typeof TRAVERSAL_DF_POST | typeof TRAVERSAL_BF;
+
+type TraversalFunction<T, U> = (this: TreeNodeBase<T>, callback: (node: TreeNodeBase<T>) => boolean | void, context: U) => boolean | void;
+
 /**
  * Collection of all available tree traversal strategies.
  *
  * @type {Map<string, Function>}
  */
-const TRAVERSAL_STRATEGIES = new Map([
+const TRAVERSAL_STRATEGIES = new Map<TraversalStrategy, TraversalFunction<any, any>>([
   [TRAVERSAL_DF_PRE, depthFirstPreOrder],
   [TRAVERSAL_DF_POST, depthFirstPostOrder],
   [TRAVERSAL_BF, breadthFirst],
@@ -99,27 +119,27 @@ const TRAVERSAL_STRATEGIES = new Map([
 /**
  *
  */
-export default class TreeNode {
+export default class TreeNode<T = any> {
   /**
    * A tree data.
    *
    * @type {object}
    */
-  data = {};
+  data: T = {} as T;
   /**
    * A parent node.
    *
    * @type {TreeNode}
    */
-  parent = null;
+  parent: TreeNode<T> | null = null;
   /**
    * A tree leaves.
    *
    * @type {TreeNode[]}
    */
-  childs = [];
+  childs: TreeNode<T>[] = [];
 
-  constructor(data) {
+  constructor(data: T) {
     this.data = data;
   }
 
@@ -128,7 +148,7 @@ export default class TreeNode {
    *
    * @param {TreeNode} node A TreeNode to add.
    */
-  addChild(node) {
+  addChild(node: TreeNode<T>): void {
     node.parent = this;
     this.childs.push(node);
   }
@@ -156,8 +176,8 @@ export default class TreeNode {
    * @returns {TreeNode}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
-  cloneTree(nodeTree = this) {
-    const clonedNode = new TreeNode({
+  cloneTree(nodeTree: TreeNode<T> = this): TreeNode<T> {
+    const clonedNode = new TreeNode<T>({
       ...nodeTree.data,
     });
 
@@ -173,7 +193,7 @@ export default class TreeNode {
    *
    * @param {TreeNode} nodeTree A TreeNode to replace with.
    */
-  replaceTreeWith(nodeTree) {
+  replaceTreeWith(nodeTree: TreeNode<T>): void {
     this.data = { ...nodeTree.data };
     this.childs = [];
 
@@ -192,12 +212,13 @@ export default class TreeNode {
    * @param {Function} callback The callback function which will be called for each node.
    * @param {string} [traversalStrategy=DEFAULT_TRAVERSAL_STRATEGY] Traversing strategy.
    */
-  walkDown(callback, traversalStrategy = DEFAULT_TRAVERSAL_STRATEGY) {
+  walkDown(callback: (node: TreeNode<T>) => boolean | void, traversalStrategy: TraversalStrategy = DEFAULT_TRAVERSAL_STRATEGY): void {
     if (!TRAVERSAL_STRATEGIES.has(traversalStrategy)) {
       throw new Error(`Traversal strategy "${traversalStrategy}" does not exist`);
     }
 
-    TRAVERSAL_STRATEGIES.get(traversalStrategy).call(this, callback, this);
+    const strategy = TRAVERSAL_STRATEGIES.get(traversalStrategy) as TraversalFunction<T, TreeNode<T>>;
+    strategy.call(this as unknown as TreeNodeBase<T>, callback as (node: TreeNodeBase<T>) => boolean | void, this);
   }
 
   /**
@@ -205,9 +226,9 @@ export default class TreeNode {
    *
    * @param {Function} callback The callback function which will be called for each node.
    */
-  walkUp(callback) {
+  walkUp(callback: (node: TreeNode<T>) => boolean | void): void {
     const context = this;
-    const process = (node) => {
+    const process = (node: TreeNode<T>): void => {
       const continueTraverse = callback.call(context, node);
 
       if (continueTraverse !== false && node.parent !== null) {

@@ -2,6 +2,27 @@ import { isObject } from './../helpers/object';
 import { rangeEach } from './../helpers/number';
 import { stringify } from './../helpers/mixed';
 
+interface Range {
+  from: number;
+  to: number;
+}
+
+interface SampleData {
+  value: any;
+  bundleSeed?: string;
+}
+
+interface Sample {
+  needed: number;
+  strings: Array<{
+    value: any;
+    col?: number;
+    row?: number;
+  }>;
+}
+
+type DataFactory = (row: number, col: number) => SampleData | false;
+
 /**
  * @class SamplesGenerator
  */
@@ -11,7 +32,7 @@ class SamplesGenerator {
    *
    * @type {number}
    */
-  static get SAMPLE_COUNT() {
+  static get SAMPLE_COUNT(): number {
     return 3;
   }
   /**
@@ -20,29 +41,29 @@ class SamplesGenerator {
    * @type {Map}
    * @default {null}
    */
-  samples = null;
+  samples: Map<string, Sample> | null = null;
   /**
    * Function which give the data to collect samples.
    *
    * @type {Function}
    */
-  dataFactory = null;
+  dataFactory: DataFactory | null = null;
   /**
    * Custom number of samples to take of each value length.
    *
    * @type {number}
    * @default {null}
    */
-  customSampleCount = null;
+  customSampleCount: number | null = null;
   /**
    * `true` if duplicate samples collection should be allowed, `false` otherwise.
    *
    * @type {boolean}
    * @default {false}
    */
-  allowDuplicates = false;
+  allowDuplicates: boolean = false;
 
-  constructor(dataFactory) {
+  constructor(dataFactory: DataFactory) {
     this.dataFactory = dataFactory;
   }
 
@@ -51,7 +72,7 @@ class SamplesGenerator {
    *
    * @returns {number}
    */
-  getSampleCount() {
+  getSampleCount(): number {
     if (this.customSampleCount) {
       return this.customSampleCount;
     }
@@ -64,7 +85,7 @@ class SamplesGenerator {
    *
    * @param {number} sampleCount Number of samples to be collected.
    */
-  setSampleCount(sampleCount) {
+  setSampleCount(sampleCount: number): void {
     this.customSampleCount = sampleCount;
   }
 
@@ -73,7 +94,7 @@ class SamplesGenerator {
    *
    * @param {boolean} allowDuplicates `true` to allow duplicate values.
    */
-  setAllowDuplicates(allowDuplicates) {
+  setAllowDuplicates(allowDuplicates: boolean): void {
     this.allowDuplicates = allowDuplicates;
   }
 
@@ -84,7 +105,7 @@ class SamplesGenerator {
    * @param {object} colRange The column range to generate the samples.
    * @returns {object}
    */
-  generateRowSamples(rowRange, colRange) {
+  generateRowSamples(rowRange: Range | number, colRange: Range): Map<number, Sample> {
     return this.generateSamples('row', colRange, rowRange);
   }
 
@@ -95,7 +116,7 @@ class SamplesGenerator {
    * @param {object} rowRange Column index.
    * @returns {object}
    */
-  generateColumnSamples(colRange, rowRange) {
+  generateColumnSamples(colRange: Range, rowRange: Range): Map<number, Sample> {
     return this.generateSamples('col', rowRange, colRange);
   }
 
@@ -107,15 +128,16 @@ class SamplesGenerator {
    * @param {object|number} specifierRange The range to generate the samples.
    * @returns {Map}
    */
-  generateSamples(type, range, specifierRange) {
-    const samples = new Map();
+  generateSamples(type: 'row' | 'col', range: Range, specifierRange: Range | number): Map<number, Sample> {
+    const samples = new Map<number, Sample>();
     const { from, to } = typeof specifierRange === 'number' ?
       { from: specifierRange, to: specifierRange } : specifierRange;
 
     rangeEach(from, to, (index) => {
       const sample = this.generateSample(type, range, index);
-
-      samples.set(index, sample);
+      if (sample) {
+        samples.set(index, sample as unknown as Sample);
+      }
     });
 
     return samples;
@@ -129,18 +151,24 @@ class SamplesGenerator {
    * @param {number} specifierValue The range to generate the samples.
    * @returns {Map}
    */
-  generateSample(type, range, specifierValue) {
+  generateSample(type: 'row' | 'col', range: Range, specifierValue: number): Map<string, Sample> {
     if (type !== 'row' && type !== 'col') {
       throw new Error('Unsupported sample type');
     }
 
-    const samples = new Map();
+    const samples = new Map<string, Sample>();
     const computedKey = type === 'row' ? 'col' : 'row';
-    const sampledValues = [];
+    const sampledValues: any[] = [];
+
+    if (!this.dataFactory) {
+      return samples;
+    }
+
+    const dataFactory = this.dataFactory;
 
     rangeEach(range.from, range.to, (index) => {
       const data = type === 'row' ?
-        this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
+        dataFactory(specifierValue, index) : dataFactory(index, specifierValue);
 
       if (data === false) {
         return;
@@ -148,7 +176,7 @@ class SamplesGenerator {
 
       const { value, bundleSeed } = data;
       const hasCustomBundleSeed = typeof bundleSeed === 'string' && bundleSeed.length > 0;
-      let seed;
+      let seed: string;
 
       if (hasCustomBundleSeed) {
         seed = bundleSeed;
@@ -170,6 +198,9 @@ class SamplesGenerator {
         });
       }
       const sample = samples.get(seed);
+      if (!sample) {
+        return;
+      }
 
       if (sample.needed) {
         const duplicate = sampledValues.indexOf(value) > -1;

@@ -1,16 +1,23 @@
 import { clamp } from '../helpers/number';
 
-/**
- * @typedef Paginator
- * @property {function(number): void} setCurrentPage Sets the current index to the specific page.
- * @property {function(): number} getCurrentPage Gets the current page.
- * @property {function(): number} getSize Gets the total number of pages.
- * @property {function(): void} toFirstItem Move the index to the first page.
- * @property {function(): void} toLastItem Move the index to the last page.
- * @property {function(): void} toNextItem Move the index to the next page.
- * @property {function(): void} toPreviousItem Move the index to the previous page.
- * @property {function(): void} clear Clear the internal state of the paginator.
- */
+interface PaginatorOptions {
+  initialPage?: number;
+  size?: () => number;
+  onItemSelect?: (index: number, isDirectChange: boolean) => boolean | void;
+  onClear?: () => void;
+}
+
+interface Paginator {
+  setCurrentPage(index: number): void;
+  getCurrentPage(): number;
+  getSize(): number;
+  toFirstItem(): void;
+  toLastItem(): void;
+  toNextItem(): void;
+  toPreviousItem(): void;
+  clear(): void;
+}
+
 /**
  * @param {object} options Paginator options.
  * @param {number} [options.initialPage] Initial index from which paging starts. Also, after clearing the paginator
@@ -25,8 +32,8 @@ export function createPaginator({
   size = () => 0,
   onItemSelect = () => {},
   onClear = () => {},
-}) {
-  const visitedPages = new Set();
+}: PaginatorOptions = {}): Paginator {
+  const visitedPages = new Set<number>();
   let currentIndex = clamp(initialPage, -1, getSize() - 1);
 
   /**
@@ -36,7 +43,7 @@ export function createPaginator({
    * @param {-1|1} direction The direction of traversing the pages in case when they are disabled.
    * @returns {number} Returns the final index of the page.
    */
-  function _updateState(newIndex, direction) {
+  function _updateState(newIndex: number, direction: -1 | 1): number {
     const lastIndex = getSize() - 1;
 
     if (newIndex < 0) {
@@ -69,7 +76,7 @@ export function createPaginator({
    *
    * @param {number} index The index to set.
    */
-  function setCurrentPage(index) {
+  function setCurrentPage(index: number): void {
     if (index > -1 && index < getSize() && onItemSelect(index, true) !== false) {
       currentIndex = index;
     }
@@ -80,14 +87,14 @@ export function createPaginator({
    *
    * @returns {number}
    */
-  function getCurrentPage() {
+  function getCurrentPage(): number {
     return currentIndex;
   }
 
   /**
    * Moves the index to the first page.
    */
-  function toFirstItem() {
+  function toFirstItem(): void {
     if (getSize() > 0) {
       visitedPages.clear();
       currentIndex = _updateState(0, 1);
@@ -97,7 +104,7 @@ export function createPaginator({
   /**
    * Moves the index to the last page.
    */
-  function toLastItem() {
+  function toLastItem(): void {
     if (getSize() > 0) {
       visitedPages.clear();
       currentIndex = _updateState(getSize() - 1, -1);
@@ -107,7 +114,7 @@ export function createPaginator({
   /**
    * Moves the index to the next page.
    */
-  function toNextItem() {
+  function toNextItem(): void {
     if (getSize() > 0) {
       visitedPages.clear();
       currentIndex = _updateState(++currentIndex, 1); // eslint-disable-line no-plusplus
@@ -117,7 +124,7 @@ export function createPaginator({
   /**
    * Moves the index to the previous page.
    */
-  function toPreviousItem() {
+  function toPreviousItem(): void {
     if (getSize() > 0) {
       visitedPages.clear();
       currentIndex = _updateState(--currentIndex, -1); // eslint-disable-line no-plusplus
@@ -129,14 +136,14 @@ export function createPaginator({
    *
    * @returns {number}
    */
-  function getSize() {
+  function getSize(): number {
     return Math.max(size(), 0);
   }
 
   /**
    * Clears the internal state of the paginator.
    */
-  function clear() {
+  function clear(): void {
     visitedPages.clear();
     currentIndex = initialPage;
     onClear();

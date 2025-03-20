@@ -12,27 +12,27 @@
  * @class NodeStructure
  * @util
  */
-class NodeStructure {
+class NodeStructure<T> {
   /**
    * Data of the node.
    *
    * @member {object}
    */
-  data;
+  data: T;
   /**
    * Next node.
    *
    * @member {NodeStructure}
    */
-  next = null;
+  next: NodeStructure<T> | null = null;
   /**
    * Previous node.
    *
    * @member {NodeStructure}
    */
-  prev = null;
+  prev: NodeStructure<T> | null = null;
 
-  constructor(data) {
+  constructor(data: T) {
     this.data = data;
   }
 }
@@ -43,9 +43,9 @@ class NodeStructure {
  * @class LinkedList
  * @util
  */
-class LinkedList {
-  first = null;
-  last = null;
+class LinkedList<T> {
+  first: NodeStructure<T> | null = null;
+  last: NodeStructure<T> | null = null;
 
   /**
    * Add data to the end of linked list.
@@ -53,15 +53,15 @@ class LinkedList {
    * @param {object} data Data which should be added.
    * @returns {NodeStructure} Returns the node which has been added.
    */
-  push(data) {
-    const node = new NodeStructure(data);
+  push(data: T): NodeStructure<T> {
+    const node = new NodeStructure<T>(data);
 
     if (this.first === null) {
       this.first = node;
       this.last = node;
 
     } else {
-      const temp = this.last;
+      const temp = this.last as NodeStructure<T>;
 
       this.last = node;
       node.prev = temp;
@@ -76,8 +76,8 @@ class LinkedList {
    *
    * @param {object} data Data which should be added.
    */
-  unshift(data) {
-    const node = new NodeStructure(data);
+  unshift(data: T): void {
+    const node = new NodeStructure<T>(data);
 
     if (this.first === null) {
       this.first = node;
@@ -97,7 +97,7 @@ class LinkedList {
    *
    * @param {Function} callback Callback which should be executed on each node.
    */
-  inorder(callback) {
+  inorder(callback: (node: NodeStructure<T>) => boolean | void): void {
     let temp = this.first;
 
     while (temp) {
@@ -117,14 +117,14 @@ class LinkedList {
    * @param {object} data Data which should be removed.
    * @returns {boolean} Returns true if data has been removed.
    */
-  remove(data) {
+  remove(data: T): boolean {
     if (this.first === null) {
       return false;
     }
 
     let temp = this.first;
-    let next;
-    let prev;
+    let next: NodeStructure<T> | null;
+    let prev: NodeStructure<T> | null;
 
     while (temp) {
       if (temp.data === data) {
@@ -161,7 +161,7 @@ class LinkedList {
    *
    * @returns {boolean} Returns true if linked list contains cycle.
    */
-  hasCycle() {
+  hasCycle(): boolean {
     let fast = this.first;
     let slow = this.first;
 
@@ -177,9 +177,9 @@ class LinkedList {
       }
 
       fast = fast.next;
-      slow = slow.next;
+      slow = slow?.next ?? null;
 
-      if (fast === slow) {
+      if (fast === slow && fast !== null) {
         return true;
       }
     }
@@ -190,7 +190,7 @@ class LinkedList {
    *
    * @returns {NodeStructure} Last node.
    */
-  pop() {
+  pop(): NodeStructure<T> | null {
     if (this.last === null) {
       return null;
     }
@@ -207,7 +207,7 @@ class LinkedList {
    *
    * @returns {NodeStructure} First node.
    */
-  shift() {
+  shift(): NodeStructure<T> | null {
     if (this.first === null) {
       return null;
     }
@@ -222,12 +222,12 @@ class LinkedList {
   /**
    * Reverses the linked list recursively.
    */
-  recursiveReverse() {
+  recursiveReverse(): void {
     /**
      * @param {*} current The current value.
      * @param {*} next The next value.
      */
-    function inverse(current, next) {
+    function inverse(current: NodeStructure<T>, next: NodeStructure<T> | null): void {
       if (!next) {
         return;
       }
@@ -241,7 +241,9 @@ class LinkedList {
 
     inverse(this.first, this.first.next);
 
-    this.first.next = null;
+    if (this.first) {
+      this.first.next = null;
+    }
     const temp = this.first;
 
     this.first = this.last;
@@ -249,32 +251,27 @@ class LinkedList {
   }
 
   /**
-   * Reverses the linked list iteratively.
+   * Reverses the linked list iteratively
    */
-  reverse() {
+  reverse(): void {
     if (!this.first || !this.first.next) {
       return;
     }
 
-    let current = this.first.next;
-    let prev = this.first;
-    let temp;
+    let current: NodeStructure<T> | null = this.first;
+    let next: NodeStructure<T> | null;
+    let prev: NodeStructure<T> | null = null;
 
     while (current) {
-      temp = current.next;
+      next = current.next;
       current.next = prev;
-      prev.prev = current;
       prev = current;
-      current = temp;
+      current = next;
     }
 
-    this.first.next = null;
-    this.last.prev = null;
-    temp = this.first;
+    this.last = this.first;
     this.first = prev;
-    this.last = temp;
   }
 }
 
-export { NodeStructure };
 export default LinkedList;
