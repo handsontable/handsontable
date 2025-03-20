@@ -6,8 +6,9 @@
  * Description: Definition file for English - United States language-country.
  */
 import * as C from '../constants';
+import { Dictionary } from '../types';
 
-const dictionary = {
+const dictionary: Dictionary = {
   languageCode: 'en-US',
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'No available options',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insert row above',

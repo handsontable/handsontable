@@ -1,4 +1,5 @@
 import { substitute } from './../../helpers/string';
+import { VariablesAndValues } from '../types';
 
 /**
  * Try to substitute variable inside phrase propositions.
@@ -8,10 +9,13 @@ import { substitute } from './../../helpers/string';
  *
  * @returns {string} Phrases with substituted variables if it's possible, list of unchanged phrase propositions otherwise.
  */
-export default function substituteVariables(phrasePropositions, zippedVariablesAndValues) {
+export default function substituteVariables(
+  phrasePropositions: string | string[], 
+  zippedVariablesAndValues?: VariablesAndValues
+): string | string[] {
   if (Array.isArray(phrasePropositions)) {
     return phrasePropositions
-      .map(phraseProposition => substituteVariables(phraseProposition, zippedVariablesAndValues));
+      .map((phraseProposition: string) => substituteVariables(phraseProposition, zippedVariablesAndValues) as string);
   }
 
   return substitute(phrasePropositions, zippedVariablesAndValues);

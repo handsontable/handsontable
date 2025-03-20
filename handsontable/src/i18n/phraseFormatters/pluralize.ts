@@ -6,11 +6,11 @@
  *
  * @returns {string|Array} One particular phrase if it's possible, list of unchanged phrase propositions otherwise.
  */
-export default function pluralize(phrasePropositions, pluralForm) {
+export default function pluralize(phrasePropositions: string | string[], pluralForm?: number): string | string[] {
   const isPluralizable = Array.isArray(phrasePropositions) && Number.isInteger(pluralForm);
 
   if (isPluralizable) {
-    return phrasePropositions[pluralForm];
+    return phrasePropositions[pluralForm as number];
   }
 
   return phrasePropositions;

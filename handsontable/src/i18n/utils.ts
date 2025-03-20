@@ -2,6 +2,7 @@ import { isUndefined, isDefined } from './../helpers/mixed';
 import { objectEach } from './../helpers/object';
 import { error } from './../helpers/console';
 import { toSingleLine } from './../helpers/templateLiteralTag';
+import { Dictionary } from './types';
 
 /**
  * Perform shallow extend of a target object with only this extension's properties which doesn't exist in the target.
@@ -12,7 +13,7 @@ import { toSingleLine } from './../helpers/templateLiteralTag';
  * @param {object} extension An object containing additional properties to merge into the target.
  * @returns {object}
  */
-export function extendNotExistingKeys(target, extension) {
+export function extendNotExistingKeys(target: Dictionary, extension: Dictionary): Dictionary {
   objectEach(extension, (value, key) => {
     if (isUndefined(target[key])) {
       target[key] = value;
@@ -36,7 +37,12 @@ export function extendNotExistingKeys(target, extension) {
  * @param {*} toValue Value which will represent "next" cell.
  * @returns {string} Value representing range i.e. A-Z, 11-15.
  */
-export function createCellHeadersRange(firstRowIndex, nextRowIndex, fromValue = firstRowIndex, toValue = nextRowIndex) {
+export function createCellHeadersRange(
+  firstRowIndex: number, 
+  nextRowIndex: number, 
+  fromValue: string | number = firstRowIndex, 
+  toValue: string | number = nextRowIndex
+): string {
   // Will swap `fromValue` with `toValue` if it's necessary.
   let [from, to] = [fromValue, toValue];
 
@@ -54,7 +60,7 @@ export function createCellHeadersRange(firstRowIndex, nextRowIndex, fromValue = 
  * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @returns {string}
  */
-export function normalizeLanguageCode(languageCode) {
+export function normalizeLanguageCode(languageCode: string): string {
   const languageCodePattern = /^([a-zA-Z]{2})-([a-zA-Z]{2})$/;
   const partsOfLanguageCode = languageCodePattern.exec(languageCode);
 
@@ -71,7 +77,7 @@ export function normalizeLanguageCode(languageCode) {
  *
  * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  */
-export function warnUserAboutLanguageRegistration(languageCode) {
+export function warnUserAboutLanguageRegistration(languageCode?: string): void {
   if (isDefined(languageCode)) {
     error(toSingleLine`Language with code "${languageCode}" was not found. You should register particular language\x20
     before using it. Read more about this issue at: https://docs.handsontable.com/i18n/missing-language-code.`);

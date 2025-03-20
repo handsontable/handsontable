@@ -5,6 +5,7 @@ import { extendNotExistingKeys, normalizeLanguageCode, warnUserAboutLanguageRegi
 import staticRegister from '../utils/staticRegister';
 import { getPhraseFormatters } from './phraseFormatters';
 import DEFAULT_DICTIONARY from './languages/en-US';
+import { Dictionary, PhraseFormatterFn } from './types';
 
 import * as _dictionaryKeys from './constants';
 
@@ -30,13 +31,16 @@ registerLanguageDictionary(DEFAULT_DICTIONARY);
  * @param {object} dictionary Dictionary for specific language (optional if first parameter has already dictionary).
  * @returns {object}
  */
-export function registerLanguageDictionary(languageCodeOrDictionary, dictionary) {
-  let languageCode = languageCodeOrDictionary;
-  let dictionaryObject = dictionary;
+export function registerLanguageDictionary(
+  languageCodeOrDictionary: string | Dictionary, 
+  dictionary?: Dictionary
+): Dictionary {
+  let languageCode = languageCodeOrDictionary as string;
+  let dictionaryObject = dictionary as Dictionary;
 
   // Dictionary passed as first argument.
   if (isObject(languageCodeOrDictionary)) {
-    dictionaryObject = languageCodeOrDictionary;
+    dictionaryObject = languageCodeOrDictionary as Dictionary;
     languageCode = dictionaryObject.languageCode;
   }
 
@@ -54,7 +58,7 @@ export function registerLanguageDictionary(languageCodeOrDictionary, dictionary)
  * @param {string} languageCode Language code.
  * @param {object} dictionary Dictionary which is extended.
  */
-function extendLanguageDictionary(languageCode, dictionary) {
+function extendLanguageDictionary(languageCode: string, dictionary: Dictionary): void {
   if (languageCode !== DEFAULT_LANGUAGE_CODE) {
     extendNotExistingKeys(dictionary, getGlobalLanguageDictionary(DEFAULT_LANGUAGE_CODE));
   }
@@ -66,7 +70,7 @@ function extendLanguageDictionary(languageCode, dictionary) {
  * @param {string} languageCode Language code.
  * @returns {object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
  */
-export function getLanguageDictionary(languageCode) {
+export function getLanguageDictionary(languageCode: string): Dictionary | null {
   if (!hasLanguageDictionary(languageCode)) {
     return null;
   }
@@ -81,7 +85,7 @@ export function getLanguageDictionary(languageCode) {
  * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @returns {boolean}
  */
-export function hasLanguageDictionary(languageCode) {
+export function hasLanguageDictionary(languageCode: string): boolean {
   return hasGlobalLanguageDictionary(languageCode);
 }
 
@@ -90,7 +94,7 @@ export function hasLanguageDictionary(languageCode) {
  *
  * @returns {object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
  */
-export function getDefaultLanguageDictionary() {
+export function getDefaultLanguageDictionary(): Dictionary {
   return DEFAULT_DICTIONARY;
 }
 
@@ -99,7 +103,7 @@ export function getDefaultLanguageDictionary() {
  *
  * @returns {Array}
  */
-export function getLanguagesDictionaries() {
+export function getLanguagesDictionaries(): Dictionary[] {
   return getGlobalLanguagesDictionaries();
 }
 
@@ -112,7 +116,11 @@ export function getLanguagesDictionaries() {
  *
  * @returns {string}
  */
-export function getTranslatedPhrase(languageCode, dictionaryKey, argumentsForFormatters) {
+export function getTranslatedPhrase(
+  languageCode: string, 
+  dictionaryKey: string, 
+  argumentsForFormatters?: any
+): string | null {
   const languageDictionary = getLanguageDictionary(languageCode);
 
   if (languageDictionary === null) {
@@ -143,10 +151,13 @@ export function getTranslatedPhrase(languageCode, dictionaryKey, argumentsForFor
  *
  * @returns {Array|string}
  */
-function getFormattedPhrase(phrasePropositions, argumentsForFormatters) {
+function getFormattedPhrase(
+  phrasePropositions: string | string[], 
+  argumentsForFormatters?: any
+): string | string[] {
   let formattedPhrasePropositions = phrasePropositions;
 
-  arrayEach(getPhraseFormatters(), (formatter) => {
+  arrayEach(getPhraseFormatters(), (formatter: PhraseFormatterFn) => {
     formattedPhrasePropositions = formatter(phrasePropositions, argumentsForFormatters);
   });
 
@@ -159,7 +170,7 @@ function getFormattedPhrase(phrasePropositions, argumentsForFormatters) {
  * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @returns {string}
  */
-export function getValidLanguageCode(languageCode) {
+export function getValidLanguageCode(languageCode: string): string {
   let normalizedLanguageCode = normalizeLanguageCode(languageCode);
 
   if (!hasLanguageDictionary(normalizedLanguageCode)) {
