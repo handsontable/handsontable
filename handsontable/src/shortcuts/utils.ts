@@ -1,6 +1,6 @@
 // This file handles key-name discrepancies between browsers.
 // For the list of discrepancies, go to: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
-const mappings = new Map([
+const mappings: Map<string, string> = new Map([
   [' ', 'space'], // custom mapping
   ['spacebar', 'space'],
   ['scroll', 'scrolllock'],
@@ -29,7 +29,7 @@ const mappings = new Map([
  * @param {Array<string>} keys The list of the `KeyboardEvent.key` properties
  * @returns {string}
  */
-export const normalizeKeys = (keys) => {
+export const normalizeKeys = (keys: string[]): string => {
   return keys.map((key) => {
     const lowercaseKey = key.toLowerCase();
 
@@ -47,11 +47,11 @@ export const normalizeKeys = (keys) => {
  * @param {string} normalizedKeys A single, normalized string that contains the list of the `KeyboardEvent.key` properties
  * @returns {Array<string>}
  */
-export const getKeysList = (normalizedKeys) => {
+export const getKeysList = (normalizedKeys: string): string[] => {
   return normalizedKeys.split('+');
 };
 
-const specialCharactersSet = new Map([
+const specialCharactersSet: Map<number, string> = new Map([
   [96, 'numpad0'],
   [97, 'numpad1'],
   [98, 'numpad2'],
@@ -106,9 +106,9 @@ const specialCharactersSet = new Map([
  * @param {Event} event The KeyboardEvent object.
  * @returns {string}
  */
-export const normalizeEventKey = ({ which, key }) => {
+export const normalizeEventKey = ({ which, key }: { which: number, key: string }): string => {
   if (specialCharactersSet.has(which)) {
-    return specialCharactersSet.get(which);
+    return specialCharactersSet.get(which) as string;
   }
 
   const normalizedKey = String.fromCharCode(which).toLowerCase();

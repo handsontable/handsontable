@@ -3,10 +3,11 @@ import { normalizeEventKey } from './utils';
 import { isImmediatePropagationStopped } from '../helpers/dom/event';
 import { getParentWindow } from '../helpers/dom/element';
 import { isMacOS } from '../helpers/browser';
+import { KeyRecorder, ModKeyListener, ShortcutCallback } from './types';
 
-const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
+const MODIFIER_KEYS: string[] = ['meta', 'alt', 'shift', 'control'];
 const modifierKeysObserver = createKeysObserver();
-const modKeyListeners = [];
+const modKeyListeners: ModKeyListener[] = [];
 let instanceCounter = 0;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -21,14 +22,20 @@ let instanceCounter = 0;
  * @param {Function} callback `KeyEvent`'s listener's callback function
  * @returns {object}
  */
-export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDown, callback) {
+export function useRecorder(
+  ownerWindow: Window,
+  handleEvent: (event: KeyboardEvent) => boolean,
+  beforeKeyDown: (event: KeyboardEvent) => boolean | void,
+  afterKeyDown: (event: KeyboardEvent) => void,
+  callback: ShortcutCallback
+): KeyRecorder {
   /**
    * Check if a pressed key is tracked or not.
    *
    * @param {string} pressedKey A pressed key
    * @returns {boolean}
    */
-  const isModifierKey = (pressedKey) => {
+  const isModifierKey = (pressedKey: string): boolean => {
     return MODIFIER_KEYS.includes(pressedKey);
   };
 
@@ -44,8 +51,8 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
    *                                        and Control for non macOS system).
    * @returns {string[]}
    */
-  const getPressedModifierKeys = (event, mergeMetaKeys = false) => {
-    const pressedModifierKeys = [];
+  const getPressedModifierKeys = (event: KeyboardEvent, mergeMetaKeys = false): string[] => {
+    const pressedModifierKeys: string[] = [];
 
     if (event.altKey) {
       pressedModifierKeys.push('alt');
@@ -77,7 +84,7 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
    * @private
    * @param {KeyboardEvent} event The event object
    */
-  const onkeydown = (event) => {
+  const onkeydown = (event: KeyboardEvent): void => {
     if (handleEvent(event) === false) {
       return;
     }
@@ -97,7 +104,7 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
     }
 
     const pressedKey = normalizeEventKey(event);
-    let extraModifierKeys = [];
+    let extraModifierKeys: string[] = [];
 
     if (!isModifierKey(pressedKey)) {
       extraModifierKeys = getPressedModifierKeys(event);
@@ -121,7 +128,7 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
    * @private
    * @param {KeyboardEvent} event The event object
    */
-  const onkeydownForModKeys = (event) => {
+  const onkeydownForModKeys = (event: KeyboardEvent): void => {
     if (typeof event.key === 'string') {
       const pressedKey = normalizeEventKey(event);
 
@@ -137,7 +144,7 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
    * @private
    * @param {KeyboardEvent} event The event object
    */
-  const onkeyupForModKeys = (event) => {
+  const onkeyupForModKeys = (event: KeyboardEvent): void => {
     if (typeof event.key === 'string') {
       const pressedKey = normalizeEventKey(event);
 
@@ -152,29 +159,29 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
    *
    * @private
    */
-  const onblur = () => {
+  const onblur = (): void => {
     modifierKeysObserver.releaseAll();
   };
 
   /**
    * Add event listeners to the starting window and its parents' windows.
    */
-  const mount = () => {
-    let eventTarget = ownerWindow;
+  const mount = (): void => {
+    let eventTarget: Window | null = ownerWindow;
 
     instanceCounter += 1;
 
     while (eventTarget) {
       if (instanceCounter === 1) {
-        eventTarget.document.documentElement.addEventListener('keydown', onkeydownForModKeys);
+        eventTarget.document.documentElement.addEventListener('keydown', onkeydownForModKeys as EventListener);
         modKeyListeners.push({ event: 'keydown', listener: onkeydownForModKeys });
 
-        eventTarget.document.documentElement.addEventListener('keyup', onkeyupForModKeys);
+        eventTarget.document.documentElement.addEventListener('keyup', onkeyupForModKeys as EventListener);
         modKeyListeners.push({ event: 'keyup', listener: onkeyupForModKeys });
       }
 
-      eventTarget.document.documentElement.addEventListener('keydown', onkeydown);
-      eventTarget.document.documentElement.addEventListener('blur', onblur);
+      eventTarget.document.documentElement.addEventListener('keydown', onkeydown as EventListener);
+      eventTarget.document.documentElement.addEventListener('blur', onblur as EventListener);
 
       eventTarget = getParentWindow(eventTarget);
     }
@@ -183,8 +190,8 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
   /**
    * Remove event listeners from the starting window and its parents' windows.
    */
-  const unmount = () => {
-    let eventTarget = ownerWindow;
+  const unmount = (): void => {
+    let eventTarget: Window | null = ownerWindow;
 
     instanceCounter -= 1;
 
@@ -193,14 +200,14 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
         for (let i = 0; i < modKeyListeners.length; i++) {
           const { event, listener } = modKeyListeners[i];
 
-          eventTarget.document.documentElement.removeEventListener(event, listener);
+          eventTarget.document.documentElement.removeEventListener(event, listener as EventListener);
         }
 
         modKeyListeners.length = 0;
       }
 
-      eventTarget.document.documentElement.removeEventListener('keydown', onkeydown);
-      eventTarget.document.documentElement.removeEventListener('blur', onblur);
+      eventTarget.document.documentElement.removeEventListener('keydown', onkeydown as EventListener);
+      eventTarget.document.documentElement.removeEventListener('blur', onblur as EventListener);
 
       eventTarget = getParentWindow(eventTarget);
     }

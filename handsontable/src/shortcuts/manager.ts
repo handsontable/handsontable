@@ -3,6 +3,7 @@ import { stopImmediatePropagation } from '../helpers/dom/event';
 import { createContext, isContextObject } from './context';
 import { useRecorder } from './recorder';
 import { toSingleLine } from '../helpers/templateLiteralTag';
+import { ShortcutManager, ShortcutManagerOptions, ShortcutContext } from './types';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -20,13 +21,13 @@ import { toSingleLine } from '../helpers/templateLiteralTag';
  * @param {Function} options.beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#block-a-keyboard-shortcut-s-actions).
  * @param {Function} options.afterKeyDown A hook fired after the `keydown` event is handled
  */
-export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown, afterKeyDown }) => {
+export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown, afterKeyDown }: ShortcutManagerOptions): ShortcutManager => {
   /**
    * A unique map that stores keyboard shortcut contexts.
    *
    * @type {UniqueMap}
    */
-  const CONTEXTS = createUniqueMap({
+  const CONTEXTS = createUniqueMap<string, ShortcutContext>({
     errorIdExists: keys => `The "${keys}" context name is already registered.`
   });
   /**
@@ -43,7 +44,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @param {string} contextName The name of the new shortcut context
    * @returns {object}
    */
-  const addContext = (contextName) => {
+  const addContext = (contextName: string): ShortcutContext => {
     const context = createContext(contextName);
 
     CONTEXTS.addItem(contextName, context);
@@ -57,7 +58,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @memberof ShortcutManager#
    * @returns {string}
    */
-  const getActiveContextName = () => {
+  const getActiveContextName = (): string => {
     return activeContextName;
   };
 
@@ -68,7 +69,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @param {string} contextName The name of the shortcut context
    * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts
    */
-  const getContext = (contextName) => {
+  const getContext = (contextName: string): ShortcutContext | undefined => {
     return CONTEXTS.getItem(contextName);
   };
 
@@ -78,7 +79,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @memberof ShortcutManager#
    * @param {string} contextName The name of the shortcut context
    */
-  const setActiveContextName = (contextName) => {
+  const setActiveContextName = (contextName: string): void => {
     if (!CONTEXTS.hasItem(contextName)) {
       throw new Error(toSingleLine`You've tried to activate the "${contextName}" shortcut context\x20
         that does not exist. Before activation, register the context using the "addContext" method.`);
@@ -106,11 +107,11 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @param {object | string} context The context object or name.
    * @returns {boolean}
    */
-  const recorderCallback = (event, keys, context = getActiveContextName()) => {
+  const recorderCallback = (event: KeyboardEvent, keys: string[], context: ShortcutContext | string = getActiveContextName()): boolean => {
     const activeContext = isContextObject(context) ? context : getContext(context);
     let isExecutionCancelled = false;
 
-    if (!activeContext.hasShortcut(keys)) {
+    if (!activeContext || !activeContext.hasShortcut(keys)) {
       return isExecutionCancelled;
     }
 

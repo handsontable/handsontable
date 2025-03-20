@@ -4,6 +4,7 @@ import { isUndefined, isDefined } from '../helpers/mixed';
 import { isFunction } from '../helpers/function';
 import { objectEach, isObject } from '../helpers/object';
 import { toSingleLine } from '../helpers/templateLiteralTag';
+import { ShortcutContext, ShortcutOptions, ShortcutDefinition } from './types';
 
 const __kindOf = Symbol('shortcut-context');
 
@@ -13,7 +14,7 @@ const __kindOf = Symbol('shortcut-context');
  * @param {*} objectToCheck An object to check.
  * @returns {boolean}
  */
-export function isContextObject(objectToCheck) {
+export function isContextObject(objectToCheck: any): objectToCheck is ShortcutContext {
   return isObject(objectToCheck) && objectToCheck.__kindOf === __kindOf;
 }
 
@@ -28,8 +29,8 @@ export function isContextObject(objectToCheck) {
  * @param {string} name The name of the keyboard shortcut context
  * @returns {object}
  */
-export const createContext = (name) => {
-  const SHORTCUTS = createUniqueMap({
+export const createContext = (name: string): ShortcutContext => {
+  const SHORTCUTS = createUniqueMap<string, ShortcutDefinition[]>({
     errorIdExists: keys => `The "${keys}" shortcut is already registered in the "${name}" context.`
   });
 
@@ -64,7 +65,7 @@ export const createContext = (name) => {
       relativeToGroup,
       position,
       forwardToContext,
-    } = {}) => {
+    }: ShortcutOptions = {} as ShortcutOptions): void => {
 
     if (isUndefined(group)) {
       throw new Error('You need to define the shortcut\'s group.');
@@ -80,7 +81,7 @@ export const createContext = (name) => {
       https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.`);
     }
 
-    const newShortcut = {
+    const newShortcut: ShortcutDefinition = {
       callback,
       group,
       runOnlyIf,
@@ -104,22 +105,23 @@ export const createContext = (name) => {
 
       if (hasKeyCombination) {
         const shortcuts = SHORTCUTS.getItem(normalizedKeys);
-        let insertionIndex = shortcuts.findIndex(shortcut => shortcut.group === relativeToGroup);
+        if (shortcuts) {
+          let insertionIndex = shortcuts.findIndex(shortcut => shortcut.group === relativeToGroup);
 
-        if (insertionIndex !== -1) {
-          if (position === 'before') {
-            insertionIndex -= 1;
+          if (insertionIndex !== -1) {
+            if (position === 'before') {
+              insertionIndex -= 1;
+
+            } else {
+              insertionIndex += 1;
+            }
 
           } else {
-            insertionIndex += 1;
+            insertionIndex = shortcuts.length;
           }
 
-        } else {
-          insertionIndex = shortcuts.length;
+          shortcuts.splice(insertionIndex, 0, newShortcut);
         }
-
-        shortcuts.splice(insertionIndex, 0, newShortcut);
-
       } else {
         SHORTCUTS.addItem(normalizedKeys, [newShortcut]);
       }
@@ -142,11 +144,11 @@ export const createContext = (name) => {
    * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    * @param {object} [options.forwardToContext] The context object where the event will be forwarded to.
    */
-  const addShortcuts = (shortcuts, options = {}) => {
+  const addShortcuts = (shortcuts: ShortcutOptions[], options: Partial<ShortcutOptions> = {}): void => {
     shortcuts.forEach((shortcut) => {
       objectEach(options, (value, key) => {
         if (Object.prototype.hasOwnProperty.call(shortcut, key) === false) {
-          shortcut[key] = options[key];
+          (shortcut as any)[key] = options[key as keyof typeof options];
         }
       });
 
@@ -162,7 +164,7 @@ export const createContext = (name) => {
    * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
    * in lowercase or uppercase, unified across browsers
    */
-  const removeShortcutsByKeys = (keys) => {
+  const removeShortcutsByKeys = (keys: string[]): void => {
     const normalizedKeys = normalizeKeys(keys);
 
     SHORTCUTS.removeItem(normalizedKeys);
@@ -174,7 +176,7 @@ export const createContext = (name) => {
    * @memberof ShortcutContext#
    * @param {string} group The name of the group of shortcuts
    */
-  const removeShortcutsByGroup = (group) => {
+  const removeShortcutsByGroup = (group: string): void => {
     const shortcuts = SHORTCUTS.getItems();
 
     shortcuts.forEach(([normalizedKeys, shortcutOptions]) => {
@@ -200,11 +202,11 @@ export const createContext = (name) => {
    * in lowercase or uppercase, unified across browsers
    * @returns {Array}
    */
-  const getShortcuts = (keys) => {
+  const getShortcuts = (keys: string[]): ShortcutDefinition[] => {
     const normalizedKeys = normalizeKeys(keys);
     const shortcuts = SHORTCUTS.getItem(normalizedKeys);
 
-    return isDefined(shortcuts) ? shortcuts.slice() : [];
+    return shortcuts ? shortcuts.slice() : [];
   };
 
   /**
@@ -216,7 +218,7 @@ export const createContext = (name) => {
    * in lowercase or uppercase, unified across browsers
    * @returns {boolean}
    */
-  const hasShortcut = (keys) => {
+  const hasShortcut = (keys: string[]): boolean => {
     const normalizedKeys = normalizeKeys(keys);
 
     return SHORTCUTS.hasItem(normalizedKeys);
