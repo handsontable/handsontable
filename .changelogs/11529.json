@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed missing (incorrect) render call after dataset change",
+  "type": "fixed",
+  "issueOrPR": 11529,
+  "breaking": false,
+  "framework": "none"
+}
