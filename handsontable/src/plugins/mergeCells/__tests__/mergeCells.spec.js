@@ -1761,6 +1761,25 @@ describe('MergeCells', () => {
     });
   });
 
+  it('should proportionally calculate the height of the cells on the right of the merged cell (#dev-2302)', () => {
+    handsontable({
+      data: createSpreadsheetData(4, 3),
+      rowHeaders: false,
+      rowHeights: 50,
+      mergeCells: [{ row: 0, col: 0, rowspan: 4, colspan: 1 }],
+    });
+
+    expect(getCell(0, 0).offsetHeight).toBe(201);
+    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(52);
+      main.toBe(52);
+      horizon.toBe(51);
+    });
+    expect(getCell(1, 1).offsetHeight).toBe(50);
+    expect(getCell(2, 1).offsetHeight).toBe(50);
+    expect(getCell(3, 1).offsetHeight).toBe(50);
+  });
+
   it.forTheme('classic')('should display properly high merged cell', () => {
     handsontable({
       data: createSpreadsheetData(50, 3),

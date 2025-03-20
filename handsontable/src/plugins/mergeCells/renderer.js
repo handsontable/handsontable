@@ -1,4 +1,6 @@
 import { isObject } from '../../helpers/object';
+import { isSafari } from '../../helpers/browser';
+import { sumCellsHeights } from './utils';
 
 /**
  * Creates a renderer object for the `MergeCells` plugin.
@@ -15,6 +17,7 @@ export function createMergeCellRenderer(plugin) {
     rowIndexMapper: rowMapper,
     columnIndexMapper: columnMapper,
   } = hot;
+  const updateNextCellsHeight = new Map();
 
   /**
    * Runs before the cell is rendered.
@@ -37,6 +40,12 @@ export function createMergeCellRenderer(plugin) {
     if (!isObject(mergedCell)) {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
+
+      if (isSafari() && updateNextCellsHeight.has(row) && !hot.getSettings().rowHeaders) {
+        TD.style.height = `${updateNextCellsHeight.get(row)}px`;
+        updateNextCellsHeight.delete(row);
+      }
+
       TD.style.display = '';
 
       return;
@@ -53,6 +62,15 @@ export function createMergeCellRenderer(plugin) {
       lastMergedColumnIndex,
     ] = plugin.translateMergedCellToRenderable(origRow, origRowspan, origColumn, origColspan);
     const isVirtualRenderingEnabled = plugin.getSetting('virtualized');
+
+    // Safari bug fix - the height of the cells next to the merged cell must be defined
+    // so that their height is proportional to the height of the merged cell
+    // (this emulates default behavior in Chrome, FF etc.)
+    if (isSafari() && origColumn === 0 && !hot.getSettings().rowHeaders) {
+      const height = sumCellsHeights(hot, origRow, origRowspan);
+
+      updateNextCellsHeight.set(row, height / origRowspan);
+    }
 
     const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
     const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
