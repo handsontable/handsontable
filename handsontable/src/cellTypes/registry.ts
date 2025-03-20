@@ -2,6 +2,7 @@ import staticRegister from '../utils/staticRegister';
 import { registerEditor } from '../editors/registry';
 import { registerRenderer } from '../renderers/registry';
 import { registerValidator } from '../validators/registry';
+import { CellTypeObject } from './types';
 
 const {
   register,
@@ -17,14 +18,14 @@ const {
  * @param {string} name Cell type identification.
  * @returns {object} Returns cell type object.
  */
-function _getItem(name) {
+function _getItem(name: string): CellTypeObject {
   if (!hasItem(name)) {
     throw Error(`You declared cell type "${name}" as a string that is not mapped to a known object.
                  Cell type must be an object or a string mapped to an object registered by
                  "Handsontable.cellTypes.registerCellType" method`);
   }
 
-  return getItem(name);
+  return getItem(name) as CellTypeObject;
 }
 
 /**
@@ -33,25 +34,31 @@ function _getItem(name) {
  * @param {string} name Cell type identification.
  * @param {object} type An object with contains keys (eq: `editor`, `renderer`, `validator`) which describes specified behaviour of the cell.
  */
-function _register(name, type) {
+function _register(name: string | CellTypeObject, type?: CellTypeObject): void {
+  let cellName: string;
+  let cellType: CellTypeObject;
+
   if (typeof name !== 'string') {
-    type = name;
-    name = type.CELL_TYPE;
+    cellType = name;
+    cellName = cellType.CELL_TYPE;
+  } else {
+    cellName = name;
+    cellType = type as CellTypeObject;
   }
 
-  const { editor, renderer, validator } = type;
+  const { editor, renderer, validator } = cellType;
 
   if (editor) {
-    registerEditor(name, editor);
+    registerEditor(cellName, editor);
   }
   if (renderer) {
-    registerRenderer(name, renderer);
+    registerRenderer(cellName, renderer);
   }
   if (validator) {
-    registerValidator(name, validator);
+    registerValidator(cellName, validator);
   }
 
-  register(name, type);
+  register(cellName, cellType);
 }
 
 export {
