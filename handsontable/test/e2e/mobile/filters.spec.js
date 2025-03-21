@@ -13,7 +13,7 @@ describe('Filters', () => {
     }
   });
 
-  it('should keep focus on the input when the filter search input is clicked', () => {
+  it('should keep focus on the input when the filter search input is clicked', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(3, 3),
       filters: true,
@@ -31,10 +31,14 @@ describe('Filters', () => {
 
     simulateTouch(input);
 
-    Object.defineProperty(window, 'innerWidth', { value: 390 });
-    Object.defineProperty(window, 'innerHeight', { value: 600 });
+    if (Handsontable.helper.isAndroid()) {
+      Object.defineProperty(window, 'innerWidth', { value: 390 });
+      Object.defineProperty(window, 'innerHeight', { value: 600 });
 
-    window.dispatchEvent(new Event('resize'));
+      window.dispatchEvent(new Event('resize'));
+    }
+
+    await sleep(100);
 
     expect(document.activeElement).toBe(input);
   });
