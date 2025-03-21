@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem with multiple row header levels being rendered in reverse order.",
+  "type": "fixed",
+  "issueOrPR": 11533,
+  "breaking": false,
+  "framework": "none"
+}
