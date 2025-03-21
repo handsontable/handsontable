@@ -1,5 +1,7 @@
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
+import { IndexChange } from '../types';
+import { AnyFunction } from '../../helpers/types';
 
 /**
  * The ChangesObserver module is an object that represents a disposable resource
@@ -15,7 +17,7 @@ export class ChangesObserver {
    *
    * @type {Array}
    */
-  #currentInitialChanges = [];
+  #currentInitialChanges: IndexChange[] = [];
 
   /**
    * Subscribes to the observer.
@@ -23,7 +25,7 @@ export class ChangesObserver {
    * @param {Function} callback A function that will be called when the new changes will appear.
    * @returns {ChangesObserver}
    */
-  subscribe(callback) {
+  subscribe(callback: (changes: IndexChange[]) => void): ChangesObserver {
     this.addLocalHook('change', callback);
     this._write(this.#currentInitialChanges);
 
@@ -36,7 +38,7 @@ export class ChangesObserver {
    *
    * @returns {ChangesObserver}
    */
-  unsubscribe() {
+  unsubscribe(): ChangesObserver {
     this.runLocalHooks('unsubscribe');
     this.clearLocalHooks();
 
@@ -51,7 +53,7 @@ export class ChangesObserver {
    * @param {object} changes The chunk of changes produced by the ChangesObservable module.
    * @returns {ChangesObserver}
    */
-  _write(changes) {
+  _write(changes: IndexChange[]): ChangesObserver {
     if (changes.length > 0) {
       this.runLocalHooks('change', changes);
     }
@@ -66,9 +68,24 @@ export class ChangesObserver {
    * @private
    * @param {object} initialChanges The chunk of changes produced by the ChangesObservable module.
    */
-  _writeInitialChanges(initialChanges) {
+  _writeInitialChanges(initialChanges: IndexChange[]): void {
     this.#currentInitialChanges = initialChanges;
   }
+
+  /**
+   * Add local hook from the mixin.
+   */
+  addLocalHook!: (hookName: string, callback: AnyFunction) => void;
+
+  /**
+   * Clear local hooks from the mixin.
+   */
+  clearLocalHooks!: () => void;
+
+  /**
+   * Run local hooks from the mixin.
+   */
+  runLocalHooks!: (...args: any[]) => void;
 }
 
 mixin(ChangesObserver, localHooks);

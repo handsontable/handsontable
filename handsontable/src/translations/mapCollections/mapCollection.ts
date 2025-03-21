@@ -1,6 +1,8 @@
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
+import { IndexMap } from '../maps/indexMap';
+import { AnyFunction } from '../../helpers/types';
 
 // Counter for checking if there is a memory leak.
 let registeredMaps = 0;
@@ -14,7 +16,7 @@ export class MapCollection {
    *
    * @type {Map<string, IndexMap>}
    */
-  collection = new Map();
+  collection: Map<string, IndexMap> = new Map();
 
   /**
    * Register custom index map.
@@ -22,11 +24,11 @@ export class MapCollection {
    * @param {string} uniqueName Unique name of the index map.
    * @param {IndexMap} indexMap Index map containing miscellaneous (i.e. Meta data, indexes sequence), updated after remove and insert data actions.
    */
-  register(uniqueName, indexMap) {
+  register(uniqueName: string, indexMap: IndexMap): void {
     if (this.collection.has(uniqueName) === false) {
       this.collection.set(uniqueName, indexMap);
 
-      indexMap.addLocalHook('change', () => this.runLocalHooks('change', indexMap));
+      (indexMap as any).addLocalHook('change', () => this.runLocalHooks('change', indexMap));
 
       registeredMaps += 1;
     }
@@ -37,11 +39,11 @@ export class MapCollection {
    *
    * @param {string} name Name of the index map.
    */
-  unregister(name) {
+  unregister(name: string): void {
     const indexMap = this.collection.get(name);
 
     if (isDefined(indexMap)) {
-      indexMap.destroy();
+      (indexMap as any).destroy();
       this.collection.delete(name);
 
       this.runLocalHooks('change', indexMap);
@@ -53,7 +55,7 @@ export class MapCollection {
   /**
    * Unregisters and destroys all collected index map instances.
    */
-  unregisterAll() {
+  unregisterAll(): void {
     this.collection.forEach((indexMap, name) => this.unregister(name));
     this.collection.clear();
   }
@@ -64,12 +66,13 @@ export class MapCollection {
    * @param {string} [name] Name of the index map.
    * @returns {Array|IndexMap}
    */
-  get(name) {
+  get(name?: string): IndexMap | IndexMap[] {
     if (isUndefined(name)) {
       return Array.from(this.collection.values());
     }
 
-    return this.collection.get(name);
+    const map = this.collection.get(name as string);
+    return map === undefined ? undefined as unknown as IndexMap : map;
   }
 
   /**
@@ -77,7 +80,7 @@ export class MapCollection {
    *
    * @returns {number}
    */
-  getLength() {
+  getLength(): number {
     return this.collection.size;
   }
 
@@ -87,9 +90,9 @@ export class MapCollection {
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
-  removeFromEvery(removedIndexes) {
+  removeFromEvery(removedIndexes: number[]): void {
     this.collection.forEach((indexMap) => {
-      indexMap.remove(removedIndexes);
+      (indexMap as any).remove(removedIndexes);
     });
   }
 
@@ -100,9 +103,9 @@ export class MapCollection {
    * @param {number} insertionIndex Position inside the actual list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
-  insertToEvery(insertionIndex, insertedIndexes) {
+  insertToEvery(insertionIndex: number, insertedIndexes: number[]): void {
     this.collection.forEach((indexMap) => {
-      indexMap.insert(insertionIndex, insertedIndexes);
+      (indexMap as any).insert(insertionIndex, insertedIndexes);
     });
   }
 
@@ -111,11 +114,26 @@ export class MapCollection {
    *
    * @param {number} length Destination length for all stored maps.
    */
-  initEvery(length) {
+  initEvery(length: number): void {
     this.collection.forEach((indexMap) => {
       indexMap.init(length);
     });
   }
+
+  /**
+   * Add local hook from the mixin.
+   */
+  addLocalHook!: (hookName: string, callback: AnyFunction) => void;
+
+  /**
+   * Clear local hooks from the mixin.
+   */
+  clearLocalHooks!: () => void;
+
+  /**
+   * Run local hooks from the mixin.
+   */
+  runLocalHooks!: (...args: any[]) => void;
 }
 
 mixin(MapCollection, localHooks);
@@ -123,6 +141,6 @@ mixin(MapCollection, localHooks);
 /**
  * @returns {number}
  */
-export function getRegisteredMapsCounter() {
+export function getRegisteredMapsCounter(): number {
   return registeredMaps;
 }

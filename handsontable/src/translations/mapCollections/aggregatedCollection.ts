@@ -1,6 +1,8 @@
 import { MapCollection } from './mapCollection';
 import { arrayMap } from '../../helpers/array';
 import { isDefined } from '../../helpers/mixed';
+import { IndexMap } from '../maps/indexMap';
+import { AggregationFunction, IndexValue } from '../types';
 
 /**
  * Collection of maps. This collection aggregate maps with the same type of values. Values from the registered maps
@@ -12,17 +14,17 @@ export class AggregatedCollection extends MapCollection {
    *
    * @type {Array}
    */
-  mergedValuesCache = [];
+  mergedValuesCache: IndexValue[] = [];
   /**
    * Function which do aggregation on the values for particular index.
    */
-  aggregationFunction;
+  aggregationFunction: AggregationFunction;
   /**
    * Fallback value when there is no calculated value for particular index.
    */
-  fallbackValue;
+  fallbackValue: IndexValue;
 
-  constructor(aggregationFunction, fallbackValue) {
+  constructor(aggregationFunction: AggregationFunction, fallbackValue: IndexValue) {
     super();
     this.aggregationFunction = aggregationFunction;
     this.fallbackValue = fallbackValue;
@@ -34,7 +36,7 @@ export class AggregatedCollection extends MapCollection {
    * @param {boolean} [readFromCache=true] Determine if read results from the cache.
    * @returns {Array}
    */
-  getMergedValues(readFromCache = true) {
+  getMergedValues(readFromCache = true): IndexValue[] {
     if (readFromCache === true) {
       return this.mergedValuesCache;
     }
@@ -54,7 +56,7 @@ export class AggregatedCollection extends MapCollection {
     // |    0    | [[ value,  value,  value,  value,  value ], |
     // |    1    | [  value,  value,  value,  value,  value ]] |
     // +---------+----------+-------+-------+-------+----------+
-    const mapsValuesMatrix = arrayMap(this.get(), map => map.getValues());
+    const mapsValuesMatrix = arrayMap(this.get() as IndexMap[], map => map.getValues());
     // Below variable stores values for every particular index. Example describing situation when we have 2 registered maps,
     // with length equal to 5.
     //
@@ -69,11 +71,11 @@ export class AggregatedCollection extends MapCollection {
     // |    3    | [  value,  value ], |
     // |    4    | [  value,  value ]] |
     // +---------+----------+----------+
-    const indexesValuesMatrix = [];
+    const indexesValuesMatrix: IndexValue[][] = [];
     const mapsLength = (isDefined(mapsValuesMatrix[0]) && mapsValuesMatrix[0].length) || 0;
 
     for (let index = 0; index < mapsLength; index += 1) {
-      const valuesForIndex = [];
+      const valuesForIndex: IndexValue[] = [];
 
       for (let mapIndex = 0; mapIndex < this.getLength(); mapIndex += 1) {
         valuesForIndex.push(mapsValuesMatrix[mapIndex][index]);
@@ -92,7 +94,7 @@ export class AggregatedCollection extends MapCollection {
    * @param {boolean} [readFromCache=true] Determine if read results from the cache.
    * @returns {*}
    */
-  getMergedValueAtIndex(index, readFromCache) {
+  getMergedValueAtIndex(index: number, readFromCache?: boolean): IndexValue {
     const valueAtIndex = this.getMergedValues(readFromCache)[index];
 
     return isDefined(valueAtIndex) ? valueAtIndex : this.fallbackValue;
@@ -101,7 +103,7 @@ export class AggregatedCollection extends MapCollection {
   /**
    * Rebuild cache for the collection.
    */
-  updateCache() {
+  updateCache(): void {
     this.mergedValuesCache = this.getMergedValues(false);
   }
 }

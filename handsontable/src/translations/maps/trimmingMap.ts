@@ -1,5 +1,6 @@
 import { PhysicalIndexToValueMap } from './physicalIndexToValueMap';
 import { arrayReduce } from '../../helpers/array';
+import { IndexValue } from '../types';
 
 /**
  * Map for storing mappings from an physical index to a boolean value. It stores information whether physical index is
@@ -8,7 +9,7 @@ import { arrayReduce } from '../../helpers/array';
  * @class TrimmingMap
  */
 export class TrimmingMap extends PhysicalIndexToValueMap {
-  constructor(initValueOrFn = false) {
+  constructor(initValueOrFn: boolean | ((index: number) => boolean) = false) {
     super(initValueOrFn);
   }
 
@@ -19,13 +20,13 @@ export class TrimmingMap extends PhysicalIndexToValueMap {
    *
    * @returns {Array}
    */
-  getTrimmedIndexes() {
-    return arrayReduce(this.getValues(), (indexesList, isTrimmed, physicalIndex) => {
+  getTrimmedIndexes(): number[] {
+    return arrayReduce(this.getValues(), (indexesList: number[], isTrimmed: IndexValue, physicalIndex: number) => {
       if (isTrimmed) {
         indexesList.push(physicalIndex);
       }
 
       return indexesList;
-    }, []);
+    }, [] as number[]);
   }
 }

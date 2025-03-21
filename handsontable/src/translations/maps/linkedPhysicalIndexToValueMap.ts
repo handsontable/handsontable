@@ -3,6 +3,7 @@ import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physi
 import { getListWithRemovedItems as getListWithoutIndexes } from './utils/indexesSequence';
 import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
 import { isFunction } from '../../helpers/function';
+import { IndexValue } from '../types';
 
 /**
  * Map for storing mappings from an physical index to a value. Those entries are linked and stored in a certain order.
@@ -19,14 +20,14 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    * @private
    * @type {Array<number>}
    */
-  orderOfIndexes = []
+  orderOfIndexes: number[] = []
 
   /**
    * Get full list of ordered values for particular indexes.
    *
    * @returns {Array}
    */
-  getValues() {
+  getValues(): IndexValue[] {
     return this.orderOfIndexes.map(physicalIndex => this.indexedValues[physicalIndex]);
   }
 
@@ -37,7 +38,7 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    *
    * @param {Array} values List of set values.
    */
-  setValues(values) {
+  setValues(values: IndexValue[]): void {
     this.orderOfIndexes = [...Array(values.length).keys()];
 
     super.setValues(values);
@@ -54,7 +55,7 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    *
    * @returns {boolean}
    */
-  setValueAtIndex(index, value, position = this.orderOfIndexes.length) {
+  setValueAtIndex(index: number, value: IndexValue, position: number = this.orderOfIndexes.length): boolean {
     if (index < this.indexedValues.length) {
       this.indexedValues[index] = value;
 
@@ -75,14 +76,14 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    *
    * @param {number} physicalIndex Physical index.
    */
-  clearValue(physicalIndex) {
-    this.orderOfIndexes = getListWithoutIndexes(this.orderOfIndexes, [physicalIndex]);
+  clearValue(physicalIndex: number): void {
+    this.orderOfIndexes = getListWithoutIndexes(this.orderOfIndexes, [physicalIndex]) as number[];
 
     if (isFunction(this.initValueOrFn)) {
-      super.setValueAtIndex(physicalIndex, this.initValueOrFn(physicalIndex));
+      super.setValueAtIndex(physicalIndex, (this.initValueOrFn as Function)(physicalIndex));
 
     } else {
-      super.setValueAtIndex(physicalIndex, this.initValueOrFn);
+      super.setValueAtIndex(physicalIndex, this.initValueOrFn as IndexValue);
     }
   }
 
@@ -91,7 +92,7 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    *
    * @returns {number}
    */
-  getLength() {
+  getLength(): number {
     return this.orderOfIndexes.length;
   }
 
@@ -103,7 +104,7 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    * @private
    * @param {number} [length] Length of list.
    */
-  setDefaultValues(length = this.indexedValues.length) {
+  setDefaultValues(length: number = this.indexedValues.length): void {
     this.orderOfIndexes.length = 0;
 
     super.setDefaultValues(length);
@@ -116,14 +117,14 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    * @param {number} insertionIndex Position inside the list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
-  insert(insertionIndex, insertedIndexes) {
+  insert(insertionIndex: number, insertedIndexes: number[]): void {
     this.indexedValues = getListWithInsertedItems(
       this.indexedValues,
       insertionIndex,
       insertedIndexes,
       this.initValueOrFn
     );
-    this.orderOfIndexes = getIncreasedIndexes(this.orderOfIndexes, insertedIndexes);
+    this.orderOfIndexes = getIncreasedIndexes(this.orderOfIndexes, insertedIndexes) as number[];
 
     super.insert(insertionIndex, insertedIndexes);
   }
@@ -134,10 +135,10 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
-  remove(removedIndexes) {
+  remove(removedIndexes: number[]): void {
     this.indexedValues = getListWithRemovedItems(this.indexedValues, removedIndexes);
-    this.orderOfIndexes = getListWithoutIndexes(this.orderOfIndexes, removedIndexes);
-    this.orderOfIndexes = getDecreasedIndexes(this.orderOfIndexes, removedIndexes);
+    this.orderOfIndexes = getListWithoutIndexes(this.orderOfIndexes, removedIndexes) as number[];
+    this.orderOfIndexes = getDecreasedIndexes(this.orderOfIndexes, removedIndexes) as number[];
 
     super.remove(removedIndexes);
   }
@@ -147,7 +148,7 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    *
    * @returns {Array}
    */
-  getEntries() {
+  getEntries(): Array<[number, IndexValue]> {
     return this.orderOfIndexes.map(physicalIndex => [physicalIndex, this.getValueAtIndex(physicalIndex)]);
   }
 }

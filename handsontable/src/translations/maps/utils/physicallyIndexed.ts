@@ -11,7 +11,12 @@ import { arrayFilter } from '../../../helpers/array';
  * @param {*} insertedValuesMapping Mapping which may provide value or function returning value for the specific parameters.
  * @returns {Array} List with new mappings.
  */
-export function getListWithInsertedItems(indexedValues, insertionIndex, insertedIndexes, insertedValuesMapping) {
+export function getListWithInsertedItems<T>(
+  indexedValues: T[],
+  insertionIndex: number,
+  insertedIndexes: number[],
+  insertedValuesMapping: ((insertedIndex: number, ordinalNumber: number) => T) | T
+): T[] {
   const firstInsertedIndex = insertedIndexes.length ? insertedIndexes[0] : undefined;
 
   return [
@@ -35,6 +40,6 @@ export function getListWithInsertedItems(indexedValues, insertionIndex, inserted
  * @param {Array} removedIndexes List of removed indexes.
  * @returns {Array} Reduced list of mappings.
  */
-export function getListWithRemovedItems(indexedValues, removedIndexes) {
+export function getListWithRemovedItems<T>(indexedValues: T[], removedIndexes: number[]): T[] {
   return arrayFilter(indexedValues, (_, index) => removedIndexes.includes(index) === false);
 }

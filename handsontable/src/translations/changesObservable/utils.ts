@@ -1,3 +1,5 @@
+import { IndexChange, IndexValue } from '../types';
+
 /**
  * An array diff implementation. The function iterates through the arrays and depends
  * on the diff results, collect the changes as a list of the objects.
@@ -10,8 +12,8 @@
  * @param {Array} newArray The new array to compare with.
  * @returns {Array}
  */
-export function arrayDiff(baseArray, newArray) {
-  const changes = [];
+export function arrayDiff(baseArray: IndexValue[], newArray: IndexValue[]): IndexChange[] {
+  const changes: IndexChange[] = [];
   let i = 0;
   let j = 0;
 

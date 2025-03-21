@@ -1,5 +1,6 @@
 import { PhysicalIndexToValueMap } from './physicalIndexToValueMap';
 import { arrayReduce } from '../../helpers/array';
+import { IndexValue } from '../types';
 
 /**
  * Map for storing mappings from an physical index to a boolean value. It stores information whether physical index is
@@ -8,7 +9,7 @@ import { arrayReduce } from '../../helpers/array';
  * @class HidingMap
  */
 export class HidingMap extends PhysicalIndexToValueMap {
-  constructor(initValueOrFn = false) {
+  constructor(initValueOrFn: boolean | ((index: number) => boolean) = false) {
     super(initValueOrFn);
   }
 
@@ -19,13 +20,13 @@ export class HidingMap extends PhysicalIndexToValueMap {
    *
    * @returns {Array}
    */
-  getHiddenIndexes() {
-    return arrayReduce(this.getValues(), (indexesList, isHidden, physicalIndex) => {
+  getHiddenIndexes(): number[] {
+    return arrayReduce(this.getValues(), (indexesList: number[], isHidden: IndexValue, physicalIndex: number) => {
       if (isHidden) {
         indexesList.push(physicalIndex);
       }
 
       return indexesList;
-    }, []);
+    }, [] as number[]);
   }
 }

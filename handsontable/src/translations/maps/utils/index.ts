@@ -7,8 +7,9 @@ import {
   getListWithInsertedItems as physicalStrategyInsert,
   getListWithRemovedItems as physicalStrategyRemove
 } from './physicallyIndexed';
+import { AlterStrategy, AlterStrategyMapEntry } from './types';
 
-const alterStrategies = new Map([
+const alterStrategies = new Map<string, AlterStrategyMapEntry>([
   ['indexesSequence', {
     getListWithInsertedItems: sequenceStrategyInsert,
     getListWithRemovedItems: sequenceStrategyRemove
@@ -19,12 +20,12 @@ const alterStrategies = new Map([
   }],
 ]);
 
-const alterUtilsFactory = (indexationStrategy) => {
+const alterUtilsFactory = (indexationStrategy: string): AlterStrategyMapEntry => {
   if (alterStrategies.has(indexationStrategy) === false) {
     throw new Error(`Alter strategy with ID '${indexationStrategy}' does not exist.`);
   }
 
-  return alterStrategies.get(indexationStrategy);
+  return alterStrategies.get(indexationStrategy) as AlterStrategyMapEntry;
 };
 
 export {

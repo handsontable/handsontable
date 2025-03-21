@@ -1,5 +1,6 @@
 import { IndexMap } from './indexMap';
 import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
+import { IndexValue } from '../types';
 
 /**
  * Map for storing mappings from an physical index to a value.
@@ -16,7 +17,7 @@ export class PhysicalIndexToValueMap extends IndexMap {
    * @param {number} insertionIndex Position inside the list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
-  insert(insertionIndex, insertedIndexes) {
+  insert(insertionIndex: number, insertedIndexes: number[]): void {
     this.indexedValues = getListWithInsertedItems(
       this.indexedValues,
       insertionIndex,
@@ -33,7 +34,7 @@ export class PhysicalIndexToValueMap extends IndexMap {
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
-  remove(removedIndexes) {
+  remove(removedIndexes: number[]): void {
     this.indexedValues = getListWithRemovedItems(this.indexedValues, removedIndexes);
 
     super.remove(removedIndexes);

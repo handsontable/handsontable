@@ -2,6 +2,8 @@ import { rangeEach } from '../../helpers/number';
 import { mixin } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import localHooks from '../../mixins/localHooks';
+import { AnyFunction } from '../../helpers/types';
+import { IndexValue } from '../types';
 
 /**
  * Map for storing mappings from an index to a value.
@@ -15,16 +17,16 @@ export class IndexMap {
    * @private
    * @type {Array}
    */
-  indexedValues = [];
+  indexedValues: IndexValue[] = [];
   /**
    * Initial value or function for each existing index.
    *
    * @private
    * @type {*}
    */
-  initValueOrFn;
+  initValueOrFn: IndexValue | ((index: number) => IndexValue) | null;
 
-  constructor(initValueOrFn = null) {
+  constructor(initValueOrFn: IndexValue | ((index: number) => IndexValue) | null = null) {
     this.initValueOrFn = initValueOrFn;
   }
 
@@ -33,7 +35,7 @@ export class IndexMap {
    *
    * @returns {Array}
    */
-  getValues() {
+  getValues(): IndexValue[] {
     return this.indexedValues;
   }
 
@@ -43,7 +45,7 @@ export class IndexMap {
    * @param {number} index Index for which value is got.
    * @returns {*}
    */
-  getValueAtIndex(index) {
+  getValueAtIndex(index: number): IndexValue | undefined {
     const values = this.indexedValues;
 
     if (index < values.length) {
@@ -58,7 +60,7 @@ export class IndexMap {
    *
    * @param {Array} values List of set values.
    */
-  setValues(values) {
+  setValues(values: IndexValue[]): void {
     this.indexedValues = values.slice();
 
     this.runLocalHooks('change');
@@ -76,7 +78,7 @@ export class IndexMap {
    *
    * @returns {boolean}
    */
-  setValueAtIndex(index, value) {
+  setValueAtIndex(index: number, value: IndexValue): boolean {
     if (index < this.indexedValues.length) {
       this.indexedValues[index] = value;
 
@@ -91,7 +93,7 @@ export class IndexMap {
   /**
    * Clear all values to the defaults.
    */
-  clear() {
+  clear(): void {
     this.setDefaultValues();
   }
 
@@ -100,7 +102,7 @@ export class IndexMap {
    *
    * @returns {number}
    */
-  getLength() {
+  getLength(): number {
     return this.getValues().length;
   }
 
@@ -112,14 +114,17 @@ export class IndexMap {
    * @private
    * @param {number} [length] Length of list.
    */
-  setDefaultValues(length = this.indexedValues.length) {
+  setDefaultValues(length: number = this.indexedValues.length): void {
     this.indexedValues.length = 0;
 
     if (isFunction(this.initValueOrFn)) {
-      rangeEach(length - 1, index => this.indexedValues.push(this.initValueOrFn(index)));
-
+      rangeEach(length - 1, (index: number): void => {
+        this.indexedValues.push((this.initValueOrFn as Function)(index));
+      });
     } else {
-      rangeEach(length - 1, () => this.indexedValues.push(this.initValueOrFn));
+      rangeEach(length - 1, (): void => {
+        this.indexedValues.push(this.initValueOrFn as IndexValue);
+      });
     }
 
     this.runLocalHooks('change');
@@ -132,7 +137,7 @@ export class IndexMap {
    * @param {number} length New length of indexed list.
    * @returns {IndexMap}
    */
-  init(length) {
+  init(length: number): IndexMap {
     this.setDefaultValues(length);
 
     this.runLocalHooks('init');
@@ -146,8 +151,10 @@ export class IndexMap {
    * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
    *
    * @private
+   * @param {number} insertionIndex Position inside the actual list.
+   * @param {Array} insertedIndexes List of inserted indexes.
    */
-  insert() {
+  insert(insertionIndex?: number, insertedIndexes?: number[]): void {
     this.runLocalHooks('change');
   }
 
@@ -157,20 +164,36 @@ export class IndexMap {
    * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
    *
    * @private
+   * @param {Array} removedIndexes List of removed indexes.
    */
-  remove() {
+  remove(removedIndexes?: number[]): void {
     this.runLocalHooks('change');
   }
 
   /**
    * Destroys the Map instance.
    */
-  destroy() {
+  destroy(): void {
     this.clearLocalHooks();
 
-    this.indexedValues = null;
+    this.indexedValues = null as any;
     this.initValueOrFn = null;
   }
+
+  /**
+   * Add local hook from the mixin.
+   */
+  addLocalHook!: (hookName: string, callback: AnyFunction) => void;
+
+  /**
+   * Clear local hooks from the mixin.
+   */
+  clearLocalHooks!: () => void;
+
+  /**
+   * Run local hooks from the mixin.
+   */
+  runLocalHooks!: (...args: any[]) => void;
 }
 
 mixin(IndexMap, localHooks);

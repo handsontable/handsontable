@@ -1,29 +1,3 @@
-import { arrayMap } from '../helpers/array';
-import {
-  createIndexMap,
-  getListWithInsertedItems,
-  getListWithRemovedItems,
-  HidingMap,
-  IndexesSequence,
-  TrimmingMap,
-} from './maps';
-import {
-  AggregatedCollection,
-  MapCollection,
-} from './mapCollections';
-import localHooks from '../mixins/localHooks';
-import { mixin } from '../helpers/object';
-import { isDefined } from '../helpers/mixed';
-import { ChangesObservable } from './changesObservable/observable';
-
-/**
- * A set of deprecated feature names.
- *
- * @type {Set<string>}
- */
-// eslint-disable-next-line no-unused-vars
-const deprecationWarns = new Set();
-
 /**
  * @class IndexMapper
  * @description
@@ -52,7 +26,7 @@ export class IndexMapper {
    * @private
    * @type {IndexesSequence}
    */
-  indexesSequence = new IndexesSequence();
+  indexesSequence: IndexesSequence = new IndexesSequence();
   /**
    * Collection for different trimming maps. Indexes marked as trimmed in any map WILL NOT be included in
    * the {@link DataMap} and won't be rendered.
@@ -60,8 +34,8 @@ export class IndexMapper {
    * @private
    * @type {MapCollection}
    */
-  trimmingMapsCollection = new AggregatedCollection(
-    valuesForIndex => valuesForIndex.some(value => value === true), false);
+  trimmingMapsCollection: MapCollection = new AggregatedCollection(
+    (valuesForIndex: boolean[]) => valuesForIndex.some(value => value === true), false);
   /**
    * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the {@link DataMap},
    * but won't be rendered.
@@ -69,15 +43,15 @@ export class IndexMapper {
    * @private
    * @type {MapCollection}
    */
-  hidingMapsCollection = new AggregatedCollection(
-    valuesForIndex => valuesForIndex.some(value => value === true), false);
+  hidingMapsCollection: MapCollection = new AggregatedCollection(
+    (valuesForIndex: boolean[]) => valuesForIndex.some(value => value === true), false);
   /**
    * Collection for another kind of maps. There are stored mappings from indexes (visual or physical) to values.
    *
    * @private
    * @type {MapCollection}
    */
-  variousMapsCollection = new MapCollection();
+  variousMapsCollection: MapCollection = new MapCollection();
   /**
    * The class instance collects row and column index changes that happen while the Handsontable
    * is running. The object allows creating observers that you can subscribe. Each event represents
@@ -87,7 +61,7 @@ export class IndexMapper {
    * @private
    * @type {ChangesObservable}
    */
-  hidingChangesObservable = new ChangesObservable({
+  hidingChangesObservable: ChangesObservable = new ChangesObservable({
     initialIndexValue: false,
   });
   /**
@@ -98,7 +72,7 @@ export class IndexMapper {
    * @private
    * @type {Array}
    */
-  notTrimmedIndexesCache = [];
+  notTrimmedIndexesCache: number[] = [];
   /**
    * Cache for list of not hidden indexes, respecting the indexes sequence (physical indexes).
    *
@@ -107,62 +81,62 @@ export class IndexMapper {
    * @private
    * @type {Array}
    */
-  notHiddenIndexesCache = [];
+  notHiddenIndexesCache: number[] = [];
   /**
    * Flag determining whether actions performed on index mapper have been batched. It's used for cache management.
    *
    * @private
    * @type {boolean}
    */
-  isBatched = false;
+  isBatched: boolean = false;
   /**
    * Flag determining whether any action on indexes sequence has been performed. It's used for cache management.
    *
    * @private
    * @type {boolean}
    */
-  indexesSequenceChanged = false;
+  indexesSequenceChanged: boolean = false;
   /**
    * Flag informing about source of the change.
    *
    * @type {undefined|string}
    */
-  indexesChangeSource = undefined;
+  indexesChangeSource: string | undefined = undefined;
   /**
    * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
    *
    * @private
    * @type {boolean}
    */
-  trimmedIndexesChanged = false;
+  trimmedIndexesChanged: boolean = false;
   /**
    * Flag determining whether any action on hidden indexes has been performed. It's used for cache management.
    *
    * @private
    * @type {boolean}
    */
-  hiddenIndexesChanged = false;
+  hiddenIndexesChanged: boolean = false;
   /**
    * Physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
    *
    * @private
    * @type {Array}
    */
-  renderablePhysicalIndexesCache = [];
+  renderablePhysicalIndexesCache: number[] = [];
   /**
    * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
    *
    * @private
    * @type {Map}
    */
-  fromPhysicalToVisualIndexesCache = new Map();
+  fromPhysicalToVisualIndexesCache: Map<number, number> = new Map();
   /**
    * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
    *
    * @private
    * @type {Map}
    */
-  fromVisualToRenderableIndexesCache = new Map();
+  fromVisualToRenderableIndexesCache: Map<number, number> = new Map();
 
   constructor() {
     this.indexesSequence.addLocalHook('change', () => {
@@ -175,7 +149,7 @@ export class IndexMapper {
       this.runLocalHooks('change', this.indexesSequence, null);
     });
 
-    this.trimmingMapsCollection.addLocalHook('change', (changedMap) => {
+    this.trimmingMapsCollection.addLocalHook('change', (changedMap: IndexMap) => {
       this.trimmedIndexesChanged = true;
 
       // Number of trimmed indexes might change.
@@ -184,7 +158,7 @@ export class IndexMapper {
       this.runLocalHooks('change', changedMap, this.trimmingMapsCollection);
     });
 
-    this.hidingMapsCollection.addLocalHook('change', (changedMap) => {
+    this.hidingMapsCollection.addLocalHook('change', (changedMap: IndexMap) => {
       this.hiddenIndexesChanged = true;
 
       // Number of hidden indexes might change.
@@ -193,7 +167,7 @@ export class IndexMapper {
       this.runLocalHooks('change', changedMap, this.hidingMapsCollection);
     });
 
-    this.variousMapsCollection.addLocalHook('change', (changedMap) => {
+    this.variousMapsCollection.addLocalHook('change', (changedMap: IndexMap) => {
       this.runLocalHooks('change', changedMap, this.variousMapsCollection);
     });
   }
@@ -203,7 +177,7 @@ export class IndexMapper {
    * operations, which affects the cache. In this case, the cache will be updated once after
    * calling the `resumeOperations` method.
    */
-  suspendOperations() {
+  suspendOperations(): void {
     this.isBatched = true;
   }
 
@@ -211,7 +185,7 @@ export class IndexMapper {
    * Resumes the cache update for this map. It recalculates the cache and restores the
    * default behavior where each map modification updates the cache.
    */
-  resumeOperations() {
+  resumeOperations(): void {
     this.isBatched = false;
     this.updateCache();
   }
@@ -224,7 +198,7 @@ export class IndexMapper {
    *                              Currently, only the 'hiding' index map types are observable.
    * @returns {ChangesObserver}
    */
-  createChangesObserver(indexMapType) {
+  createChangesObserver(indexMapType: string): ChangesObserver {
     if (indexMapType !== 'hiding') {
       throw new Error(`Unsupported index map type "${indexMapType}".`);
     }
@@ -240,7 +214,7 @@ export class IndexMapper {
    * @param {*} [initValueOrFn] The initial value for the index map.
    * @returns {IndexMap}
    */
-  createAndRegisterIndexMap(indexName, mapType, initValueOrFn) {
+  createAndRegisterIndexMap(indexName: string, mapType: string, initValueOrFn?: any): IndexMap {
     return this.registerMap(indexName, createIndexMap(mapType, initValueOrFn));
   }
 
@@ -251,7 +225,7 @@ export class IndexMapper {
    * @param {IndexMap} indexMap Registered index map updated on items removal and insertion.
    * @returns {IndexMap}
    */
-  registerMap(uniqueName, indexMap) {
+  registerMap(uniqueName: string, indexMap: IndexMap): IndexMap {
     if (this.trimmingMapsCollection.get(uniqueName) ||
         this.hidingMapsCollection.get(uniqueName) ||
         this.variousMapsCollection.get(uniqueName)) {
@@ -268,7 +242,7 @@ export class IndexMapper {
       this.variousMapsCollection.register(uniqueName, indexMap);
     }
 
-    const numberOfIndexes = this.getNumberOfIndexes();
+    const numberOfIndexes: number = this.getNumberOfIndexes();
 
     /*
       We initialize map ony when we have full information about number of indexes and the dataset is not empty.
@@ -289,7 +263,7 @@ export class IndexMapper {
    *
    * @param {string} name Name of the index map.
    */
-  unregisterMap(name) {
+  unregisterMap(name: string): void {
     this.trimmingMapsCollection.unregister(name);
     this.hidingMapsCollection.unregister(name);
     this.variousMapsCollection.unregister(name);
@@ -298,7 +272,7 @@ export class IndexMapper {
   /**
    * Unregisters all collected index map instances from all map collection types.
    */
-  unregisterAll() {
+  unregisterAll(): void {
     this.trimmingMapsCollection.unregisterAll();
     this.hidingMapsCollection.unregisterAll();
     this.variousMapsCollection.unregisterAll();
@@ -310,9 +284,9 @@ export class IndexMapper {
    * @param {number} visualIndex Visual index.
    * @returns {number|null} Returns translated index mapped by passed visual index.
    */
-  getPhysicalFromVisualIndex(visualIndex) {
+  getPhysicalFromVisualIndex(visualIndex: number): number | null {
     // Index in the table boundaries provided by the `DataMap`.
-    const physicalIndex = this.notTrimmedIndexesCache[visualIndex];
+    const physicalIndex: number | undefined = this.notTrimmedIndexesCache[visualIndex];
 
     if (isDefined(physicalIndex)) {
       return physicalIndex;
@@ -327,8 +301,8 @@ export class IndexMapper {
    * @param {number} renderableIndex Renderable index.
    * @returns {null|number}
    */
-  getPhysicalFromRenderableIndex(renderableIndex) {
-    const physicalIndex = this.renderablePhysicalIndexesCache[renderableIndex];
+  getPhysicalFromRenderableIndex(renderableIndex: number): number | null {
+    const physicalIndex: number | undefined = this.renderablePhysicalIndexesCache[renderableIndex];
 
     // Index in the renderable table boundaries.
     if (isDefined(physicalIndex)) {
@@ -344,8 +318,8 @@ export class IndexMapper {
    * @param {number} physicalIndex Physical index to search.
    * @returns {number|null} Returns a visual index of the index mapper.
    */
-  getVisualFromPhysicalIndex(physicalIndex) {
-    const visualIndex = this.fromPhysicalToVisualIndexesCache.get(physicalIndex);
+  getVisualFromPhysicalIndex(physicalIndex: number): number | null {
+    const visualIndex: number | undefined = this.fromPhysicalToVisualIndexesCache.get(physicalIndex);
 
     // Index in the table boundaries provided by the `DataMap`.
     if (isDefined(visualIndex)) {
@@ -361,7 +335,7 @@ export class IndexMapper {
    * @param {number} renderableIndex Renderable index.
    * @returns {null|number}
    */
-  getVisualFromRenderableIndex(renderableIndex) {
+  getVisualFromRenderableIndex(renderableIndex: number): number | null {
     return this.getVisualFromPhysicalIndex(this.getPhysicalFromRenderableIndex(renderableIndex));
   }
 
@@ -371,8 +345,8 @@ export class IndexMapper {
    * @param {number} visualIndex Visual index.
    * @returns {null|number}
    */
-  getRenderableFromVisualIndex(visualIndex) {
-    const renderableIndex = this.fromVisualToRenderableIndexesCache.get(visualIndex);
+  getRenderableFromVisualIndex(visualIndex: number): number | null {
+    const renderableIndex: number | undefined = this.fromVisualToRenderableIndexesCache.get(visualIndex);
 
     // Index in the renderable table boundaries.
     if (isDefined(renderableIndex)) {
@@ -394,8 +368,8 @@ export class IndexMapper {
    *
    * @returns {number|null} A visual index of a row or column, or `null`.
    */
-  getNearestNotHiddenIndex(fromVisualIndex, searchDirection, searchAlsoOtherWayAround = false) {
-    const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
+  getNearestNotHiddenIndex(fromVisualIndex: number, searchDirection: number, searchAlsoOtherWayAround: boolean = false): number | null {
+    const physicalIndex: number | null = this.getPhysicalFromVisualIndex(fromVisualIndex);
 
     if (physicalIndex === null) {
       return null;
@@ -405,8 +379,8 @@ export class IndexMapper {
       return fromVisualIndex;
     }
 
-    const visibleIndexes = Array.from(this.fromVisualToRenderableIndexesCache.keys());
-    let index = -1;
+    const visibleIndexes: number[] = Array.from(this.fromVisualToRenderableIndexesCache.keys());
+    let index: number = -1;
 
     if (searchDirection > 0) {
       index = visibleIndexes.findIndex(visualIndex => visualIndex > fromVisualIndex);
@@ -430,7 +404,7 @@ export class IndexMapper {
    *
    * @param {number} [length] Destination length for all stored index maps.
    */
-  initToLength(length = this.getNumberOfIndexes()) {
+  initToLength(length: number = this.getNumberOfIndexes()): void {
     this.notTrimmedIndexesCache = [...new Array(length).keys()];
     this.notHiddenIndexesCache = [...new Array(length).keys()];
 
@@ -457,11 +431,11 @@ export class IndexMapper {
    *
    * @param {number} length New mapper length.
    */
-  fitToLength(length) {
-    const currentIndexCount = this.getNumberOfIndexes();
+  fitToLength(length: number): void {
+    const currentIndexCount: number = this.getNumberOfIndexes();
 
     if (length < currentIndexCount) {
-      const indexesToBeRemoved = [
+      const indexesToBeRemoved: number[] = [
         ...Array(this.getNumberOfIndexes() - length).keys()
       ].map(i => i + length);
 
@@ -477,7 +451,7 @@ export class IndexMapper {
    *
    * @returns {Array} Physical indexes.
    */
-  getIndexesSequence() {
+  getIndexesSequence(): number[] {
     return this.indexesSequence.getValues();
   }
 
@@ -486,7 +460,7 @@ export class IndexMapper {
    *
    * @param {Array} indexes Physical indexes.
    */
-  setIndexesSequence(indexes) {
+  setIndexesSequence(indexes: number[]): void {
     if (this.indexesChangeSource === undefined) {
       this.indexesChangeSource = 'update';
     }
@@ -507,12 +481,12 @@ export class IndexMapper {
    * @returns {Array} List of physical indexes. Index of this native array is a "visual index",
    * value of this native array is a "physical index".
    */
-  getNotTrimmedIndexes(readFromCache = true) {
+  getNotTrimmedIndexes(readFromCache: boolean = true): number[] {
     if (readFromCache === true) {
       return this.notTrimmedIndexesCache;
     }
 
-    const indexesSequence = this.getIndexesSequence();
+    const indexesSequence: number[] = this.getIndexesSequence();
 
     return indexesSequence.filter(physicalIndex => this.isTrimmed(physicalIndex) === false);
   }
@@ -524,7 +498,7 @@ export class IndexMapper {
    *
    * @returns {number}
    */
-  getNotTrimmedIndexesLength() {
+  getNotTrimmedIndexesLength(): number {
     return this.getNotTrimmedIndexes().length;
   }
 
@@ -536,12 +510,12 @@ export class IndexMapper {
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array} List of physical indexes. Please keep in mind that index of this native array IS NOT a "visual index".
    */
-  getNotHiddenIndexes(readFromCache = true) {
+  getNotHiddenIndexes(readFromCache: boolean = true): number[] {
     if (readFromCache === true) {
       return this.notHiddenIndexesCache;
     }
 
-    const indexesSequence = this.getIndexesSequence();
+    const indexesSequence: number[] = this.getIndexesSequence();
 
     return indexesSequence.filter(physicalIndex => this.isHidden(physicalIndex) === false);
   }
@@ -553,7 +527,7 @@ export class IndexMapper {
    *
    * @returns {number}
    */
-  getNotHiddenIndexesLength() {
+  getNotHiddenIndexesLength(): number {
     return this.getNotHiddenIndexes().length;
   }
 
@@ -564,12 +538,12 @@ export class IndexMapper {
    * @returns {Array} List of physical indexes. Index of this native array is a "renderable index",
    * value of this native array is a "physical index".
    */
-  getRenderableIndexes(readFromCache = true) {
+  getRenderableIndexes(readFromCache: boolean = true): number[] {
     if (readFromCache === true) {
       return this.renderablePhysicalIndexesCache;
     }
 
-    const notTrimmedIndexes = this.getNotTrimmedIndexes();
+    const notTrimmedIndexes: number[] = this.getNotTrimmedIndexes();
 
     return notTrimmedIndexes.filter(physicalIndex => this.isHidden(physicalIndex) === false);
   }
@@ -579,7 +553,7 @@ export class IndexMapper {
    *
    * @returns {number}
    */
-  getRenderableIndexesLength() {
+  getRenderableIndexesLength(): number {
     return this.getRenderableIndexes().length;
   }
 
@@ -588,7 +562,7 @@ export class IndexMapper {
    *
    * @returns {number}
    */
-  getNumberOfIndexes() {
+  getNumberOfIndexes(): number {
     return this.getIndexesSequence().length;
   }
 
@@ -598,34 +572,34 @@ export class IndexMapper {
    * @param {number|Array} movedIndexes Visual index(es) to move.
    * @param {number} finalIndex Visual index being a start index for the moved elements.
    */
-  moveIndexes(movedIndexes, finalIndex) {
+  moveIndexes(movedIndexes: number | number[], finalIndex: number): void {
     if (typeof movedIndexes === 'number') {
       movedIndexes = [movedIndexes];
     }
 
-    const physicalMovedIndexes = arrayMap(movedIndexes, visualIndex => this.getPhysicalFromVisualIndex(visualIndex));
-    const notTrimmedIndexesLength = this.getNotTrimmedIndexesLength();
-    const movedIndexesLength = movedIndexes.length;
+    const physicalMovedIndexes: (number | null)[] = arrayMap(movedIndexes as number[], visualIndex => this.getPhysicalFromVisualIndex(visualIndex));
+    const notTrimmedIndexesLength: number = this.getNotTrimmedIndexesLength();
+    const movedIndexesLength: number = (movedIndexes as number[]).length;
 
     // Removing moved indexes without re-indexing.
-    const notMovedIndexes = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
-    const notTrimmedNotMovedItems = notMovedIndexes.filter(index => this.isTrimmed(index) === false);
+    const notMovedIndexes: number[] = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes as number[]);
+    const notTrimmedNotMovedItems: number[] = notMovedIndexes.filter(index => this.isTrimmed(index) === false);
 
     // When item(s) are moved after the last visible item we assign the last possible index.
-    let destinationPosition = notMovedIndexes.indexOf(notTrimmedNotMovedItems[notTrimmedNotMovedItems.length - 1]) + 1;
+    let destinationPosition: number = notMovedIndexes.indexOf(notTrimmedNotMovedItems[notTrimmedNotMovedItems.length - 1]) + 1;
 
     // Otherwise, we find proper index for inserted item(s).
     if (finalIndex + movedIndexesLength < notTrimmedIndexesLength) {
       // Physical index at final index position.
-      const physicalIndex = notTrimmedNotMovedItems[finalIndex];
+      const physicalIndex: number | undefined = notTrimmedNotMovedItems[finalIndex];
 
-      destinationPosition = notMovedIndexes.indexOf(physicalIndex);
+      destinationPosition = notMovedIndexes.indexOf(physicalIndex as number);
     }
 
     this.indexesChangeSource = 'move';
 
     // Adding indexes without re-indexing.
-    this.setIndexesSequence(getListWithInsertedItems(notMovedIndexes, destinationPosition, physicalMovedIndexes));
+    this.setIndexesSequence(getListWithInsertedItems(notMovedIndexes, destinationPosition, physicalMovedIndexes as number[]));
 
     this.indexesChangeSource = undefined;
   }
@@ -636,7 +610,7 @@ export class IndexMapper {
    * @param {number} physicalIndex Physical index.
    * @returns {boolean}
    */
-  isTrimmed(physicalIndex) {
+  isTrimmed(physicalIndex: number): boolean {
     return this.trimmingMapsCollection.getMergedValueAtIndex(physicalIndex);
   }
 
@@ -646,7 +620,7 @@ export class IndexMapper {
    * @param {number} physicalIndex Physical index.
    * @returns {boolean}
    */
-  isHidden(physicalIndex) {
+  isHidden(physicalIndex: number): boolean {
     return this.hidingMapsCollection.getMergedValueAtIndex(physicalIndex);
   }
 
@@ -657,13 +631,13 @@ export class IndexMapper {
    * @param {number} firstInsertedVisualIndex First inserted visual index.
    * @param {number} amountOfIndexes Amount of inserted indexes.
    */
-  insertIndexes(firstInsertedVisualIndex, amountOfIndexes) {
-    const nthVisibleIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
-    const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex) ? nthVisibleIndex : this.getNumberOfIndexes();
-    const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ?
-      this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
-    const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex),
-      (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
+  private insertIndexes(firstInsertedVisualIndex: number, amountOfIndexes: number): void {
+    const nthVisibleIndex: number | undefined = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
+    const firstInsertedPhysicalIndex: number = isDefined(nthVisibleIndex) ? nthVisibleIndex : this.getNumberOfIndexes();
+    const insertionIndex: number = this.getIndexesSequence().includes(nthVisibleIndex as number) ?
+      this.getIndexesSequence().indexOf(nthVisibleIndex as number) : this.getNumberOfIndexes();
+    const insertedIndexes: number[] = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex),
+      (nextIndex: number, stepsFromStart: number) => nextIndex + stepsFromStart);
 
     this.suspendOperations();
     this.indexesChangeSource = 'insert';
@@ -681,7 +655,7 @@ export class IndexMapper {
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
-  removeIndexes(removedIndexes) {
+  private removeIndexes(removedIndexes: number[]): void {
     this.suspendOperations();
     this.indexesChangeSource = 'remove';
     this.indexesSequence.remove(removedIndexes);
@@ -699,8 +673,8 @@ export class IndexMapper {
    * @private
    * @param {boolean} [force=false] Determine if force cache update.
    */
-  updateCache(force = false) {
-    const anyCachedIndexChanged = this.indexesSequenceChanged ||
+  private updateCache(force: boolean = false): void {
+    const anyCachedIndexChanged: boolean = this.indexesSequenceChanged ||
       this.trimmedIndexesChanged || this.hiddenIndexesChanged;
 
     if (force === true || (this.isBatched === false && anyCachedIndexChanged === true)) {
@@ -734,17 +708,17 @@ export class IndexMapper {
    *
    * @private
    */
-  cacheFromPhysicalToVisualIndexes() {
-    const nrOfNotTrimmedIndexes = this.getNotTrimmedIndexesLength();
+  private cacheFromPhysicalToVisualIndexes(): void {
+    const nrOfNotTrimmedIndexes: number = this.getNotTrimmedIndexesLength();
 
     this.fromPhysicalToVisualIndexesCache.clear();
 
-    for (let visualIndex = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
-      const physicalIndex = this.getPhysicalFromVisualIndex(visualIndex);
+    for (let visualIndex: number = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
+      const physicalIndex: number | null = this.getPhysicalFromVisualIndex(visualIndex);
 
       // Every visual index have corresponding physical index, but some physical indexes may don't have
       // corresponding visual indexes (physical indexes may represent trimmed indexes, beyond the table boundaries)
-      this.fromPhysicalToVisualIndexesCache.set(physicalIndex, visualIndex);
+      this.fromPhysicalToVisualIndexesCache.set(physicalIndex as number, visualIndex);
     }
   }
 
@@ -752,20 +726,18 @@ export class IndexMapper {
    * Update cache for translations from visual to renderable indexes.
    *
    * @private
-   */
-  cacheFromVisualToRenderableIndexes() {
-    const nrOfRenderableIndexes = this.getRenderableIndexesLength();
+   * */
+  private cacheFromVisualToRenderableIndexes(): void {
+    const nrOfRenderableIndexes: number = this.getRenderableIndexesLength();
 
     this.fromVisualToRenderableIndexesCache.clear();
 
-    for (let renderableIndex = 0; renderableIndex < nrOfRenderableIndexes; renderableIndex += 1) {
+    for (let renderableIndex: number = 0; renderableIndex < nrOfRenderableIndexes; renderableIndex += 1) {
       // Can't use getRenderableFromVisualIndex here because we're building the cache here
-      const physicalIndex = this.getPhysicalFromRenderableIndex(renderableIndex);
-      const visualIndex = this.getVisualFromPhysicalIndex(physicalIndex);
+      const physicalIndex: number | null = this.getPhysicalFromRenderableIndex(renderableIndex);
+      const visualIndex: number | null = this.getVisualFromPhysicalIndex(physicalIndex as number);
 
-      this.fromVisualToRenderableIndexesCache.set(visualIndex, renderableIndex);
+      this.fromVisualToRenderableIndexesCache.set(visualIndex as number, renderableIndex);
     }
   }
-}
-
-mixin(IndexMapper, localHooks);
+} 

@@ -22,7 +22,7 @@ export class IndexesSequence extends IndexMap {
    * @param {number} insertionIndex Position inside the list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
-  insert(insertionIndex, insertedIndexes) {
+  insert(insertionIndex: number, insertedIndexes: number[]): void {
     const listAfterUpdate = getIncreasedIndexes(this.indexedValues, insertedIndexes);
 
     this.indexedValues = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes);
@@ -36,7 +36,7 @@ export class IndexesSequence extends IndexMap {
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
-  remove(removedIndexes) {
+  remove(removedIndexes: number[]): void {
     const listAfterUpdate = getListWithRemovedItems(this.indexedValues, removedIndexes);
 
     this.indexedValues = getDecreasedIndexes(listAfterUpdate, removedIndexes);

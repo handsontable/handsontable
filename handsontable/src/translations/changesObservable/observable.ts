@@ -1,5 +1,6 @@
 import { ChangesObserver } from './observer';
 import { arrayDiff } from './utils';
+import { IndexChange, IndexValue, ObservableOptions } from '../types';
 
 /**
  * The ChangesObservable module is an object that represents a resource that provides
@@ -15,7 +16,7 @@ export class ChangesObservable {
    *
    * @type {ChangesObserver[]}
    */
-  #observers = new Set();
+  #observers: Set<ChangesObserver> = new Set();
   /**
    * An array with default values that act as a base array that will be compared with
    * the last saved index state. The changes are generated and immediately send through
@@ -24,21 +25,21 @@ export class ChangesObservable {
    *
    * @type {Array}
    */
-  #indexMatrix = [];
+  #indexMatrix: IndexValue[] = [];
   /**
    * An array that holds the indexes state that is currently valid. The value is changed on every
    * index mapper cache update.
    *
    * @type {Array}
    */
-  #currentIndexState = [];
+  #currentIndexState: IndexValue[] = [];
   /**
    * The flag determines if the observable is initialized or not. Not initialized object creates
    * index matrix once while emitting new changes.
    *
    * @type {boolean}
    */
-  #isMatrixIndexesInitialized = false;
+  #isMatrixIndexesInitialized: boolean = false;
   /**
    * The initial index value allows control from what value the index matrix array will be created.
    * Changing that value changes how the array diff generates the changes for the initial data
@@ -50,9 +51,9 @@ export class ChangesObservable {
    *
    * @type {boolean}
    */
-  #initialIndexValue = false;
+  #initialIndexValue: IndexValue = false;
 
-  constructor({ initialIndexValue } = {}) {
+  constructor({ initialIndexValue }: ObservableOptions = {}) {
     this.#initialIndexValue = initialIndexValue ?? false;
   }
 
@@ -80,7 +81,7 @@ export class ChangesObservable {
    * @returns {ChangesObserver}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
-  createObserver() {
+  createObserver(): ChangesObserver {
     const observer = new ChangesObserver();
 
     this.#observers.add(observer);
@@ -101,7 +102,7 @@ export class ChangesObservable {
    *
    * @param {Array} indexesState An array with index map state.
    */
-  emit(indexesState) {
+  emit(indexesState: IndexValue[]): void {
     let currentIndexState = this.#currentIndexState;
 
     if (!this.#isMatrixIndexesInitialized || this.#indexMatrix.length !== indexesState.length) {

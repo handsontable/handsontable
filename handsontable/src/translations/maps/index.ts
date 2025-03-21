@@ -3,6 +3,7 @@ import { IndexMap } from './indexMap';
 import { LinkedPhysicalIndexToValueMap } from './linkedPhysicalIndexToValueMap';
 import { PhysicalIndexToValueMap } from './physicalIndexToValueMap';
 import { TrimmingMap } from './trimmingMap';
+import { IndexValue } from '../types';
 
 export * from './indexesSequence';
 export * from './utils/indexesSequence';
@@ -14,7 +15,8 @@ export {
   TrimmingMap
 };
 
-const availableIndexMapTypes = new Map([
+// Use any type to avoid compatibility issues with different constructor signatures
+const availableIndexMapTypes = new Map<string, any>([
   ['hiding', HidingMap],
   ['index', IndexMap],
   ['linkedPhysicalIndexToValue', LinkedPhysicalIndexToValueMap],
@@ -29,10 +31,11 @@ const availableIndexMapTypes = new Map([
  * @param {*} [initValueOrFn=null] Initial value or function for index map.
  * @returns {IndexMap}
  */
-export function createIndexMap(mapType, initValueOrFn = null) {
+export function createIndexMap(mapType: string, initValueOrFn: IndexValue | ((index: number) => IndexValue) | null = null): IndexMap {
   if (!availableIndexMapTypes.has(mapType)) {
     throw new Error(`The provided map type ("${mapType}") does not exist.`);
   }
 
-  return new (availableIndexMapTypes.get(mapType))(initValueOrFn);
+  const MapConstructor = availableIndexMapTypes.get(mapType);
+  return new MapConstructor(initValueOrFn);
 }

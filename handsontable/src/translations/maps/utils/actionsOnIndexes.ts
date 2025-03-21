@@ -8,7 +8,7 @@ import { arrayMap } from '../../../helpers/array';
  * @param {Array} removedIndexes List of removed indexes.
  * @returns {Array} List with decreased indexes.
  */
-export function getDecreasedIndexes(indexedValues, removedIndexes) {
+export function getDecreasedIndexes(indexedValues: number[], removedIndexes: number[]): number[] {
   return arrayMap(indexedValues, index => index - removedIndexes.filter(removedIndex => removedIndex < index).length);
 }
 
@@ -20,7 +20,7 @@ export function getDecreasedIndexes(indexedValues, removedIndexes) {
  * @param {Array} insertedIndexes List of inserted indexes.
  * @returns {Array} List with increased indexes.
  */
-export function getIncreasedIndexes(indexedValues, insertedIndexes) {
+export function getIncreasedIndexes(indexedValues: number[], insertedIndexes: number[]): number[] {
   const firstInsertedIndex = insertedIndexes[0];
   const amountOfIndexes = insertedIndexes.length;
 
