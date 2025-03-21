@@ -22,7 +22,6 @@ const browsers = {
   firefoxWebKit: tester(ua => /FxiOS/.test(ua)),
   mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
-  android: tester(ua => /android/i.test(ua)),
 };
 
 const platforms = {
@@ -115,13 +114,6 @@ export function isMobileBrowser() {
  */
 export function isIOS() {
   return platforms.ios.value;
-}
-
-/**
- * @returns {boolean}
- */
-export function isAndroid() {
-  return browsers.android.value;
 }
 
 /**

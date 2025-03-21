@@ -14,7 +14,6 @@ import {
   isIpadOS,
   setBrowserMeta,
   setPlatformMeta,
-  isAndroid,
 } from 'handsontable/helpers/browser';
 
 describe('Browser helper', () => {
@@ -800,24 +799,6 @@ describe('Browser helper', () => {
       });
 
       expect(isIOS()).toBeTruthy();
-    });
-  });
-
-  describe('isAndroid', () => {
-    it('should recognize android mobile device properly', () => {
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 8_1 like Mac OS X) ' +
-          'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B411 Safari/600.1.4'
-      });
-
-      expect(isAndroid()).toBeFalsy();
-
-      setBrowserMeta({
-        userAgent: 'Mozilla/5.0 (Linux; Android 11; sdk_gphone_x86) ' +
-          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Mobile Safari/537.3'
-      });
-
-      expect(isAndroid()).toBeTruthy();
     });
   });
 

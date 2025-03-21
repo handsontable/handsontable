@@ -31,12 +31,10 @@ describe('Filters', () => {
 
     simulateTouch(input);
 
-    if (Handsontable.helper.isAndroid()) {
-      Object.defineProperty(window, 'innerWidth', { value: 390 });
-      Object.defineProperty(window, 'innerHeight', { value: 600 });
+    Object.defineProperty(window, 'innerWidth', { value: 390 });
+    Object.defineProperty(window, 'innerHeight', { value: 600 });
 
-      window.dispatchEvent(new Event('resize'));
-    }
+    window.dispatchEvent(new Event('resize'));
 
     await sleep(100);
 

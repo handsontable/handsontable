@@ -24,7 +24,6 @@ import {
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
 import { TrimmingMap } from '../../translations';
-import { isAndroid } from '../../helpers/browser';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
@@ -147,10 +146,6 @@ export class Filters extends BasePlugin {
     super(hotInstance);
     // One listener for the enable/disable functionality
     this.hot.addHook('afterGetColHeader', (...args) => this.#onAfterGetColHeader(...args));
-
-    if (isAndroid()) {
-      this.hot.addHook('beforeRefreshDimensions', () => false);
-    }
   }
 
   /**
