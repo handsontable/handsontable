@@ -205,4 +205,43 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     expect(rootNode.childNodes[0].childNodes[0]).toBe(TR1.childNodes[0]);
     expect(rootNode.childNodes[1].childNodes[0]).toBe(TR2.childNodes[0]);
   });
+
+  it('should render multi-level row headers in the correct order', () => {
+    const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
+
+    const headerRenderer1 = (_, TH) => { TH.innerHTML = 'HeaderOne' };
+    const headerRenderer2 = (_, TH) => { TH.innerHTML = 'HeaderTwo' };
+    const cellRenderer = () => {};
+
+    tableMock.rowsToRender = 2;
+    tableMock.columnsToRender = 2;
+    tableMock.rowHeadersCount = 2;
+    tableMock.rowHeaderFunctions = [headerRenderer1, headerRenderer2];
+    tableMock.cellRenderer = cellRenderer;
+
+    rowsRenderer.adjust();
+    rowHeadersRenderer.adjust();
+    cellsRenderer.adjust();
+
+    rowsRenderer.render();
+    rowHeadersRenderer.render();
+    cellsRenderer.render();
+
+    expect(rootNode.outerHTML).toMatchHTML(`
+      <tbody>
+        <tr>
+          <th>HeaderOne</th>
+          <th>HeaderTwo</th>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <th>HeaderOne</th>
+          <th>HeaderTwo</th>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody>
+      `);
+  });
 });

@@ -82,7 +82,9 @@ export class RowHeadersRenderer extends BaseRenderer {
         .setOffset(0)
         .start();
 
-      for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
+      // Reading the row header renderers in reverse because of how the Eco Renderers handle rendering
+      // (prepending the nodes when rendering row headers).
+      for (let visibleColumnIndex = rowHeadersCount - 1; visibleColumnIndex >= 0; visibleColumnIndex--) {
         orderView.render();
 
         const TH = orderView.getCurrentNode();
