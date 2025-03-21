@@ -209,8 +209,8 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
   it('should render multi-level row headers in the correct order', () => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
-    const headerRenderer1 = (_, TH) => { TH.innerHTML = 'HeaderOne' };
-    const headerRenderer2 = (_, TH) => { TH.innerHTML = 'HeaderTwo' };
+    const headerRenderer1 = (_, TH) => { TH.innerHTML = 'HeaderOne'; };
+    const headerRenderer2 = (_, TH) => { TH.innerHTML = 'HeaderTwo'; };
     const cellRenderer = () => {};
 
     tableMock.rowsToRender = 2;
