@@ -1,4 +1,5 @@
 import { defineGetter } from '../../../../../helpers/object';
+import { Table } from '../../types';
 
 const MIXIN_NAME = 'stickyRowsBottom';
 
@@ -17,20 +18,10 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getFirstRenderedRow() {
+  getFirstRenderedRow(this: Table): number {
     const totalRows = this.wtSettings.getSetting('totalRows');
-    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
-    const index = totalRows - fixedRowsBottom;
 
-    if (totalRows === 0 || fixedRowsBottom === 0) {
-      return -1;
-    }
-
-    if (index < 0) {
-      return 0;
-    }
-
-    return index;
+    return Math.max(totalRows - this.wtSettings.getSetting('fixedRowsBottom'), 0);
   },
 
   /**
@@ -40,7 +31,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleRow() {
+  getFirstVisibleRow(this: Table): number {
     return this.getFirstRenderedRow();
   },
 
@@ -51,7 +42,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleRow() {
+  getFirstPartiallyVisibleRow(this: Table): number {
     return this.getFirstRenderedRow();
   },
 
@@ -61,7 +52,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getLastRenderedRow() {
+  getLastRenderedRow(this: Table): number {
     return this.wtSettings.getSetting('totalRows') - 1;
   },
 
@@ -72,7 +63,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleRow() {
+  getLastVisibleRow(this: Table): number {
     return this.getLastRenderedRow();
   },
 
@@ -83,7 +74,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleRow() {
+  getLastPartiallyVisibleRow(this: Table): number {
     return this.getLastRenderedRow();
   },
 
@@ -93,10 +84,15 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getRenderedRowsCount() {
+  getRenderedRowsCount(this: Table): number {
+    let result = this.wtSettings.getSetting('fixedRowsBottom');
     const totalRows = this.wtSettings.getSetting('totalRows');
 
-    return Math.min(this.wtSettings.getSetting('fixedRowsBottom'), totalRows);
+    if (result > totalRows) {
+      result = totalRows;
+    }
+
+    return result;
   },
 
   /**
@@ -106,7 +102,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getVisibleRowsCount() {
+  getVisibleRowsCount(this: Table): number {
     return this.getRenderedRowsCount();
   },
 
@@ -116,8 +112,8 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getColumnHeadersCount() {
-    return 0;
+  getColumnHeadersCount(this: Table): number {
+    return this.dataAccessObject.columnHeaders.length;
   },
 };
 

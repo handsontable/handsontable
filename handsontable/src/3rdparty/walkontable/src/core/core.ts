@@ -9,6 +9,7 @@ import { SelectionManager } from '../selection/manager';
 import { objectEach } from '../../../../helpers/object';
 import { addClass, removeClass } from '../../../../helpers/dom/element';
 import { StylesHandler } from '../utils/stylesHandler';
+import { ViewportDao } from '../types';
 
 /**
  * @class Walkontable
@@ -18,7 +19,7 @@ export default class Walkontable extends CoreAbstract {
    * @param {HTMLTableElement} table Main table.
    * @param {SettingsPure} settings The Walkontable settings.
    */
-  constructor(table, settings) {
+  constructor(table: HTMLTableElement, settings: any) {
     super(table, new Settings(settings));
 
     this.stylesHandler = new StylesHandler(this.domBindings);
@@ -30,8 +31,15 @@ export default class Walkontable extends CoreAbstract {
       this.getViewportDao(), this.domBindings, this.wtSettings, this.eventManager, this.wtTable
     );
     this.selectionManager = new SelectionManager(this.wtSettings.getSetting('selections'));
+    this.selections = this.wtSettings.getSetting('selections');
     this.wtEvent = new Event(
-      facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selectionManager
+      this.wtSettings,
+      this.domBindings,
+      this.wtTable,
+      this.selectionManager,
+      this.eventManager,
+      this.wtScroll,
+      facadeGetter as any
     );
     this.wtOverlays = new Overlays(
       // TODO create DAO and remove reference to the Walkontable instance.
@@ -46,13 +54,13 @@ export default class Walkontable extends CoreAbstract {
   /**
    * Export settings as class names added to the parent element of the table.
    */
-  exportSettingsAsClassNames() {
-    const toExport = {
+  exportSettingsAsClassNames(): void {
+    const toExport: { [key: string]: string } = {
       rowHeaders: 'htRowHeaders',
       columnHeaders: 'htColumnHeaders'
     };
-    const allClassNames = [];
-    const newClassNames = [];
+    const allClassNames: string[] = [];
+    const newClassNames: string[] = [];
 
     objectEach(toExport, (className, key) => {
       if (this.wtSettings.getSetting(key).length) {
@@ -70,12 +78,12 @@ export default class Walkontable extends CoreAbstract {
    * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
    * @returns {Overlay | null}
    */
-  getOverlayByName(overlayName) {
+  getOverlayByName(overlayName: 'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'): any {
     if (!CLONE_TYPES.includes(overlayName)) {
       return null;
     }
 
-    const camelCaseOverlay = overlayName.replace(/_([a-z])/g, match => match[1].toUpperCase());
+    const camelCaseOverlay = overlayName.replace(/_([a-z])/g, (match) => match[1].toUpperCase());
 
     return this.wtOverlays[`${camelCaseOverlay}Overlay`] ?? null;
   }
@@ -83,7 +91,7 @@ export default class Walkontable extends CoreAbstract {
   /**
    * @returns {ViewportDao}
    */
-  getViewportDao() {
+  getViewportDao(): ViewportDao {
     const wot = this;
 
     return {

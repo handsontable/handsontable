@@ -14,6 +14,8 @@ import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
 import { objectEach } from '../../../../../helpers/object';
 import { isMobileBrowser } from '../../../../../helpers/browser';
 import { getCornerStyle } from './utils';
+import { WalkontableInterface } from '../../interfaces';
+import { BorderOptions, CornerStyle, SelectionHandles } from '../interfaces';
 
 /**
  *
@@ -26,14 +28,13 @@ class Border {
    * @param {WalkontableFacade} wotInstance The Walkontable instance.
    * @param {object} settings The border settings.
    */
-  constructor(wotInstance, settings) {
+  constructor(private wotInstance: WalkontableInterface, private settings: BorderOptions) {
     if (!settings) {
       return;
     }
     this.eventManager = wotInstance.eventManager;
     this.instance = wotInstance;
     this.wot = wotInstance;
-    this.settings = settings;
     this.mouseDown = false;
     this.main = null;
 
@@ -57,20 +58,40 @@ class Border {
     this.registerListeners();
   }
 
+  private eventManager: any;
+  private instance: WalkontableInterface;
+  private wot: WalkontableInterface;
+  private mouseDown: boolean;
+  private main: HTMLElement | null;
+  private top: HTMLElement | null;
+  private bottom: HTMLElement | null;
+  private start: HTMLElement | null;
+  private end: HTMLElement | null;
+  private topStyle: CSSStyleDeclaration | null;
+  private bottomStyle: CSSStyleDeclaration | null;
+  private startStyle: CSSStyleDeclaration | null;
+  private endStyle: CSSStyleDeclaration | null;
+  private cornerDefaultStyle: CornerStyle;
+  private cornerCenterPointOffset: number;
+  private corner: HTMLElement | null;
+  private cornerStyle: CSSStyleDeclaration | null;
+  private selectionHandles: SelectionHandles | null;
+  private disabled: boolean;
+
   /**
    * Register all necessary events.
    */
-  registerListeners() {
+  private registerListeners(): void {
     const documentBody = this.wot.rootDocument.body;
 
     this.eventManager.addEventListener(documentBody, 'mousedown', () => this.onMouseDown());
     this.eventManager.addEventListener(documentBody, 'mouseup', () => this.onMouseUp());
 
-    for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
-      const element = this.main.childNodes[c];
+    for (let c = 0, len = this.main!.childNodes.length; c < len; c++) {
+      const element = this.main!.childNodes[c];
 
       this.eventManager
-        .addEventListener(element, 'mouseenter', event => this.onMouseEnter(event, this.main.childNodes[c]));
+        .addEventListener(element, 'mouseenter', event => this.onMouseEnter(event, this.main!.childNodes[c]));
     }
   }
 
@@ -79,7 +100,7 @@ class Border {
    *
    * @private
    */
-  onMouseDown() {
+  private onMouseDown(): void {
     this.mouseDown = true;
   }
 
@@ -88,7 +109,7 @@ class Border {
    *
    * @private
    */
-  onMouseUp() {
+  private onMouseUp(): void {
     this.mouseDown = false;
   }
 
@@ -99,7 +120,7 @@ class Border {
    * @param {Event} event Dom event.
    * @param {HTMLElement} parentElement Part of border element.
    */
-  onMouseEnter(event, parentElement) {
+  private onMouseEnter(event: Event, parentElement: HTMLElement): void {
     if (!this.mouseDown || !this.wot.getSetting('hideBorderOnMouseDownOver')) {
       return;
     }
@@ -117,7 +138,7 @@ class Border {
      * @param {Event} mouseEvent The mouse event object.
      * @returns {boolean}
      */
-    function isOutside(mouseEvent) {
+    function isOutside(mouseEvent: MouseEvent): boolean {
       if (mouseEvent.clientY < Math.floor(bounds.top)) {
         return true;
       }
@@ -135,7 +156,7 @@ class Border {
     /**
      * @param {Event} handlerEvent The mouse event object.
      */
-    function handler(handlerEvent) {
+    function handler(handlerEvent: MouseEvent): void {
       if (isOutside(handlerEvent)) {
         _this.eventManager.removeEventListener(documentBody, 'mousemove', handler);
         parentElement.style.display = 'block';
@@ -150,7 +171,7 @@ class Border {
    *
    * @param {object} settings The border settings.
    */
-  createBorders(settings) {
+  private createBorders(settings: BorderOptions): void {
     const { rootDocument } = this.wot;
 
     this.main = rootDocument.createElement('div');
@@ -181,17 +202,17 @@ class Border {
 
       this.main.appendChild(div);
     }
-    this.top = this.main.childNodes[0];
-    this.start = this.main.childNodes[1];
-    this.bottom = this.main.childNodes[2];
-    this.end = this.main.childNodes[3];
+    this.top = this.main.childNodes[0] as HTMLElement;
+    this.start = this.main.childNodes[1] as HTMLElement;
+    this.bottom = this.main.childNodes[2] as HTMLElement;
+    this.end = this.main.childNodes[3] as HTMLElement;
 
     this.topStyle = this.top.style;
     this.startStyle = this.start.style;
     this.bottomStyle = this.bottom.style;
     this.endStyle = this.end.style;
 
-    this.corner = this.main.childNodes[4];
+    this.corner = this.main.childNodes[4] as HTMLElement;
     this.corner.className += ' corner';
     this.cornerStyle = this.corner.style;
     this.cornerStyle.width = `${this.cornerDefaultStyle.width}px`;
@@ -222,7 +243,7 @@ class Border {
   /**
    * Create multiple selector handler for mobile devices.
    */
-  createMultipleSelectorHandles() {
+  private createMultipleSelectorHandles(): void {
     const { rootDocument, stylesHandler } = this.wot;
     const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
     const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
@@ -259,8 +280,8 @@ class Border {
     };
 
     objectEach(hitAreaStyle, (value, key) => {
-      this.selectionHandles.styles.bottomHitArea[key] = value;
-      this.selectionHandles.styles.topHitArea[key] = value;
+      this.selectionHandles!.styles.bottomHitArea[key] = value;
+      this.selectionHandles!.styles.topHitArea[key] = value;
     });
 
     const handleStyle = stylesHandler.isClassicTheme() ? {
@@ -280,14 +301,14 @@ class Border {
     };
 
     objectEach(handleStyle, (value, key) => {
-      this.selectionHandles.styles.bottom[key] = value;
-      this.selectionHandles.styles.top[key] = value;
+      this.selectionHandles!.styles.bottom[key] = value;
+      this.selectionHandles!.styles.top[key] = value;
     });
 
-    this.main.appendChild(this.selectionHandles.top);
-    this.main.appendChild(this.selectionHandles.bottom);
-    this.main.appendChild(this.selectionHandles.topHitArea);
-    this.main.appendChild(this.selectionHandles.bottomHitArea);
+    this.main!.appendChild(this.selectionHandles.top);
+    this.main!.appendChild(this.selectionHandles.bottom);
+    this.main!.appendChild(this.selectionHandles.topHitArea);
+    this.main!.appendChild(this.selectionHandles.bottomHitArea);
   }
 
   /**
@@ -295,7 +316,7 @@ class Border {
    * @param {number} col The visual column index.
    * @returns {boolean}
    */
-  isPartRange(row, col) {
+  private isPartRange(row: number, col: number): boolean {
     const areaSelection = this.wot.selectionManager.getAreaSelection();
 
     if (areaSelection.cellRange) {
@@ -315,7 +336,7 @@ class Border {
    * @param {number} width The width of the handler.
    * @param {number} height The height of the handler.
    */
-  updateMultipleSelectionHandlesPosition(row, col, top, left, width, height) {
+  private updateMultipleSelectionHandlesPosition(row: number, col: number, top: number, left: number, width: number, height: number): void {
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlinePosProperty = isRtl ? 'right' : 'left';
     const {
@@ -323,7 +344,7 @@ class Border {
       topHitArea: topHitAreaStyles,
       bottom: bottomStyles,
       bottomHitArea: bottomHitAreaStyles,
-    } = this.selectionHandles.styles;
+    } = this.selectionHandles!.styles;
 
     const handleBorderSize = parseInt(topStyles.borderWidth, 10);
     const handleSize = parseInt(topStyles.width, 10);
@@ -394,7 +415,7 @@ class Border {
    *
    * @param {Array} corners The corner coordinates.
    */
-  appear(corners) {
+  public appear(corners: number[]): void {
     if (this.disabled) {
       return;
     }
@@ -415,7 +436,7 @@ class Border {
     const firstRenderedColumn = wtTable.getFirstRenderedColumn();
     const lastRenderedColumn = wtTable.getLastRenderedColumn();
 
-    let fromTD;
+    let fromTD: HTMLElement | null;
 
     if (isMultiple) {
       fromColumn = Math.max(fromColumn, firstRenderedColumn);
@@ -442,8 +463,8 @@ class Border {
     }
 
     const toTD = isMultiple ? wtTable.getCell(this.wot.createCellCoords(toRow, toColumn)) : fromTD;
-    const fromOffset = offset(fromTD);
-    const toOffset = isMultiple ? offset(toTD) : fromOffset;
+    const fromOffset = offset(fromTD!);
+    const toOffset = isMultiple ? offset(toTD!) : fromOffset;
     const containerOffset = offset(wtTable.TABLE);
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
@@ -454,21 +475,21 @@ class Border {
 
     if (isRtl) {
       const containerWidth = outerWidth(wtTable.TABLE);
-      const fromWidth = outerWidth(fromTD);
+      const fromWidth = outerWidth(fromTD!);
       const gridRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
 
       width = minLeft + fromWidth - toOffset.left;
       inlineStartPos = rootWindow.innerWidth - minLeft - fromWidth - gridRightPos - 1;
 
     } else {
-      width = toOffset.left + outerWidth(toTD) - minLeft;
+      width = toOffset.left + outerWidth(toTD!) - minLeft;
       inlineStartPos = minLeft - containerOffset.left - 1;
     }
 
     if (this.isEntireColumnSelected(fromRow, toRow)) {
       const rowHeader = fromRow;
       const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, rowHeader, containerOffset);
-      let fromTH = null;
+      let fromTH: HTMLElement | null = null;
 
       if (modifiedValues) {
         [fromTH, inlineStartPos, width] = modifiedValues;
@@ -480,12 +501,12 @@ class Border {
     }
 
     let top = minTop - containerOffset.top - 1;
-    let height = toOffset.top + outerHeight(toTD) - minTop;
+    let height = toOffset.top + outerHeight(toTD!) - minTop;
 
     if (this.isEntireRowSelected(fromColumn, toColumn)) {
       const columnHeader = fromColumn;
       const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, columnHeader, containerOffset);
-      let fromTH = null;
+      let fromTH: HTMLElement | null = null;
 
       if (modifiedValues) {
         [fromTH, top, height] = modifiedValues;
@@ -496,7 +517,7 @@ class Border {
       }
     }
 
-    const style = rootWindow.getComputedStyle(fromTD);
+    const style = rootWindow.getComputedStyle(fromTD!);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
       top += 1;
@@ -509,27 +530,27 @@ class Border {
 
     const inlinePosProperty = isRtl ? 'right' : 'left';
 
-    this.topStyle.top = `${top}px`;
-    this.topStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.topStyle.width = `${width}px`;
-    this.topStyle.display = 'block';
+    this.topStyle!.top = `${top}px`;
+    this.topStyle![inlinePosProperty] = `${inlineStartPos}px`;
+    this.topStyle!.width = `${width}px`;
+    this.topStyle!.display = 'block';
 
-    this.startStyle.top = `${top}px`;
-    this.startStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.startStyle.height = `${height}px`;
-    this.startStyle.display = 'block';
+    this.startStyle!.top = `${top}px`;
+    this.startStyle![inlinePosProperty] = `${inlineStartPos}px`;
+    this.startStyle!.height = `${height}px`;
+    this.startStyle!.display = 'block';
 
     const delta = Math.floor(this.settings.border.width / 2);
 
-    this.bottomStyle.top = `${top + height - delta}px`;
-    this.bottomStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.bottomStyle.width = `${width}px`;
-    this.bottomStyle.display = 'block';
+    this.bottomStyle!.top = `${top + height - delta}px`;
+    this.bottomStyle![inlinePosProperty] = `${inlineStartPos}px`;
+    this.bottomStyle!.width = `${width}px`;
+    this.bottomStyle!.display = 'block';
 
-    this.endStyle.top = `${top}px`;
-    this.endStyle[inlinePosProperty] = `${inlineStartPos + width - delta}px`;
-    this.endStyle.height = `${height + 1}px`;
-    this.endStyle.display = 'block';
+    this.endStyle!.top = `${top}px`;
+    this.endStyle![inlinePosProperty] = `${inlineStartPos + width - delta}px`;
+    this.endStyle!.height = `${height + 1}px`;
+    this.endStyle!.display = 'block';
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;
 
@@ -540,24 +561,24 @@ class Border {
     let [checkRow, checkCol] = [toRow, toColumn];
 
     if (hookResult && Array.isArray(hookResult)) {
-      [,, checkRow, checkCol] = hookResult;
+      [, , checkRow, checkCol] = hookResult;
     }
 
     if (isMobileBrowser() || !cornerVisibleSetting || this.isPartRange(checkRow, checkCol)) {
-      this.cornerStyle.display = 'none';
+      this.cornerStyle!.display = 'none';
 
     } else {
-      this.cornerStyle.top = `${top + height + this.cornerCenterPointOffset - this.cornerDefaultStyle.borderWidth}px`;
-      this.cornerStyle[inlinePosProperty] = `${
+      this.cornerStyle!.top = `${top + height + this.cornerCenterPointOffset - this.cornerDefaultStyle.borderWidth}px`;
+      this.cornerStyle![inlinePosProperty] = `${
         inlineStartPos + width + this.cornerCenterPointOffset - this.cornerDefaultStyle.borderWidth
       }px`;
-      this.cornerStyle.borderRightWidth = `${this.cornerDefaultStyle.borderWidth}px`;
-      this.cornerStyle.borderLeftWidth = `${this.cornerDefaultStyle.borderWidth}px`;
-      this.cornerStyle.borderBottomWidth = `${this.cornerDefaultStyle.borderWidth}px`;
-      this.cornerStyle.width = this.cornerDefaultStyle.width;
+      this.cornerStyle!.borderRightWidth = `${this.cornerDefaultStyle.borderWidth}px`;
+      this.cornerStyle!.borderLeftWidth = `${this.cornerDefaultStyle.borderWidth}px`;
+      this.cornerStyle!.borderBottomWidth = `${this.cornerDefaultStyle.borderWidth}px`;
+      this.cornerStyle!.width = this.cornerDefaultStyle.width;
 
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
-      this.cornerStyle.display = 'none';
+      this.cornerStyle!.display = 'none';
 
       let trimmingContainer = getTrimmingContainer(wtTable.TABLE);
       const trimToWindow = trimmingContainer === rootWindow;
@@ -573,7 +594,7 @@ class Border {
       const cornerHalfHeight = Math.ceil(parseInt(this.cornerDefaultStyle.height, 10) / 2);
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
+        const toTdOffsetLeft = trimToWindow ? toTD!.getBoundingClientRect().left : toTD!.offsetLeft;
         let cornerOverlappingContainer = false;
         let cornerEdge = 0;
 
@@ -582,21 +603,21 @@ class Border {
           cornerOverlappingContainer = cornerEdge < 0;
 
         } else {
-          cornerEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
+          cornerEdge = toTdOffsetLeft + outerWidth(toTD!) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
           cornerOverlappingContainer = cornerEdge >= innerWidth(trimmingContainer);
         }
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle[inlinePosProperty] = `${Math.floor(
+          this.cornerStyle![inlinePosProperty] = `${Math.floor(
             inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
           )}px`;
-          this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
+          this.cornerStyle![isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
         }
       }
 
       if (toRow === this.wot.getSetting('totalRows') - 1) {
-        const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
-        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
+        const toTdOffsetTop = trimToWindow ? toTD!.getBoundingClientRect().top : toTD!.offsetTop;
+        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD!) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
         const isClassicTheme = this.wot.stylesHandler.isClassicTheme();
 
@@ -607,16 +628,16 @@ class Border {
 
           if (isClassicTheme) {
             // styles for classic theme
-            this.cornerStyle.top = `${cornerTopPosition}px`;
-            this.cornerStyle.borderBottomWidth = 0;
+            this.cornerStyle!.top = `${cornerTopPosition}px`;
+            this.cornerStyle!.borderBottomWidth = 0;
           } else {
             // styles for ht-theme
-            this.cornerStyle.top = `${cornerTopPosition - 1}px`;
+            this.cornerStyle!.top = `${cornerTopPosition - 1}px`;
           }
         }
       }
 
-      this.cornerStyle.display = 'block';
+      this.cornerStyle!.display = 'block';
     }
 
     if (isMobileBrowser() && this.instance.getSetting('isDataViewInstance')) {
@@ -632,7 +653,7 @@ class Border {
    * @param {number} endRowIndex End row index.
    * @returns {boolean}
    */
-  isEntireColumnSelected(startRowIndex, endRowIndex) {
+  private isEntireColumnSelected(startRowIndex: number, endRowIndex: number): boolean {
     return startRowIndex === this.wot.wtTable.getFirstRenderedRow() &&
       endRowIndex === this.wot.wtTable.getLastRenderedRow();
   }
@@ -645,7 +666,7 @@ class Border {
    * @param {number} endColumnIndex End column index.
    * @returns {boolean}
    */
-  isEntireRowSelected(startColumnIndex, endColumnIndex) {
+  private isEntireRowSelected(startColumnIndex: number, endColumnIndex: number): boolean {
     return startColumnIndex === this.wot.wtTable.getFirstRenderedColumn() &&
       endColumnIndex === this.wot.wtTable.getLastRenderedColumn();
   }
@@ -661,17 +682,17 @@ class Border {
    * @param {number} containerOffset Offset of the container.
    * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
    */
-  getDimensionsFromHeader(direction, fromIndex, toIndex, headerIndex, containerOffset) {
+  private getDimensionsFromHeader(direction: 'rows' | 'columns', fromIndex: number, toIndex: number, headerIndex: number, containerOffset: { top: number; left: number }): [HTMLElement, number, number] | boolean {
     const { wtTable } = this.wot;
     const rootHotElement = wtTable.wtRootElement.parentNode;
-    let getHeaderFn = null;
-    let dimensionFn = null;
-    let entireSelectionClassname = null;
-    let index = null;
-    let dimension = null;
-    let dimensionProperty = null;
-    let startHeader = null;
-    let endHeader = null;
+    let getHeaderFn: ((...args: any[]) => HTMLElement | null) | null = null;
+    let dimensionFn: ((...args: any[]) => number) | null = null;
+    let entireSelectionClassname: string | null = null;
+    let index: number | null = null;
+    let dimension: number | null = null;
+    let dimensionProperty: string | null = null;
+    let startHeader: HTMLElement | null = null;
+    let endHeader: HTMLElement | null = null;
 
     switch (direction) {
       case 'rows':
@@ -691,11 +712,11 @@ class Border {
       default:
     }
 
-    if (rootHotElement.classList.contains(entireSelectionClassname)) {
+    if (rootHotElement.classList.contains(entireSelectionClassname!)) {
       const columnHeaderLevelCount = this.wot.getSetting('columnHeaders').length;
 
-      startHeader = getHeaderFn(fromIndex, columnHeaderLevelCount - headerIndex);
-      endHeader = getHeaderFn(toIndex, columnHeaderLevelCount - headerIndex);
+      startHeader = getHeaderFn!(fromIndex, columnHeaderLevelCount - headerIndex);
+      endHeader = getHeaderFn!(toIndex, columnHeaderLevelCount - headerIndex);
 
       if (!startHeader || !endHeader) {
         return false;
@@ -705,11 +726,11 @@ class Border {
       const endOffset = offset(endHeader);
 
       if (startHeader && endHeader) {
-        index = startHeaderOffset[dimensionProperty] - containerOffset[dimensionProperty] - 1;
-        dimension = endOffset[dimensionProperty] + dimensionFn(endHeader) - startHeaderOffset[dimensionProperty];
+        index = startHeaderOffset[dimensionProperty!] - containerOffset[dimensionProperty!] - 1;
+        dimension = endOffset[dimensionProperty!] + dimensionFn!(endHeader) - startHeaderOffset[dimensionProperty!];
       }
 
-      return [startHeader, index, dimension];
+      return [startHeader, index, dimension] as [HTMLElement, number, number];
     }
 
     return false;
@@ -722,7 +743,7 @@ class Border {
    * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
    * @param {object} border The border object descriptor.
    */
-  changeBorderStyle(borderElement, border) {
+  private changeBorderStyle(borderElement: 'top' | 'bottom' | 'start' | 'end', border: BorderOptions): void {
     const style = this[borderElement].style;
     const borderStyle = border[borderElement];
 
@@ -752,7 +773,7 @@ class Border {
    * @private
    * @param {string} position The position type ("top", "bottom", "start", "end") to change.
    */
-  changeBorderToDefaultStyle(position) {
+  private changeBorderToDefaultStyle(position: 'top' | 'bottom' | 'start' | 'end'): void {
     const defaultBorder = {
       width: 1,
       color: '#000',
@@ -771,7 +792,7 @@ class Border {
    * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
    * @param {boolean} [remove] Defines type of the action to perform.
    */
-  toggleHiddenClass(borderElement, remove) {
+  private toggleHiddenClass(borderElement: 'top' | 'bottom' | 'start' | 'end', remove?: boolean): void {
     this.changeBorderToDefaultStyle(borderElement);
 
     if (remove) {
@@ -784,27 +805,27 @@ class Border {
   /**
    * Hide border.
    */
-  disappear() {
-    this.topStyle.display = 'none';
-    this.bottomStyle.display = 'none';
-    this.startStyle.display = 'none';
-    this.endStyle.display = 'none';
-    this.cornerStyle.display = 'none';
+  public disappear(): void {
+    this.topStyle!.display = 'none';
+    this.bottomStyle!.display = 'none';
+    this.startStyle!.display = 'none';
+    this.endStyle!.display = 'none';
+    this.cornerStyle!.display = 'none';
 
     if (isMobileBrowser() && this.instance.getSetting('isDataViewInstance')) {
-      this.selectionHandles.styles.top.display = 'none';
-      this.selectionHandles.styles.topHitArea.display = 'none';
-      this.selectionHandles.styles.bottom.display = 'none';
-      this.selectionHandles.styles.bottomHitArea.display = 'none';
+      this.selectionHandles!.styles.top.display = 'none';
+      this.selectionHandles!.styles.topHitArea.display = 'none';
+      this.selectionHandles!.styles.bottom.display = 'none';
+      this.selectionHandles!.styles.bottomHitArea.display = 'none';
     }
   }
 
   /**
    * Cleans up all the DOM state related to a Border instance. Call this prior to deleting a Border instance.
    */
-  destroy() {
+  public destroy(): void {
     this.eventManager.destroyWithOwnEventsOnly();
-    this.main.parentNode.removeChild(this.main);
+    this.main!.parentNode!.removeChild(this.main!);
   }
 }
 

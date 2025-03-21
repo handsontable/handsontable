@@ -1,3 +1,5 @@
+import { TableDao } from '../types';
+
 /**
  * Row utils class contains all necessary information about sizes of the rows.
  *
@@ -7,17 +9,17 @@ export default class RowUtils {
   /**
    * @type {TableDao}
    */
-  dataAccessObject;
+  dataAccessObject: TableDao;
   /**
    * @type {Settings}
    */
-  wtSettings;
+  wtSettings: any;
 
   /**
    * @param {TableDao} dataAccessObject The table Data Access Object.
    * @param {Settings} wtSettings The walkontable settings.
    */
-  constructor(dataAccessObject, wtSettings) {
+  constructor(dataAccessObject: TableDao, wtSettings: any) {
     this.dataAccessObject = dataAccessObject;
     this.wtSettings = wtSettings;
   }
@@ -28,7 +30,7 @@ export default class RowUtils {
    * @param {number} sourceIndex Row source index.
    * @returns {number}
    */
-  getHeight(sourceIndex) {
+  getHeight(sourceIndex: number): number | undefined {
     let height = this.wtSettings.getSetting('rowHeight', sourceIndex);
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
 
@@ -46,7 +48,7 @@ export default class RowUtils {
    * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName The overlay name.
    * @returns {number}
    */
-  getHeightByOverlayName(sourceIndex, overlayName) {
+  getHeightByOverlayName(sourceIndex: number, overlayName: 'inline_start' | 'top' | 'top_inline_start_corner' | 'bottom' | 'bottom_inline_start_corner' | 'master'): number | undefined {
     let height = this.wtSettings.getSetting('rowHeightByOverlayName', sourceIndex, overlayName);
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
 

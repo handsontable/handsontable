@@ -7,6 +7,7 @@ import {
   A11Y_SCOPE_ROW,
   A11Y_TABINDEX
 } from '../../../../helpers/a11y';
+import { RowHeadersRendererInterface, TableRendererInterface } from './interfaces';
 
 /**
  * Row headers renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to TR.
@@ -21,22 +22,45 @@ import {
  *
  * @class {CellsRenderer}
  */
-export class RowHeadersRenderer extends BaseRenderer {
+export class RowHeadersRenderer extends BaseRenderer implements RowHeadersRendererInterface {
+  declare table: TableRendererInterface;
   /**
    * Cache for OrderView classes connected to specified node.
    *
    * @type {WeakMap}
    */
-  orderViews = new WeakMap();
+  orderViews = new WeakMap<HTMLTableRowElement, SharedOrderView>();
   /**
    * Row index which specifies the row position of the processed row header.
    *
    * @type {number}
    */
-  sourceRowIndex = 0;
+  sourceRowIndex: number = 0;
+  visualRowIndex: number = 0;
+  columnHeaderLevelCount: number = 0;
 
   constructor() {
-    super('TH');
+    super('TH', document.createElement('tr'));
+  }
+
+  /**
+   * Sets the column header level count.
+   *
+   * @param {number} count Number of column header levels.
+   */
+  setColumnHeaderLevelCount(count: number): void {
+    this.columnHeaderLevelCount = count;
+  }
+
+  /**
+   * Sets the row header content renderer function.
+   *
+   * @param {Function} contentFactory Function which renders the row header content.
+   */
+  setRowHeaderContent(contentFactory: (sourceRow: number, TH: HTMLTableCellElement, headerLevel: number) => void): void {
+    if (this.table) {
+      this.table.rowHeaderFunctions = [contentFactory];
+    }
   }
 
   /**
@@ -45,15 +69,15 @@ export class RowHeadersRenderer extends BaseRenderer {
    * @param {HTMLTableRowElement} rootNode The TR element, which is root element for row headers (TH).
    * @returns {SharedOrderView}
    */
-  obtainOrderView(rootNode) {
-    let orderView;
+  obtainOrderView(rootNode: HTMLTableRowElement): SharedOrderView {
+    let orderView: SharedOrderView;
 
     if (this.orderViews.has(rootNode)) {
-      orderView = this.orderViews.get(rootNode);
+      orderView = this.orderViews.get(rootNode)!;
     } else {
       orderView = new SharedOrderView(
         rootNode,
-        sourceColumnIndex => this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex),
+        (sourceColumnIndex: number) => this.nodesPool?.obtain(this.sourceRowIndex, sourceColumnIndex) || document.createElement('TH'),
       );
       this.orderViews.set(rootNode, orderView);
     }
@@ -62,14 +86,21 @@ export class RowHeadersRenderer extends BaseRenderer {
   }
 
   /**
+   * Adjusts the number of the rendered elements.
+   */
+  adjust(): void {
+    // Implementation will be added later if needed
+  }
+
+  /**
    * Renders the cells.
    */
-  render() {
+  render(): void {
     const { rowsToRender, rowHeaderFunctions, rowHeadersCount, rows, cells } = this.table;
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
-      const TR = rows.getRenderedNode(visibleRowIndex);
+      const TR = rows.getRenderedNode(visibleRowIndex) as HTMLTableRowElement;
 
       this.sourceRowIndex = sourceRowIndex;
 
@@ -85,7 +116,7 @@ export class RowHeadersRenderer extends BaseRenderer {
       for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
         orderView.render();
 
-        const TH = orderView.getCurrentNode();
+        const TH = orderView.getCurrentNode() as HTMLTableCellElement;
 
         TH.className = '';
         TH.removeAttribute('style');

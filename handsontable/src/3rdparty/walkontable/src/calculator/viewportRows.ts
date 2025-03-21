@@ -1,4 +1,5 @@
 import { ViewportBaseCalculator } from './viewportBase';
+import { CalculatorContext, CalculatorInstance } from '../types';
 
 /**
  * @typedef {object} ViewportRowsCalculatorOptions
@@ -10,24 +11,36 @@ import { ViewportBaseCalculator } from './viewportBase';
  * @property {Function} overrideFn Function that allows to adjust the `startRow` and `endRow` parameters.
  * @property {number} horizontalScrollbarHeight The scrollbar height.
  */
+export interface ViewportRowsCalculatorOptions {
+  calculationTypes: Array<[string, CalculatorInstance]>;
+  viewportHeight: number;
+  scrollOffset: number;
+  totalRows: number;
+  defaultRowHeight: number;
+  rowHeightFn: (row: number) => number;
+  overrideFn?: ((calc: CalculatorContext) => void) | null;
+  horizontalScrollbarHeight?: number;
+}
+
 /**
  * Calculates indexes of rows to render OR rows that are visible OR partially visible in the viewport.
  *
  * @class ViewportRowsCalculator
  */
 export class ViewportRowsCalculator extends ViewportBaseCalculator {
-  viewportHeight = 0;
-  scrollOffset = 0;
-  zeroBasedScrollOffset = 0;
-  totalRows = 0;
-  rowHeightFn = null;
-  rowHeight = 0;
-  overrideFn = null;
-  horizontalScrollbarHeight = 0;
-  innerViewportHeight = 0;
-  totalCalculatedHeight = 0;
-  startPositions = [];
-  needReverse = true;
+  viewportHeight: number = 0;
+  scrollOffset: number = 0;
+  zeroBasedScrollOffset: number = 0;
+  totalRows: number = 0;
+  rowHeightFn: ((row: number) => number) | null = null;
+  rowHeight: number = 0;
+  overrideFn: ((calc: CalculatorContext) => void) | null = null;
+  horizontalScrollbarHeight: number = 0;
+  innerViewportHeight: number = 0;
+  totalCalculatedHeight: number = 0;
+  startPositions: number[] = [];
+  needReverse: boolean = true;
+  defaultHeight: number = 0;
 
   /**
    * @param {ViewportRowsCalculatorOptions} options Object with all options specified for row viewport calculation.
@@ -41,7 +54,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     rowHeightFn,
     overrideFn,
     horizontalScrollbarHeight,
-  }) {
+  }: ViewportRowsCalculatorOptions) {
     super(calculationTypes);
     this.defaultHeight = defaultRowHeight;
     this.viewportHeight = viewportHeight;
@@ -49,7 +62,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     this.zeroBasedScrollOffset = Math.max(scrollOffset, 0);
     this.totalRows = totalRows;
     this.rowHeightFn = rowHeightFn;
-    this.overrideFn = overrideFn;
+    this.overrideFn = overrideFn ?? null;
     this.horizontalScrollbarHeight = horizontalScrollbarHeight ?? 0;
     this.innerViewportHeight = this.zeroBasedScrollOffset + this.viewportHeight - this.horizontalScrollbarHeight;
 
@@ -59,7 +72,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   /**
    * Calculates viewport.
    */
-  calculate() {
+  calculate(): void {
     this._initialize(this);
 
     for (let row = 0; row < this.totalRows; row++) {
@@ -85,7 +98,11 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
    * @param {number} row Row index.
    * @returns {number}
    */
-  getRowHeight(row) {
+  getRowHeight(row: number): number {
+    if (!this.rowHeightFn) {
+      return this.defaultHeight;
+    }
+    
     const rowHeight = this.rowHeightFn(row);
 
     if (isNaN(rowHeight)) {

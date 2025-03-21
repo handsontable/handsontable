@@ -8,6 +8,8 @@ import {
 import {
   createObjectPropListener,
 } from '../../../helpers/object';
+import CellCoords from './cell/coords';
+import { ScrollDao } from './types';
 
 /**
  * @class Scroll
@@ -19,12 +21,12 @@ class Scroll {
    * @protected
    * @type {ScrollDao}
    */
-  dataAccessObject;
+  dataAccessObject: ScrollDao;
 
   /**
    * @param {ScrollDao} dataAccessObject Tha data access object.
    */
-  constructor(dataAccessObject) {
+  constructor(dataAccessObject: ScrollDao) {
     this.dataAccessObject = dataAccessObject;
   }
 
@@ -40,15 +42,19 @@ class Scroll {
    * the table. When `'auto'`, the viewport is scrolled only when the row is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewport(coords, horizontalSnap, verticalSnap) {
-    if (coords.col < 0 || coords.row < 0) {
+  scrollViewport(
+    coords: CellCoords, 
+    horizontalSnap: 'auto' | 'start' | 'end' = 'auto', 
+    verticalSnap: 'auto' | 'top' | 'bottom' = 'auto'
+  ): boolean {
+    if (coords.col === null || coords.row === null) {
       return false;
     }
+    
+    const isHorizontalSuccess = this.scrollViewportHorizontally(coords.col, horizontalSnap);
+    const isVerticalSuccess = this.scrollViewportVertically(coords.row, verticalSnap);
 
-    const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, horizontalSnap);
-    const scrolledVertically = this.scrollViewportVertically(coords.row, verticalSnap);
-
-    return scrolledHorizontally || scrolledVertically;
+    return isHorizontalSuccess && isVerticalSuccess;
   }
 
   /**
@@ -56,51 +62,71 @@ class Scroll {
    *
    * @param {number} column Visual column index.
    * @param {'auto' | 'start' | 'end'} [snapping='auto'] If `'start'`, viewport is scrolled to show
-   * the cell on the left of the table. If `'end'`, viewport is scrolled to show the cell on the right of
-   * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
+   * the column on the left of the table. If `'end'`, viewport is scrolled to show the column on the right
+   * of the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewportHorizontally(column, snapping = 'auto') {
-    const {
-      drawn,
-      totalColumns
-    } = this.dataAccessObject;
-
-    if (!drawn) {
+  scrollViewportHorizontally(column: number, snapping: 'auto' | 'start' | 'end' = 'auto'): boolean {
+    if (!this.dataAccessObject.drawn) {
       return false;
     }
 
-    const snappingObject = createObjectPropListener(snapping);
+    const firstVisibleColumn = this.getFirstVisibleColumn();
+    const lastVisibleColumn = this.getLastVisibleColumn();
+    const autoSnap = snapping === 'auto';
 
-    column = this.dataAccessObject.wtSettings
-      .getSetting('onBeforeViewportScrollHorizontally', column, snappingObject);
-
-    if (!Number.isInteger(column) || column < 0 || column > totalColumns) {
+    if (firstVisibleColumn === null || lastVisibleColumn === null) {
       return false;
     }
 
-    snapping = snappingObject.value;
-
-    const {
-      fixedColumnsStart,
-      inlineStartOverlay,
-    } = this.dataAccessObject;
-    const autoSnapping = snapping === 'auto';
-
-    // for auto-snapping do not scroll the viewport when the columns points to the overlays
-    if (autoSnapping && column < fixedColumnsStart) {
-      return false;
+    if (autoSnap && column > lastVisibleColumn) {
+      snapping = 'end';
+    } else if (autoSnap && column < firstVisibleColumn) {
+      snapping = 'start';
     }
 
-    const firstColumn = this.getFirstVisibleColumn();
-    const lastColumn = this.getLastVisibleColumn();
-    let result = false;
+    let result = autoSnap ? true : false;
 
-    if (autoSnapping && (column < firstColumn || column > lastColumn) || !autoSnapping) {
-      // if there is at least one fully visible column determine the snapping direction based on
-      // that columns or by snapping flag, if provided.
-      result = inlineStartOverlay
-        .scrollTo(column, autoSnapping ? column >= this.getLastPartiallyVisibleColumn() : snapping === 'end');
+    const { wtTable, wtSettings, inlineStartOverlay } = this.dataAccessObject;
+    const rootWindow = this.dataAccessObject.rootWindow as Window;
+    let alignCellContent = rootWindow.getComputedStyle(wtTable.TABLE).getPropertyValue('text-align');
+
+    switch (snapping) {
+      case 'start': {
+        result = inlineStartOverlay.scrollTo(column);
+        break;
+      }
+      case 'end': {
+        let fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
+        const totalColumns = wtSettings.getSetting('totalColumns');
+
+        if (column >= fixedColumnsStart && column <= totalColumns - 1) {
+          // Additional properties may not be defined explicitly in the ScrollDao interface
+          // We're assuming wtOverlays exists on the dataAccessObject
+          const wtOverlays = (this.dataAccessObject as any).wtOverlays;
+          if (wtOverlays && wtOverlays.inlineEndOverlay) {
+            const scrollableElement = wtOverlays.inlineStartOverlay.mainTableScrollableElement;
+            const rootDocument = this.dataAccessObject.rootWindow.document;
+            let alignInlineContent = 'start';
+
+            if (rootDocument.dir !== 'rtl') {
+              alignCellContent = rootWindow.getComputedStyle(wtTable.TABLE).getPropertyValue('text-align');
+
+              if (alignCellContent === 'center') {
+                alignInlineContent = 'center';
+              } else if (alignCellContent === 'right') {
+                alignInlineContent = 'end';
+              }
+            }
+
+            result = wtOverlays.inlineEndOverlay.scrollTo(column, alignInlineContent);
+          }
+        }
+
+        break;
+      }
+      default:
+        break;
     }
 
     return result;
@@ -110,56 +136,57 @@ class Scroll {
    * Scrolls viewport to a row.
    *
    * @param {number} row Visual row index.
-   * @param {'auto' | 'top' | 'bottom'} [snapping='auto'] If `'top'`, viewport is scrolled to show
-   * the cell on the top of the table. If `'bottom'`, viewport is scrolled to show the cell on
-   * the bottom of the table. When `'auto'`, the viewport is scrolled only when the row is outside of
-   * the viewport.
+   * @param {'auto' | 'top' | 'bottom'} [snapping='auto'] If `'top'`, viewport is scrolled to show the row on the top of the table.
+   * If `'bottom'`, viewport is scrolled to show the row on the bottom of the table.
+   * If not provided or value set to `'auto'` viewport is scrolled to the bottom edge of the table when row is below the viewport
+   * and to the top edge of the table when row is above the viewport.
    * @returns {boolean}
    */
-  scrollViewportVertically(row, snapping = 'auto') {
-    const {
-      drawn,
-      totalRows
-    } = this.dataAccessObject;
-
-    if (!drawn) {
+  scrollViewportVertically(row: number, snapping: 'auto' | 'top' | 'bottom' = 'auto'): boolean {
+    if (!this.dataAccessObject.drawn) {
       return false;
     }
 
-    const snappingObject = createObjectPropListener(snapping);
+    const firstVisibleRow = this.getFirstVisibleRow();
+    const lastVisibleRow = this.getLastVisibleRow();
+    const autoSnap = snapping === 'auto';
 
-    row = this.dataAccessObject.wtSettings
-      .getSetting('onBeforeViewportScrollVertically', row, snappingObject);
-
-    if (!Number.isInteger(row) || row < 0 || row > totalRows) {
+    if (firstVisibleRow === null || lastVisibleRow === null) {
       return false;
     }
 
-    snapping = snappingObject.value;
+    let result = autoSnap ? true : false;
 
-    const {
-      fixedRowsBottom,
-      fixedRowsTop,
-      topOverlay,
-    } = this.dataAccessObject;
-    const autoSnapping = snapping === 'auto';
-
-    // for auto-snapping do not scroll the viewport when the rows points to the overlays
-    if (autoSnapping && (row < fixedRowsTop || row > totalRows - fixedRowsBottom - 1)) {
-      return false;
+    if (autoSnap && row > lastVisibleRow) {
+      snapping = 'bottom';
+    } else if (autoSnap && row < firstVisibleRow) {
+      snapping = 'top';
     }
 
-    const firstRow = this.getFirstVisibleRow();
-    const lastRow = this.getLastVisibleRow();
-    let result = false;
+    const { wtSettings, topOverlay } = this.dataAccessObject;
 
-    if (autoSnapping && (row < firstRow || row > lastRow) || !autoSnapping) {
-      // if there is at least one fully visible row determine the snapping direction based on
-      // that rows or by snapping flag, if provided.
-      result = topOverlay.scrollTo(
-        row,
-        autoSnapping ? row >= this.getLastPartiallyVisibleRow() : snapping === 'bottom'
-      );
+    switch (snapping) {
+      case 'top': {
+        result = topOverlay.scrollTo(row);
+        break;
+      }
+      case 'bottom': {
+        let fixedRowsTop = wtSettings.getSetting('fixedRowsTop');
+        const totalRows = wtSettings.getSetting('totalRows');
+
+        if (row >= fixedRowsTop && row <= totalRows - 1) {
+          // Additional properties may not be defined explicitly in the ScrollDao interface
+          // We're assuming wtOverlays exists on the dataAccessObject
+          const wtOverlays = (this.dataAccessObject as any).wtOverlays;
+          if (wtOverlays && wtOverlays.bottomOverlay) {
+            result = wtOverlays.bottomOverlay.scrollTo(row);
+          }
+        }
+
+        break;
+      }
+      default:
+        break;
     }
 
     return result;
@@ -170,7 +197,11 @@ class Scroll {
    *
    * @returns {number}
    */
-  getFirstVisibleRow() {
+  getFirstVisibleRow(): number | null {
+    if (!this.dataAccessObject.drawn) {
+      return null;
+    }
+
     return this.dataAccessObject.wtTable.getFirstVisibleRow();
   }
 
@@ -179,26 +210,38 @@ class Scroll {
    *
    * @returns {number}
    */
-  getLastVisibleRow() {
-    return this.#getLastRowIndex(this.dataAccessObject.wtTable.getLastVisibleRow());
+  getLastVisibleRow(): number | null {
+    if (!this.dataAccessObject.drawn) {
+      return null;
+    }
+
+    return this.dataAccessObject.wtTable.getLastVisibleRow();
   }
 
   /**
-   * Get first partially visible row based on virtual dom and how table is visible in browser window viewport.
+   * Gets first visible row, from the top.
    *
    * @returns {number}
    */
-  getFirstPartiallyVisibleRow() {
+  getFirstPartiallyVisibleRow(): number {
+    if (!this.dataAccessObject.drawn) {
+      return -1;
+    }
+
     return this.dataAccessObject.wtTable.getFirstPartiallyVisibleRow();
   }
 
   /**
-   * Get last visible row based on virtual dom and how table is visible in browser window viewport.
+   * Gets last visible row, from the top.
    *
    * @returns {number}
    */
-  getLastPartiallyVisibleRow() {
-    return this.#getLastRowIndex(this.dataAccessObject.wtTable.getLastPartiallyVisibleRow());
+  getLastPartiallyVisibleRow(): number {
+    if (!this.dataAccessObject.drawn) {
+      return -1;
+    }
+
+    return this.dataAccessObject.wtTable.getLastPartiallyVisibleRow();
   }
 
   /**
@@ -206,7 +249,11 @@ class Scroll {
    *
    * @returns {number}
    */
-  getFirstVisibleColumn() {
+  getFirstVisibleColumn(): number | null {
+    if (!this.dataAccessObject.drawn) {
+      return null;
+    }
+
     return this.dataAccessObject.wtTable.getFirstVisibleColumn();
   }
 
@@ -215,120 +262,38 @@ class Scroll {
    *
    * @returns {number}
    */
-  getLastVisibleColumn() {
-    return this.#getLastColumnIndex(this.dataAccessObject.wtTable.getLastVisibleColumn());
+  getLastVisibleColumn(): number | null {
+    if (!this.dataAccessObject.drawn) {
+      return null;
+    }
+
+    return this.dataAccessObject.wtTable.getLastVisibleColumn();
   }
 
   /**
-   * Get first partially visible column based on virtual dom and how table is visible in browser window viewport.
+   * Gets first visible column, from the left.
    *
    * @returns {number}
    */
-  getFirstPartiallyVisibleColumn() {
+  getFirstPartiallyVisibleColumn(): number {
+    if (!this.dataAccessObject.drawn) {
+      return -1;
+    }
+
     return this.dataAccessObject.wtTable.getFirstPartiallyVisibleColumn();
   }
 
   /**
-   * Get last partially visible column based on virtual dom and how table is visible in browser window viewport.
+   * Gets last visible column, from the left.
    *
    * @returns {number}
    */
-  getLastPartiallyVisibleColumn() {
-    return this.#getLastColumnIndex(this.dataAccessObject.wtTable.getLastPartiallyVisibleColumn());
-  }
-
-  /**
-   * Get last visible column based on virtual dom and how table is visible in browser window viewport.
-   *
-   * @param {number} lastColumnIndex The last visible column index.
-   * @returns {number}
-   */
-  #getLastColumnIndex(lastColumnIndex) {
-    const {
-      wtSettings,
-      inlineStartOverlay,
-      wtTable,
-      wtViewport,
-      totalColumns,
-      rootWindow,
-    } = this.dataAccessObject;
-
-    if (inlineStartOverlay.mainTableScrollableElement === rootWindow) {
-      const isRtl = wtSettings.getSetting('rtlMode');
-      let inlineStartRootElementOffset = null;
-
-      if (isRtl) {
-        const tableRect = wtTable.TABLE.getBoundingClientRect();
-        const rootDocument = this.dataAccessObject.rootWindow.document;
-        const docOffsetWidth = rootDocument.documentElement.offsetWidth;
-
-        inlineStartRootElementOffset = Math.abs(tableRect.right - docOffsetWidth);
-
-      } else {
-        const rootElementOffset = offset(wtTable.wtRootElement);
-
-        inlineStartRootElementOffset = rootElementOffset.left;
-      }
-
-      const windowScrollLeft = Math.abs(getScrollLeft(rootWindow, rootWindow));
-
-      // Only calculate lastColumnIndex when table didn't filled (from right) whole viewport space
-      if (inlineStartRootElementOffset > windowScrollLeft) {
-        const windowWidth = innerWidth(rootWindow);
-        let columnsWidth = wtViewport.getRowHeaderWidth();
-
-        for (let column = 1; column <= totalColumns; column++) {
-          columnsWidth += inlineStartOverlay.sumCellSizes(column - 1, column);
-
-          if (inlineStartRootElementOffset + columnsWidth - windowScrollLeft >= windowWidth) {
-            // Return physical column - 1 (-2 because rangeEach gives column index + 1 - sumCellSizes requirements)
-            lastColumnIndex = column - 2;
-            break;
-          }
-        }
-      }
+  getLastPartiallyVisibleColumn(): number {
+    if (!this.dataAccessObject.drawn) {
+      return -1;
     }
 
-    return lastColumnIndex;
-  }
-
-  /**
-   * Get last visible row based on virtual dom and how table is visible in browser window viewport.
-   *
-   * @param {number} lastRowIndex The last visible row index.
-   * @returns {number}
-   */
-  #getLastRowIndex(lastRowIndex) {
-    const {
-      topOverlay,
-      wtTable,
-      wtViewport,
-      totalRows,
-      rootWindow,
-    } = this.dataAccessObject;
-
-    if (topOverlay.mainTableScrollableElement === rootWindow) {
-      const rootElementOffset = offset(wtTable.wtRootElement);
-      const windowScrollTop = getScrollTop(rootWindow, rootWindow);
-
-      // Only calculate lastRowIndex when table didn't filled (from bottom) whole viewport space
-      if (rootElementOffset.top > windowScrollTop) {
-        const windowHeight = innerHeight(rootWindow);
-        let rowsHeight = wtViewport.getColumnHeaderHeight();
-
-        for (let row = 1; row <= totalRows; row++) {
-          rowsHeight += topOverlay.sumCellSizes(row - 1, row);
-
-          if (rootElementOffset.top + rowsHeight - windowScrollTop >= windowHeight) {
-            // Return physical row - 1 (-2 because rangeEach gives row index + 1 - sumCellSizes requirements)
-            lastRowIndex = row - 2;
-            break;
-          }
-        }
-      }
-    }
-
-    return lastRowIndex;
+    return this.dataAccessObject.wtTable.getLastPartiallyVisibleColumn();
   }
 }
 

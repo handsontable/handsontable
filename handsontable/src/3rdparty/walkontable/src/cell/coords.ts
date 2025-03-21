@@ -16,19 +16,32 @@
  * import Handsontable, { CellCoords } from '/handsontable/base';
  * ```
  */
+
+interface TableParams {
+  countRows?: number;
+  countCols?: number;
+  countRowHeaders?: number;
+  countColHeaders?: number;
+}
+
+interface CellCoordsObject {
+  row: number | null;
+  col: number | null;
+}
+
 class CellCoords {
   /**
    * A visual row index.
    *
    * @type {number}
    */
-  row = null;
+  row: number | null = null;
   /**
    * A visual column index.
    *
    * @type {number}
    */
-  col = null;
+  col: number | null = null;
   /**
    * A flag which determines if the coordinates run in RTL mode.
    *
@@ -36,7 +49,7 @@ class CellCoords {
    */
   #isRtl = false;
 
-  constructor(row, column, isRtl = false) {
+  constructor(row?: number, column?: number, isRtl = false) {
     this.#isRtl = isRtl;
 
     if (typeof row !== 'undefined' && typeof column !== 'undefined') {
@@ -66,7 +79,7 @@ class CellCoords {
    * @param {number} [tableParams.countColHeaders=0] A number of column headers.
    * @returns {boolean} `true`: The coordinates are valid.
    */
-  isValid(tableParams) {
+  isValid(tableParams?: TableParams): boolean {
     const { countRows, countCols, countRowHeaders, countColHeaders } = {
       countRows: 0,
       countCols: 0,
@@ -79,11 +92,11 @@ class CellCoords {
       return false;
     }
 
-    if (this.row < -countColHeaders || this.col < -countRowHeaders) {
+    if ((this.row as number) < -countColHeaders || (this.col as number) < -countRowHeaders) {
       return false;
     }
 
-    if (this.row >= countRows || this.col >= countCols) {
+    if ((this.row as number) >= countRows || (this.col as number) >= countCols) {
       return false;
     }
 
@@ -97,7 +110,7 @@ class CellCoords {
    * @param {CellCoords} coords Coordinates to check.
    * @returns {boolean}
    */
-  isEqual(coords) {
+  isEqual(coords: CellCoords): boolean {
     if (coords === this) {
       return true;
     }
@@ -111,7 +124,7 @@ class CellCoords {
    *
    * @returns {boolean}
    */
-  isHeader() {
+  isHeader(): boolean {
     return !this.isCell();
   }
 
@@ -121,8 +134,8 @@ class CellCoords {
    *
    * @returns {boolean}
    */
-  isCell() {
-    return this.row >= 0 && this.col >= 0;
+  isCell(): boolean {
+    return (this.row as number) >= 0 && (this.col as number) >= 0;
   }
 
   /**
@@ -130,7 +143,7 @@ class CellCoords {
    *
    * @returns {boolean}
    */
-  isRtl() {
+  isRtl(): boolean {
     return this.#isRtl;
   }
 
@@ -141,9 +154,9 @@ class CellCoords {
    * @param {CellCoords} testedCoords Coordinates to check.
    * @returns {boolean}
    */
-  isSouthEastOf(testedCoords) {
-    return this.row >= testedCoords.row &&
-      (this.#isRtl ? this.col <= testedCoords.col : this.col >= testedCoords.col);
+  isSouthEastOf(testedCoords: CellCoords): boolean {
+    return (this.row as number) >= (testedCoords.row as number) &&
+      (this.#isRtl ? (this.col as number) <= (testedCoords.col as number) : (this.col as number) >= (testedCoords.col as number));
   }
 
   /**
@@ -153,9 +166,9 @@ class CellCoords {
    * @param {CellCoords} testedCoords Coordinates to check.
    * @returns {boolean}
    */
-  isNorthWestOf(testedCoords) {
-    return this.row <= testedCoords.row &&
-      (this.#isRtl ? this.col >= testedCoords.col : this.col <= testedCoords.col);
+  isNorthWestOf(testedCoords: CellCoords): boolean {
+    return (this.row as number) <= (testedCoords.row as number) &&
+      (this.#isRtl ? (this.col as number) >= (testedCoords.col as number) : (this.col as number) <= (testedCoords.col as number));
   }
 
   /**
@@ -165,9 +178,9 @@ class CellCoords {
    * @param {CellCoords} testedCoords Coordinates to check.
    * @returns {boolean}
    */
-  isSouthWestOf(testedCoords) {
-    return this.row >= testedCoords.row &&
-      (this.#isRtl ? this.col >= testedCoords.col : this.col <= testedCoords.col);
+  isSouthWestOf(testedCoords: CellCoords): boolean {
+    return (this.row as number) >= (testedCoords.row as number) &&
+      (this.#isRtl ? (this.col as number) >= (testedCoords.col as number) : (this.col as number) <= (testedCoords.col as number));
   }
 
   /**
@@ -177,9 +190,9 @@ class CellCoords {
    * @param {CellCoords} testedCoords Coordinates to check.
    * @returns {boolean}
    */
-  isNorthEastOf(testedCoords) {
-    return this.row <= testedCoords.row &&
-      (this.#isRtl ? this.col <= testedCoords.col : this.col >= testedCoords.col);
+  isNorthEastOf(testedCoords: CellCoords): boolean {
+    return (this.row as number) <= (testedCoords.row as number) &&
+      (this.#isRtl ? (this.col as number) <= (testedCoords.col as number) : (this.col as number) >= (testedCoords.col as number));
   }
 
   /**
@@ -189,7 +202,7 @@ class CellCoords {
    *
    * @returns {CellCoords}
    */
-  normalize() {
+  normalize(): CellCoords {
     this.row = this.row === null ? this.row : Math.max(this.row, 0);
     this.col = this.col === null ? this.col : Math.max(this.col, 0);
 
@@ -204,12 +217,12 @@ class CellCoords {
    * instance or compatible literal object.
    * @returns {CellCoords}
    */
-  assign(coords) {
+  assign(coords: CellCoords | { row?: number | null, col?: number | null }): CellCoords {
     if (Number.isInteger(coords?.row)) {
-      this.row = coords.row;
+      this.row = coords.row as number;
     }
     if (Number.isInteger(coords?.col)) {
-      this.col = coords.col;
+      this.col = coords.col as number;
     }
 
     if (coords instanceof CellCoords) {
@@ -224,8 +237,8 @@ class CellCoords {
    *
    * @returns {CellCoords}
    */
-  clone() {
-    return new CellCoords(this.row, this.col, this.#isRtl);
+  clone(): CellCoords {
+    return new CellCoords(this.row as number, this.col as number, this.#isRtl);
   }
 
   /**
@@ -233,7 +246,7 @@ class CellCoords {
    *
    * @returns {{row: number, col: number}} An object literal with `row` and `col` properties.
    */
-  toObject() {
+  toObject(): CellCoordsObject {
     return {
       row: this.row,
       col: this.col,

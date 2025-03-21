@@ -12,14 +12,14 @@ export class StylesHandler {
    *
    * @type {string|undefined}
    */
-  #themeName;
+  #themeName: string | undefined;
 
   /**
    * The instance's root element.
    *
    * @type {HTMLElement}
    */
-  #rootElement;
+  #rootElement: HTMLElement;
 
   /**
    * The computed style of the root element.
@@ -27,7 +27,7 @@ export class StylesHandler {
    * @type {CSSStyleDeclaration}
    * @private
    */
-  #rootComputedStyle;
+  #rootComputedStyle: CSSStyleDeclaration | null = null;
 
   /**
    * The root document of the instance.
@@ -35,7 +35,7 @@ export class StylesHandler {
    * @type {Document}
    * @private
    */
-  #rootDocument;
+  #rootDocument: Document;
 
   /**
    * `true` if the classic theme is enabled, `false` otherwise.
@@ -50,7 +50,7 @@ export class StylesHandler {
    * @type {object}
    * @private
    */
-  #cssVars = {};
+  #cssVars: Record<string, number | null> = {};
 
   /**
    * Stores the computed styles for various elements.
@@ -58,14 +58,20 @@ export class StylesHandler {
    * @type {object} - An object containing the computed styles if a nested structore of `element: { [element type]: {property: value} }`.
    * @private
    */
-  #computedStyles = {};
+  #computedStyles: {
+    td?: Record<string, string>;
+    [key: string]: Record<string, string> | undefined;
+  } = {};
 
   /**
    * Initializes a new instance of the `StylesHandler` class.
    *
    * @param {object} domBindings - The DOM bindings for the instance.
    */
-  constructor(domBindings) {
+  constructor(domBindings: { rootTable: HTMLElement; rootDocument: Document }) {
+    if (!domBindings.rootTable.parentElement || !domBindings.rootTable.parentElement.parentElement) {
+      throw new Error('Root table must have at least two parent elements');
+    }
     this.#rootElement = domBindings.rootTable.parentElement.parentElement;
     this.#rootDocument = domBindings.rootDocument;
   }
@@ -75,7 +81,7 @@ export class StylesHandler {
    *
    * @returns {boolean} `true` if the classic theme is enabled, `false` otherwise.
    */
-  isClassicTheme() {
+  isClassicTheme(): boolean {
     return this.#isClassicTheme;
   }
 
@@ -85,24 +91,25 @@ export class StylesHandler {
    * @param {string} variableName - The name of the CSS variable to retrieve.
    * @returns {number|null|undefined} The value of the specified CSS variable, or `undefined` if not found.
    */
-  getCSSVariableValue(variableName) {
+  getCSSVariableValue(variableName: string): number | null | undefined {
     if (this.#isClassicTheme) {
       return null;
     }
 
-    if (this.#cssVars[`--ht-${variableName}`]) {
-      return this.#cssVars[`--ht-${variableName}`];
+    const key = `--ht-${variableName}`;
+    if (key in this.#cssVars) {
+      return this.#cssVars[key];
     }
 
-    const acquiredValue =
-      this.#getParsedNumericCSSValue(`--ht-${variableName}`) ??
-      this.#getCSSValue(`--ht-${variableName}`);
+    const acquiredValue = this.#getParsedNumericCSSValue(key);
 
     if (acquiredValue !== null) {
-      this.#cssVars[`--ht-${variableName}`] = acquiredValue;
-
+      this.#cssVars[key] = acquiredValue;
       return acquiredValue;
     }
+
+    // If we can't get the value as a number, just return undefined
+    return undefined;
   }
 
   /**
@@ -111,8 +118,8 @@ export class StylesHandler {
    * @param {string} cssProperty - The CSS property to retrieve the value for.
    * @returns {number|string|undefined} The value of the specified CSS property, or `undefined` if not found.
    */
-  getStyleForTD(cssProperty) {
-    return this.#computedStyles?.td[cssProperty];
+  getStyleForTD(cssProperty: string): string | undefined {
+    return this.#computedStyles?.td?.[cssProperty];
   }
 
   /**
@@ -120,7 +127,7 @@ export class StylesHandler {
    *
    * @returns {number} The calculated row height.
    */
-  getDefaultRowHeight() {
+  getDefaultRowHeight(): number {
     if (this.#isClassicTheme) {
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
@@ -132,12 +139,12 @@ export class StylesHandler {
 Import the correct CSS files in order to use that theme.`);
 
       this.#isClassicTheme = true;
-      this.useTheme();
+      this.useTheme(false);
 
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
-    return calculatedRowHeight;
+    return calculatedRowHeight || CLASSIC_THEME_DEFAULT_HEIGHT;
   }
 
   /**
@@ -145,7 +152,7 @@ Import the correct CSS files in order to use that theme.`);
    *
    * @returns {boolean}
    */
-  areCellsBorderBox() {
+  areCellsBorderBox(): boolean {
     return this.getStyleForTD('box-sizing') === 'border-box';
   }
 
@@ -154,12 +161,12 @@ Import the correct CSS files in order to use that theme.`);
    *
    * @param {string|undefined|boolean} [themeName] - The name of the theme to apply.
    */
-  useTheme(themeName) {
+  useTheme(themeName?: string | undefined | boolean): void {
     if (!themeName) {
       this.#cacheStylesheetValues();
 
       this.#isClassicTheme = true;
-      this.#themeName = themeName || undefined;
+      this.#themeName = undefined;
 
       return;
     }
@@ -169,7 +176,7 @@ Import the correct CSS files in order to use that theme.`);
         this.#clearCachedValues();
       }
 
-      this.#themeName = themeName;
+      this.#themeName = typeof themeName === 'string' ? themeName : undefined;
       this.#isClassicTheme = false;
 
       this.#applyClassNames();
@@ -182,15 +189,15 @@ Import the correct CSS files in order to use that theme.`);
    *
    * @returns {string|undefined}
    */
-  getThemeName() {
+  getThemeName(): string | undefined {
     return this.#themeName;
   }
 
   /**
    * Removes the theme-related class names from the root element.
    */
-  removeClassNames() {
-    if (hasClass(this.#rootElement, this.#themeName)) {
+  removeClassNames(): void {
+    if (this.#themeName && hasClass(this.#rootElement, this.#themeName)) {
       removeClass(this.#rootElement, this.#themeName);
     }
   }
@@ -200,14 +207,14 @@ Import the correct CSS files in order to use that theme.`);
    *
    * @returns {number|null} The calculated row height, or `null` if any required CSS variable is not found.
    */
-  #calculateRowHeight() {
+  #calculateRowHeight(): number | null {
     const lineHeightVarValue = this.getCSSVariableValue('line-height');
     const verticalPaddingVarValue = this.getCSSVariableValue('cell-vertical-padding');
-    const bottomBorderWidth = Math.ceil(parseFloat(this.getStyleForTD('border-bottom-width')));
+    const bottomBorderWidth = Math.ceil(parseFloat(this.getStyleForTD('border-bottom-width') || '0'));
 
     if (
-      lineHeightVarValue === null ||
-      verticalPaddingVarValue === null ||
+      typeof lineHeightVarValue !== 'number' ||
+      typeof verticalPaddingVarValue !== 'number' ||
       isNaN(bottomBorderWidth)
     ) {
       return null;
@@ -219,16 +226,18 @@ Import the correct CSS files in order to use that theme.`);
   /**
    * Applies the necessary class names to the root element.
    */
-  #applyClassNames() {
+  #applyClassNames(): void {
     removeClass(this.#rootElement, /ht-theme-.*/g);
 
-    addClass(this.#rootElement, this.#themeName);
+    if (this.#themeName) {
+      addClass(this.#rootElement, this.#themeName);
+    }
   }
 
   /**
    * Caches the computed style values for the root element and `td` element.
    */
-  #cacheStylesheetValues() {
+  #cacheStylesheetValues(): void {
     if (!this.isClassicTheme()) {
       this.#rootComputedStyle = getComputedStyle(this.#rootElement);
     }
@@ -237,6 +246,10 @@ Import the correct CSS files in order to use that theme.`);
       'box-sizing',
       'border-bottom-width',
     ]);
+
+    if (!this.#computedStyles.td) {
+      this.#computedStyles.td = {};
+    }
 
     this.#computedStyles.td = {
       ...this.#computedStyles.td,
@@ -258,7 +271,7 @@ Import the correct CSS files in order to use that theme.`);
    * @returns {object} An object containing the requested computed styles for the `td` element.
    * @private
    */
-  #getStylesForTD(cssProps) {
+  #getStylesForTD(cssProps: string[]): Record<string, string> {
     const rootDocument = this.#rootDocument;
     const rootElement = this.#rootElement;
     const table = rootDocument.createElement('table');
@@ -276,7 +289,7 @@ Import the correct CSS files in order to use that theme.`);
     rootElement.appendChild(table);
 
     const computedStyle = getComputedStyle(td);
-    const returnObject = {};
+    const returnObject: Record<string, string> = {};
 
     cssProps.forEach((prop) => {
       returnObject[prop] = computedStyle.getPropertyValue(prop);
@@ -293,8 +306,9 @@ Import the correct CSS files in order to use that theme.`);
    * @param {string} property - The CSS property to retrieve and parse.
    * @returns {number|null} The parsed value of the CSS property or `null` if non-existent.
    */
-  #getParsedNumericCSSValue(property) {
-    const parsedValue = Math.ceil(parseFloat(this.#getCSSValue(property)));
+  #getParsedNumericCSSValue(property: string): number | null {
+    const cssValue = this.#getCSSValue(property);
+    const parsedValue = cssValue ? Math.ceil(parseFloat(cssValue)) : NaN;
 
     return Number.isNaN(parsedValue) ? null : parsedValue;
   }
@@ -305,7 +319,11 @@ Import the correct CSS files in order to use that theme.`);
    * @param {string} property - The CSS property to retrieve.
    * @returns {string|null} The value of the specified CSS property or `null` if non-existent.
    */
-  #getCSSValue(property) {
+  #getCSSValue(property: string): string | null {
+    if (!this.#rootComputedStyle) {
+      return null;
+    }
+    
     const acquiredValue = this.#rootComputedStyle.getPropertyValue(property);
 
     return acquiredValue === '' ? null : acquiredValue;
@@ -314,7 +332,7 @@ Import the correct CSS files in order to use that theme.`);
   /**
    * Clears the cached values.
    */
-  #clearCachedValues() {
+  #clearCachedValues(): void {
     this.#computedStyles = {};
     this.#cssVars = {};
     this.#isClassicTheme = true;

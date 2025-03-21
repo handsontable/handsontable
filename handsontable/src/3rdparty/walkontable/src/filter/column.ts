@@ -5,22 +5,22 @@ class ColumnFilter {
   /**
    * @type {number}
    */
-  offset;
+  offset: number;
   /**
    * @type {number}
    */
-  total;
+  total: number;
   /**
    * @type {number}
    */
-  countTH;
+  countTH: number;
 
   /**
    * @param {number} offset The scroll horizontal offset.
    * @param {number} total The total width of the table.
    * @param {number} countTH The number of rendered row headers.
    */
-  constructor(offset, total, countTH) {
+  constructor(offset: number, total: number, countTH: number) {
     this.offset = offset;
     this.total = total;
     this.countTH = countTH;
@@ -30,7 +30,7 @@ class ColumnFilter {
    * @param {number} index The visual column index.
    * @returns {number}
    */
-  offsetted(index) {
+  offsetted(index: number): number {
     return index + this.offset;
   }
 
@@ -38,7 +38,7 @@ class ColumnFilter {
    * @param {number} index The visual column index.
    * @returns {number}
    */
-  unOffsetted(index) {
+  unOffsetted(index: number): number {
     return index - this.offset;
   }
 
@@ -46,7 +46,7 @@ class ColumnFilter {
    * @param {number} index The visual column index.
    * @returns {number}
    */
-  renderedToSource(index) {
+  renderedToSource(index: number): number {
     return this.offsetted(index);
   }
 
@@ -54,7 +54,7 @@ class ColumnFilter {
    * @param {number} index The visual column index.
    * @returns {number}
    */
-  sourceToRendered(index) {
+  sourceToRendered(index: number): number {
     return this.unOffsetted(index);
   }
 
@@ -62,7 +62,7 @@ class ColumnFilter {
    * @param {number} index The visual column index.
    * @returns {number}
    */
-  offsettedTH(index) {
+  offsettedTH(index: number): number {
     return index - this.countTH;
   }
 
@@ -70,7 +70,7 @@ class ColumnFilter {
    * @param {number} index The visual column index.
    * @returns {number}
    */
-  unOffsettedTH(index) {
+  unOffsettedTH(index: number): number {
     return index + this.countTH;
   }
 
@@ -78,7 +78,7 @@ class ColumnFilter {
    * @param {number} index The visual column index.
    * @returns {number}
    */
-  visibleRowHeadedColumnToSourceColumn(index) {
+  visibleRowHeadedColumnToSourceColumn(index: number): number {
     return this.renderedToSource(this.offsettedTH(index));
   }
 
@@ -86,7 +86,7 @@ class ColumnFilter {
    * @param {number} index The visual column index.
    * @returns {number}
    */
-  sourceColumnToVisibleRowHeadedColumn(index) {
+  sourceColumnToVisibleRowHeadedColumn(index: number): number {
     return this.unOffsettedTH(this.sourceToRendered(index));
   }
 }

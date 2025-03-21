@@ -1,11 +1,12 @@
 import { NodesPool } from '../utils/nodesPool';
+import { BaseRendererInterface, TableRendererInterface } from './interfaces';
 
 /**
  * Base renderer class, abstract logic for specialized renderers.
  *
  * @class BaseRenderer
  */
-export class BaseRenderer {
+export class BaseRenderer implements BaseRendererInterface {
   /**
    * Factory for newly created DOM elements.
    *
@@ -14,33 +15,33 @@ export class BaseRenderer {
    *
    * @type {NodesPool|null}
    */
-  nodesPool = null;
+  nodesPool: NodesPool | null = null;
   /**
    * Node type which the renderer will manage while building the table (eg. 'TD', 'TR', 'TH').
    *
    * @type {string}
    */
-  nodeType;
+  nodeType: string;
   /**
    * The root node to which newly created elements will be inserted.
    *
    * @type {HTMLElement}
    */
-  rootNode;
+  rootNode: HTMLElement;
   /**
    * The instance of the Table class, a wrapper for all renderers and holder for properties describe table state.
    *
    * @type {TableRenderer}
    */
-  table = null;
+  table: TableRendererInterface | null = null;
   /**
    * Counter of nodes already added.
    *
    * @type {number}
    */
-  renderedNodes = 0;
+  renderedNodes: number = 0;
 
-  constructor(nodeType, rootNode) {
+  constructor(nodeType: string, rootNode: HTMLElement) {
     this.nodesPool = typeof nodeType === 'string' ? new NodesPool(nodeType) : null;
     this.nodeType = nodeType;
     this.rootNode = rootNode;
@@ -51,7 +52,7 @@ export class BaseRenderer {
    *
    * @param {TableRenderer} table The TableRenderer instance.
    */
-  setTable(table) {
+  setTable(table: TableRendererInterface): void {
     if (this.nodesPool) {
       this.nodesPool.setRootDocument(table.rootDocument);
     }
@@ -62,10 +63,10 @@ export class BaseRenderer {
   /**
    * Adjusts the number of rendered nodes.
    */
-  adjust() { }
+  adjust(): void { }
 
   /**
    * Renders the contents to the elements.
    */
-  render() { }
+  render(): void { }
 }

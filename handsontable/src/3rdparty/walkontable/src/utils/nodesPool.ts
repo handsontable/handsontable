@@ -9,15 +9,21 @@ export class NodesPool {
    *
    * @type {string}
    */
-  nodeType;
+  nodeType: string;
   /**
    * The holder for all created DOM nodes (THs, TDs).
    *
    * @type {Map<string, HTMLElement>}
    */
-  pool = new Map();
+  pool: Map<string, HTMLElement> = new Map();
+  /**
+   * The document owner of this instance.
+   * 
+   * @type {Document}
+   */
+  rootDocument!: Document;
 
-  constructor(nodeType) {
+  constructor(nodeType: string) {
     this.nodeType = nodeType.toUpperCase();
   }
 
@@ -26,7 +32,7 @@ export class NodesPool {
    *
    * @param {Document} rootDocument The document window owner.
    */
-  setRootDocument(rootDocument) {
+  setRootDocument(rootDocument: Document): void {
     this.rootDocument = rootDocument;
   }
 
@@ -37,12 +43,12 @@ export class NodesPool {
    * @param {number} [columnIndex] The column index.
    * @returns {HTMLElement}
    */
-  obtain(rowIndex, columnIndex) {
+  obtain(rowIndex: number, columnIndex?: number): HTMLElement {
     const hasColumnIndex = typeof columnIndex === 'number';
     const key = hasColumnIndex ? `${rowIndex}x${columnIndex}` : rowIndex.toString();
 
     if (this.pool.has(key)) {
-      return this.pool.get(key);
+      return this.pool.get(key)!;
     }
 
     const node = this.rootDocument.createElement(this.nodeType);

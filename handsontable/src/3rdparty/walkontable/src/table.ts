@@ -25,6 +25,8 @@ import {
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
 import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../helpers/a11y';
+import CellCoords from './cell/coords';
+import { DomBindings, EventManager, FacadeGetter, Settings, TableDao } from './types';
 
 /**
  * @todo These mixes are never added to the class Table, however their members are used here.
@@ -39,100 +41,268 @@ import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../helpers/a11y';
  */
 class Table {
   /**
-   * The walkontable settings.
+   * Walkontable instance.
    *
-   * @protected
+   * @type {Walkontable}
+   */
+  wot: any;
+  /**
+   * Table's data access object.
+   *
+   * @type {TableDao}
+   */
+  dataAccessObject: TableDao;
+  /**
+   * Dom bindings for Table.
+   *
+   * @type {DomBindings}
+   */
+  domBindings: DomBindings;
+  /**
+   * Settings reader for Table.
+   *
    * @type {Settings}
    */
-  wtSettings = null;
-  domBindings;
-  TBODY = null;
-  THEAD = null;
-  COLGROUP = null;
+  wtSettings: Settings;
   /**
-   * Indicates if the table has height bigger than 0px.
+   * Document owner for Table.
+   *
+   * @type {Document}
+   */
+  domBindingsDocument: Document;
+  /**
+   * Column filter responsible for filtering table data on the horizontal axis.
+   *
+   * @type {ColumnFilter}
+   */
+  columnFilter: ColumnFilter;
+  /**
+   * Row filter responsible for filtering table data on the vertical axis.
+   *
+   * @type {RowFilter}
+   */
+  rowFilter: RowFilter;
+  /**
+   * Column utils class responsible for column-related calculations.
+   *
+   * @type {ColumnUtils}
+   */
+  columnUtils: ColumnUtils;
+  /**
+   * Row utils class responsible for row-related calculations.
+   *
+   * @type {RowUtils}
+   */
+  rowUtils: RowUtils;
+  /**
+   * Instance of the Walkontable.Renderer responsible for table rendering.
+   *
+   * @type {Renderer}
+   */
+  tablRenderer: Renderer;
+  /**
+   * Table name or element type.
+   *
+   * @type {string}
+   */
+  type: string;
+  /**
+   * The table element.
+   *
+   * @type {HTMLTableElement}
+   */
+  TABLE: HTMLTableElement;
+  /**
+   * The THEAD element.
+   *
+   * @type {HTMLTableSectionElement}
+   */
+  THEAD: HTMLTableSectionElement;
+  /**
+   * The TBODY element.
+   *
+   * @type {HTMLTableSectionElement}
+   */
+  TBODY: HTMLTableSectionElement;
+  /**
+   * The table's parent element.
+   *
+   * @type {HTMLElement}
+   */
+  wtRootElement: HTMLElement;
+  /**
+   * The element being the holder for the table.
+   *
+   * @type {HTMLElement}
+   */
+  holder: HTMLElement;
+  /**
+   * The element hiding the table viewport overflow.
+   *
+   * @type {HTMLElement}
+   */
+  hider: HTMLElement;
+  /**
+   * The spreadsheet-like grid header.
+   *
+   * @type {HTMLElement}
+   */
+  spreader: HTMLElement;
+  /**
+   * Flag that determines if the table is created as a clone.
    *
    * @type {boolean}
    */
-  hasTableHeight = true;
+  isClone: boolean = false;
   /**
-   * Indicates if the table has width bigger than 0px.
+   * Table's unique name. By default, it's the same as the type with the prefix.
+   *
+   * @type {string}
+   */
+  name: string;
+  /**
+   * Flag which indicates if the Table instance is of the master type.
    *
    * @type {boolean}
    */
-  hasTableWidth = true;
+  isMaster: boolean = false;
   /**
-   * Indicates if the table is visible. By visible, it means that the holder
-   * element has CSS 'display' property different than 'none'.
+   * The instance of EventManager.
    *
+   * @type {EventManager}
+   */
+  eventManager: EventManager;
+  /**
+   * Flag which indicates if the table performs the walkontable-resize action.
+   *
+   * @private
    * @type {boolean}
    */
-  isTableVisible = false;
-  tableOffset = 0;
-  holderOffset = 0;
+  hasTableHeight: boolean = true;
   /**
+   * Flag which indicates if the table performs the walkontable-resize action.
    *
-   * @abstract
-   * @param {TableDao} dataAccessObject The data access object.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {DomBindings} domBindings Bindings into DOM.
+   * @private
+   * @type {boolean}
+   */
+  hasTableWidth: boolean = true;
+  /**
+   * Used to get the Walkontable instance.
+   *
+   * @type {FacadeGetter}
+   */
+  facadeGetter: FacadeGetter;
+
+  /**
+   * @param {TableDao} dataAccessObject The walkontable settings.
+   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    * @param {Settings} wtSettings The Walkontable settings.
-   * @param {'master'|CLONE_TYPES_ENUM} name Overlay name.
+   * @param {string} [name] The table name.
+   * @param {FacadeGetter} facadeGetter Function which returns proper facade.
    */
-  constructor(dataAccessObject, facadeGetter, domBindings, wtSettings, name) {
-    this.domBindings = domBindings;
-    /**
-     * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
-     *
-     * @type {boolean}
-     */
-    this.isMaster = name === 'master';
-    this.name = name;
+  constructor(
+    dataAccessObject: TableDao, 
+    domBindings: DomBindings, 
+    wtSettings: Settings, 
+    name: string = '', 
+    facadeGetter: FacadeGetter
+  ) {
     this.dataAccessObject = dataAccessObject;
-    this.facadeGetter = facadeGetter;
-    this.wtSettings = wtSettings;
-
     // legacy support
-    this.instance = this.dataAccessObject.wot; // TODO refactoring: it might be removed here, and provides legacy support through facade.
-    this.wot = this.dataAccessObject.wot;
-    this.TABLE = domBindings.rootTable;
+    this.wot = dataAccessObject.wot;
+    this.domBindings = domBindings;
+    this.domBindingsDocument = this.domBindings.rootDocument;
+    this.wtSettings = wtSettings;
+    this.facadeGetter = facadeGetter;
 
-    removeTextNodes(this.TABLE);
+    // this.type = '';
+    this.eventManager = new this.wot.eventManagerClass();
+    this.name = name;
 
-    // TODO refactoring, to recognize the legitimacy of moving them into domBidings
+    if (this.name) {
+      const spreaderLastName = this.domBindings.rootTable.getAttribute('data-last-name');
+      
+      if (spreaderLastName === null || (spreaderLastName.trim() === '' && this.name.trim() !== '')) {
+        this.domBindings.rootTable.setAttribute('data-last-name', this.name);
+      }
+    }
+
+    this.columnFilter = new ColumnFilter(dataAccessObject, wtSettings);
+    this.rowFilter = new RowFilter(dataAccessObject, wtSettings);
+    this.columnUtils = new ColumnUtils(dataAccessObject, wtSettings);
+    this.rowUtils = new RowUtils(dataAccessObject, wtSettings);
+
+    this.TABLE = this.domBindingsDocument.createElement('TABLE');
+    setAttribute(this.TABLE, A11Y_PRESENTATION);
+    setAttribute(this.TABLE, A11Y_TABINDEX);
+    this.wtRootElement = this.domBindings.rootTable;
+
+    if (this.name) {
+      this.TABLE.setAttribute('data-name', this.name);
+    }
+
     this.spreader = this.createSpreader(this.TABLE);
     this.hider = this.createHider(this.spreader);
     this.holder = this.createHolder(this.hider);
-    this.wtRootElement = this.holder.parentNode;
 
-    if (this.isMaster) {
-      this.alignOverlaysWithTrimmingContainer(); // todo wow, It calls method from child class (MasterTable).
-    }
-    this.fixTableDomTree();
+    this.wtRootElement.appendChild(this.holder);
+    this.THEAD = this.TABLE.createTHead();
+    this.TBODY = this.domBindingsDocument.createElement('TBODY');
+    this.TABLE.appendChild(this.TBODY);
 
-    this.rowFilter = null; // TODO refactoring, eliminate all (re)creations of this object, then updates state when needed.
-    this.columnFilter = null; // TODO refactoring, eliminate all (re)creations of this object, then updates state when needed.
-    this.correctHeaderWidth = false;
-
-    const origRowHeaderWidth = this.wtSettings.getSettingPure('rowHeaderWidth');
-
-    // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
-    this.wtSettings.update('rowHeaderWidth', () => this._modifyRowHeaderWidth(origRowHeaderWidth));
-
-    this.rowUtils = new RowUtils(this.dataAccessObject, this.wtSettings); // TODO refactoring, It can be passed through IOC.
-    this.columnUtils = new ColumnUtils(this.dataAccessObject, this.wtSettings); // TODO refactoring, It can be passed through IOC.
-
-    this.tableRenderer = new Renderer({ // TODO refactoring, It can be passed through IOC.
+    this.tablRenderer = new Renderer({
       TABLE: this.TABLE,
       THEAD: this.THEAD,
-      COLGROUP: this.COLGROUP,
       TBODY: this.TBODY,
+      cellRenderer: this.wtSettings.getSetting('cellRenderer'),
       rowUtils: this.rowUtils,
       columnUtils: this.columnUtils,
-      cellRenderer: this.wtSettings.getSettingPure('cellRenderer'),
-      stylesHandler: this.dataAccessObject.stylesHandler,
     });
+
+    this.isClone = !this.wtSettings.getSetting('unmodifyDestroy');
+    this.isMaster = !this.isClone;
+
+    // Order of injecting styles matter. First, we need to inject the whole table structure, then specific classes
+    // for different type of tables.
+    this.injectTable();
   }
+
+  /**
+   * Returns the parent of the table if it is a table element.
+   *
+   * @returns {HTMLTableElement|null}
+   */
+  getParentTable(): HTMLTableElement | null {
+    const parent = this.TABLE.parentNode as HTMLElement;
+
+    if (parent) {
+      const parentTagName = parent.tagName;
+
+      if (parentTagName === 'TABLE') {
+        return parent as HTMLTableElement;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets the table element.
+   *
+   * @returns {HTMLTableElement}
+   */
+  getTable(): HTMLTableElement {
+    return this.TABLE;
+  }
+
+  /**
+   * Removes any table rows, if they exist.
+   *
+   * @param {number} [from=0] Row index from which the rows should be removed.
+   * @param {number} [to=this.getLastVisibleRow()] Row index to which the rows should be removed.
+   * @returns {void}
+   */
+  // ... existing code ...
 
   /**
    * Returns a boolean that is true if this Table represents a specific overlay, identified by the overlay name.
@@ -141,7 +311,7 @@ class Table {
    * @param {string} overlayTypeName The overlay type.
    * @returns {boolean}
    */
-  is(overlayTypeName) { // todo refactoring: eliminate all protected and private usages
+  is(overlayTypeName: string) { // todo refactoring: eliminate all protected and private usages
     return this.name === overlayTypeName;
   }
 
@@ -175,9 +345,9 @@ class Table {
    * @param {HTMLTableElement} table An element to process.
    * @returns {HTMLElement}
    */
-  createSpreader(table) {
+  createSpreader(table: HTMLTableElement) {
     const parent = table.parentNode;
-    let spreader;
+    let spreader: HTMLElement;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent, 'wtHolder')) {
       spreader = this.domBindings.rootDocument.createElement('div');
@@ -205,9 +375,9 @@ class Table {
    * @param {HTMLElement} spreader An element to the hider element is injected.
    * @returns {HTMLElement}
    */
-  createHider(spreader) {
+  createHider(spreader: HTMLElement) {
     const parent = spreader.parentNode;
-    let hider;
+    let hider: HTMLElement;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent, 'wtHolder')) {
       hider = this.domBindings.rootDocument.createElement('div');
@@ -234,9 +404,9 @@ class Table {
    * @param {HTMLElement} hider An element to the holder element is injected.
    * @returns {HTMLElement}
    */
-  createHolder(hider) {
+  createHolder(hider: HTMLElement) {
     const parent = hider.parentNode;
-    let holder;
+    let holder: HTMLElement;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent, 'wtHolder')) {
       holder = this.domBindings.rootDocument.createElement('div');
@@ -422,7 +592,7 @@ class Table {
   /**
    * @param {number} col The visual column index.
    */
-  markIfOversizedColumnHeader(col) {
+  markIfOversizedColumnHeader(col: number) {
     const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = this.wtSettings.getSetting('columnHeaders').length;
     const defaultRowHeight = this.dataAccessObject.stylesHandler.getDefaultRowHeight();
@@ -528,7 +698,7 @@ class Table {
    *  -3 column before viewport
    *  -4 column after viewport.
    */
-  getCell(coords) {
+  getCell(coords: CellCoords) {
     let row = coords.row;
     let column = coords.col;
     const hookResult = this.wtSettings
@@ -577,7 +747,7 @@ class Table {
    * @returns {HTMLTableRowElement|boolean} Return the row's DOM element or `false` if the row with the provided
    * index doesn't exist.
    */
-  getRow(rowIndex) {
+  getRow(rowIndex: number) {
     let renderedRowIndex = null;
     let parentElement = null;
 
@@ -609,7 +779,7 @@ class Table {
    * @param {number} [level=0] Header level (0 = most distant to the table).
    * @returns {object} HTMLElement on success or undefined on error.
    */
-  getColumnHeader(col, level = 0) {
+  getColumnHeader(col: number, level = 0) {
     const TR = this.THEAD.childNodes[level];
 
     return TR?.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
@@ -621,7 +791,7 @@ class Table {
    * @param {number} column A source column index.
    * @returns {HTMLTableCellElement[]}
    */
-  getColumnHeaders(column) {
+  getColumnHeaders(column: number) {
     const THs = [];
     const visibleColumn = this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column);
 
@@ -644,7 +814,7 @@ class Table {
    * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have
    *   row headers`.
    */
-  getRowHeader(row, level = 0) {
+  getRowHeader(row: number, level = 0) {
     const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
 
     if (level >= rowHeadersCount) {
@@ -665,7 +835,7 @@ class Table {
    * @param {number} row A source row index.
    * @returns {HTMLTableCellElement[]}
    */
-  getRowHeaders(row) {
+  getRowHeaders(row: number) {
     const THs = [];
     const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
 
@@ -688,7 +858,7 @@ class Table {
    * @returns {CellCoords|null} The coordinates of the provided TD element (or the closest TD element) or null, if the
    *   provided element is not applicable.
    */
-  getCoords(TD) {
+  getCoords(TD: HTMLTableCellElement) {
     let cellElement = TD;
 
     if (cellElement.nodeName !== 'TD' && cellElement.nodeName !== 'TH') {
@@ -801,7 +971,7 @@ class Table {
    * @param {number} row The visual row index.
    * @returns {HTMLTableElement}
    */
-  getTrForRow(row) {
+  getTrForRow(row: number) {
     return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
   }
 
@@ -811,7 +981,7 @@ class Table {
    * @param {number} column The column index (negative value from -1 to N).
    * @returns {boolean}
    */
-  isColumnHeaderRendered(column) {
+  isColumnHeaderRendered(column: number) {
     if (column >= 0) {
       return false;
     }
@@ -828,7 +998,7 @@ class Table {
    * @param {number} row The row index (negative value from -1 to N).
    * @returns {boolean}
    */
-  isRowHeaderRendered(row) {
+  isRowHeaderRendered(row: number) {
     if (row >= 0) {
       return false;
     }
@@ -869,7 +1039,7 @@ class Table {
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
-  isRowBeforeRenderedRows(row) {
+  isRowBeforeRenderedRows(row: number) {
     const first = this.getFirstRenderedRow();
 
     // Check the headers only in case when the first rendered row is -1 or 0.
@@ -895,8 +1065,8 @@ class Table {
    *           +--------------+                                     │
    *       -3  │    │    │    │                                     │
    *           +--------------+                                     │
-   *       -2  │    │    │    │                                     │ FALSE
-   *           +--------------+                                     │
+   *       -2  │    │    │    │                                     │
+   *           +--------------+                                     │ FALSE
    *       -1  │    │    │    │                                     │
    *  Cells  +==================+                                   │
    *        0  ┇    ┇    ┇    ┇ <--- For fixedRowsTop: 1            │
@@ -914,7 +1084,7 @@ class Table {
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
-  isRowAfterRenderedRows(row) {
+  isRowAfterRenderedRows(row: number) {
     return row > this.getLastRenderedRow();
   }
 
@@ -947,7 +1117,7 @@ class Table {
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
-  isColumnBeforeRenderedColumns(column) {
+  isColumnBeforeRenderedColumns(column: number) {
     const first = this.getFirstRenderedColumn();
 
     // Check the headers only in case when the first rendered column is -1 or 0.
@@ -991,19 +1161,19 @@ class Table {
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
-  isColumnAfterRenderedColumns(column) {
+  isColumnAfterRenderedColumns(column: number) {
     return this.columnFilter && (column > this.getLastRenderedColumn());
   }
 
-  isColumnAfterViewport(column) {
+  isColumnAfterViewport(column: number) {
     return this.columnFilter && (column > this.getLastVisibleColumn());
   }
 
-  isRowAfterViewport(row) {
+  isRowAfterViewport(row: number) {
     return this.rowFilter && (row > this.getLastVisibleRow());
   }
 
-  isColumnBeforeViewport(column) {
+  isColumnBeforeViewport(column: number) {
     return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
   }
 
@@ -1029,7 +1199,7 @@ class Table {
    * @param {number} sourceRow The physical row index.
    * @returns {number}
    */
-  getRowHeight(sourceRow) {
+  getRowHeight(sourceRow: number) {
     return this.rowUtils.getHeight(sourceRow);
   }
 
@@ -1037,7 +1207,7 @@ class Table {
    * @param {number} level The column level.
    * @returns {number}
    */
-  getColumnHeaderHeight(level) {
+  getColumnHeaderHeight(level: number) {
     return this.columnUtils.getHeaderHeight(level);
   }
 
@@ -1045,7 +1215,7 @@ class Table {
    * @param {number} sourceColumn The physical column index.
    * @returns {number}
    */
-  getColumnWidth(sourceColumn) {
+  getColumnWidth(sourceColumn: number) {
     return this.columnUtils.getWidth(sourceColumn);
   }
 
@@ -1122,7 +1292,7 @@ class Table {
    * @param {Function} rowHeaderWidthFactory The function which can provide default width values for rows..
    * @returns {number}
    */
-  _modifyRowHeaderWidth(rowHeaderWidthFactory) {
+  _modifyRowHeaderWidth(rowHeaderWidthFactory: Function) {
     let widths = isFunction(rowHeaderWidthFactory) ? rowHeaderWidthFactory() : null;
 
     if (Array.isArray(widths)) {
@@ -1142,7 +1312,7 @@ class Table {
    * @param {number} width The width to process.
    * @returns {number}
    */
-  _correctRowHeaderWidth(width) {
+  _correctRowHeaderWidth(width: number) {
     let rowHeaderWidth = width;
 
     if (typeof width !== 'number') {

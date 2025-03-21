@@ -6,8 +6,9 @@ import { RenderedAllColumnsCalculationType } from './calculationType/renderedAll
 import { RenderedAllRowsCalculationType } from './calculationType/renderedAllRows';
 import { RenderedColumnsCalculationType } from './calculationType/renderedColumns';
 import { RenderedRowsCalculationType } from './calculationType/renderedRows';
-import { ViewportColumnsCalculator, DEFAULT_WIDTH } from './viewportColumns';
-import { ViewportRowsCalculator } from './viewportRows';
+import { ViewportColumnsCalculator, DEFAULT_WIDTH, ViewportColumnsCalculatorOptions } from './viewportColumns';
+import { ViewportRowsCalculator, ViewportRowsCalculatorOptions } from './viewportRows';
+import { ViewportBaseCalculator } from './viewportBase';
 
 export {
   DEFAULT_WIDTH as DEFAULT_COLUMN_WIDTH,
@@ -21,4 +22,8 @@ export {
   RenderedRowsCalculationType,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
+  ViewportBaseCalculator,
+  // Export type interfaces
+  ViewportColumnsCalculatorOptions,
+  ViewportRowsCalculatorOptions
 };

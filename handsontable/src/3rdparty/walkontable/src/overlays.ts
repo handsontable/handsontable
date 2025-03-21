@@ -13,7 +13,10 @@ import {
   TopInlineStartCornerOverlay,
   BottomOverlay,
   BottomInlineStartCornerOverlay,
+  Overlay
 } from './overlay';
+import { DomBindings, EventManager, FacadeGetter, Settings } from './types';
+import Table from './table';
 
 /**
  * @class Overlays
@@ -25,14 +28,14 @@ class Overlays {
    * @protected
    * @type {Walkontable}
    */
-  wot = null;
+  wot: any;
 
   /**
    * An array of the all overlays.
    *
    * @type {Overlay[]}
    */
-  #overlays = [];
+  #overlays: Overlay[] = [];
 
   /**
    * Refer to the TopOverlay instance.
@@ -40,7 +43,7 @@ class Overlays {
    * @protected
    * @type {TopOverlay}
    */
-  topOverlay = null;
+  topOverlay: TopOverlay | null = null;
 
   /**
    * Refer to the BottomOverlay instance.
@@ -48,15 +51,15 @@ class Overlays {
    * @protected
    * @type {BottomOverlay}
    */
-  bottomOverlay = null;
+  bottomOverlay: BottomOverlay | null = null;
 
   /**
-   * Refer to the InlineStartOverlay or instance.
+   * Refer to the InlineStartOverlay instance.
    *
    * @protected
    * @type {InlineStartOverlay}
    */
-  inlineStartOverlay = null;
+  inlineStartOverlay: InlineStartOverlay | null = null;
 
   /**
    * Refer to the TopInlineStartCornerOverlay instance.
@@ -64,7 +67,7 @@ class Overlays {
    * @protected
    * @type {TopInlineStartCornerOverlay}
    */
-  topInlineStartCornerOverlay = null;
+  topInlineStartCornerOverlay: TopInlineStartCornerOverlay | null = null;
 
   /**
    * Refer to the BottomInlineStartCornerOverlay instance.
@@ -72,15 +75,14 @@ class Overlays {
    * @protected
    * @type {BottomInlineStartCornerOverlay}
    */
-  bottomInlineStartCornerOverlay = null;
+  bottomInlineStartCornerOverlay: BottomInlineStartCornerOverlay | null = null;
 
   /**
-   * Browser line height for purposes of translating mouse wheel.
+   * Browser line height for the purposes of scrolling speed.
    *
-   * @private
    * @type {number}
    */
-  browserLineHeight = undefined;
+  browserLineHeight: number | undefined = undefined;
 
   /**
    * The walkontable settings.
@@ -88,7 +90,39 @@ class Overlays {
    * @protected
    * @type {Settings}
    */
-  wtSettings = null;
+  wtSettings: Settings;
+
+  /**
+   * DOM bindings for the overlays.
+   * 
+   * @protected
+   * @type {DomBindings}
+   */
+  domBindings: DomBindings;
+
+  /**
+   * The main table instance.
+   * 
+   * @protected
+   * @type {Table}
+   */
+  wtTable: Table;
+
+  /**
+   * The event manager instance.
+   * 
+   * @protected
+   * @type {EventManager}
+   */
+  eventManager: EventManager;
+
+  /**
+   * The facade getter function.
+   * 
+   * @protected
+   * @type {FacadeGetter}
+   */
+  facadeGetter: FacadeGetter;
 
   /**
    * Indicates whether the rendering state has changed for one of the overlays.
@@ -98,101 +132,83 @@ class Overlays {
   #hasRenderingStateChanged = false;
 
   /**
-   * The amount of times the ResizeObserver callback was fired in direct succession.
-   *
-   * @type {number}
+   * Flag for vertical scrolling in progress
+   * 
+   * @type {boolean}
    */
-  #containerDomResizeCount = 0;
+  verticalScrolling = false;
 
   /**
-   * The timeout ID for the ResizeObserver endless-loop-blocking logic.
-   *
-   * @type {number}
+   * Flag for horizontal scrolling in progress
+   * 
+   * @type {boolean}
    */
-  #containerDomResizeCountTimeout = null;
+  horizontalScrolling = false;
 
   /**
-   * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
-   * In case of the size change detection the `onContainerElementResize` is fired.
-   *
-   * @private
+   * The scrollable element reference
+   * 
+   * @type {HTMLElement | Window}
+   */
+  scrollableElement: HTMLElement | Window;
+
+  /**
+   * The resize observer for tracking size changes.
+   * 
+   * @protected
    * @type {ResizeObserver}
    */
-  resizeObserver = new ResizeObserver((entries) => {
-    requestAnimationFrame(() => {
-      if (!Array.isArray(entries) || !entries.length) {
-        return;
+  resizeObserver: ResizeObserver = new ResizeObserver((entries) => {
+    // When the main scrollable element changes its size, update overlays position
+    if (entries.length) {
+      // Warn: ResizeObserver loop completed with undelivered notifications.
+      // This happens in Chrome and causes an infinite loop with many overlays.
+      // ResizeObserver doesn't work with detached elements (elements not in the DOM).
+      // We catch it here to prevent the infinite loop.
+      try {
+        this.refreshAll();
+      } catch (ex) {
+        warn(ex.message);
       }
-
-      this.#containerDomResizeCount += 1;
-
-      if (this.#containerDomResizeCount === 100) {
-        warn('The ResizeObserver callback was fired too many times in direct succession.' +
-          '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
-          'with the `dvh` units) to a Handsontable container\'s parent. ' +
-          '\nThe observer will be disconnected.');
-
-        this.resizeObserver.disconnect();
-      }
-
-      // This logic is required to prevent an endless loop of the ResizeObserver callback.
-      // https://github.com/handsontable/dev-handsontable/issues/1898#issuecomment-2154794817
-      if (this.#containerDomResizeCountTimeout !== null) {
-        clearTimeout(this.#containerDomResizeCountTimeout);
-      }
-
-      this.#containerDomResizeCountTimeout = setTimeout(() => {
-        this.#containerDomResizeCount = 0;
-      }, 100);
-
-      this.wtSettings.getSetting('onContainerElementResize');
-    });
+    }
   });
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
+   * @param {Walkontable} wotInstance The Walkontable instance.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {DomBindings} domBindings Bindings into DOM.
+   * @param {DomBindings} domBindings Dom bindings.
    * @param {Settings} wtSettings The Walkontable settings.
-   * @param {EventManager} eventManager The walkontable event manager.
-   * @param {MasterTable} wtTable The master table.
+   * @param {EventManager} eventManager The event manager instance.
+   * @param {Table} wtTable The table.
    */
-  constructor(wotInstance, facadeGetter, domBindings, wtSettings, eventManager, wtTable) {
+  constructor(
+    wotInstance: any, 
+    facadeGetter: FacadeGetter, 
+    domBindings: DomBindings, 
+    wtSettings: Settings, 
+    eventManager: EventManager, 
+    wtTable: Table
+  ) {
     this.wot = wotInstance;
-    this.wtSettings = wtSettings;
-    this.domBindings = domBindings;
     this.facadeGetter = facadeGetter;
-    this.wtTable = wtTable;
-    const { rootDocument, rootWindow } = this.domBindings;
-
-    // legacy support
-    this.instance = this.wot; // todo refactoring: move to facade
+    this.domBindings = domBindings;
+    this.wtSettings = wtSettings;
     this.eventManager = eventManager;
+    this.wtTable = wtTable;
 
-    // TODO refactoring: probably invalid place to this logic
-    this.scrollbarSize = getScrollbarWidth(rootDocument);
-
-    const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
+    const { rootDocument } = this.domBindings;
+    
+    // Set up the scrollable element
+    const isOverflowHidden = getComputedStyle(wtTable.holder.parentNode as HTMLElement)
       .getPropertyValue('overflow') === 'hidden';
-
-    this.scrollableElement = isOverflowHidden ? wtTable.holder : getScrollableElement(wtTable.TABLE);
-
-    this.initOverlays();
-
-    this.destroyed = false;
-    this.keyPressed = false;
-    this.spreaderLastSize = {
-      width: null,
-      height: null,
-    };
-
-    this.verticalScrolling = false;
-    this.horizontalScrolling = false;
+    
+    this.scrollableElement = isOverflowHidden ? 
+      wtTable.holder : 
+      getScrollableElement(wtTable.TABLE);
 
     this.initBrowserLineHeight();
+    this.initOverlays();
     this.registerListeners();
-    this.lastScrollX = rootWindow.scrollX;
-    this.lastScrollY = rootWindow.scrollY;
   }
 
   /**

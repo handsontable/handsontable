@@ -3,6 +3,8 @@ import stickyRowsBottom from './mixin/stickyRowsBottom';
 import calculatedColumns from './mixin/calculatedColumns';
 import { mixin } from '../../../../helpers/object';
 import { CLONE_BOTTOM } from '../overlay';
+import { TableDao, FacadeGetter, DomBindings } from '../types';
+import Settings from '../settings';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to BottomOverlay, implemented through mixins.
@@ -17,12 +19,14 @@ class BottomOverlayTable extends Table {
    * @param {DomBindings} domBindings Bindings into DOM.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(dataAccessObject, facadeGetter, domBindings, wtSettings) {
-    super(dataAccessObject, facadeGetter, domBindings, wtSettings, CLONE_BOTTOM);
+  constructor(dataAccessObject: TableDao, facadeGetter: FacadeGetter, domBindings: DomBindings, wtSettings: Settings) {
+    super(dataAccessObject, domBindings, wtSettings, CLONE_BOTTOM, facadeGetter);
   }
 }
 
+// @ts-ignore - Mixin objects with proper MIXIN_NAME are defined but TypeScript can't verify it at compile time
 mixin(BottomOverlayTable, stickyRowsBottom);
+// @ts-ignore - Mixin objects with proper MIXIN_NAME are defined but TypeScript can't verify it at compile time
 mixin(BottomOverlayTable, calculatedColumns);
 
 export default BottomOverlayTable;

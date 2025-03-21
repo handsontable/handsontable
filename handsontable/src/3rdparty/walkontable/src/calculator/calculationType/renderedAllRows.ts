@@ -1,3 +1,5 @@
+import { RowsCalculationType, CalculatorContext } from '../../types';
+
 /**
  * @typedef {object} RenderedAllRowsCalculatorOptions
  * @property {number} totalRows Total number of rows.
@@ -7,55 +9,55 @@
  *
  * @class RenderedAllRowsCalculationType
  */
-export class RenderedAllRowsCalculationType {
+export class RenderedAllRowsCalculationType implements RowsCalculationType {
   /**
    * Number of rendered/visible rows.
    *
    * @type {number}
    */
-  count = 0;
+  count: number = 0;
   /**
    * Index of the first rendered/visible row.
    *
    * @type {number}
    */
-  startRow = 0;
+  startRow: number = 0;
   /**
    * Index of the last rendered/visible row.
    *
    * @type {number}
    */
-  endRow = 0;
+  endRow: number = 0;
   /**
    * Position of the first rendered/visible row (in px).
    *
    * @type {number}
    */
-  startPosition = 0;
+  startPosition: number = 0;
   /**
    * Determines if the viewport is visible in the trimming container.
    *
    * @type {boolean}
    */
-  isVisibleInTrimmingContainer = true;
+  isVisibleInTrimmingContainer: boolean = true;
 
   /**
    * Initializes the calculation.
    *
    * @param {ViewportRowsCalculator} viewportCalculator The viewport calculator object.
    */
-  initialize({ totalRows }) {
-    this.count = totalRows;
+  initialize(viewportCalculator: { totalRows: number }): void {
+    this.count = viewportCalculator.totalRows;
     this.endRow = this.count - 1;
   }
 
   /**
    * Processes the row.
    */
-  process() {}
+  process(): void {}
 
   /**
    * Finalizes the calculation.
    */
-  finalize() {}
+  finalize(): void {}
 }

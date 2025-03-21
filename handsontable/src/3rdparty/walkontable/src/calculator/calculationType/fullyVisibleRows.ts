@@ -1,42 +1,44 @@
+import { RowsCalculationType, CalculatorContext } from '../../types';
+
 /**
  * @class FullyVisibleRowsCalculationType
  */
-export class FullyVisibleRowsCalculationType {
+export class FullyVisibleRowsCalculationType implements RowsCalculationType {
   /**
    * Total number of fully visible rows in the viewport.
    *
    * @type {number}
    */
-  count = 0;
+  count: number = 0;
   /**
    * The row index of the first fully visible row in the viewport.
    *
    * @type {number|null}
    */
-  startRow = null;
+  startRow: number | null = null;
   /**
    * The row index of the last fully visible row in the viewport.
    *
    * @type {number|null}
    */
-  endRow = null;
+  endRow: number | null = null;
   /**
    * Position of the first fully visible row (in px).
    *
    * @type {number|null}
    */
-  startPosition = null;
+  startPosition: number | null = null;
   /**
    * Determines if the viewport is visible in the trimming container.
    *
    * @type {boolean}
    */
-  isVisibleInTrimmingContainer = false;
+  isVisibleInTrimmingContainer: boolean = false;
 
   /**
    * Initializes the calculation.
    */
-  initialize() {}
+  initialize(): void {}
 
   /**
    * Processes the row.
@@ -44,7 +46,7 @@ export class FullyVisibleRowsCalculationType {
    * @param {number} row The row index.
    * @param {ViewportRowsCalculator} viewportCalculator The viewport calculator object.
    */
-  process(row, viewportCalculator) {
+  process(row: number, viewportCalculator: CalculatorContext): void {
     const {
       totalCalculatedHeight,
       zeroBasedScrollOffset,
@@ -69,7 +71,7 @@ export class FullyVisibleRowsCalculationType {
    *
    * @param {ViewportRowsCalculator} viewportCalculator The viewport calculator object.
    */
-  finalize(viewportCalculator) {
+  finalize(viewportCalculator: CalculatorContext): void {
     const {
       scrollOffset,
       viewportHeight,
@@ -86,36 +88,42 @@ export class FullyVisibleRowsCalculationType {
       this.startRow = this.endRow;
 
       while (this.startRow > 0) {
-        const calculatedViewportHeight = startPositions[this.endRow] +
-          rowHeight -
-          startPositions[this.startRow - 1];
+        if (this.endRow !== null) {
+          const calculatedViewportHeight = startPositions[this.endRow] +
+            rowHeight -
+            startPositions[this.startRow - 1];
 
-        if (calculatedViewportHeight <= viewportHeight - horizontalScrollbarHeight) {
-          this.startRow -= 1;
-        }
+          if (calculatedViewportHeight <= viewportHeight - horizontalScrollbarHeight) {
+            this.startRow -= 1;
+          }
 
-        if (calculatedViewportHeight >= viewportHeight - horizontalScrollbarHeight) {
+          if (calculatedViewportHeight >= viewportHeight - horizontalScrollbarHeight) {
+            break;
+          }
+        } else {
           break;
         }
       }
     }
 
-    this.startPosition = startPositions[this.startRow] ?? null;
+    if (this.startRow !== null) {
+      this.startPosition = startPositions[this.startRow] ?? null;
+    }
 
     const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
-    const topRowOffset = this.startRow === null ? 0 : viewportCalculator.getRowHeight(this.startRow);
+    const lastPosition = startPositions.length > 0 ? startPositions[startPositions.length - 1] : 0;
 
-    if (mostBottomScrollOffset < topRowOffset || scrollOffset > startPositions.at(-1)) {
+    if (mostBottomScrollOffset < 0 || scrollOffset > lastPosition + rowHeight) {
       this.isVisibleInTrimmingContainer = false;
     } else {
       this.isVisibleInTrimmingContainer = true;
     }
 
-    if (totalRows < this.endRow) {
+    if (this.endRow !== null && totalRows < this.endRow) {
       this.endRow = totalRows - 1;
     }
 
-    if (this.startRow !== null) {
+    if (this.startRow !== null && this.endRow !== null) {
       this.count = this.endRow - this.startRow + 1;
     }
   }

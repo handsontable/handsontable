@@ -16,19 +16,31 @@ import { getCornerStyle } from '../selection';
 import {
   CLONE_INLINE_START,
 } from './constants';
+import { DomBindings, FacadeGetter, Settings } from '../types';
+import Walkontable from '../core/core';
+import { InlineStartOverlayInterface } from './interfaces';
 
 /**
  * @class InlineStartOverlay
  */
-export class InlineStartOverlay extends Overlay {
+export class InlineStartOverlay extends Overlay implements InlineStartOverlayInterface {
+  /**
+   * Cached value which holds the previous value of the `fixedColumnsStart` option.
+   * It is used as a comparison value that can be used to detect changes in this value.
+   *
+   * @type {number}
+   */
+  cachedFixedColumnsStart: number = -1;
+
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
+  constructor(wotInstance: Walkontable, facadeGetter: FacadeGetter, wtSettings: Settings, domBindings: DomBindings) {
     super(wotInstance, facadeGetter, CLONE_INLINE_START, wtSettings, domBindings);
+    this.cachedFixedColumnsStart = this.wtSettings.getSetting('fixedColumnsStart');
   }
 
   /**
@@ -38,7 +50,7 @@ export class InlineStartOverlay extends Overlay {
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {InlineStartOverlayTable}
    */
-  createTable(...args) {
+  createTable(...args: any[]): InlineStartOverlayTable {
     return new InlineStartOverlayTable(...args);
   }
 
@@ -47,7 +59,7 @@ export class InlineStartOverlay extends Overlay {
    *
    * @returns {boolean}
    */
-  shouldBeRendered() {
+  shouldBeRendered(): boolean {
     return this.wtSettings.getSetting('shouldRenderInlineStartOverlay');
   }
 
@@ -56,7 +68,7 @@ export class InlineStartOverlay extends Overlay {
    *
    * @returns {boolean}
    */
-  resetFixedPosition() {
+  resetFixedPosition(): boolean {
     const { wtTable } = this.wot;
 
     if (!this.needFullRender || !this.shouldBeRendered() || !wtTable.holder.parentNode) {
@@ -68,9 +80,16 @@ export class InlineStartOverlay extends Overlay {
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let overlayPosition = 0;
+    let skipInnerBorderAdjusting = false;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      overlayPosition = this.getOverlayOffset() * (this.isRtl() ? -1 : 1);
+      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const inlineEndPos = Math.ceil(hiderRect.left + getScrollbarWidth(this.domBindings.rootDocument));
+      const overlayRootWidth = overlayRoot.offsetWidth;
+
+      skipInnerBorderAdjusting = inlineEndPos + overlayRootWidth === rootWindow.innerWidth;
+      overlayPosition = this.getOverlayOffset();
+
       setOverlayPosition(overlayRoot, `${overlayPosition}px`, '0px');
 
     } else {
@@ -78,7 +97,7 @@ export class InlineStartOverlay extends Overlay {
       resetCssTransform(overlayRoot);
     }
 
-    const positionChanged = this.adjustHeaderBordersPosition(overlayPosition);
+    const positionChanged = this.adjustHeaderBordersPosition(overlayPosition, skipInnerBorderAdjusting);
 
     this.adjustElementsSize();
 
@@ -91,7 +110,7 @@ export class InlineStartOverlay extends Overlay {
    * @param {number} pos The scroll position.
    * @returns {boolean}
    */
-  setScrollPosition(pos) {
+  setScrollPosition(pos: number): boolean {
     const { rootWindow } = this.domBindings;
     let result = false;
 
@@ -114,7 +133,7 @@ export class InlineStartOverlay extends Overlay {
   /**
    * Triggers onScroll hook callback.
    */
-  onScroll() {
+  onScroll(): void {
     this.wtSettings.getSetting('onScrollVertically');
   }
 
@@ -125,7 +144,7 @@ export class InlineStartOverlay extends Overlay {
    * @param {number} to Column index where calculation is finished.
    * @returns {number} Width sum.
    */
-  sumCellSizes(from, to) {
+  sumCellSizes(from: number, to: number): number {
     const defaultColumnWidth = this.wtSettings.getSetting('defaultColumnWidth');
     let column = from;
     let sum = 0;
@@ -141,19 +160,23 @@ export class InlineStartOverlay extends Overlay {
   /**
    * Adjust overlay root element, children and master table element sizes (width, height).
    */
-  adjustElementsSize() {
+  adjustElementsSize(): boolean {
     this.updateTrimmingContainer();
 
     if (this.needFullRender) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
+      
+      return true;
     }
+    
+    return false;
   }
 
   /**
    * Adjust overlay root element size (width and height).
    */
-  adjustRootElementSize() {
+  adjustRootElementSize(): void {
     const { wtTable, wtViewport } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode;
@@ -184,7 +207,7 @@ export class InlineStartOverlay extends Overlay {
   /**
    * Adjust overlay root childs size.
    */
-  adjustRootChildrenSize() {
+  adjustRootChildrenSize(): void {
     const { holder } = this.clone.wtTable;
     const cornerStyle = getCornerStyle(this.wot);
     const selectionCornerOffset = this.wot.selectionManager
@@ -200,7 +223,7 @@ export class InlineStartOverlay extends Overlay {
   /**
    * Adjust the overlay dimensions and position.
    */
-  applyToDOM() {
+  applyToDOM(): void {
     const total = this.wtSettings.getSetting('totalColumns');
     const styleProperty = this.isRtl() ? 'right' : 'left';
 
@@ -228,7 +251,7 @@ export class InlineStartOverlay extends Overlay {
   /**
    * Synchronize calculated top position to an element.
    */
-  syncOverlayOffset() {
+  syncOverlayOffset(): void {
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
       this.clone.wtTable.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
@@ -245,7 +268,7 @@ export class InlineStartOverlay extends Overlay {
    *                                    edge (left edge is by default).
    * @returns {boolean}
    */
-  scrollTo(sourceCol, beyondRendered) {
+  scrollTo(sourceCol: number, beyondRendered: boolean = false): boolean {
     const { wtSettings } = this;
     const rowHeaders = wtSettings.getSetting('rowHeaders');
     const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
@@ -300,7 +323,7 @@ export class InlineStartOverlay extends Overlay {
    *
    * @returns {number}
    */
-  getTableParentOffset() {
+  getTableParentOffset(): number {
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let offset = 0;
 
@@ -316,7 +339,7 @@ export class InlineStartOverlay extends Overlay {
    *
    * @returns {number} Main table's horizontal scroll position.
    */
-  getScrollPosition() {
+  getScrollPosition(): number {
     return Math.abs(getScrollLeft(this.mainTableScrollableElement, this.domBindings.rootWindow));
   }
 
@@ -325,7 +348,7 @@ export class InlineStartOverlay extends Overlay {
    *
    * @returns {number} Main table's horizontal overlay offset.
    */
-  getOverlayOffset() {
+  getOverlayOffset(): number {
     const { rootWindow } = this.domBindings;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let overlayOffset = 0;

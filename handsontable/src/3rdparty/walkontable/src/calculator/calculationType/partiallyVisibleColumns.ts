@@ -1,42 +1,44 @@
+import { ColumnsCalculationType, CalculatorContext } from '../../types';
+
 /**
  * @class PartiallyVisibleColumnsCalculationType
  */
-export class PartiallyVisibleColumnsCalculationType {
+export class PartiallyVisibleColumnsCalculationType implements ColumnsCalculationType {
   /**
    * Total number of partially visible columns in the viewport.
    *
    * @type {number}
    */
-  count = 0;
+  count: number = 0;
   /**
    * The column index of the first partially visible column in the viewport.
    *
    * @type {number|null}
    */
-  startColumn = null;
+  startColumn: number | null = null;
   /**
    * The column index of the last partially visible column in the viewport.
    *
    * @type {number|null}
    */
-  endColumn = null;
+  endColumn: number | null = null;
   /**
    * Position of the first partially visible column (in px).
    *
    * @type {number|null}
    */
-  startPosition = null;
+  startPosition: number | null = null;
   /**
    * Determines if the viewport is visible in the trimming container.
    *
    * @type {boolean}
    */
-  isVisibleInTrimmingContainer = false;
+  isVisibleInTrimmingContainer: boolean = false;
 
   /**
    * Initializes the calculation.
    */
-  initialize() {}
+  initialize(): void {}
 
   /**
    * Processes the column.
@@ -44,7 +46,7 @@ export class PartiallyVisibleColumnsCalculationType {
    * @param {number} column The column index.
    * @param {ViewportColumnsCalculator} viewportCalculator The viewport calculator object.
    */
-  process(column, viewportCalculator) {
+  process(column: number, viewportCalculator: CalculatorContext): void {
     const {
       totalCalculatedWidth,
       zeroBasedScrollOffset,
@@ -74,7 +76,7 @@ export class PartiallyVisibleColumnsCalculationType {
    *
    * @param {ViewportColumnsCalculator} viewportCalculator The viewport calculator object.
    */
-  finalize(viewportCalculator) {
+  finalize(viewportCalculator: CalculatorContext): void {
     const {
       scrollOffset,
       viewportWidth,
@@ -92,28 +94,35 @@ export class PartiallyVisibleColumnsCalculationType {
       this.startColumn = this.endColumn;
 
       while (this.startColumn > 0) {
-        const calculatedViewportWidth = startPositions[this.endColumn] +
-          columnWidth -
-          startPositions[this.startColumn - 1];
+        if (this.endColumn !== null) {
+          const calculatedViewportWidth = startPositions[this.endColumn] +
+            columnWidth -
+            startPositions[this.startColumn - 1];
 
-        this.startColumn -= 1;
+          this.startColumn -= 1;
 
-        if (calculatedViewportWidth > viewportWidth) {
+          if (calculatedViewportWidth > viewportWidth) {
+            break;
+          }
+        } else {
           break;
         }
       }
     }
 
-    this.startPosition = startPositions[this.startColumn] ?? null;
+    if (this.startColumn !== null) {
+      this.startPosition = startPositions[this.startColumn] ?? null;
+    }
 
     const compensatedViewportWidth = zeroBasedScrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
     const mostRightScrollOffset = scrollOffset + viewportWidth - compensatedViewportWidth;
+    const lastPosition = startPositions.length > 0 ? startPositions[startPositions.length - 1] : 0;
 
     if (
       // the table is to the left of the viewport
       (
         mostRightScrollOffset < (-1) * inlineStartOffset ||
-        scrollOffset > startPositions.at(-1) + columnWidth
+        scrollOffset > lastPosition + columnWidth
       ) ||
       // the table is to the right of the viewport
       (((-1) * scrollOffset) - viewportWidth > 0)
@@ -123,11 +132,11 @@ export class PartiallyVisibleColumnsCalculationType {
       this.isVisibleInTrimmingContainer = true;
     }
 
-    if (totalColumns < this.endColumn) {
+    if (this.endColumn !== null && totalColumns < this.endColumn) {
       this.endColumn = totalColumns - 1;
     }
 
-    if (this.startColumn !== null) {
+    if (this.startColumn !== null && this.endColumn !== null) {
       this.count = this.endColumn - this.startColumn + 1;
     }
   }

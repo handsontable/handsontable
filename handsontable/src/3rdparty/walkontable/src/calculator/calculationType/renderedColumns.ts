@@ -1,28 +1,29 @@
 import { PartiallyVisibleColumnsCalculationType } from './partiallyVisibleColumns';
+import { ColumnsCalculationType, CalculatorContext } from '../../types';
 
 /**
  * @class RenderedColumnsCalculationType
  */
-export class RenderedColumnsCalculationType extends PartiallyVisibleColumnsCalculationType {
+export class RenderedColumnsCalculationType extends PartiallyVisibleColumnsCalculationType implements ColumnsCalculationType {
   /**
    * The property holds the offset applied in the `overrideFn` function to the `startColumn` value.
    *
    * @type {number}
    */
-  columnStartOffset = 0;
+  columnStartOffset: number = 0;
   /**
    * The property holds the offset applied in the `overrideFn` function to the `endColumn` value.
    *
    * @type {number}
    */
-  columnEndOffset = 0;
+  columnEndOffset: number = 0;
 
   /**
    * Finalizes the calculation.
    *
    * @param {ViewportColumnsCalculator} viewportCalculator The viewport calculator object.
    */
-  finalize(viewportCalculator) {
+  finalize(viewportCalculator: CalculatorContext): void {
     super.finalize(viewportCalculator);
 
     const {
@@ -37,21 +38,28 @@ export class RenderedColumnsCalculationType extends PartiallyVisibleColumnsCalcu
 
       overrideFn(this);
 
-      this.columnStartOffset = startColumn - this.startColumn;
-      this.columnEndOffset = this.endColumn - endColumn;
+      if (this.startColumn !== null) {
+        this.columnStartOffset = startColumn - this.startColumn;
+      }
+      
+      if (endColumn !== null && this.endColumn !== null) {
+        this.columnEndOffset = this.endColumn - endColumn;
+      }
     }
 
-    if (this.startColumn < 0) {
+    if (this.startColumn !== null && this.startColumn < 0) {
       this.startColumn = 0;
     }
 
-    this.startPosition = startPositions[this.startColumn] ?? null;
+    if (this.startColumn !== null) {
+      this.startPosition = startPositions[this.startColumn] ?? null;
+    }
 
-    if (totalColumns < this.endColumn) {
+    if (this.endColumn !== null && totalColumns < this.endColumn) {
       this.endColumn = totalColumns - 1;
     }
 
-    if (this.startColumn !== null) {
+    if (this.startColumn !== null && this.endColumn !== null) {
       this.count = this.endColumn - this.startColumn + 1;
     }
   }

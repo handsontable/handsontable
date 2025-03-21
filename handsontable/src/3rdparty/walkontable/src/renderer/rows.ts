@@ -13,6 +13,7 @@ import {
   A11Y_ROWGROUP,
   A11Y_ROWINDEX
 } from '../../../../helpers/a11y';
+import { RowsRendererInterface, TableRendererInterface } from './interfaces';
 
 const ROW_CLASSNAMES = {
   rowEven: 'ht__row_even',
@@ -32,20 +33,21 @@ let performanceWarningAppeared = false;
  *
  * @class {RowsRenderer}
  */
-export class RowsRenderer extends BaseRenderer {
+export class RowsRenderer extends BaseRenderer implements RowsRendererInterface {
   /**
    * Cache for OrderView classes connected to specified node.
    *
    * @type {WeakMap}
    */
-  orderView;
+  orderView: OrderView;
+  table: TableRendererInterface;
 
-  constructor(rootNode) {
+  constructor(rootNode: HTMLTableSectionElement) {
     super('TR', rootNode);
 
     this.orderView = new OrderView(
       rootNode,
-      sourceRowIndex => this.nodesPool.obtain(sourceRowIndex),
+      sourceRowIndex => this.nodesPool?.obtain(sourceRowIndex) || document.createElement('TR'),
     );
   }
 
@@ -55,8 +57,8 @@ export class RowsRenderer extends BaseRenderer {
    * @param {string} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
    * @returns {HTMLTableRowElement}
    */
-  getRenderedNode(visualIndex) {
-    return this.orderView.getNode(visualIndex);
+  getRenderedNode(visualIndex: number): HTMLTableRowElement {
+    return this.orderView.getNode(visualIndex) as HTMLTableRowElement;
   }
 
   /**
@@ -65,15 +67,36 @@ export class RowsRenderer extends BaseRenderer {
    * @param {number} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
    * @returns {boolean}
    */
-  hasStaleContent(visualIndex) {
-    return this.orderView.hasStaleContent(visualIndex);
+  hasStaleContent(visualIndex: number): boolean {
+    return this.orderView.hasStaleContent?.(visualIndex) || false;
+  }
+
+  /**
+   * Get the source index for a rendered row
+   * 
+   * @param {number} rowIndex Row index.
+   * @returns {number}
+   */
+  renderedRowToSource(rowIndex: number): number {
+    return this.table.renderedRowToSource(rowIndex);
+  }
+
+  /**
+   * Adjusts the number of rendered nodes.
+   */
+  adjust(): void {
+    // This method is implemented in the parent class but overridden with empty implementation.
   }
 
   /**
    * Renders the cells.
    */
-  render() {
-    const { rowsToRender } = this.table;
+  render(): void {
+    if (!this.table) {
+      return;
+    }
+
+    const rowsToRender = this.table.rowsToRender;
 
     if (!performanceWarningAppeared && rowsToRender > 1000) {
       performanceWarningAppeared = true;
@@ -97,13 +120,17 @@ export class RowsRenderer extends BaseRenderer {
       this.orderView.render();
 
       const TR = this.orderView.getCurrentNode();
+      if (!TR) {
+        continue;
+      }
+
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
 
       if (this.table.isAriaEnabled()) {
         setAttribute(TR, [
           A11Y_ROW(),
           // `aria-rowindex` is incremented by both tbody and thead rows.
-          A11Y_ROWINDEX(sourceRowIndex + (this.table.rowUtils?.dataAccessObject?.columnHeaders.length ?? 0) + 1),
+          A11Y_ROWINDEX(sourceRowIndex + (this.table.rowUtils?.dataAccessObject?.columnHeaders?.length ?? 0) + 1),
         ]);
       }
 

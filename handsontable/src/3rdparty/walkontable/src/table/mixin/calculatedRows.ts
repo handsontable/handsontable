@@ -1,4 +1,5 @@
 import { defineGetter } from '../../../../../helpers/object';
+import { Table } from '../../types';
 
 const MIXIN_NAME = 'calculatedRows';
 
@@ -17,7 +18,7 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getFirstRenderedRow() {
+  getFirstRenderedRow(this: Table): number {
     const startRow = this.dataAccessObject.startRowRendered;
 
     if (startRow === null) {
@@ -33,7 +34,7 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleRow() {
+  getFirstVisibleRow(this: Table): number {
     const startRow = this.dataAccessObject.startRowVisible;
 
     if (startRow === null) {
@@ -49,7 +50,7 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleRow() {
+  getFirstPartiallyVisibleRow(this: Table): number {
     const startRow = this.dataAccessObject.startRowPartiallyVisible;
 
     if (startRow === null) {
@@ -65,7 +66,7 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getLastRenderedRow() {
+  getLastRenderedRow(this: Table): number {
     const endRow = this.dataAccessObject.endRowRendered;
 
     if (endRow === null) {
@@ -81,7 +82,7 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleRow() {
+  getLastVisibleRow(this: Table): number {
     const endRow = this.dataAccessObject.endRowVisible;
 
     if (endRow === null) {
@@ -97,7 +98,7 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleRow() {
+  getLastPartiallyVisibleRow(this: Table): number {
     const endRow = this.dataAccessObject.endRowPartiallyVisible;
 
     if (endRow === null) {
@@ -113,7 +114,7 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getRenderedRowsCount() {
+  getRenderedRowsCount(this: Table): number {
     return this.dataAccessObject.countRowsRendered;
   },
 
@@ -123,7 +124,7 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getVisibleRowsCount() {
+  getVisibleRowsCount(this: Table): number {
     return this.dataAccessObject.countRowsVisible;
   },
 
@@ -133,7 +134,7 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getColumnHeadersCount() {
+  getColumnHeadersCount(this: Table): number {
     return this.dataAccessObject.columnHeaders.length;
   },
 };

@@ -23,20 +23,20 @@ export class ViewSizeSet {
    *
    * @type {ViewSize}
    */
-  size = new ViewSize();
+  size: ViewSize = new ViewSize();
   /**
    * Defines if this instance shares its size with another instance. If it's in the shared
    * mode it defines what space it occupies ('top' or 'bottom').
    *
    * @type {number}
    */
-  workingSpace = WORKING_SPACE_ALL;
+  workingSpace: number = WORKING_SPACE_ALL;
   /**
    * Shared Size instance.
    *
    * @type {ViewSize}
    */
-  sharedSize = null;
+  sharedSize: ViewSize | null = null;
 
   /**
    * Sets the size for rendered elements. It can be a size for rows, cells or size for row
@@ -44,7 +44,7 @@ export class ViewSizeSet {
    *
    * @param {number} size The size.
    */
-  setSize(size) {
+  setSize(size: number): void {
     this.size.setSize(size);
   }
 
@@ -54,7 +54,7 @@ export class ViewSizeSet {
    *
    * @param {number} offset The offset.
    */
-  setOffset(offset) {
+  setOffset(offset: number): void {
     this.size.setOffset(offset);
   }
 
@@ -63,7 +63,7 @@ export class ViewSizeSet {
    *
    * @returns {ViewSize}
    */
-  getViewSize() {
+  getViewSize(): ViewSize {
     return this.size;
   }
 
@@ -72,7 +72,7 @@ export class ViewSizeSet {
    *
    * @returns {boolean}
    */
-  isShared() {
+  isShared(): boolean {
     return this.sharedSize !== null;
   }
 
@@ -82,7 +82,7 @@ export class ViewSizeSet {
    * @param {number} workingSpace The number which describes the type of the working space (see constants.js).
    * @returns {boolean}
    */
-  isPlaceOn(workingSpace) {
+  isPlaceOn(workingSpace: number): boolean {
     return this.workingSpace === workingSpace;
   }
 
@@ -91,7 +91,7 @@ export class ViewSizeSet {
    *
    * @param {ViewSizeSet} viewSize The instance of the ViewSizeSet class.
    */
-  append(viewSize) {
+  append(viewSize: ViewSizeSet): void {
     this.workingSpace = WORKING_SPACE_TOP;
     viewSize.workingSpace = WORKING_SPACE_BOTTOM;
     this.sharedSize = viewSize.getViewSize();
@@ -102,7 +102,7 @@ export class ViewSizeSet {
    *
    * @param {ViewSizeSet} viewSize The instance of the ViewSizeSet class.
    */
-  prepend(viewSize) {
+  prepend(viewSize: ViewSizeSet): void {
     this.workingSpace = WORKING_SPACE_BOTTOM;
     viewSize.workingSpace = WORKING_SPACE_TOP;
     this.sharedSize = viewSize.getViewSize();

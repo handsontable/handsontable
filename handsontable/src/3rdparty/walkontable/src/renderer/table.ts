@@ -42,281 +42,299 @@
  *
  * @class {RowsRenderer}
  */
-export class TableRenderer {
+
+import ColumnFilter from '../filter/column';
+import RowFilter from '../filter/row';
+import ColumnUtils from '../utils/column';
+import RowUtils from '../utils/row';
+import { TableRendererInterface, TableRendererOptions } from './interfaces';
+import { CellsRenderer } from './cells';
+import { RowsRenderer } from './rows';
+import { ColumnHeadersRenderer } from './columnHeaders';
+import { RowHeadersRenderer } from './rowHeaders';
+import { ColGroupRenderer } from './colGroup';
+
+export class TableRenderer implements TableRendererInterface {
   /**
    * Table element which will be used to render the children element.
    *
    * @type {HTMLTableElement}
    */
-  rootNode;
+  rootNode: HTMLTableElement;
   /**
    * Document owner of the root node.
    *
    * @type {HTMLDocument}
    */
-  rootDocument;
+  rootDocument: Document;
   /**
    * Renderer class responsible for rendering row headers.
    *
    * @type {RowsRenderer}
    */
-  rowHeaders = null;
+  rowHeaders: RowHeadersRenderer | null = null;
   /**
    * Renderer class responsible for rendering column headers.
    *
    * @type {ColumnHeadersRenderer}
    */
-  columnHeaders = null;
+  columnHeaders: ColumnHeadersRenderer | null = null;
   /**
    * Renderer class responsible for rendering col in colgroup.
    *
    * @type {ColGroupRenderer}
    */
-  colGroup = null;
+  colGroup: ColGroupRenderer | null = null;
   /**
    * Renderer class responsible for rendering rows in tbody.
    *
    * @type {RowsRenderer}
    */
-  rows = null;
+  rows: RowsRenderer | null = null;
   /**
    * Renderer class responsible for rendering cells.
    *
    * @type {CellsRenderer}
    */
-  cells = null;
+  cells: CellsRenderer | null = null;
   /**
    * Row filter which contains all necessary information about row index transformation.
    *
    * @type {RowFilter}
    */
-  rowFilter = null;
+  rowFilter: RowFilter;
   /**
    * Column filter which contains all necessary information about column index transformation.
    *
    * @type {ColumnFilter}
    */
-  columnFilter = null;
+  columnFilter: ColumnFilter;
   /**
    * Row utils class which contains all necessary information about sizes of the rows.
    *
    * @type {RowUtils}
    */
-  rowUtils = null;
+  rowUtils: RowUtils;
   /**
    * Column utils class which contains all necessary information about sizes of the columns.
    *
    * @type {ColumnUtils}
    */
-  columnUtils = null;
+  columnUtils: ColumnUtils;
   /**
-   * Indicates how much rows should be rendered to fill whole table viewport.
+   * The number of rows to render.
    *
    * @type {number}
    */
-  rowsToRender = 0;
+  rowsToRender: number = 0;
   /**
-   * Indicates how much columns should be rendered to fill whole table viewport.
+   * The number of columns to render.
    *
    * @type {number}
    */
-  columnsToRender = 0;
+  columnsToRender: number = 0;
   /**
-   * An array of functions to be used as a content factory to row headers.
+   * Row header functions accepting row number as argument and returning string content for headers.
    *
    * @type {Function[]}
    */
-  rowHeaderFunctions = [];
+  rowHeaderFunctions: Array<Function> = [];
   /**
-   * Count of the function used to render row headers.
-   *
-   * @type {number}
-   */
-  rowHeadersCount = 0;
-  /**
-   * An array of functions to be used as a content factory to column headers.
+   * Column header functions accepting column number as argument and returning string content for headers.
    *
    * @type {Function[]}
    */
-  columnHeaderFunctions = [];
+  columnHeaderFunctions: Array<Function> = [];
   /**
-   * Count of the function used to render column headers.
+   * The number of row headers.
    *
    * @type {number}
    */
-  columnHeadersCount = 0;
+  rowHeadersCount: number = 0;
   /**
-   * Cell renderer used to render cells content.
+   * The number of column headers.
+   *
+   * @type {number}
+   */
+  columnHeadersCount: number = 0;
+  /**
+   * Function responsible for rendering cells content.
    *
    * @type {Function}
    */
-  cellRenderer;
+  cellRenderer: Function;
   /**
-   * Holds the name of the currently active overlay.
+   * The active overlay type name.
    *
-   * @type {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'}
+   * @type {string}
    */
-  activeOverlayName;
+  activeOverlayName: string;
   /**
-   * Styles handler instance.
+   * Styles handler.
    */
-  stylesHandler;
+  stylesHandler: any;
 
-  constructor(rootNode, { cellRenderer, stylesHandler } = {}) {
+  constructor(rootNode: HTMLTableElement, { cellRenderer, stylesHandler }: TableRendererOptions = {}) {
     this.rootNode = rootNode;
     this.rootDocument = this.rootNode.ownerDocument;
-    this.cellRenderer = cellRenderer;
+
+    this.cellRenderer = cellRenderer as Function;
     this.stylesHandler = stylesHandler;
   }
 
   /**
-   * Sets the overlay that is currently rendered. If `null` is provided, the master overlay is set.
+   * Set active overlay type name.
    *
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'} overlayName The overlay name.
+   * @param {string} name Overlay type name.
    */
-  setActiveOverlayName(overlayName) {
-    this.activeOverlayName = overlayName;
+  setActiveOverlayName(name: string): void {
+    this.activeOverlayName = name;
   }
 
   /**
    * Set row and column util classes.
    *
-   * @param {RowUtils} rowUtils RowUtils instance which provides useful methods related to row sizes.
-   * @param {ColumnUtils} columnUtils ColumnUtils instance which provides useful methods related to row sizes.
+   * @param {RowUtils} rowUtils Rowutils class reference.
+   * @param {ColumnUtils} columnUtils Column utils class reference.
    */
-  setAxisUtils(rowUtils, columnUtils) {
+  setAxisUtils(rowUtils: RowUtils, columnUtils: ColumnUtils): void {
     this.rowUtils = rowUtils;
     this.columnUtils = columnUtils;
   }
 
   /**
-   * Sets viewport size of the table.
+   * Set the viewport size of the table.
    *
-   * @param {number} rowsCount An amount of rows to render.
-   * @param {number} columnsCount An amount of columns to render.
+   * @param {number} rowsCount The table rows count.
+   * @param {number} columnsCount The table columns count.
    */
-  setViewportSize(rowsCount, columnsCount) {
+  setViewportSize(rowsCount: number, columnsCount: number): void {
     this.rowsToRender = rowsCount;
     this.columnsToRender = columnsCount;
   }
 
   /**
-   * Sets row and column filter instances.
+   * Set the filter instances.
    *
-   * @param {RowFilter} rowFilter Row filter instance which contains all necessary information about row index transformation.
-   * @param {ColumnFilter} columnFilter Column filter instance which contains all necessary information about row
-   * index transformation.
+   * @param {RowFilter} rowFilter The row filter instance.
+   * @param {ColumnFilter} columnFilter The column filter instance.
    */
-  setFilters(rowFilter, columnFilter) {
+  setFilters(rowFilter: RowFilter, columnFilter: ColumnFilter): void {
     this.rowFilter = rowFilter;
     this.columnFilter = columnFilter;
   }
 
   /**
-   * Sets row and column header functions.
+   * Set header functions for row and column headers.
    *
-   * @param {Function[]} rowHeaders Row header functions. Factories for creating content for row headers.
-   * @param {Function[]} columnHeaders Column header functions. Factories for creating content for column headers.
+   * @param {Function[]} rowHeaders Row header functions.
+   * @param {Function[]} columnHeaders Column header functions.
    */
-  setHeaderContentRenderers(rowHeaders, columnHeaders) {
-    this.rowHeaderFunctions = rowHeaders;
-    this.rowHeadersCount = rowHeaders.length;
-    this.columnHeaderFunctions = columnHeaders;
-    this.columnHeadersCount = columnHeaders.length;
+  setHeaderContentRenderers(rowHeaders: Function[], columnHeaders: Function[]): void {
+    this.rowHeaderFunctions = rowHeaders || [];
+    this.rowHeadersCount = this.rowHeaderFunctions.length;
+
+    this.columnHeaderFunctions = columnHeaders || [];
+    this.columnHeadersCount = this.columnHeaderFunctions.length;
   }
 
   /**
-   * Sets table renderers.
+   * Set all required renderers for table generation.
    *
-   * @param {renderers} renderers The renderer units.
-   * @param {RowHeadersRenderer} renderers.rowHeaders Row headers renderer.
-   * @param {ColumnHeadersRenderer} renderers.columnHeaders Column headers renderer.
-   * @param {ColGroupRenderer} renderers.colGroup Col group renderer.
-   * @param {RowsRenderer} renderers.rows Rows renderer.
-   * @param {CellsRenderer} renderers.cells Cells renderer.
+   * @param {object} renderers The object which describes the renderers configuration.
    */
-  setRenderers({ rowHeaders, columnHeaders, colGroup, rows, cells } = {}) {
-    rowHeaders.setTable(this);
-    columnHeaders.setTable(this);
-    colGroup.setTable(this);
-    rows.setTable(this);
-    cells.setTable(this);
-
-    this.rowHeaders = rowHeaders;
-    this.columnHeaders = columnHeaders;
-    this.colGroup = colGroup;
-    this.rows = rows;
-    this.cells = cells;
+  setRenderers({ rowHeaders, columnHeaders, colGroup, rows, cells }: {
+    rowHeaders?: RowHeadersRenderer,
+    columnHeaders?: ColumnHeadersRenderer,
+    colGroup?: ColGroupRenderer,
+    rows?: RowsRenderer,
+    cells?: CellsRenderer
+  } = {}): void {
+    if (rowHeaders) {
+      this.rowHeaders = rowHeaders;
+      this.rowHeaders.setTable(this);
+    }
+    if (columnHeaders) {
+      this.columnHeaders = columnHeaders;
+      this.columnHeaders.setTable(this);
+    }
+    if (colGroup) {
+      this.colGroup = colGroup;
+      this.colGroup.setTable(this);
+    }
+    if (rows) {
+      this.rows = rows;
+      this.rows.setTable(this);
+    }
+    if (cells) {
+      this.cells = cells;
+      this.cells.setTable(this);
+    }
   }
 
   /**
-   * Transforms visual/rendered row index to source index.
+   * Get rendered row at specific index.
    *
-   * @param {number} rowIndex Rendered index.
+   * @param {number} rowIndex Row's visual index.
    * @returns {number}
    */
-  renderedRowToSource(rowIndex) {
+  renderedRowToSource(rowIndex: number): number {
     return this.rowFilter.renderedToSource(rowIndex);
   }
 
   /**
-   * Transforms visual/rendered column index to source index.
+   * Get rendered column at specific index.
    *
-   * @param {number} columnIndex Rendered index.
+   * @param {number} columnIndex Column's visual index.
    * @returns {number}
    */
-  renderedColumnToSource(columnIndex) {
+  renderedColumnToSource(columnIndex: number): number {
     return this.columnFilter.renderedToSource(columnIndex);
   }
 
   /**
-   * Returns `true` if the accessibility-related ARIA tags should be added to the table, `false` otherwise.
+   * Returns boolean information if ARIA attributes should be added.
    *
    * @returns {boolean}
    */
-  isAriaEnabled() {
-    return this.rowUtils.wtSettings.getSetting('ariaTags');
+  isAriaEnabled(): boolean {
+    return !!this.stylesHandler?.isAriaEnabled?.(this.activeOverlayName);
+  }
+
+  /**
+   * Adjust all necessary renderers.
+   */
+  adjust(): void {
+    if (this.columnHeaders) {
+      this.columnHeaders.adjust();
+    }
+    if (this.rowHeaders) {
+      this.rowHeaders.adjust();
+    }
+    if (this.cells) {
+      this.cells.adjust();
+    }
+    if (this.rows) {
+      this.rows.adjust();
+    }
+    if (this.colGroup) {
+      this.colGroup.adjust();
+    }
   }
 
   /**
    * Renders the table.
    */
-  render() {
-    this.colGroup.adjust();
-    this.columnHeaders.adjust();
-    this.rows.adjust();
-    this.rowHeaders.adjust();
+  render(): void {
+    if (this.colGroup) {
+      this.colGroup.render();
+    }
+    if (this.columnHeaders) {
+      this.columnHeaders.render();
+    }
 
-    this.columnHeaders.render();
-    this.rows.render();
-    this.rowHeaders.render();
-    this.cells.render();
-
-    // After the cells are rendered calculate columns width to prepare proper values
-    // for colGroup renderer (which renders COL elements).
-    this.columnUtils.calculateWidths();
-    this.colGroup.render();
-
-    const { rowsToRender, rows } = this;
-
-    // Fix for multi-line content and for supporting `rowHeights` option.
-    for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
-      const TR = rows.getRenderedNode(visibleRowIndex);
-      const rowUtils = this.rowUtils;
-
-      if (TR.firstChild) {
-        const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
-        const rowHeight = rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
-        const isBorderBoxSizing = this.stylesHandler.areCellsBorderBox();
-        const borderCompensation = isBorderBoxSizing ? 0 : 1;
-
-        if (rowHeight) {
-          // Decrease height. 1 pixel will be "replaced" by 1px border top
-          TR.firstChild.style.height = `${rowHeight - borderCompensation}px`;
-        } else {
-          TR.firstChild.style.height = '';
-        }
-      }
+    if (this.rows) {
+      this.rows.render();
     }
   }
 }

@@ -7,6 +7,8 @@ import Table from '../table';
 import calculatedRows from './mixin/calculatedRows';
 import calculatedColumns from './mixin/calculatedColumns';
 import { mixin } from './../../../../helpers/object';
+import { TableDao, FacadeGetter, DomBindings } from '../types';
+import Settings from '../settings';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to the master table (not overlays), implemented through mixins.
@@ -16,13 +18,18 @@ import { mixin } from './../../../../helpers/object';
  */
 class MasterTable extends Table {
   /**
+   * Flag indicating if the table is visible in the viewport.
+   */
+  isTableVisible: boolean;
+
+  /**
    * @param {TableDao} dataAccessObject The data access object.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {DomBindings} domBindings Bindings into DOM.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(dataAccessObject, facadeGetter, domBindings, wtSettings) {
-    super(dataAccessObject, facadeGetter, domBindings, wtSettings, 'master');
+  constructor(dataAccessObject: TableDao, facadeGetter: FacadeGetter, domBindings: DomBindings, wtSettings: Settings) {
+    super(dataAccessObject, domBindings, wtSettings, 'master', facadeGetter);
   }
 
   alignOverlaysWithTrimmingContainer() {
@@ -37,17 +44,17 @@ class MasterTable extends Table {
         this.wtRootElement.style.overflow = 'visible';
       }
     } else {
-      const trimmingElementParent = trimmingElement.parentElement;
-      const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
-      const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
+      const trimmingElementParent = (trimmingElement as HTMLElement).parentElement;
+      const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow) || '';
+      const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow) || '';
       const holderStyle = this.holder.style;
-      const { scrollWidth, scrollHeight } = trimmingElement;
-      let width = trimmingElement.offsetWidth;
-      let height = trimmingElement.offsetHeight;
+      const { scrollWidth, scrollHeight } = trimmingElement as HTMLElement;
+      let width = (trimmingElement as HTMLElement).offsetWidth;
+      let height = (trimmingElement as HTMLElement).offsetHeight;
       const overflow = ['auto', 'hidden', 'scroll'];
 
       if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
-        const cloneNode = trimmingElement.cloneNode(false);
+        const cloneNode = (trimmingElement as HTMLElement).cloneNode(false) as HTMLElement;
 
         // Before calculating the height of the trimming element, set overflow: auto to hide scrollbars.
         // An issue occurred on Firefox, where an empty element with overflow: scroll returns an element height higher than 0px
@@ -57,8 +64,8 @@ class MasterTable extends Table {
         // flex containers and setting overflow for some `div` section.
         cloneNode.style.position = 'absolute';
 
-        if (trimmingElement.nextElementSibling) {
-          trimmingElementParent.insertBefore(cloneNode, trimmingElement.nextElementSibling);
+        if ((trimmingElement as HTMLElement).nextElementSibling) {
+          trimmingElementParent.insertBefore(cloneNode, (trimmingElement as HTMLElement).nextElementSibling);
         } else {
           trimmingElementParent.appendChild(cloneNode);
         }
@@ -96,7 +103,8 @@ class MasterTable extends Table {
     if (columnHeadersCount && !wtViewport.hasOversizedColumnHeadersMarked[overlayName]) {
       const rowHeaders = wtSettings.getSetting('rowHeaders');
       const rowHeaderCount = rowHeaders.length;
-      const columnCount = this.getRenderedColumnsCount();
+      // The getRenderedColumnsCount method will be added to this class by the calculatedColumns mixin
+      const columnCount = (this as any).getRenderedColumnsCount();
 
       for (let i = 0; i < columnHeadersCount; i++) {
         for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) { // eslint-disable-line max-len
@@ -108,7 +116,9 @@ class MasterTable extends Table {
   }
 }
 
+// @ts-ignore - Mixin objects with proper MIXIN_NAME are defined but TypeScript can't verify it at compile time
 mixin(MasterTable, calculatedRows);
+// @ts-ignore - Mixin objects with proper MIXIN_NAME are defined but TypeScript can't verify it at compile time
 mixin(MasterTable, calculatedColumns);
 
 export default MasterTable;

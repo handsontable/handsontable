@@ -1,3 +1,5 @@
+import { ColumnsCalculationType, RowsCalculationType, CalculatorContext, CalculatorInstance } from '../types';
+
 /**
  * @typedef {object} ColumnsCalculationType
  * @property {number | null} startColumn The column index of the first column in the viewport.
@@ -23,15 +25,15 @@ export class ViewportBaseCalculator {
    *
    * @type {Array}
    */
-  calculationTypes = [];
+  calculationTypes: Array<[string, CalculatorInstance]> = [];
   /**
    * The calculation results.
    *
    * @type {Map<string, ColumnsCalculationType | RowsCalculationType>}
    */
-  calculationResults = new Map();
+  calculationResults: Map<string, ColumnsCalculationType | RowsCalculationType> = new Map();
 
-  constructor(calculationTypes) {
+  constructor(calculationTypes: Array<[string, CalculatorInstance]>) {
     this.calculationTypes = calculationTypes;
   }
 
@@ -40,9 +42,9 @@ export class ViewportBaseCalculator {
    *
    * @param {*} context The context object (rows or columns viewport calculator).
    */
-  _initialize(context) {
+  _initialize(context: CalculatorContext): void {
     this.calculationTypes.forEach(([id, calculator]) => {
-      this.calculationResults.set(id, calculator);
+      this.calculationResults.set(id, calculator as unknown as ColumnsCalculationType | RowsCalculationType);
       calculator.initialize(context);
     });
   }
@@ -53,7 +55,7 @@ export class ViewportBaseCalculator {
    * @param {number} index The index of the row/column.
    * @param {*} context The context object (rows or columns viewport calculator).
    */
-  _process(index, context) {
+  _process(index: number, context: CalculatorContext): void {
     this.calculationTypes.forEach(([, calculator]) => calculator.process(index, context));
   }
 
@@ -62,7 +64,7 @@ export class ViewportBaseCalculator {
    *
    * @param {*} context The context object (rows or columns viewport calculator).
    */
-  _finalize(context) {
+  _finalize(context: CalculatorContext): void {
     this.calculationTypes.forEach(([, calculator]) => calculator.finalize(context));
   }
 
@@ -72,7 +74,7 @@ export class ViewportBaseCalculator {
    * @param {string} calculatorId The id of the calculator.
    * @returns {ColumnsCalculationType | RowsCalculationType}
    */
-  getResultsFor(calculatorId) {
-    return this.calculationResults.get(calculatorId);
+  getResultsFor(calculatorId: string): ColumnsCalculationType | RowsCalculationType {
+    return this.calculationResults.get(calculatorId) as ColumnsCalculationType | RowsCalculationType;
   }
 }

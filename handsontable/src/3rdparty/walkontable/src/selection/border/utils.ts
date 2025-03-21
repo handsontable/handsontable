@@ -1,4 +1,6 @@
-export const getCornerStyle = (wot) => {
+import { WalkontableInterface, CornerStyle } from '../interfaces';
+
+export const getCornerStyle = (wot: WalkontableInterface): CornerStyle => {
   const stylesHandler = wot.stylesHandler;
 
   if (stylesHandler.isClassicTheme()) {

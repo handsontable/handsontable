@@ -1,6 +1,8 @@
 /**
  * @typedef {'top'|'bottom'|'inline_start'|'top_inline_start_corner'|'bottom_inline_start_corner'} CLONE_TYPES_ENUM
  */
+export type CLONE_TYPES_ENUM = 'top' | 'bottom' | 'inline_start' | 'top_inline_start_corner' | 'bottom_inline_start_corner';
+
 export const CLONE_TOP = 'top';
 export const CLONE_BOTTOM = 'bottom';
 export const CLONE_INLINE_START = 'inline_start';

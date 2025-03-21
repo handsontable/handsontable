@@ -1,5 +1,6 @@
 import { mixin } from '../../../../helpers/object';
 import localHooks from '../../../../mixins/localHooks';
+import { SelectionSettings, CellRange, CellCoords, SelectionInterface } from './interfaces';
 
 /**
  * The Selection class allows highlighting (by applying CSS class) the table's cells or headers
@@ -9,14 +10,15 @@ import localHooks from '../../../../mixins/localHooks';
  *
  * @class Selection
  */
-class Selection {
+class Selection implements SelectionInterface {
   /**
    * @param {object} settings The selection settings object. @todo type.
    * @param {CellRange} cellRange The cell range instance.
    */
-  constructor(settings, cellRange) {
-    this.settings = settings;
-    this.cellRange = cellRange || null;
+  constructor(
+    public settings: SelectionSettings,
+    public cellRange: CellRange | null = null
+  ) {
   }
 
   /**
@@ -24,7 +26,7 @@ class Selection {
    *
    * @returns {boolean}
    */
-  isEmpty() {
+  isEmpty(): boolean {
     return this.cellRange === null;
   }
 
@@ -34,12 +36,12 @@ class Selection {
    * @param {CellCoords} coords The cell coordinates to add.
    * @returns {Selection}
    */
-  add(coords) {
+  add(coords: CellCoords): Selection {
     if (this.isEmpty()) {
       this.cellRange = this.settings.createCellRange(coords);
 
     } else {
-      this.cellRange.expand(coords);
+      this.cellRange!.expand(coords);
     }
 
     return this;
@@ -53,15 +55,15 @@ class Selection {
    * @param {CellCoords} newCoords The new cell coordinates.
    * @returns {boolean}
    */
-  replace(oldCoords, newCoords) {
+  replace(oldCoords: CellCoords, newCoords: CellCoords): boolean {
     if (!this.isEmpty()) {
-      if (this.cellRange.from.isEqual(oldCoords)) {
-        this.cellRange.from = newCoords;
+      if (this.cellRange!.from.isEqual(oldCoords)) {
+        this.cellRange!.from = newCoords;
 
         return true;
       }
-      if (this.cellRange.to.isEqual(oldCoords)) {
-        this.cellRange.to = newCoords;
+      if (this.cellRange!.to.isEqual(oldCoords)) {
+        this.cellRange!.to = newCoords;
 
         return true;
       }
@@ -75,7 +77,7 @@ class Selection {
    *
    * @returns {Selection}
    */
-  clear() {
+  clear(): Selection {
     this.cellRange = null;
 
     return this;
@@ -86,9 +88,9 @@ class Selection {
    *
    * @returns {number[]} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
-  getCorners() {
-    const topStart = this.cellRange.getOuterTopStartCorner();
-    const bottomEnd = this.cellRange.getOuterBottomEndCorner();
+  getCorners(): number[] {
+    const topStart = this.cellRange!.getOuterTopStartCorner();
+    const bottomEnd = this.cellRange!.getOuterBottomEndCorner();
 
     return [
       topStart.row,
@@ -101,8 +103,28 @@ class Selection {
   /**
    * Destroys the instance.
    */
-  destroy() {
+  destroy(): void {
     this.runLocalHooks('destroy');
+  }
+
+  /**
+   * Adds a local hook to the component.
+   *
+   * @param {string} hookName The hook name.
+   * @param {Function} callback The hook callback.
+   */
+  addLocalHook(hookName: string, callback: (...args: any[]) => void): void {
+    // This method is added via mixin, but needs to be declared for TypeScript
+  }
+
+  /**
+   * Runs the local hook registered under the hook name.
+   *
+   * @param {string} hookName The hook name.
+   * @param {*} params Additional parameters passed to the hook callback.
+   */
+  runLocalHooks(hookName: string, ...params: any[]): void {
+    // This method is added via mixin, but needs to be declared for TypeScript
   }
 }
 

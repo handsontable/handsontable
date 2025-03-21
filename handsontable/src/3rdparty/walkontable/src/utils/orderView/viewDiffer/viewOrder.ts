@@ -4,9 +4,9 @@
  * @class {ViewOrder}
  */
 export class ViewOrder {
-  order = [];
+  order: number[] = [];
 
-  constructor(viewOffset, viewSize) {
+  constructor(viewOffset: number, viewSize: number) {
     this.order = [...Array(viewSize).keys()].map(i => viewOffset + i);
   }
 
@@ -15,7 +15,7 @@ export class ViewOrder {
    *
    * @returns {number}
    */
-  get length() {
+  get length(): number {
     return this.order.length;
   }
 
@@ -25,7 +25,7 @@ export class ViewOrder {
    * @param {number} offsetIndex The offset index.
    * @returns {boolean}
    */
-  has(offsetIndex) {
+  has(offsetIndex: number): boolean {
     return this.order.indexOf(offsetIndex) > -1;
   }
 
@@ -36,7 +36,7 @@ export class ViewOrder {
    * @param {number} zeroBasedIndex The zero-based index.
    * @returns {number}
    */
-  get(zeroBasedIndex) {
+  get(zeroBasedIndex: number): number {
     return zeroBasedIndex < this.order.length ? this.order[zeroBasedIndex] : -1;
   }
 
@@ -45,7 +45,7 @@ export class ViewOrder {
    *
    * @param {number} offsetIndex The offset index.
    */
-  remove(offsetIndex) {
+  remove(offsetIndex: number): void {
     this.order.splice(this.order.indexOf(offsetIndex), 1);
   }
 
@@ -56,9 +56,9 @@ export class ViewOrder {
    * @param {number} offsetIndex The offset index.
    * @returns {number}
    */
-  prepend(offsetIndex) {
+  prepend(offsetIndex: number): number {
     this.order.unshift(offsetIndex);
 
-    return this.order.pop();
+    return this.order.pop()!;
   }
 }

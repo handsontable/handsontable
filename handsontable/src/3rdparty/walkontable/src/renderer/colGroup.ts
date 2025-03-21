@@ -2,6 +2,7 @@ import { BaseRenderer } from './_base';
 import { warn } from '../../../../helpers/console';
 import { toSingleLine } from '../../../../helpers/templateLiteralTag';
 import { addClass } from '../../../../helpers/dom/element';
+import { ColGroupRendererInterface, TableRendererInterface } from './interfaces';
 
 let performanceWarningAppeared = false;
 
@@ -17,15 +18,24 @@ let performanceWarningAppeared = false;
  *
  * @class {ColGroupRenderer}
  */
-export class ColGroupRenderer extends BaseRenderer {
-  constructor(rootNode) {
-    super(null, rootNode); // NodePool is not implemented for this renderer yet
+export class ColGroupRenderer extends BaseRenderer implements ColGroupRendererInterface {
+  declare table: TableRendererInterface;
+
+  constructor(rootNode: HTMLTableColElement) {
+    super('COL', rootNode); // Use 'COL' as nodeType instead of null
+    
+    // NodePool is not implemented for this renderer yet
+    this.nodesPool = null;
   }
 
   /**
    * Adjusts the number of the rendered elements.
    */
-  adjust() {
+  adjust(): void {
+    if (!this.table) {
+      return;
+    }
+
     const { columnsToRender, rowHeadersCount } = this.table;
     const allColumnsToRender = columnsToRender + rowHeadersCount;
 
@@ -34,15 +44,21 @@ export class ColGroupRenderer extends BaseRenderer {
       this.renderedNodes += 1;
     }
     while (this.renderedNodes > allColumnsToRender) {
-      this.rootNode.removeChild(this.rootNode.lastChild);
-      this.renderedNodes -= 1;
+      if (this.rootNode.lastChild) {
+        this.rootNode.removeChild(this.rootNode.lastChild);
+        this.renderedNodes -= 1;
+      }
     }
   }
 
   /**
    * Renders the col group elements.
    */
-  render() {
+  render(): void {
+    if (!this.table) {
+      return;
+    }
+
     this.adjust();
 
     const { columnsToRender, rowHeadersCount } = this.table;
@@ -59,7 +75,10 @@ export class ColGroupRenderer extends BaseRenderer {
       const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
       const width = this.table.columnUtils.getHeaderWidth(sourceColumnIndex);
 
-      this.rootNode.childNodes[visibleColumnIndex].style.width = `${width}px`;
+      const colNode = this.rootNode.childNodes[visibleColumnIndex] as HTMLElement;
+      if (colNode) {
+        colNode.style.width = `${width}px`;
+      }
     }
 
     // Render column nodes for cells
@@ -67,10 +86,13 @@ export class ColGroupRenderer extends BaseRenderer {
       const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
       const width = this.table.columnUtils.getWidth(sourceColumnIndex);
 
-      this.rootNode.childNodes[visibleColumnIndex + rowHeadersCount].style.width = `${width}px`;
+      const colNode = this.rootNode.childNodes[visibleColumnIndex + rowHeadersCount] as HTMLElement;
+      if (colNode) {
+        colNode.style.width = `${width}px`;
+      }
     }
 
-    const firstChild = this.rootNode.firstChild;
+    const firstChild = this.rootNode.firstChild as HTMLElement;
 
     if (firstChild) {
       addClass(firstChild, 'rowHeader');

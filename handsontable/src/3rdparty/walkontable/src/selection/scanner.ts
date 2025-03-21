@@ -1,5 +1,6 @@
 /* eslint-disable no-continue */
 import { addClass, isHTMLElement } from '../../../../helpers/dom/element';
+import { SelectionInterface, WalkontableInterface } from './interfaces';
 
 /**
  * Selection scanner module scans the rendered cells and headers and if it finds an intersection with
@@ -13,13 +14,13 @@ export class SelectionScanner {
    *
    * @type {Selection}
    */
-  #selection;
+  #selection: SelectionInterface | null = null;
   /**
    * The Walkontable instance that the scans depends on.
    *
    * @type {Walkontable}
    */
-  #activeOverlaysWot;
+  #activeOverlaysWot: WalkontableInterface | null = null;
 
   /**
    * Sets the Walkontable instance that will be taking into account while scanning the table.
@@ -27,7 +28,7 @@ export class SelectionScanner {
    * @param {Walkontable} activeOverlaysWot The Walkontable instance.
    * @returns {SelectionScanner}
    */
-  setActiveOverlay(activeOverlaysWot) {
+  setActiveOverlay(activeOverlaysWot: WalkontableInterface): SelectionScanner {
     this.#activeOverlaysWot = activeOverlaysWot;
 
     return this;
@@ -39,7 +40,7 @@ export class SelectionScanner {
    * @param {Selection} selection The Selection instance.
    * @returns {SelectionScanner}
    */
-  setActiveSelection(selection) {
+  setActiveSelection(selection: SelectionInterface): SelectionScanner {
     this.#selection = selection;
 
     return this;
@@ -51,9 +52,9 @@ export class SelectionScanner {
    *
    * @returns {HTMLTableElement[]}
    */
-  scan() {
-    const selectionType = this.#selection.settings.selectionType;
-    const elements = new Set();
+  scan(): Set<HTMLElement> {
+    const selectionType = this.#selection!.settings.selectionType;
+    const elements = new Set<HTMLElement>();
 
     // TODO(improvement): use heuristics from coords to detect what type of scan
     // the Selection needs instead of using `selectionType` property.
@@ -94,9 +95,9 @@ export class SelectionScanner {
    *
    * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanColumnsInHeadersRange(callback) {
-    const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
-    const { wtTable } = this.#activeOverlaysWot;
+  scanColumnsInHeadersRange(callback: (element: HTMLElement) => void): void {
+    const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection!.getCorners();
+    const { wtTable } = this.#activeOverlaysWot!;
     const renderedColumnsCount = wtTable.getRenderedColumnsCount();
     const columnHeadersCount = wtTable.getColumnHeadersCount();
     let cursor = 0;
@@ -115,9 +116,9 @@ export class SelectionScanner {
 
         const positiveBasedHeaderLevel = headerLevel + columnHeadersCount;
         let TH = wtTable.getColumnHeader(sourceColumn, positiveBasedHeaderLevel);
-        const newSourceCol = this.#activeOverlaysWot
+        const newSourceCol = this.#activeOverlaysWot!
           .getSetting('onBeforeHighlightingColumnHeader', sourceColumn, positiveBasedHeaderLevel, {
-            selectionType: this.#selection.settings.selectionType,
+            selectionType: this.#selection!.settings.selectionType,
             columnCursor: cursor,
             selectionWidth: bottomColumn - topColumn + 1,
           });
@@ -143,9 +144,9 @@ export class SelectionScanner {
    *
    * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanRowsInHeadersRange(callback) {
-    const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
-    const { wtTable } = this.#activeOverlaysWot;
+  scanRowsInHeadersRange(callback: (element: HTMLElement) => void): void {
+    const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection!.getCorners();
+    const { wtTable } = this.#activeOverlaysWot!;
     const renderedRowsCount = wtTable.getRenderedRowsCount();
     const rowHeadersCount = wtTable.getRowHeadersCount();
     let cursor = 0;
@@ -164,9 +165,9 @@ export class SelectionScanner {
 
         const positiveBasedHeaderLevel = headerLevel + rowHeadersCount;
         let TH = wtTable.getRowHeader(sourceRow, positiveBasedHeaderLevel);
-        const newSourceRow = this.#activeOverlaysWot
+        const newSourceRow = this.#activeOverlaysWot!
           .getSetting('onBeforeHighlightingRowHeader', sourceRow, positiveBasedHeaderLevel, {
-            selectionType: this.#selection.settings.selectionType,
+            selectionType: this.#selection!.settings.selectionType,
             rowCursor: cursor,
             selectionHeight: bottomRow - topRow + 1,
           });
@@ -192,18 +193,18 @@ export class SelectionScanner {
    *
    * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanCellsRange(callback) {
-    const { wtTable } = this.#activeOverlaysWot;
+  scanCellsRange(callback: (element: HTMLElement) => void): void {
+    const { wtTable } = this.#activeOverlaysWot!;
 
     this.#scanCellsRange((sourceRow, sourceColumn) => {
-      const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
+      const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn));
 
       // support for old API
-      const additionalSelectionClass = this.#activeOverlaysWot
+      const additionalSelectionClass = this.#activeOverlaysWot!
         .getSetting('onAfterDrawSelection',
           sourceRow,
           sourceColumn,
-          this.#selection.settings.layerLevel,
+          this.#selection!.settings.layerLevel,
         );
 
       if (typeof additionalSelectionClass === 'string') {
@@ -220,14 +221,14 @@ export class SelectionScanner {
    *
    * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanRowsInCellsRange(callback) {
+  scanRowsInCellsRange(callback: (element: HTMLElement) => void): void {
     // eslint-disable-next-line comma-spacing
-    const [topRow,, bottomRow,] = this.#selection.getCorners();
-    const { wtTable } = this.#activeOverlaysWot;
+    const [topRow,, bottomRow,] = this.#selection!.getCorners();
+    const { wtTable } = this.#activeOverlaysWot!;
 
     this.#scanViewportRange((sourceRow, sourceColumn) => {
       if (sourceRow >= topRow && sourceRow <= bottomRow) {
-        const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
+        const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn));
 
         callback(cell);
       }
@@ -240,13 +241,13 @@ export class SelectionScanner {
    *
    * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanColumnsInCellsRange(callback) {
-    const [, topColumn,, bottomColumn] = this.#selection.getCorners();
-    const { wtTable } = this.#activeOverlaysWot;
+  scanColumnsInCellsRange(callback: (element: HTMLElement) => void): void {
+    const [, topColumn,, bottomColumn] = this.#selection!.getCorners();
+    const { wtTable } = this.#activeOverlaysWot!;
 
     this.#scanViewportRange((sourceRow, sourceColumn) => {
       if (sourceColumn >= topColumn && sourceColumn <= bottomColumn) {
-        const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
+        const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn));
 
         callback(cell);
       }
@@ -258,14 +259,14 @@ export class SelectionScanner {
    *
    * @param {function(number, number): void} callback The callback function to trigger.
    */
-  #scanCellsRange(callback) {
-    let [topRow, startColumn, bottomRow, endColumn] = this.#selection.getCorners();
+  #scanCellsRange(callback: (sourceRow: number, sourceColumn: number) => void): void {
+    let [topRow, startColumn, bottomRow, endColumn] = this.#selection!.getCorners();
 
     if (topRow < 0 && bottomRow < 0 || startColumn < 0 && endColumn < 0) {
       return;
     }
 
-    const { wtTable } = this.#activeOverlaysWot;
+    const { wtTable } = this.#activeOverlaysWot!;
     const isMultiple = (topRow !== bottomRow || startColumn !== endColumn);
 
     startColumn = Math.max(startColumn, 0);
@@ -284,7 +285,7 @@ export class SelectionScanner {
       }
 
     } else {
-      const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(topRow, startColumn));
+      const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(topRow, startColumn));
 
       if (!isHTMLElement(cell)) {
         return;
@@ -303,8 +304,8 @@ export class SelectionScanner {
    *
    * @param {function(number, number): void} callback The callback function to trigger.
    */
-  #scanViewportRange(callback) {
-    const { wtTable } = this.#activeOverlaysWot;
+  #scanViewportRange(callback: (sourceRow: number, sourceColumn: number) => void): void {
+    const { wtTable } = this.#activeOverlaysWot!;
     const renderedRowsCount = wtTable.getRenderedRowsCount();
     const renderedColumnsCount = wtTable.getRenderedColumnsCount();
 

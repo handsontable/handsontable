@@ -9,32 +9,32 @@ export class ViewSize {
    *
    * @type {number}
    */
-  currentSize = 0;
+  currentSize: number = 0;
   /**
    * Next size of the rendered DOM elements which should be fulfilled.
    *
    * @type {number}
    */
-  nextSize = 0;
+  nextSize: number = 0;
   /**
    * Current offset.
    *
    * @type {number}
    */
-  currentOffset = 0;
+  currentOffset: number = 0;
   /**
    * Next offset.
    *
    * @type {number}
    */
-  nextOffset = 0;
+  nextOffset: number = 0;
 
   /**
    * Sets new size of the rendered DOM elements.
    *
    * @param {number} size The size.
    */
-  setSize(size) {
+  setSize(size: number): void {
     this.currentSize = this.nextSize;
     this.nextSize = size;
   }
@@ -44,7 +44,7 @@ export class ViewSize {
    *
    * @param {number} offset The offset.
    */
-  setOffset(offset) {
+  setOffset(offset: number): void {
     this.currentOffset = this.nextOffset;
     this.nextOffset = offset;
   }

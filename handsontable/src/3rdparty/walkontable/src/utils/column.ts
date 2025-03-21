@@ -1,3 +1,5 @@
+import { TableDao } from '../types';
+
 /**
  * Column utils class contains all necessary information about sizes of the columns.
  *
@@ -7,21 +9,21 @@ export default class ColumnUtils {
   /**
    * @type {TableDao}
    */
-  dataAccessObject;
+  dataAccessObject: TableDao;
   /**
    * @type {Settings}
    */
-  wtSettings;
+  wtSettings: any;
   /**
    * @type {Map<number, number>}
    */
-  headerWidths = new Map();
+  headerWidths: Map<number, number> = new Map();
 
   /**
    * @param {TableDao} dataAccessObject The table Data Access Object.
    * @param {Settings} wtSettings The walkontable settings.
    */
-  constructor(dataAccessObject, wtSettings) {
+  constructor(dataAccessObject: TableDao, wtSettings: any) {
     this.dataAccessObject = dataAccessObject;
     this.wtSettings = wtSettings;
   }
@@ -32,7 +34,7 @@ export default class ColumnUtils {
    * @param {number} sourceIndex Column source index.
    * @returns {number}
    */
-  getWidth(sourceIndex) {
+  getWidth(sourceIndex: number): number {
     const width = this.wtSettings.getSetting('columnWidth', sourceIndex)
       || this.wtSettings.getSetting('defaultColumnWidth');
 
@@ -45,7 +47,7 @@ export default class ColumnUtils {
    * @param {number} level Column header level.
    * @returns {number}
    */
-  getHeaderHeight(level) {
+  getHeaderHeight(level: number): number {
     let height = this.dataAccessObject.stylesHandler.getDefaultRowHeight();
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedColumnHeaders[level];
 
@@ -62,14 +64,14 @@ export default class ColumnUtils {
    * @param {number} sourceIndex Column source index.
    * @returns {number}
    */
-  getHeaderWidth(sourceIndex) {
+  getHeaderWidth(sourceIndex: number): number | undefined {
     return this.headerWidths.get(this.dataAccessObject.wtTable.columnFilter.sourceToRendered(sourceIndex));
   }
 
   /**
    * Calculates column header widths that can be retrieved from the cache.
    */
-  calculateWidths() {
+  calculateWidths(): void {
     const { wtSettings } = this;
     let rowHeaderWidthSetting = wtSettings.getSetting('rowHeaderWidth');
 

@@ -6,27 +6,31 @@ import EventManager from '../../../../eventManager';
 import Scroll from '../scroll';
 import CellCoords from '../cell/coords';
 import CellRange from '../cell/range';
+import { CoreAbstract as ICoreAbstract, ExtendedTableDao } from './interfaces';
+import { DomBindings, ScrollDao, Settings } from '../types';
 
 /**
  * @abstract
  * @class Walkontable
  */
-export default class CoreAbstract {
-  wtTable;
-  wtScroll;
-  wtViewport;
-  wtOverlays;
-  selectionManager;
-  wtEvent;
+export default class CoreAbstract implements ICoreAbstract {
+  wtTable: any;
+  wtScroll: Scroll;
+  wtViewport: any;
+  wtOverlays: any;
+  selectionManager: any;
+  wtEvent: any;
+  stylesHandler: any;
+  selections: any;
   /**
    * The walkontable instance id.
    *
    * @public
    * @type {Readonly<string>}
    */
-  guid = `wt_${randomString()}`;
-  drawInterrupted = false;
-  drawn = false;
+  guid: string = `wt_${randomString()}`;
+  drawInterrupted: boolean = false;
+  drawn: boolean = false;
 
   /**
    * The name of the overlay that currently renders the table.
@@ -34,7 +38,7 @@ export default class CoreAbstract {
    * @public
    * @type {string}
    */
-  activeOverlayName = 'master';
+  activeOverlayName: string = 'master';
 
   /**
    * The DOM bindings.
@@ -42,7 +46,7 @@ export default class CoreAbstract {
    * @public
    * @type {DomBindings}
    */
-  domBindings;
+  domBindings: DomBindings;
 
   /**
    * Settings.
@@ -50,29 +54,34 @@ export default class CoreAbstract {
    * @public
    * @type {Settings}
    */
-  wtSettings;
+  wtSettings: Settings;
 
-  get eventManager() {
-    return new EventManager(this);
+  /**
+   * Clone source for clone instances.
+   */
+  cloneSource?: CoreAbstract;
+
+  get eventManager(): EventManager {
+    return new EventManager(this as any);
   }
 
   /**
    * @param {HTMLTableElement} table Main table.
    * @param {Settings} settings The Walkontable settings.
    */
-  constructor(table, settings) {
+  constructor(table: HTMLTableElement, settings: Settings) {
     this.domBindings = {
       rootTable: table,
       rootDocument: table.ownerDocument,
-      rootWindow: table.ownerDocument.defaultView,
+      rootWindow: table.ownerDocument.defaultView as WindowProxy,
     };
 
     this.wtSettings = settings;
     this.wtScroll = new Scroll(this.createScrollDao());
   }
 
-  findOriginalHeaders() {
-    const originalHeaders = [];
+  findOriginalHeaders(): void {
+    const originalHeaders: string[] = [];
 
     // find original headers
     if (this.wtTable.THEAD.childNodes.length && this.wtTable.THEAD.childNodes[0].childNodes.length) {
@@ -81,7 +90,7 @@ export default class CoreAbstract {
       }
       if (!this.wtSettings.getSetting('columnHeaders').length) {
         this.wtSettings.update('columnHeaders', [
-          function(column, TH) {
+          function(column: number, TH: HTMLElement) {
             fastInnerText(TH, originalHeaders[column]);
           }
         ]);
@@ -96,7 +105,7 @@ export default class CoreAbstract {
    * @param {*} column The column index.
    * @returns {CellCoords}
    */
-  createCellCoords(row, column) {
+  createCellCoords(row: number, column: number): CellCoords {
     return new CellCoords(row, column, this.wtSettings.getSetting('rtlMode'));
   }
 
@@ -108,7 +117,7 @@ export default class CoreAbstract {
    * @param {CellCoords} to The to coordinates.
    * @returns {CellRange}
    */
-  createCellRange(highlight, from, to) {
+  createCellRange(highlight: CellCoords, from: CellCoords, to: CellCoords): CellRange {
     return new CellRange(highlight, from, to, this.wtSettings.getSetting('rtlMode'));
   }
 
@@ -120,7 +129,7 @@ export default class CoreAbstract {
    *                                   rendering anyway.
    * @returns {Walkontable}
    */
-  draw(fastDraw = false) {
+  draw(fastDraw: boolean = false): this {
     this.drawInterrupted = false;
 
     if (!this.wtTable.isVisible()) {
@@ -143,7 +152,7 @@ export default class CoreAbstract {
    *                                  from the top overlay.
    * @returns {HTMLElement}
    */
-  getCell(coords, topmost = false) {
+  getCell(coords: CellCoords, topmost: boolean = false): HTMLElement {
     if (!topmost) {
       return this.wtTable.getCell(coords);
     }
@@ -153,21 +162,24 @@ export default class CoreAbstract {
     const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
     const fixedColumnsStart = this.wtSettings.getSetting('fixedColumnsStart');
 
-    if (coords.row < fixedRowsTop && coords.col < fixedColumnsStart) {
+    const row = coords.row as number;
+    const col = coords.col as number;
+
+    if (row < fixedRowsTop && col < fixedColumnsStart) {
       return this.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.getCell(coords);
 
-    } else if (coords.row < fixedRowsTop) {
+    } else if (row < fixedRowsTop) {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
 
-    } else if (coords.col < fixedColumnsStart && coords.row >= totalRows - fixedRowsBottom) {
+    } else if (col < fixedColumnsStart && row >= totalRows - fixedRowsBottom) {
       if (this.wtOverlays.bottomInlineStartCornerOverlay && this.wtOverlays.bottomInlineStartCornerOverlay.clone) {
         return this.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.getCell(coords);
       }
 
-    } else if (coords.col < fixedColumnsStart) {
+    } else if (col < fixedColumnsStart) {
       return this.wtOverlays.inlineStartOverlay.clone.wtTable.getCell(coords);
 
-    } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
+    } else if (row < totalRows && row >= totalRows - fixedRowsBottom) {
       if (this.wtOverlays.bottomOverlay && this.wtOverlays.bottomOverlay.clone) {
         return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
       }
@@ -189,7 +201,7 @@ export default class CoreAbstract {
    * the table. When `'auto'`, the viewport is scrolled only when the row is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewport(coords, horizontalSnap, verticalSnap) {
+  scrollViewport(coords: CellCoords, horizontalSnap?: 'auto' | 'start' | 'end', verticalSnap?: 'auto' | 'top' | 'bottom'): boolean {
     return this.wtScroll.scrollViewport(coords, horizontalSnap, verticalSnap);
   }
 
@@ -202,7 +214,7 @@ export default class CoreAbstract {
    * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewportHorizontally(column, snapping) {
+  scrollViewportHorizontally(column: number, snapping?: 'auto' | 'start' | 'end'): boolean {
     return this.wtScroll.scrollViewportHorizontally(column, snapping);
   }
 
@@ -216,14 +228,14 @@ export default class CoreAbstract {
    * the viewport.
    * @returns {boolean}
    */
-  scrollViewportVertically(row, snapping) {
+  scrollViewportVertically(row: number, snapping?: 'auto' | 'top' | 'bottom'): boolean {
     return this.wtScroll.scrollViewportVertically(row, snapping);
   }
 
   /**
    * @returns {Array}
    */
-  getViewport() {
+  getViewport(): number[] {
     return [
       this.wtTable.getFirstVisibleRow(),
       this.wtTable.getFirstVisibleColumn(),
@@ -235,7 +247,7 @@ export default class CoreAbstract {
   /**
    * Destroy instance.
    */
-  destroy() {
+  destroy(): void {
     this.wtOverlays.destroy();
     this.wtEvent.destroy();
   }
@@ -246,7 +258,7 @@ export default class CoreAbstract {
    * @protected
    * @returns {ScrollDao}
    */
-  createScrollDao() {
+  createScrollDao(): ScrollDao {
     const wot = this;
 
     return {
@@ -297,7 +309,7 @@ export default class CoreAbstract {
    * @protected
    * @returns {TableDao}
    */
-  getTableDao() {
+  getTableDao(): ExtendedTableDao {
     const wot = this;
 
     return {
@@ -305,10 +317,10 @@ export default class CoreAbstract {
         return wot;
       },
       get parentTableOffset() {
-        return wot.cloneSource.wtTable.tableOffset; // TODO rethink: cloneSource exists only in Clone type.
+        return wot.cloneSource?.wtTable.tableOffset ?? undefined;
       },
       get cloneSource() {
-        return wot.cloneSource; // TODO rethink: cloneSource exists only in Clone type.
+        return wot.cloneSource as any;
       },
       get workspaceWidth() {
         return wot.wtViewport.getWorkspaceWidth();
@@ -321,6 +333,9 @@ export default class CoreAbstract {
       },
       get selectionManager() {
         return wot.selectionManager; // TODO refactoring: move outside dao, use IOC
+      },
+      get selections() {
+        return wot.selections;
       },
       get stylesHandler() {
         return wot.stylesHandler;

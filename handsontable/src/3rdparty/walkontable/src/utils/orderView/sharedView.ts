@@ -17,7 +17,7 @@ export class SharedOrderView extends OrderView {
    * @param {OrderView} orderView The order view to merging with. The view will be added at the beginning of the list.
    * @returns {SharedOrderView}
    */
-  prependView(orderView) {
+  prependView(orderView: OrderView): SharedOrderView {
     this.sizeSet.prepend(orderView.sizeSet);
     orderView.sizeSet.append(this.sizeSet);
 
@@ -35,7 +35,7 @@ export class SharedOrderView extends OrderView {
    * @param {OrderView} orderView The order view to merging with. The view will be added at the end of the list.
    * @returns {SharedOrderView}
    */
-  appendView(orderView) {
+  appendView(orderView: OrderView): SharedOrderView {
     this.sizeSet.append(orderView.sizeSet);
     orderView.sizeSet.prepend(this.sizeSet);
 

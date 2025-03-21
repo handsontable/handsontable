@@ -11,6 +11,8 @@
  * http://github.com/warpech/sheetclip/
  */
 
+import { CellData, SheetData } from './types';
+
 const regUniversalNewLine = /^(\r\n|\n\r|\r|\n)/;
 const regNextCellNoQuotes = /^[^\t\r\n]+/;
 const regNextEmptyCell = /^\t/;
@@ -21,8 +23,8 @@ const regNextEmptyCell = /^\t/;
  * @param {string} str The string to parse.
  * @returns {Array}
  */
-export function parse(str) {
-  const arr = [['']];
+export function parse(str: string): SheetData {
+  const arr: SheetData = [['']];
 
   if (str.length === 0) {
     return arr;
@@ -30,7 +32,7 @@ export function parse(str) {
 
   let column = 0;
   let row = 0;
-  let lastLength;
+  let lastLength: number = str.length;
 
   while (str.length > 0) {
     if (lastLength === str.length) {
@@ -100,13 +102,13 @@ export function parse(str) {
  * @param {Array} arr An array of arrays to stringify.
  * @returns {string}
  */
-export function stringify(arr) {
-  let r;
-  let rLen;
-  let c;
-  let cLen;
+export function stringify(arr: SheetData): string {
+  let r: number;
+  let rLen: number;
+  let c: number;
+  let cLen: number;
   let str = '';
-  let val;
+  let val: CellData;
 
   for (r = 0, rLen = arr.length; r < rLen; r += 1) {
     cLen = arr[r].length;

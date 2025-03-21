@@ -1,4 +1,5 @@
 import { defineGetter } from '../../../../../helpers/object';
+import { Table } from '../../types';
 
 const MIXIN_NAME = 'stickyColumnsStart';
 
@@ -17,7 +18,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getFirstRenderedColumn() {
+  getFirstRenderedColumn(this: Table): number {
     const totalColumns = this.wtSettings.getSetting('totalColumns');
 
     if (totalColumns === 0) {
@@ -34,7 +35,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleColumn() {
+  getFirstVisibleColumn(this: Table): number {
     return this.getFirstRenderedColumn();
   },
 
@@ -45,7 +46,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleColumn() {
+  getFirstPartiallyVisibleColumn(this: Table): number {
     return this.getFirstRenderedColumn();
   },
 
@@ -55,7 +56,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getLastRenderedColumn() {
+  getLastRenderedColumn(this: Table): number {
     return this.getRenderedColumnsCount() - 1;
   },
 
@@ -66,7 +67,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleColumn() {
+  getLastVisibleColumn(this: Table): number {
     return this.getLastRenderedColumn();
   },
 
@@ -77,7 +78,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleColumn() {
+  getLastPartiallyVisibleColumn(this: Table): number {
     return this.getLastRenderedColumn();
   },
 
@@ -87,7 +88,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getRenderedColumnsCount() {
+  getRenderedColumnsCount(this: Table): number {
     const totalColumns = this.wtSettings.getSetting('totalColumns');
 
     return Math.min(this.wtSettings.getSetting('fixedColumnsStart'), totalColumns);
@@ -100,7 +101,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getVisibleColumnsCount() {
+  getVisibleColumnsCount(this: Table): number {
     return this.getRenderedColumnsCount();
   },
 
@@ -110,7 +111,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getRowHeadersCount() {
+  getRowHeadersCount(this: Table): number {
     return this.dataAccessObject.rowHeaders.length;
   },
 };

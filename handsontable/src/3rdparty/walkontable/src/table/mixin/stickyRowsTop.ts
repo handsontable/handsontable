@@ -1,4 +1,5 @@
 import { defineGetter } from '../../../../../helpers/object';
+import { Table } from '../../types';
 
 const MIXIN_NAME = 'stickyRowsTop';
 
@@ -17,7 +18,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getFirstRenderedRow() {
+  getFirstRenderedRow(this: Table): number {
     const totalRows = this.wtSettings.getSetting('totalRows');
 
     if (totalRows === 0) {
@@ -34,7 +35,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleRow() {
+  getFirstVisibleRow(this: Table): number {
     return this.getFirstRenderedRow();
   },
 
@@ -45,7 +46,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleRow() {
+  getFirstPartiallyVisibleRow(this: Table): number {
     return this.getFirstRenderedRow();
   },
 
@@ -55,7 +56,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getLastRenderedRow() {
+  getLastRenderedRow(this: Table): number {
     return this.getRenderedRowsCount() - 1;
   },
 
@@ -66,7 +67,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleRow() {
+  getLastVisibleRow(this: Table): number {
     return this.getLastRenderedRow();
   },
 
@@ -77,7 +78,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleRow() {
+  getLastPartiallyVisibleRow(this: Table): number {
     return this.getLastRenderedRow();
   },
 
@@ -87,7 +88,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getRenderedRowsCount() {
+  getRenderedRowsCount(this: Table): number {
     const totalRows = this.wtSettings.getSetting('totalRows');
 
     return Math.min(this.wtSettings.getSetting('fixedRowsTop'), totalRows);
@@ -100,7 +101,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getVisibleRowsCount() {
+  getVisibleRowsCount(this: Table): number {
     return this.getRenderedRowsCount();
   },
 
@@ -110,7 +111,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getColumnHeadersCount() {
+  getColumnHeadersCount(this: Table): number {
     return this.dataAccessObject.columnHeaders.length;
   }
 };

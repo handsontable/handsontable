@@ -1,4 +1,5 @@
 import { defineGetter } from '../../../../../helpers/object';
+import { Table } from '../../types';
 
 const MIXIN_NAME = 'calculatedColumns';
 
@@ -17,7 +18,7 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getFirstRenderedColumn() {
+  getFirstRenderedColumn(this: Table): number {
     const startColumn = this.dataAccessObject.startColumnRendered;
 
     if (startColumn === null) {
@@ -33,7 +34,7 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleColumn() {
+  getFirstVisibleColumn(this: Table): number {
     const startColumn = this.dataAccessObject.startColumnVisible;
 
     if (startColumn === null) {
@@ -49,7 +50,7 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleColumn() {
+  getFirstPartiallyVisibleColumn(this: Table): number {
     const startColumn = this.dataAccessObject.startColumnPartiallyVisible;
 
     if (startColumn === null) {
@@ -65,7 +66,7 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getLastRenderedColumn() {
+  getLastRenderedColumn(this: Table): number {
     const endColumn = this.dataAccessObject.endColumnRendered;
 
     if (endColumn === null) {
@@ -81,7 +82,7 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleColumn() {
+  getLastVisibleColumn(this: Table): number {
     const endColumn = this.dataAccessObject.endColumnVisible;
 
     if (endColumn === null) {
@@ -97,7 +98,7 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleColumn() {
+  getLastPartiallyVisibleColumn(this: Table): number {
     const endColumn = this.dataAccessObject.endColumnPartiallyVisible;
 
     if (endColumn === null) {
@@ -113,7 +114,7 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getRenderedColumnsCount() {
+  getRenderedColumnsCount(this: Table): number {
     return this.dataAccessObject.countColumnsRendered;
   },
 
@@ -123,7 +124,7 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getVisibleColumnsCount() {
+  getVisibleColumnsCount(this: Table): number {
     return this.dataAccessObject.countColumnsVisible;
   },
 
@@ -133,7 +134,7 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getRowHeadersCount() {
+  getRowHeadersCount(this: Table): number {
     return this.dataAccessObject.rowHeaders.length;
   },
 };

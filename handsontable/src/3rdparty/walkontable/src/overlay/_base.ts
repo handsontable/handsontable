@@ -11,9 +11,16 @@ import {
   CLONE_CLASS_NAMES,
   CLONE_TOP,
   CLONE_INLINE_START,
+  CLONE_BOTTOM,
+  CLONE_TOP_INLINE_START_CORNER,
+  CLONE_BOTTOM_INLINE_START_CORNER
 } from './constants';
 import Clone from '../core/clone';
 import { A11Y_PRESENTATION } from '../../../../helpers/a11y';
+import { DomBindings, FacadeGetter, Settings, TableDao } from '../types';
+import Walkontable from '../core/core';
+import Table from '../table';
+import { OverlayBase, OverlayOptions } from './interfaces';
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -23,14 +30,33 @@ import { A11Y_PRESENTATION } from '../../../../helpers/a11y';
  * @class Overlay
  * @property {Walkontable} wot The Walkontable instance.
  */
-export class Overlay {
+export class Overlay implements OverlayBase {
   /**
    *  The Walkontable settings.
    *
    * @private
    * @type {Settings}
    */
-  wtSettings = null;
+  wtSettings: Settings;
+
+  facadeGetter: FacadeGetter;
+  wot: Walkontable;
+  domBindings: DomBindings;
+  instance: Walkontable;
+  type: string;
+  mainTableScrollableElement: HTMLElement | Window | null;
+  TABLE: HTMLTableElement;
+  hider: HTMLElement;
+  spreader: HTMLElement;
+  holder: HTMLElement | null;
+  wtRootElement: HTMLElement;
+  trimmingContainer: HTMLElement;
+  needFullRender: boolean;
+  clone: Table;
+  needAdjustColumns: boolean = false;
+  needAdjustRows: boolean = false;
+  rootDocument: Document;
+  rootWindow: Window;
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
@@ -39,13 +65,15 @@ export class Overlay {
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(wotInstance, facadeGetter, type, wtSettings, domBindings) {
+  constructor(wotInstance: Walkontable, facadeGetter: FacadeGetter, type: string, wtSettings: Settings, domBindings: DomBindings) {
     defineGetter(this, 'wot', wotInstance, {
       writable: false,
     });
     this.domBindings = domBindings;
     this.facadeGetter = facadeGetter;
     this.wtSettings = wtSettings;
+    this.rootDocument = domBindings.rootDocument;
+    this.rootWindow = domBindings.rootWindow;
 
     const {
       TABLE,
@@ -65,7 +93,7 @@ export class Overlay {
     this.spreader = spreader;
     this.holder = holder;
     this.wtRootElement = wtRootElement;
-    this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
+    this.trimmingContainer = getTrimmingContainer(this.hider.parentNode as HTMLElement);
     this.needFullRender = this.shouldBeRendered();
     this.clone = this.makeClone();
   }
@@ -75,7 +103,7 @@ export class Overlay {
    *
    * @returns {boolean}
    */
-  hasRenderingStateChanged() {
+  hasRenderingStateChanged(): boolean {
     return this.needFullRender !== this.shouldBeRendered();
   }
 
@@ -89,7 +117,7 @@ export class Overlay {
    *
    * @param {'before' | 'after'} drawPhase The phase of the rendering process.
    */
-  updateStateOfRendering(drawPhase) {
+  updateStateOfRendering(drawPhase: 'before' | 'after'): void {
     if (drawPhase === 'before' && this.shouldBeRendered()) {
       this.needFullRender = true;
 
@@ -103,25 +131,25 @@ export class Overlay {
    *
    * @returns {boolean}
    */
-  shouldBeRendered() {
+  shouldBeRendered(): boolean {
     return true;
   }
 
   /**
    * Update the trimming container.
    */
-  updateTrimmingContainer() {
-    this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
+  updateTrimmingContainer(): void {
+    this.trimmingContainer = getTrimmingContainer(this.hider.parentNode as HTMLElement);
   }
 
   /**
    * Update the main scrollable element.
    */
-  updateMainScrollableElement() {
+  updateMainScrollableElement(): void {
     const { wtTable } = this.wot;
     const { rootWindow } = this.domBindings;
 
-    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode as HTMLElement).getPropertyValue('overflow') === 'hidden') {
       this.mainTableScrollableElement = this.wot.wtTable.holder;
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
@@ -137,18 +165,18 @@ export class Overlay {
    * @param {number} columnIndex Visual column index.
    * @returns {{top: number, start: number}|undefined}
    */
-  getRelativeCellPosition(element, rowIndex, columnIndex) {
-    if (this.clone.wtTable.holder.contains(element) === false) {
+  getRelativeCellPosition(element: HTMLElement, rowIndex: number, columnIndex: number): { top: number, start: number } | undefined {
+    if (this.clone.holder.contains(element) === false) {
       warn(`The provided element is not a child of the ${this.type} overlay`);
 
-      return;
+      return undefined;
     }
     const windowScroll = this.mainTableScrollableElement === this.domBindings.rootWindow;
     const fixedColumnStart = columnIndex < this.wtSettings.getSetting('fixedColumnsStart');
     const fixedRowTop = rowIndex < this.wtSettings.getSetting('fixedRowsTop');
     const fixedRowBottom =
       rowIndex >= this.wtSettings.getSetting('totalRows') - this.wtSettings.getSetting('fixedRowsBottom');
-    const spreader = this.clone.wtTable.spreader;
+    const spreader = this.clone.spreader;
 
     const spreaderOffset = {
       start: this.getRelativeStartPosition(spreader),
@@ -158,7 +186,7 @@ export class Overlay {
       start: this.getRelativeStartPosition(element),
       top: element.offsetTop
     };
-    let offsetObject = null;
+    let offsetObject: { start: number, top: number } | undefined;
 
     if (windowScroll) {
       offsetObject = this.getRelativeCellPositionWithinWindow(
@@ -180,9 +208,15 @@ export class Overlay {
    * @param {HTMLElement} el Element.
    * @returns {number}
    */
-  getRelativeStartPosition(el) {
+  getRelativeStartPosition(el: HTMLElement): number {
+    const offsetParent = el.offsetParent as HTMLElement;
+    
+    if (!offsetParent) {
+      return el.offsetLeft;
+    }
+    
     return this.isRtl()
-      ? el.offsetParent.offsetWidth - el.offsetLeft - el.offsetWidth
+      ? offsetParent.offsetWidth - el.offsetLeft - el.offsetWidth
       : el.offsetLeft;
   }
 
@@ -197,7 +231,12 @@ export class Overlay {
    * @param {number} spreaderOffset Offset position of the spreader element.
    * @returns {{top: number, left: number}}
    */
-  getRelativeCellPositionWithinWindow(onFixedRowTop, onFixedColumn, elementOffset, spreaderOffset) {
+  getRelativeCellPositionWithinWindow(
+    onFixedRowTop: boolean, 
+    onFixedColumn: boolean, 
+    elementOffset: { start: number, top: number }, 
+    spreaderOffset: { start: number, top: number }
+  ): { start: number, top: number } {
     const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect(); // todo refactoring: DEMETER
     let horizontalOffset = 0;
     let verticalOffset = 0;
@@ -217,7 +256,7 @@ export class Overlay {
     }
 
     if (onFixedRowTop) {
-      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+      const absoluteOverlayPosition = this.clone.TABLE.getBoundingClientRect();
 
       verticalOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
 
@@ -243,105 +282,153 @@ export class Overlay {
    * @param {number} spreaderOffset Offset position of the spreader element.
    * @returns {{top: number, left: number}}
    */
-  getRelativeCellPositionWithinHolder(onFixedRowTop, onFixedRowBottom, onFixedColumn, elementOffset, spreaderOffset) {
+  getRelativeCellPositionWithinHolder(
+    onFixedRowTop: boolean, 
+    onFixedRowBottom: boolean, 
+    onFixedColumn: boolean, 
+    elementOffset: { start: number, top: number }, 
+    spreaderOffset: { start: number, top: number }
+  ): { start: number, top: number } {
     const tableScrollPosition = {
       horizontal: this.wot.wtOverlays.inlineStartOverlay.getScrollPosition(),
       vertical: this.wot.wtOverlays.topOverlay.getScrollPosition()
+    };
+    const tableOffset = {
+      start: this.wot.wtTable.holder.offsetLeft - (this.isRtl() ? getScrollbarWidth() : 0),
+      top: this.wot.wtTable.holder.offsetTop
     };
     let horizontalOffset = 0;
     let verticalOffset = 0;
 
     if (!onFixedColumn) {
-      horizontalOffset = tableScrollPosition.horizontal - spreaderOffset.start;
+      horizontalOffset = tableOffset.start < 0 ? (-1) * tableOffset.start + spreaderOffset.start : spreaderOffset.start;
+
+      horizontalOffset -= tableScrollPosition.horizontal;
+
+    } else {
+      horizontalOffset = this.wot.wtTable.holder.clientLeft + this.wot.wtTable.holder.clientWidth
+        - this.wot.wtTable.holder.offsetWidth;
+
+      if (this.isRtl()) {
+        horizontalOffset += getScrollbarWidth();
+      }
     }
 
-    if (onFixedRowBottom) {
-      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();// todo refactoring: DEMETER
-      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();// todo refactoring: DEMETER
+    if (onFixedRowTop) {
+      verticalOffset = spreaderOffset.top;
 
-      verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
+    } else if (onFixedRowBottom) {
+      const holderHeight = this.wot.wtTable.holder.offsetHeight;
+      const absoluteTableOffsetTop = this.wot.wtTable.TABLE.offsetTop;
+      const overlayRootHeight = this.clone.TABLE.offsetHeight;
+      const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
+      const fixedRowsBottomOffset = this.wot.wtSettings.getSetting('totalRows') - fixedRowsBottom;
+      const fixedRowBottomSpreadOffset = this.wot.wtTable.getRowHeight(fixedRowsBottomOffset) * fixedRowsBottom -
+       (this.wot.wtViewport.getRowsVisibleCalculator().sum - this.wot.wtTable.getRowHeight(fixedRowsBottomOffset));
 
-    } else if (!onFixedRowTop) {
-      verticalOffset = tableScrollPosition.vertical - spreaderOffset.top;
+      verticalOffset = holderHeight - absoluteTableOffsetTop - fixedRowBottomSpreadOffset - overlayRootHeight;
+
+    } else {
+      verticalOffset = tableOffset.top;
+      verticalOffset -= tableScrollPosition.vertical;
     }
 
     return {
-      start: elementOffset.start - horizontalOffset,
-      top: elementOffset.top - verticalOffset,
+      start: elementOffset.start + horizontalOffset,
+      top: elementOffset.top + verticalOffset
     };
   }
 
   /**
    * Make a clone of table for overlay.
    *
-   * @returns {Clone}
+   * @returns {Table}
    */
-  makeClone() {
-    if (CLONE_TYPES.indexOf(this.type) === -1) {
-      throw new Error(`Clone type "${this.type}" is not supported.`);
-    }
-    const {
-      wtTable,
-      wtSettings
-    } = this.wot;
-    const { rootDocument, rootWindow } = this.domBindings;
-    const clone = rootDocument.createElement('div');
-    const clonedTable = rootDocument.createElement('table');
-    const tableParent = wtTable.wtRootElement.parentNode;
+  makeClone(): Table {
+    const { rootDocument } = this.domBindings;
+    let clone = rootDocument.createElement('div');
+    let clonedTable = rootDocument.createElement('table');
+    let tableParent = null;
 
-    clone.className = `${CLONE_CLASS_NAMES.get(this.type)} handsontable`;
-    clone.setAttribute('dir', this.isRtl() ? 'rtl' : 'ltr');
-    clone.style.position = 'absolute';
-    clone.style.top = 0;
-    clone.style.overflow = 'visible';
-
-    if (this.isRtl()) {
-      clone.style.right = 0;
-    } else {
-      clone.style.left = 0;
+    const sourceBase = this.wtSettings.getSettings();
+    let cloneBase = sourceBase;
+    let cloneName = '';
+    
+    if (this.type === CLONE_INLINE_START) {
+      cloneName = CLONE_CLASS_NAMES.get(CLONE_INLINE_START) || '';
+    } else if (this.type === CLONE_TOP) {
+      cloneName = CLONE_CLASS_NAMES.get(CLONE_TOP) || '';
+    } else if (this.type === CLONE_BOTTOM) {
+      cloneName = CLONE_CLASS_NAMES.get(CLONE_BOTTOM) || '';
+    } else if (this.type === CLONE_TOP_INLINE_START_CORNER) {
+      cloneName = CLONE_CLASS_NAMES.get(CLONE_TOP_INLINE_START_CORNER) || '';
+    } else if (this.type === CLONE_BOTTOM_INLINE_START_CORNER) {
+      cloneName = CLONE_CLASS_NAMES.get(CLONE_BOTTOM_INLINE_START_CORNER) || '';
     }
 
-    if (wtSettings.getSetting('ariaTags')) {
-      setAttribute(clone, [
-        A11Y_PRESENTATION()
-      ]);
+    if (cloneName) {
+      clone.className = cloneName;
     }
 
-    clonedTable.className = wtTable.TABLE.className;
-
-    // Clone the main table's `role` attribute to the cloned table.
-    const mainTableRole = wtTable.TABLE.getAttribute('role');
-
-    if (mainTableRole) {
-      clonedTable.setAttribute('role', wtTable.TABLE.getAttribute('role'));
-    }
-
+    tableParent = this.wot.wtTable.wtRootElement.parentNode;
     clone.appendChild(clonedTable);
 
-    tableParent.appendChild(clone);
+    if (this.type === CLONE_INLINE_START || this.type === CLONE_TOP_INLINE_START_CORNER ||
+      this.type === CLONE_BOTTOM_INLINE_START_CORNER) {
+      clone.style.insetInlineStart = '0';
+    }
+
+    if (this.type === CLONE_TOP || this.type === CLONE_TOP_INLINE_START_CORNER) {
+      clone.style.top = '0';
+    }
+
+    if (this.type === CLONE_BOTTOM || this.type === CLONE_BOTTOM_INLINE_START_CORNER) {
+      clone.style.bottom = '0';
+    }
+
+    this.wtRootElement.appendChild(clone);
 
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (preventOverflow === true ||
-      preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
-      preventOverflow === 'vertical' && this.type === CLONE_INLINE_START) {
-      this.mainTableScrollableElement = rootWindow;
-
-    } else if (rootWindow.getComputedStyle(tableParent).getPropertyValue('overflow') === 'hidden') {
-      this.mainTableScrollableElement = wtTable.holder;
-    } else {
-      this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
+      (preventOverflow === 'horizontal' && this.type === CLONE_INLINE_START) ||
+      (preventOverflow === 'vertical' && this.type === CLONE_TOP)) {
+      clone.style.overflow = 'hidden';
     }
 
-    // Create a new instance of the Walkontable class
-    return new Clone(clonedTable, this.wtSettings, { // todo ioc factory
-      source: this.wot,
-      overlay: this,
-      viewport: this.wot.wtViewport, // todo ioc , or factor func if used only here
-      event: this.wot.wtEvent, // todo ioc , or factory func if used only here
-      selectionManager: this.wot.selectionManager, // todo ioc , or factory func if used only here
-      stylesHandler: this.wot.stylesHandler,
-    });
+    setAttribute(clonedTable, 'role', A11Y_PRESENTATION);
+
+    return this.createTable(sourceBase, cloneBase, clonedTable);
+  }
+
+  /**
+   * Create table for overlay.
+   *
+   * @param {object} sourceBase The base of the source table.
+   * @param {object} cloneBase The base of the cloned table.
+   * @param {HTMLTableElement} clonedTable The cloned table.
+   * @returns {Table}
+   */
+  createTable(sourceBase: object, cloneBase: object, clonedTable: HTMLTableElement): Table {
+    const tableOptions = {
+      TABLE: clonedTable,
+      wtRootElement: this.wtRootElement,
+      wtSpreader: this.wot.wtTable.spreader,
+    } as TableDao;
+
+    let cloneTable = new Table(
+      tableOptions,
+      this.facadeGetter,
+      this.domBindings,
+      cloneBase,
+      this.type,
+    );
+
+    if ((sourceBase as any).debug) {
+      (cloneBase as any).debug = (sourceBase as any).debug;
+    }
+
+    return cloneTable;
   }
 
   /**
@@ -351,45 +438,265 @@ export class Overlay {
    *                                   the data. It will only work if Table.draw() does not force
    *                                   rendering anyway.
    */
-  refresh(fastDraw = false) {
-    if (this.needFullRender) {
-      const cloneSource = this.clone.cloneSource;
+  refresh(fastDraw: boolean = false): void {
+    // When hot settings are changed we allow to refresh overlay once before blocking
+    const nextCycleRenderFlag = this.shouldBeRendered();
 
-      cloneSource.activeOverlayName = this.clone.wtTable.name;
+    if (this.clone && (this.needFullRender || nextCycleRenderFlag)) {
       this.clone.draw(fastDraw);
-      cloneSource.activeOverlayName = 'master';
     }
+    this.needFullRender = nextCycleRenderFlag;
   }
 
   /**
    * Reset overlay styles to initial values.
    */
-  reset() {
-    const holder = this.clone.wtTable.holder; // todo refactoring: DEMETER
-    const hider = this.clone.wtTable.hider; // todo refactoring: DEMETER
+  reset(): void {
+    if (!this.clone) {
+      return;
+    }
+
+    const holder = this.clone.holder;
+    const hider = this.clone.hider;
+    
+    if (!holder || !hider) {
+      return;
+    }
+    
     const holderStyle = holder.style;
     const hiderStyle = hider.style;
-    const rootStyle = holder.parentNode.style;
+    const rootStyle = holder.parentNode ? (holder.parentNode as HTMLElement).style : null;
 
-    [holderStyle, hiderStyle, rootStyle].forEach((style) => {
-      style.width = '';
-      style.height = '';
-    });
+    if (!rootStyle) {
+      return;
+    }
+
+    holderStyle.overflowY = '';
+    holderStyle.overflowX = '';
+    rootStyle.position = '';
+    rootStyle.insetInlineStart = '';
+    rootStyle.top = '';
+    rootStyle.width = '';
+    rootStyle.height = '';
+    rootStyle.overflow = '';
+    hiderStyle.position = '';
+    hiderStyle.insetInlineStart = '';
+    hiderStyle.top = '';
+    hiderStyle.insetInlineEnd = '';
+    hiderStyle.bottom = '';
   }
 
   /**
-   * Determine if Walkontable is running in RTL mode.
+   * Determines if the Walkontable is positioned within the RTL context.
    *
    * @returns {boolean}
    */
-  isRtl() {
+  isRtl(): boolean {
     return this.wtSettings.getSetting('rtlMode');
   }
 
   /**
    * Destroy overlay instance.
    */
-  destroy() {
-    this.clone.eventManager.destroy(); // todo check if it is good place for that operation
+  destroy(): void {
+    if (this.clone) {
+      if (this.clone.holder && this.clone.holder.parentNode) {
+        this.clone.holder.parentNode.removeChild(this.clone.holder);
+      }
+      // Assuming destroy method exists on clone
+      if (typeof (this.clone as any).destroy === 'function') {
+        (this.clone as any).destroy();
+      }
+    }
+  }
+
+  /**
+   * Set need adjust.
+   *
+   * @param {string} [type='all'] Adjust type.
+   */
+  setNeedAdjust(type: string = 'all'): void {
+    if (type === 'all') {
+      this.needAdjustColumns = true;
+      this.needAdjustRows = true;
+    } else if (type === 'rows') {
+      this.needAdjustRows = true;
+    } else if (type === 'columns') {
+      this.needAdjustColumns = true;
+    }
+  }
+
+  /**
+   * Check if adjust is needed.
+   *
+   * @param {string} [type='all'] Adjust type.
+   * @returns {boolean}
+   */
+  isNeedAdjust(type: string = 'all'): boolean {
+    if (type === 'all') {
+      return this.needAdjustColumns || this.needAdjustRows;
+    } else if (type === 'rows') {
+      return this.needAdjustRows;
+    } else if (type === 'columns') {
+      return this.needAdjustColumns;
+    }
+
+    return false;
+  }
+
+  /**
+   * Adjusted overlay.
+   *
+   * @param {string} [type='all'] Adjust type.
+   */
+  clearNeedAdjust(type: string = 'all'): void {
+    if (type === 'all') {
+      this.needAdjustColumns = false;
+      this.needAdjustRows = false;
+    } else if (type === 'rows') {
+      this.needAdjustRows = false;
+    } else if (type === 'columns') {
+      this.needAdjustColumns = false;
+    }
+  }
+
+  /**
+   * Get adjusted height.
+   *
+   * @returns {number}
+   */
+  getAdjustedElementHeight(): number {
+    return this.adjustElementsSize() ? this.getHeight() : 0;
+  }
+
+  /**
+   * Get adjusted width.
+   *
+   * @returns {number}
+   */
+  getAdjustedElementWidth(): number {
+    return this.adjustElementsSize() ? this.getWidth() : 0;
+  }
+
+  /**
+   * Adjust elements size.
+   *
+   * @returns {boolean}
+   */
+  adjustElementsSize(): boolean {
+    return false;
+  }
+
+  /**
+   * Get height.
+   *
+   * @returns {number}
+   */
+  getHeight(): number {
+    return 0;
+  }
+
+  /**
+   * Get width.
+   *
+   * @returns {number}
+   */
+  getWidth(): number {
+    return 0;
+  }
+
+  /**
+   * Check if overlay should be fully rendered.
+   *
+   * @returns {boolean}
+   */
+  isVisible(): boolean {
+    return true;
+  }
+
+  /**
+   * Gets the parent overlay of the provided overlay.
+   * If the overlay has no parent the method returns null.
+   *
+   * @returns {Overlay|null}
+   */
+  getParentOverlay(): Overlay | null {
+    let parent = null;
+
+    if (this.type === CLONE_TYPES.TOP_INLINE_START_CORNER
+        || this.type === CLONE_TYPES.BOTTOM_INLINE_START_CORNER) {
+      if (this.type === CLONE_TYPES.TOP_INLINE_START_CORNER) {
+        parent = CLONE_TYPES.TOP;
+      } else if (this.type === CLONE_TYPES.BOTTOM_INLINE_START_CORNER) {
+        parent = CLONE_TYPES.BOTTOM;
+      }
+
+      parent = this.wot.wtOverlays.getOverlay(parent);
+    }
+
+    return parent;
+  }
+
+  /**
+   * Resets the overlay styles to the initial values.
+   */
+  resetFixedPosition(): void {}
+
+  /**
+   * Update the trimming container.
+   */
+  getScrollPosition(): number {
+    return 0;
+  }
+
+  /**
+   * Update the trimming container.
+   */
+  getTableParentOffset(): number {
+    return 0;
+  }
+
+  /**
+   * Adjust header/row heights accordingly to the table state.
+   */
+  adjustHeaderHeights(): void {}
+
+  /**
+   * Get the main scrollable element.
+   *
+   * @returns {HTMLElement} The scrollable element.
+   */
+  getScrollableElement(): HTMLElement {
+    return this.clone.holder as HTMLElement;
+  }
+
+  /**
+   * Scrolls to the provided coordinates.
+   */
+  scrollTo(): void {}
+
+  /**
+   * Trigger onScroll hook callback.
+   */
+  onScroll(): void {}
+
+  /**
+   * Apply temporary unique class name for not duplicating the overlay's DOM elements
+   * while the Walkontable re-initialization process is performed (different renderers
+   * would generate different clones/overlays).
+   *
+   * @param {number} rendererIndex The renderer index.
+   */
+  applyTemporaryIdClass(rendererIndex: number): void {
+    this.clone.holder.parentNode.classList.add(`${this.type}-temp-${rendererIndex}`);
+  }
+
+  /**
+   * Remove the temporary unique class name from the clone.
+   *
+   * @param {number} rendererIndex The renderer index.
+   */
+  removeTemporaryIdClass(rendererIndex: number): void {
+    this.clone.holder.parentNode.classList.remove(`${this.type}-temp-${rendererIndex}`);
   }
 }

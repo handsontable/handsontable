@@ -1,28 +1,29 @@
 import { PartiallyVisibleRowsCalculationType } from './partiallyVisibleRows';
+import { RowsCalculationType, CalculatorContext } from '../../types';
 
 /**
  * @class RenderedRowsCalculationType
  */
-export class RenderedRowsCalculationType extends PartiallyVisibleRowsCalculationType {
+export class RenderedRowsCalculationType extends PartiallyVisibleRowsCalculationType implements RowsCalculationType {
   /**
    * The property holds the offset applied in the `overrideFn` function to the `startColumn` value.
    *
    * @type {number}
    */
-  rowStartOffset = 0;
+  rowStartOffset: number = 0;
   /**
    * The property holds the offset applied in the `overrideFn` function to the `endColumn` value.
    *
    * @type {number}
    */
-  rowEndOffset = 0;
+  rowEndOffset: number = 0;
 
   /**
    * Finalizes the calculation.
    *
    * @param {ViewportRowsCalculator} viewportCalculator The viewport calculator object.
    */
-  finalize(viewportCalculator) {
+  finalize(viewportCalculator: CalculatorContext): void {
     super.finalize(viewportCalculator);
 
     const {
@@ -37,21 +38,28 @@ export class RenderedRowsCalculationType extends PartiallyVisibleRowsCalculation
 
       overrideFn(this);
 
-      this.rowStartOffset = startRow - this.startRow;
-      this.rowEndOffset = this.endRow - endRow;
+      if (this.startRow !== null) {
+        this.rowStartOffset = startRow - this.startRow;
+      }
+      
+      if (endRow !== null && this.endRow !== null) {
+        this.rowEndOffset = this.endRow - endRow;
+      }
     }
 
-    if (this.startRow < 0) {
+    if (this.startRow !== null && this.startRow < 0) {
       this.startRow = 0;
     }
 
-    this.startPosition = startPositions[this.startRow] ?? null;
+    if (this.startRow !== null) {
+      this.startPosition = startPositions[this.startRow] ?? null;
+    }
 
-    if (totalRows < this.endRow) {
+    if (this.endRow !== null && totalRows < this.endRow) {
       this.endRow = totalRows - 1;
     }
 
-    if (this.startRow !== null) {
+    if (this.startRow !== null && this.endRow !== null) {
       this.count = this.endRow - this.startRow + 1;
     }
   }

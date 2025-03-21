@@ -1,6 +1,7 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
 import { WORKING_SPACE_BOTTOM } from '../constants';
 import { ViewOrder } from './viewOrder';
+import { ViewSizeSet } from '../viewSizeSet';
 
 /**
  * A class which is responsible for generating commands/leads which has to be executed
@@ -9,9 +10,9 @@ import { ViewOrder } from './viewOrder';
  * @class {ViewDiffer}
  */
 export class ViewDiffer {
-  sizeSet;
+  sizeSet: ViewSizeSet;
 
-  constructor(sizeSet) {
+  constructor(sizeSet: ViewSizeSet) {
     this.sizeSet = sizeSet;
   }
 
@@ -39,7 +40,7 @@ export class ViewDiffer {
    *
    * @returns {Array[]} Returns an array with generated commands/leads.
    */
-  diff() {
+  diff(): Array<[string, number, number?, number?]> {
     const { sizeSet } = this;
     const {
       currentSize: currentViewSize,
@@ -61,7 +62,7 @@ export class ViewDiffer {
     // commands based on numeric values.
     const currentViewOrder = new ViewOrder(currentOffset, currentViewSize);
     const nextViewOrder = new ViewOrder(nextOffset, nextViewSize);
-    const leads = [];
+    const leads: Array<[string, number, number?, number?]> = [];
 
     for (let i = 0; i < maxSize; i++) {
       const currentIndex = currentViewOrder.get(i);

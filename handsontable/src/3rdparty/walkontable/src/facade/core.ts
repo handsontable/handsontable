@@ -1,5 +1,8 @@
 import Walkontable from '../core/core';
 import CoreAbstract from '../core/_base';
+import { IWalkontableFacade, WalkontableSettings } from './interfaces';
+import CellCoords from '../cell/coords';
+import CellRange from '../cell/range';
 
 /**
  * This layer cares about backward compatibility.
@@ -8,20 +11,25 @@ import CoreAbstract from '../core/_base';
  * @augments Walkontable
  * @inheritDoc
  */
-export default class WalkontableFacade {
+export default class WalkontableFacade implements IWalkontableFacade {
+  /**
+   * The internal Walkontable instance.
+   */
+  protected _wot: Walkontable;
+  
   /**
    * @param {SettingsPure|Walkontable} settingsOrInstance The Walkontable settings.
    */
-  constructor(settingsOrInstance) {
+  constructor(settingsOrInstance: WalkontableSettings | CoreAbstract) {
     if (settingsOrInstance instanceof CoreAbstract) {
-      this._wot = settingsOrInstance;
+      this._wot = settingsOrInstance as unknown as Walkontable;
     } else {
       this._initFromSettings(settingsOrInstance);
     }
   }
 
-  _initFromSettings(settings) {
-    settings.facade = (instance) => {
+  _initFromSettings(settings: WalkontableSettings): void {
+    settings.facade = (instance: Walkontable) => {
       const facade = new WalkontableFacade(instance);
 
       return () => facade;
@@ -30,154 +38,155 @@ export default class WalkontableFacade {
     this._wot = new Walkontable(settings.table, settings);
   }
 
-  get guid() {
+  get guid(): string {
     return this._wot.guid;
   }
 
-  get rootDocument() {
+  get rootDocument(): Document {
     return this._wot.domBindings.rootDocument;
   }
 
-  get rootWindow() {
+  get rootWindow(): WindowProxy {
     return this._wot.domBindings.rootWindow;
   }
-  get wtSettings() {
+  get wtSettings(): any {
     return this._wot.wtSettings; // todo create facade
   }
-  get cloneSource() {
+  get cloneSource(): CoreAbstract | undefined {
     return this._wot.cloneSource; // todo create facade
   }
-  get cloneOverlay() {
-    return this._wot.cloneOverlay; // todo create facade
+  get cloneOverlay(): any {
+    return (this._wot as any).cloneOverlay; // todo create facade
   }
-  get selectionManager() {
+  get selectionManager(): any {
     return this._wot.selectionManager; // todo create facade
   }
-  get wtViewport() {
+  get wtViewport(): any {
     return this._wot.wtViewport; // todo create facade
   }
-  get wtOverlays() {
+  get wtOverlays(): any {
     return this._wot.wtOverlays; // todo create facade
   }
-  get wtTable() {
+  get wtTable(): any {
     return this._wot.wtTable; // todo create facade
   }
-  get wtEvent() {
+  get wtEvent(): any {
     return this._wot.wtEvent; // todo create facade
   }
-  get wtScroll() {
+  get wtScroll(): any {
     return this._wot.wtScroll; // todo create facade
   }
-  get drawn() {
+  get drawn(): boolean {
     return this._wot.drawn;
   }
-  set drawn(value) {
+  set drawn(value: boolean) {
     this._wot.drawn = value;
   }
-  get activeOverlayName() {
+  get activeOverlayName(): string {
     return this._wot.activeOverlayName;
   }
-  get drawInterrupted() {
+  get drawInterrupted(): boolean {
     return this._wot.drawInterrupted;
   }
-  set drawInterrupted(value) {
+  set drawInterrupted(value: boolean) {
     this._wot.drawInterrupted = value;
   }
-  get lastMouseOver() {
-    return this._wot.lastMouseOver;
+  get lastMouseOver(): any {
+    return (this._wot as any).lastMouseOver;
   }
-  set lastMouseOver(value) {
-    this._wot.lastMouseOver = value;
+  set lastMouseOver(value: any) {
+    (this._wot as any).lastMouseOver = value;
   }
-  get momentumScrolling() {
-    return this._wot.momentumScrolling;
+  get momentumScrolling(): any {
+    return (this._wot as any).momentumScrolling;
   }
-  set momentumScrolling(value) {
-    this._wot.momentumScrolling = value;
+  set momentumScrolling(value: any) {
+    (this._wot as any).momentumScrolling = value;
   }
-  get touchApplied() {
-    return this._wot.touchApplied;
+  get touchApplied(): any {
+    return (this._wot as any).touchApplied;
   }
-  set touchApplied(value) {
-    this._wot.touchApplied = value;
+  set touchApplied(value: any) {
+    (this._wot as any).touchApplied = value;
   }
-  get domBindings() {
+  get domBindings(): any {
     return this._wot.domBindings;
   }
-  get eventListeners() {
-    return this._wot.eventListeners;
+  get eventListeners(): any {
+    return (this._wot as any).eventListeners;
   }
-  set eventListeners(value) {
-    this._wot.eventListeners = value;
+  set eventListeners(value: any) {
+    (this._wot as any).eventListeners = value;
   }
-  get eventManager() {
+  get eventManager(): any {
     return this._wot.eventManager;
   }
-  get stylesHandler() {
+  get stylesHandler(): any {
     return this._wot.stylesHandler;
   }
 
-  createCellCoords(row, column) {
+  createCellCoords(row: number, column: number): CellCoords {
     return this._wot.createCellCoords(row, column);
   }
 
-  createCellRange(highlight, from, to) {
+  createCellRange(highlight: CellCoords, from: CellCoords, to: CellCoords): CellRange {
     return this._wot.createCellRange(highlight, from, to);
   }
 
-  draw(fastDraw = false) {
+  draw(fastDraw: boolean = false): this {
     this._wot.draw(fastDraw);
 
     return this;
   }
 
-  getCell(coords, topmost = false) {
+  getCell(coords: CellCoords, topmost: boolean = false): HTMLElement {
     return this._wot.getCell(coords, topmost);
   }
 
-  scrollViewport(coords, horizontalSnap, verticalSnap) {
+  scrollViewport(coords: CellCoords, horizontalSnap?: 'auto' | 'start' | 'end', verticalSnap?: 'auto' | 'top' | 'bottom'): boolean {
     return this._wot.scrollViewport(coords, horizontalSnap, verticalSnap);
   }
 
-  scrollViewportHorizontally(column, snapping) {
+  scrollViewportHorizontally(column: number, snapping?: 'auto' | 'start' | 'end'): boolean {
     return this._wot.scrollViewportHorizontally(column, snapping);
   }
 
-  scrollViewportVertically(row, snapping) {
+  scrollViewportVertically(row: number, snapping?: 'auto' | 'top' | 'bottom'): boolean {
     return this._wot.scrollViewportVertically(row, snapping);
   }
 
-  getViewport() {
+  getViewport(): number[] {
     return this._wot.getViewport();
   }
 
-  getOverlayName() {
-    return this._wot.cloneOverlay ? this._wot.cloneOverlay.type : 'master';
+  getOverlayName(): string {
+    const wotAny = this._wot as any;
+    return wotAny.cloneOverlay ? wotAny.cloneOverlay.type : 'master';
   }
 
-  getOverlayByName(overlayName) {
-    return this._wot.getOverlayByName(overlayName);
+  getOverlayByName(overlayName: string): any {
+    return this._wot.getOverlayByName(overlayName as any);
   }
 
-  exportSettingsAsClassNames() {
+  exportSettingsAsClassNames(): void {
     return this._wot.exportSettingsAsClassNames();
   }
 
-  update(settings, value) {
+  update(settings: any, value?: any): this {
     this._wot.wtSettings.update(settings, value);
 
     return this;
   }
 
-  getSetting(key, param1, param2, param3, param4) {
+  getSetting(key: string, param1?: any, param2?: any, param3?: any, param4?: any): any {
     return this._wot.wtSettings.getSetting(key, param1, param2, param3, param4);
   }
 
-  hasSetting(key) {
+  hasSetting(key: string): boolean {
     return this._wot.wtSettings.hasSetting(key);
   }
 
-  destroy() {
+  destroy(): void {
     this._wot.destroy();
   }
 }

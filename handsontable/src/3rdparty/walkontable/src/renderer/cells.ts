@@ -10,6 +10,8 @@ import {
   A11Y_GRIDCELL,
   A11Y_TABINDEX
 } from '../../../../helpers/a11y';
+import { CellsRendererInterface, TableRendererInterface } from './interfaces';
+import { RowHeadersRenderer } from './rowHeaders';
 
 /**
  * Cell renderer responsible for managing (inserting, tracking, rendering) TD elements.
@@ -24,22 +26,46 @@ import {
  *
  * @class {CellsRenderer}
  */
-export class CellsRenderer extends BaseRenderer {
+export class CellsRenderer extends BaseRenderer implements CellsRendererInterface {
   /**
    * Cache for OrderView classes connected to specified node.
    *
    * @type {WeakMap}
    */
-  orderViews = new WeakMap();
+  orderViews: WeakMap<HTMLElement, SharedOrderView> = new WeakMap();
   /**
    * Row index which specifies the row position of the processed cell.
    *
    * @type {number}
    */
-  sourceRowIndex = 0;
+  sourceRowIndex: number = 0;
+  /**
+   * The visual row index.
+   */
+  visualRowIndex: number = 0;
+  /**
+   * The source column index.
+   */
+  sourceColumnIndex: number = 0;
+  /**
+   * The visual column index.
+   */
+  visualColumnIndex: number = 0;
+  /**
+   * The row header count.
+   */
+  rowHeaderCount: number = 0;
+  declare table: TableRendererInterface;
 
   constructor() {
-    super('TD');
+    super('TD', document.createElement('tr'));
+  }
+
+  /**
+   * Sets the row header count.
+   */
+  setRowHeaderCount(count: number): void {
+    this.rowHeaderCount = count;
   }
 
   /**
@@ -48,16 +74,15 @@ export class CellsRenderer extends BaseRenderer {
    * @param {HTMLTableRowElement} rootNode The TR element, which is root element for cells (TD).
    * @returns {SharedOrderView}
    */
-  obtainOrderView(rootNode) {
-    let orderView;
+  obtainOrderView(rootNode: HTMLTableRowElement): SharedOrderView {
+    let orderView: SharedOrderView;
 
     if (this.orderViews.has(rootNode)) {
-      orderView = this.orderViews.get(rootNode);
+      orderView = this.orderViews.get(rootNode)!;
     } else {
       orderView = new SharedOrderView(
         rootNode,
-        sourceColumnIndex => this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex),
-        this.nodeType,
+        (sourceColumnIndex: number) => this.nodesPool?.obtain(this.sourceRowIndex, sourceColumnIndex) || document.createElement('TD'),
       );
       this.orderViews.set(rootNode, orderView);
     }
@@ -66,19 +91,34 @@ export class CellsRenderer extends BaseRenderer {
   }
 
   /**
+   * Adjusts the number of rendered nodes.
+   */
+  adjust(): void {
+    // This method is implemented in the parent class but overridden with empty implementation.
+  }
+
+  /**
    * Renders the cells.
    */
-  render() {
+  render(): void {
+    if (!this.table) {
+      return;
+    }
+
     const { rowsToRender, columnsToRender, rows, rowHeaders } = this.table;
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
-      const TR = rows.getRenderedNode(visibleRowIndex);
+      const TR = (rows as any).getRenderedNode(visibleRowIndex);
+      if (!TR) {
+        continue;
+      }
 
       this.sourceRowIndex = sourceRowIndex;
+      this.visualRowIndex = visibleRowIndex;
 
       const orderView = this.obtainOrderView(TR);
-      const rowHeadersView = rowHeaders.obtainOrderView(TR);
+      const rowHeadersView = (rowHeaders as RowHeadersRenderer).obtainOrderView(TR);
 
       orderView
         .prependView(rowHeadersView)
@@ -90,7 +130,13 @@ export class CellsRenderer extends BaseRenderer {
         orderView.render();
 
         const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
+        this.sourceColumnIndex = sourceColumnIndex;
+        this.visualColumnIndex = visibleColumnIndex;
+
         const TD = orderView.getCurrentNode();
+        if (!TD) {
+          continue;
+        }
 
         if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
           TD.className = '';
@@ -112,7 +158,8 @@ export class CellsRenderer extends BaseRenderer {
             ...(TD.hasAttribute('role') ? [] : [A11Y_GRIDCELL()]),
             A11Y_TABINDEX(-1),
             // `aria-colindex` is incremented by both tbody and thead rows.
-            A11Y_COLINDEX(sourceColumnIndex + (this.table.rowUtils?.dataAccessObject?.rowHeaders.length ?? 0) + 1),
+            // @ts-ignore - We're using optional chaining to access possible properties that TS doesn't know about
+            A11Y_COLINDEX(sourceColumnIndex + (this.table.rowUtils?.dataAccessObject?.rowHeaders?.length ?? 0) + 1),
           ]);
         }
       }

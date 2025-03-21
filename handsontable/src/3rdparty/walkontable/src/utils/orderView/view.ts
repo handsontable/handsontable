@@ -15,32 +15,32 @@ export class OrderView {
    *
    * @type {HTMLElement}
    */
-  rootNode;
+  rootNode: HTMLElement;
   /**
    * Factory for newly created DOM elements.
    *
    * @type {function(number): HTMLElement}
    */
-  nodesPool;
+  nodesPool: (index: number) => HTMLElement;
   /**
    * Holder for sizing and positioning of the view.
    *
    * @type {ViewSizeSet}
    */
-  sizeSet = new ViewSizeSet();
+  sizeSet: ViewSizeSet = new ViewSizeSet();
   /**
    * The list of DOM elements which are rendered for this render cycle.
    *
    * @type {HTMLElement[]}
    */
-  collectedNodes = [];
+  collectedNodes: HTMLElement[] = [];
   /**
    * The differ which calculates the differences between current and next view. It generates
    * commands that are processed by the OrderView (see `applyCommand` method).
    *
    * @type {ViewDiffer}
    */
-  viewDiffer = new ViewDiffer(this.sizeSet);
+  viewDiffer: ViewDiffer = new ViewDiffer(this.sizeSet);
   /**
    * The list of render commands to execute. The command is an array with the following
    * structure: [
@@ -55,9 +55,9 @@ export class OrderView {
    *
    * @type {Array[]}
    */
-  leads = [];
+  leads: Array<[string, number, number?, number?]> = [];
 
-  constructor(rootNode, nodesPool) {
+  constructor(rootNode: HTMLElement, nodesPool: (index: number) => HTMLElement) {
     this.rootNode = rootNode;
     this.nodesPool = nodesPool;
   }
@@ -69,7 +69,7 @@ export class OrderView {
    * @param {number} size The size.
    * @returns {OrderView}
    */
-  setSize(size) {
+  setSize(size: number): OrderView {
     this.sizeSet.setSize(size);
 
     return this;
@@ -82,7 +82,7 @@ export class OrderView {
    * @param {number} offset The offset.
    * @returns {OrderView}
    */
-  setOffset(offset) {
+  setOffset(offset: number): OrderView {
     this.sizeSet.setOffset(offset);
 
     return this;
@@ -95,7 +95,7 @@ export class OrderView {
    *
    * @returns {boolean}
    */
-  isSharedViewSet() {
+  isSharedViewSet(): boolean {
     return this.sizeSet.isShared();
   }
 
@@ -105,7 +105,7 @@ export class OrderView {
    * @param {number} visualIndex The visual index.
    * @returns {HTMLElement}
    */
-  getNode(visualIndex) {
+  getNode(visualIndex: number): HTMLElement | null {
     return visualIndex < this.collectedNodes.length ? this.collectedNodes[visualIndex] : null;
   }
 
@@ -114,7 +114,7 @@ export class OrderView {
    *
    * @returns {HTMLElement}
    */
-  getCurrentNode() {
+  getCurrentNode(): HTMLElement | null {
     const length = this.collectedNodes.length;
 
     return length > 0 ? this.collectedNodes[length - 1] : null;
@@ -125,7 +125,7 @@ export class OrderView {
    *
    * @param {Array} command The command to apply.
    */
-  applyCommand(command) {
+  applyCommand(command: [string, number, number?, number?]): void {
     const { rootNode } = this;
     const [name, nodeIndex, nodePrevIndex, nodeIndexToRemove] = command;
     const node = this.nodesPool(nodeIndex);
@@ -140,12 +140,16 @@ export class OrderView {
         rootNode.appendChild(node);
         break;
       case 'insert_before':
-        rootNode.insertBefore(node, this.nodesPool(nodePrevIndex));
-        // To keep the constant length of child nodes (after inserting a node) remove the last child.
-        rootNode.removeChild(this.nodesPool(nodeIndexToRemove));
+        if (nodePrevIndex !== undefined && nodeIndexToRemove !== undefined) {
+          rootNode.insertBefore(node, this.nodesPool(nodePrevIndex));
+          // To keep the constant length of child nodes (after inserting a node) remove the last child.
+          rootNode.removeChild(this.nodesPool(nodeIndexToRemove));
+        }
         break;
       case 'replace':
-        rootNode.replaceChild(node, this.nodesPool(nodePrevIndex));
+        if (nodePrevIndex !== undefined) {
+          rootNode.replaceChild(node, this.nodesPool(nodePrevIndex));
+        }
         break;
       case 'remove':
         rootNode.removeChild(node);
@@ -159,7 +163,7 @@ export class OrderView {
    * Setups and prepares all necessary properties and start the rendering process.
    * This method has to be called only once (at the start) for the render cycle.
    */
-  start() {
+  start(): void {
     this.collectedNodes.length = 0;
     this.leads = this.viewDiffer.diff();
   }
@@ -168,9 +172,9 @@ export class OrderView {
    * Renders the DOM element based on visual index (which is calculated internally).
    * This method has to be called as many times as the size count is met (to cover all previously rendered DOM elements).
    */
-  render() {
+  render(): void {
     if (this.leads.length > 0) {
-      this.applyCommand(this.leads.shift());
+      this.applyCommand(this.leads.shift()!);
     }
   }
 
@@ -178,9 +182,9 @@ export class OrderView {
    * Ends the render process.
    * This method has to be called only once (at the end) for the render cycle.
    */
-  end() {
+  end(): void {
     while (this.leads.length > 0) {
-      this.applyCommand(this.leads.shift());
+      this.applyCommand(this.leads.shift()!);
     }
   }
 }

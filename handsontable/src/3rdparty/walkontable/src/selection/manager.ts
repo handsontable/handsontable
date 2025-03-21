@@ -6,6 +6,7 @@ import {
 } from '../../../../helpers/dom/element';
 import { SelectionScanner } from './scanner';
 import Border from './border/border';
+import { HighlightInterface, SelectionInterface, WalkontableInterface } from './interfaces';
 
 /**
  * Module responsible for rendering selections (CSS classes) and borders based on the
@@ -20,13 +21,13 @@ export class SelectionManager {
    *
    * @type {Walkontable}
    */
-  #activeOverlaysWot;
+  #activeOverlaysWot: WalkontableInterface | null = null;
   /**
    * The Highlight instance that holds Selections instances within it.
    *
    * @type {Highlight|null}
    */
-  #selections;
+  #selections: HighlightInterface | null;
   /**
    * The SelectionScanner allows to scan and collect the cell and header elements that matches
    * to the coords defined in the selections.
@@ -39,22 +40,22 @@ export class SelectionManager {
    *
    * @type {WeakMap}
    */
-  #appliedClasses = new WeakMap();
+  #appliedClasses = new WeakMap<WalkontableInterface, Set<string>>();
   /**
    * The Map tracks applied "destroy" listeners for Selection instances.
    *
    * @type {WeakMap}
    */
-  #destroyListeners = new WeakSet();
+  #destroyListeners = new WeakSet<SelectionInterface>();
   /**
    * The Map holds references to Border classes for Selection instances which requires that when
    * the "border" setting is defined.
    *
    * @type {Map}
    */
-  #selectionBorders = new Map();
+  #selectionBorders = new Map<SelectionInterface, Map<WalkontableInterface, Border>>();
 
-  constructor(selections) {
+  constructor(selections: HighlightInterface | null) {
     this.#selections = selections;
   }
 
@@ -64,7 +65,7 @@ export class SelectionManager {
    * @param {Walkontable} activeWot The overlays or master Walkontable instance.
    * @returns {SelectionManager}
    */
-  setActiveOverlay(activeWot) {
+  setActiveOverlay(activeWot: WalkontableInterface): SelectionManager {
     this.#activeOverlaysWot = activeWot;
     this.#scanner.setActiveOverlay(this.#activeOverlaysWot);
 
@@ -80,7 +81,7 @@ export class SelectionManager {
    *
    * @returns {Selection|null}
    */
-  getFocusSelection() {
+  getFocusSelection(): SelectionInterface | null {
     return this.#selections !== null ? this.#selections.getFocus() : null;
   }
 
@@ -89,7 +90,7 @@ export class SelectionManager {
    *
    * @returns {Selection|null}
    */
-  getAreaSelection() {
+  getAreaSelection(): SelectionInterface | null {
     return this.#selections !== null ? this.#selections.createLayeredArea() : null;
   }
 
@@ -99,21 +100,23 @@ export class SelectionManager {
    * @param {Selection} selection The selection instance.
    * @returns {Border|null} Returns the Border instance (new for each overlay Walkontable instance).
    */
-  getBorderInstance(selection) {
-    if (!selection.settings.border) {
+  getBorderInstance(selection: SelectionInterface): Border | null {
+    if (!selection.settings.border || !this.#activeOverlaysWot) {
       return null;
     }
 
     if (this.#selectionBorders.has(selection)) {
       const borders = this.#selectionBorders.get(selection);
 
-      if (borders.has(this.#activeOverlaysWot)) {
-        return borders.get(this.#activeOverlaysWot);
+      if (borders && borders.has(this.#activeOverlaysWot)) {
+        return borders.get(this.#activeOverlaysWot) || null;
       }
 
       const border = new Border(this.#activeOverlaysWot, selection.settings);
 
-      borders.set(this.#activeOverlaysWot, border);
+      if (borders) {
+        borders.set(this.#activeOverlaysWot, border);
+      }
 
       return border;
     }
@@ -131,8 +134,9 @@ export class SelectionManager {
    * @param {Selection} selection The selection instance.
    * @returns {Border[]}
    */
-  getBorderInstances(selection) {
-    return Array.from(this.#selectionBorders.get(selection)?.values() ?? []);
+  getBorderInstances(selection: SelectionInterface): Border[] {
+    const borders = this.#selectionBorders.get(selection);
+    return borders ? Array.from(borders.values()) : [];
   }
 
   /**
@@ -140,9 +144,12 @@ export class SelectionManager {
    *
    * @param {Selection} selection The selection instance.
    */
-  destroyBorders(selection) {
-    this.#selectionBorders.get(selection).forEach(border => border.destroy());
-    this.#selectionBorders.delete(selection);
+  destroyBorders(selection: SelectionInterface): void {
+    const borders = this.#selectionBorders.get(selection);
+    if (borders) {
+      borders.forEach(border => border.destroy());
+      this.#selectionBorders.delete(selection);
+    }
   }
 
   /**
@@ -150,8 +157,8 @@ export class SelectionManager {
    *
    * @param {boolean} fastDraw Indicates the render cycle type (fast/slow).
    */
-  render(fastDraw) {
-    if (this.#selections === null) {
+  render(fastDraw: boolean): void {
+    if (this.#selections === null || !this.#activeOverlaysWot) {
       return;
     }
 
@@ -161,8 +168,8 @@ export class SelectionManager {
     }
 
     const selections = Array.from(this.#selections);
-    const classNamesMap = new Map();
-    const headerAttributesMap = new Map();
+    const classNamesMap = new Map<HTMLElement, Map<string, number>>();
+    const headerAttributesMap = new Map<HTMLElement, Array<[string, string | number | boolean]>>();
 
     for (let i = 0; i < selections.length; i++) {
       const selection = selections[i];
@@ -193,10 +200,10 @@ export class SelectionManager {
 
         elements.forEach((element) => {
           if (classNamesMap.has(element)) {
-            const classNamesLayers = classNamesMap.get(element);
+            const classNamesLayers = classNamesMap.get(element)!;
 
             if (classNamesLayers.has(className) && createLayers === true) {
-              classNamesLayers.set(className, classNamesLayers.get(className) + 1);
+              classNamesLayers.set(className, classNamesLayers.get(className)! + 1);
             } else {
               classNamesLayers.set(className, 1);
             }
@@ -211,7 +218,7 @@ export class SelectionManager {
             }
 
             if (element.nodeName === 'TH') {
-              headerAttributesMap.get(element).push(...headerAttributes);
+              headerAttributesMap.get(element)!.push(...headerAttributes);
             }
           }
         });
@@ -234,20 +241,24 @@ export class SelectionManager {
         }, (_, i) => `${className}-${i + 1}`)];
       }).flat();
 
-      classNames.forEach(className => this.#appliedClasses
-        .get(this.#activeOverlaysWot)
-        .add(className));
+      const appliedClassesSet = this.#appliedClasses.get(this.#activeOverlaysWot!);
+      if (appliedClassesSet) {
+        classNames.forEach(className => appliedClassesSet.add(className));
+      }
 
       addClass(element, classNames);
 
-      if (element.nodeName === 'TD' && Array.isArray(this.#selections.options?.cellAttributes)) {
+      if (element.nodeName === 'TD' && this.#selections && Array.isArray(this.#selections.options?.cellAttributes)) {
         setAttribute(element, this.#selections.options.cellAttributes);
       }
     });
 
     // Set the attributes for the headers if they're focused.
     Array.from(headerAttributesMap.keys()).forEach((element) => {
-      setAttribute(element, [...headerAttributesMap.get(element)]);
+      const attributes = headerAttributesMap.get(element);
+      if (attributes) {
+        setAttribute(element, attributes);
+      }
     });
   }
 
@@ -255,8 +266,16 @@ export class SelectionManager {
    * Resets the elements to their initial state (remove the CSS classes that are added in the
    * previous render cycle).
    */
-  #resetCells() {
+  #resetCells(): void {
+    if (!this.#activeOverlaysWot) {
+      return;
+    }
+
     const appliedOverlaysClasses = this.#appliedClasses.get(this.#activeOverlaysWot);
+    if (!appliedOverlaysClasses) {
+      return;
+    }
+
     const classesToRemove = this.#activeOverlaysWot.wtSettings.getSetting('onBeforeRemoveCellClassNames');
 
     if (Array.isArray(classesToRemove)) {
@@ -266,21 +285,21 @@ export class SelectionManager {
     }
 
     appliedOverlaysClasses.forEach((className) => {
-      const nodes = this.#activeOverlaysWot.wtTable.TABLE.querySelectorAll(`.${className}`);
-      let cellAttributes = [];
+      const nodes = this.#activeOverlaysWot!.wtTable.TABLE.querySelectorAll(`.${className}`);
+      let cellAttributes: string[] = [];
 
-      if (Array.isArray(this.#selections.options?.cellAttributes)) {
+      if (this.#selections && Array.isArray(this.#selections.options?.cellAttributes)) {
         cellAttributes = this.#selections.options.cellAttributes.map(el => el[0]);
       }
 
-      if (Array.isArray(this.#selections.options?.headerAttributes)) {
+      if (this.#selections && Array.isArray(this.#selections.options?.headerAttributes)) {
         cellAttributes = [...cellAttributes, ...this.#selections.options.headerAttributes.map(el => el[0])];
       }
 
       for (let i = 0, len = nodes.length; i < len; i++) {
-        removeClass(nodes[i], className);
-
-        removeAttribute(nodes[i], cellAttributes);
+        const node = nodes[i] as HTMLElement;
+        removeClass(node, className);
+        removeAttribute(node, cellAttributes);
       }
     });
 

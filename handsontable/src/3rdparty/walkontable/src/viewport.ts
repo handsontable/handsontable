@@ -17,11 +17,42 @@ import {
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
+import { 
+  DomBindings, 
+  EventManager, 
+  Settings, 
+  ViewportDao 
+} from './types';
 
 /**
  * @class Viewport
  */
 class Viewport {
+  dataAccessObject: ViewportDao;
+  wot: any;
+  instance: any;
+  domBindings: DomBindings;
+  wtSettings: Settings;
+  wtTable: any;
+  oversizedRows: number[];
+  oversizedColumnHeaders: number[];
+  hasVerticalScroll: boolean;
+  hasHorizontalScroll: boolean;
+  rowsRenderCalculator: ViewportRowsCalculator | null;
+  columnHeadersCount: number;
+  rowHeadersCount: number;
+  rowHeaderWidth: number;
+  columnsVisibleCalculator: ViewportColumnsCalculator | null;
+  rowsVisibleCalculator: ViewportRowsCalculator | null;
+  columnsFullyVisibleCalculator: ViewportColumnsCalculator | null;
+  rowsFullyVisibleCalculator: ViewportRowsCalculator | null;
+  columnsPartiallyVisibleCalculator: ViewportColumnsCalculator | null;
+  rowsPartiallyVisibleCalculator: ViewportRowsCalculator | null;
+  columnsRenderCalculator: ViewportColumnsCalculator | null;
+  workspaceWidth: number;
+  scrollableElement: any;
+  isRtl: boolean;
+
   /**
    * @param {ViewportDao} dataAccessObject The Walkontable instance.
    * @param {DomBindings} domBindings Bindings into DOM.
@@ -29,7 +60,7 @@ class Viewport {
    * @param {EventManager} eventManager The instance event manager.
    * @param {Table} wtTable The table.
    */
-  constructor(dataAccessObject, domBindings, wtSettings, eventManager, wtTable) {
+  constructor(dataAccessObject: ViewportDao, domBindings: DomBindings, wtSettings: Settings, eventManager: EventManager, wtTable: any) {
     this.dataAccessObject = dataAccessObject;
     // legacy support
     this.wot = dataAccessObject.wot;
@@ -39,28 +70,154 @@ class Viewport {
     this.wtTable = wtTable;
     this.oversizedRows = [];
     this.oversizedColumnHeaders = [];
-    this.hasOversizedColumnHeadersMarked = {};
-    this.clientHeight = 0;
-    this.rowHeaderWidth = NaN;
-    this.rowsVisibleCalculator = null;
+    this.hasVerticalScroll = false;
+    this.hasHorizontalScroll = false;
+    this.rowsRenderCalculator = null;
+    this.columnHeadersCount = 0;
+    this.rowHeadersCount = 0;
+    this.rowHeaderWidth = 0;
     this.columnsVisibleCalculator = null;
-    this.rowsCalculatorTypes = new Map([
-      ['rendered', () => (this.wtSettings.getSetting('renderAllRows') ?
-        new RenderedAllRowsCalculationType() : new RenderedRowsCalculationType())],
-      ['fullyVisible', () => new FullyVisibleRowsCalculationType()],
-      ['partiallyVisible', () => new PartiallyVisibleRowsCalculationType()],
-    ]);
-    this.columnsCalculatorTypes = new Map([
-      ['rendered', () => (this.wtSettings.getSetting('renderAllColumns') ?
-        new RenderedAllColumnsCalculationType() : new RenderedColumnsCalculationType())],
-      ['fullyVisible', () => new FullyVisibleColumnsCalculationType()],
-      ['partiallyVisible', () => new PartiallyVisibleColumnsCalculationType()],
-    ]);
+    this.rowsVisibleCalculator = null;
+    this.columnsFullyVisibleCalculator = null;
+    this.rowsFullyVisibleCalculator = null;
+    this.columnsPartiallyVisibleCalculator = null;
+    this.rowsPartiallyVisibleCalculator = null;
+    this.columnsRenderCalculator = null;
+    this.isRtl = this.wtSettings.getSetting('rtlMode');
 
-    this.eventManager = eventManager;
-    this.eventManager.addEventListener(this.domBindings.rootWindow, 'resize', () => {
-      this.clientHeight = this.getWorkspaceHeight();
+    this.updateScroll();
+
+    eventManager.addEventListener(window, 'resize', () => {
+      this.updateScroll();
     });
+  }
+
+  /**
+   * Updates the scroll values.
+   */
+  updateScroll(): void {
+    const { wot, workspaceWidth } = this;
+    // legacy support
+    const rootElement: HTMLElement = this.domBindings.rootTable;
+    let scrollbarWidth: number;
+    let scrollbarHeight: number;
+    let totalColumns: number;
+    let totalRows: number;
+    let headerHeight: number;
+
+    if (wot.getSetting('preventOverflow') === true) {
+      return;
+    }
+
+    if (!rootElement.parentNode) {
+      return;
+    }
+
+    const { scrollHeight, scrollWidth } = rootElement;
+    const rootElementParent = rootElement.parentNode;
+    // Info: When running unit tests, parentNode may not be an HTMLElement element (i.e., JSDOM scenario), which
+    // implements the `getComputedStyle` method, but some document iframe (unit tests catching the window.error event).
+    const tempScrollbarWidth = getScrollbarWidth(this.domBindings.rootDocument);
+    const elementStyle = (rootElementParent instanceof HTMLElement ||
+      rootElementParent instanceof DocumentFragment) ?
+      this.domBindings.rootWindow.getComputedStyle(rootElementParent as HTMLElement) : null;
+
+    this.hasVerticalScroll = false;
+    this.hasHorizontalScroll = false;
+
+    let trimmingContainer = wot.getSetting('trimmingContainer');
+
+    if (trimmingContainer === window) {
+      scrollbarWidth = tempScrollbarWidth;
+      scrollbarHeight = tempScrollbarWidth;
+      const { innerHeight, innerWidth } = this.domBindings.rootWindow;
+
+      totalColumns = wot.getSetting('totalColumns');
+      totalRows = wot.getSetting('totalRows');
+
+      // Width and height of the main scroll
+      const containerWidth = innerWidth - (this.dataAccessObject.inlineStartOverlay ? this.dataAccessObject.inlineStartOverlay.clone.wtTable.getWidth() : 0);
+      const containerHeight = innerHeight - (this.dataAccessObject.topOverlay ? this.dataAccessObject.topOverlay.clone.wtTable.getHeight() : 0);
+
+      const maxRows = Math.min(totalRows, wot.getSetting('fixedRowsBottom') || Infinity);
+      const maxCols = Math.min(totalColumns, wot.getSetting('fixedColumnsStart') || Infinity);
+
+      if (totalColumns > 0) {
+        this.hasHorizontalScroll = scrollWidth > containerWidth ||
+          wot.getSetting('columnWidth') > 300 ||
+          this.wtTable.getWidth() > containerWidth;
+      }
+      if (totalRows > 0) {
+        this.hasVerticalScroll = scrollHeight > containerHeight ||
+          wot.getSetting('rowHeight') > 300 ||
+          this.wtTable.getHeight() > containerHeight;
+      }
+
+    } else if (trimmingContainer !== void 0) {
+      scrollbarWidth = trimmingContainer.scrollWidth === trimmingContainer.clientWidth ? 0 : tempScrollbarWidth;
+      scrollbarHeight = trimmingContainer.scrollHeight === trimmingContainer.clientHeight ? 0 : tempScrollbarWidth;
+    } else {
+      scrollbarWidth = wot.getSetting('trimmingContainer') !== void 0 || elementStyle ?
+        (wot.getSetting('trimmingContainer') || rootElementParent).scrollWidth === (wot.getSetting('trimmingContainer') ||
+          rootElementParent).clientWidth ? 0 : tempScrollbarWidth : tempScrollbarWidth;
+      scrollbarHeight = wot.getSetting('trimmingContainer') !== void 0 || elementStyle ?
+        (wot.getSetting('trimmingContainer') || rootElementParent).scrollHeight === (wot.getSetting('trimmingContainer') ||
+          rootElementParent).clientHeight ? 0 : tempScrollbarWidth : tempScrollbarWidth;
+    }
+
+    headerHeight = this.wtTable.hider.offsetHeight - this.wtTable.holder.offsetHeight;
+
+    if (scrollbarWidth === void 0) {
+      scrollbarWidth = tempScrollbarWidth;
+    }
+    if (scrollbarHeight === void 0) {
+      scrollbarHeight = tempScrollbarWidth;
+    }
+
+    this.rowHeaderWidth = this.wtSettings.getRowHeaderActualWidth();
+    this.columnHeadersCount = this.wtSettings.getSetting('columnHeaders');
+    this.rowHeadersCount = this.wtSettings.getSetting('rowHeaders');
+
+    if (wot.getSetting('columnWidth') instanceof Array) {
+      // Support for setting where "columnWidth" option is an array.
+      const widths = wot.getSetting('columnWidth');
+      let columnWidth = 0;
+
+      if (widths.length) {
+        const lastIndex = widths.length;
+        const maxIndex = this.wtTable.getLastVisibleColumn();
+
+        for (let index = 0; index <= maxIndex; index++) {
+          const width = widths[index >= lastIndex ? lastIndex - 1 : index];
+
+          if (index >= lastIndex) {
+            for (let i = 0; i < index; i++) {
+              if (widths[i]) {
+                columnWidth += widths[i];
+              }
+            }
+            columnWidth += width * (index - lastIndex + 1);
+            break;
+          }
+
+          columnWidth += width;
+        }
+      }
+
+      this.workspaceWidth = Math.min(
+        columnWidth + this.rowHeaderWidth,
+        wot.getSetting('width') - (scrollbarWidth - tempScrollbarWidth),
+      );
+    } else {
+      this.workspaceWidth = Math.min(
+        this.wtTable.getWidth() + (wot.getSetting('totalColumns') > 0 ? this.rowHeaderWidth : 0),
+        wot.getSetting('width') - (scrollbarWidth - tempScrollbarWidth),
+      );
+    }
+
+    this.scrollableElement = this.findScrollableElement(rootElement.parentElement);
+
+    // ... existing code ...
   }
 
   /**
