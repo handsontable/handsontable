@@ -4,7 +4,21 @@
 import { Hooks } from '../core/hooks';
 import staticRegister from '../utils/staticRegister';
 
-const registeredEditorClasses = new WeakMap();
+interface BaseEditor {
+  EDITOR_TYPE?: string;
+  new (hotInstance: any): any;
+}
+
+interface EditorWrapper {
+  getConstructor(): BaseEditor;
+  getInstance(hotInstance: any): any;
+}
+
+interface RegisteredEditorMap {
+  [key: string]: EditorWrapper;
+}
+
+const registeredEditorClasses = new WeakMap<BaseEditor, EditorWrapper>();
 
 const {
   register,
@@ -17,15 +31,15 @@ const {
 /**
  * @param {BaseEditor} editorClass The editor constructor.
  */
-export function RegisteredEditor(editorClass) {
-  const instances = {};
+export function RegisteredEditor(editorClass: BaseEditor) {
+  const instances: { [key: string]: any } = {};
   const Clazz = editorClass;
 
-  this.getConstructor = function() {
+  this.getConstructor = function(): BaseEditor {
     return editorClass;
   };
 
-  this.getInstance = function(hotInstance) {
+  this.getInstance = function(hotInstance: any): any {
     if (!(hotInstance.guid in instances)) {
       instances[hotInstance.guid] = new Clazz(hotInstance);
     }
@@ -33,7 +47,7 @@ export function RegisteredEditor(editorClass) {
     return instances[hotInstance.guid];
   };
 
-  Hooks.getSingleton().add('afterDestroy', function() {
+  Hooks.getSingleton().add('afterDestroy', function(this: { guid: string }) {
     instances[this.guid] = null;
   });
 }
@@ -45,12 +59,12 @@ export function RegisteredEditor(editorClass) {
  * @param {object} hotInstance Instance of Handsontable.
  * @returns {Function} Returns instance of editor.
  */
-export function _getEditorInstance(name, hotInstance) {
-  let editor;
+export function _getEditorInstance(name: string | BaseEditor, hotInstance: any): any {
+  let editor: EditorWrapper | undefined;
 
   if (typeof name === 'function') {
     if (!(registeredEditorClasses.get(name))) {
-      _register(null, name);
+      _register(null as any, name);
     }
     editor = registeredEditorClasses.get(name);
 
@@ -74,7 +88,7 @@ export function _getEditorInstance(name, hotInstance) {
  * @param {string} name Editor identification.
  * @returns {Function} Returns editor class.
  */
-function _getItem(name) {
+function _getItem(name: string | BaseEditor): BaseEditor {
   if (typeof name === 'function') {
     return name;
   }
@@ -91,15 +105,15 @@ function _getItem(name) {
  * @param {string} name Editor identification.
  * @param {Function} editorClass Editor class.
  */
-function _register(name, editorClass) {
+function _register(name: string | null | BaseEditor, editorClass: BaseEditor): void {
   if (name && typeof name !== 'string') {
     editorClass = name;
-    name = editorClass.EDITOR_TYPE;
+    name = editorClass.EDITOR_TYPE || '';
   }
 
-  const editorWrapper = new RegisteredEditor(editorClass);
+  const editorWrapper = new (RegisteredEditor as any)(editorClass) as EditorWrapper;
 
-  if (typeof name === 'string') {
+  if (typeof name === 'string' && name !== '') {
     register(name, editorWrapper);
   }
   registeredEditorClasses.set(editorClass, editorWrapper);

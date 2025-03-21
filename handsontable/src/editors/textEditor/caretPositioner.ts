@@ -13,7 +13,7 @@ import {
  * @param {'home'|'end'} actionName The action to perform that modifies the caret behavior.
  * @param {HTMLTextAreaElement} textareaElement The textarea element where the action is supposed to happen.
  */
-export function updateCaretPosition(actionName, textareaElement) {
+export function updateCaretPosition(actionName: 'home' | 'end', textareaElement: HTMLTextAreaElement): void {
   const caretPosition = getCaretPosition(textareaElement);
   const textLines = textareaElement.value.split('\n');
   let newCaretPosition = caretPosition;

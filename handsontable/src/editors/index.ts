@@ -2,12 +2,13 @@ import { TextEditor, EDITOR_TYPE as TEXT_EDITOR } from './textEditor';
 import {
   registerEditor,
 } from './registry';
+import { BaseEditorConstructor } from './types';
 
 /**
  * Registers all available editors.
  */
-export function registerAllEditors() {
-  registerEditor(TextEditor);
+export function registerAllEditors(): void {
+  registerEditor(TextEditor as unknown as BaseEditorConstructor);
 }
 
 export {

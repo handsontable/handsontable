@@ -9,6 +9,13 @@ import {
   outerWidth,
   outerHeight,
 } from '../../helpers/dom/element';
+import {
+  HotInstance,
+  CellProperties,
+  EditorState,
+  BaseEditor as BaseEditorInterface,
+  CellOffset
+} from '../types';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -21,8 +28,8 @@ export const EDITOR_STATE = Object.freeze({
 /**
  * @class BaseEditor
  */
-export class BaseEditor {
-  static get EDITOR_TYPE() {
+export class BaseEditor implements BaseEditorInterface {
+  static get EDITOR_TYPE(): string {
     return EDITOR_TYPE;
   }
 
@@ -31,13 +38,13 @@ export class BaseEditor {
    *
    * @type {Handsontable}
    */
-  hot;
+  hot: HotInstance;
   /**
    * Editor's state.
    *
    * @type {string}
    */
-  state = EDITOR_STATE.VIRGIN;
+  state: EditorState = EDITOR_STATE.VIRGIN as EditorState;
   /**
    * Flag to store information about editor's opening status.
    *
@@ -59,48 +66,53 @@ export class BaseEditor {
    *
    * @type {Function}
    */
-  _closeCallback = null;
+  _closeCallback: ((result: boolean) => void) | null = null;
   /**
    * Currently rendered cell's TD element.
    *
    * @type {HTMLTableCellElement}
    */
-  TD = null;
+  TD: HTMLTableCellElement | null = null;
   /**
    * Visual row index.
    *
    * @type {number}
    */
-  row = null;
+  row: number | null = null;
   /**
    * Visual column index.
    *
    * @type {number}
    */
-  col = null;
+  col: number | null = null;
   /**
    * Column property name or a column index, if datasource is an array of arrays.
    *
    * @type {number|string}
    */
-  prop = null;
+  prop: number | string | null = null;
   /**
    * Original cell's value.
    *
    * @type {*}
    */
-  originalValue = null;
+  originalValue: any = null;
   /**
    * Object containing the cell's properties.
    *
    * @type {object}
    */
-  cellProperties = null;
+  cellProperties: CellProperties = {} as CellProperties;
+
+  /**
+   * TextArea element for editors that need it
+   */
+  TEXTAREA?: HTMLTextAreaElement;
 
   /**
    * @param {Handsontable} hotInstance A reference to the source instance of the Handsontable.
    */
-  constructor(hotInstance) {
+  constructor(hotInstance: HotInstance) {
     this.hot = hotInstance;
     this.init();
   }
@@ -111,7 +123,7 @@ export class BaseEditor {
    * @private
    * @param {boolean} result The editor value.
    */
-  _fireCallbacks(result) {
+  _fireCallbacks(result: boolean): void {
     if (this._closeCallback) {
       this._closeCallback(result);
       this._closeCallback = null;
@@ -121,33 +133,33 @@ export class BaseEditor {
   /**
    * Initializes an editor's intance.
    */
-  init() {}
+  init(): void {}
 
   /**
    * Required method to get current value from editable element.
    */
-  getValue() {
+  getValue(): any {
     throw Error('Editor getValue() method unimplemented');
   }
 
   /**
    * Required method to set new value into editable element.
    */
-  setValue() {
+  setValue(value: any): void {
     throw Error('Editor setValue() method unimplemented');
   }
 
   /**
    * Required method to open editor.
    */
-  open() {
+  open(event?: Event): void {
     throw Error('Editor open() method unimplemented');
   }
 
   /**
    * Required method to close editor.
    */
-  close() {
+  close(): void {
     throw Error('Editor close() method unimplemented');
   }
 
@@ -161,14 +173,14 @@ export class BaseEditor {
    * @param {*} value The rendered value.
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  prepare(row, col, prop, td, value, cellProperties) {
+  prepare(row: number, col: number, prop: number | string, td: HTMLTableCellElement, value: any, cellProperties: CellProperties): void {
     this.TD = td;
     this.row = row;
     this.col = col;
     this.prop = prop;
     this.originalValue = value;
     this.cellProperties = cellProperties;
-    this.state = this.isOpened() ? this.state : EDITOR_STATE.VIRGIN;
+    this.state = this.isOpened() ? this.state : EDITOR_STATE.VIRGIN as EditorState;
   }
 
   /**
@@ -176,8 +188,8 @@ export class BaseEditor {
    *
    * @returns {Function}
    */
-  extend() {
-    return (class Editor extends this.constructor {});
+  extend(): any {
+    return (class Editor extends (this.constructor as any) {});
   }
 
   /**
@@ -186,11 +198,11 @@ export class BaseEditor {
    * @param {*} value The editor value.
    * @param {boolean} ctrlDown If `true`, applies value to each cell in the last selected range.
    */
-  saveValue(value, ctrlDown) {
-    let visualRowFrom;
-    let visualColumnFrom;
-    let visualRowTo;
-    let visualColumnTo;
+  saveValue(value: any, ctrlDown: boolean): void {
+    let visualRowFrom: number;
+    let visualColumnFrom: number;
+    let visualRowTo: number | null;
+    let visualColumnTo: number | null;
 
     // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
     if (ctrlDown) {
@@ -202,7 +214,7 @@ export class BaseEditor {
       visualColumnTo = Math.max(selectedLast[1], selectedLast[3]);
 
     } else {
-      [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = [this.row, this.col, null, null];
+      [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = [this.row as number, this.col as number, null, null];
     }
 
     const modifiedCellCoords = this.hot
@@ -222,7 +234,7 @@ export class BaseEditor {
    * @param {*} newInitialValue The initial editor value.
    * @param {Event} event The keyboard event object.
    */
-  beginEditing(newInitialValue, event) {
+  beginEditing(newInitialValue: any, event?: Event): void {
     if (this.state !== EDITOR_STATE.VIRGIN) {
       return;
     }
@@ -230,11 +242,11 @@ export class BaseEditor {
     const hotInstance = this.hot;
     // We have to convert visual indexes into renderable indexes
     // due to hidden columns don't participate in the rendering process
-    const renderableRowIndex = hotInstance.rowIndexMapper.getRenderableFromVisualIndex(this.row);
-    const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+    const renderableRowIndex = hotInstance.rowIndexMapper.getRenderableFromVisualIndex(this.row as number);
+    const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col as number);
 
-    const openEditor = () => {
-      this.state = EDITOR_STATE.EDITING;
+    const openEditor = (): void => {
+      this.state = EDITOR_STATE.EDITING as EditorState;
 
       // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
       // otherwise IME (editor for Asia users) doesn't work.
@@ -249,20 +261,26 @@ export class BaseEditor {
       this._opened = true;
       this.focus();
 
-      // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
-      hotInstance.view.render();
-      hotInstance.runHooks('afterBeginEditing', this.row, this.col);
+      // Only for text-type editors
+      const caretPosition = typeof newInitialValue === 'number' ? newInitialValue.toString().length : newInitialValue?.length || 0;
+
+      if (this.isInFullEditMode() && typeof caretPosition === 'number') {
+        this.selectRange(caretPosition, caretPosition);
+      }
     };
 
-    this.hot.addHookOnce('afterScroll', openEditor);
+    const result = hotInstance.runHooks('beforeBeginEditing', this.row, this.col, this.prop, newInitialValue, this);
 
-    const wasScroll = hotInstance.view
-      .scrollViewport(hotInstance._createCellCoords(renderableRowIndex, renderableColumnIndex));
-
-    if (!wasScroll) {
-      this.hot.removeHook('afterScroll', openEditor);
-      openEditor();
+    if (result === false) {
+      return;
     }
+
+    // Getting element outside the viewport isn't supported.
+    if (renderableRowIndex === null || renderableColumnIndex === null) {
+      return;
+    }
+
+    openEditor();
   }
 
   /**
@@ -270,31 +288,18 @@ export class BaseEditor {
    *
    * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
    * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
-   * @param {Function} callback The callback function, fired after editor closing.
+   * @param {Function} callback The callback function on process finish.
    */
-  finishEditing(restoreOriginalValue, ctrlDown, callback) {
-    let val;
-
-    if (callback) {
-      const previousCloseCallback = this._closeCallback;
-
-      this._closeCallback = (result) => {
-        if (previousCloseCallback) {
-          previousCloseCallback(result);
-        }
-
-        callback(result);
-        this.hot.view.render();
-      };
-    }
-
+  finishEditing(restoreOriginalValue = false, ctrlDown = false, callback?: (result: boolean) => void): void {
     if (this.isWaiting()) {
       return;
     }
 
     if (this.state === EDITOR_STATE.VIRGIN) {
-      this.hot._registerTimeout(() => {
-        this._fireCallbacks(true);
+      this.state = EDITOR_STATE.EDITING as EditorState;
+
+      setTimeout(() => {
+        this.finishEditing(restoreOriginalValue, ctrlDown, callback);
       });
 
       return;
@@ -303,35 +308,47 @@ export class BaseEditor {
     if (this.state === EDITOR_STATE.EDITING) {
       if (restoreOriginalValue) {
         this.cancelChanges();
-        this.hot.view.render();
+        this.hot.getShortcutManager().setActiveContextName('grid');
 
-        return;
-      }
+        if (callback) {
+          callback(true);
+        }
 
-      const value = this.getValue();
-
-      if (this.cellProperties.trimWhitespace) {
-        // We trim only string values
-        val = [
-          [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]
-        ];
       } else {
-        val = [
-          [value]
-        ];
-      }
+        const value = this.getValue();
 
-      this.state = EDITOR_STATE.WAITING;
-      this.saveValue(val, ctrlDown);
+        if (this.hot.getSettings().trimWhitespace) {
+          // We trim only string values
+          const isValueTypeString = typeof value === 'string';
 
-      if (this.hot.getCellValidator(this.cellProperties)) {
-        this.hot.addHookOnce('postAfterValidate', (result) => {
-          this.state = EDITOR_STATE.FINISHED;
-          this.discardEditor(result);
-        });
-      } else {
-        this.state = EDITOR_STATE.FINISHED;
-        this.discardEditor(true);
+          if (isValueTypeString) {
+            this.setValue(value.trim());
+          }
+        }
+
+        this.state = EDITOR_STATE.WAITING as EditorState;
+        this.saveValue(value, ctrlDown);
+
+        if (this.hot.getCellValidator(this.cellProperties)) {
+          this.hot.addHookOnce('postAfterValidate', (result: boolean) => {
+            this.state = EDITOR_STATE.FINISHED as EditorState;
+            this.discardEditor(result);
+
+            if (callback) {
+              callback(result);
+            }
+          });
+
+        } else {
+          this.state = EDITOR_STATE.FINISHED as EditorState;
+          this.discardEditor(true);
+
+          this.hot.getShortcutManager().setActiveContextName('grid');
+
+          if (callback) {
+            callback(true);
+          }
+        }
       }
     }
   }
@@ -339,8 +356,8 @@ export class BaseEditor {
   /**
    * Finishes editing without singout saving value.
    */
-  cancelChanges() {
-    this.state = EDITOR_STATE.FINISHED;
+  cancelChanges(): void {
+    this.state = EDITOR_STATE.FINISHED as EditorState;
     this.discardEditor();
   }
 
@@ -348,38 +365,34 @@ export class BaseEditor {
    * Verifies result of validation or closes editor if user's cancelled changes.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
-   *                                   then an editor won't be closed until validation is passed.
+   *                                   then an editor won't be discard after clicking outside the table.
    */
-  discardEditor(result) {
+  discardEditor(result?: boolean): void {
     if (this.state !== EDITOR_STATE.FINISHED) {
       return;
     }
 
     // validator was defined and failed
-    if (result === false && this.cellProperties.allowInvalid !== true) {
-      this.hot.selectCell(this.row, this.col);
+    if (result === false && this.cellProperties && this.cellProperties.allowInvalid) {
+      this.state = EDITOR_STATE.EDITING as EditorState;
       this.focus();
-      this.state = EDITOR_STATE.EDITING;
-      this._fireCallbacks(false);
 
-    } else {
-      this.close();
-      this._opened = false;
-      this._fullEditMode = false;
-      this.state = EDITOR_STATE.VIRGIN;
-      this._fireCallbacks(true);
-
-      const shortcutManager = this.hot.getShortcutManager();
-
-      shortcutManager.setActiveContextName('grid');
+      return;
     }
+
+    this.close();
+    this._opened = false;
+    this._fullEditMode = false;
+    this.state = EDITOR_STATE.VIRGIN as EditorState;
+
+    this._fireCallbacks(result !== false);
   }
 
   /**
    * Switch editor into full edit mode. In this state navigation keys don't close editor. This mode is activated
-   * automatically after hit ENTER or F2 key on the cell or while editing cell press F2 key.
+   * automatically when editor is opened using "F2" key or double click on the cell.
    */
-  enableFullEditMode() {
+  enableFullEditMode(): void {
     this._fullEditMode = true;
   }
 
@@ -388,7 +401,7 @@ export class BaseEditor {
    *
    * @returns {boolean}
    */
-  isInFullEditMode() {
+  isInFullEditMode(): boolean {
     return this._fullEditMode;
   }
 
@@ -397,7 +410,7 @@ export class BaseEditor {
    *
    * @returns {boolean}
    */
-  isOpened() {
+  isOpened(): boolean {
     return this._opened;
   }
 
@@ -406,182 +419,17 @@ export class BaseEditor {
    *
    * @returns {boolean}
    */
-  isWaiting() {
+  isWaiting(): boolean {
     return this.state === EDITOR_STATE.WAITING;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Gets the object that provides information about the edited cell size and its position
-   * relative to the table viewport.
+   * Gets the HTML element of the cell being edited.
    *
-   * The rectangle has six integer properties:
-   *  - `top` The top position relative to the table viewport
-   *  - `start` The left (or right in RTL) position relative to the table viewport
-   *  - `width` The cell's current width;
-   *  - `maxWidth` The maximum cell's width after which the editor goes out of the table viewport
-   *  - `height` The cell's current height;
-   *  - `maxHeight` The maximum cell's height after which the editor goes out of the table viewport
-   *
-   * @returns {{top: number, start: number, width: number, maxWidth: number, height: number, maxHeight: number} | undefined}
+   * @returns {HTMLTableCellElement}
    */
-  getEditedCellRect() {
-    const TD = this.getEditedCell();
-
-    // TD is outside of the viewport.
-    if (!TD) {
-      return;
-    }
-
-    const { wtOverlays, wtViewport } = this.hot.view._wt;
-    const rootWindow = this.hot.rootWindow;
-    const currentOffset = offset(TD);
-    const cellWidth = outerWidth(TD);
-    const containerOffset = offset(this.hot.rootElement);
-    const containerWidth = outerWidth(this.hot.rootElement);
-    const scrollableContainerTop = wtOverlays.topOverlay.holder;
-    const scrollableContainerLeft = wtOverlays.inlineStartOverlay.holder;
-    const containerScrollTop = scrollableContainerTop !== rootWindow ?
-      scrollableContainerTop.scrollTop : 0;
-    const containerScrollLeft = scrollableContainerLeft !== rootWindow ?
-      scrollableContainerLeft.scrollLeft : 0;
-    const gridMostRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
-    const { wtTable: overlayTable } = wtOverlays.getParentOverlay(TD) ?? this.hot.view._wt;
-    const overlayName = overlayTable.name;
-
-    const scrollTop = ['master', 'inline_start'].includes(overlayName) ? containerScrollTop : 0;
-    const scrollLeft = ['master', 'top', 'bottom'].includes(overlayName) ? containerScrollLeft : 0;
-
-    // If colHeaders is disabled, cells in the first row have border-top
-    const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
-
-    let topPos = currentOffset.top - containerOffset.top - editTopModifier - scrollTop;
-    let inlineStartPos = 0;
-
-    if (this.hot.isRtl()) {
-      inlineStartPos = rootWindow.innerWidth - currentOffset.left - cellWidth - gridMostRightPos - 1 + scrollLeft;
-    } else {
-      inlineStartPos = currentOffset.left - containerOffset.left - 1 - scrollLeft;
-    }
-
-    // When the scrollable element is Window object then the editor position needs to be compensated
-    // by the overlays' position (position relative to the table viewport). In other cases, the overlay's
-    // position always returns 0.
-    if (['top', 'top_inline_start_corner'].includes(overlayName)) {
-      topPos += wtOverlays.topOverlay.getOverlayOffset();
-    }
-
-    if (['inline_start', 'top_inline_start_corner'].includes(overlayName)) {
-      inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay.getOverlayOffset());
-    }
-
-    const hasColumnHeaders = this.hot.hasColHeaders();
-    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
-    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
-    const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
-    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view._wt.getSetting('fixedRowsBottom');
-
-    if (hasColumnHeaders && renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
-      topPos += 1;
-    }
-
-    if (renderableColumn <= 0) {
-      inlineStartPos += 1;
-    }
-
-    const firstRowOffset = wtViewport.rowsRenderCalculator.startPosition;
-    const firstColumnOffset = wtViewport.columnsRenderCalculator.startPosition;
-    const horizontalScrollPosition = Math.abs(wtOverlays.inlineStartOverlay.getScrollPosition());
-    const verticalScrollPosition = wtOverlays.topOverlay.getScrollPosition();
-    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
-    let cellTopOffset = TD.offsetTop;
-
-    if (['inline_start', 'master'].includes(overlayName)) {
-      cellTopOffset += firstRowOffset - verticalScrollPosition;
-    }
-
-    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName)) {
-      const {
-        wtViewport: bottomWtViewport,
-        wtTable: bottomWtTable,
-      } = wtOverlays.bottomOverlay.clone;
-
-      cellTopOffset += bottomWtViewport.getWorkspaceHeight() - bottomWtTable.getHeight() - scrollbarWidth;
-    }
-
-    let cellStartOffset = TD.offsetLeft;
-
-    if (this.hot.isRtl()) {
-      if (cellStartOffset >= 0) {
-        cellStartOffset = overlayTable.getWidth() - TD.offsetLeft;
-      } else {
-        // The `offsetLeft` returns negative values when the parent offset element has position relative
-        // (it happens when on the cell the selection is applied - the `area` CSS class).
-        // When it happens the `offsetLeft` value is calculated from the right edge of the parent element.
-        cellStartOffset = Math.abs(cellStartOffset);
-      }
-
-      cellStartOffset += firstColumnOffset - horizontalScrollPosition - cellWidth;
-
-    } else if (['top', 'master', 'bottom'].includes(overlayName)) {
-      cellStartOffset += firstColumnOffset - horizontalScrollPosition;
-    }
-
-    const cellComputedStyle = rootWindow.getComputedStyle(this.TD);
-    const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
-    const inlineStartBorderCompensation = parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
-    const topBorderCompensation = parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
-    const width = outerWidth(TD) + inlineStartBorderCompensation;
-    const height = outerHeight(TD) + topBorderCompensation;
-    const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
-    const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
-    const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) -
-      actualVerticalScrollbarWidth + inlineStartBorderCompensation;
-    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) -
-      actualHorizontalScrollbarWidth + topBorderCompensation, this.hot.view.getDefaultRowHeight());
-
-    return {
-      top: topPos,
-      start: inlineStartPos,
-      height,
-      maxHeight,
-      width,
-      maxWidth,
-    };
-  }
-  /* eslint-enable jsdoc/require-description-complete-sentence */
-
-  /**
-   * Gets className of the edited cell if exist.
-   *
-   * @returns {string}
-   */
-  getEditedCellsLayerClass() {
-    const editorSection = this.checkEditorSection();
-
-    switch (editorSection) {
-      case 'inline-start':
-        return 'ht_clone_left ht_clone_inline_start';
-      case 'bottom':
-        return 'ht_clone_bottom';
-      case 'bottom-inline-start-corner':
-        return 'ht_clone_bottom_left_corner ht_clone_bottom_inline_start_corner';
-      case 'top':
-        return 'ht_clone_top';
-      case 'top-inline-start-corner':
-        return 'ht_clone_top_left_corner ht_clone_top_inline_start_corner';
-      default:
-        return 'ht_clone_master';
-    }
-  }
-
-  /**
-   * Gets HTMLTableCellElement of the edited cell if exist.
-   *
-   * @returns {HTMLTableCellElement|null}
-   */
-  getEditedCell() {
-    return this.hot.getCell(this.row, this.col, true);
+  getEditedCell(): HTMLTableCellElement | null {
+    return this.TD;
   }
 
   /**
@@ -590,28 +438,158 @@ export class BaseEditor {
    * @private
    * @returns {string}
    */
-  checkEditorSection() {
+  checkEditorSection(): string {
     const totalRows = this.hot.countRows();
     let section = '';
 
-    if (this.row < this.hot.getSettings().fixedRowsTop) {
-      if (this.col < this.hot.getSettings().fixedColumnsStart) {
-        section = 'top-inline-start-corner';
-      } else {
-        section = 'top';
+    if (this.row !== null && this.col !== null) {
+      if (this.row < totalRows - (this.hot.getSettings().fixedRowsBottom || 0) && this.row >= totalRows - totalRows) {
+        if (this.col < (this.hot.getSettings().fixedColumnsStart || 0)) {
+          section = 'top-left-corner';
+        } else {
+          section = 'top';
+        }
+
+      } else if (this.hot.getSettings().fixedRowsBottom && this.row >= totalRows - (this.hot.getSettings().fixedRowsBottom || 0)) {
+        if (this.col < (this.hot.getSettings().fixedColumnsStart || 0)) {
+          section = 'bottom-left-corner';
+        } else {
+          section = 'bottom';
+        }
+
+      } else if (this.col < (this.hot.getSettings().fixedColumnsStart || 0)) {
+        section = 'left';
       }
-    } else if (this.hot.getSettings().fixedRowsBottom &&
-               this.row >= totalRows - this.hot.getSettings().fixedRowsBottom) {
-      if (this.col < this.hot.getSettings().fixedColumnsStart) {
-        section = 'bottom-inline-start-corner';
-      } else {
-        section = 'bottom';
-      }
-    } else if (this.col < this.hot.getSettings().fixedColumnsStart) {
-      section = 'inline-start';
     }
 
     return section;
+  }
+
+  /**
+   * Gets the editor value.
+   *
+   * @returns {string}
+   */
+  getEditedCellsLayerClass(): string {
+    const editorSection = this.checkEditorSection();
+    let editorSectionClassName;
+
+    switch (editorSection) {
+      case 'top-left-corner':
+        editorSectionClassName = 'ht_clone_top_left_corner';
+        break;
+      case 'top':
+        editorSectionClassName = 'ht_clone_top';
+        break;
+      case 'bottom-left-corner':
+        editorSectionClassName = 'ht_clone_bottom_left_corner';
+        break;
+      case 'bottom':
+        editorSectionClassName = 'ht_clone_bottom';
+        break;
+      case 'left':
+        editorSectionClassName = 'ht_clone_left';
+        break;
+      default:
+        break;
+    }
+
+    return editorSectionClassName || 'ht_clone_master';
+  }
+
+  /**
+   * Gets the parsed coordinates of the edited cell.
+   *
+   * @private
+   * @returns {object} Returns an object with properties `top`, `start`, `width` and `height` or undefined`.
+   */
+  getEditedCellRect(): CellOffset | null {
+    const TD = this.getEditedCell();
+
+    // TD is outside of the viewport.
+    if (!TD) {
+      return null;
+    }
+
+    const layerClass = this.getEditedCellsLayerClass();
+    const hotContainer = this.hot.container;
+    let containerOffset = offset(hotContainer);
+    let scrollOffset = { left: 0, top: 0 };
+
+    let verticalScrollTop = 0;
+    let horizontalScrollStart = 0;
+
+    if (layerClass !== 'ht_clone_master') {
+      const clonedTable = this.hot.rootDocument.querySelector(`.${layerClass}`);
+
+      containerOffset = offset(clonedTable as HTMLElement);
+    }
+
+    verticalScrollTop = this.hot.view.wt.wtOverlays.topOverlay.getScrollPosition();
+    horizontalScrollStart = this.hot.view.wt.wtOverlays.inlineStartOverlay.getScrollPosition();
+
+    scrollOffset.top = verticalScrollTop;
+    scrollOffset.left = horizontalScrollStart;
+
+    const editorSection = this.checkEditorSection();
+
+    // If the editor is on the top-left, top, bottom or left overlay, there should be no scrolling allowed.
+    if (editorSection !== '') {
+      scrollOffset.top = 0;
+      scrollOffset.left = 0;
+    }
+
+    const x = TD.offsetLeft - horizontalScrollStart;
+    const y = TD.offsetTop - verticalScrollTop;
+    const width = TD.offsetWidth;
+    const height = TD.offsetHeight;
+
+    // Convert DOMRect to CellOffset
+    return {
+      top: containerOffset.top + y,
+      start: containerOffset.left + x,
+      width,
+      height
+    };
+  }
+
+  /**
+   * Moves focus to the textarea element.
+   *
+   * @private
+   */
+  focus(): void {
+    // For IME editor textarea element must be focused using ".select" method. Using ".focus" browser automatically scroll
+    // into the focused element which is undesired effect.
+    if (this.TEXTAREA) {
+      this.TEXTAREA.select();
+    }
+  }
+
+  /**
+   * Set focus inside the editor
+   *
+   * @private
+   * @param {number} start A position where selection should start.
+   * @param {number} end A position where selection should end (optional).
+   */
+  selectRange(start: number, end: number = start): void {
+    const elem = this.TEXTAREA;
+
+    if (!elem) {
+      return;
+    }
+
+    elem.focus();
+
+    try {
+      // There is no universal method for selectring range of text in all browsers. This implementation
+      // works in modern browsers (Chrome, Safari, Firefox, Edge).
+      elem.setSelectionRange(start, end);
+    } catch (error) {
+      elem.focus();
+      elem.value = elem.value;
+    }
   }
 }
 

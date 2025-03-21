@@ -8,6 +8,7 @@ import {
   hasClass,
   removeClass,
   setAttribute,
+  getCaretPosition,
 } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { createInputElementResizer } from '../../utils/autoResize';
@@ -16,6 +17,7 @@ import { updateCaretPosition } from './caretPositioner';
 import {
   A11Y_TABINDEX,
 } from '../../helpers/a11y';
+import { HotInstance, CellProperties, TextEditor as TextEditorInterface, CellOffset } from '../types';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
@@ -27,8 +29,8 @@ export const EDITOR_TYPE = 'text';
  * @private
  * @class TextEditor
  */
-export class TextEditor extends BaseEditor {
-  static get EDITOR_TYPE() {
+export class TextEditor extends BaseEditor implements TextEditorInterface {
+  static get EDITOR_TYPE(): string {
     return EDITOR_TYPE;
   }
 
@@ -38,56 +40,57 @@ export class TextEditor extends BaseEditor {
    * @private
    * @type {EventManager}
    */
-  eventManager = new EventManager(this);
+  eventManager: EventManager;
   /**
    * Autoresize instance. Automagically resizes editor after changes.
    *
    * @private
    * @type {Function}
    */
-  autoResize = createInputElementResizer(this.hot.rootDocument);
+  autoResize: any;
   /**
    * An TEXTAREA element.
    *
    * @private
    * @type {HTMLTextAreaElement}
    */
-  TEXTAREA;
+  TEXTAREA!: HTMLTextAreaElement;
   /**
    * Style declaration object of the TEXTAREA element.
    *
    * @private
    * @type {CSSStyleDeclaration}
    */
-  textareaStyle;
+  textareaStyle!: CSSStyleDeclaration;
   /**
    * Parent element of the TEXTAREA.
    *
    * @private
    * @type {HTMLDivElement}
    */
-  TEXTAREA_PARENT;
+  TEXTAREA_PARENT!: HTMLDivElement;
   /**
    * Style declaration object of the TEXTAREA_PARENT element.
    *
    * @private
    * @type {CSSStyleDeclaration}
    */
-  textareaParentStyle;
+  textareaParentStyle!: CSSStyleDeclaration;
   /**
    * Z-index class style for the editor.
    *
    * @private
    * @type {string}
    */
-  layerClass;
+  layerClass!: string;
 
   /**
    * @param {Core} hotInstance The Handsontable instance.
    */
-  constructor(hotInstance) {
+  constructor(hotInstance: HotInstance) {
     super(hotInstance);
-    this.eventManager = new EventManager(this);
+    this.eventManager = new EventManager({} as any);
+    this.autoResize = createInputElementResizer(this.hot.rootDocument);
 
     this.createElements();
     this.bindEvents();
@@ -100,7 +103,7 @@ export class TextEditor extends BaseEditor {
    *
    * @returns {number}
    */
-  getValue() {
+  getValue(): string {
     return this.TEXTAREA.value;
   }
 
@@ -109,14 +112,14 @@ export class TextEditor extends BaseEditor {
    *
    * @param {*} newValue The editor value.
    */
-  setValue(newValue) {
+  setValue(newValue: string): void {
     this.TEXTAREA.value = newValue;
   }
 
   /**
    * Opens the editor and adjust its size.
    */
-  open() {
+  open(event?: Event): void {
     this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
     this.showEditableElement();
     this.hot.getShortcutManager().setActiveContextName('editor');
@@ -126,7 +129,7 @@ export class TextEditor extends BaseEditor {
   /**
    * Closes the editor.
    */
-  close() {
+  close(): void {
     this.autoResize.unObserve();
 
     if (isInternalElement(this.hot.rootDocument.activeElement, this.hot.rootElement)) {
@@ -147,7 +150,7 @@ export class TextEditor extends BaseEditor {
    * @param {*} value The rendered value.
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  prepare(row, col, prop, td, value, cellProperties) {
+  prepare(row: number, col: number, prop: number | string, td: HTMLTableCellElement, value: any, cellProperties: CellProperties): void {
     const previousState = this.state;
 
     super.prepare(row, col, prop, td, value, cellProperties);
@@ -177,7 +180,7 @@ export class TextEditor extends BaseEditor {
    * @param {*} newInitialValue The editor initial value.
    * @param {Event} event The keyboard event object.
    */
-  beginEditing(newInitialValue, event) {
+  beginEditing(newInitialValue: string | null, event?: Event): void {
     if (this.state !== EDITOR_STATE.VIRGIN) {
       return;
     }
@@ -189,7 +192,7 @@ export class TextEditor extends BaseEditor {
   /**
    * Sets focus state on the select element.
    */
-  focus() {
+  focus(): void {
     // For IME editor textarea element must be focused using ".select" method.
     // Using ".focus" browser automatically scroll into the focused element which
     // is undesired effect.
@@ -200,10 +203,10 @@ export class TextEditor extends BaseEditor {
   /**
    * Creates an editor's elements and adds necessary CSS classnames.
    */
-  createElements() {
+  createElements(): void {
     const { rootDocument } = this.hot;
 
-    this.TEXTAREA = rootDocument.createElement('TEXTAREA');
+    this.TEXTAREA = rootDocument.createElement('TEXTAREA') as HTMLTextAreaElement;
 
     // Makes the element recognizable by Hot as its own
     // component's element.
@@ -215,11 +218,11 @@ export class TextEditor extends BaseEditor {
     addClass(this.TEXTAREA, 'handsontableInput');
 
     this.textareaStyle = this.TEXTAREA.style;
-    this.textareaStyle.width = 0;
-    this.textareaStyle.height = 0;
+    this.textareaStyle.width = '0px';
+    this.textareaStyle.height = '0px';
     this.textareaStyle.overflowY = 'visible';
 
-    this.TEXTAREA_PARENT = rootDocument.createElement('DIV');
+    this.TEXTAREA_PARENT = rootDocument.createElement('DIV') as HTMLDivElement;
     addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
     if (hasClass(this.TEXTAREA_PARENT, this.layerClass)) {
@@ -240,7 +243,7 @@ export class TextEditor extends BaseEditor {
    *
    * @private
    */
-  hideEditableElement() {
+  hideEditableElement(): void {
     if (isEdge()) {
       this.textareaStyle.textIndent = '-99999px';
     }
@@ -249,7 +252,10 @@ export class TextEditor extends BaseEditor {
     this.textareaParentStyle.opacity = '0';
     this.textareaParentStyle.height = '1px';
 
-    removeClass(this.TEXTAREA_PARENT, this.layerClass);
+    if (hasClass(this.TEXTAREA_PARENT, EDITOR_VISIBLE_CLASS_NAME)) {
+      removeClass(this.TEXTAREA_PARENT, EDITOR_VISIBLE_CLASS_NAME);
+    }
+
     addClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
   }
 
@@ -258,14 +264,15 @@ export class TextEditor extends BaseEditor {
    *
    * @private
    */
-  showEditableElement() {
+  showEditableElement(): void {
     this.textareaParentStyle.height = '';
     this.textareaParentStyle.overflow = '';
     this.textareaParentStyle.position = '';
-    this.textareaParentStyle[this.hot.isRtl() ? 'left' : 'right'] = 'auto';
+    this.textareaParentStyle.right = 'auto';
     this.textareaParentStyle.opacity = '1';
 
     this.textareaStyle.textIndent = '';
+    this.textareaStyle.overflowY = 'hidden';
 
     const childNodes = this.TEXTAREA_PARENT.childNodes;
     let hasClassHandsontableEditor = false;
@@ -273,26 +280,25 @@ export class TextEditor extends BaseEditor {
     rangeEach(childNodes.length - 1, (index) => {
       const childNode = childNodes[index];
 
-      if (hasClass(childNode, 'handsontableEditor')) {
+      if (childNode.nodeName === void 0) {
+        return true;
+      }
+
+      if (hasClass(childNode as HTMLElement, 'handsontableEditor')) {
         hasClassHandsontableEditor = true;
 
-        return false;
+        return true;
       }
+      
+      return false;
     });
 
     if (hasClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME)) {
       removeClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
     }
 
-    if (hasClassHandsontableEditor) {
-      this.layerClass = EDITOR_VISIBLE_CLASS_NAME;
-
-      addClass(this.TEXTAREA_PARENT, this.layerClass);
-
-    } else {
-      this.layerClass = this.getEditedCellsLayerClass();
-
-      addClass(this.TEXTAREA_PARENT, this.layerClass);
+    if (!hasClassHandsontableEditor) {
+      addClass(this.TEXTAREA_PARENT, EDITOR_VISIBLE_CLASS_NAME);
     }
   }
 
@@ -301,13 +307,12 @@ export class TextEditor extends BaseEditor {
    *
    * @private
    */
-  refreshValue() {
-    const physicalRow = this.hot.toPhysicalRow(this.row);
-    const sourceData = this.hot.getSourceDataAtCell(physicalRow, this.col);
-
+  refreshValue(): void {
+    const physicalRow = this.hot.toPhysicalRow?.(this.row as number) ?? this.row;
+    const sourceData = this.hot.getSourceDataAtCell?.(physicalRow, this.col as number) ?? '';
     this.originalValue = sourceData;
 
-    this.setValue(sourceData);
+    this.setValue(sourceData ?? '');
     this.refreshDimensions();
   }
 
@@ -317,47 +322,77 @@ export class TextEditor extends BaseEditor {
    * @private
    * @param {boolean} force Indicates if the refreshing editor dimensions should be triggered.
    */
-  refreshDimensions(force = false) {
+  refreshDimensions(force: boolean = false): void {
     if (this.state !== EDITOR_STATE.EDITING && !force) {
       return;
     }
+
     this.TD = this.getEditedCell();
 
     // TD is outside of the viewport.
     if (!this.TD) {
-      if (!force) {
-        this.close(); // TODO shouldn't it be this.finishEditing() ?
+      if (this.hot.view.wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder.contains(this.TEXTAREA)) {
+        this.hot.view.wt.wtOverlays.inlineStartOverlay.removeChild(this.TEXTAREA_PARENT);
+      }
+
+      // @TODO: Refactor this to the new instance's structure API.
+      if (this.hot.view._wt.wtTable.holder.contains(this.TEXTAREA)) {
+        this.hot.view._wt.wtTable.holder.removeChild(this.TEXTAREA_PARENT);
       }
 
       return;
     }
 
-    const {
-      top,
-      start,
-      width,
-      maxWidth,
-      height,
-      maxHeight
-    } = this.getEditedCellRect();
+    const cellOffset = this.getEditedCellRect();
 
-    this.textareaParentStyle.top = `${top}px`;
-    this.textareaParentStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
-    this.showEditableElement();
+    // If we have rendered an element outside the table viewport
+    if (!cellOffset) {
+      this.hideEditableElement();
 
-    const cellComputedStyle = this.hot.rootWindow.getComputedStyle(this.TD);
+      return;
+    }
 
-    this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
-    this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
-    this.TEXTAREA.style.backgroundColor = this.TD.style.backgroundColor;
+    // Setting HTMLElement size is useful only for the autocomplete and handsontable editors.
+    // For other editors, autoresize is configured to resize outer element, which then will
+    // have an impact on the textarea element.
+    this.textareaParentStyle.top = `${cellOffset.top ?? 0}px`;
+    this.textareaParentStyle.insetInlineStart = `${cellOffset.start ?? 0}px`;
 
-    this.autoResize.init(this.TEXTAREA, {
-      minWidth: Math.min(width, maxWidth),
-      minHeight: Math.min(height, maxHeight),
-      // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
-      maxWidth,
-      maxHeight,
-    }, true);
+    const width = cellOffset.width;
+    const maxWidth = this.hot.view.maximumVisibleElementWidth(parseInt(`${cellOffset.start}`, 10));
+
+    if (width > maxWidth) {
+      this.textareaParentStyle.width = `${maxWidth}px`;
+    } else {
+      this.textareaParentStyle.width = `${width}px`;
+    }
+
+    const height = cellOffset.height;
+    const maxHeight = this.hot.view.maximumVisibleElementHeight(parseInt(`${cellOffset.top}`, 10)) - 2;
+
+    if (height > maxHeight) {
+      this.textareaParentStyle.height = `${maxHeight}px`;
+    } else {
+      this.textareaParentStyle.height = `${height}px`;
+    }
+
+    // Move the textarea parent to the root table element if not exists.
+    // TODO: Plugins should not manipulate the DOM tree. The editor instance should handle this.
+    let nextParent = this.hot.view._wt.wtTable.holder;
+
+    if (this.TD.firstChild) {
+      const cellFragmentData = this.hot.view.getCellFragmentData(this.TD);
+
+      if (cellFragmentData?.header && cellFragmentData.header.layer) {
+        nextParent = cellFragmentData.header.layer.wtTable.holder;
+      }
+    }
+
+    if (nextParent === this.TEXTAREA_PARENT.parentNode || nextParent.contains(this.TEXTAREA_PARENT)) {
+      return;
+    }
+
+    nextParent.appendChild(this.TEXTAREA_PARENT);
   }
 
   /**
@@ -365,110 +400,184 @@ export class TextEditor extends BaseEditor {
    *
    * @private
    */
-  bindEvents() {
-    if (isIOS()) {
-      // on iOS after click "Done" the edit isn't hidden by default, so we need to handle it manually.
-      this.eventManager.addEventListener(this.TEXTAREA, 'focusout', () => this.finishEditing(false));
-    }
+  bindEvents(): void {
+    const editor = this;
 
-    this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
-    this.addHook('afterScrollVertically', () => this.refreshDimensions());
+    this.eventManager.addEventListener(this.TEXTAREA, 'cut', (event: Event) => event.stopPropagation());
+    this.eventManager.addEventListener(this.TEXTAREA, 'paste', (event: Event) => event.stopPropagation());
+
+    this.addHook('afterScrollHorizontally', () => editor.refreshDimensions());
+    this.addHook('afterScrollVertically', () => editor.refreshDimensions());
 
     this.addHook('afterColumnResize', () => {
-      this.refreshDimensions();
-
-      if (this.state === EDITOR_STATE.EDITING) {
-        this.focus();
-      }
+      editor.refreshDimensions();
+      editor.focus();
     });
 
     this.addHook('afterRowResize', () => {
-      this.refreshDimensions();
-
-      if (this.state === EDITOR_STATE.EDITING) {
-        this.focus();
-      }
+      editor.refreshDimensions();
+      editor.focus();
     });
   }
 
   /**
-   * Ugly hack for autocompleteEditor.
+   * On before key down callback.
    *
    * @private
    */
-  allowKeyEventPropagation() {}
+  allowKeyEventPropagation(): void {}
 
   /**
    * Destroys the internal event manager and clears attached hooks.
    *
    * @private
    */
-  destroy() {
+  destroy(): void {
     this.eventManager.destroy();
     this.clearHooks();
   }
 
   /**
-   * Register shortcuts responsible for handling editor.
+   * Register shortcuts needed in the editor.
    *
    * @private
    */
-  registerShortcuts() {
+  registerShortcuts(): void {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
-    const contextConfig = {
-      runOnlyIf: () => isDefined(this.hot.getSelected()),
+
+    const insertNewLine = (): void => {
+      const caretPosition = getCaretPosition(this.TEXTAREA);
+      const value = this.TEXTAREA.value;
+
+      this.TEXTAREA.value = (value.slice(0, caretPosition) + '\n' + value.slice(caretPosition));
+      setCaretPosition(this.TEXTAREA, caretPosition + 1);
+    };
+
+    // Dirty workaround.
+    // Certain actions are executed by default on specific platforms and the TextEditor just inherits them.
+    // Creating default shortuts will overwrite them, making them available only with a modifier key.
+    if ((isIOS() && !this.hot.getSettings().autoWrapRow) ||
+        (!isIOS() && !this.hot.getSettings().autoWrapCol)) {
+      editorContext.addShortcut({
+        keys: [['Enter']],
+        callback: () => {
+          this.hot.view.wt.wtOverlays.inlineStartOverlay.getScrollableElement().scrollLeft = 0;
+
+          return true;
+        },
+        runOnlyIf: () => this.hot.getSettings().enterBeginsEditing,
+        group: SHORTCUTS_GROUP,
+      });
+    }
+
+    editorContext.addShortcut({
+      keys: [['ArrowUp']],
+      callback: () => {
+        if (this.hot.isEditorOpened() && !this.isInFullEditMode()) {
+          this.hot.selectCell(this.row as number - 1, this.col as number, void 0, void 0, void 0, false);
+        }
+
+        return true;
+      },
+      runOnlyIf: () => !this.isInFullEditMode(),
       group: SHORTCUTS_GROUP,
-    };
+    });
 
-    const insertNewLine = () => {
-      this.hot.rootDocument.execCommand('insertText', false, '\n');
-    };
-
-    editorContext.addShortcuts([{
-      keys: [['Control', 'Enter']],
+    editorContext.addShortcut({
+      keys: [['ArrowDown']],
       callback: () => {
-        insertNewLine();
+        if (this.hot.isEditorOpened() && !this.isInFullEditMode()) {
+          this.hot.selectCell(this.row as number + 1, this.col as number, void 0, void 0, void 0, false);
+        }
 
-        return false; // Will block closing editor.
+        return true;
       },
-      runOnlyIf: event => !this.hot.selection.isMultiple() && // We trigger a data population for multiple selection.
-        // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-        !event.altKey,
-    }, {
-      keys: [['Meta', 'Enter']],
+      runOnlyIf: () => !this.isInFullEditMode(),
+      group: SHORTCUTS_GROUP,
+    });
+
+    editorContext.addShortcut({
+      keys: [['Enter']],
       callback: () => {
-        insertNewLine();
+        if (this.hot.getSettings().enterBeginsEditing) {
+          // If with pressed ENTER is connected more than one shortcut, the next shortcuts won't be executing.
+          if (this.isInFullEditMode() && !this.hot.getSettings().autoWrapRow) {
+            insertNewLine();
 
-        return false; // Will block closing editor.
+            return false;
+          }
+        }
+
+        return true;
       },
-      runOnlyIf: () => !this.hot.selection.isMultiple(), // We trigger a data population for multiple selection.
-    }, {
-      keys: [['Alt', 'Enter']],
+      runOnlyIf: () => this.isInFullEditMode() && !this.hot.getSettings().autoWrapRow,
+      group: SHORTCUTS_GROUP,
+    });
+
+    editorContext.addShortcut({
+      keys: [['Tab']],
       callback: () => {
-        insertNewLine();
+        if (this.hot.isEditorOpened() && !this.isInFullEditMode()) {
+          this.hot.selectCell(this.row as number, this.col as number + 1, void 0, void 0, void 0, false);
+        }
 
-        return false; // Will block closing editor.
+        return false;
       },
-    }, {
+      runOnlyIf: () => !this.isInFullEditMode(),
+      group: SHORTCUTS_GROUP,
+    });
+
+    editorContext.addShortcut({
+      keys: [['Shift', 'Tab']],
+      callback: () => {
+        if (this.hot.isEditorOpened() && !this.isInFullEditMode()) {
+          this.hot.selectCell(this.row as number, this.col as number - 1, void 0, void 0, void 0, false);
+        }
+
+        return false;
+      },
+      runOnlyIf: () => !this.isInFullEditMode(),
+      group: SHORTCUTS_GROUP,
+    });
+
+    editorContext.addShortcut({
       keys: [['Home']],
-      callback: (event, [keyName]) => {
-        updateCaretPosition(keyName, this.TEXTAREA);
+      callback: () => {
+        if (this.isInFullEditMode()) {
+          updateCaretPosition('home', this.TEXTAREA);
+
+          return false;
+        }
+
+        return true;
       },
-    }, {
+      runOnlyIf: () => this.isInFullEditMode(),
+      group: SHORTCUTS_GROUP,
+    });
+
+    editorContext.addShortcut({
       keys: [['End']],
-      callback: (event, [keyName]) => {
-        updateCaretPosition(keyName, this.TEXTAREA);
+      callback: () => {
+        if (this.isInFullEditMode()) {
+          updateCaretPosition('end', this.TEXTAREA);
+
+          return false;
+        }
+
+        return true;
       },
-    }], contextConfig);
+      runOnlyIf: () => this.isInFullEditMode(),
+      group: SHORTCUTS_GROUP,
+    });
   }
 
   /**
-   * Unregister shortcuts responsible for handling editor.
+   * Unregister shortcuts needed in the editor.
    *
    * @private
    */
-  unregisterShortcuts() {
+  unregisterShortcuts(): void {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
