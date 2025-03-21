@@ -302,7 +302,7 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    const overwriteCache = this.hot.renderCall;
+    const overwriteCache = this.hot.forceFullRender;
 
     this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, undefined, overwriteCache);
   }

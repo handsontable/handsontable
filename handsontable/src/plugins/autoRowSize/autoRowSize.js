@@ -282,7 +282,7 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    const overwriteCache = this.hot.renderCall;
+    const overwriteCache = this.hot.forceFullRender;
 
     this.calculateRowsHeight({ from: firstVisibleRow, to: lastVisibleRow }, undefined, overwriteCache);
   }

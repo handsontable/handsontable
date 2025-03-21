@@ -233,7 +233,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const pluginsRegistry = createUniqueMap();
 
   this.container = this.rootDocument.createElement('div');
-  this.renderCall = false;
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
@@ -360,6 +359,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.selection = selection;
 
   const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
+    this.forceFullRender = true;
+
     if (hiddenIndexesChanged) {
       this.selection.commit();
     }
@@ -1140,8 +1141,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.runHooks('init');
 
-    this.forceFullRender = true; // used when data was changed
-    this.view.render();
+    this.render();
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
@@ -1332,13 +1332,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const hasChanges = changes.length > 0;
 
-    instance.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
-
     if (hasChanges) {
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
       editorManager.closeEditor();
-      instance.view.render();
+      instance.render();
       editorManager.prepareEditor();
       instance.view.adjustElementsSize();
       instance.runHooks('afterChange', changes, source || 'edit');
@@ -1350,7 +1348,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
     } else {
-      instance.view.render();
+      instance.render();
     }
   }
 
@@ -1936,11 +1934,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.renderSuspendedCounter = Math.max(nextValue, 0);
 
     if (!this.isRenderSuspended() && nextValue === this.renderSuspendedCounter) {
-      if (this.renderCall) {
-        this.render();
-      } else {
-        instance.view.render();
-      }
+      instance.view.render();
     }
   };
 
@@ -1956,8 +1950,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.render = function() {
     if (this.view) {
-      this.renderCall = true;
-      this.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
+      // used when data was changed or when all cells need to be re-rendered (slow render)
+      this.forceFullRender = true;
 
       if (!this.isRenderSuspended()) {
         instance.view.render();
@@ -2632,8 +2626,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     grid.adjustRowsAndCols();
 
     if (instance.view && !firstRun) {
-      instance.forceFullRender = true; // used when data was changed
-      instance.view.render();
+      instance.render();
       instance.view._wt.wtOverlays.adjustElementsSize();
     }
 

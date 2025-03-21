@@ -515,4 +515,164 @@ describe('TableView', () => {
       expect(hot.view._wt.wtViewport.getWorkspaceOffset).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('render()', () => {
+    it('should draw a table as fast render when the dataset size is not changed', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      hot.view.render();
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(true);
+    });
+
+    it('should draw a table as slow render when the `forceFullRender` flag is set and the dataset size is not changed', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      hot.forceFullRender = true;
+      hot.view.render();
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
+      expect(hot.forceFullRender).toBe(false);
+    });
+
+    it('should draw a table as slow render when the dataset size is changed (number of rows is changed)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      loadData(createSpreadsheetData(10, 5));
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
+    });
+
+    it('should draw a table as slow render when the dataset size is changed (number of columns is changed)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      loadData(createSpreadsheetData(5, 10));
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
+    });
+
+    it('should draw a table as slow render when the number of visible rows was changed (hiding)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      rowIndexMapper()
+        .createAndRegisterIndexMap('my-hiding-map', 'hiding')
+        .setValueAtIndex(2, true);
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      hot.view.render();
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
+    });
+
+    it('should draw a table as slow render when the number of visible columns was changed (hiding)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      columnIndexMapper()
+        .createAndRegisterIndexMap('my-hiding-map', 'hiding')
+        .setValueAtIndex(2, true);
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      hot.view.render();
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
+    });
+
+    it('should draw a table as slow render when the number of visible rows was changed (trimming)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      rowIndexMapper()
+        .createAndRegisterIndexMap('my-hiding-map', 'trimming')
+        .setValueAtIndex(2, true);
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      hot.view.render();
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
+    });
+
+    it('should draw a table as slow render when the number of visible columns was changed (trimming)', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      columnIndexMapper()
+        .createAndRegisterIndexMap('my-hiding-map', 'trimming')
+        .setValueAtIndex(2, true);
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      hot.view.render();
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
+    });
+
+    it('should draw a table as slow render when the rows order changed', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      rowIndexMapper().moveIndexes(0, 2);
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      hot.view.render();
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
+    });
+
+    it('should draw a table as slow render when the columns order changed', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      columnIndexMapper().moveIndexes(0, 2);
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      hot.view.render();
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
+    });
+
+    it('should draw a table as slow render when index sequence for rows was changed', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      rowIndexMapper().setIndexesSequence([1, 0, 2, 3, 4]);
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      hot.view.render();
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
+    });
+
+    it('should draw a table as slow render when index sequence for columns was changed', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      columnIndexMapper().setIndexesSequence([1, 0, 2, 3, 4]);
+
+      spyOn(hot.view._wt, 'draw').and.callThrough();
+      hot.view.render();
+
+      expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
+    });
+  });
 });
