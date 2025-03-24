@@ -27,31 +27,35 @@ jobs:
     if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+      # - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-      - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+      # - name: Use Node.js
+      #   uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+      #   with:
+      #     node-version-file: '.nvmrc'
+      #     cache: 'npm'
 
-      - name: Install the documentation dependencies
-        run: |
-          npm ci
+      # - name: Install the documentation dependencies
+      #   run: |
+      #     npm ci
 
-      - name: Install the monorepo dependencies and build the packages
-        run: |
-          cd ..
-          npm ci
-          npm run all build -- --e examples visual-tests
+      # - name: Install the monorepo dependencies and build the packages
+      #   run: |
+      #     cd ..
+      #     npm ci
+      #     npm run all build -- --e examples visual-tests
 
-      - name: Generate API references
-        run: |
-          npm run docs:api
+      # - name: Generate API references
+      #   run: |
+      #     npm run docs:api
 
-      - name: Build docs (for staging preview)
-        run: |
-          npm run docs:build:preview
+      # - name: Build docs (for staging preview)
+      #   run: |
+      #     npm run docs:build:preview
+
+      - name: Find PR
+        uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
+        id: pr-finder
 
       - name: Get PR details
         id: get-pr
@@ -61,7 +65,7 @@ jobs:
             const { data: pullRequest } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.issue.number
+              pull_number: context.issue.number ||  ${{ steps.pr-finder.outputs.pr }}
             });
             
             console.log(`PR #${context.issue.number} details fetched`);
@@ -77,43 +81,44 @@ jobs:
             return pullRequest;
           result-encoding: string
 
-      - name: Install Netlify dependencies
-        run: |
-           cd netlify 
-           npm i 
-           npm install netlify-cli -g
+      - name: found number 
+        run: echo "PR number is ${{ steps.pr-finder.outputs.pr }}"    
 
-      - name: Run the create or get Netlify Page proccess. Save the Netlify vars in a file
-        run: | 
-          cd netlify  
-          node createOrGet.mjs  
-          cat NETLIFY_VARS >> $GITHUB_ENV 
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
-          BRANCH_NAME_PREFIX: dev-handsontable-
-          BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}     
+      # - name: Install Netlify dependencies
+      #   run: |
+      #      cd netlify 
+      #      npm i 
+      #      npm install netlify-cli -g
 
-      - name: Build and deploy the preview to Netlify
-        run: |
-          cd netlify  
-          mkdir -p docs/docs
-          mv ../.vuepress/dist/docs docs
-          ./build_previous_versions.sh
-          cp _redirects docs/_redirects
-          netlify deploy --site ${{ env.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }} 
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}   
+      # - name: Run the create or get Netlify Page proccess. Save the Netlify vars in a file
+      #   run: | 
+      #     cd netlify  
+      #     node createOrGet.mjs  
+      #     cat NETLIFY_VARS >> $GITHUB_ENV 
+      #   env:
+      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
+      #     BRANCH_NAME_PREFIX: dev-handsontable-
+      #     BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}     
 
-      - name: Find PR
-        uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
-        id: pr-finder
+      # - name: Build and deploy the preview to Netlify
+      #   run: |
+      #     cd netlify  
+      #     mkdir -p docs/docs
+      #     mv ../.vuepress/dist/docs docs
+      #     ./build_previous_versions.sh
+      #     cp _redirects docs/_redirects
+      #     netlify deploy --site ${{ env.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }} 
+      #   env:
+      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
+      #     NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}   
 
-      - name: Publish sticky comment in PR
-        uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
-        with:
-          number: ${{ steps.pr-finder.outputs.pr }}
-          message: |
-            ✅ Preview documentation is is available now
-            Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
+  
+
+      # - name: Publish sticky comment in PR
+      #   uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
+      #   with:
+      #     number: ${{ steps.pr-finder.outputs.pr }}
+      #     message: |
+      #       ✅ Preview documentation is is available now
+      #       Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
       
