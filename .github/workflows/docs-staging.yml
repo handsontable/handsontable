@@ -81,24 +81,34 @@ jobs:
             return pullRequest;
           result-encoding: string
 
-      - name: found number 
-        run: echo "PR number is ${{ steps.pr-finder.outputs.pr }}"    
 
-      # - name: Install Netlify dependencies
-      #   run: |
-      #      cd netlify 
-      #      npm i 
-      #      npm install netlify-cli -g
 
-      # - name: Run the create or get Netlify Page proccess. Save the Netlify vars in a file
-      #   run: | 
-      #     cd netlify  
-      #     node createOrGet.mjs  
-      #     cat NETLIFY_VARS >> $GITHUB_ENV 
-      #   env:
-      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
-      #     BRANCH_NAME_PREFIX: dev-handsontable-
-      #     BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}     
+      - name: Install Netlify dependencies
+        run: |
+           cd netlify 
+           npm i 
+           npm install netlify-cli -g
+
+      - name: Run the create or get Netlify Page proccess. Save the Netlify vars in a file
+        run: | 
+          cd netlify  
+          node createOrGet.mjs  
+          cat NETLIFY_VARS >> $GITHUB_ENV 
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
+          BRANCH_NAME_PREFIX: dev-handsontable-
+          BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}     
+
+
+      - name: Publish sticky comment in PR. Docs are being built
+        uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
+        with:
+          number: ${{ steps.pr-finder.outputs.pr }}
+          message: |
+            🏗️ Preview documentation is being built/rebuilt.
+            Current staging version of documentation will be available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
+
+      
 
       # - name: Build and deploy the preview to Netlify
       #   run: |
