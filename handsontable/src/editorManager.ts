@@ -2,6 +2,50 @@ import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
+import Core from './core';
+import type GridSettings from './tableView';
+import { Selection } from './selection/selection';
+import { BaseEditor } from './editors/baseEditor/baseEditor';
+import { CellProperties } from './editors/types';
+
+interface TableMeta {
+  enterMoves: {
+    row: number;
+    col: number;
+  } | ((event: KeyboardEvent) => { row: number; col: number });
+}
+
+interface CoreInstance {
+  rootDocument: Document;
+  isListening(): boolean;
+  addHook(hookName: string, callback: Function): void;
+  getSelectedRangeLast(): { highlight: { row: number; col: number; isHeader(): boolean }; isSingle(): boolean } | undefined;
+  runHooks(hookName: string, ...args: any[]): any;
+  getCellMeta(row: number, col: number): CellProperties;
+  getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
+  getCellEditor(cellProperties: CellProperties): any;
+  colToProp(col: number): string | number;
+  getSourceDataAtCell(row: number, col: number): any;
+  toPhysicalRow(row: number): number;
+  toPhysicalColumn(col: number): number;
+  scrollToFocusedCell(): void;
+  view: {
+    _wt: {
+      update(eventName: string, callback: Function): void;
+    };
+  };
+  selection: {
+    getLayerLevel(): number;
+    isMultiple(): boolean;
+  };
+  rowIndexMapper: {
+    isHidden(row: number): boolean;
+  };
+  columnIndexMapper: {
+    isHidden(col: number): boolean;
+  };
+  eventListeners: any[];
+}
 
 class EditorManager {
   /**
@@ -10,28 +54,28 @@ class EditorManager {
    * @private
    * @type {Handsontable}
    */
-  hot;
+  hot: CoreInstance;
   /**
    * Reference to an instance's private GridSettings object.
    *
    * @private
    * @type {GridSettings}
    */
-  tableMeta;
+  tableMeta: TableMeta;
   /**
    * Instance of {@link Selection}.
    *
    * @private
    * @type {Selection}
    */
-  selection;
+  selection: Selection;
   /**
    * Instance of {@link EventManager}.
    *
    * @private
    * @type {EventManager}
    */
-  eventManager;
+  eventManager: EventManager;
   /**
    * Determines if EditorManager is destroyed.
    *
@@ -45,20 +89,20 @@ class EditorManager {
    * @private
    * @type {BaseEditor}
    */
-  activeEditor;
+  activeEditor: BaseEditor | undefined;
   /**
    * Keeps a reference to the cell's properties object.
    *
    * @type {object}
    */
-  cellProperties;
+  cellProperties: CellProperties;
 
   /**
-   * @param {Core} hotInstance The Handsontable instance.
+   * @param {CoreInstance} hotInstance The Handsontable instance.
    * @param {TableMeta} tableMeta The table meta instance.
    * @param {Selection} selection The selection instance.
    */
-  constructor(hotInstance, tableMeta, selection) {
+  constructor(hotInstance: CoreInstance, tableMeta: TableMeta, selection: Selection) {
     this.hot = hotInstance;
     this.tableMeta = tableMeta;
     this.selection = selection;
@@ -73,7 +117,7 @@ class EditorManager {
       }
     });
 
-    this.hot.view._wt.update('onCellDblClick', (event, coords, elem) => this.#onCellDblClick(event, coords, elem));
+    this.hot.view._wt.update('onCellDblClick', (event: MouseEvent, coords: any) => this.#onCellDblClick(event, coords));
   }
 
   /**
@@ -81,14 +125,14 @@ class EditorManager {
    *
    * @returns {BaseEditor}
    */
-  getActiveEditor() {
+  getActiveEditor(): BaseEditor | undefined {
     return this.activeEditor;
   }
 
   /**
    * Prepare text input to be displayed at given grid cell.
    */
-  prepareEditor() {
+  prepareEditor(): void {
     if (this.activeEditor && this.activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved) => {
         if (dataSaved) {
@@ -145,8 +189,8 @@ class EditorManager {
    *
    * @returns {boolean}
    */
-  isEditorOpened() {
-    return this.activeEditor && this.activeEditor.isOpened();
+  isEditorOpened(): boolean {
+    return this.activeEditor?.isOpened() ?? false;
   }
 
   /**
@@ -157,7 +201,7 @@ class EditorManager {
    * @param {boolean} [enableFullEditMode=false] When true, an editor works in full editing mode. Mode disallows closing an editor
    *                                             when arrow keys are pressed.
    */
-  openEditor(newInitialValue, event, enableFullEditMode = false) {
+  openEditor(newInitialValue: string | null, event: Event, enableFullEditMode = false): void {
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
 
@@ -165,6 +209,10 @@ class EditorManager {
     }
 
     const selection = this.hot.getSelectedRangeLast();
+    if (!selection) {
+      return;
+    }
+
     let allowOpening = this.hot.runHooks(
       'beforeBeginEditing',
       selection.highlight.row,
@@ -208,7 +256,7 @@ class EditorManager {
    * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
-  closeEditor(restoreOriginalValue, isCtrlPressed, callback) {
+  closeEditor(restoreOriginalValue: boolean, isCtrlPressed: boolean, callback?: (dataSaved: boolean) => void): void {
     if (this.activeEditor) {
       this.activeEditor.finishEditing(restoreOriginalValue, isCtrlPressed, callback);
 
@@ -222,8 +270,8 @@ class EditorManager {
    *
    * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
    */
-  closeEditorAndSaveChanges(isCtrlPressed) {
-    this.closeEditor(false, isCtrlPressed);
+  closeEditorAndSaveChanges(isCtrlPressed: boolean): void {
+    this.closeEditor(false, isCtrlPressed, undefined);
   }
 
   /**
@@ -231,8 +279,8 @@ class EditorManager {
    *
    * @param {boolean} isCtrlPressed Indication of whether the CTRL button is pressed.
    */
-  closeEditorAndRestoreOriginalValue(isCtrlPressed) {
-    this.closeEditor(true, isCtrlPressed);
+  closeEditorAndRestoreOriginalValue(isCtrlPressed: boolean): void {
+    this.closeEditor(true, isCtrlPressed, undefined);
   }
 
   /**
@@ -240,7 +288,7 @@ class EditorManager {
    *
    * @private
    */
-  clearActiveEditor() {
+  clearActiveEditor(): void {
     this.activeEditor = undefined;
   }
 
@@ -254,7 +302,7 @@ class EditorManager {
    * @private
    * @returns {boolean}
    */
-  isCellEditable() {
+  isCellEditable(): boolean {
     const selection = this.hot.getSelectedRangeLast();
 
     if (!selection) {
@@ -270,7 +318,7 @@ class EditorManager {
     const isCellHidden = rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)) ||
       columnIndexMapper.isHidden(this.hot.toPhysicalColumn(col));
 
-    if (this.cellProperties.readOnly || !editorClass || isCellHidden) {
+    if (!this.cellProperties || this.cellProperties.readOnly || !editorClass || isCellHidden) {
       return false;
     }
 
@@ -283,7 +331,7 @@ class EditorManager {
    * @private
    * @param {KeyboardEvent} event The keyboard event object.
    */
-  moveSelectionAfterEnter(event) {
+  moveSelectionAfterEnter(event: KeyboardEvent): void {
     const enterMoves = { ...typeof this.tableMeta.enterMoves === 'function' ?
       this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves };
 
@@ -304,7 +352,7 @@ class EditorManager {
    *
    * @param {KeyboardEvent} event The keyboard event object.
    */
-  #onAfterDocumentKeyDown(event) {
+  #onAfterDocumentKeyDown(event: KeyboardEvent): void {
     const selection = this.hot.getSelectedRangeLast();
 
     if (!this.hot.isListening() || !selection || selection.highlight.isHeader() ||
@@ -330,7 +378,7 @@ class EditorManager {
    * @param {MouseEvent} event The mouse event object.
    * @param {object} coords The cell coordinates.
    */
-  #onCellDblClick(event, coords) {
+  #onCellDblClick(event: MouseEvent, coords: any): void {
     if (coords.isCell()) {
       this.openEditor(null, event, true);
     }
@@ -339,21 +387,21 @@ class EditorManager {
   /**
    * Destroy the instance.
    */
-  destroy() {
+  destroy(): void {
     this.destroyed = true;
     this.eventManager.destroy();
   }
 }
 
-const instances = new WeakMap();
+const instances = new WeakMap<CoreInstance, EditorManager>();
 
 /**
- * @param {Core} hotInstance The Handsontable instance.
+ * @param {CoreInstance} hotInstance The Handsontable instance.
  * @param {TableMeta} tableMeta The table meta class instance.
  * @param {Selection} selection The selection instance.
  * @returns {EditorManager}
  */
-EditorManager.getInstance = function(hotInstance, tableMeta, selection) {
+EditorManager.getInstance = function(hotInstance: CoreInstance, tableMeta: TableMeta, selection: Selection): EditorManager {
   let editorManager = instances.get(hotInstance);
 
   if (!editorManager) {

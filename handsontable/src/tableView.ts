@@ -26,6 +26,78 @@ import {
   A11Y_ROWCOUNT,
   A11Y_TREEGRID
 } from './helpers/a11y';
+import { CellCoords } from './3rdparty/walkontable/src/selection/interfaces';
+import { CoreAbstract } from './3rdparty/walkontable/src/core/interfaces';
+import { SettingsPure } from './3rdparty/walkontable/src/settings';
+
+interface MousePosition {
+  x: number;
+  y: number;
+}
+
+interface GridSettings extends SettingsPure {
+  tableClassName?: string;
+  ariaTags?: boolean;
+  fragmentSelection?: boolean | 'cell';
+  outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
+  observeDOMVisibility?: boolean;
+  viewportRowRenderingOffset?: number | 'auto';
+  viewportColumnRenderingOffset?: number | 'auto';
+}
+
+interface Handsontable {
+  rootElement: HTMLElement;
+  rootDocument: Document;
+  rootWindow: Window;
+  container: HTMLElement;
+  table: HTMLTableElement;
+  isRenderSuspended(): boolean;
+  forceFullRender: boolean;
+  renderCall: boolean;
+  isDestroyed: boolean;
+  isRtl(): boolean;
+  countCols(): number;
+  countRows(): number;
+  getSettings(): GridSettings;
+  getDataAtCell(row: number, col: number): any;
+  getDataAtRowProp(row: number, prop: string): any;
+  getColWidth(col: number): number;
+  getRowHeight(row: number): number;
+  getRowHeader(index: number): string;
+  getColHeader(index: number): string;
+  hasRowHeaders(): boolean;
+  hasColHeaders(): boolean;
+  getColumnMeta(col: number): { headerClassName?: string };
+  getCellRenderer(cellProperties: any): Function;
+  getActiveEditor(): { isOpened(): boolean } | null;
+  runHooks(hookName: string, ...args: any[]): any;
+  listen(): void;
+  unlisten(): void;
+  refreshDimensions(): void;
+  destroyEditor(restoreOriginalValue?: boolean, prepare?: boolean): void;
+  deselectCell(): void;
+  getSelectedRangeLast(): { isSingleCell(): boolean } | null;
+  selection: {
+    isInProgress(): boolean;
+    finish(): void;
+    isSelected(): boolean;
+    isSelectedByAnyHeader(): boolean;
+    highlight: any;
+  };
+  rowIndexMapper: {
+    getVisualFromRenderableIndex(index: number): number | null;
+    getRenderableFromVisualIndex(index: number): number | null;
+    getNearestNotHiddenIndex(index: number, incrementBy: number): number | null;
+    getNotTrimmedIndexesLength(): number;
+  };
+  columnIndexMapper: {
+    getVisualFromRenderableIndex(index: number): number | null;
+    getRenderableFromVisualIndex(index: number): number | null;
+    getNearestNotHiddenIndex(index: number, incrementBy: number): number | null;
+    getNotTrimmedIndexesLength(): number;
+  };
+  _createCellCoords(row: number, col: number): CellCoords;
+}
 
 /**
  * @class TableView
@@ -38,48 +110,48 @@ class TableView {
    * @private
    * @type {Handsontable}
    */
-  hot;
+  hot: Handsontable;
   /**
    * Instance of {@link EventManager}.
    *
    * @private
    * @type {EventManager}
    */
-  eventManager;
+  eventManager: EventManager;
   /**
    * Current Handsontable's GridSettings object.
    *
    * @private
    * @type {GridSettings}
    */
-  settings;
+  settings: GridSettings;
   /**
    * Main <THEAD> element.
    *
    * @private
    * @type {HTMLTableSectionElement}
    */
-  THEAD;
+  THEAD: HTMLTableSectionElement;
   /**
    * Main <TBODY> element.
    *
    * @private
    * @type {HTMLTableSectionElement}
    */
-  TBODY;
+  TBODY: HTMLTableSectionElement;
   /**
    * Main Walkontable instance.
    *
    * @private
    * @type {Walkontable}
    */
-  _wt;
+  _wt: CoreAbstract;
   /**
    * Main Walkontable instance.
    *
    * @type {Walkontable}
    */
-  activeWt;
+  activeWt: CoreAbstract;
   /**
    * The total number of the column header renderers applied to the table through the
    * `afterGetColumnHeaderRenderers` hook.
@@ -112,13 +184,13 @@ class TableView {
   /**
    * @type {boolean}
    */
-  #mouseDown;
+  #mouseDown: boolean;
   /**
    * Main <TABLE> element.
    *
    * @type {HTMLTableElement}
    */
-  #table;
+  #table: HTMLTableElement;
   /**
    * Cached width of the rootElement.
    *
@@ -136,15 +208,16 @@ class TableView {
    *
    * @type {{ x: number, y: number } | null}
    */
-  #mouseDownLastPos = null;
+  #mouseDownLastPos: MousePosition | null = null;
 
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
-  constructor(hotInstance) {
+  constructor(hotInstance: Handsontable) {
     this.hot = hotInstance;
     this.eventManager = new EventManager(this.hot);
     this.settings = this.hot.getSettings();
+    this.#mouseDown = false;
 
     this.createElements();
     this.registerEvents();
@@ -154,7 +227,7 @@ class TableView {
   /**
    * Renders WalkontableUI.
    */
-  render() {
+  render(): void {
     if (!this.hot.isRenderSuspended()) {
       this.hot.runHooks('beforeRender', this.hot.forceFullRender);
 
@@ -177,7 +250,7 @@ class TableView {
   /**
    * Adjust overlays elements size and master table size.
    */
-  adjustElementsSize() {
+  adjustElementsSize(): void {
     if (this.hot.isRenderSuspended()) {
       this.postponedAdjustElementsSize = true;
     } else {
@@ -192,7 +265,7 @@ class TableView {
    * @param {boolean} topmost Indicates whether the cell should be calculated from the topmost.
    * @returns {HTMLTableCellElement|null}
    */
-  getCellAtCoords(coords, topmost) {
+  getCellAtCoords(coords: CellCoords, topmost: boolean): HTMLTableCellElement | null {
     const td = this._wt.getCell(coords, topmost);
 
     if (td < 0) { // there was an exit code (cell is out of bounds)
@@ -214,7 +287,11 @@ class TableView {
    * the table. When `'auto'`, the viewport is scrolled only when the row is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewport(coords, horizontalSnap, verticalSnap) {
+  scrollViewport(
+    coords: CellCoords,
+    horizontalSnap?: 'auto' | 'start' | 'end',
+    verticalSnap?: 'auto' | 'top' | 'bottom'
+  ): boolean {
     return this._wt.scrollViewport(coords, horizontalSnap, verticalSnap);
   }
 
@@ -227,7 +304,7 @@ class TableView {
    * the table. When `'auto'`, the viewport is scrolled only when the column is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewportHorizontally(column, snap) {
+  scrollViewportHorizontally(column: number, snap?: 'auto' | 'start' | 'end'): boolean {
     return this._wt.scrollViewportHorizontally(column, snap);
   }
 
@@ -241,7 +318,7 @@ class TableView {
    * the viewport.
    * @returns {boolean}
    */
-  scrollViewportVertically(row, snap) {
+  scrollViewportVertically(row: number, snap?: 'auto' | 'top' | 'bottom'): boolean {
     return this._wt.scrollViewportVertically(row, snap);
   }
 
@@ -250,7 +327,7 @@ class TableView {
    *
    * @private
    */
-  createElements() {
+  private createElements(): void {
     const { rootElement, rootDocument } = this.hot;
     const originalStyle = rootElement.getAttribute('style');
 
@@ -260,7 +337,7 @@ class TableView {
 
     addClass(rootElement, 'handsontable');
 
-    this.#table = rootDocument.createElement('TABLE');
+    this.#table = rootDocument.createElement('TABLE') as HTMLTableElement;
     addClass(this.#table, 'htCore');
 
     if (this.hot.getSettings().tableClassName) {
@@ -268,9 +345,7 @@ class TableView {
     }
 
     if (this.settings.ariaTags) {
-      setAttribute(this.#table, [
-        A11Y_PRESENTATION()
-      ]);
+      setAttribute(this.#table, A11Y_PRESENTATION());
 
       setAttribute(rootElement, [
         A11Y_TREEGRID(),
@@ -280,10 +355,10 @@ class TableView {
       ]);
     }
 
-    this.THEAD = rootDocument.createElement('THEAD');
+    this.THEAD = rootDocument.createElement('THEAD') as HTMLTableSectionElement;
     this.#table.appendChild(this.THEAD);
 
-    this.TBODY = rootDocument.createElement('TBODY');
+    this.TBODY = rootDocument.createElement('TBODY') as HTMLTableSectionElement;
     this.#table.appendChild(this.TBODY);
 
     this.hot.table = this.#table;
@@ -296,15 +371,14 @@ class TableView {
    *
    * @private
    */
-  registerEvents() {
+  private registerEvents(): void {
     const { rootElement, rootDocument, selection, rootWindow } = this.hot;
     const documentElement = rootDocument.documentElement;
 
-    this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
+    this.eventManager.addEventListener(rootElement, 'mousedown', (event: MouseEvent) => {
       this.#selectionMouseDown = true;
 
-      if (!this.isTextSelectionAllowed(event.target)) {
-
+      if (!this.isTextSelectionAllowed(event.target as HTMLElement)) {
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -314,8 +388,8 @@ class TableView {
     this.eventManager.addEventListener(rootElement, 'mouseup', () => {
       this.#selectionMouseDown = false;
     });
-    this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
-      if (this.#selectionMouseDown && !this.isTextSelectionAllowed(event.target)) {
+    this.eventManager.addEventListener(rootElement, 'mousemove', (event: MouseEvent) => {
+      if (this.#selectionMouseDown && !this.isTextSelectionAllowed(event.target as HTMLElement)) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
           clearTextSelection(rootWindow);
@@ -324,14 +398,14 @@ class TableView {
       }
     });
 
-    this.eventManager.addEventListener(documentElement, 'keyup', (event) => {
+    this.eventManager.addEventListener(documentElement, 'keyup', (event: KeyboardEvent) => {
       // TODO: is it the best place and way to finish cell selection?
       if (selection.isInProgress() && !event.shiftKey) {
         selection.finish();
       }
     });
 
-    this.eventManager.addEventListener(documentElement, 'mouseup', (event) => {
+    this.eventManager.addEventListener(documentElement, 'mouseup', (event: MouseEvent) => {
       if (selection.isInProgress() && isLeftClick(event)) {
         selection.finish();
       }
@@ -345,12 +419,12 @@ class TableView {
       }
 
       if (isOutsideInputElement || (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
-          !rootElement.contains(event.target) && !isRightClick(event))) {
+          !rootElement.contains(event.target as Node) && !isRightClick(event))) {
         this.hot.unlisten();
       }
     });
 
-    this.eventManager.addEventListener(documentElement, 'contextmenu', (event) => {
+    this.eventManager.addEventListener(documentElement, 'contextmenu', (event: MouseEvent) => {
       if (selection.isInProgress() && isRightClick(event)) {
         selection.finish();
 
@@ -366,13 +440,13 @@ class TableView {
       this.#mouseDown = false;
     });
 
-    this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
-      const originalTarget = event.target;
+    this.eventManager.addEventListener(documentElement, 'mousedown', (event: MouseEvent) => {
+      const originalTarget = event.target as HTMLElement;
       const eventX = event.x || event.clientX;
       const eventY = event.y || event.clientY;
-      let next = event.target;
+      let next = event.target as HTMLElement;
 
-      if (this.#mouseDown || !rootElement || !this.hot.view) {
+      if (this.#mouseDown || !rootElement) {
         return; // it must have been started in a cell
       }
 
@@ -400,7 +474,7 @@ class TableView {
             // click inside container
             return;
           }
-          next = next.parentNode;
+          next = next.parentNode as HTMLElement;
         }
       }
 
@@ -426,8 +500,8 @@ class TableView {
       parentWindow = getParentWindow(parentWindow);
     }
 
-    this.eventManager.addEventListener(this.#table, 'selectstart', (event) => {
-      if (this.settings.fragmentSelection || isInput(event.target)) {
+    this.eventManager.addEventListener(this.#table, 'selectstart', (event: Event) => {
+      if (this.settings.fragmentSelection || isInput(event.target as HTMLElement)) {
         return;
       }
       // https://github.com/handsontable/handsontable/issues/160
@@ -713,7 +787,7 @@ class TableView {
    *
    * @private
    */
-  initializeWalkontable() {
+  private initializeWalkontable(): void {
     const walkontableConfig = {
       ariaTags: this.settings.ariaTags,
       rtlMode: this.hot.isRtl(),
@@ -725,7 +799,7 @@ class TableView {
       preventWheel: () => this.settings.preventWheel,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
-      data: (renderableRow, renderableColumn) => {
+      data: (renderableRow: number, renderableColumn: number) => {
         return this.hot
           .getDataAtCell(...this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn));
       },
@@ -753,10 +827,10 @@ class TableView {
       renderAllRows: this.settings.renderAllRows,
       renderAllColumns: this.settings.renderAllColumns,
       rowHeaders: () => {
-        const headerRenderers = [];
+        const headerRenderers: Array<(renderableRowIndex: number, TH: HTMLTableCellElement) => void> = [];
 
         if (this.hot.hasRowHeaders()) {
-          headerRenderers.push((renderableRowIndex, TH) => {
+          headerRenderers.push((renderableRowIndex: number, TH: HTMLTableCellElement) => {
             // TODO: Some helper may be needed.
             // We perform translation for row indexes (without row headers).
             const visualRowIndex = renderableRowIndex >= 0 ?
@@ -780,10 +854,10 @@ class TableView {
         return headerRenderers;
       },
       columnHeaders: () => {
-        const headerRenderers = [];
+        const headerRenderers: Array<(renderedColumnIndex: number, TH: HTMLTableCellElement) => void> = [];
 
         if (this.hot.hasColHeaders()) {
-          headerRenderers.push((renderedColumnIndex, TH) => {
+          headerRenderers.push((renderedColumnIndex: number, TH: HTMLTableCellElement) => {
             // TODO: Some helper may be needed.
             // We perform translation for columns indexes (without column headers).
             const visualColumnsIndex = renderedColumnIndex >= 0 ?
@@ -798,7 +872,7 @@ class TableView {
 
         return headerRenderers;
       },
-      columnWidth: (renderedColumnIndex) => {
+      columnWidth: (renderedColumnIndex: number) => {
         const visualIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
 
         // It's not a bug that we can't find visual index for some handled by method indexes. The function is called also
@@ -806,19 +880,19 @@ class TableView {
         // scrolling and dataset is empty (scroll should handle that?).
         return this.hot.getColWidth(visualIndex === null ? renderedColumnIndex : visualIndex);
       },
-      rowHeight: (renderedRowIndex) => {
+      rowHeight: (renderedRowIndex: number) => {
         const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
 
         return this.hot.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex);
       },
-      rowHeightByOverlayName: (renderedRowIndex, overlayType) => {
+      rowHeightByOverlayName: (renderedRowIndex: number, overlayType: string) => {
         const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
         const visualRowIndex = visualIndex === null ? renderedRowIndex : visualIndex;
 
         return this.hot.runHooks('modifyRowHeightByOverlayName',
           this.hot.getRowHeight(visualRowIndex), visualRowIndex, overlayType);
       },
-      cellRenderer: (renderedRowIndex, renderedColumnIndex, TD) => {
+      cellRenderer: (renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement) => {
         const [visualRowIndex, visualColumnIndex] = this
           .translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
 
@@ -866,7 +940,7 @@ class TableView {
           this.hot.refreshDimensions();
         }
       },
-      onCellMouseDown: (event, coords, TD, wt) => {
+      onCellMouseDown: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, wt: CoreAbstract) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
         const controller = {
           row: false,
@@ -890,13 +964,13 @@ class TableView {
           coords: visualCoords,
           selection: this.hot.selection,
           controller,
-          cellCoordsFactory: (row, column) => this.hot._createCellCoords(row, column),
+          cellCoordsFactory: (row: number, column: number) => this.hot._createCellCoords(row, column),
         });
 
         this.hot.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
-      onCellContextMenu: (event, coords, TD, wt) => {
+      onCellContextMenu: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, wt: CoreAbstract) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
 
         this.activeWt = wt;
@@ -916,7 +990,7 @@ class TableView {
 
         this.activeWt = this._wt;
       },
-      onCellMouseOut: (event, coords, TD, wt) => {
+      onCellMouseOut: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, wt: CoreAbstract) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
 
         this.activeWt = wt;
@@ -929,7 +1003,7 @@ class TableView {
         this.hot.runHooks('afterOnCellMouseOut', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
-      onCellMouseOver: (event, coords, TD, wt) => {
+      onCellMouseOver: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, wt: CoreAbstract) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
         const controller = {
           row: false,
@@ -959,7 +1033,7 @@ class TableView {
             coords: visualCoords,
             selection: this.hot.selection,
             controller,
-            cellCoordsFactory: (row, column) => this.hot._createCellCoords(row, column),
+            cellCoordsFactory: (row: number, column: number) => this.hot._createCellCoords(row, column),
           });
         }
 
@@ -967,7 +1041,7 @@ class TableView {
         this.activeWt = this._wt;
         this.#mouseDownLastPos = null;
       },
-      onCellMouseUp: (event, coords, TD, wt) => {
+      onCellMouseUp: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, wt: CoreAbstract) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
 
         this.activeWt = wt;
@@ -984,17 +1058,17 @@ class TableView {
         this.hot.runHooks('afterOnCellMouseUp', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
-      onCellCornerMouseDown: (event) => {
+      onCellCornerMouseDown: (event: MouseEvent) => {
         event.preventDefault();
         this.hot.runHooks('afterOnCellCornerMouseDown', event);
       },
-      onCellCornerDblClick: (event) => {
+      onCellCornerDblClick: (event: MouseEvent) => {
         event.preventDefault();
         this.hot.runHooks('afterOnCellCornerDblClick', event);
       },
-      beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
-      onDraw: force => this.afterRender(force),
-      onBeforeViewportScrollVertically: (renderableRow, snapping) => {
+      beforeDraw: (force: boolean, skipRender: { skipRender: boolean }) => this.beforeRender(force, skipRender),
+      onDraw: (force: boolean) => this.afterRender(force),
+      onBeforeViewportScrollVertically: (renderableRow: number, snapping: 'auto' | 'top' | 'bottom') => {
         const rowMapper = this.hot.rowIndexMapper;
         const areColumnHeadersSelected = renderableRow < 0;
         let visualRow = renderableRow;
@@ -1017,7 +1091,7 @@ class TableView {
 
         return visualRow;
       },
-      onBeforeViewportScrollHorizontally: (renderableColumn, snapping) => {
+      onBeforeViewportScrollHorizontally: (renderableColumn: number, snapping: 'auto' | 'start' | 'end') => {
         const columnMapper = this.hot.columnIndexMapper;
         const areRowHeadersSelected = renderableColumn < 0;
         let visualColumn = renderableColumn;
@@ -1049,7 +1123,7 @@ class TableView {
         this.hot.runHooks('afterScroll');
       },
       onBeforeRemoveCellClassNames: () => this.hot.runHooks('beforeRemoveCellClassNames'),
-      onBeforeHighlightingRowHeader: (renderableRow, headerLevel, highlightMeta) => {
+      onBeforeHighlightingRowHeader: (renderableRow: number, headerLevel: number, highlightMeta: any) => {
         const rowMapper = this.hot.rowIndexMapper;
         const areColumnHeadersSelected = renderableRow < 0;
         let visualRow = renderableRow;
@@ -1067,7 +1141,7 @@ class TableView {
 
         return newVisualRow;
       },
-      onBeforeHighlightingColumnHeader: (renderableColumn, headerLevel, highlightMeta) => {
+      onBeforeHighlightingColumnHeader: (renderableColumn: number, headerLevel: number, highlightMeta: any) => {
         const columnMapper = this.hot.columnIndexMapper;
         const areRowHeadersSelected = renderableColumn < 0;
         let visualColumn = renderableColumn;
@@ -1085,8 +1159,8 @@ class TableView {
 
         return newVisualColumn;
       },
-      onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
-        let cornersOfSelection;
+      onAfterDrawSelection: (currentRow: number, currentColumn: number, layerLevel: number) => {
+        let cornersOfSelection: number[] | undefined;
         const [visualRowIndex, visualColumnIndex] =
           this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
         const selectedRange = this.hot.selection.getSelectedRange();
@@ -1103,7 +1177,7 @@ class TableView {
         return this.hot.runHooks('afterDrawSelection',
           visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
       },
-      onBeforeDrawBorders: (corners, borderClassName) => {
+      onBeforeDrawBorders: (corners: number[], borderClassName: string) => {
         const [startRenderableRow, startRenderableColumn, endRenderableRow, endRenderableColumn] = corners;
         const visualCorners = [
           this.hot.rowIndexMapper.getVisualFromRenderableIndex(startRenderableRow),
@@ -1116,8 +1190,8 @@ class TableView {
       },
       onBeforeTouchScroll: () => this.hot.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.hot.runHooks('afterMomentumScroll'),
-      onModifyRowHeaderWidth: rowHeaderWidth => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
-      onModifyGetCellCoords: (renderableRowIndex, renderableColumnIndex, topmost, source) => {
+      onModifyRowHeaderWidth: (rowHeaderWidth: number) => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
+      onModifyGetCellCoords: (renderableRowIndex: number, renderableColumnIndex: number, topmost: boolean, source: string) => {
         const rowMapper = this.hot.rowIndexMapper;
         const columnMapper = this.hot.columnIndexMapper;
 
@@ -1146,7 +1220,7 @@ class TableView {
           ];
         }
       },
-      onModifyGetCoordsElement: (renderableRowIndex, renderableColumnIndex) => {
+      onModifyGetCoordsElement: (renderableRowIndex: number, renderableColumnIndex: number) => {
         const rowMapper = this.hot.rowIndexMapper;
         const columnMapper = this.hot.columnIndexMapper;
 
@@ -1168,7 +1242,7 @@ class TableView {
           ];
         }
       },
-      viewportRowCalculatorOverride: (calc) => {
+      viewportRowCalculatorOverride: (calc: { startRow: number; endRow: number }) => {
         let viewportOffset = this.settings.viewportRowRenderingOffset;
 
         if (viewportOffset === 'auto' && this.settings.fixedRowsTop) {
@@ -1193,7 +1267,7 @@ class TableView {
         }
         this.hot.runHooks('afterViewportRowCalculatorOverride', calc);
       },
-      viewportColumnCalculatorOverride: (calc) => {
+      viewportColumnCalculatorOverride: (calc: { startColumn: number; endColumn: number }) => {
         let viewportOffset = this.settings.viewportColumnRenderingOffset;
 
         if (viewportOffset === 'auto' && this.settings.fixedColumnsStart) {
@@ -1237,14 +1311,14 @@ class TableView {
 
     this.setLastSize(width, height);
 
-    this.eventManager.addEventListener(spreader, 'mousedown', (event) => {
+    this.eventManager.addEventListener(spreader, 'mousedown', (event: MouseEvent) => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
       if (event.target === spreader && event.which === 3) {
         event.stopPropagation();
       }
     });
 
-    this.eventManager.addEventListener(spreader, 'contextmenu', (event) => {
+    this.eventManager.addEventListener(spreader, 'contextmenu', (event: MouseEvent) => {
       // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
       if (event.target === spreader && event.which === 3) {
         event.stopPropagation();
@@ -1268,7 +1342,7 @@ class TableView {
    * @param {HTMLElement} el The element to check.
    * @returns {boolean}
    */
-  isTextSelectionAllowed(el) {
+  private isTextSelectionAllowed(el: HTMLElement): boolean {
     if (isInput(el)) {
       return true;
     }
@@ -1293,7 +1367,7 @@ class TableView {
    * @private
    * @returns {boolean}
    */
-  isMouseDown() {
+  private isMouseDown(): boolean {
     return this.#mouseDown;
   }
 
@@ -1303,7 +1377,7 @@ class TableView {
    * @private
    * @returns {boolean}
    */
-  isSelectedOnlyCell() {
+  private isSelectedOnlyCell(): boolean {
     return this.hot.getSelectedRangeLast()?.isSingleCell() ?? false;
   }
 
@@ -1313,7 +1387,7 @@ class TableView {
    * @private
    * @returns {boolean}
    */
-  isCellEdited() {
+  private isCellEdited(): boolean {
     const activeEditor = this.hot.getActiveEditor();
 
     return activeEditor && activeEditor.isOpened();
@@ -1328,7 +1402,7 @@ class TableView {
    * @param {object} skipRender Object with `skipRender` property, if it is set to `true ` the next rendering
    *                            cycle will be skipped.
    */
-  beforeRender(force, skipRender) {
+  private beforeRender(force: boolean, skipRender: { skipRender: boolean }): void {
     if (force) {
       // this.hot.forceFullRender = did Handsontable request full render?
       this.hot.runHooks('beforeViewRender', this.hot.forceFullRender, skipRender);
@@ -1342,7 +1416,7 @@ class TableView {
    * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
    *                        rendering was triggered by scrolling or moving selection.
    */
-  afterRender(force) {
+  private afterRender(force: boolean): void {
     if (force) {
       // this.hot.forceFullRender = did Handsontable request full render?
       this.hot.runHooks('afterViewRender', this.hot.forceFullRender);
@@ -1356,9 +1430,9 @@ class TableView {
    * @param {number} visualRowIndex The visual row index.
    * @param {HTMLTableHeaderCellElement} TH The table header element.
    */
-  appendRowHeader(visualRowIndex, TH) {
+  private appendRowHeader(visualRowIndex: number, TH: HTMLTableHeaderCellElement): void {
     if (TH.firstChild) {
-      const container = TH.firstChild;
+      const container = TH.firstChild as HTMLElement;
 
       if (!hasClass(container, 'relative')) {
         empty(TH);
@@ -1367,7 +1441,7 @@ class TableView {
         return;
       }
 
-      this.updateCellHeader(container.querySelector('.rowHeader'), visualRowIndex, this.hot.getRowHeader);
+      this.updateCellHeader(container.querySelector('.rowHeader') as HTMLElement, visualRowIndex, this.hot.getRowHeader);
 
     } else {
       const { rootDocument, getRowHeader } = this.hot;
@@ -1395,12 +1469,12 @@ class TableView {
    * @param {number} [headerLevel=0] The index of header level counting from the top (positive
    *                                 values counting from 0 to N).
    */
-  appendColHeader(
-    visualColumnIndex,
-    TH,
-    label = this.hot.getColHeader,
-    headerLevel = 0
-  ) {
+  private appendColHeader(
+    visualColumnIndex: number,
+    TH: HTMLTableCellElement,
+    label: (index: number, headerLevel: number) => string = this.hot.getColHeader,
+    headerLevel: number = 0
+  ): void {
     const getColumnHeaderClassNames = () => {
       const metaHeaderClassNames =
         visualColumnIndex >= 0 ?
@@ -1411,10 +1485,10 @@ class TableView {
     };
 
     if (TH.firstChild) {
-      const container = TH.firstChild;
+      const container = TH.firstChild as HTMLElement;
 
       if (hasClass(container, 'relative')) {
-        this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label, headerLevel);
+        this.updateCellHeader(container.querySelector('.colHeader') as HTMLElement, visualColumnIndex, label, headerLevel);
 
         container.className = '';
         addClass(container, ['relative', ...getColumnHeaderClassNames()]);
@@ -1434,8 +1508,8 @@ class TableView {
       span.className = 'colHeader';
 
       if (this.settings.ariaTags) {
-        setAttribute(div, ...A11Y_PRESENTATION());
-        setAttribute(span, ...A11Y_PRESENTATION());
+        setAttribute(div, A11Y_PRESENTATION());
+        setAttribute(span, A11Y_PRESENTATION());
       }
 
       this.updateCellHeader(span, visualColumnIndex, label, headerLevel);
@@ -1457,7 +1531,12 @@ class TableView {
    * @param {number} [headerLevel=0] The index of header level counting from the top (positive
    *                                 values counting from 0 to N).
    */
-  updateCellHeader(element, index, content, headerLevel = 0) {
+  private updateCellHeader(
+    element: HTMLElement,
+    index: number,
+    content: (index: number, headerLevel: number) => string,
+    headerLevel: number = 0
+  ): void {
     let renderedIndex = index;
     const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
 
@@ -1489,7 +1568,7 @@ class TableView {
    * @param {number} inlineOffset The left (or right in RTL mode) offset.
    * @returns {number}
    */
-  maximumVisibleElementWidth(inlineOffset) {
+  private maximumVisibleElementWidth(inlineOffset: number): number {
     const workspaceWidth = this._wt.wtViewport.getWorkspaceWidth();
     const maxWidth = workspaceWidth - inlineOffset;
 
@@ -1504,7 +1583,7 @@ class TableView {
    * @param {number} topOffset The top offset.
    * @returns {number}
    */
-  maximumVisibleElementHeight(topOffset) {
+  private maximumVisibleElementHeight(topOffset: number): number {
     const workspaceHeight = this._wt.wtViewport.getWorkspaceHeight();
     const maxHeight = workspaceHeight - topOffset;
 
@@ -1517,7 +1596,7 @@ class TableView {
    * @param {number} width The table width.
    * @param {number} height The table height.
    */
-  setLastSize(width, height) {
+  setLastSize(width: number, height: number): void {
     this.#lastWidth = width;
     this.#lastHeight = height;
   }
@@ -1527,7 +1606,7 @@ class TableView {
    *
    * @returns {object}
    */
-  getLastSize() {
+  getLastSize(): { width: number; height: number } {
     return {
       width: this.#lastWidth,
       height: this.#lastHeight,
@@ -1539,7 +1618,7 @@ class TableView {
    *
    * @returns {number | null}
    */
-  getFirstRenderedVisibleRow() {
+  getFirstRenderedVisibleRow(): number | null {
     if (!this._wt.wtViewport.rowsRenderCalculator) {
       return null;
     }
@@ -1556,7 +1635,7 @@ class TableView {
    *
    * @returns {number | null}
    */
-  getLastRenderedVisibleRow() {
+  getLastRenderedVisibleRow(): number | null {
     if (!this._wt.wtViewport.rowsRenderCalculator) {
       return null;
     }
@@ -1573,7 +1652,7 @@ class TableView {
    *
    * @returns {number | null}
    */
-  getFirstRenderedVisibleColumn() {
+  getFirstRenderedVisibleColumn(): number | null {
     if (!this._wt.wtViewport.columnsRenderCalculator) {
       return null;
     }
@@ -1590,7 +1669,7 @@ class TableView {
    *
    * @returns {number | null}
    */
-  getLastRenderedVisibleColumn() {
+  getLastRenderedVisibleColumn(): number | null {
     if (!this._wt.wtViewport.columnsRenderCalculator) {
       return null;
     }
@@ -1608,7 +1687,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getFirstFullyVisibleRow() {
+  getFirstFullyVisibleRow(): number {
     return this.hot.rowIndexMapper
       .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstVisibleRow());
   }
@@ -1619,7 +1698,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getLastFullyVisibleRow() {
+  getLastFullyVisibleRow(): number {
     return this.hot.rowIndexMapper
       .getVisualFromRenderableIndex(this._wt.wtScroll.getLastVisibleRow());
   }
@@ -1630,7 +1709,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getFirstFullyVisibleColumn() {
+  getFirstFullyVisibleColumn(): number {
     return this.hot.columnIndexMapper
       .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstVisibleColumn());
   }
@@ -1641,7 +1720,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getLastFullyVisibleColumn() {
+  getLastFullyVisibleColumn(): number {
     return this.hot.columnIndexMapper
       .getVisualFromRenderableIndex(this._wt.wtScroll.getLastVisibleColumn());
   }
@@ -1652,7 +1731,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getFirstPartiallyVisibleRow() {
+  getFirstPartiallyVisibleRow(): number {
     return this.hot.rowIndexMapper
       .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstPartiallyVisibleRow());
   }
@@ -1663,7 +1742,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getLastPartiallyVisibleRow() {
+  getLastPartiallyVisibleRow(): number {
     return this.hot.rowIndexMapper
       .getVisualFromRenderableIndex(this._wt.wtScroll.getLastPartiallyVisibleRow());
   }
@@ -1674,7 +1753,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getFirstPartiallyVisibleColumn() {
+  getFirstPartiallyVisibleColumn(): number {
     return this.hot.columnIndexMapper
       .getVisualFromRenderableIndex(this._wt.wtScroll.getFirstPartiallyVisibleColumn());
   }
@@ -1685,7 +1764,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getLastPartiallyVisibleColumn() {
+  getLastPartiallyVisibleColumn(): number {
     return this.hot.columnIndexMapper
       .getVisualFromRenderableIndex(this._wt.wtScroll.getLastPartiallyVisibleColumn());
   }
@@ -1695,7 +1774,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getColumnHeadersCount() {
+  getColumnHeadersCount(): number {
     return this.#columnHeadersCount;
   }
 
@@ -1704,7 +1783,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getRowHeadersCount() {
+  getRowHeadersCount(): number {
     return this.#rowHeadersCount;
   }
 
@@ -1715,7 +1794,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getViewportWidth() {
+  getViewportWidth(): number {
     return this._wt.wtViewport.getViewportWidth();
   }
 
@@ -1724,7 +1803,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getWorkspaceWidth() {
+  getWorkspaceWidth(): number {
     return this._wt.wtViewport.getWorkspaceWidth();
   }
 
@@ -1735,7 +1814,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getViewportHeight() {
+  getViewportHeight(): number {
     return this._wt.wtViewport.getViewportHeight();
   }
 
@@ -1744,7 +1823,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getWorkspaceHeight() {
+  getWorkspaceHeight(): number {
     return this._wt.wtViewport.getWorkspaceHeight();
   }
 
@@ -1754,7 +1833,7 @@ class TableView {
    * @param {HTMLElement} element The DOM element to check.
    * @returns {'master'|'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'}
    */
-  getElementOverlayName(element) {
+  getElementOverlayName(element: HTMLElement): 'master' | 'inline_start' | 'top' | 'top_inline_start_corner' | 'bottom' | 'bottom_inline_start_corner' {
     return (this._wt.wtOverlays.getParentOverlay(element) ?? this._wt).wtTable.name;
   }
 
@@ -1764,7 +1843,7 @@ class TableView {
    * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
    * @returns {Overlay | null}
    */
-  getOverlayByName(overlayName) {
+  getOverlayByName(overlayName: 'inline_start' | 'top' | 'top_inline_start_corner' | 'bottom' | 'bottom_inline_start_corner'): any | null {
     return this._wt.getOverlayByName(overlayName);
   }
 
@@ -1774,7 +1853,7 @@ class TableView {
    *
    * @returns {string}
    */
-  getActiveOverlayName() {
+  getActiveOverlayName(): string {
     return this._wt.activeOverlayName;
   }
 
@@ -1783,7 +1862,7 @@ class TableView {
    *
    * @returns {boolean}
    */
-  isVisible() {
+  isVisible(): boolean {
     return this._wt.wtTable.isVisible();
   }
 
@@ -1792,7 +1871,7 @@ class TableView {
    *
    * @returns {boolean}
    */
-  hasVerticalScroll() {
+  hasVerticalScroll(): boolean {
     return this._wt.wtViewport.hasVerticalScroll();
   }
 
@@ -1801,7 +1880,7 @@ class TableView {
    *
    * @returns {boolean}
    */
-  hasHorizontalScroll() {
+  hasHorizontalScroll(): boolean {
     return this._wt.wtViewport.hasHorizontalScroll();
   }
 
@@ -1810,7 +1889,7 @@ class TableView {
    *
    * @returns {boolean}
    */
-  getTableWidth() {
+  getTableWidth(): number {
     return this._wt.wtTable.getWidth();
   }
 
@@ -1819,7 +1898,7 @@ class TableView {
    *
    * @returns {boolean}
    */
-  getTableHeight() {
+  getTableHeight(): number {
     return this._wt.wtTable.getHeight();
   }
 
@@ -1828,7 +1907,7 @@ class TableView {
    *
    * @returns {{ left: number, top: number }}
    */
-  getTableOffset() {
+  getTableOffset(): { left: number; top: number } {
     return this._wt.wtViewport.getWorkspaceOffset();
   }
 
@@ -1838,7 +1917,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getRowHeaderWidth() {
+  getRowHeaderWidth(): number {
     return this._wt.wtViewport.getRowHeaderWidth();
   }
 
@@ -1848,7 +1927,7 @@ class TableView {
    *
    * @returns {number}
    */
-  getColumnHeaderHeight() {
+  getColumnHeaderHeight(): number {
     return this._wt.wtViewport.getColumnHeaderHeight();
   }
 
@@ -1857,7 +1936,7 @@ class TableView {
    *
    * @returns {boolean}
    */
-  isVerticallyScrollableByWindow() {
+  isVerticallyScrollableByWindow(): boolean {
     return this._wt.wtViewport.isVerticallyScrollableByWindow();
   }
 
@@ -1866,7 +1945,7 @@ class TableView {
    *
    * @returns {boolean}
    */
-  isHorizontallyScrollableByWindow() {
+  isHorizontallyScrollableByWindow(): boolean {
     return this._wt.wtViewport.isHorizontallyScrollableByWindow();
   }
 
@@ -1875,8 +1954,8 @@ class TableView {
    *
    * @returns {number} The value of the `aria-colcount` attribute.
    */
-  #getAriaColcount() {
-    return parseInt(this.hot.rootElement.getAttribute(A11Y_COLCOUNT()[0]), 10);
+  #getAriaColcount(): number {
+    return parseInt(this.hot.rootElement.getAttribute(A11Y_COLCOUNT()[0]) || '0', 10);
   }
 
   /**
@@ -1884,10 +1963,10 @@ class TableView {
    *
    * @param {number} delta The number of columns to add or remove to the aria tag.
    */
-  #updateAriaColcount(delta) {
+  #updateAriaColcount(delta: number): void {
     const colCount = this.#getAriaColcount() + delta;
 
-    setAttribute(this.hot.rootElement, ...A11Y_COLCOUNT(colCount));
+    setAttribute(this.hot.rootElement, A11Y_COLCOUNT(colCount));
   }
 
   /**
@@ -1897,7 +1976,7 @@ class TableView {
    * adds or removes the corresponding class names (`htHasScrollY` and `htHasScrollX`)
    * to/from the root element.
    */
-  #updateScrollbarClassNames() {
+  #updateScrollbarClassNames(): void {
     const rootElement = this.hot.rootElement;
 
     if (this.hasVerticalScroll()) {
@@ -1918,7 +1997,7 @@ class TableView {
    *
    * @private
    */
-  destroy() {
+  destroy(): void {
     this._wt.destroy();
     this.eventManager.destroy();
   }

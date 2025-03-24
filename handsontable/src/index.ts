@@ -48,6 +48,42 @@ import {
 } from './plugins/registry';
 import { BasePlugin } from './plugins/base';
 
+// Define interfaces for static properties
+interface HandsontableStatic {
+  __GhostTable: typeof GhostTable;
+  _getListenersCounter: typeof getListenersCounter;
+  _getRegisteredMapsCounter: typeof getRegisteredMapsCounter;
+  EventManager: typeof EventManager;
+  helper: Record<string, any>;
+  dom: Record<string, any>;
+  cellTypes: Record<string, any> & {
+    registerCellType: typeof registerCellType;
+    getCellType: typeof getCellType;
+  };
+  editors: Record<string, any> & {
+    registerEditor: typeof registerEditor;
+    getEditor: typeof getEditor;
+  };
+  renderers: Record<string, any> & {
+    registerRenderer: typeof registerRenderer;
+    getRenderer: typeof getRenderer;
+    cellDecorator: any;
+  };
+  validators: Record<string, any> & {
+    registerValidator: typeof registerValidator;
+    getValidator: typeof getValidator;
+  };
+  plugins: Record<string, any> & {
+    registerPlugin: typeof registerPlugin;
+    getPlugin: typeof getPlugin;
+  };
+}
+
+// Extend Handsontable with static properties
+declare module './base' {
+  interface Handsontable extends HandsontableStatic {}
+}
+
 registerAllModules();
 jQueryWrapper(Handsontable);
 

@@ -1,5 +1,18 @@
 import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers/dom/event';
 
+interface EventListener {
+  element: Element;
+  event: string;
+  callback: (event: Event) => void;
+  callbackProxy: (event: Event) => void;
+  options: boolean | AddEventListenerOptions;
+  eventManager: EventManager;
+}
+
+interface EventContext {
+  eventListeners: EventListener[];
+}
+
 /**
  * Counter which tracks unregistered listeners (useful for detecting memory leaks).
  *
@@ -12,17 +25,18 @@ let listenersCounter = 0;
  *
  * @class EventManager
  */
-class EventManager {
+class EventManager implements EventContext {
   /**
    * @type {object}
    */
-  context;
+  context: EventContext;
+  eventListeners: EventListener[] = [];
 
   /**
    * @param {object} [context=null] An object to which event listeners will be stored.
    * @private
    */
-  constructor(context = null) {
+  constructor(context: EventContext | null = null) {
     this.context = context || this;
 
     // TODO it modify external object. Rethink that.
@@ -40,12 +54,12 @@ class EventManager {
    * @param {AddEventListenerOptions|boolean} [options] Listener options if object or useCapture if boolean.
    * @returns {Function} Returns function which you can easily call to remove that event.
    */
-  addEventListener(element, eventName, callback, options = false) {
+  addEventListener(element: Element, eventName: string, callback: (event: Event) => void, options: boolean | AddEventListenerOptions = false): () => void {
     /**
      * @private
      * @param {Event} event The event object.
      */
-    function callbackProxy(event) {
+    function callbackProxy(this: any, event: Event): void {
       callback.call(this, extendEvent(event));
     }
 
@@ -74,9 +88,9 @@ class EventManager {
    * @param {Function} callback Function to remove from the event target. It must be the same as during registration listener.
    * @param {boolean} [onlyOwnEvents] Whether whould remove only events registered using this instance of EventManager.
    */
-  removeEventListener(element, eventName, callback, onlyOwnEvents = false) {
+  removeEventListener(element: Element, eventName: string, callback: (event: Event) => void, onlyOwnEvents: boolean = false): void {
     let len = this.context.eventListeners.length;
-    let tmpEvent;
+    let tmpEvent: EventListener;
 
     while (len) {
       len -= 1;
@@ -106,7 +120,7 @@ class EventManager {
    * @since 0.15.0-beta3
    * @param {boolean} [onlyOwnEvents] Whether whould remove only events registered using this instance of EventManager.
    */
-  clearEvents(onlyOwnEvents = false) {
+  clearEvents(onlyOwnEvents: boolean = false): void {
     if (!this.context) {
       return;
     }
@@ -128,24 +142,24 @@ class EventManager {
   /**
    * Clear all previously registered events.
    */
-  clear() {
+  clear(): void {
     this.clearEvents();
   }
 
   /**
    * Destroy instance of EventManager, clearing all events of the context.
    */
-  destroy() {
+  destroy(): void {
     this.clearEvents();
-    this.context = null;
+    this.context = this;
   }
 
   /**
    * Destroy instance of EventManager, clearing only the own events.
    */
-  destroyWithOwnEventsOnly() {
+  destroyWithOwnEventsOnly(): void {
     this.clearEvents(true);
-    this.context = null;
+    this.context = this;
   }
 
   /**
@@ -154,13 +168,13 @@ class EventManager {
    * @param {Element} element Target element.
    * @param {string} eventName Event name.
    */
-  fireEvent(element, eventName) {
-    let rootDocument = element.document;
-    let rootWindow = element;
+  fireEvent(element: Element, eventName: string): void {
+    let rootDocument: Document = (element as any).document;
+    let rootWindow: Window = (element as any);
 
     if (!rootDocument) {
-      rootDocument = element.ownerDocument ? element.ownerDocument : element;
-      rootWindow = rootDocument.defaultView;
+      rootDocument = element.ownerDocument ? element.ownerDocument : (element as any);
+      rootWindow = rootDocument.defaultView as Window;
     }
 
     const options = {
@@ -179,10 +193,10 @@ class EventManager {
       button: 0,
       relatedTarget: undefined,
     };
-    let event;
+    let event: MouseEvent;
 
     if (rootDocument.createEvent) {
-      event = rootDocument.createEvent('MouseEvents');
+      event = rootDocument.createEvent('MouseEvents') as MouseEvent;
       event.initMouseEvent(eventName, options.bubbles, options.cancelable,
         options.view, options.detail,
         options.screenX, options.screenY, options.clientX, options.clientY,
@@ -190,13 +204,13 @@ class EventManager {
         options.button, options.relatedTarget || rootDocument.body.parentNode);
 
     } else {
-      event = rootDocument.createEventObject();
+      event = (rootDocument as any).createEventObject();
     }
 
     if (element.dispatchEvent) {
       element.dispatchEvent(event);
     } else {
-      element.fireEvent(`on${eventName}`, event);
+      (element as any).fireEvent(`on${eventName}`, event);
     }
   }
 }
@@ -206,10 +220,10 @@ class EventManager {
  * @param {Event} event The event object.
  * @returns {Event}
  */
-function extendEvent(event) {
+function extendEvent(event: Event): Event {
   const nativeStopImmediatePropagation = event.stopImmediatePropagation;
 
-  event.stopImmediatePropagation = function() {
+  event.stopImmediatePropagation = function(this: Event): void {
     nativeStopImmediatePropagation.apply(this);
     _stopImmediatePropagation(this);
   };
@@ -223,6 +237,6 @@ export default EventManager;
  * @private
  * @returns {number}
  */
-export function getListenersCounter() {
+export function getListenersCounter(): number {
   return listenersCounter;
 }

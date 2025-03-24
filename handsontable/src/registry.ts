@@ -24,7 +24,7 @@ export {
 /**
  * Registers all available Handsontable modules.
  */
-export function registerAllModules() {
+export function registerAllModules(): void {
   registerAllEditors();
   registerAllRenderers();
   registerAllValidators();

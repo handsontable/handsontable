@@ -1,6 +1,8 @@
 import { warn } from './helpers/console';
 import { isHTMLElement, isOutsideInput } from './helpers/dom/element';
 import { debounce } from './helpers/function';
+import { Core } from './plugins/types';
+import { Editor } from './editors/types';
 
 /**
  * Possible focus modes.
@@ -13,7 +15,9 @@ import { debounce } from './helpers/function';
 const FOCUS_MODES = Object.freeze({
   CELL: 'cell',
   MIXED: 'mixed',
-});
+} as const);
+
+type FocusMode = typeof FOCUS_MODES[keyof typeof FOCUS_MODES];
 
 /**
  * Manages the browser's focus in the table.
@@ -22,7 +26,7 @@ export class FocusManager {
   /**
    * The Handsontable instance.
    */
-  #hot;
+  #hot: Core;
   /**
    * The currently enabled focus mode.
    * Can be either:
@@ -33,7 +37,7 @@ export class FocusManager {
    *
    * @type {'cell' | 'mixed'}
    */
-  #focusMode;
+  #focusMode: FocusMode;
   /**
    * The delay after which the focus switches from the lastly selected cell to the active editor's `TEXTAREA`
    * element if the focus mode is set to 'mixed'.
@@ -47,24 +51,24 @@ export class FocusManager {
    *
    * @type {null|Function}
    */
-  #refocusElementGetter = null;
+  #refocusElementGetter: (() => HTMLElement | undefined) | null = null;
   /**
    * Map of the debounced `select` functions.
    *
    * @type {Map<number, Function>}
    */
-  #debouncedSelect = new Map();
+  #debouncedSelect = new Map<number, () => void>();
 
-  constructor(hotInstance) {
+  constructor(hotInstance: Core) {
     const hotSettings = hotInstance.getSettings();
 
     this.#hot = hotInstance;
     this.#focusMode = hotSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL;
 
-    this.#hot.addHook('afterUpdateSettings', (...args) => this.#onUpdateSettings(...args));
-    this.#hot.addHook('afterSelection', (...args) => this.#focusCell(...args));
-    this.#hot.addHook('afterSelectionFocusSet', (...args) => this.#focusCell(...args));
-    this.#hot.addHook('afterSelectionEnd', (...args) => this.#focusEditorElement(...args));
+    this.#hot.addHook('afterUpdateSettings', (newSettings: any) => this.#onUpdateSettings(newSettings));
+    this.#hot.addHook('afterSelection', () => this.#focusCell());
+    this.#hot.addHook('afterSelectionFocusSet', () => this.#focusCell());
+    this.#hot.addHook('afterSelectionEnd', () => this.#focusEditorElement());
   }
 
   /**
@@ -72,7 +76,7 @@ export class FocusManager {
    *
    * @returns {'cell' | 'mixed'}
    */
-  getFocusMode() {
+  getFocusMode(): FocusMode {
     return this.#focusMode;
   }
 
@@ -81,7 +85,7 @@ export class FocusManager {
    *
    * @param {'cell' | 'mixed'} focusMode The new focus mode.
    */
-  setFocusMode(focusMode) {
+  setFocusMode(focusMode: FocusMode): void {
     if (Object.values(FOCUS_MODES).includes(focusMode)) {
       this.#focusMode = focusMode;
 
@@ -96,7 +100,7 @@ export class FocusManager {
    *
    * @returns {number} Delay in milliseconds.
    */
-  getRefocusDelay() {
+  getRefocusDelay(): number {
     return this.#refocusDelay;
   }
 
@@ -106,7 +110,7 @@ export class FocusManager {
    *
    * @param {number} delay Delay in milliseconds.
    */
-  setRefocusDelay(delay) {
+  setRefocusDelay(delay: number): void {
     this.#refocusDelay = delay;
   }
 
@@ -115,7 +119,7 @@ export class FocusManager {
    *
    * @param {Function} getRefocusElementFunction The refocus element getter.
    */
-  setRefocusElementGetter(getRefocusElementFunction) {
+  setRefocusElementGetter(getRefocusElementFunction: () => HTMLElement | undefined): void {
     this.#refocusElementGetter = getRefocusElementFunction;
   }
 
@@ -124,9 +128,10 @@ export class FocusManager {
    *
    * @returns {HTMLTextAreaElement|HTMLElement|undefined}
    */
-  getRefocusElement() {
+  getRefocusElement(): HTMLTextAreaElement | undefined {
     if (typeof this.#refocusElementGetter === 'function') {
-      return this.#refocusElementGetter();
+      const element = this.#refocusElementGetter();
+      return element instanceof HTMLTextAreaElement ? element : undefined;
     }
 
     return this.#hot.getActiveEditor()?.TEXTAREA;
@@ -137,8 +142,8 @@ export class FocusManager {
    *
    * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
    */
-  focusOnHighlightedCell(selectedCell) {
-    const focusElement = (element) => {
+  focusOnHighlightedCell(selectedCell?: HTMLTableCellElement | null): void {
+    const focusElement = (element: HTMLTableCellElement | null) => {
       const currentHighlightCoords = this.#hot.getSelectedRangeLast()?.highlight;
 
       if (!currentHighlightCoords) {
@@ -176,7 +181,7 @@ export class FocusManager {
    *
    * @param {number} [delay] Delay in milliseconds.
    */
-  refocusToEditorTextarea(delay = this.#refocusDelay) {
+  refocusToEditorTextarea(delay = this.#refocusDelay): void {
     // Re-focus on the editor's `TEXTAREA` element (or a predefined element) if the `imeFastEdit` option is enabled.
     if (
       this.#hot.getSettings().imeFastEdit &&
@@ -190,7 +195,7 @@ export class FocusManager {
         }, delay));
       }
 
-      this.#debouncedSelect.get(delay)();
+      this.#debouncedSelect.get(delay)?.();
     }
   }
 
@@ -199,7 +204,7 @@ export class FocusManager {
    *
    * @param {Function} callback Callback function to be called after the cell element is retrieved.
    */
-  #getSelectedCell(callback) {
+  #getSelectedCell(callback: (cell: HTMLTableCellElement | null) => void): void {
     const highlight = this.#hot.getSelectedRangeLast()?.highlight;
 
     if (!highlight || !this.#hot.selection.isCellVisible(highlight)) {
@@ -223,7 +228,7 @@ export class FocusManager {
   /**
    * Manage the browser's focus after each cell selection change.
    */
-  #focusCell() {
+  #focusCell(): void {
     this.#getSelectedCell((selectedCell) => {
       const { activeElement } = this.#hot.rootDocument;
 
@@ -242,7 +247,7 @@ export class FocusManager {
   /**
    * Manage the browser's focus after cell selection end.
    */
-  #focusEditorElement() {
+  #focusEditorElement(): void {
     this.#getSelectedCell((selectedCell) => {
       if (
         this.getFocusMode() === FOCUS_MODES.MIXED &&
@@ -258,7 +263,7 @@ export class FocusManager {
    *
    * @param {object} newSettings The new settings passed to the `updateSettings` method.
    */
-  #onUpdateSettings(newSettings) {
+  #onUpdateSettings(newSettings: { imeFastEdit?: boolean }): void {
     if (typeof newSettings.imeFastEdit === 'boolean') {
       this.setFocusMode(newSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL);
     }

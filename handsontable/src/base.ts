@@ -20,6 +20,27 @@ import { TextCellType } from './cellTypes/textType';
 import { BaseEditor } from './editors/baseEditor';
 import { CellCoords, CellRange } from './3rdparty/walkontable/src';
 
+type HandsontableInstance = {
+  editors: {
+    BaseEditor: typeof BaseEditor;
+  };
+  DefaultSettings: ReturnType<typeof metaSchemaFactory>;
+  hooks: ReturnType<typeof Hooks.getSingleton>;
+  CellCoords: typeof CellCoords;
+  CellRange: typeof CellRange;
+  packageName: string;
+  buildDate: string | undefined;
+  version: string | undefined;
+  languages: {
+    dictionaryKeys: typeof dictionaryKeys;
+    getLanguageDictionary: typeof getLanguageDictionary;
+    getLanguagesDictionaries: typeof getLanguagesDictionaries;
+    registerLanguageDictionary: typeof registerLanguageDictionary;
+    getTranslatedPhrase: typeof getTranslatedPhrase;
+  };
+  Core: (rootElement: HTMLElement, userSettings?: Record<string, any>, rootInstanceSymbol?: boolean) => ReturnType<typeof Core>;
+};
+
 // register default mandatory cell type for the Base package
 registerCellType(TextCellType);
 
@@ -33,7 +54,7 @@ Handsontable.editors = {
  * @param {object} userSettings The user defined options.
  * @returns {Core}
  */
-function Handsontable(rootElement, userSettings) {
+function Handsontable(rootElement: HTMLElement, userSettings?: Record<string, any>): ReturnType<typeof Core> {
   const instance = new Core(rootElement, userSettings || {}, rootInstanceSymbol);
 
   instance.init();
@@ -41,7 +62,7 @@ function Handsontable(rootElement, userSettings) {
   return instance;
 }
 
-Handsontable.Core = function(rootElement, userSettings = {}) {
+Handsontable.Core = function(rootElement: HTMLElement, userSettings: Record<string, any> = {}) {
   return new Core(rootElement, userSettings, rootInstanceSymbol);
 };
 
