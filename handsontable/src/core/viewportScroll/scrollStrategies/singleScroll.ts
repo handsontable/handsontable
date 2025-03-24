@@ -1,11 +1,13 @@
+import { Core, CellCoords, ScrollStrategy } from '../types';
+
 /**
  * Scroll strategy for single cell selection.
  *
  * @param {Core} hot Handsontable instance.
  * @returns {function(): function(CellCoords): { row: number, col: number } | void }
  */
-export function singleScrollStrategy(hot) {
-  return (cellCoords) => {
+export function singleScrollStrategy(hot: Core): ScrollStrategy {
+  return (cellCoords: CellCoords): { row: number; col: number } | void => {
     const selectionSource = hot.selection.getSelectionSource();
     const { row, col } = cellCoords;
 

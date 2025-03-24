@@ -1,5 +1,22 @@
 import { GRID_GROUP } from '../../shortcutContexts';
 import { installFocusDetector } from './focusDetector';
+import { Core } from '../../plugins/types';
+import { CellCoords } from '../../core/types';
+
+interface RowWrapState {
+  wrapped: boolean;
+  flipped: boolean;
+}
+
+interface ShortcutOptions {
+  keys: string[][];
+  preventDefault: boolean;
+  stopPropagation: boolean;
+  relativeToGroup: string;
+  group: string;
+  callback?: () => void;
+  position?: 'before' | 'after';
+}
 
 /**
  * Installs a focus catcher module. The module observes when the table is focused and depending on
@@ -8,9 +25,9 @@ import { installFocusDetector } from './focusDetector';
  *
  * @param {Core} hot The Handsontable instance.
  */
-export function installFocusCatcher(hot) {
+export function installFocusCatcher(hot: Core): void {
   const clampCoordsIfNeeded = normalizeCoordsIfNeeded(hot);
-  let recentlyAddedFocusCoords;
+  let recentlyAddedFocusCoords: CellCoords | null = null;
 
   const { activate, deactivate } = installFocusDetector(hot, {
     onFocusFromTop() {
@@ -35,7 +52,7 @@ export function installFocusCatcher(hot) {
     },
   });
 
-  const rowWrapState = {
+  const rowWrapState: RowWrapState = {
     wrapped: false,
     flipped: false,
   };
@@ -45,17 +62,17 @@ export function installFocusCatcher(hot) {
 
   hot.addHook('afterListen', () => deactivate());
   hot.addHook('afterUnlisten', () => activate());
-  hot.addHook('afterSelection', (row, column, row2, column2, preventScrolling) => {
+  hot.addHook('afterSelection', (row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }) => {
     if (isTabOrShiftTabPressed && (rowWrapState.wrapped && rowWrapState.flipped || preventViewportScroll)) {
       preventViewportScroll = false;
       preventScrolling.value = true;
     }
 
     if (isSavingCoordsEnabled) {
-      recentlyAddedFocusCoords = hot.getSelectedRangeLast()?.highlight;
+      recentlyAddedFocusCoords = hot.getSelectedRangeLast()?.highlight ?? null;
     }
   });
-  hot.addHook('beforeRowWrap', (interruptedByAutoInsertMode, newCoords, isFlipped) => {
+  hot.addHook('beforeRowWrap', (interruptedByAutoInsertMode: boolean, newCoords: CellCoords, isFlipped: boolean) => {
     rowWrapState.wrapped = true;
     rowWrapState.flipped = isFlipped;
   });
@@ -63,14 +80,14 @@ export function installFocusCatcher(hot) {
   /**
    * Unselects the cell and deactivates the table.
    */
-  function deactivateTable() {
+  function deactivateTable(): void {
     rowWrapState.wrapped = false;
     rowWrapState.flipped = false;
     hot.deselectCell();
     hot.unlisten();
   }
 
-  const shortcutOptions = {
+  const shortcutOptions: ShortcutOptions = {
     keys: [['Tab'], ['Shift', 'Tab']],
     preventDefault: false,
     stopPropagation: false,
@@ -100,7 +117,7 @@ export function installFocusCatcher(hot) {
       },
       {
         ...shortcutOptions,
-        callback: (event) => {
+        callback: (event: KeyboardEvent) => {
           const { tabNavigation, autoWrapRow } = hot.getSettings();
 
           isTabOrShiftTabPressed = false;
@@ -136,7 +153,7 @@ export function installFocusCatcher(hot) {
  * @param {Core} hot The Handsontable instance.
  * @returns {CellCoords|null}
  */
-function getMostTopStartPosition(hot) {
+function getMostTopStartPosition(hot: Core): CellCoords | null {
   const { rowIndexMapper, columnIndexMapper } = hot;
   const { navigableHeaders } = hot.getSettings();
   let topRow = navigableHeaders && hot.countColHeaders() > 0 ? -hot.countColHeaders() : 0;
@@ -163,7 +180,7 @@ function getMostTopStartPosition(hot) {
  * @param {Core} hot The Handsontable instance.
  * @returns {CellCoords|null}
  */
-function getMostBottomEndPosition(hot) {
+function getMostBottomEndPosition(hot: Core): CellCoords | null {
   const { rowIndexMapper, columnIndexMapper } = hot;
   const { navigableHeaders } = hot.getSettings();
   let bottomRow = rowIndexMapper.getRenderableIndexesLength() - 1;
@@ -197,14 +214,18 @@ function getMostBottomEndPosition(hot) {
  * @param {Core} hot The Handsontable instance.
  * @returns {function(Coords | undefined): Coords | null}
  */
-function normalizeCoordsIfNeeded(hot) {
-  return (coords) => {
+function normalizeCoordsIfNeeded(hot: Core): (coords: CellCoords | null) => CellCoords | null {
+  return (coords: CellCoords | null): CellCoords | null => {
     if (!coords) {
       return null;
     }
 
     const mostTopStartCoords = getMostTopStartPosition(hot);
     const mostBottomEndCoords = getMostBottomEndPosition(hot);
+
+    if (!mostTopStartCoords || !mostBottomEndCoords) {
+      return null;
+    }
 
     if (coords.col < mostTopStartCoords.col) {
       coords.col = mostTopStartCoords.col;

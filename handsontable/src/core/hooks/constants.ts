@@ -21,7 +21,7 @@
  * const hot1 = new Handsontable(document.getElementById('example1'), {
  *   afterChange: function(changes, source) {
  *     $.ajax({
- *       url: "save.php',
+ *       url: "save.php",
  *       data: change
  *     });
  *   }
@@ -96,21 +96,704 @@
  * const hot2 = hotRef2.current.hotInstance;
  * // local hook (has same effect as a callback)
  * hot2.addHook('afterChange', function() {
- *   // function body - will only run in #example2
- * });
+   *   // function body - will only run in #example2
+   * });
  *
  * // global hook
  * Handsontable.hooks.add('afterChange', function() {
- *   // Fired twice - for hot1 and hot2
- *   if (this.getSettings().myPlugin) {
- *     // function body - will only run for first instance
- *   }
- * });
+   *   // Fired twice - for hot1 and hot2
+   *   if (this.getSettings().myPlugin) {
+   *     // function body - will only run for first instance
+   *   }
+   * });
  * :::
  * ...
  */
 
-export const REGISTERED_HOOKS = [
+// Define interfaces for hook parameters
+interface CellCoords {
+  row: number;
+  col: number;
+}
+
+interface CellRange {
+  from: CellCoords;
+  to: CellCoords;
+}
+
+interface Change {
+  row: number;
+  prop: number | string;
+  oldValue: any;
+  newValue: any;
+}
+
+interface FilterCondition {
+  name: string;
+  args: any[];
+}
+
+interface FilterConditionStack {
+  column: number;
+  conditions: FilterCondition[];
+  operation: 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
+}
+
+interface Action {
+  actionType: string;
+  [key: string]: any;
+}
+
+// Define the type for all possible hook names
+type HookName =
+  | 'afterCellMetaReset'
+  | 'afterChange'
+  | 'afterContextMenuDefaultOptions'
+  | 'afterContextMenuHide'
+  | 'afterContextMenuShow'
+  | 'afterCopy'
+  | 'afterCopyLimit'
+  | 'afterCreateCol'
+  | 'afterCreateRow'
+  | 'afterDeselect'
+  | 'afterDestroy'
+  | 'afterDocumentKeyDown'
+  | 'afterDrawSelection'
+  | 'afterFilter'
+  | 'afterFormulasValuesUpdate'
+  | 'afterGetCellMeta'
+  | 'afterGetColHeader'
+  | 'afterGetRowHeader'
+  | 'afterInit'
+  | 'afterInitWalkontable'
+  | 'afterLanguageChange'
+  | 'afterLoadData'
+  | 'afterMomentumScroll'
+  | 'afterNamedExpressionAdded'
+  | 'afterNamedExpressionRemoved'
+  | 'afterOnCellContextMenu'
+  | 'afterOnCellCornerDblClick'
+  | 'afterOnCellCornerMouseDown'
+  | 'afterOnCellMouseDown'
+  | 'afterOnCellMouseOut'
+  | 'afterOnCellMouseOver'
+  | 'afterOnCellMouseUp'
+  | 'afterPaste'
+  | 'afterRemoveCellMeta'
+  | 'afterRemoveCol'
+  | 'afterRemoveRow'
+  | 'afterRender'
+  | 'afterRowMove'
+  | 'afterRowResize'
+  | 'afterScroll'
+  | 'afterScrollHorizontally'
+  | 'afterScrollVertically'
+  | 'afterSelection'
+  | 'afterSelectionByProp'
+  | 'afterSelectionEnd'
+  | 'afterSelectionEndByProp'
+  | 'afterSelectionFocusSet'
+  | 'afterSetCellMeta'
+  | 'afterSetDataAtCell'
+  | 'afterSetDataAtRowProp'
+  | 'afterSetSourceDataAtCell'
+  | 'afterSetTheme'
+  | 'afterSheetAdded'
+  | 'afterSheetRemoved'
+  | 'afterSheetRenamed'
+  | 'afterUndo'
+  | 'afterUndoStackChange'
+  | 'afterUpdateData'
+  | 'afterUpdateSettings'
+  | 'afterValidate'
+  | 'afterViewRender'
+  | 'afterViewportRowCalculatorOverride'
+  | 'beforeAutofill'
+  | 'beforeCellAlignment'
+  | 'beforeChange'
+  | 'beforeChangeRender'
+  | 'beforeColumnFreeze'
+  | 'beforeColumnMove'
+  | 'beforeColumnResize'
+  | 'beforeColumnSort'
+  | 'beforeColumnUnfreeze'
+  | 'beforeCopy'
+  | 'beforeCreateCol'
+  | 'beforeCreateRow'
+  | 'beforeCut'
+  | 'beforeDrawBorders'
+  | 'beforeFilter'
+  | 'beforeGetCellMeta'
+  | 'beforeInit'
+  | 'beforeInitWalkontable'
+  | 'beforeKeyDown'
+  | 'beforeLanguageChange'
+  | 'beforeLoadData'
+  | 'beforeOnCellContextMenu'
+  | 'beforeOnCellCornerDblClick'
+  | 'beforeOnCellCornerMouseDown'
+  | 'beforeOnCellMouseDown'
+  | 'beforeOnCellMouseOut'
+  | 'beforeOnCellMouseOver'
+  | 'beforeOnCellMouseUp'
+  | 'beforePaste'
+  | 'beforeRedo'
+  | 'beforeRedoStackChange'
+  | 'beforeRemoveCellMeta'
+  | 'beforeRemoveCol'
+  | 'beforeRemoveRow'
+  | 'beforeRender'
+  | 'beforeRowMove'
+  | 'beforeRowResize'
+  | 'beforeSetCellMeta'
+  | 'beforeSetRangeEnd'
+  | 'beforeSetRangeStart'
+  | 'beforeSetRangeStartOnly'
+  | 'beforeStretchingColumnWidth'
+  | 'beforeTouchScroll'
+  | 'beforeUndo'
+  | 'beforeUndoStackChange'
+  | 'beforeValidate'
+  | 'beforeValueRender'
+  | 'beforeViewRender'
+  | 'beforeViewportScroll'
+  | 'beforeViewportScrollHorizontally'
+  | 'beforeViewportScrollVertically'
+  | 'construct'
+  | 'init'
+  | 'modifyAutofillRange'
+  | 'modifyColHeader'
+  | 'modifyColWidth'
+  | 'modifyColumnHeaderHeight'
+  | 'modifyColumnHeaderValue'
+  | 'modifyCopyableRange'
+  | 'modifyData'
+  | 'modifyFocusedElement'
+  | 'modifyGetCellCoords'
+  | 'modifyGetCoordsElement'
+  | 'modifyRowData'
+  | 'modifyRowHeader'
+  | 'modifyRowHeaderWidth'
+  | 'modifyRowHeight'
+  | 'modifyRowHeightByOverlayName'
+  | 'modifySourceData'
+  | 'modifyTransformEnd'
+  | 'modifyTransformFocus'
+  | 'modifyTransformStart'
+  | 'persistentStateLoad'
+  | 'persistentStateReset'
+  | 'persistentStateSave'
+  | 'beforeContextMenuSetItems'
+  | 'afterDropdownMenuDefaultOptions'
+  | 'beforeDropdownMenuSetItems'
+  | 'beforeContextMenuShow'
+  | 'afterColumnSequenceChange'
+  | 'beforeRemoveCellClassNames'
+  | 'beforeRenderer'
+  | 'afterRenderer'
+  | 'afterRowSequenceChange'
+  | 'beforeSelectColumns'
+  | 'afterSelectColumns'
+  | 'beforeSelectRows'
+  | 'afterSelectRows'
+  | 'afterAutofill'
+  | 'beforeUpdateData'
+  | 'beforeRowWrap'
+  | 'beforeColumnWrap'
+  | 'beforeSelectionFocusSet'
+  | 'beforeSelectionHighlightSet'
+  | 'modifyFiltersMultiSelectValue'
+  | 'modifyFocusOnTabNavigation'
+  | 'beforeHighlightingRowHeader'
+  | 'beforeHighlightingColumnHeader'
+  | 'afterColumnSort'
+  | 'afterCut'
+  | 'afterColumnFreeze'
+  | 'afterColumnMove'
+  | 'afterColumnUnfreeze'
+  | 'afterColumnResize'
+  | 'afterGetColumnHeaderRenderers'
+  | 'afterGetRowHeaderRenderers'
+  | 'afterRedo'
+  | 'afterRedoStackChange'
+  | 'afterModifyTransformFocus'
+  | 'afterModifyTransformStart'
+  | 'afterModifyTransformEnd'
+  | 'afterViewportColumnCalculatorOverride'
+  | 'afterPluginsInitialized'
+  | 'beforeHideRows'
+  | 'afterHideRows'
+  | 'beforeUnhideRows'
+  | 'afterUnhideRows'
+  | 'beforeHideColumns'
+  | 'afterHideColumns'
+  | 'beforeUnhideColumns'
+  | 'afterUnhideColumns'
+  | 'beforeTrimRow'
+  | 'afterTrimRow'
+  | 'beforeUntrimRow'
+  | 'afterUntrimRow'
+  | 'beforeDropdownMenuShow'
+  | 'afterDropdownMenuShow'
+  | 'afterDropdownMenuHide'
+  | 'beforeAddChild'
+  | 'afterAddChild'
+  | 'beforeDetachChild'
+  | 'afterDetachChild'
+  | 'beforeBeginEditing'
+  | 'afterBeginEditing'
+  | 'beforeMergeCells'
+  | 'afterMergeCells'
+  | 'beforeUnmergeCells'
+  | 'afterUnmergeCells'
+  | 'afterListen'
+  | 'afterUnlisten'
+  | 'afterRefreshDimensions'
+  | 'beforeRefreshDimensions'
+  | 'beforeColumnCollapse'
+  | 'afterColumnCollapse'
+  | 'beforeColumnExpand'
+  | 'afterColumnExpand'
+  | 'modifyAutoColumnSizeSeed';
+
+// Define the type for hook parameters
+type HookParams = {
+  afterCellMetaReset: [];
+  afterChange: [Change[] | null, string | undefined];
+  afterContextMenuDefaultOptions: [any[]];
+  afterContextMenuHide: [any];
+  afterContextMenuShow: [any];
+  afterCopy: [any[][], { startRow: number; startCol: number; endRow: number; endCol: number }[], { columnHeadersCount: number }];
+  afterCopyLimit: [number, number, number, number];
+  afterCreateCol: [number, number, string | undefined];
+  afterCreateRow: [number, number, string | undefined];
+  afterDeselect: [];
+  afterDestroy: [];
+  afterDocumentKeyDown: [KeyboardEvent];
+  afterDrawSelection: [number, number, number[], number | undefined];
+  afterFilter: [FilterConditionStack[]];
+  afterFormulasValuesUpdate: [any[]];
+  afterGetCellMeta: [number, number, any];
+  afterGetColHeader: [number, HTMLTableCellElement, number | undefined];
+  afterGetRowHeader: [number, HTMLTableCellElement];
+  afterInit: [];
+  afterInitWalkontable: [any];
+  afterLanguageChange: [string];
+  afterLoadData: [any[], boolean, string];
+  afterMomentumScroll: [];
+  afterNamedExpressionAdded: [string, any[]];
+  afterNamedExpressionRemoved: [string, any[]];
+  afterOnCellContextMenu: [MouseEvent, CellCoords, HTMLTableCellElement];
+  afterOnCellCornerDblClick: [MouseEvent];
+  afterOnCellCornerMouseDown: [MouseEvent];
+  afterOnCellMouseDown: [MouseEvent, CellCoords, HTMLTableCellElement];
+  afterOnCellMouseOut: [MouseEvent, CellCoords, HTMLTableCellElement];
+  afterOnCellMouseOver: [MouseEvent, CellCoords, HTMLTableCellElement];
+  afterOnCellMouseUp: [MouseEvent, CellCoords, HTMLTableCellElement];
+  afterPaste: [any[][], { startRow: number; startCol: number; endRow: number; endCol: number }[]];
+  afterRemoveCellMeta: [number, number, string, any];
+  afterRemoveCol: [number, number, number[], string | undefined];
+  afterRemoveRow: [number, number, number[], string | undefined];
+  afterRender: [boolean];
+  afterRowMove: [number[], number, number | undefined, boolean, boolean];
+  afterRowResize: [number, number, boolean];
+  afterScroll: [];
+  afterScrollHorizontally: [];
+  afterScrollVertically: [];
+  afterSelection: [number, number, number, number, { value: boolean }, number];
+  afterSelectionByProp: [number, string, number, string, { value: boolean }, number];
+  afterSelectionEnd: [number, number, number, number, number];
+  afterSelectionEndByProp: [number, string, number, string, number];
+  afterSelectionFocusSet: [number, number, { value: boolean }];
+  afterSetCellMeta: [number, number, string, any];
+  afterSetDataAtCell: [Change[], string | undefined];
+  afterSetDataAtRowProp: [Change[], string | undefined];
+  afterSetSourceDataAtCell: [Change[], string];
+  afterSetTheme: [string | boolean | undefined, boolean];
+  afterSheetAdded: [string];
+  afterSheetRemoved: [string, any[]];
+  afterSheetRenamed: [string, string];
+  afterUndo: [Action];
+  afterUndoStackChange: [Action[], Action[]];
+  afterUpdateData: [any[], boolean, string];
+  afterUpdateSettings: [any];
+  afterValidate: [boolean, any, number, string | number, string | undefined];
+  afterViewRender: [boolean];
+  afterViewportRowCalculatorOverride: [any];
+  beforeAutofill: [any[][], CellRange, CellRange, string];
+  beforeCellAlignment: [any, CellRange[], string, string];
+  beforeChange: [Change[], string | undefined];
+  beforeChangeRender: [Change[], string | undefined];
+  beforeColumnFreeze: [number, boolean];
+  beforeColumnMove: [number[], number, number | undefined, boolean];
+  beforeColumnResize: [number, number, boolean];
+  beforeColumnSort: [FilterConditionStack[], FilterConditionStack[]];
+  beforeColumnUnfreeze: [number, boolean];
+  beforeCopy: [any[][], { startRow: number; startCol: number; endRow: number; endCol: number }[], { columnHeadersCount: number }];
+  beforeCreateCol: [number, number, string | undefined];
+  beforeCreateRow: [number, number, string | undefined];
+  beforeCut: [any[][], { startRow: number; startCol: number; endRow: number; endCol: number }[]];
+  beforeDrawBorders: [number[], string];
+  beforeFilter: [FilterConditionStack[], FilterConditionStack[] | null];
+  beforeGetCellMeta: [number, number, any];
+  beforeInit: [];
+  beforeInitWalkontable: [any];
+  beforeKeyDown: [KeyboardEvent];
+  beforeLanguageChange: [string];
+  beforeLoadData: [any[], boolean, string];
+  beforeOnCellContextMenu: [MouseEvent, CellCoords, HTMLTableCellElement];
+  beforeOnCellCornerDblClick: [MouseEvent];
+  beforeOnCellCornerMouseDown: [MouseEvent];
+  beforeOnCellMouseDown: [MouseEvent, CellCoords, HTMLTableCellElement];
+  beforeOnCellMouseOut: [MouseEvent, CellCoords, HTMLTableCellElement];
+  beforeOnCellMouseOver: [MouseEvent, CellCoords, HTMLTableCellElement];
+  beforeOnCellMouseUp: [MouseEvent, CellCoords, HTMLTableCellElement];
+  beforePaste: [any[][], { startRow: number; startCol: number; endRow: number; endCol: number }[]];
+  beforeRedo: [Action];
+  beforeRedoStackChange: [Action[]];
+  beforeRemoveCellMeta: [number, number, string, any];
+  beforeRemoveCol: [number, number, number[], string | undefined];
+  beforeRemoveRow: [number, number, number[], string | undefined];
+  beforeRender: [boolean];
+  beforeRowMove: [number[], number, number | undefined, boolean];
+  beforeRowResize: [number, number, boolean];
+  beforeSetCellMeta: [number, number, string, any];
+  beforeSetRangeEnd: [CellCoords];
+  beforeSetRangeStart: [CellCoords];
+  beforeSetRangeStartOnly: [CellCoords];
+  beforeStretchingColumnWidth: [number, number];
+  beforeTouchScroll: [];
+  beforeUndo: [Action];
+  beforeUndoStackChange: [Action[], string | undefined];
+  beforeValidate: [any, number, string | number, string | undefined];
+  beforeValueRender: [any, any];
+  beforeViewRender: [boolean, { skipRender: boolean }];
+  beforeViewportScroll: [];
+  beforeViewportScrollHorizontally: [number, 'auto' | 'start' | 'end'];
+  beforeViewportScrollVertically: [number, 'auto' | 'top' | 'bottom'];
+  construct: [];
+  init: [];
+  modifyAutofillRange: [number[], number[]];
+  modifyColHeader: [number];
+  modifyColWidth: [number, number, string | undefined];
+  modifyColumnHeaderHeight: [];
+  modifyColumnHeaderValue: [string, number, number | undefined];
+  modifyCopyableRange: [any[]];
+  modifyData: [number, number, { value: any }, string];
+  modifyFocusedElement: [number, number, HTMLElement | undefined];
+  modifyGetCellCoords: [number, number, boolean, string];
+  modifyGetCoordsElement: [number, number];
+  modifyRowData: [number];
+  modifyRowHeader: [number];
+  modifyRowHeaderWidth: [number];
+  modifyRowHeight: [number, number, string | undefined];
+  modifyRowHeightByOverlayName: [number, number, 'inline_start' | 'top' | 'top_inline_start_corner' | 'bottom' | 'bottom_inline_start_corner' | 'master'];
+  modifySourceData: [number, number, { value: any }, string];
+  modifyTransformEnd: [CellCoords];
+  modifyTransformFocus: [CellCoords];
+  modifyTransformStart: [CellCoords];
+  persistentStateLoad: [string, { value: any }];
+  persistentStateReset: [string | undefined];
+  persistentStateSave: [string, any];
+  beforeContextMenuSetItems: [any[]];
+  afterDropdownMenuDefaultOptions: [any[]];
+  beforeDropdownMenuSetItems: [any[]];
+  beforeContextMenuShow: [any];
+  afterColumnSequenceChange: ['init' | 'remove' | 'insert' | 'move' | 'update'];
+  beforeRemoveCellClassNames: [string[] | undefined];
+  beforeRenderer: [HTMLTableCellElement, number, number, string | number, any, object];
+  afterRenderer: [boolean];
+  afterRowSequenceChange: ['init' | 'remove' | 'insert' | 'move' | 'update'];
+  beforeSelectColumns: [number, number, number, number];
+  afterSelectColumns: [number, number, number, number];
+  beforeSelectRows: [number, number, number, number];
+  afterSelectRows: [number, number, number, number];
+  afterAutofill: [any[][], CellRange, CellRange, string];
+  beforeUpdateData: [any[], boolean, string];
+  beforeRowWrap: [boolean];
+  beforeColumnWrap: [boolean];
+  beforeSelectionFocusSet: [number, number, { value: boolean }];
+  beforeSelectionHighlightSet: [number, number, { value: boolean }];
+  modifyFiltersMultiSelectValue: [any[]];
+  modifyFocusOnTabNavigation: [boolean];
+  beforeHighlightingRowHeader: [number];
+  beforeHighlightingColumnHeader: [number];
+  afterColumnSort: [FilterConditionStack[]];
+  afterCut: [any[][], { startRow: number; startCol: number; endRow: number; endCol: number }[]];
+  afterRemoveMeta: [number, number, string, any];
+  afterColumnFreeze: [number, boolean];
+  afterColumnMove: [number[], number, number | undefined, boolean];
+  afterColumnUnfreeze: [number, boolean];
+  afterColumnResize: [number, number, boolean];
+  afterGetColumnHeaderRenderers: [any[]];
+  afterGetRowHeaderRenderers: [any[]];
+  afterRedo: [Action];
+  afterRedoStackChange: [Action[]];
+  afterModifyTransformFocus: [CellCoords];
+  afterModifyTransformStart: [CellCoords];
+  afterModifyTransformEnd: [CellCoords];
+  afterViewportColumnCalculatorOverride: [any];
+  afterPluginsInitialized: [];
+  beforeHideRows: [number[]];
+  afterHideRows: [number[]];
+  beforeUnhideRows: [number[]];
+  afterUnhideRows: [number[]];
+  beforeHideColumns: [number[]];
+  afterHideColumns: [number[]];
+  beforeUnhideColumns: [number[]];
+  afterUnhideColumns: [number[]];
+  beforeTrimRow: [number];
+  afterTrimRow: [number];
+  beforeUntrimRow: [number];
+  afterUntrimRow: [number];
+  beforeDropdownMenuShow: [any];
+  afterDropdownMenuShow: [any];
+  afterDropdownMenuHide: [any];
+  beforeAddChild: [any];
+  afterAddChild: [any];
+  beforeDetachChild: [any];
+  afterDetachChild: [any];
+  beforeBeginEditing: [number, number];
+  afterBeginEditing: [number, number];
+  beforeMergeCells: [CellRange[], boolean];
+  afterMergeCells: [CellRange[], boolean];
+  beforeUnmergeCells: [CellRange[], boolean];
+  afterUnmergeCells: [CellRange[], boolean];
+  afterListen: [];
+  afterUnlisten: [];
+  afterRefreshDimensions: [boolean];
+  beforeRefreshDimensions: [boolean];
+  beforeColumnCollapse: [number[]];
+  afterColumnCollapse: [number[]];
+  beforeColumnExpand: [number[]];
+  afterColumnExpand: [number[]];
+  modifyAutoColumnSizeSeed: [string, number];
+};
+
+// Define the type for hook return values
+type HookReturns = {
+  afterCellMetaReset: void;
+  afterChange: void;
+  afterContextMenuDefaultOptions: void;
+  afterContextMenuHide: void;
+  afterContextMenuShow: void;
+  afterCopy: void;
+  afterCopyLimit: void;
+  afterCreateCol: void;
+  afterCreateRow: void;
+  afterDeselect: void;
+  afterDestroy: void;
+  afterDocumentKeyDown: void;
+  afterDrawSelection: string | undefined;
+  afterFilter: void;
+  afterFormulasValuesUpdate: void;
+  afterGetCellMeta: void;
+  afterGetColHeader: void;
+  afterGetRowHeader: void;
+  afterInit: void;
+  afterInitWalkontable: void;
+  afterLanguageChange: void;
+  afterLoadData: void;
+  afterMomentumScroll: void;
+  afterNamedExpressionAdded: void;
+  afterNamedExpressionRemoved: void;
+  afterOnCellContextMenu: void;
+  afterOnCellCornerDblClick: void;
+  afterOnCellCornerMouseDown: void;
+  afterOnCellMouseDown: void;
+  afterOnCellMouseOut: void;
+  afterOnCellMouseOver: void;
+  afterOnCellMouseUp: void;
+  afterPaste: void;
+  afterRemoveCellMeta: void;
+  afterRemoveCol: void;
+  afterRemoveRow: void;
+  afterRemoveMeta: void;
+  afterRender: void;
+  afterRowMove: void;
+  afterRowResize: void;
+  afterScroll: void;
+  afterScrollHorizontally: void;
+  afterScrollVertically: void;
+  afterSelection: void;
+  afterSelectionByProp: void;
+  afterSelectionEnd: void;
+  afterSelectionEndByProp: void;
+  afterSelectionFocusSet: void;
+  afterSetCellMeta: void;
+  afterSetDataAtCell: void;
+  afterSetDataAtRowProp: void;
+  afterSetSourceDataAtCell: void;
+  afterSetTheme: void;
+  afterSheetAdded: void;
+  afterSheetRemoved: void;
+  afterSheetRenamed: void;
+  afterUndo: void;
+  afterUndoStackChange: void;
+  afterUpdateData: void;
+  afterUpdateSettings: void;
+  afterValidate: boolean | undefined;
+  afterViewRender: void;
+  afterViewportRowCalculatorOverride: void;
+  beforeAutofill: boolean | any[][] | undefined;
+  beforeCellAlignment: void;
+  beforeChange: boolean | undefined;
+  beforeChangeRender: void;
+  beforeColumnFreeze: boolean | undefined;
+  beforeColumnMove: boolean | undefined;
+  beforeColumnResize: number | undefined;
+  beforeColumnSort: boolean | undefined;
+  beforeColumnUnfreeze: boolean | undefined;
+  beforeCopy: boolean | undefined;
+  beforeCreateCol: boolean | undefined;
+  beforeCreateRow: boolean | undefined;
+  beforeCut: boolean | undefined;
+  beforeDrawBorders: void;
+  beforeFilter: boolean | undefined;
+  beforeGetCellMeta: void;
+  beforeInit: void;
+  beforeInitWalkontable: void;
+  beforeKeyDown: void;
+  beforeLanguageChange: void;
+  beforeLoadData: any[] | undefined;
+  beforeOnCellContextMenu: void;
+  beforeOnCellCornerDblClick: void;
+  beforeOnCellCornerMouseDown: void;
+  beforeOnCellMouseDown: void;
+  beforeOnCellMouseOut: void;
+  beforeOnCellMouseOver: void;
+  beforeOnCellMouseUp: void;
+  beforePaste: boolean | undefined;
+  beforeRedo: boolean | undefined;
+  beforeRedoStackChange: void;
+  beforeRemoveCellMeta: boolean | undefined;
+  beforeRemoveCol: boolean | undefined;
+  beforeRemoveRow: boolean | undefined;
+  beforeRender: void;
+  beforeRowMove: boolean | undefined;
+  beforeRowResize: number | undefined;
+  beforeSetCellMeta: boolean | undefined;
+  beforeSetRangeEnd: void;
+  beforeSetRangeStart: void;
+  beforeSetRangeStartOnly: void;
+  beforeStretchingColumnWidth: number | undefined;
+  beforeTouchScroll: void;
+  beforeUndo: boolean | undefined;
+  beforeUndoStackChange: boolean | undefined;
+  beforeValidate: void;
+  beforeValueRender: void;
+  beforeViewRender: void;
+  beforeViewportScroll: void;
+  beforeViewportScrollHorizontally: number | boolean | undefined;
+  beforeViewportScrollVertically: number | boolean | undefined;
+  construct: void;
+  init: void;
+  modifyAutofillRange: void;
+  modifyColHeader: void;
+  modifyColWidth: void;
+  modifyColumnHeaderHeight: void;
+  modifyColumnHeaderValue: string;
+  modifyCopyableRange: void;
+  modifyData: void;
+  modifyFocusedElement: HTMLElement | undefined;
+  modifyGetCellCoords: [number, number] | undefined;
+  modifyGetCoordsElement: [number, number] | undefined;
+  modifyRowData: void;
+  modifyRowHeader: void;
+  modifyRowHeaderWidth: void;
+  modifyRowHeight: void;
+  modifyRowHeightByOverlayName: void;
+  modifySourceData: void;
+  modifyTransformEnd: void;
+  modifyTransformFocus: void;
+  modifyTransformStart: void;
+  persistentStateLoad: void;
+  persistentStateReset: void;
+  persistentStateSave: void;
+  beforeContextMenuSetItems: void;
+  afterDropdownMenuDefaultOptions: void;
+  beforeDropdownMenuSetItems: void;
+  beforeContextMenuShow: void;
+  afterColumnSequenceChange: void;
+  beforeRemoveCellClassNames: void;
+  beforeRenderer: void;
+  afterRenderer: void;
+  afterRowSequenceChange: void;
+  beforeSelectColumns: void;
+  afterSelectColumns: void;
+  beforeSelectRows: void;
+  afterSelectRows: void;
+  afterAutofill: void;
+  beforeUpdateData: void;
+  beforeRowWrap: void;
+  beforeColumnWrap: void;
+  beforeSelectionFocusSet: void;
+  beforeSelectionHighlightSet: void;
+  modifyFiltersMultiSelectValue: void;
+  modifyFocusOnTabNavigation: void;
+  beforeHighlightingRowHeader: void;
+  beforeHighlightingColumnHeader: void;
+  afterColumnSort: void;
+  afterCut: void;
+  afterColumnFreeze: void;
+  afterColumnMove: void;
+  afterColumnUnfreeze: void;
+  afterColumnResize: void;
+  afterGetColumnHeaderRenderers: void;
+  afterGetRowHeaderRenderers: void;
+  afterRedo: void;
+  afterRedoStackChange: void;
+  afterModifyTransformFocus: void;
+  afterModifyTransformStart: void;
+  afterModifyTransformEnd: void;
+  afterViewportColumnCalculatorOverride: void;
+  afterPluginsInitialized: void;
+  beforeHideRows: void;
+  afterHideRows: void;
+  beforeUnhideRows: void;
+  afterUnhideRows: void;
+  beforeHideColumns: void;
+  afterHideColumns: void;
+  beforeUnhideColumns: void;
+  afterUnhideColumns: void;
+  beforeTrimRow: void;
+  afterTrimRow: void;
+  beforeUntrimRow: void;
+  afterUntrimRow: void;
+  beforeDropdownMenuShow: void;
+  afterDropdownMenuShow: void;
+  afterDropdownMenuHide: void;
+  beforeAddChild: void;
+  afterAddChild: void;
+  beforeDetachChild: void;
+  afterDetachChild: void;
+  beforeBeginEditing: void;
+  afterBeginEditing: void;
+  beforeMergeCells: void;
+  afterMergeCells: void;
+  beforeUnmergeCells: void;
+  afterUnmergeCells: void;
+  afterListen: void;
+  afterUnlisten: void;
+  afterRefreshDimensions: void;
+  beforeRefreshDimensions: void;
+  beforeColumnCollapse: void;
+  afterColumnCollapse: void;
+  beforeColumnExpand: void;
+  afterColumnExpand: void;
+  modifyAutoColumnSizeSeed: void;
+};
+
+// Define the type for hook functions
+type HookFunction<T extends HookName> = (...args: HookParams[T]) => HookReturns[T];
+
+// Define the type for the hooks object
+type Hooks = {
+  [K in HookName]: HookFunction<K>[];
+};
+
+// Export the constants with their types
+export const REGISTERED_HOOKS: HookName[] = [
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired after resetting a cell's meta. This happens when the {@link Core#updateSettings} method is called.

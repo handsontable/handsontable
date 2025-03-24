@@ -3,8 +3,15 @@ import { substitute } from '../../helpers/string';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { fastCall } from '../../helpers/function';
+import { AnyFunction } from '../../helpers/types';
 import { REGISTERED_HOOKS, REMOVED_HOOKS, DEPRECATED_HOOKS } from './constants';
 import { HooksBucket } from './bucket';
+import Core from '../../core';
+
+interface CoreInstance {
+  pluginHookBucket?: HooksBucket;
+  [key: string]: any;
+}
 
 /**
  * Template warning message for removed hooks.
@@ -16,14 +23,14 @@ const REMOVED_MESSAGE = toSingleLine`The plugin hook "[hookName]" was removed in
   learn about the migration path.`;
 
 export class Hooks {
-  static getSingleton() {
+  static getSingleton(): Hooks {
     return getGlobalSingleton();
   }
 
   /**
    * @type {HooksBucket}
    */
-  globalBucket = new HooksBucket();
+  globalBucket: HooksBucket = new HooksBucket();
 
   /**
    * Get hook bucket based on the context of the object or if argument is missing, get the global hook bucket.
@@ -31,7 +38,7 @@ export class Hooks {
    * @param {object} [context=null] A Handsontable instance.
    * @returns {HooksBucket} Returns a global or Handsontable instance bucket.
    */
-  getBucket(context = null) {
+  getBucket(context: CoreInstance | null = null): HooksBucket {
     if (context) {
       if (!context.pluginHookBucket) {
         context.pluginHookBucket = new HooksBucket();
@@ -57,7 +64,7 @@ export class Hooks {
    *                              If > 0, the callback will be added after the others, for example, with an index of 1, the callback will be added before the ones with an index of 2, 3, etc., but after the ones with an index of 0 and lower.
    *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
    *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
-   * @returns {Hooks} Instance of Hooks.
+   * @returns {void}
    *
    * @example
    * ```js
@@ -74,11 +81,10 @@ export class Hooks {
    * Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback]);
    * ```
    */
-  add(key, callback, context = null, orderIndex) {
+  add(key: string, callback: AnyFunction | AnyFunction[], context: CoreInstance | null = null, orderIndex?: number): void {
     if (Array.isArray(callback)) {
       arrayEach(callback, c => this.add(key, c, context));
     } else {
-
       if (REMOVED_HOOKS.has(key)) {
         warn(substitute(REMOVED_MESSAGE, { hookName: key, removedInVersion: REMOVED_HOOKS.get(key) }));
       }
@@ -88,8 +94,6 @@ export class Hooks {
 
       this.getBucket(context).add(key, callback, { orderIndex, runOnce: false });
     }
-
-    return this;
   }
 
   /**
@@ -102,21 +106,19 @@ export class Hooks {
    *                              If > 0, the callback will be added after the others, for example, with an index of 1, the callback will be added before the ones with an index of 2, 3, etc., but after the ones with an index of 0 and lower.
    *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
    *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
-   * @returns {Hooks} Instance of Hooks.
+   * @returns {void}
    *
    * @example
    * ```js
    * Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
    * ```
    */
-  once(key, callback, context = null, orderIndex) {
+  once(key: string, callback: AnyFunction | AnyFunction[], context: CoreInstance | null = null, orderIndex?: number): void {
     if (Array.isArray(callback)) {
       arrayEach(callback, c => this.once(key, c, context));
     } else {
       this.getBucket(context).add(key, callback, { orderIndex, runOnce: true });
     }
-
-    return this;
   }
 
   /**
@@ -126,21 +128,19 @@ export class Hooks {
    * @param {string} key Hook/Event name.
    * @param {Function|Function[]} callback Callback function.
    * @param {object} [context=null] A Handsontable instance.
-   * @returns {Hooks} Instance of Hooks.
+   * @returns {void}
    *
    * @example
    * ```js
    * Handsontable.hooks.addAsFixed('beforeInit', myCallback, hotInstance);
    * ```
    */
-  addAsFixed(key, callback, context = null) {
+  addAsFixed(key: string, callback: AnyFunction | AnyFunction[], context: CoreInstance | null = null): void {
     if (Array.isArray(callback)) {
       arrayEach(callback, c => this.addAsFixed(key, c, context));
     } else {
       this.getBucket(context).add(key, callback, { initialHook: true });
     }
-
-    return this;
   }
 
   /**
@@ -156,7 +156,7 @@ export class Hooks {
    * Handsontable.hooks.remove('beforeInit', myCallback);
    * ```
    */
-  remove(key, callback, context = null) {
+  remove(key: string, callback: AnyFunction, context: CoreInstance | null = null): boolean {
     return this.getBucket(context).remove(key, callback);
   }
 
@@ -168,7 +168,7 @@ export class Hooks {
    * @param {object} [context=null] A Handsontable instance.
    * @returns {boolean} `true` for success, `false` otherwise.
    */
-  has(key, context = null) {
+  has(key: string, context: CoreInstance | null = null): boolean {
     return this.getBucket(context).has(key);
   }
 
@@ -191,7 +191,7 @@ export class Hooks {
    * Handsontable.hooks.run(hot, 'beforeInit');
    * ```
    */
-  run(context, key, p1, p2, p3, p4, p5, p6) {
+  run(context: CoreInstance, key: string, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any {
     {
       const globalHandlers = this.getBucket().getHooks(key);
       const length = globalHandlers ? globalHandlers.length : 0;
@@ -254,123 +254,73 @@ export class Hooks {
   }
 
   /**
-   * Destroy all listeners connected to the context. If no context is provided, the global listeners will be destroyed.
+   * Destroys the bucket.
    *
    * @param {object} [context=null] A Handsontable instance.
-   * @example
-   * ```js
-   * // destroy the global listeners
-   * Handsontable.hooks.destroy();
-   *
-   * // destroy the local listeners
-   * Handsontable.hooks.destroy(hotInstance);
-   * ```
    */
-  destroy(context = null) {
+  destroy(context: CoreInstance | null = null): void {
     this.getBucket(context).destroy();
   }
 
   /**
-   * Registers a hook name (adds it to the list of the known hook names). Used by plugins.
-   * It is not necessary to call register, but if you use it, your plugin hook will be used returned by
-   * the `getRegistered` method. (which itself is used in the [demo](@/guides/getting-started/events-and-hooks/events-and-hooks.md)).
+   * Registers a new hook.
    *
-   * @param {string} key The hook name.
-   *
-   * @example
-   * ```js
-   * Handsontable.hooks.register('myHook');
-   * ```
+   * @param {string} key Hook name.
    */
-  register(key) {
-    if (!this.isRegistered(key)) {
+  register(key: string): void {
+    if (!REGISTERED_HOOKS.includes(key)) {
       REGISTERED_HOOKS.push(key);
     }
   }
 
   /**
-   * Deregisters a hook name (removes it from the list of known hook names).
+   * Deregisters a hook.
    *
-   * @param {string} key The hook name.
-   *
-   * @example
-   * ```js
-   * Handsontable.hooks.deregister('myHook');
-   * ```
+   * @param {string} key Hook name.
    */
-  deregister(key) {
-    if (this.isRegistered(key)) {
-      REGISTERED_HOOKS.splice(REGISTERED_HOOKS.indexOf(key), 1);
+  deregister(key: string): void {
+    const index = REGISTERED_HOOKS.indexOf(key);
+    if (index > -1) {
+      REGISTERED_HOOKS.splice(index, 1);
     }
   }
 
   /**
-   * Returns a boolean value depending on if a hook by such name has been removed or deprecated.
+   * Checks if a hook is deprecated.
    *
-   * @param {string} hookName The hook name to check.
-   * @returns {boolean} Returns `true` if the provided hook name was marked as deprecated or
-   * removed from API, `false` otherwise.
-   * @example
-   * ```js
-   * Handsontable.hooks.isDeprecated('skipLengthCache');
-   *
-   * // Results:
-   * true
-   * ```
+   * @param {string} hookName Hook name.
+   * @returns {boolean}
    */
-  isDeprecated(hookName) {
-    return DEPRECATED_HOOKS.has(hookName) || REMOVED_HOOKS.has(hookName);
+  isDeprecated(hookName: string): boolean {
+    return DEPRECATED_HOOKS.has(hookName);
   }
 
   /**
-   * Returns a boolean depending on if a hook by such name has been registered.
+   * Checks if a hook is registered.
    *
-   * @param {string} hookName The hook name to check.
-   * @returns {boolean} `true` for success, `false` otherwise.
-   * @example
-   * ```js
-   * Handsontable.hooks.isRegistered('beforeInit');
-   *
-   * // Results:
-   * true
-   * ```
+   * @param {string} hookName Hook name.
+   * @returns {boolean}
    */
-  isRegistered(hookName) {
-    return REGISTERED_HOOKS.indexOf(hookName) >= 0;
+  isRegistered(hookName: string): boolean {
+    return REGISTERED_HOOKS.includes(hookName);
   }
 
   /**
-   * Returns an array of registered hooks.
+   * Gets all registered hooks.
    *
-   * @returns {Array} An array of registered hooks.
-   *
-   * @example
-   * ```js
-   * Handsontable.hooks.getRegistered();
-   *
-   * // Results:
-   * [
-   * ...
-   *   'beforeInit',
-   *   'beforeRender',
-   *   'beforeSetRangeEnd',
-   *   'beforeDrawBorders',
-   *   'beforeChange',
-   * ...
-   * ]
-   * ```
+   * @returns {string[]}
    */
-  getRegistered() {
-    return REGISTERED_HOOKS;
+  getRegistered(): string[] {
+    return [...REGISTERED_HOOKS];
   }
 }
 
-const globalSingleton = new Hooks();
+let globalSingleton: Hooks;
 
-/**
- * @returns {Hooks}
- */
-function getGlobalSingleton() {
+function getGlobalSingleton(): Hooks {
+  if (!globalSingleton) {
+    globalSingleton = new Hooks();
+  }
   return globalSingleton;
 }
 

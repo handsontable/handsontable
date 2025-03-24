@@ -1,4 +1,5 @@
 import { REGISTERED_HOOKS } from './constants';
+import { AnyFunction } from '../../helpers/types';
 
 /**
  * @typedef {object} HookEntry
@@ -9,6 +10,20 @@ import { REGISTERED_HOOKS } from './constants';
  * always stays at the same index position even after update.
  * @property {boolean} skip Indicates if the hook was removed.
  */
+interface HookEntry {
+  callback: AnyFunction;
+  orderIndex: number;
+  runOnce: boolean;
+  initialHook: boolean;
+  skip: boolean;
+}
+
+interface HookOptions {
+  orderIndex?: number;
+  runOnce?: boolean;
+  initialHook?: boolean;
+}
+
 /**
  * The maximum number of hooks that can be skipped before the bucket is cleaned up.
  */
@@ -25,15 +40,15 @@ export class HooksBucket {
    *
    * @type {Map<string, HookEntry>}
    */
-  #hooks = new Map();
+  #hooks: Map<string, HookEntry[]> = new Map();
   /**
    * A map that stores the number of skipped hooks.
    */
-  #skippedHooksCount = new Map();
+  #skippedHooksCount: Map<string, number> = new Map();
   /**
    * A set that stores hook names that need to be re-sorted.
    */
-  #needsSort = new Set();
+  #needsSort: Set<string> = new Set();
 
   constructor() {
     REGISTERED_HOOKS.forEach(hookName => this.#createHooksCollection(hookName));
@@ -45,7 +60,7 @@ export class HooksBucket {
    * @param {string} hookName The name of the hook.
    * @returns {HookEntry[]}
    */
-  getHooks(hookName) {
+  getHooks(hookName: string): HookEntry[] {
     return this.#hooks.get(hookName) ?? [];
   }
 
@@ -56,20 +71,23 @@ export class HooksBucket {
    * @param {Function} callback The callback function to add.
    * @param {{ orderIndex?: number, runOnce?: boolean, initialHook?: boolean }} options The options object.
    */
-  add(hookName, callback, options = {}) {
+  add(hookName: string, callback: AnyFunction, options: HookOptions = {}): void {
     if (!this.#hooks.has(hookName)) {
       this.#createHooksCollection(hookName);
       REGISTERED_HOOKS.push(hookName);
     }
 
     const hooks = this.#hooks.get(hookName);
+    if (!hooks) {
+      return;
+    }
 
     if (hooks.find(hook => hook.callback === callback)) {
       // adding the same hook twice is now silently ignored
       return;
     }
 
-    const orderIndex = Number.isInteger(options.orderIndex) ? options.orderIndex : 0;
+    const orderIndex = options.orderIndex ?? 0;
     const runOnce = !!options.runOnce;
     const initialHook = !!options.initialHook;
 
@@ -90,84 +108,100 @@ export class HooksBucket {
         orderIndex,
         runOnce,
         initialHook,
-        skip: false,
+        skip: false
       });
-
-      let needsSort = this.#needsSort.has(hookName);
-
-      if (!needsSort && orderIndex !== 0) {
-        needsSort = true;
-        this.#needsSort.add(hookName);
-      }
-
-      if (needsSort && hooks.length > 1) {
-        this.#hooks.set(hookName, hooks.toSorted((a, b) => a.orderIndex - b.orderIndex));
-      }
     }
+
+    this.#needsSort.add(hookName);
   }
 
   /**
-   * Checks if there are any hooks for the provided hook name.
+   * Removes a hook from the collection.
    *
    * @param {string} hookName The name of the hook.
-   * @returns {boolean}
+   * @param {Function} callback The callback function to remove.
+   * @returns {boolean} Returns `true` if hook was removed, `false` otherwise.
    */
-  has(hookName) {
-    return this.#hooks.has(hookName) && this.#hooks.get(hookName).length > 0;
-  }
+  remove(hookName: string, callback: AnyFunction): boolean {
+    const hooks = this.#hooks.get(hookName);
 
-  /**
-   * Removes a hook from the collection. If the hook was found and removed,
-   * the method returns `true`, otherwise `false`.
-   *
-   * @param {string} hookName The name of the hook.
-   * @param {*} callback The callback function to remove.
-   * @returns {boolean}
-   */
-  remove(hookName, callback) {
-    if (!this.#hooks.has(hookName)) {
+    if (!hooks) {
       return false;
     }
 
-    const hooks = this.#hooks.get(hookName);
     const hookEntry = hooks.find(hook => hook.callback === callback);
 
-    if (hookEntry) {
-      let skippedHooksCount = this.#skippedHooksCount.get(hookName);
-
-      hookEntry.skip = true;
-      skippedHooksCount += 1;
-
-      if (skippedHooksCount > MAX_SKIPPED_HOOKS_COUNT) {
-        this.#hooks.set(hookName, hooks.filter(hook => !hook.skip));
-        skippedHooksCount = 0;
-      }
-
-      this.#skippedHooksCount.set(hookName, skippedHooksCount);
-
-      return true;
+    if (!hookEntry) {
+      return false;
     }
 
-    return false;
+    hookEntry.skip = true;
+    this.#incrementSkippedHooksCount(hookName);
+
+    return true;
   }
 
   /**
-   * Destroys the bucket.
+   * Checks if there are any registered hooks for the provided hook name.
+   *
+   * @param {string} hookName The name of the hook.
+   * @returns {boolean} Returns `true` if there are any hooks registered, `false` otherwise.
    */
-  destroy() {
+  has(hookName: string): boolean {
+    const hooks = this.#hooks.get(hookName);
+
+    return hooks ? hooks.some(hook => !hook.skip) : false;
+  }
+
+  /**
+   * Destroys the bucket instance.
+   */
+  destroy(): void {
     this.#hooks.clear();
     this.#skippedHooksCount.clear();
-    this.#hooks = null;
-    this.#skippedHooksCount = null;
+    this.#needsSort.clear();
   }
 
   /**
-   * Creates a initial collection for the provided hook name.
+   * Creates a new hooks collection for the provided hook name.
    *
    * @param {string} hookName The name of the hook.
    */
-  #createHooksCollection(hookName) {
+  #createHooksCollection(hookName: string): void {
     this.#hooks.set(hookName, []);
+    this.#skippedHooksCount.set(hookName, 0);
+  }
+
+  /**
+   * Increments the number of skipped hooks for the provided hook name.
+   *
+   * @param {string} hookName The name of the hook.
+   */
+  #incrementSkippedHooksCount(hookName: string): void {
+    const count = this.#skippedHooksCount.get(hookName) ?? 0;
+
+    this.#skippedHooksCount.set(hookName, count + 1);
+
+    if (count + 1 >= MAX_SKIPPED_HOOKS_COUNT) {
+      this.#cleanupHooks(hookName);
+    }
+  }
+
+  /**
+   * Cleans up the hooks collection for the provided hook name by removing all skipped hooks.
+   *
+   * @param {string} hookName The name of the hook.
+   */
+  #cleanupHooks(hookName: string): void {
+    const hooks = this.#hooks.get(hookName);
+
+    if (!hooks) {
+      return;
+    }
+
+    const cleanHooks = hooks.filter(hook => !hook.skip);
+
+    this.#hooks.set(hookName, cleanHooks);
     this.#skippedHooksCount.set(hookName, 0);
   }
 }

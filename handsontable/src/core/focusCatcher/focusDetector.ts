@@ -1,5 +1,16 @@
+import { Core } from '../../core';
 import { setAttribute } from '../../helpers/dom/element';
 import { A11Y_PRESENTATION, A11Y_HIDDEN } from '../../helpers/a11y';
+
+interface FocusDetectorHooks {
+  onFocusFromTop?: () => void;
+  onFocusFromBottom?: () => void;
+}
+
+interface FocusDetector {
+  activate(): void;
+  deactivate(): void;
+}
 
 /**
  * Installs a focus detector module. The module appends two input elements into the DOM side by side.
@@ -11,13 +22,13 @@ import { A11Y_PRESENTATION, A11Y_HIDDEN } from '../../helpers/a11y';
  * @param {{ onFocusFromTop: Function, onFocusFromBottom: Function }} hooks An object with defined callbacks to call.
  * @returns {{ activate: Function, deactivate: Function }}
  */
-export function installFocusDetector(hot, hooks = {}) {
+export function installFocusDetector(hot: Core, hooks: FocusDetectorHooks = {}): FocusDetector {
   const rootElement = hot.rootElement;
   const inputTrapTop = createInputElement(hot);
   const inputTrapBottom = createInputElement(hot);
 
-  inputTrapTop.addEventListener('focus', () => hooks?.onFocusFromTop());
-  inputTrapBottom.addEventListener('focus', () => hooks?.onFocusFromBottom());
+  inputTrapTop.addEventListener('focus', () => hooks?.onFocusFromTop?.());
+  inputTrapBottom.addEventListener('focus', () => hooks?.onFocusFromBottom?.());
 
   rootElement.firstChild.before(inputTrapTop);
   rootElement.lastChild.after(inputTrapBottom);
@@ -26,7 +37,7 @@ export function installFocusDetector(hot, hooks = {}) {
     /**
      * Activates the detector by resetting the tabIndex of the input elements.
      */
-    activate() {
+    activate(): void {
       hot._registerTimeout(() => {
         inputTrapTop.tabIndex = 0;
         inputTrapBottom.tabIndex = 0;
@@ -35,7 +46,7 @@ export function installFocusDetector(hot, hooks = {}) {
     /**
      * Deactivates the detector by setting tabIndex to -1.
      */
-    deactivate() {
+    deactivate(): void {
       hot._registerTimeout(() => {
         inputTrapTop.tabIndex = -1;
         inputTrapBottom.tabIndex = -1;
@@ -50,7 +61,7 @@ export function installFocusDetector(hot, hooks = {}) {
  * @param {Handsontable} hot The Handsontable instance.
  * @returns {HTMLInputElement}
  */
-function createInputElement(hot) {
+function createInputElement(hot: Core): HTMLInputElement {
   const rootDocument = hot.rootDocument;
   const input = rootDocument.createElement('input');
 

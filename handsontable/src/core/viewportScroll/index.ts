@@ -1,3 +1,5 @@
+import { Core } from '../core';
+import { ViewportScroller, CellCoords } from '../types';
 import { columnHeaderScrollStrategy } from './scrollStrategies/columnHeaderScroll';
 import { cornerHeaderScrollStrategy } from './scrollStrategies/cornerHeaderScroll';
 import { focusScrollStrategy } from './scrollStrategies/focusScroll';
@@ -21,25 +23,24 @@ import { singleScrollStrategy } from './scrollStrategies/singleScroll';
  * @param {Core} hot The Handsontable instance.
  * @returns {ViewportScroller} The viewport scroller module.
  */
-export function createViewportScroller(hot) {
+export function createViewportScroller(hot: Core): ViewportScroller {
   const { selection } = hot;
   let skipNextCall = false;
   let isSuspended = false;
 
   return {
-    resume() {
+    resume(): void {
       isSuspended = false;
     },
-    suspend() {
+    suspend(): void {
       isSuspended = true;
     },
-    skipNextScrollCycle() {
+    skipNextScrollCycle(): void {
       skipNextCall = true;
     },
-    scrollTo(cellCoords) {
+    scrollTo(cellCoords: CellCoords): void {
       if (skipNextCall || isSuspended) {
         skipNextCall = false;
-
         return;
       }
 
@@ -47,22 +48,16 @@ export function createViewportScroller(hot) {
 
       if (selection.isFocusSelectionChanged()) {
         scrollStrategy = focusScrollStrategy(hot);
-
       } else if (selection.isSelectedByCorner()) {
         scrollStrategy = cornerHeaderScrollStrategy(hot);
-
       } else if (selection.isSelectedByRowHeader()) {
         scrollStrategy = rowHeaderScrollStrategy(hot);
-
       } else if (selection.isSelectedByColumnHeader()) {
         scrollStrategy = columnHeaderScrollStrategy(hot);
-
       } else if (selection.getSelectedRange().size() === 1 && selection.isMultiple()) {
         scrollStrategy = multipleScrollStrategy(hot);
-
       } else if (selection.getSelectedRange().size() === 1 && !selection.isMultiple()) {
         scrollStrategy = singleScrollStrategy(hot);
-
       } else if (selection.getSelectedRange().size() > 1) {
         scrollStrategy = noncontiguousScrollStrategy(hot);
       }
