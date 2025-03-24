@@ -607,9 +607,6 @@ export class Filters extends BasePlugin {
       }
 
       this.#previousConditionStack = this.exportConditions();
-      this.hot.runHooks('afterFilter', conditions);
-      this.hot.view.adjustElementsSize();
-      this.hot.render();
 
     } else {
       this.importConditions(this.#previousConditionStack);
@@ -620,6 +617,12 @@ export class Filters extends BasePlugin {
         navigableHeaders ? -1 : 0,
         this.hot.getSelectedRangeLast().highlight.col,
       );
+    }
+
+    if (allowFiltering !== false) {
+      this.hot.runHooks('afterFilter', conditions);
+      this.hot.view.adjustElementsSize();
+      this.hot.render();
     }
   }
 
