@@ -5,19 +5,26 @@
  * @class SelectionRange
  * @util
  */
+import { CellCoords, CellRange as WalkontableCellRange } from '../3rdparty/walkontable/src/selection/interfaces';
+
+// Extending the CellRange interface to include the includes method that exists in the implementation
+interface CellRange extends WalkontableCellRange {
+  includes(coords: CellCoords): boolean;
+}
+
 class SelectionRange {
   /**
    * List of all CellRanges added to the class instance.
    *
    * @type {CellRange[]}
    */
-  ranges = [];
+  ranges: CellRange[] = [];
   /**
    * @type {function(CellCoords): CellRange}
    */
-  createCellRange;
+  createCellRange: (coords: CellCoords) => CellRange;
 
-  constructor(createCellRange) {
+  constructor(createCellRange: (coords: CellCoords) => CellRange) {
     this.createCellRange = createCellRange;
   }
 
@@ -26,7 +33,7 @@ class SelectionRange {
    *
    * @returns {boolean}
    */
-  isEmpty() {
+  isEmpty(): boolean {
     return this.size() === 0;
   }
 
@@ -37,7 +44,7 @@ class SelectionRange {
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    * @returns {SelectionRange}
    */
-  set(coords) {
+  set(coords: CellCoords): SelectionRange {
     this.clear();
     this.ranges.push(this.createCellRange(coords));
 
@@ -50,7 +57,7 @@ class SelectionRange {
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    * @returns {SelectionRange}
    */
-  add(coords) {
+  add(coords: CellCoords): SelectionRange {
     this.ranges.push(this.createCellRange(coords));
 
     return this;
@@ -61,7 +68,7 @@ class SelectionRange {
    *
    * @returns {SelectionRange}
    */
-  pop() {
+  pop(): SelectionRange {
     this.ranges.pop();
 
     return this;
@@ -72,7 +79,7 @@ class SelectionRange {
    *
    * @returns {CellRange|undefined}
    */
-  current() {
+  current(): CellRange | undefined {
     return this.peekByIndex(this.size() - 1);
   }
 
@@ -81,7 +88,7 @@ class SelectionRange {
    *
    * @returns {CellRange|undefined}
    */
-  previous() {
+  previous(): CellRange | undefined {
     return this.peekByIndex(this.size() - 2);
   }
 
@@ -92,7 +99,7 @@ class SelectionRange {
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    * @returns {boolean}
    */
-  includes(coords) {
+  includes(coords: CellCoords): boolean {
     return this.ranges.some(cellRange => cellRange.includes(coords));
   }
 
@@ -101,7 +108,7 @@ class SelectionRange {
    *
    * @returns {SelectionRange}
    */
-  clear() {
+  clear(): SelectionRange {
     this.ranges.length = 0;
 
     return this;
@@ -112,7 +119,7 @@ class SelectionRange {
    *
    * @returns {number}
    */
-  size() {
+  size(): number {
     return this.ranges.length;
   }
 
@@ -123,7 +130,7 @@ class SelectionRange {
    * latest range.
    * @returns {CellRange|undefined}
    */
-  peekByIndex(index = 0) {
+  peekByIndex(index: number = 0): CellRange | undefined {
     let cellRange;
 
     if (index >= 0 && index < this.size()) {
@@ -133,7 +140,7 @@ class SelectionRange {
     return cellRange;
   }
 
-  [Symbol.iterator]() {
+  [Symbol.iterator](): IterableIterator<CellRange> {
     return this.ranges[Symbol.iterator]();
   }
 }

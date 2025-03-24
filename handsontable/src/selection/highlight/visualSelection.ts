@@ -1,4 +1,32 @@
 import { Selection } from './../../3rdparty/walkontable/src';
+import { CellCoords as BaseCellCoords, CellRange as BaseCellRange } from './../../3rdparty/walkontable/src/selection/interfaces';
+import CellCoords from './../../3rdparty/walkontable/src/cell/coords';
+
+interface VisualSelectionSettings {
+  createCellRange: (coords: CellCoords) => CellRange;
+  visualToRenderableCoords: (coords: CellCoords) => CellCoords;
+  renderableToVisualCoords: (coords: CellCoords) => CellCoords;
+  rowIndexMapper: any;
+  columnIndexMapper: any;
+  selectionType?: string;
+  createCellCoords: (row: number, col: number) => CellCoords;
+}
+
+interface ExtendedCellRange extends BaseCellRange {
+  highlight: CellCoords;
+  from: CellCoords;
+  to: CellCoords;
+  getVerticalDirection(): string;
+  getHorizontalDirection(): string;
+  setHighlight(coords: CellCoords): void;
+  overlaps(coords: CellCoords): boolean;
+  clone(): ExtendedCellRange;
+}
+
+interface ExtendedCellCoords extends CellCoords {
+  clone(): ExtendedCellCoords;
+  normalize(): ExtendedCellCoords;
+}
 
 class VisualSelection extends Selection {
   /**
@@ -6,22 +34,23 @@ class VisualSelection extends Selection {
    *
    * @type {null|CellRange}
    */
-  visualCellRange = null;
+  visualCellRange: ExtendedCellRange | null = null;
 
-  constructor(settings, visualCellRange) {
+  constructor(settings: VisualSelectionSettings, visualCellRange: ExtendedCellRange | null) {
     super(settings, null);
     this.visualCellRange = visualCellRange || null;
     this.commit();
   }
+
   /**
    * Adds a cell coords to the selection.
    *
    * @param {CellCoords} coords Visual coordinates of a cell.
    * @returns {VisualSelection}
    */
-  add(coords) {
+  add(coords: CellCoords): VisualSelection {
     if (this.visualCellRange === null) {
-      this.visualCellRange = this.settings.createCellRange(coords);
+      this.visualCellRange = this.settings.createCellRange(coords) as ExtendedCellRange;
     } else {
       this.visualCellRange.expand(coords);
     }
@@ -34,7 +63,7 @@ class VisualSelection extends Selection {
    *
    * @returns {VisualSelection}
    */
-  clear() {
+  clear(): VisualSelection {
     this.visualCellRange = null;
 
     return super.clear();
@@ -48,7 +77,7 @@ class VisualSelection extends Selection {
    * @param {CellRange} cellRange Cells range object to be trimmed.
    * @returns {CellRange} Visual non-hidden cells range coordinates.
    */
-  trimToVisibleCellsRangeOnly({ from, to }) {
+  private trimToVisibleCellsRangeOnly({ from, to }: ExtendedCellRange): ExtendedCellRange | null {
     let visibleFromCoords = this.getNearestNotHiddenCoords(from, 1);
     let visibleToCoords = this.getNearestNotHiddenCoords(to, -1);
 
@@ -61,7 +90,7 @@ class VisualSelection extends Selection {
       visibleToCoords = to;
     }
 
-    return this.settings.createCellRange(visibleFromCoords, visibleFromCoords, visibleToCoords);
+    return this.settings.createCellRange(visibleFromCoords) as ExtendedCellRange;
   }
 
   /**
@@ -75,7 +104,7 @@ class VisualSelection extends Selection {
    * @param {1|-1} columnSearchDirection The same as above but for rows.
    * @returns {CellCoords|null} Visual cell coordinates.
    */
-  getNearestNotHiddenCoords(coords, rowSearchDirection, columnSearchDirection = rowSearchDirection) {
+  private getNearestNotHiddenCoords(coords: CellCoords, rowSearchDirection: 1 | -1, columnSearchDirection: 1 | -1 = rowSearchDirection): CellCoords | null {
     const nextVisibleRow = this.getNearestNotHiddenIndex(
       this.settings.rowIndexMapper, coords.row, rowSearchDirection);
 
@@ -105,7 +134,7 @@ class VisualSelection extends Selection {
    *                               rows and from left to right for columns. For -1, it is the other way around.
    * @returns {number|null} Visual row/column index.
    */
-  getNearestNotHiddenIndex(indexMapper, visualIndex, searchDirection) {
+  private getNearestNotHiddenIndex(indexMapper: any, visualIndex: number, searchDirection: 1 | -1): number | null {
     if (visualIndex < 0) {
       return visualIndex;
     }
@@ -119,7 +148,7 @@ class VisualSelection extends Selection {
    *
    * @returns {VisualSelection}
    */
-  commit() {
+  commit(): VisualSelection {
     // There is no information about visual ranges, thus no selection may be displayed.
     if (this.visualCellRange === null) {
       return this;
@@ -148,19 +177,19 @@ class VisualSelection extends Selection {
    *
    * @returns {VisualSelection}
    */
-  syncWith(broaderCellRange) {
-    const coordsFrom = broaderCellRange.from.clone().normalize();
+  syncWith(broaderCellRange: ExtendedCellRange): VisualSelection {
+    const coordsFrom = (broaderCellRange.from as ExtendedCellCoords).clone().normalize();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
-    const renderableHighlight = this.settings.visualToRenderableCoords(this.visualCellRange.highlight);
-    let cellCoordsVisual = null;
+    const renderableHighlight = this.settings.visualToRenderableCoords(this.visualCellRange!.highlight);
+    let cellCoordsVisual: ExtendedCellCoords | null = null;
 
     if (renderableHighlight === null || renderableHighlight.col === null || renderableHighlight.row === null) {
-      cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
+      cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection) as ExtendedCellCoords;
     }
 
     if (cellCoordsVisual !== null && broaderCellRange.overlaps(cellCoordsVisual)) {
-      const currentHighlight = broaderCellRange.highlight.clone();
+      const currentHighlight = (broaderCellRange.highlight as ExtendedCellCoords).clone();
 
       if (currentHighlight.row >= 0) {
         currentHighlight.row = cellCoordsVisual.row;
@@ -185,7 +214,7 @@ class VisualSelection extends Selection {
     // TODO
     // Sync the highlight coords from the visual selection layer with logical coords.
     if (this.settings.selectionType === 'focus' && renderableHighlight !== null && cellCoordsVisual === null) {
-      broaderCellRange.setHighlight(this.visualCellRange.highlight);
+      broaderCellRange.setHighlight(this.visualCellRange!.highlight);
     }
 
     return this;
@@ -199,8 +228,8 @@ class VisualSelection extends Selection {
    *
    * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
-  getCorners() {
-    const { from, to } = this.cellRange;
+  getCorners(): number[] {
+    const { from, to } = this.cellRange!;
 
     return [
       Math.min(from.row, to.row),
@@ -216,9 +245,9 @@ class VisualSelection extends Selection {
    *
    * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
-  getVisualCorners() {
-    const topStart = this.settings.renderableToVisualCoords(this.cellRange.getTopStartCorner());
-    const bottomEnd = this.settings.renderableToVisualCoords(this.cellRange.getBottomEndCorner());
+  getVisualCorners(): number[] {
+    const topStart = this.settings.renderableToVisualCoords(this.cellRange!.getOuterTopStartCorner());
+    const bottomEnd = this.settings.renderableToVisualCoords(this.cellRange!.getOuterBottomEndCorner());
 
     return [
       topStart.row,
@@ -238,7 +267,7 @@ class VisualSelection extends Selection {
    *                                    points to the end of the selection.
    * @returns {CellRange|null}
    */
-  createRenderableCellRange(visualFromCoords, visualToCoords) {
+  createRenderableCellRange(visualFromCoords: CellCoords, visualToCoords: CellCoords): CellRange | null {
     const renderableFromCoords = this.settings.visualToRenderableCoords(visualFromCoords);
     const renderableToCoords = this.settings.visualToRenderableCoords(visualToCoords);
 
@@ -247,7 +276,7 @@ class VisualSelection extends Selection {
       return null;
     }
 
-    return this.settings.createCellRange(renderableFromCoords, renderableFromCoords, renderableToCoords);
+    return this.settings.createCellRange(renderableFromCoords);
   }
 }
 

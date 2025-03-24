@@ -1,3 +1,4 @@
+import { CellCoords } from '../../3rdparty/walkontable/src/selection/interfaces';
 import { createHighlight as createActiveHighlight } from './types/activeHeader';
 import { createHighlight as createAreaLayeredHighlight } from './types/areaLayered';
 import { createHighlight as createAreaHighlight } from './types/area';
@@ -18,6 +19,7 @@ import {
   HIGHLIGHT_COLUMN_TYPE,
 } from '../../3rdparty/walkontable/src';
 import { arrayEach } from './../../helpers/array';
+import VisualSelection from './visualSelection';
 
 export {
   HIGHLIGHT_ACTIVE_HEADER_TYPE as ACTIVE_HEADER_TYPE,
@@ -29,6 +31,23 @@ export {
   HIGHLIGHT_ROW_TYPE as ROW_TYPE,
   HIGHLIGHT_COLUMN_TYPE as COLUMN_TYPE,
 };
+
+interface HighlightOptions {
+  headerClassName?: string;
+  activeHeaderClassName?: string;
+  rowClassName?: string;
+  columnClassName?: string;
+  cellAttributes?: string[];
+  rowIndexMapper: any;
+  columnIndexMapper: any;
+  disabledCellSelection: (row: number, column: number) => boolean | string | string[];
+  cellCornerVisible: (...args: any[]) => boolean;
+  areaCornerVisible: (...args: any[]) => boolean;
+  visualToRenderableCoords: (coords: CellCoords) => CellCoords;
+  renderableToVisualCoords: (coords: CellCoords) => CellCoords;
+  createCellCoords: (row: number, col: number) => CellCoords;
+  createCellRange: (highlight: CellCoords, from: CellCoords, to: CellCoords) => any;
+}
 
 /**
  * Highlight class responsible for managing Walkontable Selection classes.
@@ -51,7 +70,7 @@ class Highlight {
    *
    * @type {object}
    */
-  options;
+  options: HighlightOptions;
   /**
    * The property which describes which layer level of the visual selection will be modified.
    * This option is valid only for `area` and `header` highlight types which occurs multiple times on
@@ -62,49 +81,49 @@ class Highlight {
    * @type {number}
    * @default 0
    */
-  layerLevel = 0;
+  layerLevel: number = 0;
   /**
    * `cell` highlight object which describes attributes for the currently selected cell.
    * It can only occur only once on the table.
    *
    * @type {Selection}
    */
-  focus;
+  focus: VisualSelection;
   /**
    * `fill` highlight object which describes attributes for the borders for autofill functionality.
    * It can only occur only once on the table.
    *
    * @type {Selection}
    */
-  fill;
+  fill: VisualSelection;
   /**
    * Collection of the `area` highlights. That objects describes attributes for the borders and selection of
    * the multiple selected cells. It can occur multiple times on the table.
    *
    * @type {Map.<number, Selection>}
    */
-  layeredAreas = new Map();
+  layeredAreas: Map<number, VisualSelection> = new Map();
   /**
    * Collection of the `highlight` highlights. That objects describes attributes for the borders and selection of
    * the multiple selected cells. It can occur multiple times on the table.
    *
    * @type {Map.<number, Selection>}
    */
-  areas = new Map();
+  areas: Map<number, VisualSelection> = new Map();
   /**
    * Collection of the `header` highlights. That objects describes attributes for the selection of
    * the multiple selected rows in the table header. It can occur multiple times on the table.
    *
    * @type {Map.<number, Selection>}
    */
-  rowHeaders = new Map();
+  rowHeaders: Map<number, VisualSelection> = new Map();
   /**
    * Collection of the `header` highlights. That objects describes attributes for the selection of
    * the multiple selected columns in the table header. It can occur multiple times on the table.
    *
    * @type {Map.<number, Selection>}
    */
-  columnHeaders = new Map();
+  columnHeaders: Map<number, VisualSelection> = new Map();
   /**
    * Collection of the `active-header` highlights. That objects describes attributes for the selection of
    * the multiple selected rows in the table header. The table headers which have selected all items in
@@ -112,7 +131,7 @@ class Highlight {
    *
    * @type {Map.<number, Selection>}
    */
-  activeRowHeaders = new Map();
+  activeRowHeaders: Map<number, VisualSelection> = new Map();
   /**
    * Collection of the `active-header` highlights. That objects describes attributes for the selection of
    * the multiple selected columns in the table header. The table headers which have selected all items in
@@ -120,7 +139,7 @@ class Highlight {
    *
    * @type {Map.<number, Selection>}
    */
-  activeColumnHeaders = new Map();
+  activeColumnHeaders: Map<number, VisualSelection> = new Map();
   /**
    * Collection of the `active-header` highlights. That objects describes attributes for the selection of
    * the selected corner in the table header. The table headers which have selected all items in
@@ -128,29 +147,29 @@ class Highlight {
    *
    * @type {Map.<number, Selection>}
    */
-  activeCornerHeaders = new Map();
+  activeCornerHeaders: Map<number, VisualSelection> = new Map();
   /**
    * Collection of the `rows` highlights. That objects describes attributes for the selection of
    * the multiple selected cells in a row. It can occur multiple times on the table.
    *
    * @type {Map.<number, Selection>}
    */
-  rowHighlights = new Map();
+  rowHighlights: Map<number, VisualSelection> = new Map();
   /**
    * Collection of the `columns` highlights. That objects describes attributes for the selection of
    * the multiple selected cells in a column. It can occur multiple times on the table.
    *
    * @type {Map.<number, Selection>}
    */
-  columnHighlights = new Map();
+  columnHighlights: Map<number, VisualSelection> = new Map();
   /**
    * Collection of the `custom-selection`, holder for example borders added through CustomBorders plugin.
    *
    * @type {Selection[]}
    */
-  customSelections = [];
+  customSelections: VisualSelection[] = [];
 
-  constructor(options) {
+  constructor(options: HighlightOptions) {
     this.options = options;
     this.focus = createFocusHighlight(options);
     this.fill = createFillHighlight(options);
@@ -163,7 +182,7 @@ class Highlight {
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    * @returns {boolean}
    */
-  isEnabledFor(highlightType, coords) {
+  isEnabledFor(highlightType: string, coords: CellCoords): boolean {
     let type = highlightType;
 
     // Legacy compatibility.
@@ -186,7 +205,7 @@ class Highlight {
    * @param {number} [level=0] Layer level to use.
    * @returns {Highlight}
    */
-  useLayerLevel(level = 0) {
+  useLayerLevel(level: number = 0): Highlight {
     this.layerLevel = level;
 
     return this;
@@ -198,7 +217,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  getFocus() {
+  getFocus(): VisualSelection {
     return this.focus;
   }
 
@@ -207,7 +226,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  getFill() {
+  getFill(): VisualSelection {
     return this.fill;
   }
 
@@ -217,7 +236,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  createLayeredArea() {
+  createLayeredArea(): VisualSelection {
     return this.#createHighlight(this.layeredAreas, createAreaLayeredHighlight);
   }
 
@@ -226,7 +245,7 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getLayeredAreas() {
+  getLayeredAreas(): VisualSelection[] {
     return [...this.layeredAreas.values()];
   }
 
@@ -236,7 +255,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  createArea() {
+  createArea(): VisualSelection {
     return this.#createHighlight(this.areas, createAreaHighlight);
   }
 
@@ -245,7 +264,7 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getAreas() {
+  getAreas(): VisualSelection[] {
     return [...this.areas.values()];
   }
 
@@ -255,7 +274,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  createRowHeader() {
+  createRowHeader(): VisualSelection {
     return this.#createHighlight(this.rowHeaders, createHeaderHighlight);
   }
 
@@ -264,7 +283,7 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getRowHeaders() {
+  getRowHeaders(): VisualSelection[] {
     return [...this.rowHeaders.values()];
   }
 
@@ -274,7 +293,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  createColumnHeader() {
+  createColumnHeader(): VisualSelection {
     return this.#createHighlight(this.columnHeaders, createHeaderHighlight);
   }
 
@@ -283,7 +302,7 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getColumnHeaders() {
+  getColumnHeaders(): VisualSelection[] {
     return [...this.columnHeaders.values()];
   }
 
@@ -293,7 +312,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  createActiveRowHeader() {
+  createActiveRowHeader(): VisualSelection {
     return this.#createHighlight(this.activeRowHeaders, createActiveHighlight);
   }
 
@@ -302,7 +321,7 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getActiveRowHeaders() {
+  getActiveRowHeaders(): VisualSelection[] {
     return [...this.activeRowHeaders.values()];
   }
 
@@ -312,7 +331,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  createActiveColumnHeader() {
+  createActiveColumnHeader(): VisualSelection {
     return this.#createHighlight(this.activeColumnHeaders, createActiveHighlight);
   }
 
@@ -321,7 +340,7 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getActiveColumnHeaders() {
+  getActiveColumnHeaders(): VisualSelection[] {
     return [...this.activeColumnHeaders.values()];
   }
 
@@ -331,7 +350,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  createActiveCornerHeader() {
+  createActiveCornerHeader(): VisualSelection {
     return this.#createHighlight(this.activeCornerHeaders, createActiveHighlight);
   }
 
@@ -340,7 +359,7 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getActiveCornerHeaders() {
+  getActiveCornerHeaders(): VisualSelection[] {
     return [...this.activeCornerHeaders.values()];
   }
 
@@ -350,7 +369,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  createRowHighlight() {
+  createRowHighlight(): VisualSelection {
     return this.#createHighlight(this.rowHighlights, createRowHighlight);
   }
 
@@ -359,7 +378,7 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getRowHighlights() {
+  getRowHighlights(): VisualSelection[] {
     return [...this.rowHighlights.values()];
   }
 
@@ -369,7 +388,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  createColumnHighlight() {
+  createColumnHighlight(): VisualSelection {
     return this.#createHighlight(this.columnHighlights, createColumnHighlight);
   }
 
@@ -378,7 +397,7 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getColumnHighlights() {
+  getColumnHighlights(): VisualSelection[] {
     return [...this.columnHighlights.values()];
   }
 
@@ -387,7 +406,7 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  getCustomSelections() {
+  getCustomSelections(): VisualSelection[] {
     return [...this.customSelections.values()];
   }
 
@@ -396,7 +415,7 @@ class Highlight {
    *
    * @param {object} selectionInstance The selection instance.
    */
-  addCustomSelection(selectionInstance) {
+  addCustomSelection(selectionInstance: any): void {
     this.customSelections.push(createCustomHighlight({
       ...this.options,
       ...selectionInstance
@@ -406,19 +425,19 @@ class Highlight {
   /**
    * Perform cleaning visual highlights for the whole table.
    */
-  clear() {
+  clear(): void {
     this.focus.clear();
     this.fill.clear();
 
-    arrayEach(this.areas.values(), highlight => void highlight.clear());
-    arrayEach(this.layeredAreas.values(), highlight => void highlight.clear());
-    arrayEach(this.rowHeaders.values(), highlight => void highlight.clear());
-    arrayEach(this.columnHeaders.values(), highlight => void highlight.clear());
-    arrayEach(this.activeRowHeaders.values(), highlight => void highlight.clear());
-    arrayEach(this.activeColumnHeaders.values(), highlight => void highlight.clear());
-    arrayEach(this.activeCornerHeaders.values(), highlight => void highlight.clear());
-    arrayEach(this.rowHighlights.values(), highlight => void highlight.clear());
-    arrayEach(this.columnHighlights.values(), highlight => void highlight.clear());
+    arrayEach([...this.areas.values()], highlight => void highlight.clear());
+    arrayEach([...this.layeredAreas.values()], highlight => void highlight.clear());
+    arrayEach([...this.rowHeaders.values()], highlight => void highlight.clear());
+    arrayEach([...this.columnHeaders.values()], highlight => void highlight.clear());
+    arrayEach([...this.activeRowHeaders.values()], highlight => void highlight.clear());
+    arrayEach([...this.activeColumnHeaders.values()], highlight => void highlight.clear());
+    arrayEach([...this.activeCornerHeaders.values()], highlight => void highlight.clear());
+    arrayEach([...this.rowHighlights.values()], highlight => void highlight.clear());
+    arrayEach([...this.columnHighlights.values()], highlight => void highlight.clear());
   }
 
   /**
@@ -428,11 +447,11 @@ class Highlight {
    * @param {Function} highlightFactory The function factory.
    * @returns {VisualSelection}
    */
-  #createHighlight(cacheMap, highlightFactory) {
+  #createHighlight(cacheMap: Map<number, VisualSelection>, highlightFactory: (options: any) => VisualSelection): VisualSelection {
     const layerLevel = this.layerLevel;
 
     if (cacheMap.has(layerLevel)) {
-      return cacheMap.get(layerLevel);
+      return cacheMap.get(layerLevel)!;
     }
 
     const highlight = highlightFactory({ layerLevel, ...this.options });
@@ -447,7 +466,7 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  [Symbol.iterator]() {
+  [Symbol.iterator](): Iterator<VisualSelection> {
     return [
       this.focus,
       this.fill,

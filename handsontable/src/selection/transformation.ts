@@ -1,5 +1,53 @@
 import { mixin, createObjectPropListener } from '../helpers/object';
 import localHooks from './../mixins/localHooks';
+import { CellCoords } from '../3rdparty/walkontable/src/selection/interfaces';
+import SelectionRange from './range';
+
+// Extended interface for CellRange to include properties we need
+interface ExtendedCellRange {
+  highlight: CellCoords;
+  from: CellCoords;
+  to: CellCoords;
+  getTopStartCorner(): CellCoords;
+  getTopEndCorner(): CellCoords;
+  getBottomEndCorner(): CellCoords;
+}
+
+// Extended interface for CellCoords to include methods we need
+interface ExtendedCellCoords extends CellCoords {
+  assign(coords: CellCoords): CellCoords;
+  clone(): CellCoords;
+}
+
+interface TransformationOptions {
+  createCellCoords: (row: number, col: number) => ExtendedCellCoords;
+  visualToRenderableCoords: (coords: CellCoords) => CellCoords;
+  renderableToVisualCoords: (coords: CellCoords) => CellCoords;
+  countRenderableRows: () => number;
+  countRenderableColumns: () => number;
+  fixedRowsBottom: () => number;
+  minSpareRows: () => number;
+  minSpareCols: () => number;
+  autoWrapRow: () => boolean;
+  autoWrapCol: () => boolean;
+  findFirstNonHiddenRenderableRow: (from: number, to: number) => number | null;
+  findFirstNonHiddenRenderableColumn: (from: number, to: number) => number | null;
+}
+
+interface TableSize {
+  width: number;
+  height: number;
+}
+
+interface TransformationResult {
+  rowDir: -1 | 0 | 1;
+  colDir: -1 | 0 | 1;
+}
+
+interface Offset {
+  x: number;
+  y: number;
+}
 
 /**
  * The Transformation class implements algorithms for transforming coordinates based on current settings
@@ -22,23 +70,23 @@ class Transformation {
    *
    * @type {SelectionRange}
    */
-  #range;
+  #range: SelectionRange;
   /**
    * Additional options which define the state of the settings which can infer transformation and
    * give the possibility to translate indexes.
    *
    * @type {object}
    */
-  #options;
+  #options: TransformationOptions;
   /**
    * Increases the table size by applying the offsets. The option is used by the `navigableHeaders`
    * option.
    *
    * @type {{ x: number, y: number }}
    */
-  #offset = { x: 0, y: 0 };
+  #offset: Offset = { x: 0, y: 0 };
 
-  constructor(range, options) {
+  constructor(range: SelectionRange, options: TransformationOptions) {
     this.#range = range;
     this.#options = options;
   }
@@ -52,16 +100,17 @@ class Transformation {
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    * @returns {CellCoords} Visual coordinates after transformation.
    */
-  transformStart(rowDelta, colDelta, createMissingRecords = false) {
+  transformStart(rowDelta: number, colDelta: number, createMissingRecords: boolean = false): CellCoords {
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
-    let visualCoords = this.#range.current().highlight;
-    const highlightRenderableCoords = this.#options.visualToRenderableCoords(visualCoords);
+    const current = this.#range.current() as unknown as ExtendedCellRange;
+    let visualCoords = current ? current.highlight : null;
+    const highlightRenderableCoords = visualCoords ? this.#options.visualToRenderableCoords(visualCoords) : null;
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
     this.runLocalHooks('beforeTransformStart', delta);
 
-    if (highlightRenderableCoords.row !== null && highlightRenderableCoords.col !== null) {
+    if (visualCoords && highlightRenderableCoords && highlightRenderableCoords.row !== null && highlightRenderableCoords.col !== null) {
       const { width, height } = this.#getTableSize();
       const { row, col } = this.#visualToZeroBasedCoords(visualCoords);
       const fixedRowsBottom = this.#options.fixedRowsBottom();
@@ -182,9 +231,15 @@ class Transformation {
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
    * @returns {CellCoords} Visual coordinates after transformation.
    */
-  transformEnd(rowDelta, colDelta) {
+  transformEnd(rowDelta: number, colDelta: number): CellCoords {
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
-    const cellRange = this.#range.current();
+    const current = this.#range.current() as unknown as ExtendedCellRange;
+    
+    if (!current) {
+      return this.#options.createCellCoords(0, 0);
+    }
+    
+    const cellRange = current;
     const highlightRenderableCoords = this.#options.visualToRenderableCoords(cellRange.highlight);
     const toRow = this.#findFirstNonHiddenZeroBasedRow(cellRange.to.row, cellRange.from.row);
     const toColumn = this.#findFirstNonHiddenZeroBasedColumn(cellRange.to.col, cellRange.from.col);
@@ -261,14 +316,14 @@ class Transformation {
    *
    * @param {{x: number, y: number}} offset Offset as x and y properties.
    */
-  setOffsetSize({ x, y }) {
+  setOffsetSize({ x, y }: Offset): void {
     this.#offset = { x, y };
   }
 
   /**
    * Resets the offset size to the default values.
    */
-  resetOffsetSize() {
+  resetOffsetSize(): void {
     this.#offset = {
       x: 0,
       y: 0
@@ -281,7 +336,7 @@ class Transformation {
    * @param {CellCoords} zeroBasedCoords The coords object to clamp.
    * @returns {{rowDir: 1|0|-1, colDir: 1|0|-1}}
    */
-  #clampCoords(zeroBasedCoords) {
+  #clampCoords(zeroBasedCoords: CellCoords): TransformationResult {
     const { width, height } = this.#getTableSize();
     let rowDir = 0;
     let colDir = 0;
@@ -313,7 +368,7 @@ class Transformation {
    *
    * @returns {{width: number, height: number}}
    */
-  #getTableSize() {
+  #getTableSize(): TableSize {
     return {
       width: this.#offset.x + this.#options.countRenderableColumns(),
       height: this.#offset.y + this.#options.countRenderableRows(),
@@ -327,7 +382,7 @@ class Transformation {
    * @param {number} visualRowTo The visual row to which the search should end.
    * @returns {number | null}
    */
-  #findFirstNonHiddenZeroBasedRow(visualRowFrom, visualRowTo) {
+  #findFirstNonHiddenZeroBasedRow(visualRowFrom: number, visualRowTo: number): number | null {
     const row = this.#options.findFirstNonHiddenRenderableRow(visualRowFrom, visualRowTo);
 
     if (row === null) {
@@ -344,7 +399,7 @@ class Transformation {
    * @param {number} visualColumnTo The visual column to which the search should end.
    * @returns {number | null}
    */
-  #findFirstNonHiddenZeroBasedColumn(visualColumnFrom, visualColumnTo) {
+  #findFirstNonHiddenZeroBasedColumn(visualColumnFrom: number, visualColumnTo: number): number | null {
     const column = this.#options.findFirstNonHiddenRenderableColumn(visualColumnFrom, visualColumnTo);
 
     if (column === null) {
@@ -360,7 +415,7 @@ class Transformation {
    * @param {CellCoords} visualCoords The visual coords to process.
    * @returns {CellCoords}
    */
-  #visualToZeroBasedCoords(visualCoords) {
+  #visualToZeroBasedCoords(visualCoords: CellCoords): CellCoords {
     const { row, col } = this.#options.visualToRenderableCoords(visualCoords);
 
     if (row === null || col === null) {
@@ -376,13 +431,37 @@ class Transformation {
    * @param {CellCoords} zeroBasedCoords The coordinates to process.
    * @returns {CellCoords}
    */
-  #zeroBasedToVisualCoords(zeroBasedCoords) {
-    const coords = zeroBasedCoords.clone();
+  #zeroBasedToVisualCoords(zeroBasedCoords: CellCoords): CellCoords {
+    const coords = (zeroBasedCoords as ExtendedCellCoords).clone();
 
     coords.col = zeroBasedCoords.col - this.#offset.x;
     coords.row = zeroBasedCoords.row - this.#offset.y;
 
     return this.#options.renderableToVisualCoords(coords);
+  }
+
+  /**
+   * Adds a local hook to the Transformation instance.
+   *
+   * @param {string} name The hook name.
+   * @param {Function} callback The hook callback.
+   * @returns {Transformation}
+   */
+  addLocalHook(name: string, callback: Function): Transformation {
+    // This function will be added by the mixin
+    return this as any;
+  }
+
+  /**
+   * Runs a local hook registered in the Transformation instance.
+   *
+   * @param {string} name The hook name.
+   * @param {*} [params] The parameters.
+   * @returns {*}
+   */
+  runLocalHooks(name: string, ...params: any[]): any {
+    // This function will be added by the mixin
+    return;
   }
 }
 

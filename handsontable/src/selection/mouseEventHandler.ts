@@ -1,4 +1,44 @@
 import { isRightClick as isRightClickEvent, isLeftClick as isLeftClickEvent } from './../helpers/dom/event';
+import { CellCoords } from '../3rdparty/walkontable/src/selection/interfaces';
+
+// Define interfaces for the parameters
+interface MouseHandlerOptions {
+  isShiftKey?: boolean;
+  isLeftClick: boolean;
+  isRightClick: boolean;
+  coords: CellCoords;
+  selection: SelectionInterface;
+  controller: SelectionController;
+  cellCoordsFactory: (row: number, col: number) => CellCoords;
+}
+
+interface SelectionController {
+  row: boolean;
+  column: boolean;
+  cell: boolean;
+}
+
+interface SelectionInterface {
+  isSelected(): boolean;
+  getSelectedRange(): { current(): any };
+  isSelectedByCorner(): boolean;
+  isSelectedByRowHeader(): boolean;
+  isSelectedByColumnHeader(): boolean;
+  markSource(source: string): void;
+  markEndSource(): void;
+  inInSelection(coords: CellCoords): boolean;
+  setRangeEnd(coords: CellCoords): void;
+  setRangeStart(coords: CellCoords): void;
+  selectRows(startRow: number, endRow: number, headerIndex: number): void;
+  selectColumns(startColumn: number, endColumn: number, headerIndex: number): void;
+  selectAll(includeRowHeaders: boolean, includeColumnHeaders: boolean, options: any): void;
+  tableProps: {
+    countCols(): number;
+    countRows(): number;
+  };
+}
+
+type HandlerFunction = (options: MouseHandlerOptions) => void;
 
 /**
  * MouseDown handler.
@@ -7,13 +47,13 @@ import { isRightClick as isRightClickEvent, isLeftClick as isLeftClickEvent } fr
  * @param {boolean} options.isShiftKey The flag which indicates if the shift key is pressed.
  * @param {boolean} options.isLeftClick The flag which indicates if the left mouse button is pressed.
  * @param {boolean} options.isRightClick The flag which indicates if the right mouse button is pressed.
- * @param {CellRange} options.coords The CellCoords object with defined visual coordinates.
+ * @param {CellCoords} options.coords The CellCoords object with defined visual coordinates.
  * @param {Selection} options.selection The Selection class instance.
  * @param {object} options.controller An object with keys `row`, `column`, `cell` which indicate what
  *                                    operation will be performed in later selection stages.
  * @param {Function} options.cellCoordsFactory The function factory for CellCoords objects.
  */
-export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selection, controller, cellCoordsFactory }) {
+export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selection, controller, cellCoordsFactory }: MouseHandlerOptions): void {
   const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
   const selectedCorner = selection.isSelectedByCorner();
   const selectedRow = selection.isSelectedByRowHeader();
@@ -84,7 +124,7 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
  *                                    operation will be performed in later selection stages.
  * @param {Function} options.cellCoordsFactory The function factory for CellCoords objects.
  */
-export function mouseOver({ isLeftClick, coords, selection, controller, cellCoordsFactory }) {
+export function mouseOver({ isLeftClick, coords, selection, controller, cellCoordsFactory }: Omit<MouseHandlerOptions, 'isShiftKey' | 'isRightClick'>): void {
   if (!isLeftClick) {
     return;
   }
@@ -109,7 +149,7 @@ export function mouseOver({ isLeftClick, coords, selection, controller, cellCoor
   selection.markEndSource();
 }
 
-const handlers = new Map([
+const handlers = new Map<string, HandlerFunction>([
   ['mousedown', mouseDown],
   ['mouseover', mouseOver],
   ['touchstart', mouseDown],
@@ -126,14 +166,18 @@ const handlers = new Map([
  *                                    operation will be performed in later selection stages.
  * @param {Function} options.cellCoordsFactory The function factory for CellCoords objects.
  */
-export function handleMouseEvent(event, { coords, selection, controller, cellCoordsFactory }) {
-  handlers.get(event.type)({
-    coords,
-    selection,
-    controller,
-    cellCoordsFactory,
-    isShiftKey: event.shiftKey,
-    isLeftClick: isLeftClickEvent(event) || event.type === 'touchstart',
-    isRightClick: isRightClickEvent(event),
-  });
+export function handleMouseEvent(event: MouseEvent | TouchEvent, { coords, selection, controller, cellCoordsFactory }: Omit<MouseHandlerOptions, 'isShiftKey' | 'isLeftClick' | 'isRightClick'>): void {
+  const handler = handlers.get(event.type);
+  
+  if (handler) {
+    handler({
+      coords,
+      selection,
+      controller,
+      cellCoordsFactory,
+      isShiftKey: 'shiftKey' in event ? event.shiftKey : false,
+      isLeftClick: isLeftClickEvent(event as MouseEvent) || event.type === 'touchstart',
+      isRightClick: isRightClickEvent(event as MouseEvent),
+    });
+  }
 }
