@@ -14,19 +14,18 @@ describe('Filters', () => {
   });
 
   it('should keep focus on the input when the filter search input is clicked', async() => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(3, 3),
+    handsontable({
+      data: createSpreadsheetObjectData(3, 3),
       filters: true,
       colHeaders: true,
       dropdownMenu: true,
     });
 
-    const th = hot.view._wt.wtTable.getColumnHeader(0);
-    const button = th.querySelector('.changeType');
+    const button = getCell(-1, 0).querySelector('.changeType');
 
     simulateTouch(button);
 
-    const plugin = hot.getPlugin('dropdownMenu');
+    const plugin = getPlugin('dropdownMenu');
     const input = plugin.menu.container.querySelector('.htUIMultipleSelectSearch input');
 
     simulateTouch(input);
