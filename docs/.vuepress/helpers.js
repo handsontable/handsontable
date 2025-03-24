@@ -266,6 +266,9 @@ function getDocsBase() {
  * @returns {string}
  */
 function getDocsBaseFullUrl() {
+  if (process.env.BUILD_MODE === 'preview') {
+    return '/docs/';
+  }
   return `${getDocsHostname()}${getDocsBase()}`;
 }
 
