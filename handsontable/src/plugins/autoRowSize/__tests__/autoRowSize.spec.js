@@ -814,6 +814,19 @@ describe('AutoRowSize', () => {
     expect(onErrorSpy).not.toHaveBeenCalled();
   });
 
+  it('should not throw an error when `syncLimit` is smaller than total rows count (#dev-2318)', async() => {
+    expect(() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        autoRowSize: {
+          syncLimit: 5
+        },
+      });
+    }).not.toThrow();
+  });
+
   it('should keep the viewport position unchanged after resetting all rows heights (#dev-1888)', () => {
     handsontable({
       data: createSpreadsheetData(50, 10),
