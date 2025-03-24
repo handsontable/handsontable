@@ -577,36 +577,36 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack
     );
 
-    if (allowFiltering !== false) {
-      if (needToFilter) {
-        const trimmedRows = [];
+    if (allowFiltering !== false && needToFilter) {
+      const trimmedRows = [];
 
-        this.hot.batchExecution(() => {
-          this.filtersRowsMap.clear();
-
-          visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
-
-          const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
-
-          rangeEach(this.hot.countSourceRows() - 1, (row) => {
-            if (!visibleVisualRowsAssertion(row)) {
-              trimmedRows.push(row);
-            }
-          });
-
-          arrayEach(trimmedRows, (physicalRow) => {
-            this.filtersRowsMap.setValueAtIndex(physicalRow, true);
-          });
-        }, true);
-
-        if (!navigableHeaders && !visibleVisualRows.length) {
-          this.hot.deselectCell();
-        }
-      } else {
+      this.hot.batchExecution(() => {
         this.filtersRowsMap.clear();
+
+        visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
+
+        const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
+
+        rangeEach(this.hot.countSourceRows() - 1, (row) => {
+          if (!visibleVisualRowsAssertion(row)) {
+            trimmedRows.push(row);
+          }
+        });
+
+        arrayEach(trimmedRows, (physicalRow) => {
+          this.filtersRowsMap.setValueAtIndex(physicalRow, true);
+        });
+      }, true);
+
+      if (!navigableHeaders && !visibleVisualRows.length) {
+        this.hot.deselectCell();
       }
 
       this.#previousConditionStack = this.exportConditions();
+
+    } else if (allowFiltering !== false && !needToFilter) {
+      this.#previousConditionStack = this.exportConditions();
+      this.filtersRowsMap.clear();
 
     } else {
       this.importConditions(this.#previousConditionStack);
