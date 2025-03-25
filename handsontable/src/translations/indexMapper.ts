@@ -1,3 +1,10 @@
+import * as arrayMapper from './maps/array/arrayMap';
+import { AggregatedCollection, ChangesObservable, ChangesObserver, IndexMap, MapCollection } from './maps/collection';
+import IndexesSequence from './maps/indexesSequence';
+import { createIndexMap } from './maps/utils';
+import { arrayEach } from './../helpers/array';
+import LocalHooksMixin from './../mixins/localHooks';
+
 /**
  * @class IndexMapper
  * @description
@@ -17,7 +24,15 @@
  *
  * These are: {@link IndexesSequence}, {@link PhysicalIndexToValueMap}, {@link LinkedPhysicalIndexToValueMap}, {@link HidingMap}, and {@link TrimmingMap}.
  */
-export class IndexMapper {
+
+// Create types that can be used in public interfaces
+export type IIndexesSequence = IndexesSequence;
+export type IMapCollection = MapCollection;
+export type IChangesObservable = ChangesObservable;
+export type IChangesObserver = ChangesObserver;
+export type IIndexMap = IndexMap;
+
+export class IndexMapper extends LocalHooksMixin(Object) {
   /**
    * Map for storing the sequence of indexes.
    *
@@ -26,7 +41,7 @@ export class IndexMapper {
    * @private
    * @type {IndexesSequence}
    */
-  indexesSequence: IndexesSequence = new IndexesSequence();
+  indexesSequence = new IndexesSequence();
   /**
    * Collection for different trimming maps. Indexes marked as trimmed in any map WILL NOT be included in
    * the {@link DataMap} and won't be rendered.
@@ -34,7 +49,7 @@ export class IndexMapper {
    * @private
    * @type {MapCollection}
    */
-  trimmingMapsCollection: MapCollection = new AggregatedCollection(
+  trimmingMapsCollection = new AggregatedCollection(
     (valuesForIndex: boolean[]) => valuesForIndex.some(value => value === true), false);
   /**
    * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the {@link DataMap},
@@ -43,7 +58,7 @@ export class IndexMapper {
    * @private
    * @type {MapCollection}
    */
-  hidingMapsCollection: MapCollection = new AggregatedCollection(
+  hidingMapsCollection = new AggregatedCollection(
     (valuesForIndex: boolean[]) => valuesForIndex.some(value => value === true), false);
   /**
    * Collection for another kind of maps. There are stored mappings from indexes (visual or physical) to values.
@@ -51,7 +66,7 @@ export class IndexMapper {
    * @private
    * @type {MapCollection}
    */
-  variousMapsCollection: MapCollection = new MapCollection();
+  variousMapsCollection = new MapCollection();
   /**
    * The class instance collects row and column index changes that happen while the Handsontable
    * is running. The object allows creating observers that you can subscribe. Each event represents
@@ -61,7 +76,7 @@ export class IndexMapper {
    * @private
    * @type {ChangesObservable}
    */
-  hidingChangesObservable: ChangesObservable = new ChangesObservable({
+  hidingChangesObservable = new ChangesObservable({
     initialIndexValue: false,
   });
   /**
@@ -139,6 +154,8 @@ export class IndexMapper {
   fromVisualToRenderableIndexesCache: Map<number, number> = new Map();
 
   constructor() {
+    super();
+
     this.indexesSequence.addLocalHook('change', () => {
       this.indexesSequenceChanged = true;
 
@@ -196,9 +213,9 @@ export class IndexMapper {
    *
    * @param {string} indexMapType The index map type which we want to observe.
    *                              Currently, only the 'hiding' index map types are observable.
-   * @returns {ChangesObserver}
+   * @returns {IChangesObserver}
    */
-  createChangesObserver(indexMapType: string): ChangesObserver {
+  createChangesObserver(indexMapType: string): IChangesObserver {
     if (indexMapType !== 'hiding') {
       throw new Error(`Unsupported index map type "${indexMapType}".`);
     }
@@ -212,20 +229,20 @@ export class IndexMapper {
    * @param {string} indexName A unique index name.
    * @param {string} mapType The index map type (e.g., "hiding", "trimming", "physicalIndexToValue").
    * @param {*} [initValueOrFn] The initial value for the index map.
-   * @returns {IndexMap}
+   * @returns {IIndexMap}
    */
-  createAndRegisterIndexMap(indexName: string, mapType: string, initValueOrFn?: any): IndexMap {
+  createAndRegisterIndexMap(indexName: string, mapType: string, initValueOrFn?: any): IIndexMap {
     return this.registerMap(indexName, createIndexMap(mapType, initValueOrFn));
   }
 
   /**
-   * Register map which provide some index mappings. Type of map determining to which collection it will be added.
+   * Register map which provide some index mappings.
    *
    * @param {string} uniqueName Name of the index map. It should be unique.
-   * @param {IndexMap} indexMap Registered index map updated on items removal and insertion.
-   * @returns {IndexMap}
+   * @param {IndexMap} indexMap Registered index map updated on proper events.
+   * @returns {IIndexMap}
    */
-  registerMap(uniqueName: string, indexMap: IndexMap): IndexMap {
+  registerMap(uniqueName: string, indexMap: IndexMap): IIndexMap {
     if (this.trimmingMapsCollection.get(uniqueName) ||
         this.hidingMapsCollection.get(uniqueName) ||
         this.variousMapsCollection.get(uniqueName)) {

@@ -135,21 +135,21 @@ export default function Core(rootElement: HTMLElement, userSettings: object, roo
    * @private
    * @type {HTMLElement}
    */
-  this.rootElement: HTMLElement = rootElement;
+  this.rootElement = rootElement;
   /**
    * The nearest document over container.
    *
    * @private
    * @type {Document}
    */
-  this.rootDocument: Document = rootElement.ownerDocument;
+  this.rootDocument = rootElement.ownerDocument;
   /**
    * Window object over container's document.
    *
    * @private
    * @type {Window}
    */
-  this.rootWindow: Window = this.rootDocument.defaultView;
+  this.rootWindow = this.rootDocument.defaultView;
   /**
    * A boolean to tell if the Handsontable has been fully destroyed. This is set to `true`
    * after `afterDestroy` hook is called.
@@ -158,7 +158,7 @@ export default function Core(rootElement: HTMLElement, userSettings: object, roo
    * @member isDestroyed
    * @type {boolean}
    */
-  this.isDestroyed: boolean = false;
+  this.isDestroyed = false;
   /**
    * The counter determines how many times the render suspending was called. It allows
    * tracking the nested suspending calls. For each render suspend resuming call the
@@ -168,7 +168,7 @@ export default function Core(rootElement: HTMLElement, userSettings: object, roo
    * @private
    * @type {number}
    */
-  this.renderSuspendedCounter: number = 0;
+  this.renderSuspendedCounter = 0;
   /**
    * The counter determines how many times the execution suspending was called. It allows
    * tracking the nested suspending calls. For each execution suspend resuming call the
@@ -178,7 +178,7 @@ export default function Core(rootElement: HTMLElement, userSettings: object, roo
    * @private
    * @type {number}
    */
-  this.executionSuspendedCounter: number = 0;
+  this.executionSuspendedCounter = 0;
 
   const layoutDirection: string = userSettings?.layoutDirection ?? 'inherit';
   const rootElementDirection: string = ['rtl', 'ltr'].includes(layoutDirection) ?
@@ -232,8 +232,8 @@ export default function Core(rootElement: HTMLElement, userSettings: object, roo
   const globalMeta: GlobalMeta = metaManager.getGlobalMeta();
   const pluginsRegistry: UniqueMap = createUniqueMap();
 
-  this.container: HTMLDivElement = this.rootDocument.createElement('div');
-  this.renderCall: boolean = false;
+  this.container = this.rootDocument.createElement('div');
+  this.renderCall = false;
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
@@ -243,7 +243,7 @@ export default function Core(rootElement: HTMLElement, userSettings: object, roo
     addClass(rootElement, 'ht-wrapper');
   }
 
-  this.guid: string = `ht_${randomString()}`; // this is the namespace for global events
+  this.guid = `ht_${randomString()}`; // this is the namespace for global events
 
   foreignHotInstances.set(this.guid, this);
 
@@ -254,7 +254,7 @@ export default function Core(rootElement: HTMLElement, userSettings: object, roo
    * @member columnIndexMapper
    * @type {IndexMapper}
    */
-  this.columnIndexMapper: IndexMapper = new IndexMapper();
+  this.columnIndexMapper = new IndexMapper();
   /**
    * Instance of index mapper which is responsible for managing the row indexes.
    *
@@ -262,7 +262,7 @@ export default function Core(rootElement: HTMLElement, userSettings: object, roo
    * @member rowIndexMapper
    * @type {IndexMapper}
    */
-  this.rowIndexMapper: IndexMapper = new IndexMapper();
+  this.rowIndexMapper = new IndexMapper();
 
   this.columnIndexMapper.addLocalHook('indexesSequenceChange', (source: string) => {
     instance.runHooks('afterColumnSequenceChange', source);
@@ -353,7 +353,7 @@ export default function Core(rootElement: HTMLElement, userSettings: object, roo
     }
   });
 
-  this.selection: Selection = selection;
+  this.selection = selection;
 
   const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }: { hiddenIndexesChanged: boolean }) => {
     if (hiddenIndexesChanged) {
@@ -4959,7 +4959,7 @@ export default function Core(rootElement: HTMLElement, userSettings: object, roo
     return tempElement.firstElementChild as HTMLTableElement;
   };
 
-  this.timeouts: number[] = [];
+  this.timeouts = [];
 
   /**
    * Use the theme specified by the provided name.
@@ -5016,7 +5016,7 @@ export default function Core(rootElement: HTMLElement, userSettings: object, roo
     });
   };
 
-  this.immediates: number[] = [];
+  this.immediates = [];
 
   /**
    * Execute function execution to the next event loop cycle. Purpose of this method is to clear all known timeouts when `destroy` method is called.

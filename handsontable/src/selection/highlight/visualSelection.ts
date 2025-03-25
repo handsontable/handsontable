@@ -1,9 +1,10 @@
 import { Selection } from './../../3rdparty/walkontable/src';
 import { CellCoords as BaseCellCoords, CellRange as BaseCellRange } from './../../3rdparty/walkontable/src/selection/interfaces';
 import CellCoords from './../../3rdparty/walkontable/src/cell/coords';
+import CellRange from './../../3rdparty/walkontable/src/cell/range';
 
 interface VisualSelectionSettings {
-  createCellRange: (coords: CellCoords) => CellRange;
+  createCellRange: (coords: CellCoords) => BaseCellRange;
   visualToRenderableCoords: (coords: CellCoords) => CellCoords;
   renderableToVisualCoords: (coords: CellCoords) => CellCoords;
   rowIndexMapper: any;

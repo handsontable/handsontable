@@ -1,5 +1,4 @@
-import { mixin } from '../../../../helpers/object';
-import localHooks from '../../../../mixins/localHooks';
+import LocalHooksMixin from './../../../../mixins/localHooks';
 import { SelectionSettings, CellRange, CellCoords, SelectionInterface } from './interfaces';
 
 /**
@@ -10,7 +9,7 @@ import { SelectionSettings, CellRange, CellCoords, SelectionInterface } from './
  *
  * @class Selection
  */
-class Selection implements SelectionInterface {
+class Selection extends LocalHooksMixin(Object) implements SelectionInterface {
   /**
    * @param {object} settings The selection settings object. @todo type.
    * @param {CellRange} cellRange The cell range instance.
@@ -19,6 +18,7 @@ class Selection implements SelectionInterface {
     public settings: SelectionSettings,
     public cellRange: CellRange | null = null
   ) {
+    super();
   }
 
   /**
@@ -106,28 +106,6 @@ class Selection implements SelectionInterface {
   destroy(): void {
     this.runLocalHooks('destroy');
   }
-
-  /**
-   * Adds a local hook to the component.
-   *
-   * @param {string} hookName The hook name.
-   * @param {Function} callback The hook callback.
-   */
-  addLocalHook(hookName: string, callback: (...args: any[]) => void): void {
-    // This method is added via mixin, but needs to be declared for TypeScript
-  }
-
-  /**
-   * Runs the local hook registered under the hook name.
-   *
-   * @param {string} hookName The hook name.
-   * @param {*} params Additional parameters passed to the hook callback.
-   */
-  runLocalHooks(hookName: string, ...params: any[]): void {
-    // This method is added via mixin, but needs to be declared for TypeScript
-  }
 }
-
-mixin(Selection, localHooks);
 
 export default Selection;

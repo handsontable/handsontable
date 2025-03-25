@@ -1,8 +1,7 @@
 import { isUndefined, isDefined } from '../../helpers/mixed';
-import { mixin } from '../../helpers/object';
-import localHooks from '../../mixins/localHooks';
 import { IndexMap } from '../maps/indexMap';
 import { AnyFunction } from '../../helpers/types';
+import LocalHooksMixin from './../../mixins/localHooks';
 
 // Counter for checking if there is a memory leak.
 let registeredMaps = 0;
@@ -10,7 +9,7 @@ let registeredMaps = 0;
 /**
  * Collection of index maps having unique names. It allow us to perform bulk operations such as init, remove, insert on all index maps that have been registered in the collection.
  */
-export class MapCollection {
+export class MapCollection extends LocalHooksMixin(Object) {
   /**
    * Collection of index maps.
    *
@@ -119,24 +118,7 @@ export class MapCollection {
       indexMap.init(length);
     });
   }
-
-  /**
-   * Add local hook from the mixin.
-   */
-  addLocalHook!: (hookName: string, callback: AnyFunction) => void;
-
-  /**
-   * Clear local hooks from the mixin.
-   */
-  clearLocalHooks!: () => void;
-
-  /**
-   * Run local hooks from the mixin.
-   */
-  runLocalHooks!: (...args: any[]) => void;
 }
-
-mixin(MapCollection, localHooks);
 
 /**
  * @returns {number}

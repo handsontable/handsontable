@@ -2,9 +2,8 @@ import GlobalMeta from './metaLayers/globalMeta';
 import TableMeta from './metaLayers/tableMeta';
 import ColumnMeta from './metaLayers/columnMeta';
 import CellMeta from './metaLayers/cellMeta';
-import localHooks from '../../mixins/localHooks';
-import { mixin } from '../../helpers/object';
 import { MetaManager as MetaManagerInterface, MetaObject, CellMetaOptions, Handsontable } from '../types';
+import LocalHooksMixin from './../../mixins/localHooks';
 
 /**
  * With the Meta Manager class, it can be possible to manage with meta objects for different layers in
@@ -33,7 +32,7 @@ import { MetaManager as MetaManagerInterface, MetaObject, CellMetaOptions, Hands
  *
  * A more detailed description of the specific layers can be found in the "metaLayers/" modules description.
  */
-export default class MetaManager implements MetaManagerInterface {
+export default class MetaManager extends LocalHooksMixin(Object) implements MetaManagerInterface {
   /**
    * @type {Handsontable}
    */
@@ -54,14 +53,10 @@ export default class MetaManager implements MetaManagerInterface {
    * @type {CellMeta}
    */
   cellMeta: CellMeta;
-  
-  // Properties added by the localHooks mixin
-  _localHooks: Record<string, Function[]>;
-  addLocalHook: (key: string, callback: Function) => this;
-  runLocalHooks: (key: string, ...args: any[]) => void;
-  clearLocalHooks: () => this;
 
   constructor(hot: Handsontable, customSettings: MetaObject = {}, metaMods: any[] = []) {
+    super();
+
     /**
      * @type {Handsontable}
      */
@@ -309,5 +304,3 @@ export default class MetaManager implements MetaManagerInterface {
     this.cellMeta.clearCache();
   }
 }
-
-mixin(MetaManager, localHooks);

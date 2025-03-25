@@ -1,7 +1,7 @@
-import { mixin, createObjectPropListener } from '../helpers/object';
-import localHooks from './../mixins/localHooks';
+import { createObjectPropListener } from '../helpers/object';
 import { CellCoords } from '../3rdparty/walkontable/src/selection/interfaces';
 import SelectionRange from './range';
+import LocalHooksMixin from './../mixins/localHooks';
 
 // Extended interface for CellRange to include properties we need
 interface ExtendedCellRange {
@@ -64,7 +64,7 @@ interface Offset {
  * @class Transformation
  * @util
  */
-class Transformation {
+class Transformation extends LocalHooksMixin(Object) {
   /**
    * Instance of the SelectionRange, holder for visual coordinates applied to the table.
    *
@@ -87,6 +87,7 @@ class Transformation {
   #offset: Offset = { x: 0, y: 0 };
 
   constructor(range: SelectionRange, options: TransformationOptions) {
+    super();
     this.#range = range;
     this.#options = options;
   }
@@ -439,32 +440,6 @@ class Transformation {
 
     return this.#options.renderableToVisualCoords(coords);
   }
-
-  /**
-   * Adds a local hook to the Transformation instance.
-   *
-   * @param {string} name The hook name.
-   * @param {Function} callback The hook callback.
-   * @returns {Transformation}
-   */
-  addLocalHook(name: string, callback: Function): Transformation {
-    // This function will be added by the mixin
-    return this as any;
-  }
-
-  /**
-   * Runs a local hook registered in the Transformation instance.
-   *
-   * @param {string} name The hook name.
-   * @param {*} [params] The parameters.
-   * @returns {*}
-   */
-  runLocalHooks(name: string, ...params: any[]): any {
-    // This function will be added by the mixin
-    return;
-  }
 }
-
-mixin(Transformation, localHooks);
 
 export default Transformation;

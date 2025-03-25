@@ -1,16 +1,15 @@
 import { rangeEach } from '../../helpers/number';
-import { mixin } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
-import localHooks from '../../mixins/localHooks';
 import { AnyFunction } from '../../helpers/types';
 import { IndexValue } from '../types';
+import LocalHooksMixin from '../../mixins/localHooks';
 
 /**
  * Map for storing mappings from an index to a value.
  *
  * @class IndexMap
  */
-export class IndexMap {
+export class IndexMap extends LocalHooksMixin(Object) {
   /**
    * List of values for particular indexes.
    *
@@ -27,6 +26,7 @@ export class IndexMap {
   initValueOrFn: IndexValue | ((index: number) => IndexValue) | null;
 
   constructor(initValueOrFn: IndexValue | ((index: number) => IndexValue) | null = null) {
+    super();
     this.initValueOrFn = initValueOrFn;
   }
 
@@ -179,21 +179,4 @@ export class IndexMap {
     this.indexedValues = null as any;
     this.initValueOrFn = null;
   }
-
-  /**
-   * Add local hook from the mixin.
-   */
-  addLocalHook!: (hookName: string, callback: AnyFunction) => void;
-
-  /**
-   * Clear local hooks from the mixin.
-   */
-  clearLocalHooks!: () => void;
-
-  /**
-   * Run local hooks from the mixin.
-   */
-  runLocalHooks!: (...args: any[]) => void;
 }
-
-mixin(IndexMap, localHooks);

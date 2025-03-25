@@ -1,7 +1,6 @@
-import { mixin } from '../../helpers/object';
-import localHooks from '../../mixins/localHooks';
 import { IndexChange } from '../types';
 import { AnyFunction } from '../../helpers/types';
+import LocalHooksMixin from './../../mixins/localHooks';
 
 /**
  * The ChangesObserver module is an object that represents a disposable resource
@@ -9,7 +8,7 @@ import { AnyFunction } from '../../helpers/types';
  *
  * @class ChangesObserver
  */
-export class ChangesObserver {
+export class ChangesObserver extends LocalHooksMixin(Object) {
   /**
    * The field holds initial changes that will be used to notify the callbacks added using
    * subscribe method. Regardless of the moment of listening for changes, the subscriber
@@ -71,21 +70,4 @@ export class ChangesObserver {
   _writeInitialChanges(initialChanges: IndexChange[]): void {
     this.#currentInitialChanges = initialChanges;
   }
-
-  /**
-   * Add local hook from the mixin.
-   */
-  addLocalHook!: (hookName: string, callback: AnyFunction) => void;
-
-  /**
-   * Clear local hooks from the mixin.
-   */
-  clearLocalHooks!: () => void;
-
-  /**
-   * Run local hooks from the mixin.
-   */
-  runLocalHooks!: (...args: any[]) => void;
 }
-
-mixin(ChangesObserver, localHooks);

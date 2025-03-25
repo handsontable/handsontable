@@ -6,7 +6,6 @@ import { createObjectPropListener, mixin } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
 import { clamp } from './../helpers/number';
 import { arrayEach } from './../helpers/array';
-import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
 import {
   detectSelectionType,
@@ -21,6 +20,7 @@ import {
   HEADER_TYPE,
   FOCUS_TYPE,
 } from './highlight/highlight';
+import LocalHooksMixin from './../mixins/localHooks';
 
 type ExtendedCellCoords = CellCoords;
 
@@ -99,15 +99,11 @@ interface SelectAllOptions {
   disableHeadersHighlight?: boolean;
 }
 
-interface SelectionInterface {
-  runLocalHooks(name: string, ...args: any[]): void;
-}
-
 /**
  * @class Selection
  * @util
  */
-export class Selection implements SelectionInterface {
+export class Selection extends LocalHooksMixin(Object) {
   /**
    * Handsontable settings instance.
    *
@@ -191,6 +187,7 @@ export class Selection implements SelectionInterface {
   #expectedLayersCount = -1;
 
   constructor(settings: GridSettings, tableProps: TableProps) {
+    super();
     this.settings = settings;
     this.tableProps = tableProps;
     this.selectedRange = new SelectionRange((coords: CellCoords) => {
@@ -297,17 +294,6 @@ export class Selection implements SelectionInterface {
       (...args: any[]) => this.runLocalHooks('beforeModifyTransformFocus', ...args));
     this.#focusTransformation.addLocalHook('afterTransformStart',
       (...args: any[]) => this.runLocalHooks('afterModifyTransformFocus', ...args));
-  }
-
-  /**
-   * Run local hooks.
-   *
-   * @param {string} name The name of the hook.
-   * @param {...*} args The arguments to pass to the hook.
-   */
-  runLocalHooks(name: string, ...args: any[]): void {
-    // This method is added by the localHooks mixin
-    return (this as any).runLocalHooks(name, ...args);
   }
 
   /**
@@ -1198,7 +1184,7 @@ export class Selection implements SelectionInterface {
    * @param {Array[]|CellRange[]} selectionRanges The coordinates which define what the cells should be selected.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectCells(selectionRanges: Array<[number, number, number, number]> | CellRange[]): boolean {
+  selectCells(selectionRanges: Array<[number, number, number, number]> | Array<object>): boolean {
     const selectionType = detectSelectionType(selectionRanges);
 
     if (selectionType === SELECTION_TYPE_EMPTY) {
@@ -1479,7 +1465,5 @@ export class Selection implements SelectionInterface {
     this.highlight.useLayerLevel(currentLayer);
   }
 }
-
-mixin(Selection, localHooks);
 
 export default Selection;
