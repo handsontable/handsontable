@@ -30,6 +30,10 @@ module.exports = {
     // save 21 kB (July 12, 2023) https://babeljs.io/docs/assumptions#noincompletensimportdetection
     noIncompleteNsImportDetection: true,
   },
+  presets: [
+    '@babel/preset-env',
+    '@babel/preset-typescript'
+  ],
   env: {
     // Environment for unit testing, source code and languages building via webpack (UMD).
     commonjs: {
