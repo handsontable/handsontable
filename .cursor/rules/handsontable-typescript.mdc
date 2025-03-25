@@ -1,0 +1,72 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# AI Rules for Handsontable
+
+- A JavaScript/Typescript library.
+- Data Grid / Data Table with a Spreadsheet Look & Feel.
+- spreadsheet-like editing features,
+- perfect for building data-rich internal apps
+- allows users to enter, edit, validate, and process data from various sources
+- Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.
+
+## Coding practices
+
+### Guidelines for AI Support Level
+
+#### I am an expert
+
+- Favor elegant, maintainable solutions over verbose code. Assume understanding of language idioms and design patterns.
+- Highlight potential performance implications and optimization opportunities in suggested code.
+- Frame solutions within broader architectural contexts and suggest design alternatives when appropriate.
+- Focus comments on 'why' not 'what' - assume code readability through well-named functions and variables.
+- Proactively address edge cases, race conditions, and security considerations without being prompted.
+- When debugging, provide targeted diagnostic approaches rather than shotgun solutions.
+- Suggest comprehensive testing strategies rather than just example tests, including considerations for mocking, test organization, and coverage.
+
+
+### Guidelines for Documentation
+
+#### TypeDoc
+
+- Use JSDoc-style comments with TypeScript-specific annotations for all public APIs
+- Group related functionality using @module and @category tags for better organization
+- Generate and publish documentation as part of the CI/CD pipeline to keep it current
+- Include usage examples for complex interfaces and abstract classes
+
+
+### Guidelines for Architecture
+
+#### Clean Architecture
+
+- Strictly separate code into layers: entities, use cases, interfaces, and frameworks
+- Ensure dependencies point inward, with inner layers having no knowledge of outer layers
+- Use interfaces (ports) and implementations (adapters) to isolate external dependencies
+- Create use cases that orchestrate entity interactions for specific business operations
+- Implement mappers to transform data between layers to maintain separation of concerns
+
+
+### Guidelines for Static analysis
+
+#### ESLint
+
+- Use the --fix flag in CI/CD pipelines to automatically correct fixable issues
+
+
+## Testing
+
+### Guidelines for Unit Testing
+
+#### Jest
+
+- Use Jest with TypeScript for type checking in tests
+- Implement Testing Library for component testing instead of enzyme
+- Leverage mock functions and spies for isolating units of code
+- Implement test setup and teardown with beforeEach and afterEach
+- Use describe blocks for organizing related tests
+- Leverage expect assertions with specific matchers
+- Leverage fake timers for testing time-dependent functionality
+
+
