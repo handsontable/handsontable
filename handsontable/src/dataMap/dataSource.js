@@ -89,6 +89,40 @@ class DataSource {
   }
 
   /**
+   * Inserts new row(s) at the provided physical index.
+   *
+   * @param {number} rowIndex Physical row index.
+   * @param {any[]} elements Elements to be inserted.
+   */
+  insertRowsAt(rowIndex, elements) {
+    const newData = [
+      ...this.data.slice(0, rowIndex),
+      ...elements,
+      ...this.data.slice(rowIndex)
+    ];
+
+    // the same data object is used in the dataMap class to keep the reference
+    this.data.length = 0;
+    newData.forEach(row => this.data.push(row));
+  }
+
+  /**
+   * Inserts new column(s) at the provided physical index.
+   *
+   * @param {number} columnIndex Physical column index.
+   * @param {any[]} elements Elements to be inserted.
+   */
+  insertColumnsAt(columnIndex, elements) {
+    this.data.forEach((row, index) => {
+      this.data[index] = [
+        ...row.slice(0, columnIndex),
+        ...elements[index],
+        ...row.slice(columnIndex)
+      ];
+    });
+  }
+
+  /**
    * Returns array of column values from the data source. `column` is the index of the row in the data source.
    *
    * @param {number} column Visual column index.

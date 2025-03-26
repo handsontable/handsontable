@@ -116,6 +116,26 @@ class CellCoords {
   }
 
   /**
+   * Checks if the coordinates point to the row headers range. If the col axis points to
+   * the row header (negative value) then method returns `true`.
+   *
+   * @returns {boolean}
+   */
+  isRowHeader() {
+    return this.col < 0;
+  }
+
+  /**
+   * Checks if the coordinates point to the headers range. If the row axis points to
+   * the column header (negative value) then method returns `true`.
+   *
+   * @returns {boolean}
+   */
+  isColumnHeader() {
+    return this.row < 0;
+  }
+
+  /**
    * Checks if the coordinates point to the cells range. If all axis (row and col) point to
    * the cell (positive value) then method returns `true`.
    *

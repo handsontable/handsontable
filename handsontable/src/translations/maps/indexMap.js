@@ -163,6 +163,31 @@ export class IndexMap {
   }
 
   /**
+   * Allows importing the indexes state to the map.
+   *
+   * @param {{ indexes: number[], initValue: any }} state The state object.
+   */
+  import({
+    indexes,
+    initValue,
+  }) {
+    this.indexedValues = [...indexes];
+    this.initValueOrFn = initValue;
+  }
+
+  /**
+   * Exports the state of the map.
+   *
+   * @returns {{ indexes: number[], initValue: any }}
+   */
+  export() {
+    return {
+      indexes: [...this.indexedValues],
+      initValue: this.initValueOrFn,
+    };
+  }
+
+  /**
    * Destroys the Map instance.
    */
   destroy() {

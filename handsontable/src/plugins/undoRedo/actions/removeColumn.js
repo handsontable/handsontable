@@ -1,7 +1,7 @@
 import { BaseAction } from './_base';
 import { getCellMetas } from '../utils';
 import { rangeEach } from '../../../helpers/number';
-import { arrayMap, arrayEach } from '../../../helpers/array';
+import { deepClone } from '../../../helpers/object';
 
 /**
  * Action that tracks changes in column removal.
@@ -15,10 +15,6 @@ export class RemoveColumnAction extends BaseAction {
    */
   index;
   /**
-   * @param {number[]} indexes The physical column indexes.
-   */
-  indexes;
-  /**
    * @param {Array} data The removed data.
    */
   data;
@@ -31,13 +27,13 @@ export class RemoveColumnAction extends BaseAction {
    */
   headers;
   /**
-   * @param {number[]} columnPositions The column position.
+   * @param {Array} rowIndexMapperState The state of the row index mapper before the action was performed.
    */
-  columnPositions;
+  rowIndexMapperState;
   /**
-   * @param {number[]} rowPositions The row position.
+   * @param {Array} columnIndexMapperState The state of the column index mapper before the action was performed.
    */
-  rowPositions;
+  columnIndexMapperState;
   /**
    * @param {number} fixedColumnsStart Number of fixed columns on the left. Remove column action change it sometimes.
    */
@@ -46,6 +42,10 @@ export class RemoveColumnAction extends BaseAction {
    * @param {Array} removedCellMetas List of removed cell metas.
    */
   removedCellMetas;
+  /**
+   * @param {CellRange[]} selectionState The dump of the selection range taken before the action.
+   */
+  selectionState;
 
   constructor({
     index,
@@ -53,10 +53,11 @@ export class RemoveColumnAction extends BaseAction {
     data,
     amount,
     headers,
-    columnPositions,
-    rowPositions,
+    rowIndexMapperState,
+    columnIndexMapperState,
     fixedColumnsStart,
-    removedCellMetas
+    removedCellMetas,
+    selectionState,
   }) {
     super('remove_col');
     this.index = index;
@@ -64,53 +65,41 @@ export class RemoveColumnAction extends BaseAction {
     this.data = data;
     this.amount = amount;
     this.headers = headers;
-    this.columnPositions = columnPositions.slice(0);
-    this.rowPositions = rowPositions.slice(0);
+    this.rowIndexMapperState = rowIndexMapperState;
+    this.columnIndexMapperState = columnIndexMapperState;
     this.fixedColumnsStart = fixedColumnsStart;
     this.removedCellMetas = removedCellMetas;
+    this.selectionState = selectionState;
   }
 
   static startRegisteringEvents(hot, undoRedoPlugin) {
     hot.addHook('beforeRemoveCol', (index, amount, logicColumns, source) => {
       const wrappedAction = () => {
-        const originalData = hot.getSourceDataArray();
-        const columnIndex = (hot.countCols() + index) % hot.countCols();
-        const lastColumnIndex = columnIndex + amount - 1;
-        const removedData = [];
+        const physicalColumnIndex = hot.toPhysicalColumn(index);
+        const colHeaders = hot.getSettings().colHeaders;
         const headers = [];
-        const indexes = [];
+        const removedData = deepClone(
+          hot.getSourceData(
+            0, physicalColumnIndex, hot.countSourceRows() - 1, physicalColumnIndex + amount - 1
+          )
+        );
 
-        rangeEach(originalData.length - 1, (i) => {
-          const column = [];
-          const origRow = originalData[i];
-
-          rangeEach(columnIndex, lastColumnIndex, (j) => {
-            column.push(origRow[hot.toPhysicalColumn(j)]);
-          });
-
-          removedData.push(column);
-        });
-
-        rangeEach(amount - 1, (i) => {
-          indexes.push(hot.toPhysicalColumn(columnIndex + i));
-        });
-
-        if (Array.isArray(hot.getSettings().colHeaders)) {
+        if (Array.isArray(colHeaders)) {
           rangeEach(amount - 1, (i) => {
-            headers.push(hot.getSettings().colHeaders[hot.toPhysicalColumn(columnIndex + i)] || null);
+            headers.push(colHeaders[physicalColumnIndex + i] ?? null);
           });
         }
 
         return new RemoveColumnAction({
-          index: columnIndex,
-          indexes,
+          index: physicalColumnIndex,
           data: removedData,
           amount,
           headers,
-          columnPositions: hot.columnIndexMapper.getIndexesSequence(),
-          rowPositions: hot.rowIndexMapper.getIndexesSequence(),
+          rowIndexMapperState: hot.rowIndexMapper.exportIndexes(),
+          columnIndexMapperState: hot.columnIndexMapper.exportIndexes(),
+          selectionState: hot.selection.exportSelection(),
           fixedColumnsStart: hot.getSettings().fixedColumnsStart,
-          removedCellMetas: getCellMetas(hot, 0, hot.countRows(), columnIndex, lastColumnIndex),
+          removedCellMetas: getCellMetas(hot, 0, hot.countRows(), index, index + amount - 1),
         });
       };
 
@@ -128,47 +117,19 @@ export class RemoveColumnAction extends BaseAction {
     // Changing by the reference as `updateSettings` doesn't work the best.
     settings.fixedColumnsStart = this.fixedColumnsStart;
 
-    const ascendingIndexes = this.indexes.slice(0).sort();
-    const sortByIndexes = (elem, j, arr) => arr[this.indexes.indexOf(ascendingIndexes[j])];
+    hot.rowIndexMapper.importIndexes(this.rowIndexMapperState);
+    hot.columnIndexMapper.importIndexes(this.columnIndexMapperState);
+    hot._getDataSourceMap().insertColumnsAt(this.index, this.data);
+    hot.selection.importSelection(this.selectionState);
 
-    const removedDataLength = this.data.length;
-    const sortedData = [];
+    if (this.headers.length > 0) {
+      const colHeaders = hot.getSettings().colHeaders;
 
-    for (let rowIndex = 0; rowIndex < removedDataLength; rowIndex++) {
-      sortedData.push(arrayMap(this.data[rowIndex], sortByIndexes));
-    }
-
-    const sortedHeaders = arrayMap(this.headers, sortByIndexes);
-    const changes = [];
-
-    // The indexes sequence have to be applied twice.
-    //  * First for proper index translation. The alter method accepts a visual index
-    //    and we are able to retrieve the correct index indicating where to add a new row based
-    //    only on the previous order state of the columns;
-    //  * The alter method shifts the indexes (a side-effect), so we need to reapply the indexes sequence
-    //    the same as it was in the previous state;
-    hot.columnIndexMapper.setIndexesSequence(this.columnPositions);
-    hot.alter('insert_col_start', hot.toVisualColumn(this.indexes[0]), this.indexes.length, 'UndoRedo.undo');
-
-    hot.batchExecution(() => {
-      // Restore row sequence in a case when all columns are removed. the original
-      // row sequence is lost in that case.
-      hot.rowIndexMapper.setIndexesSequence(this.rowPositions);
-      hot.columnIndexMapper.setIndexesSequence(this.columnPositions);
-    }, true);
-
-    arrayEach(hot.getSourceDataArray(), (rowData, rowIndex) => {
-      arrayEach(ascendingIndexes, (changedIndex, contiquesIndex) => {
-        rowData[changedIndex] = sortedData[rowIndex][contiquesIndex];
-
-        changes.push([rowIndex, changedIndex, rowData[changedIndex]]);
-      });
-    });
-
-    if (typeof this.headers !== 'undefined') {
-      arrayEach(sortedHeaders, (headerData, columnIndex) => {
-        hot.getSettings().colHeaders[ascendingIndexes[columnIndex]] = headerData;
-      });
+      hot.getSettings().colHeaders = [
+        ...colHeaders.slice(0, this.index),
+        ...this.headers,
+        ...colHeaders.slice(this.index)
+      ];
     }
 
     this.removedCellMetas.forEach(([rowIndex, columnIndex, cellMeta]) => {
@@ -176,7 +137,7 @@ export class RemoveColumnAction extends BaseAction {
     });
 
     hot.addHookOnce('afterViewRender', undoneCallback);
-    hot.setSourceDataAtCell(changes, null, null, 'UndoRedo.undo');
+    hot.render();
   }
 
   /**
@@ -185,6 +146,6 @@ export class RemoveColumnAction extends BaseAction {
    */
   redo(hot, redoneCallback) {
     hot.addHookOnce('afterRemoveCol', redoneCallback);
-    hot.alter('remove_col', this.index, this.amount, 'UndoRedo.redo');
+    hot.alter('remove_col', hot.toVisualColumn(this.index), this.amount, 'UndoRedo.redo');
   }
 }

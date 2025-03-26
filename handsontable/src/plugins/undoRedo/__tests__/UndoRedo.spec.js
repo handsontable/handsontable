@@ -537,7 +537,7 @@ describe('UndoRedo', () => {
         alter('remove_col', 0, 3);
         getPlugin('undoRedo').undo();
 
-        expect(getSelected()).toBeUndefined();
+        expect(getSelected()).toEqual([[0, 0, 0, 2]]);
         expect(countCols()).toBe(3);
         expect(getData()).toEqual([
           ['A1', 'B1', null],
@@ -1054,10 +1054,6 @@ describe('UndoRedo', () => {
           data: createSpreadsheetData(2, 3)
         });
 
-        const afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
-
-        addHook('afterCreateCol', afterCreateColCallback);
-
         expect(countCols()).toEqual(3);
         expect(getDataAtCell(0, 0)).toEqual('A1');
         expect(getDataAtCell(0, 1)).toEqual('B1');
@@ -1075,8 +1071,6 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('C2');
 
         getPlugin('undoRedo').undo();
-
-        expect(afterCreateColCallback).toHaveBeenCalledOnceWith(1, 1, 'UndoRedo.undo');
 
         expect(countCols()).toEqual(3);
         expect(getDataAtCell(0, 0)).toEqual('A1');

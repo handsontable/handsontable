@@ -5042,6 +5042,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return editorManager;
   };
 
+  this._getDataMap = function() {
+    return datamap;
+  };
+  this._getDataSourceMap = function() {
+    return dataSource;
+  };
+
   const shortcutManager = createShortcutManager({
     handleEvent() {
       return instance.isListening();

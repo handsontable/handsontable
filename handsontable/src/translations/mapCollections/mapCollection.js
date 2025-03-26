@@ -116,6 +116,36 @@ export class MapCollection {
       indexMap.init(length);
     });
   }
+
+  /**
+   * Allows importing the state of the index maps from the external source.
+   *
+   * @param {Map<string, IndexMap>} state The state of the index maps.
+   */
+  importEvery(state) {
+    state.forEach((indexMapExport, name) => {
+      const indexMap = this.collection.get(name);
+
+      if (indexMap) {
+        indexMap.import(indexMapExport);
+      }
+    });
+  }
+
+  /**
+   * Exports the state of the index map for that collection.
+   *
+   * @returns {Map<string, IndexMap>}
+   */
+  exportEvery() {
+    const state = new Map();
+
+    this.collection.forEach((indexMap, name) => {
+      state.set(name, indexMap.export());
+    });
+
+    return state;
+  }
 }
 
 mixin(MapCollection, localHooks);

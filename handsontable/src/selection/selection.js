@@ -1245,6 +1245,36 @@ class Selection {
   }
 
   /**
+   * Allows importing the selection for all layers from the provided array of CellRange objects.
+   * The method clears the current selection and sets the new one without triggering any
+   * selection related hooks.
+   *
+   * @param {CellRange[]} cellRanges The array of CellRange objects to import.
+   */
+  importSelection(cellRanges) {
+    this.selectedRange.clear();
+    this.highlight.clear();
+    this.inProgress = true;
+
+    cellRanges.forEach((cellRange) => {
+      this.selectedRange.push(cellRange);
+      this.setRangeFocus(cellRange.highlight);
+      this.applyAndCommit();
+    });
+
+    this.inProgress = false;
+  }
+
+  /**
+   * Exports all selection layers as an array of CellRange objects.
+   *
+   * @returns {CellRange[]}
+   */
+  exportSelection() {
+    return Array.from(this.selectedRange).map(range => range.clone());
+  }
+
+  /**
    * Refreshes the whole selection by clearing, reapplying and committing the renderable selection (Walkontable Selection API)
    * by using already added visual ranges.
    */

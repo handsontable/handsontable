@@ -26,36 +26,47 @@ export class RemoveRowAction extends BaseAction {
    */
   fixedRowsTop;
   /**
-   * @param {Array} rowIndexesSequence Row index sequence taken from the row index mapper.
+   * @param {Array} rowIndexMapperState The state of the row index mapper before the action was performed.
    */
-  rowIndexesSequence;
+  rowIndexMapperState;
+  /**
+   * @param {Array} columnIndexMapperState The state of the column index mapper before the action was performed.
+   */
+  columnIndexMapperState;
   /**
    * @param {Array} removedCellMetas List of removed cell metas.
    */
   removedCellMetas;
+  /**
+   * @param {CellRange[]} selectionState The dump of the selection range taken before the action.
+   */
+  selectionState;
 
   constructor({
     index,
     data,
     fixedRowsBottom,
     fixedRowsTop,
-    rowIndexesSequence,
-    removedCellMetas
+    rowIndexMapperState,
+    columnIndexMapperState,
+    removedCellMetas,
+    selectionState,
   }) {
     super('remove_row');
     this.index = index;
     this.data = data;
     this.fixedRowsBottom = fixedRowsBottom;
     this.fixedRowsTop = fixedRowsTop;
-    this.rowIndexesSequence = rowIndexesSequence;
+    this.rowIndexMapperState = rowIndexMapperState;
+    this.columnIndexMapperState = columnIndexMapperState;
     this.removedCellMetas = removedCellMetas;
+    this.selectionState = selectionState;
   }
 
   static startRegisteringEvents(hot, undoRedoPlugin) {
     hot.addHook('beforeRemoveRow', (index, amount, logicRows, source) => {
       const wrappedAction = () => {
         const physicalRowIndex = hot.toPhysicalRow(index);
-        const lastRowIndex = physicalRowIndex + amount - 1;
         const removedData = deepClone(
           hot.getSourceData(
             physicalRowIndex, 0, physicalRowIndex + amount - 1, hot.countSourceCols() - 1
@@ -67,8 +78,10 @@ export class RemoveRowAction extends BaseAction {
           data: removedData,
           fixedRowsBottom: hot.getSettings().fixedRowsBottom,
           fixedRowsTop: hot.getSettings().fixedRowsTop,
-          rowIndexesSequence: hot.rowIndexMapper.getIndexesSequence(),
-          removedCellMetas: getCellMetas(hot, physicalRowIndex, lastRowIndex, 0, hot.countCols() - 1)
+          rowIndexMapperState: hot.rowIndexMapper.exportIndexes(),
+          columnIndexMapperState: hot.columnIndexMapper.exportIndexes(),
+          selectionState: hot.selection.exportSelection(),
+          removedCellMetas: getCellMetas(hot, index, index + amount - 1, 0, hot.countCols() - 1)
         });
       };
 
@@ -82,37 +95,22 @@ export class RemoveRowAction extends BaseAction {
    */
   undo(hot, undoneCallback) {
     const settings = hot.getSettings();
-    const changes = [];
 
     // Changing by the reference as `updateSettings` doesn't work the best.
     settings.fixedRowsBottom = this.fixedRowsBottom;
     settings.fixedRowsTop = this.fixedRowsTop;
 
-    // Prepare the change list to fill the source data.
-    this.data.forEach((dataRow, rowIndexDelta) => {
-      Object.keys(dataRow).forEach((columnProp) => {
-        const columnIndex = parseInt(columnProp, 10);
-
-        changes.push([this.index + rowIndexDelta, isNaN(columnIndex) ? columnProp : columnIndex, dataRow[columnProp]]);
-      });
-    });
-
-    // The indexes sequence have to be applied twice.
-    //  * First for proper index translation. The alter method accepts a visual index
-    //    and we are able to retrieve the correct index indicating where to add a new row based
-    //    only on the previous order state of the rows;
-    //  * The alter method shifts the indexes (a side-effect), so we need to reapply the indexes sequence
-    //    the same as it was in the previous state;
-    hot.rowIndexMapper.setIndexesSequence(this.rowIndexesSequence);
-    hot.alter('insert_row_above', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.undo');
-    hot.rowIndexMapper.setIndexesSequence(this.rowIndexesSequence);
+    hot.rowIndexMapper.importIndexes(this.rowIndexMapperState);
+    hot.columnIndexMapper.importIndexes(this.columnIndexMapperState);
+    hot._getDataSourceMap().insertRowsAt(this.index, this.data);
+    hot.selection.importSelection(this.selectionState);
 
     this.removedCellMetas.forEach(([rowIndex, columnIndex, cellMeta]) => {
       hot.setCellMetaObject(rowIndex, columnIndex, cellMeta);
     });
 
     hot.addHookOnce('afterViewRender', undoneCallback);
-    hot.setSourceDataAtCell(changes, null, null, 'UndoRedo.undo');
+    hot.render();
   }
 
   /**

@@ -32,7 +32,19 @@ describe('UndoRedo -> RemoveRow action', () => {
         ['A2', 'B2', 'C2', 'D2', 'E2'],
         ['A3', 'B3', 'C3', 'D3', 'E3']
       ],
-      rowIndexesSequence: [0, 1, 2, 3, 4],
+      rowIndexMapperState: {
+        sequence: [0, 1, 2, 3, 4],
+        trimmingMap: {},
+        hidingMap: {},
+        variousMap: {}
+      },
+      columnIndexMapperState: {
+        sequence: [0, 1, 2, 3, 4],
+        trimmingMap: {},
+        hidingMap: {},
+        variousMap: {}
+      },
+      selectionState: [],
       fixedRowsTop: 0,
       fixedRowsBottom: 0,
       removedCellMetas: [],

@@ -28,7 +28,6 @@ describe('UndoRedo -> RemoveColumn action', () => {
     expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'remove_col',
       index: 1,
-      indexes: [1, 2],
       data: [
         ['B1', 'C1'],
         ['B2', 'C2'],
@@ -38,8 +37,19 @@ describe('UndoRedo -> RemoveColumn action', () => {
       ],
       amount: 2,
       headers: [],
-      columnPositions: [0, 1, 2, 3, 4],
-      rowPositions: [0, 1, 2, 3, 4],
+      rowIndexMapperState: {
+        sequence: [0, 1, 2, 3, 4],
+        trimmingMap: {},
+        hidingMap: {},
+        variousMap: {}
+      },
+      columnIndexMapperState: {
+        sequence: [0, 1, 2, 3, 4],
+        trimmingMap: {},
+        hidingMap: {},
+        variousMap: {}
+      },
+      selectionState: [],
       fixedColumnsStart: 0,
       removedCellMetas: [],
     });

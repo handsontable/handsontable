@@ -161,6 +161,24 @@ class CellRange {
   }
 
   /**
+   * Checks if your range overlaps row headers range (negative coordinates).
+   *
+   * @returns {boolean}
+   */
+  containsRowHeaders() {
+    return this.from.isRowHeader() || this.to.isRowHeader();
+  }
+
+  /**
+   * Checks if your range overlaps column headers range (negative coordinates).
+   *
+   * @returns {boolean}
+   */
+  containsColumnHeaders() {
+    return this.from.isColumnHeader() || this.to.isColumnHeader();
+  }
+
+  /**
    * Returns the height of your range (as a number of rows, including row headers).
    *
    * @returns {number}
