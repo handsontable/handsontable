@@ -262,6 +262,16 @@ innerBorderBottom - Property controlled by bottom overlay
   display: none !important;
 }
 
+.handsontable .wtBorder:nth-child(1),
+.handsontable .wtBorder:nth-child(3) {
+  z-index: 2;
+}
+
+.handsontable .wtBorder:nth-child(2),
+.handsontable .wtBorder:nth-child(4) {
+  z-index: 1;
+}
+
 /* A layer order of the selection types */
 .handsontable .wtBorder.current {
   z-index: 10;
