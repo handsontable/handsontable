@@ -126,6 +126,7 @@ jobs:
           #pwd
           #cat netlify.toml
           cat NETLIFY_VARS
+          node createOrGet.mjs  
           #netlify unlink
           #netlify status
           #netlify link --id ${{ env.NETLIFY_SITE_ID }}  --debug
