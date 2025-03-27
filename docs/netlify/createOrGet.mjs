@@ -14,7 +14,9 @@ const sites = await client.listSites();
 
 let site = sites.find((site) => site.name === branchName);
 
-//console.log('branchname', branchName);
+console.log('branchname', branchName);
+console.log('site', site);
+console.log('sites', sites);
 
 if (site) {
   console.log(`Found site: ${site.name}`);
