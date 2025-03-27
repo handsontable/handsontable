@@ -124,6 +124,7 @@ jobs:
           cd netlify  
           ls -la
           pwd
+          netlify unlink
           netlify link --id ${{ env.NETLIFY_SITE_ID }} --auth  ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           netlify deploy --build --prod
         env:
