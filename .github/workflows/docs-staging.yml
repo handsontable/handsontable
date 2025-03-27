@@ -129,9 +129,11 @@ jobs:
           node createOrGet.mjs  
           #netlify unlink
           #netlify status
-          #netlify link --id ${{ env.NETLIFY_SITE_ID }}  --debug
+          netlify link --id ${{ env.NETLIFY_SITE_ID }}  --debug
           netlify deploy --site ${{ env.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }} --prod
           #netlify deploy --build --prod
+
+          NETLIFY_AUTH_TOKEN=nfp_K4ZGyy8s4SbtNaX4YRhGy6BQNSgzP7Svb2d8 NETLIFY_SITE_ID=5570d189-7915-40f8-9e05-6cbb5f2c64b5 netlify link
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}    
