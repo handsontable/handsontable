@@ -24,8 +24,8 @@ defaults:
 
 jobs:
   preview:
-    environment:
-      name: approvers
+    # environment:
+    #   name: approvers
     name: Build and push Preview to Netlify
     if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
     runs-on: ubuntu-latest
@@ -121,6 +121,7 @@ jobs:
 
       - name: Publish preview to Netlify
         run: |
+          netlify link --id ${{ env.NETLIFY_SITE_ID }} --auth  ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           netlify deploy --build --prod
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
