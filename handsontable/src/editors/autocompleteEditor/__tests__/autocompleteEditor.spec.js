@@ -669,7 +669,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should not take excessive time to open the editor if the choice list is very long', async() => {
-      const choices = new Array(50000).fill().map((i) => Math.random());
+      const options = new Array(50000).fill().map(() => Math.random());
       let startTime;
       let endTime;
 
@@ -678,10 +678,10 @@ describe('AutocompleteEditor', () => {
         columns: [
           {
             type: 'autocomplete',
-            source: choices,
+            source: options,
           },
         ],
-        afterBeginEditing: function() {
+        afterBeginEditing() {
           startTime = performance.now();
 
           this.getActiveEditor().htEditor.addHookOnce('afterRender', () => {
