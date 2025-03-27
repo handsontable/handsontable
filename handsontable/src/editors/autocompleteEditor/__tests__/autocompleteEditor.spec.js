@@ -668,7 +668,7 @@ describe('AutocompleteEditor', () => {
       });
     });
 
-    it('should not take excessive time to open the editor if the choice list is very long', async() => {
+    it('should not take excessive time to open the editor if the choice list is very long (dev-handsontable#2313)', async() => {
       const options = new Array(50000).fill().map(() => Math.random());
       let startTime;
       let endTime;
