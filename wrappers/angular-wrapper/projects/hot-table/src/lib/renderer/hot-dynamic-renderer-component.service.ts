@@ -1,4 +1,8 @@
-import {ApplicationRef, ComponentRef, createComponent, EmbeddedViewRef, EnvironmentInjector, Injectable, TemplateRef, Type} from '@angular/core';
+import {
+  ApplicationRef, ComponentRef, createComponent,
+  EmbeddedViewRef, EnvironmentInjector, Injectable,
+  TemplateRef, Type
+} from '@angular/core';
 import {BaseRenderer, baseRenderer} from 'handsontable/renderers';
 import Handsontable from 'handsontable';
 import {HotCellRendererComponent} from './hot-cell-renderer.component';
