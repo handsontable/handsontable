@@ -122,6 +122,8 @@ jobs:
       - name: Publish preview to Netlify
         run: |
           cd netlify  
+          ls -la
+          pwd
           netlify link --id ${{ env.NETLIFY_SITE_ID }} --auth  ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           netlify deploy --build --prod
         env:
