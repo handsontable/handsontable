@@ -125,9 +125,11 @@ jobs:
           #ls -la
           #pwd
           #cat netlify.toml
+          cat NETLIFY_VARS
           #netlify unlink
-          netlify status
-          netlify link --id ${{ env.NETLIFY_SITE_ID }}  --debug
+          #netlify status
+          #netlify link --id ${{ env.NETLIFY_SITE_ID }}  --debug
+          netlify deploy --site ${{ env.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }} --prod
           #netlify deploy --build --prod
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
