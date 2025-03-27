@@ -667,6 +667,40 @@ describe('AutocompleteEditor', () => {
         horizon.toBe(112);
       });
     });
+
+    it('should not take excessive time to open the editor if the choice list is very long', async() => {
+      const choices = new Array(50000).fill().map((i) => Math.random());
+      let startTime;
+      let endTime;
+
+      handsontable({
+        data: [[], [], [], [], []],
+        columns: [
+          {
+            type: 'autocomplete',
+            source: choices,
+          },
+        ],
+        afterBeginEditing: function() {
+          startTime = performance.now();
+
+          this.getActiveEditor().htEditor.addHookOnce('afterRender', () => {
+            endTime = performance.now();
+          });
+        },
+      });
+
+      selectCell(0, 0);
+
+      keyDownUp('enter');
+
+      await sleep(10);
+
+      const $editor = $('.autocompleteEditor').eq(0);
+
+      expect(endTime - startTime).toBeLessThan(300);
+      expect($editor.find('.ht_master tbody tr').size()).toBeGreaterThan(0);
+    });
   });
 
   describe('choices', () => {
