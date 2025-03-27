@@ -126,6 +126,7 @@ jobs:
           #pwd
           #cat netlify.toml
           #netlify unlink
+          netlify status
           netlify link --id ${{ env.NETLIFY_SITE_ID }}  --debug
           #netlify deploy --build --prod
         env:
