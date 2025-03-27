@@ -122,11 +122,11 @@ jobs:
       - name: Publish preview to Netlify
         run: |
           cd netlify  
-          ls -la
-          pwd
-          cat netlify.toml
-          netlify unlink
-          netlify link --id ${{ env.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
+          #ls -la
+          #pwd
+          #cat netlify.toml
+          #netlify unlink
+          netlify link --id ${{ env.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }} --debug
           #netlify deploy --build --prod
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
