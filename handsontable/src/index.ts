@@ -1,4 +1,4 @@
-import Handsontable, { CellCoords, CellRange } from './base';
+import Handsontable, { CellCoords, CellRange } from './src/core/types';
 import { registerAllModules } from './registry';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations';

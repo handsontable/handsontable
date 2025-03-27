@@ -2,6 +2,8 @@
  * Interfaces for the Selection module
  */
 
+import CellCoords from "../cell/coords";
+
 /**
  * Border settings for Selection
  */
@@ -9,15 +11,6 @@ export interface BorderSettings {
   color?: string;
   width?: number;
   hide?: boolean;
-}
-
-/**
- * CellCoords represents coordinates of a cell
- */
-export interface CellCoords {
-  row: number;
-  col: number;
-  isEqual(coords: CellCoords): boolean;
 }
 
 /**

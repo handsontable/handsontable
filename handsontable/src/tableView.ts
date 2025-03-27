@@ -26,7 +26,7 @@ import {
   A11Y_ROWCOUNT,
   A11Y_TREEGRID
 } from './helpers/a11y';
-import { CellCoords } from './3rdparty/walkontable/src/selection/interfaces';
+import { CellCoords } from './core/types';
 import { CoreAbstract } from './3rdparty/walkontable/src/core/interfaces';
 import { SettingsPure } from './3rdparty/walkontable/src/settings';
 
@@ -215,7 +215,7 @@ class TableView {
    */
   constructor(hotInstance: Handsontable) {
     this.hot = hotInstance;
-    this.eventManager = new EventManager(this.hot);
+    this.eventManager = new EventManager(this.hot as any);
     this.settings = this.hot.getSettings();
     this.#mouseDown = false;
 
@@ -266,13 +266,13 @@ class TableView {
    * @returns {HTMLTableCellElement|null}
    */
   getCellAtCoords(coords: CellCoords, topmost: boolean): HTMLTableCellElement | null {
-    const td = this._wt.getCell(coords, topmost);
+    const td = this._wt.getCell(coords as any, topmost);
 
-    if (td < 0) { // there was an exit code (cell is out of bounds)
+    if (td == null) { // there was an exit code (cell is out of bounds)
       return null;
     }
 
-    return td;
+    return td as HTMLTableCellElement;
   }
 
   /**
@@ -292,7 +292,7 @@ class TableView {
     horizontalSnap?: 'auto' | 'start' | 'end',
     verticalSnap?: 'auto' | 'top' | 'bottom'
   ): boolean {
-    return this._wt.scrollViewport(coords, horizontalSnap, verticalSnap);
+    return this._wt.scrollViewport(coords as any, horizontalSnap, verticalSnap);
   }
 
   /**
@@ -345,7 +345,7 @@ class TableView {
     }
 
     if (this.settings.ariaTags) {
-      setAttribute(this.#table, A11Y_PRESENTATION());
+      setAttribute(this.#table, [A11Y_PRESENTATION()]);
 
       setAttribute(rootElement, [
         A11Y_TREEGRID(),
@@ -412,9 +412,9 @@ class TableView {
 
       this.#mouseDown = false;
 
-      const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
+      const isOutsideInputElement = isOutsideInput(rootDocument.activeElement as HTMLElement);
 
-      if (isInput(rootDocument.activeElement) && !isOutsideInputElement) {
+      if (isInput(rootDocument.activeElement as HTMLElement) && !isOutsideInputElement) {
         return;
       }
 
@@ -463,7 +463,7 @@ class TableView {
       } else {
         while (next !== documentElement) {
           if (next === null) {
-            if (event.isTargetWebComponent) {
+            if ((event as any).isTargetWebComponent) {
               break;
             }
 
@@ -518,7 +518,8 @@ class TableView {
    */
   translateFromRenderableToVisualCoords({ row, col }) {
     // TODO: To consider an idea to reusing the CellCoords instance instead creating new one.
-    return this.hot._createCellCoords(...this.translateFromRenderableToVisualIndex(row, col));
+    const [visualRow, visualCol] = this.translateFromRenderableToVisualIndex(row, col);
+    return this.hot._createCellCoords(visualRow, visualCol);
   }
 
   /**
@@ -654,7 +655,7 @@ class TableView {
    */
   countNotHiddenFixedColumnsStart() {
     const countCols = this.hot.countCols();
-    const visualFixedColumnsStart = Math.min(parseInt(this.settings.fixedColumnsStart, 10), countCols) - 1;
+    const visualFixedColumnsStart = Math.min(parseInt(String(this.settings.fixedColumnsStart), 10), countCols) - 1;
 
     return this.countNotHiddenColumnIndexes(visualFixedColumnsStart, -1);
   }
@@ -667,7 +668,7 @@ class TableView {
    */
   countNotHiddenFixedRowsTop() {
     const countRows = this.hot.countRows();
-    const visualFixedRowsTop = Math.min(parseInt(this.settings.fixedRowsTop, 10), countRows) - 1;
+    const visualFixedRowsTop = Math.min(parseInt(String(this.settings.fixedRowsTop), 10), countRows) - 1;
 
     return this.countNotHiddenRowIndexes(visualFixedRowsTop, -1);
   }
@@ -680,7 +681,7 @@ class TableView {
    */
   countNotHiddenFixedRowsBottom() {
     const countRows = this.hot.countRows();
-    const visualFixedRowsBottom = Math.max(countRows - parseInt(this.settings.fixedRowsBottom, 10), 0);
+    const visualFixedRowsBottom = Math.max(countRows - parseInt(String(this.settings.fixedRowsBottom), 10), 0);
 
     return this.countNotHiddenRowIndexes(visualFixedRowsBottom, 1);
   }
@@ -752,7 +753,7 @@ class TableView {
     const licenseInfoElement = this.hot.rootElement.parentNode?.querySelector('.hot-display-license-info');
 
     if (licenseInfoElement) {
-      addClass(licenseInfoElement, className);
+      addClass(licenseInfoElement as HTMLElement, className);
     }
   }
 
@@ -765,7 +766,7 @@ class TableView {
     const licenseInfoElement = this.hot.rootElement.parentNode?.querySelector('.hot-display-license-info');
 
     if (licenseInfoElement) {
-      removeClass(licenseInfoElement, className);
+      removeClass(licenseInfoElement as HTMLElement, className);
     }
   }
 
@@ -779,7 +780,7 @@ class TableView {
     const fixedAllRows = this.countNotHiddenFixedRowsTop() + this.countNotHiddenFixedRowsBottom();
     const fixedAllColumns = this.countNotHiddenFixedColumnsStart();
 
-    return this.hot.countRenderedRows() > fixedAllRows && this.hot.countRenderedCols() > fixedAllColumns;
+    return (this.hot as any).countRenderedRows() > fixedAllRows && (this.hot as any).countRenderedCols() > fixedAllColumns;
   }
 
   /**
@@ -791,8 +792,8 @@ class TableView {
     const walkontableConfig = {
       ariaTags: this.settings.ariaTags,
       rtlMode: this.hot.isRtl(),
-      externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
-        this.hot.getPlugin('autoRowSize').isEnabled(),
+      externalRowCalculator: (this.hot as any).getPlugin('autoRowSize') &&
+        (this.hot as any).getPlugin('autoRowSize').isEnabled(),
       table: this.#table,
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
@@ -800,8 +801,8 @@ class TableView {
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
       data: (renderableRow: number, renderableColumn: number) => {
-        return this.hot
-          .getDataAtCell(...this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn));
+        const [visualRow, visualCol] = this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn);
+        return this.hot.getDataAtCell(visualRow, visualCol);
       },
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
@@ -813,15 +814,15 @@ class TableView {
       fixedRowsBottom: () => this.countNotHiddenFixedRowsBottom(),
       // Enable the inline start overlay when conditions are met.
       shouldRenderInlineStartOverlay: () => {
-        return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0;
+        return (this.settings.fixedColumnsStart as number > 0) || walkontableConfig.rowHeaders().length > 0;
       },
       // Enable the top overlay when conditions are met.
       shouldRenderTopOverlay: () => {
-        return this.settings.fixedRowsTop > 0 || walkontableConfig.columnHeaders().length > 0;
+        return (this.settings.fixedRowsTop as number > 0) || walkontableConfig.columnHeaders().length > 0;
       },
       // Enable the bottom overlay when conditions are met.
       shouldRenderBottomOverlay: () => {
-        return this.settings.fixedRowsBottom > 0;
+        return this.settings.fixedRowsBottom as number > 0;
       },
       minSpareRows: () => this.settings.minSpareRows,
       renderAllRows: this.settings.renderAllRows,
@@ -907,11 +908,11 @@ class TableView {
           [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords;
         }
 
-        const cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
-        const prop = this.hot.colToProp(visualColumnToCheck);
+        const cellProperties = (this.hot as any).getCellMeta(visualRowToCheck, visualColumnToCheck);
+        const prop = (this.hot as any).colToProp(visualColumnToCheck);
         let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
 
-        if (this.hot.hasHook('beforeValueRender')) {
+        if ((this.hot as any).hasHook('beforeValueRender')) {
           value = this.hot.runHooks('beforeValueRender', value, cellProperties);
         }
 
@@ -962,7 +963,7 @@ class TableView {
 
         handleMouseEvent(event, {
           coords: visualCoords,
-          selection: this.hot.selection,
+          selection: this.hot.selection as any,
           controller,
           cellCoordsFactory: (row: number, column: number) => this.hot._createCellCoords(row, column),
         });
@@ -1031,7 +1032,7 @@ class TableView {
         ) {
           handleMouseEvent(event, {
             coords: visualCoords,
-            selection: this.hot.selection,
+            selection: this.hot.selection as any,
             controller,
             cellCoordsFactory: (row: number, column: number) => this.hot._createCellCoords(row, column),
           });
@@ -1163,7 +1164,7 @@ class TableView {
         let cornersOfSelection: number[] | undefined;
         const [visualRowIndex, visualColumnIndex] =
           this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
-        const selectedRange = this.hot.selection.getSelectedRange();
+        const selectedRange = (this.hot.selection as any).getSelectedRange();
         const selectionRangeSize = selectedRange.size();
 
         if (selectionRangeSize > 0) {
@@ -1249,7 +1250,7 @@ class TableView {
           viewportOffset = 10;
         }
 
-        if (viewportOffset > 0 || viewportOffset === 'auto') {
+        if ((typeof viewportOffset === 'number' && viewportOffset > 0) || viewportOffset === 'auto') {
           const renderableRows = this.countRenderableRows();
           const firstRenderedRow = calc.startRow;
           const lastRenderedRow = calc.endRow;
@@ -1274,7 +1275,7 @@ class TableView {
           viewportOffset = 10;
         }
 
-        if (viewportOffset > 0 || viewportOffset === 'auto') {
+        if ((typeof viewportOffset === 'number' && viewportOffset > 0) || viewportOffset === 'auto') {
           const renderableColumns = this.countRenderableColumns();
           const firstRenderedColumn = calc.startColumn;
           const lastRenderedColumn = calc.endColumn;
@@ -1302,7 +1303,7 @@ class TableView {
 
     this.hot.runHooks('beforeInitWalkontable', walkontableConfig);
 
-    this._wt = new Walkontable(walkontableConfig);
+    this._wt = new Walkontable(walkontableConfig) as any;
     this.activeWt = this._wt;
 
     const spreader = this._wt.wtTable.spreader;
@@ -1508,8 +1509,8 @@ class TableView {
       span.className = 'colHeader';
 
       if (this.settings.ariaTags) {
-        setAttribute(div, A11Y_PRESENTATION());
-        setAttribute(span, A11Y_PRESENTATION());
+        setAttribute(div, [A11Y_PRESENTATION()]);
+        setAttribute(span, [A11Y_PRESENTATION()]);
       }
 
       this.updateCellHeader(span, visualColumnIndex, label, headerLevel);
@@ -1844,7 +1845,7 @@ class TableView {
    * @returns {Overlay | null}
    */
   getOverlayByName(overlayName: 'inline_start' | 'top' | 'top_inline_start_corner' | 'bottom' | 'bottom_inline_start_corner'): any | null {
-    return this._wt.getOverlayByName(overlayName);
+    return (this._wt as any).getOverlayByName(overlayName);
   }
 
   /**
@@ -1872,7 +1873,7 @@ class TableView {
    * @returns {boolean}
    */
   hasVerticalScroll(): boolean {
-    return this._wt.wtViewport.hasVerticalScroll();
+    return this._wt.wtViewport.hasVerticalScroll;
   }
 
   /**
@@ -1881,7 +1882,7 @@ class TableView {
    * @returns {boolean}
    */
   hasHorizontalScroll(): boolean {
-    return this._wt.wtViewport.hasHorizontalScroll();
+    return this._wt.wtViewport.hasHorizontalScroll;
   }
 
   /**
@@ -1955,7 +1956,8 @@ class TableView {
    * @returns {number} The value of the `aria-colcount` attribute.
    */
   #getAriaColcount(): number {
-    return parseInt(this.hot.rootElement.getAttribute(A11Y_COLCOUNT()[0]) || '0', 10);
+    const attrValue = this.hot.rootElement.getAttribute(A11Y_COLCOUNT(0)[0]) || '0';
+    return parseInt(attrValue, 10);
   }
 
   /**
@@ -1966,7 +1968,7 @@ class TableView {
   #updateAriaColcount(delta: number): void {
     const colCount = this.#getAriaColcount() + delta;
 
-    setAttribute(this.hot.rootElement, A11Y_COLCOUNT(colCount));
+    setAttribute(this.hot.rootElement, [A11Y_COLCOUNT(colCount)]);
   }
 
   /**

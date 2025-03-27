@@ -1,4 +1,3 @@
-import { CellCoords } from '../../3rdparty/walkontable/src/selection/interfaces';
 import { createHighlight as createActiveHighlight } from './types/activeHeader';
 import { createHighlight as createAreaLayeredHighlight } from './types/areaLayered';
 import { createHighlight as createAreaHighlight } from './types/area';
@@ -20,6 +19,7 @@ import {
 } from '../../3rdparty/walkontable/src';
 import { arrayEach } from './../../helpers/array';
 import VisualSelection from './visualSelection';
+import { CellCoords } from './../../core/types';
 
 export {
   HIGHLIGHT_ACTIVE_HEADER_TYPE as ACTIVE_HEADER_TYPE,
@@ -37,9 +37,15 @@ interface HighlightOptions {
   activeHeaderClassName?: string;
   rowClassName?: string;
   columnClassName?: string;
-  cellAttributes?: string[];
+  cellAttributes?: [string, string][];
   rowIndexMapper: any;
   columnIndexMapper: any;
+  layerLevel: number;
+  border: {
+    width: number;
+    color: string;
+    style: string;
+  };
   disabledCellSelection: (row: number, column: number) => boolean | string | string[];
   cellCornerVisible: (...args: any[]) => boolean;
   areaCornerVisible: (...args: any[]) => boolean;
@@ -70,7 +76,7 @@ class Highlight {
    *
    * @type {object}
    */
-  options: HighlightOptions;
+  options: Partial<HighlightOptions>;
   /**
    * The property which describes which layer level of the visual selection will be modified.
    * This option is valid only for `area` and `header` highlight types which occurs multiple times on
@@ -169,7 +175,7 @@ class Highlight {
    */
   customSelections: VisualSelection[] = [];
 
-  constructor(options: HighlightOptions) {
+  constructor(options: Partial<HighlightOptions>) {
     this.options = options;
     this.focus = createFocusHighlight(options);
     this.fill = createFillHighlight(options);

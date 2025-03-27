@@ -1,10 +1,5 @@
 import { CoreAbstract } from '../../3rdparty/walkontable/src/core/interfaces';
-
-export interface CellCoords {
-  row: number;
-  col: number;
-  toObject(): { row: number; col: number };
-}
+import { CellCoords } from '../types';
 
 export type ScrollStrategy = (cellCoords: CellCoords) => void | { row: number; col: number };
 

@@ -1,5 +1,6 @@
+import CellCoords from '../cell/coords';
 import LocalHooksMixin from './../../../../mixins/localHooks';
-import { SelectionSettings, CellRange, CellCoords, SelectionInterface } from './interfaces';
+import { SelectionSettings, CellRange, SelectionInterface } from './interfaces';
 
 /**
  * The Selection class allows highlighting (by applying CSS class) the table's cells or headers

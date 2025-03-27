@@ -1,3 +1,5 @@
+import { CellCoords } from './../core/types';
+
 /**
  * This file contains shared interfaces and types for dataMap module
  */
@@ -7,12 +9,6 @@ export type DataSource = any[] | Record<string, any>;
 export type DataSchema = any[] | Record<string, any> | ((index: number) => any);
 export type CellValue = any;
 export type PropDescriptor = string | number | ((index: number) => any);
-
-// Coordinates and ranges
-export interface CellCoords {
-  row: number;
-  col: number;
-}
 
 export interface CellRange {
   from: CellCoords;

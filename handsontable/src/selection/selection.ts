@@ -1,8 +1,9 @@
-import { CellCoords as BaseCellCoords, CellRange as BaseCellRange } from '../3rdparty/walkontable/src/selection/interfaces';
-import CellCoords from '../3rdparty/walkontable/src/cell/coords';
-import { Highlight } from './highlight/highlight';
+import { CellRange as BaseCellRange } from './../3rdparty/walkontable/src/selection/interfaces';
+import CellRange from './../3rdparty/walkontable/src/cell/range';
+import Highlight from './highlight/highlight';
+import VisualSelection from './highlight/visualSelection';
 import SelectionRange from './range';
-import { createObjectPropListener, mixin } from './../helpers/object';
+import { createObjectPropListener } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
 import { clamp } from './../helpers/number';
 import { arrayEach } from './../helpers/array';
@@ -16,46 +17,15 @@ import {
 import { toSingleLine } from './../helpers/templateLiteralTag';
 import { A11Y_SELECTED } from '../helpers/a11y';
 import {
+  ACTIVE_HEADER_TYPE,
   AREA_TYPE,
+  CELL_TYPE,
+  FILL_TYPE,
   HEADER_TYPE,
   FOCUS_TYPE,
 } from './highlight/highlight';
 import LocalHooksMixin from './../mixins/localHooks';
-
-type ExtendedCellCoords = CellCoords;
-
-interface ExtendedCellRange extends BaseCellRange {
-  setHighlight(coords: ExtendedCellCoords): void;
-  setFrom(coords: ExtendedCellCoords): ExtendedCellRange;
-  setTo(coords: ExtendedCellCoords): ExtendedCellRange;
-  getWidth(): number;
-  getHeight(): number;
-  isSingleHeader(): boolean;
-  getHorizontalDirection(): number;
-  getVerticalDirection(): number;
-  includes(coords: ExtendedCellCoords): boolean;
-  clone(): ExtendedCellRange;
-  highlight: ExtendedCellCoords;
-  from: ExtendedCellCoords;
-  to: ExtendedCellCoords;
-}
-
-interface ExtendedSelectionRange {
-  current(): ExtendedCellRange | null;
-  add(coords: ExtendedCellCoords): ExtendedSelectionRange;
-  clear(): void;
-  isEmpty(): boolean;
-  size(): number;
-  getRangeForCell(row: number, col: number): ExtendedCellRange | null;
-  ranges: ExtendedCellRange[];
-  createCellRange: (coords: ExtendedCellCoords) => ExtendedCellRange;
-  set(coords: ExtendedCellCoords): ExtendedSelectionRange;
-  pop(): ExtendedSelectionRange;
-  peekByIndex(index?: number): ExtendedCellRange | undefined;
-  previous(): ExtendedCellRange | undefined;
-  includes(coords: ExtendedCellCoords): boolean;
-  [Symbol.iterator](): IterableIterator<ExtendedCellRange>;
-}
+import { ExtendedCellRange, ExtendedCellCoords, ExtendedSelectionRange } from './interfaces';
 
 interface GridSettings {
   currentHeaderClassName: string;
@@ -71,6 +41,7 @@ interface GridSettings {
   autoWrapCol: boolean;
   fixedRowsBottom: number;
 }
+import { CellCoords } from './../core/types';
 
 interface TableProps {
   createCellRange(highlight: ExtendedCellCoords, from: ExtendedCellCoords, to: ExtendedCellCoords): ExtendedCellRange;
@@ -201,7 +172,9 @@ export class Selection extends LocalHooksMixin(Object) {
     }) as unknown as ExtendedSelectionRange;
     this.highlight = new Highlight({
       headerClassName: settings.currentHeaderClassName,
-      className: settings.currentColClassName,
+      activeHeaderClassName: settings.activeHeaderClassName,
+      rowClassName: settings.currentRowClassName,
+      columnClassName: settings.currentColClassName,
       layerLevel: 0,
       border: {
         width: 1,
@@ -301,7 +274,7 @@ export class Selection extends LocalHooksMixin(Object) {
    *
    * @returns {SelectionRange}
    */
-  getSelectedRange(): SelectionRange {
+  getSelectedRange(): ExtendedSelectionRange {
     return this.selectedRange;
   }
 

@@ -18,7 +18,8 @@ import {
 import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
 import { BaseEditor } from './editors/baseEditor';
-import { CellCoords, CellRange } from './3rdparty/walkontable/src';
+import { CellRange } from './3rdparty/walkontable/src';
+import { CellCoords } from './core/types';
 
 type HandsontableInstance = {
   editors: {

@@ -1,8 +1,7 @@
 import { CellRange } from './../3rdparty/walkontable/src';
 import { arrayEach, arrayReduce } from './../helpers/array';
 import { isUndefined } from './../helpers/mixed';
-import { CellCoords } from '../3rdparty/walkontable/src/selection/interfaces';
-
+import { CellCoords } from './../core/types';
 export const SELECTION_TYPE_UNRECOGNIZED = 0;
 export const SELECTION_TYPE_EMPTY = 1;
 export const SELECTION_TYPE_ARRAY = 2;

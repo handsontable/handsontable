@@ -1,4 +1,5 @@
-import { Core, CellCoords, ScrollStrategy } from '../types';
+import { CellCoords } from '../../../core/types';
+import { Core, ScrollStrategy } from '../types';
 
 /**
  * Scroll strategy for column header selection.

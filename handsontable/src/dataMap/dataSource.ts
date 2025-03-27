@@ -9,7 +9,8 @@ import { countFirstRowKeys } from '../helpers/data';
 import { arrayEach } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isFunction } from '../helpers/function';
-import { DataSource as DataSourceType, PropDescriptor, Handsontable, CellCoords, CellValue } from './types';
+import { DataSource as DataSourceType, PropDescriptor, Handsontable, CellValue } from './types';
+import { CellCoords } from './../core/types';
 
 /**
  * @class DataSource

@@ -1,5 +1,4 @@
-import { Core } from '../core';
-import { ViewportScroller, CellCoords } from '../types';
+import { ViewportScroller, CellCoords } from '../../core/types';
 import { columnHeaderScrollStrategy } from './scrollStrategies/columnHeaderScroll';
 import { cornerHeaderScrollStrategy } from './scrollStrategies/cornerHeaderScroll';
 import { focusScrollStrategy } from './scrollStrategies/focusScroll';

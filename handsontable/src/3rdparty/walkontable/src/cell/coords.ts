@@ -29,7 +29,7 @@ interface CellCoordsObject {
   col: number | null;
 }
 
-class CellCoords {
+class CellCoords { //?
   /**
    * A visual row index.
    *
@@ -47,7 +47,7 @@ class CellCoords {
    *
    * @type {boolean}
    */
-  #isRtl = false;
+  #isRtl? = false;
 
   constructor(row?: number, column?: number, isRtl = false) {
     this.#isRtl = isRtl;

@@ -1,7 +1,8 @@
 import { Selection } from './../../3rdparty/walkontable/src';
-import { CellCoords as BaseCellCoords, CellRange as BaseCellRange } from './../../3rdparty/walkontable/src/selection/interfaces';
-import CellCoords from './../../3rdparty/walkontable/src/cell/coords';
+import { CellRange as BaseCellRange } from './../../3rdparty/walkontable/src/selection/interfaces';
 import CellRange from './../../3rdparty/walkontable/src/cell/range';
+import { ExtendedCellRange, ExtendedCellCoords } from '../interfaces';
+import { CellCoords } from './../../core/types';
 
 interface VisualSelectionSettings {
   createCellRange: (coords: CellCoords) => BaseCellRange;
@@ -11,22 +12,6 @@ interface VisualSelectionSettings {
   columnIndexMapper: any;
   selectionType?: string;
   createCellCoords: (row: number, col: number) => CellCoords;
-}
-
-interface ExtendedCellRange extends BaseCellRange {
-  highlight: CellCoords;
-  from: CellCoords;
-  to: CellCoords;
-  getVerticalDirection(): string;
-  getHorizontalDirection(): string;
-  setHighlight(coords: CellCoords): void;
-  overlaps(coords: CellCoords): boolean;
-  clone(): ExtendedCellRange;
-}
-
-interface ExtendedCellCoords extends CellCoords {
-  clone(): ExtendedCellCoords;
-  normalize(): ExtendedCellCoords;
 }
 
 class VisualSelection extends Selection {

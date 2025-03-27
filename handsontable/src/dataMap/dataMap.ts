@@ -17,7 +17,6 @@ import { rangeEach } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
 import { isFunction } from '../helpers/function';
 import {
-  CellCoords,
   CellRange,
   CellValue,
   ChangeOptions,
@@ -29,6 +28,7 @@ import {
   PropDescriptor,
   SourceType
 } from './types';
+import { CellCoords } from './../core/types';
 
 /*
 This class contains open-source contributions covered by the MIT license.

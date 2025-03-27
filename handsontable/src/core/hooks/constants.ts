@@ -110,11 +110,7 @@
  * ...
  */
 
-// Define interfaces for hook parameters
-interface CellCoords {
-  row: number;
-  col: number;
-}
+import { CellCoords } from "../types";
 
 interface CellRange {
   from: CellCoords;

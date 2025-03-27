@@ -1,5 +1,5 @@
 import { isRightClick as isRightClickEvent, isLeftClick as isLeftClickEvent } from './../helpers/dom/event';
-import { CellCoords } from '../3rdparty/walkontable/src/selection/interfaces';
+import { CellCoords } from './../core/types';
 
 // Define interfaces for the parameters
 interface MouseHandlerOptions {

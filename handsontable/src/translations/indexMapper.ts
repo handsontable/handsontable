@@ -1,9 +1,14 @@
-import * as arrayMapper from './maps/array/arrayMap';
-import { AggregatedCollection, ChangesObservable, ChangesObserver, IndexMap, MapCollection } from './maps/collection';
-import IndexesSequence from './maps/indexesSequence';
-import { createIndexMap } from './maps/utils';
-import { arrayEach } from './../helpers/array';
+import { MapCollection } from './mapCollections/mapCollection';
+import { AggregatedCollection } from './mapCollections/aggregatedCollection';
+import { ChangesObservable } from './changesObservable/observable';
+import { ChangesObserver } from './changesObservable/observer';
+import { IndexMap } from './maps/indexMap';
+import { IndexesSequence } from './maps/indexesSequence';
+import { createIndexMap } from './maps';
+import { arrayEach, arrayMap } from './../helpers/array';
 import LocalHooksMixin from './../mixins/localHooks';
+import { getListWithInsertedItems, getListWithRemovedItems, HidingMap, TrimmingMap } from './maps';
+import { isDefined } from './../helpers/mixed';
 
 /**
  * @class IndexMapper

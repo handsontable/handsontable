@@ -1,24 +1,9 @@
 import { createObjectPropListener } from '../helpers/object';
-import { CellCoords } from '../3rdparty/walkontable/src/selection/interfaces';
 import SelectionRange from './range';
 import LocalHooksMixin from './../mixins/localHooks';
-
+import { ExtendedCellRange, ExtendedCellCoords } from './interfaces';
+import { CellCoords } from './../core/types';
 // Extended interface for CellRange to include properties we need
-interface ExtendedCellRange {
-  highlight: CellCoords;
-  from: CellCoords;
-  to: CellCoords;
-  getTopStartCorner(): CellCoords;
-  getTopEndCorner(): CellCoords;
-  getBottomEndCorner(): CellCoords;
-}
-
-// Extended interface for CellCoords to include methods we need
-interface ExtendedCellCoords extends CellCoords {
-  assign(coords: CellCoords): CellCoords;
-  clone(): CellCoords;
-}
-
 interface TransformationOptions {
   createCellCoords: (row: number, col: number) => ExtendedCellCoords;
   visualToRenderableCoords: (coords: CellCoords) => CellCoords;
@@ -244,7 +229,7 @@ class Transformation extends LocalHooksMixin(Object) {
     const highlightRenderableCoords = this.#options.visualToRenderableCoords(cellRange.highlight);
     const toRow = this.#findFirstNonHiddenZeroBasedRow(cellRange.to.row, cellRange.from.row);
     const toColumn = this.#findFirstNonHiddenZeroBasedColumn(cellRange.to.col, cellRange.from.col);
-    const visualCoords = cellRange.to.clone();
+    const visualCoords = (cellRange.to as ExtendedCellCoords).clone();
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
@@ -339,8 +324,8 @@ class Transformation extends LocalHooksMixin(Object) {
    */
   #clampCoords(zeroBasedCoords: CellCoords): TransformationResult {
     const { width, height } = this.#getTableSize();
-    let rowDir = 0;
-    let colDir = 0;
+    let rowDir: -1 | 0 | 1 = 0;
+    let colDir: -1 | 0 | 1 = 0;
 
     if (zeroBasedCoords.row < 0) {
       rowDir = -1;
