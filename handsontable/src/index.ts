@@ -1,4 +1,4 @@
-import Handsontable, { CellRange } from './base';
+import Handsontable from './base';
 import { registerAllModules } from './registry';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations';
@@ -19,7 +19,7 @@ import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 import { CellCoords } from './3rdparty/walkontable/src/cell/coords';
-
+import { CellRange } from './3rdparty/walkontable/src/cell/range';
 import {
   getRegisteredEditorNames,
   getEditor,

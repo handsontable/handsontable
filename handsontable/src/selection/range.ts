@@ -5,14 +5,10 @@
  * @class SelectionRange
  * @util
  */
-import { CellRange as WalkontableCellRange } from '../3rdparty/walkontable/src/selection/interfaces';
 import { CellCoords } from './../3rdparty/walkontable/src/cell/coords';
-// Extending the CellRange interface to include the includes method that exists in the implementation
-interface CellRange extends WalkontableCellRange {
-  includes(coords: CellCoords): boolean;
-}
+import { CellRange } from './../3rdparty/walkontable/src/cell/range';
 
-class SelectionRange {
+export class SelectionRange {
   /**
    * List of all CellRanges added to the class instance.
    *

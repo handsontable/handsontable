@@ -1,5 +1,3 @@
-import { CellRange as BaseCellRange } from './../3rdparty/walkontable/src/selection/interfaces';
-import CellRange from './../3rdparty/walkontable/src/cell/range';
 import Highlight from './highlight/highlight';
 import VisualSelection from './highlight/visualSelection';
 import SelectionRange from './range';
@@ -25,7 +23,6 @@ import {
   FOCUS_TYPE,
 } from './highlight/highlight';
 import LocalHooksMixin from './../mixins/localHooks';
-import { ExtendedCellRange, ExtendedSelectionRange } from './interfaces';
 
 interface GridSettings {
   currentHeaderClassName: string;
@@ -42,9 +39,10 @@ interface GridSettings {
   fixedRowsBottom: number;
 }
 import { CellCoords } from '../3rdparty/walkontable/src/cell/coords';
+import { CellRange } from '../3rdparty/walkontable/src/cell/range';
 
 interface TableProps {
-  createCellRange(highlight: CellCoords, from: CellCoords, to: CellCoords): ExtendedCellRange;
+  createCellRange(highlight: CellCoords, from: CellCoords, to: CellCoords): CellRange;
   createCellCoords(row: number, col: number): CellCoords;
   visualToRenderableCoords(coords: CellCoords): CellCoords;
   renderableToVisualCoords(coords: CellCoords): CellCoords;
@@ -63,6 +61,7 @@ interface TableProps {
   columnIndexMapper: any;
   isEditorOpened(): boolean;
   getShortcutManager(): { isCtrlPressed(): boolean };
+  propToCol?(prop: string): number;
 }
 
 interface SelectAllOptions {
@@ -96,9 +95,9 @@ export class Selection extends LocalHooksMixin(Object) {
   /**
    * Selection data layer (handle visual coordinates).
    *
-   * @type {ExtendedSelectionRange}
+   * @type {SelectionRange}
    */
-  selectedRange: ExtendedSelectionRange;
+  selectedRange: SelectionRange;
   /**
    * Visualization layer.
    *
@@ -123,14 +122,14 @@ export class Selection extends LocalHooksMixin(Object) {
    *
    * @type {Set<number>}
    */
-  selectedByRowHeader: ExtendedSelectionRange;
+  selectedByRowHeader: Set<number>;
   /**
    * The collection of the selection layer levels where the whole column was selected using the column header or
    * the corner header.
    *
    * @type {Set<number>}
    */
-  selectedByColumnHeader: ExtendedSelectionRange;
+  selectedByColumnHeader: Set<number>;
   /**
    * The flag which determines if the focus selection was changed.
    *
@@ -162,14 +161,14 @@ export class Selection extends LocalHooksMixin(Object) {
     this.settings = settings;
     this.tableProps = tableProps;
     this.selectedRange = new SelectionRange((coords: CellCoords) => {
-      return this.tableProps.createCellRange(coords, coords, coords) as ExtendedCellRange;
-    }) as unknown as ExtendedSelectionRange;
+      return this.tableProps.createCellRange(coords, coords, coords) as CellRange;
+    });
     this.selectedByRowHeader = new SelectionRange((coords: CellCoords) => {
-      return this.tableProps.createCellRange(coords, coords, coords) as ExtendedCellRange;
-    }) as unknown as ExtendedSelectionRange;
+      return this.tableProps.createCellRange(coords, coords, coords) as CellRange;
+    });
     this.selectedByColumnHeader = new SelectionRange((coords: CellCoords) => {
-      return this.tableProps.createCellRange(coords, coords, coords) as ExtendedCellRange;
-    }) as unknown as ExtendedSelectionRange;
+      return this.tableProps.createCellRange(coords, coords, coords) as CellRange;
+    });
     this.highlight = new Highlight({
       headerClassName: settings.currentHeaderClassName,
       activeHeaderClassName: settings.activeHeaderClassName,
@@ -366,7 +365,7 @@ export class Selection extends LocalHooksMixin(Object) {
 
     const range = this.selectedRange
       .add(coordsClone)
-      .current() as ExtendedCellRange;
+      .current() as CellRange;
 
     if (range) {
       range.setHighlight(highlightCoords.clone());
@@ -407,7 +406,7 @@ export class Selection extends LocalHooksMixin(Object) {
     const coordsClone = coords.clone();
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
-    const currentRange = this.selectedRange.current() as ExtendedCellRange;
+    const currentRange = this.selectedRange.current() as CellRange;
     if (!currentRange) return;
 
     const clonedRange = currentRange.clone();
@@ -424,7 +423,7 @@ export class Selection extends LocalHooksMixin(Object) {
     this.runLocalHooks('beforeSetRangeEnd', coordsClone);
     this.begin();
 
-    const cellRange = this.selectedRange.current() as ExtendedCellRange;
+    const cellRange = this.selectedRange.current() as CellRange;
     if (!cellRange) return;
 
     if (!this.settings.navigableHeaders) {
@@ -935,7 +934,7 @@ export class Selection extends LocalHooksMixin(Object) {
    * @returns {boolean}
    */
   isEntireRowSelected(layerLevel = this.getLayerLevel()): boolean {
-    const tester = (range: ExtendedCellRange) => {
+    const tester = (range: CellRange) => {
       const { col } = range.getOuterTopStartCorner();
       const rowHeaders = this.tableProps.countRowHeaders();
       const countCols = this.tableProps.countCols();
@@ -973,7 +972,7 @@ export class Selection extends LocalHooksMixin(Object) {
    * @returns {boolean}
    */
   isEntireColumnSelected(layerLevel = this.getLayerLevel()): boolean {
-    const tester = (range: ExtendedCellRange) => {
+    const tester = (range: CellRange) => {
       const { row } = range.getOuterTopStartCorner();
       const colHeaders = this.tableProps.countColHeaders();
       const countRows = this.tableProps.countRows();

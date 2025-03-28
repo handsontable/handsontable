@@ -19,7 +19,7 @@ import CellCoords from './../cell/coords';
  * import Handsontable, { CellRange } from '/handsontable/base';
  * ```
  */
-class CellRange {
+export class CellRange {
   /**
    * Used to draw bold border around a cell where selection was started and to edit the cell
    * when you press Enter. The highlight cannot point to headers (negative values) so its

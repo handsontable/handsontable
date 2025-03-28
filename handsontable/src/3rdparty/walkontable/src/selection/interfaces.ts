@@ -14,17 +14,6 @@ export interface BorderSettings {
 }
 
 /**
- * CellRange represents a range of cells
- */
-export interface CellRange {
-  from: CellCoords;
-  to: CellCoords;
-  expand(coords: CellCoords): void;
-  getOuterTopStartCorner(): CellCoords;
-  getOuterBottomEndCorner(): CellCoords;
-}
-
-/**
  * Settings for the Selection class
  */
 export interface SelectionSettings {

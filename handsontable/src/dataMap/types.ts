@@ -10,11 +10,6 @@ export type DataSchema = any[] | Record<string, any> | ((index: number) => any);
 export type CellValue = any;
 export type PropDescriptor = string | number | ((index: number) => any);
 
-export interface CellRange {
-  from: CellCoords;
-  to: CellCoords;
-}
-
 // DataMap related interfaces
 export interface DataMapSettings {
   data?: DataSource;

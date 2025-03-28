@@ -1,11 +1,9 @@
 import { Selection } from './../../3rdparty/walkontable/src';
-import { CellRange as BaseCellRange } from './../../3rdparty/walkontable/src/selection/interfaces';
-import CellRange from './../../3rdparty/walkontable/src/cell/range';
-import { ExtendedCellRange } from '../interfaces';
+import { CellRange } from './../../3rdparty/walkontable/src/cell/range';
 import { CellCoords } from './../../3rdparty/walkontable/src/cell/coords';
 
 interface VisualSelectionSettings {
-  createCellRange: (coords: CellCoords) => BaseCellRange;
+  createCellRange: (coords: CellCoords) => CellRange;
   visualToRenderableCoords: (coords: CellCoords) => CellCoords;
   renderableToVisualCoords: (coords: CellCoords) => CellCoords;
   rowIndexMapper: any;
@@ -20,9 +18,9 @@ class VisualSelection extends Selection {
    *
    * @type {null|CellRange}
    */
-  visualCellRange: ExtendedCellRange | null = null;
+  visualCellRange: CellRange | null = null;
 
-  constructor(settings: VisualSelectionSettings, visualCellRange: ExtendedCellRange | null) {
+  constructor(settings: VisualSelectionSettings, visualCellRange: CellRange | null) {
     super(settings, null);
     this.visualCellRange = visualCellRange || null;
     this.commit();
@@ -36,7 +34,7 @@ class VisualSelection extends Selection {
    */
   add(coords: CellCoords): VisualSelection {
     if (this.visualCellRange === null) {
-      this.visualCellRange = this.settings.createCellRange(coords) as ExtendedCellRange;
+      this.visualCellRange = this.settings.createCellRange(coords) as CellRange;
     } else {
       this.visualCellRange.expand(coords);
     }
@@ -63,7 +61,7 @@ class VisualSelection extends Selection {
    * @param {CellRange} cellRange Cells range object to be trimmed.
    * @returns {CellRange} Visual non-hidden cells range coordinates.
    */
-  private trimToVisibleCellsRangeOnly({ from, to }: ExtendedCellRange): ExtendedCellRange | null {
+  private trimToVisibleCellsRangeOnly({ from, to }: CellRange): CellRange | null {
     let visibleFromCoords = this.getNearestNotHiddenCoords(from, 1);
     let visibleToCoords = this.getNearestNotHiddenCoords(to, -1);
 
@@ -76,7 +74,7 @@ class VisualSelection extends Selection {
       visibleToCoords = to;
     }
 
-    return this.settings.createCellRange(visibleFromCoords) as ExtendedCellRange;
+    return this.settings.createCellRange(visibleFromCoords) as CellRange;
   }
 
   /**
@@ -163,7 +161,7 @@ class VisualSelection extends Selection {
    *
    * @returns {VisualSelection}
    */
-  syncWith(broaderCellRange: ExtendedCellRange): VisualSelection {
+  syncWith(broaderCellRange: CellRange): VisualSelection {
     const coordsFrom = (broaderCellRange.from as CellCoords).clone().normalize();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;

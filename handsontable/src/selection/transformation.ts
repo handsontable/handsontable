@@ -1,8 +1,8 @@
 import { createObjectPropListener } from '../helpers/object';
 import SelectionRange from './range';
 import LocalHooksMixin from './../mixins/localHooks';
-import { ExtendedCellRange } from './interfaces';
 import { CellCoords } from './../3rdparty/walkontable/src/cell/coords';
+import { CellRange } from './../3rdparty/walkontable/src/cell/range';
 // Extended interface for CellRange to include properties we need
 interface TransformationOptions {
   createCellCoords: (row: number, col: number) => CellCoords;
@@ -88,7 +88,7 @@ class Transformation extends LocalHooksMixin(Object) {
    */
   transformStart(rowDelta: number, colDelta: number, createMissingRecords: boolean = false): CellCoords {
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
-    const current = this.#range.current() as unknown as ExtendedCellRange;
+    const current = this.#range.current() as unknown as CellRange;
     let visualCoords = current ? current.highlight : null;
     const highlightRenderableCoords = visualCoords ? this.#options.visualToRenderableCoords(visualCoords) : null;
     let rowTransformDir = 0;
@@ -219,7 +219,7 @@ class Transformation extends LocalHooksMixin(Object) {
    */
   transformEnd(rowDelta: number, colDelta: number): CellCoords {
     const delta = this.#options.createCellCoords(rowDelta, colDelta);
-    const current = this.#range.current() as unknown as ExtendedCellRange;
+    const current = this.#range.current() as unknown as CellRange;
     
     if (!current) {
       return this.#options.createCellCoords(0, 0);

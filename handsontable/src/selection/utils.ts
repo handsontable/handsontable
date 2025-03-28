@@ -1,4 +1,4 @@
-import { CellRange } from './../3rdparty/walkontable/src';
+import CellRange from './../3rdparty/walkontable/src/cell/range';
 import { arrayEach, arrayReduce } from './../helpers/array';
 import { isUndefined } from './../helpers/mixed';
 import { CellCoords } from './../3rdparty/walkontable/src/cell/coords';

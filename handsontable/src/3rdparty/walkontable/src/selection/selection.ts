@@ -1,7 +1,7 @@
 import CellCoords from '../cell/coords';
 import LocalHooksMixin from './../../../../mixins/localHooks';
-import { SelectionSettings, CellRange, SelectionInterface } from './interfaces';
-
+import { SelectionSettings, SelectionInterface } from './interfaces';
+import { CellRange } from '../cell/range';
 /**
  * The Selection class allows highlighting (by applying CSS class) the table's cells or headers
  * and setting up the borders if defined in the settings.
