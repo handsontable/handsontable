@@ -6,13 +6,13 @@ env:
 
 on:
   pull_request:
-  push:
-    branches-ignore:
-      - 'prod-docs/**'
-      - 'master'
-    paths:
-      - 'docs/**'
-  workflow_dispatch:
+  # push:
+  #   branches-ignore:
+  #     - 'prod-docs/**'
+  #     - 'master'
+  #   paths:
+  #     - 'docs/**'
+  # workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -77,8 +77,6 @@ jobs:
           cd netlify  
           node createOrGet.mjs  
           cat NETLIFY_VARS >> $GITHUB_ENV 
-          mkdir docs
-          echo "hello world" >> docs/index.html
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           BRANCH_NAME_PREFIX: dev-handsontable-
