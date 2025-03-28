@@ -273,7 +273,7 @@ export class Selection extends LocalHooksMixin(Object) {
    *
    * @returns {SelectionRange}
    */
-  getSelectedRange(): ExtendedSelectionRange {
+  getSelectedRange(): SelectionRange {
     return this.selectedRange;
   }
 
