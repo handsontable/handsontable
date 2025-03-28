@@ -95,19 +95,19 @@ jobs:
         run: |
           npm ci
 
-      - name: Install the monorepo dependencies and build the packages
-        run: |
-          cd ..
-          npm ci
-          npm run all build -- --e examples visual-tests
+      # - name: Install the monorepo dependencies and build the packages
+      #   run: |
+      #     cd ..
+      #     npm ci
+      #     npm run all build -- --e examples visual-tests
 
-      - name: Generate API references
-        run: |
-          npm run docs:api
+      # - name: Generate API references
+      #   run: |
+      #     npm run docs:api
 
-      - name: Build docs (for staging preview)
-        run: |
-          npm run docs:build:preview
+      # - name: Build docs (for staging preview)
+      #   run: |
+      #     npm run docs:build:preview
 
       - name: Build and deploy the preview to Netlify
         run: |
@@ -121,8 +121,8 @@ jobs:
         run: |
           cd netlify  
           ls -la docs/docs
-          netlify link --id ${{ env.NETLIFY_SITE_ID }}  --debug
-          netlify deploy --site ${{ env.NETLIFY_SITE_ID }} --auth ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }} --prod
+          netlify link --id ${{ env.NETLIFY_SITE_ID }} 
+          netlify deploy --prod --dir=docs
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}    
