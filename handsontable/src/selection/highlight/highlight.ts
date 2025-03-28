@@ -16,9 +16,10 @@ import {
   HIGHLIGHT_HEADER_TYPE,
   HIGHLIGHT_ROW_TYPE,
   HIGHLIGHT_COLUMN_TYPE,
+  CellRange,
 } from '../../3rdparty/walkontable/src';
 import { arrayEach } from './../../helpers/array';
-import VisualSelection from './visualSelection';
+import VisualSelection, { VisualSelectionSettings } from './visualSelection';
 import { CellCoords } from './../../3rdparty/walkontable/src/cell/coords';
 
 export {
@@ -32,27 +33,15 @@ export {
   HIGHLIGHT_COLUMN_TYPE as COLUMN_TYPE,
 };
 
-interface HighlightOptions {
+interface HighlightOptions extends VisualSelectionSettings {
   headerClassName?: string;
   activeHeaderClassName?: string;
   rowClassName?: string;
   columnClassName?: string;
   cellAttributes?: [string, string][];
-  rowIndexMapper: any;
-  columnIndexMapper: any;
-  layerLevel: number;
-  border: {
-    width: number;
-    color: string;
-    style: string;
-  };
-  disabledCellSelection: (row: number, column: number) => boolean | string | string[];
-  cellCornerVisible: (...args: any[]) => boolean;
-  areaCornerVisible: (...args: any[]) => boolean;
-  visualToRenderableCoords: (coords: CellCoords) => CellCoords;
-  renderableToVisualCoords: (coords: CellCoords) => CellCoords;
-  createCellCoords: (row: number, col: number) => CellCoords;
-  createCellRange: (highlight: CellCoords, from: CellCoords, to: CellCoords) => any;
+  disabledCellSelection?: (row: number, column: number) => boolean | string | string[];
+  cellCornerVisible?: (...args: any[]) => boolean;
+  areaCornerVisible?: (...args: any[]) => boolean;
 }
 
 /**
@@ -175,9 +164,9 @@ class Highlight {
    */
   customSelections: VisualSelection[] = [];
 
-  constructor(options: Partial<HighlightOptions>) {
+  constructor(options: HighlightOptions) {
     this.options = options;
-    this.focus = createFocusHighlight(options);
+    this.focus = createFocusHighlight(options as VisualSelectionSettings & { cellCornerVisible: Function; });
     this.fill = createFillHighlight(options);
   }
 

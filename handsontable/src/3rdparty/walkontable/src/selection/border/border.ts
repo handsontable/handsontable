@@ -14,8 +14,14 @@ import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
 import { objectEach } from '../../../../../helpers/object';
 import { isMobileBrowser } from '../../../../../helpers/browser';
 import { getCornerStyle } from './utils';
-import { WalkontableInterface } from '../../interfaces';
 import { BorderOptions, CornerStyle, SelectionHandles } from '../interfaces';
+
+export interface BorderSpecification {
+  width: number;
+  color: string;
+  cornerVisible?: Function;
+  style?: string;
+}
 
 /**
  *

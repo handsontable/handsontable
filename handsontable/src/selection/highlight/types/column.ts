@@ -1,5 +1,5 @@
 import { HIGHLIGHT_COLUMN_TYPE } from '../../../3rdparty/walkontable/src';
-import VisualSelection from '../visualSelection';
+import VisualSelection, { VisualSelectionSettings } from '../visualSelection';
 
 /**
  * Creates the new instance of Selection, responsible for highlighting cells in a columns and
@@ -10,7 +10,7 @@ import VisualSelection from '../visualSelection';
  * @param {string} highlightParams.columnClassName Highlighted column' class name.
  * @returns {Selection}
  */
-export function createHighlight({ columnClassName, ...restOptions }) {
+export function createHighlight({ columnClassName, ...restOptions }: VisualSelectionSettings & { columnClassName: string }): VisualSelection {
   return new VisualSelection({
     className: columnClassName,
     ...restOptions,

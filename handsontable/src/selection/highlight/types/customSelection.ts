@@ -1,5 +1,5 @@
-import { HIGHLIGHT_CUSTOM_SELECTION_TYPE } from '../../../3rdparty/walkontable/src';
-import VisualSelection from '../visualSelection';
+import { CellRange, HIGHLIGHT_CUSTOM_SELECTION_TYPE } from '../../../3rdparty/walkontable/src';
+import VisualSelection, { VisualSelectionSettings } from '../visualSelection';
 
 /**
  * Creates the new instance of Selection responsible for highlighting currently selected cell.
@@ -10,7 +10,7 @@ import VisualSelection from '../visualSelection';
  * @param {object} highlightParams.visualCellRange Function to translate visual to renderable coords.
  * @returns {Selection}
  */
-export function createHighlight({ border, visualCellRange, ...restOptions }) {
+export function createHighlight({ border, visualCellRange, ...restOptions }: VisualSelectionSettings & { visualCellRange: CellRange; border: any }): VisualSelection {
   return new VisualSelection({
     ...border,
     ...restOptions,

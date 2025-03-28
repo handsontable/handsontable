@@ -1,5 +1,5 @@
 import { HIGHLIGHT_FILL_TYPE } from '../../../3rdparty/walkontable/src';
-import VisualSelection from '../visualSelection';
+import VisualSelection, { VisualSelectionSettings } from '../visualSelection';
 
 /**
  * Creates the new instance of Selection, responsible for highlighting cells which are covered by fill handle
@@ -8,7 +8,7 @@ import VisualSelection from '../visualSelection';
  * @param {object} highlightParams A configuration object to create a highlight.
  * @returns {Selection}
  */
-export function createHighlight({ ...restOptions }) {
+export function createHighlight(restOptions: VisualSelectionSettings): VisualSelection {
   return new VisualSelection({
     className: 'fill',
     border: {

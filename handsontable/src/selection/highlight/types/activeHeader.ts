@@ -1,5 +1,5 @@
 import { HIGHLIGHT_ACTIVE_HEADER_TYPE } from '../../../3rdparty/walkontable/src';
-import VisualSelection from '../visualSelection';
+import VisualSelection, { VisualSelectionSettings } from '../visualSelection';
 
 /**
  * Creates the new instance of Selection, responsible for highlighting column or row headers
@@ -10,7 +10,7 @@ import VisualSelection from '../visualSelection';
  * @param {string} highlightParams.activeHeaderClassName Highlighted headers' class name.
  * @returns {Selection}
  */
-export function createHighlight({ activeHeaderClassName, ...restOptions }) {
+export function createHighlight({ activeHeaderClassName, ...restOptions }: VisualSelectionSettings & { activeHeaderClassName: string }): VisualSelection {
   return new VisualSelection({
     className: activeHeaderClassName,
     ...restOptions,

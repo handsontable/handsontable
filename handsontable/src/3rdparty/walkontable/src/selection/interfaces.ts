@@ -3,6 +3,7 @@
  */
 
 import CellCoords from "../cell/coords";
+import { BorderSpecification } from "./border/border";
 
 /**
  * Border settings for Selection
@@ -19,15 +20,10 @@ export interface BorderSettings {
 export interface SelectionSettings {
   className?: string;
   createLayers?: boolean;
-  border?: {
-    width: number;
-    color: string;
-  };
+  border?: BorderSpecification;
   selectionType?: string;
   layerLevel?: number;
-  createCellRange(coords: CellCoords): CellRange;
-  headerAttributes?: Array<[string, string | number | boolean]>;
-  [key: string]: any;
+  headerAttributes?: [string, string][];
 }
 
 /**
@@ -35,10 +31,7 @@ export interface SelectionSettings {
  */
 export interface BorderOptions {
   className?: string;
-  border?: {
-    width: number;
-    color: string;
-  };
+  border?: BorderSpecification;
   selectionType?: string;
   top?: BorderSettings;
   bottom?: BorderSettings;

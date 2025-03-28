@@ -1,5 +1,5 @@
 import { HIGHLIGHT_AREA_TYPE } from '../../../3rdparty/walkontable/src';
-import VisualSelection from '../visualSelection';
+import VisualSelection, { VisualSelectionSettings } from '../visualSelection';
 
 /**
  * Creates the new instance of Selection responsible for highlighting area of the selected multiple cells.
@@ -8,7 +8,7 @@ import VisualSelection from '../visualSelection';
  * @param {object} highlightParams.areaCornerVisible Function to determine if area's corner should be visible.
  * @returns {Selection}
  */
-export function createHighlight({ areaCornerVisible, ...restOptions }) {
+export function createHighlight({ areaCornerVisible, ...restOptions }: VisualSelectionSettings & { areaCornerVisible: Function }): VisualSelection {
   return new VisualSelection({
     className: 'area',
     createLayers: true,

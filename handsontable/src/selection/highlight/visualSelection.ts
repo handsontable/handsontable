@@ -1,15 +1,16 @@
 import { Selection } from './../../3rdparty/walkontable/src';
 import { CellRange } from './../../3rdparty/walkontable/src/cell/range';
 import { CellCoords } from './../../3rdparty/walkontable/src/cell/coords';
+import { IndexMapper } from '../../translations/indexMapper';
+import { SelectionSettings } from '../../3rdparty/walkontable/src/selection/interfaces';
 
-interface VisualSelectionSettings {
-  createCellRange: (coords: CellCoords) => CellRange;
-  visualToRenderableCoords: (coords: CellCoords) => CellCoords;
-  renderableToVisualCoords: (coords: CellCoords) => CellCoords;
-  rowIndexMapper: any;
-  columnIndexMapper: any;
-  selectionType?: string;
-  createCellCoords: (row: number, col: number) => CellCoords;
+export interface VisualSelectionSettings extends SelectionSettings {
+  rowIndexMapper?: IndexMapper;
+  columnIndexMapper?: IndexMapper;
+  visualToRenderableCoords?: (coords: CellCoords) => CellCoords;
+  renderableToVisualCoords?: (coords: CellCoords) => CellCoords;
+  createCellCoords?: (row: number, col: number) => CellCoords;
+  createCellRange?: (highlight: CellCoords, from?: CellCoords, to?: CellCoords) => CellRange;
 }
 
 class VisualSelection extends Selection {
@@ -20,7 +21,9 @@ class VisualSelection extends Selection {
    */
   visualCellRange: CellRange | null = null;
 
-  constructor(settings: VisualSelectionSettings, visualCellRange: CellRange | null) {
+  override settings: VisualSelectionSettings;
+
+  constructor(settings: VisualSelectionSettings, visualCellRange?: CellRange | null) {
     super(settings, null);
     this.visualCellRange = visualCellRange || null;
     this.commit();
@@ -50,7 +53,7 @@ class VisualSelection extends Selection {
   clear(): VisualSelection {
     this.visualCellRange = null;
 
-    return super.clear();
+    return super.clear() as VisualSelection;
   }
 
   /**
@@ -260,7 +263,7 @@ class VisualSelection extends Selection {
       return null;
     }
 
-    return this.settings.createCellRange(renderableFromCoords);
+    return this.settings.createCellRange(renderableFromCoords, renderableFromCoords, renderableToCoords);
   }
 }
 

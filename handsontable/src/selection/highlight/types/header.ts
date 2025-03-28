@@ -1,5 +1,5 @@
 import { HIGHLIGHT_HEADER_TYPE } from '../../../3rdparty/walkontable/src';
-import VisualSelection from '../visualSelection';
+import VisualSelection, { VisualSelectionSettings } from '../visualSelection';
 
 /**
  * Creates the new instance of Selection, responsible for highlighting column or row headers when
@@ -10,7 +10,7 @@ import VisualSelection from '../visualSelection';
  * @param {string} highlightParams.headerClassName Highlighted headers' class name.
  * @returns {Selection}
  */
-export function createHighlight({ headerClassName, ...restOptions }) {
+export function createHighlight({ headerClassName, ...restOptions }: VisualSelectionSettings & { headerClassName: string }): VisualSelection {
   return new VisualSelection({
     className: headerClassName,
     ...restOptions,
