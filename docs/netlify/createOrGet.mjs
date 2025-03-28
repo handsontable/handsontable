@@ -35,8 +35,8 @@ if (site) {
 await writeFileSync(
   "NETLIFY_VARS",
   site
-    ? `NETLIFY_SITE_ID=${site.id}`
-//NETLIFY_SITE_URL=${site.url}`
+    ? `NETLIFY_SITE_ID=${site.id}
+NETLIFY_SITE_URL=${site.url}`
     : "",
   { encoding: "utf-8" }
 );

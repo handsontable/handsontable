@@ -85,39 +85,39 @@ jobs:
           BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}     
 
 
-      # - name: Publish sticky comment in PR. Docs are being built
-      #   uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
-      #   with:
-      #     number: ${{ steps.pr-finder.outputs.pr }}
-      #     message: |
-      #       🏗️ Preview documentation is being built/rebuilt.
-      #       Current staging version of documentation will be available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
+      - name: Publish sticky comment in PR. Docs are being built
+        uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
+        with:
+          number: ${{ steps.pr-finder.outputs.pr }}
+          message: |
+            🏗️ Preview documentation is being built/rebuilt.
+            Current staging version of documentation will be available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
 
-      # - name: Install the documentation dependencies
-      #   run: |
-      #     npm ci
+      - name: Install the documentation dependencies
+        run: |
+          npm ci
 
-      # - name: Install the monorepo dependencies and build the packages
-      #   run: |
-      #     cd ..
-      #     npm ci
-      #     npm run all build -- --e examples visual-tests
+      - name: Install the monorepo dependencies and build the packages
+        run: |
+          cd ..
+          npm ci
+          npm run all build -- --e examples visual-tests
 
-      # - name: Generate API references
-      #   run: |
-      #     npm run docs:api
+      - name: Generate API references
+        run: |
+          npm run docs:api
 
-      # - name: Build docs (for staging preview)
-      #   run: |
-      #     npm run docs:build:preview
+      - name: Build docs (for staging preview)
+        run: |
+          npm run docs:build:preview
 
-      # - name: Build and deploy the preview to Netlify
-      #   run: |
-      #     cd netlify  
-      #     mkdir -p docs/docs
-      #     mv ../.vuepress/dist/docs docs
-      #     ./build_previous_versions.sh
-      #     cp _redirects docs/_redirects
+      - name: Build and deploy the preview to Netlify
+        run: |
+          cd netlify  
+          mkdir -p docs/docs
+          mv ../.vuepress/dist/docs docs
+          ./build_previous_versions.sh
+          cp _redirects docs/_redirects
 
       - name: Publish preview to Netlify
         run: |
