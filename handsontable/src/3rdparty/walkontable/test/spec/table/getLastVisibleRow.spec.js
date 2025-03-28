@@ -30,7 +30,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('getLastVisibleRow()', () => {
-    it('should return -1 error code if there are no rendered rows c columns', () => {
+    it('should return -1 error code if there are no rendered rows and columns', () => {
       createDataArray(0, 0);
       spec().$wrapper.width(250).height(170);
 
@@ -61,6 +61,44 @@ describe('WalkontableTable', () => {
 
       expect(wt.wtOverlays.inlineStartOverlay.clone).not.toBe(undefined);
       expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'inlineStart').toBe(-1);
+
+      expect(wt.wtOverlays.topInlineStartCornerOverlay).not.toBe(undefined);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'topInlineStartCorner').toBe(-1);
+
+      expect(wt.wtOverlays.topOverlay).not.toBe(undefined);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'top').toBe(-1);
+    });
+
+    it('should return -1 error code if there are rendered rows and columns after fixed overlays are disabled', () => {
+      createDataArray(4, 4);
+      spec().$wrapper.width(250).height(170);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+        columnHeaders: [function(col, TH) {
+          TH.innerHTML = `${hotParentName(TH)}-header-of-col-${col}`;
+        }],
+        rowHeaders: [function(row, TH) {
+          TH.innerHTML = `${hotParentName(TH)}-header-of-row-${row}`;
+        }]
+      });
+
+      wt.draw();
+      wt.wtSettings.update('fixedRowsTop', 0);
+      wt.wtSettings.update('fixedRowsBottom', 0);
+      wt.draw();
+
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'master').toBe(3);
+
+      expect(wt.wtOverlays.bottomInlineStartCornerOverlay).not.toBe(undefined);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'bottomInlineStartCorner').toBe(-1);
+
+      expect(wt.wtOverlays.bottomOverlay).not.toBe(undefined);
+      expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'bottom').toBe(-1);
 
       expect(wt.wtOverlays.topInlineStartCornerOverlay).not.toBe(undefined);
       expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'topInlineStartCorner').toBe(-1);
