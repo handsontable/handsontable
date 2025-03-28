@@ -1,10 +1,8 @@
-import Handsontable, { CellCoords, CellRange } from './src/core/types';
+import Handsontable, { CellRange } from './base';
 import { registerAllModules } from './registry';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations';
-
 import jQueryWrapper from './helpers/wrappers/jquery';
-
 import GhostTable from './utils/ghostTable';
 import * as parseTableHelpers from './utils/parseTable';
 import * as arrayHelpers from './helpers/array';
@@ -20,6 +18,7 @@ import * as stringHelpers from './helpers/string';
 import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
+import { CellCoords } from './3rdparty/walkontable/src/cell/coords';
 
 import {
   getRegisteredEditorNames,

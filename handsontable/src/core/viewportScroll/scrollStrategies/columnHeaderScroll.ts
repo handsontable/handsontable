@@ -1,4 +1,4 @@
-import { CellCoords } from '../../../core/types';
+import { CellCoords } from '../../../3rdparty/walkontable/src/cell/coords';
 import { Core, ScrollStrategy } from '../types';
 
 /**

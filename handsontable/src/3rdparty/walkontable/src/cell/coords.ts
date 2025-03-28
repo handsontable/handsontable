@@ -29,7 +29,7 @@ interface CellCoordsObject {
   col: number | null;
 }
 
-class CellCoords { //?
+export class CellCoords {
   /**
    * A visual row index.
    *

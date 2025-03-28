@@ -1,7 +1,7 @@
 import { GRID_GROUP } from '../../shortcutContexts';
 import { installFocusDetector } from './focusDetector';
 import { Core } from '../../plugins/types';
-import { CellCoords } from '../../core/types';
+import { CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 
 interface RowWrapState {
   wrapped: boolean;

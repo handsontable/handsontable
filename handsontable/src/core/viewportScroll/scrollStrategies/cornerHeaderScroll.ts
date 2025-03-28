@@ -1,5 +1,4 @@
 import { Core, ScrollStrategy } from '../types';
-import { CellCoords } from '../../../core/types';
 
 
 /**

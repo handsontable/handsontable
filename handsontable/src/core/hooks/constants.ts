@@ -110,7 +110,7 @@
  * ...
  */
 
-import { CellCoords } from "../types";
+import { CellCoords } from "../../3rdparty/walkontable/src/cell/coords";
 
 interface CellRange {
   from: CellCoords;

@@ -28,7 +28,7 @@ import {
   PropDescriptor,
   SourceType
 } from './types';
-import { CellCoords } from './../core/types';
+import { CellCoords } from './../3rdparty/walkontable/src/cell/coords';
 
 /*
 This class contains open-source contributions covered by the MIT license.

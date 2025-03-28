@@ -1,11 +1,11 @@
 import { createObjectPropListener } from '../helpers/object';
 import SelectionRange from './range';
 import LocalHooksMixin from './../mixins/localHooks';
-import { ExtendedCellRange, ExtendedCellCoords } from './interfaces';
-import { CellCoords } from './../core/types';
+import { ExtendedCellRange } from './interfaces';
+import { CellCoords } from './../3rdparty/walkontable/src/cell/coords';
 // Extended interface for CellRange to include properties we need
 interface TransformationOptions {
-  createCellCoords: (row: number, col: number) => ExtendedCellCoords;
+  createCellCoords: (row: number, col: number) => CellCoords;
   visualToRenderableCoords: (coords: CellCoords) => CellCoords;
   renderableToVisualCoords: (coords: CellCoords) => CellCoords;
   countRenderableRows: () => number;
@@ -229,7 +229,7 @@ class Transformation extends LocalHooksMixin(Object) {
     const highlightRenderableCoords = this.#options.visualToRenderableCoords(cellRange.highlight);
     const toRow = this.#findFirstNonHiddenZeroBasedRow(cellRange.to.row, cellRange.from.row);
     const toColumn = this.#findFirstNonHiddenZeroBasedColumn(cellRange.to.col, cellRange.from.col);
-    const visualCoords = (cellRange.to as ExtendedCellCoords).clone();
+    const visualCoords = (cellRange.to as CellCoords).clone();
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
@@ -418,7 +418,7 @@ class Transformation extends LocalHooksMixin(Object) {
    * @returns {CellCoords}
    */
   #zeroBasedToVisualCoords(zeroBasedCoords: CellCoords): CellCoords {
-    const coords = (zeroBasedCoords as ExtendedCellCoords).clone();
+    const coords = zeroBasedCoords.clone();
 
     coords.col = zeroBasedCoords.col - this.#offset.x;
     coords.row = zeroBasedCoords.row - this.#offset.y;

@@ -1,9 +1,5 @@
+import { CellCoords } from '../3rdparty/walkontable/src/cell/coords';
 import { Core } from '../core';
-
-export interface CellCoords {
-  row: number;
-  col: number;
-}
 
 export interface ViewportScroller {
   resume(): void;

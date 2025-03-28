@@ -1,27 +1,6 @@
 import { CellRange as BaseCellRange } from '../3rdparty/walkontable/src/selection/interfaces';
 import CellRange from '../3rdparty/walkontable/src/cell/range';
-import { CellCoords } from './../core/types';
-
-
-/**
- * Extended CellCoords interface that adds additional functionality needed across the codebase
- */
-export interface ExtendedCellCoords extends CellCoords {
-  /**
-   * Creates a clone of this coordinates object
-   */
-  clone(): ExtendedCellCoords;
-  
-  /**
-   * Normalizes the coordinates
-   */
-  normalize(): ExtendedCellCoords;
-  
-  /**
-   * Assigns coordinates from another coords object
-   */
-  assign(coords: CellCoords): CellCoords;
-}
+import { CellCoords } from './../3rdparty/walkontable/src/cell/coords';
 
 /**
  * Extended CellRange interface that combines functionality needed across the codebase
@@ -30,17 +9,17 @@ export interface ExtendedCellRange extends BaseCellRange {
   /**
    * Highlight coordinates within the range
    */
-  highlight: ExtendedCellCoords;
+  highlight: CellCoords;
   
   /**
    * Starting coordinates of the range
    */
-  from: ExtendedCellCoords;
+  from: CellCoords;
   
   /**
    * Ending coordinates of the range
    */
-  to: ExtendedCellCoords;
+  to: CellCoords;
   
   /**
    * Sets the highlight coordinates for this range
@@ -50,12 +29,12 @@ export interface ExtendedCellRange extends BaseCellRange {
   /**
    * Sets the starting coordinates for this range
    */
-  setFrom(coords: ExtendedCellCoords): ExtendedCellRange;
+  setFrom(coords: CellCoords): ExtendedCellRange;
   
   /**
    * Sets the ending coordinates for this range
    */
-  setTo(coords: ExtendedCellCoords): ExtendedCellRange;
+  setTo(coords: CellCoords): ExtendedCellRange;
   
   /**
    * Gets the vertical direction of the range
@@ -85,7 +64,7 @@ export interface ExtendedCellRange extends BaseCellRange {
   /**
    * Check if the range includes the given coordinates
    */
-  includes(coords: ExtendedCellCoords): boolean;
+  includes(coords: CellCoords): boolean;
   
   /**
    * Check if the range overlaps with the given coordinates
@@ -125,7 +104,7 @@ export interface ExtendedSelectionRange {
   /**
    * Adds a cell coordinates to the selection range
    */
-  add(coords: ExtendedCellCoords): ExtendedSelectionRange;
+  add(coords: CellCoords): ExtendedSelectionRange;
   
   /**
    * Clears the selection range
@@ -155,12 +134,12 @@ export interface ExtendedSelectionRange {
   /**
    * Function to create a cell range
    */
-  createCellRange: (coords: ExtendedCellCoords) => ExtendedCellRange;
+  createCellRange: (coords: CellCoords) => ExtendedCellRange;
   
   /**
    * Sets the selection to specific coordinates
    */
-  set(coords: ExtendedCellCoords): ExtendedSelectionRange;
+  set(coords: CellCoords): ExtendedSelectionRange;
   
   /**
    * Removes and returns the last range
@@ -180,7 +159,7 @@ export interface ExtendedSelectionRange {
   /**
    * Checks if the selection includes specific coordinates
    */
-  includes(coords: ExtendedCellCoords): boolean;
+  includes(coords: CellCoords): boolean;
   
   /**
    * Iterator for ranges

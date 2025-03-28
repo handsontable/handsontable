@@ -19,7 +19,7 @@ import {
 } from '../../3rdparty/walkontable/src';
 import { arrayEach } from './../../helpers/array';
 import VisualSelection from './visualSelection';
-import { CellCoords } from './../../core/types';
+import { CellCoords } from './../../3rdparty/walkontable/src/cell/coords';
 
 export {
   HIGHLIGHT_ACTIVE_HEADER_TYPE as ACTIVE_HEADER_TYPE,

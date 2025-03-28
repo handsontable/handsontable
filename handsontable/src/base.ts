@@ -19,7 +19,7 @@ import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
 import { BaseEditor } from './editors/baseEditor';
 import { CellRange } from './3rdparty/walkontable/src';
-import { CellCoords } from './core/types';
+import { CellCoords } from './3rdparty/walkontable/src/cell/coords';
 
 type HandsontableInstance = {
   editors: {

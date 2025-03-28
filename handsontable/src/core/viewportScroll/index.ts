@@ -1,4 +1,4 @@
-import { ViewportScroller, CellCoords } from '../../core/types';
+import { ViewportScroller } from '../../core/types';
 import { columnHeaderScrollStrategy } from './scrollStrategies/columnHeaderScroll';
 import { cornerHeaderScrollStrategy } from './scrollStrategies/cornerHeaderScroll';
 import { focusScrollStrategy } from './scrollStrategies/focusScroll';
@@ -6,6 +6,7 @@ import { multipleScrollStrategy } from './scrollStrategies/multipleScroll';
 import { noncontiguousScrollStrategy } from './scrollStrategies/noncontiguousScroll';
 import { rowHeaderScrollStrategy } from './scrollStrategies/rowHeaderScroll';
 import { singleScrollStrategy } from './scrollStrategies/singleScroll';
+import { CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 
 /**
  * @typedef ViewportScroller

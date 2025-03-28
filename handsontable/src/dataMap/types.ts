@@ -1,4 +1,4 @@
-import { CellCoords } from './../core/types';
+import { CellCoords } from './../3rdparty/walkontable/src/cell/coords';
 
 /**
  * This file contains shared interfaces and types for dataMap module

@@ -42,7 +42,7 @@ import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
-import { CellCoords } from './core/types';
+import { CellCoords } from './3rdparty/walkontable/src/cell/coords';
 
 let activeGuid: string | null = null;
 

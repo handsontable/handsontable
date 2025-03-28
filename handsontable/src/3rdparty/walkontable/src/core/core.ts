@@ -26,9 +26,9 @@ export default class Walkontable extends CoreAbstract {
 
     const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink. I would like to have no access to facade from the internal scope.
 
-    this.wtTable = new MasterTable(this.getTableDao(), facadeGetter, this.domBindings, this.wtSettings);
+    this.wtTable = new MasterTable(this.getTableDao(), facadeGetter, this.domBindings, this.wtSettings.getSetting);
     this.wtViewport = new Viewport(
-      this.getViewportDao(), this.domBindings, this.wtSettings, this.eventManager, this.wtTable
+      this.getViewportDao(), this.domBindings, this.wtSettings.getSetting, this.eventManager, this.wtTable
     );
     this.selectionManager = new SelectionManager(this.wtSettings.getSetting('selections'));
     this.selections = this.wtSettings.getSetting('selections');

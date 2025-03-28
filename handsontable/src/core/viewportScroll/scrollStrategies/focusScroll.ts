@@ -1,5 +1,5 @@
 import { Core, ScrollStrategy } from '../types';
-import { CellCoords } from '../../../core/types';
+import { CellCoords } from '../../../3rdparty/walkontable/src/cell/coords';
 
 /**
  * Scroll strategy for changed the focus position of the selection.

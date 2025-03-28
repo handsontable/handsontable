@@ -6,7 +6,7 @@
  * @util
  */
 import { CellRange as WalkontableCellRange } from '../3rdparty/walkontable/src/selection/interfaces';
-import { CellCoords } from './../core/types';
+import { CellCoords } from './../3rdparty/walkontable/src/cell/coords';
 // Extending the CellRange interface to include the includes method that exists in the implementation
 interface CellRange extends WalkontableCellRange {
   includes(coords: CellCoords): boolean;

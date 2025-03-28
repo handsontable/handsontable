@@ -26,7 +26,7 @@ import {
   A11Y_ROWCOUNT,
   A11Y_TREEGRID
 } from './helpers/a11y';
-import { CellCoords } from './core/types';
+import { CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import { CoreAbstract } from './3rdparty/walkontable/src/core/interfaces';
 import { SettingsPure } from './3rdparty/walkontable/src/settings';
 

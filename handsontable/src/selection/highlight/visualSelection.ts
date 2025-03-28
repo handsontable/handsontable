@@ -1,8 +1,8 @@
 import { Selection } from './../../3rdparty/walkontable/src';
 import { CellRange as BaseCellRange } from './../../3rdparty/walkontable/src/selection/interfaces';
 import CellRange from './../../3rdparty/walkontable/src/cell/range';
-import { ExtendedCellRange, ExtendedCellCoords } from '../interfaces';
-import { CellCoords } from './../../core/types';
+import { ExtendedCellRange } from '../interfaces';
+import { CellCoords } from './../../3rdparty/walkontable/src/cell/coords';
 
 interface VisualSelectionSettings {
   createCellRange: (coords: CellCoords) => BaseCellRange;
@@ -164,18 +164,18 @@ class VisualSelection extends Selection {
    * @returns {VisualSelection}
    */
   syncWith(broaderCellRange: ExtendedCellRange): VisualSelection {
-    const coordsFrom = (broaderCellRange.from as ExtendedCellCoords).clone().normalize();
+    const coordsFrom = (broaderCellRange.from as CellCoords).clone().normalize();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
     const renderableHighlight = this.settings.visualToRenderableCoords(this.visualCellRange!.highlight);
-    let cellCoordsVisual: ExtendedCellCoords | null = null;
+    let cellCoordsVisual: CellCoords | null = null;
 
     if (renderableHighlight === null || renderableHighlight.col === null || renderableHighlight.row === null) {
-      cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection) as ExtendedCellCoords;
+      cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection) as CellCoords;
     }
 
     if (cellCoordsVisual !== null && broaderCellRange.overlaps(cellCoordsVisual)) {
-      const currentHighlight = (broaderCellRange.highlight as ExtendedCellCoords).clone();
+      const currentHighlight = (broaderCellRange.highlight as CellCoords).clone();
 
       if (currentHighlight.row >= 0) {
         currentHighlight.row = cellCoordsVisual.row;

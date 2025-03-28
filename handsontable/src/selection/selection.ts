@@ -25,7 +25,7 @@ import {
   FOCUS_TYPE,
 } from './highlight/highlight';
 import LocalHooksMixin from './../mixins/localHooks';
-import { ExtendedCellRange, ExtendedCellCoords, ExtendedSelectionRange } from './interfaces';
+import { ExtendedCellRange, ExtendedSelectionRange } from './interfaces';
 
 interface GridSettings {
   currentHeaderClassName: string;
@@ -41,13 +41,13 @@ interface GridSettings {
   autoWrapCol: boolean;
   fixedRowsBottom: number;
 }
-import { CellCoords } from './../core/types';
+import { CellCoords } from '../3rdparty/walkontable/src/cell/coords';
 
 interface TableProps {
-  createCellRange(highlight: ExtendedCellCoords, from: ExtendedCellCoords, to: ExtendedCellCoords): ExtendedCellRange;
-  createCellCoords(row: number, col: number): ExtendedCellCoords;
-  visualToRenderableCoords(coords: ExtendedCellCoords): ExtendedCellCoords;
-  renderableToVisualCoords(coords: ExtendedCellCoords): ExtendedCellCoords;
+  createCellRange(highlight: CellCoords, from: CellCoords, to: CellCoords): ExtendedCellRange;
+  createCellCoords(row: number, col: number): CellCoords;
+  visualToRenderableCoords(coords: CellCoords): CellCoords;
+  renderableToVisualCoords(coords: CellCoords): CellCoords;
   isDisabledCellSelection(row: number, col: number): boolean;
   countRows(): number;
   countCols(): number;
@@ -195,14 +195,14 @@ export class Selection extends LocalHooksMixin(Object) {
       disabledCellSelection: (row: number, column: number) => this.tableProps.isDisabledCellSelection(row, column),
       cellCornerVisible: (...args: []) => this.isCellCornerVisible(...args),
       areaCornerVisible: (...args: [number]) => this.isAreaCornerVisible(...args),
-      visualToRenderableCoords: (coords: CellCoords) => this.tableProps.visualToRenderableCoords(coords as ExtendedCellCoords),
-      renderableToVisualCoords: (coords: CellCoords) => this.tableProps.renderableToVisualCoords(coords as ExtendedCellCoords),
+      visualToRenderableCoords: (coords: CellCoords) => this.tableProps.visualToRenderableCoords(coords as CellCoords),
+      renderableToVisualCoords: (coords: CellCoords) => this.tableProps.renderableToVisualCoords(coords as CellCoords),
       createCellCoords: (row: number, col: number) => this.tableProps.createCellCoords(row, col),
       createCellRange: (highlight: CellCoords, from: CellCoords, to: CellCoords) => 
         this.tableProps.createCellRange(
-          highlight as ExtendedCellCoords,
-          from as ExtendedCellCoords,
-          to as ExtendedCellCoords
+          highlight as CellCoords,
+          from as CellCoords,
+          to as CellCoords
         ),
     });
     this.#transformation = new Transformation(this.selectedRange, {
@@ -210,8 +210,8 @@ export class Selection extends LocalHooksMixin(Object) {
       columnIndexMapper: this.tableProps.columnIndexMapper,
       countRenderableRows: () => this.tableProps.countRenderableRows(),
       countRenderableColumns: () => this.tableProps.countRenderableColumns(),
-      visualToRenderableCoords: (coords: CellCoords) => this.tableProps.visualToRenderableCoords(coords as ExtendedCellCoords),
-      renderableToVisualCoords: (coords: CellCoords) => this.tableProps.renderableToVisualCoords(coords as ExtendedCellCoords),
+      visualToRenderableCoords: (coords: CellCoords) => this.tableProps.visualToRenderableCoords(coords as CellCoords),
+      renderableToVisualCoords: (coords: CellCoords) => this.tableProps.renderableToVisualCoords(coords as CellCoords),
       findFirstNonHiddenRenderableRow: (...args: [number]) => this.tableProps.findFirstNonHiddenRenderableRow(...args),
       findFirstNonHiddenRenderableColumn: (...args: [number]) => this.tableProps.findFirstNonHiddenRenderableColumn(...args),
       createCellCoords: (row: number, col: number) => this.tableProps.createCellCoords(row, col),
@@ -234,8 +234,8 @@ export class Selection extends LocalHooksMixin(Object) {
         if (!range) return 0;
         return this.tableProps.countRenderableColumnsInRange(0, range.getOuterBottomEndCorner().col);
       },
-      visualToRenderableCoords: (coords: CellCoords) => this.tableProps.visualToRenderableCoords(coords as ExtendedCellCoords),
-      renderableToVisualCoords: (coords: CellCoords) => this.tableProps.renderableToVisualCoords(coords as ExtendedCellCoords),
+      visualToRenderableCoords: (coords: CellCoords) => this.tableProps.visualToRenderableCoords(coords as CellCoords),
+      renderableToVisualCoords: (coords: CellCoords) => this.tableProps.renderableToVisualCoords(coords as CellCoords),
       findFirstNonHiddenRenderableRow: (...args: [number]) => this.tableProps.findFirstNonHiddenRenderableRow(...args),
       findFirstNonHiddenRenderableColumn: (...args: [number]) => this.tableProps.findFirstNonHiddenRenderableColumn(...args),
       createCellCoords: (row: number, col: number) => this.tableProps.createCellCoords(row, col),
@@ -349,7 +349,7 @@ export class Selection extends LocalHooksMixin(Object) {
    *                                   `setRangeEnd` method won't be called on every `setRangeStart` call.
    * @param {CellCoords} [highlightCoords] If set, allows changing the coordinates of the highlight/focus cell.
    */
-  setRangeStart(coords: ExtendedCellCoords, multipleSelection?: boolean, fragment = false, highlightCoords: ExtendedCellCoords = coords): void {
+  setRangeStart(coords: CellCoords, multipleSelection?: boolean, fragment = false, highlightCoords: CellCoords = coords): void {
     const isMultipleMode = this.settings.selectionMode === 'multiple';
     const isMultipleSelection = isUndefined(multipleSelection) ?
       this.tableProps.getShortcutManager().isCtrlPressed() : multipleSelection;
@@ -390,7 +390,7 @@ export class Selection extends LocalHooksMixin(Object) {
    *                                      the default trigger will be used.
    * @param {CellCoords} [highlightCoords] If set, allows changing the coordinates of the highlight/focus cell.
    */
-  setRangeStartOnly(coords: ExtendedCellCoords, multipleSelection?: boolean, highlightCoords: ExtendedCellCoords = coords): void {
+  setRangeStartOnly(coords: CellCoords, multipleSelection?: boolean, highlightCoords: CellCoords = coords): void {
     this.setRangeStart(coords, multipleSelection, true, highlightCoords);
   }
 
@@ -399,7 +399,7 @@ export class Selection extends LocalHooksMixin(Object) {
    *
    * @param {CellCoords} coords Visual coords.
    */
-  setRangeEnd(coords: ExtendedCellCoords): void {
+  setRangeEnd(coords: CellCoords): void {
     if (this.selectedRange.isEmpty()) {
       return;
     }
@@ -632,7 +632,7 @@ export class Selection extends LocalHooksMixin(Object) {
    *
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    */
-  setRangeFocus(coords: ExtendedCellCoords): void {
+  setRangeFocus(coords: CellCoords): void {
     if (this.selectedRange.isEmpty()) {
       return;
     }
@@ -1018,7 +1018,7 @@ export class Selection extends LocalHooksMixin(Object) {
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    * @returns {boolean}
    */
-  inInSelection(coords: ExtendedCellCoords): boolean {
+  inInSelection(coords: CellCoords): boolean {
     return this.selectedRange.includes(coords);
   }
 
@@ -1039,7 +1039,7 @@ export class Selection extends LocalHooksMixin(Object) {
    * @param {CellCoords} coords The cell coordinates to check.
    * @returns {boolean}
    */
-  isCellVisible(coords: ExtendedCellCoords): boolean {
+  isCellVisible(coords: CellCoords): boolean {
     const renderableCoords = this.tableProps.visualToRenderableCoords(coords);
 
     return renderableCoords.row !== null && renderableCoords.col !== null;
@@ -1171,7 +1171,7 @@ export class Selection extends LocalHooksMixin(Object) {
 
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
       createCellCoords: (...args: [number, number]) => this.tableProps.createCellCoords(...args),
-      createCellRange: (...args: [ExtendedCellCoords, ExtendedCellCoords, ExtendedCellCoords]) => this.tableProps.createCellRange(...args),
+      createCellRange: (...args: [CellCoords, CellCoords, CellCoords]) => this.tableProps.createCellRange(...args),
       propToCol: (prop: string) => this.tableProps.propToCol(prop),
       keepDirection: true,
     });
