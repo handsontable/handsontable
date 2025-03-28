@@ -3,6 +3,7 @@ import SelectionRange from './range';
 import LocalHooksMixin from './../mixins/localHooks';
 import { CellCoords } from './../3rdparty/walkontable/src/cell/coords';
 import { CellRange } from './../3rdparty/walkontable/src/cell/range';
+import { IndexMapper } from './../translations';
 // Extended interface for CellRange to include properties we need
 interface TransformationOptions {
   createCellCoords: (row: number, col: number) => CellCoords;
@@ -17,6 +18,8 @@ interface TransformationOptions {
   autoWrapCol: () => boolean;
   findFirstNonHiddenRenderableRow: (from: number, to: number) => number | null;
   findFirstNonHiddenRenderableColumn: (from: number, to: number) => number | null;
+  rowIndexMapper: IndexMapper;
+  columnIndexMapper: IndexMapper;
 }
 
 interface TableSize {

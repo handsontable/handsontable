@@ -1,4 +1,5 @@
 import CellCoords from './../cell/coords';
+import { Positionable } from './positionable';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -19,7 +20,7 @@ import CellCoords from './../cell/coords';
  * import Handsontable, { CellRange } from '/handsontable/base';
  * ```
  */
-export class CellRange {
+export class CellRange implements Positionable {
   /**
    * Used to draw bold border around a cell where selection was started and to edit the cell
    * when you press Enter. The highlight cannot point to headers (negative values) so its
@@ -265,10 +266,10 @@ export class CellRange {
    *
    * Range A overlaps range B if the intersection of A and B (or B and A) is not empty.
    *
-   * @param {CellRange} cellRange A range to check.
+   * @param {CellRange | CellCoords} cellRange A range to check.
    * @returns {boolean}
    */
-  overlaps(cellRange: CellRange): boolean {
+  overlaps(cellRange: Positionable): boolean {
     return cellRange.isSouthEastOf(this.getOuterTopLeftCorner()) &&
            cellRange.isNorthWestOf(this.getOuterBottomRightCorner());
   }

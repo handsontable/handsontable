@@ -1,4 +1,6 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
+import { Positionable } from './positionable';
+
 /**
  * @description
  *
@@ -29,7 +31,7 @@ interface CellCoordsObject {
   col: number | null;
 }
 
-export class CellCoords {
+export class CellCoords implements Positionable {
   /**
    * A visual row index.
    *

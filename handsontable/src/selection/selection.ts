@@ -1,5 +1,4 @@
 import Highlight from './highlight/highlight';
-import VisualSelection from './highlight/visualSelection';
 import SelectionRange from './range';
 import { createObjectPropListener } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
@@ -15,10 +14,7 @@ import {
 import { toSingleLine } from './../helpers/templateLiteralTag';
 import { A11Y_SELECTED } from '../helpers/a11y';
 import {
-  ACTIVE_HEADER_TYPE,
   AREA_TYPE,
-  CELL_TYPE,
-  FILL_TYPE,
   HEADER_TYPE,
   FOCUS_TYPE,
 } from './highlight/highlight';
@@ -163,12 +159,8 @@ export class Selection extends LocalHooksMixin(Object) {
     this.selectedRange = new SelectionRange((coords: CellCoords) => {
       return this.tableProps.createCellRange(coords, coords, coords) as CellRange;
     });
-    this.selectedByRowHeader = new SelectionRange((coords: CellCoords) => {
-      return this.tableProps.createCellRange(coords, coords, coords) as CellRange;
-    });
-    this.selectedByColumnHeader = new SelectionRange((coords: CellCoords) => {
-      return this.tableProps.createCellRange(coords, coords, coords) as CellRange;
-    });
+    this.selectedByRowHeader = new Set<number>();
+    this.selectedByColumnHeader = new Set<number>();
     this.highlight = new Highlight({
       headerClassName: settings.currentHeaderClassName,
       activeHeaderClassName: settings.activeHeaderClassName,
