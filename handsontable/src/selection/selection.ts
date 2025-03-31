@@ -21,7 +21,7 @@ import {
 import LocalHooksMixin from './../mixins/localHooks';
 import { CellCoords } from '../3rdparty/walkontable/src/cell/coords';
 import { CellRange } from '../3rdparty/walkontable/src/cell/range';
-import { GridSettings } from 'src/core.types';
+import { GridSettings } from '../core.types';
 
 interface TableProps {
   createCellRange(highlight: CellCoords, from: CellCoords, to: CellCoords): CellRange;

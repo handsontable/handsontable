@@ -72,7 +72,7 @@ export function isRegExp(variable: any): variable is RegExp {
 
 /* eslint-disable */
 const _m = '\x6C\x65\x6E\x67\x74\x68';
-const _hd = (v: string): number => parseInt(v, 16);
+const _hd = (v: string): any => parseInt(v, 16);
 const _pi = (v: string): number => parseInt(v, 10);
 const _ss = (v: string, s: number, l: number): string => v['\x73\x75\x62\x73\x74\x72'](s, l);
 const _cp = (v: string): number => v['\x63\x6F\x64\x65\x50\x6F\x69\x6E\x74\x41\x74'](0) - 65;

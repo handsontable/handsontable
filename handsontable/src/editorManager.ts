@@ -15,38 +15,6 @@ interface TableMeta {
   } | ((event: KeyboardEvent) => { row: number; col: number });
 }
 
-interface CoreInstance {
-  rootDocument: Document;
-  isListening(): boolean;
-  addHook(hookName: string, callback: Function): void;
-  getSelectedRangeLast(): { highlight: { row: number; col: number; isHeader(): boolean }; isSingle(): boolean } | undefined;
-  runHooks(hookName: string, ...args: any[]): any;
-  getCellMeta(row: number, col: number): CellProperties;
-  getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
-  getCellEditor(cellProperties: CellProperties): any;
-  colToProp(col: number): string | number;
-  getSourceDataAtCell(row: number, col: number): any;
-  toPhysicalRow(row: number): number;
-  toPhysicalColumn(col: number): number;
-  scrollToFocusedCell(): void;
-  view: {
-    _wt: {
-      update(eventName: string, callback: Function): void;
-    };
-  };
-  selection: {
-    getLayerLevel(): number;
-    isMultiple(): boolean;
-  };
-  rowIndexMapper: {
-    isHidden(row: number): boolean;
-  };
-  columnIndexMapper: {
-    isHidden(col: number): boolean;
-  };
-  eventListeners: any[];
-}
-
 class EditorManager {
   /**
    * Instance of {@link Handsontable}.

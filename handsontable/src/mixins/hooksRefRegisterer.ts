@@ -1,11 +1,11 @@
 import { arrayEach } from './../helpers/array';
 import { defineGetter, objectEach } from './../helpers/object';
 import { Constructor } from './constructor.type';
-import { Handsontable } from '../tableView';
+import { HotInstance } from '../core.types';
 
 const MIXIN_NAME = 'hooksRefRegisterer';
 
-export type IncludingHot = Constructor<{ hot: Handsontable }>;
+export type IncludingHot = Constructor<{ hot: HotInstance }>;
 
 /**
  * Mixin object to extend objects functionality for auto registering hooks in an Handsontable instance.

@@ -982,17 +982,17 @@ export function setCaretPosition(element: Element, pos: number, endPos?: number)
   if (endPos === undefined) {
     endPos = pos;
   }
-  if (element.setSelectionRange) {
-    element.focus();
+  if ((element as HTMLInputElement).setSelectionRange) {
+    (element as HTMLInputElement).focus();
 
     try {
-      element.setSelectionRange(pos, endPos);
+      (element as HTMLInputElement).setSelectionRange(pos, endPos);
     } catch (err) {
-      const elementParent = element.parentNode;
+      const elementParent = element.parentNode as HTMLElement;
       const parentDisplayValue = elementParent.style.display;
 
       elementParent.style.display = 'block';
-      element.setSelectionRange(pos, endPos);
+      (element as HTMLInputElement).setSelectionRange(pos, endPos);
       elementParent.style.display = parentDisplayValue;
     }
   }
@@ -1147,10 +1147,10 @@ export function isOutsideInput(element: HTMLElement): boolean {
  *
  * @param {HTMLElement} element - DOM element.
  */
-export function selectElementIfAllowed(element: HTMLElement): void {
+export function selectElementIfAllowed(element: HTMLInputElement): void {
   const activeElement = element.ownerDocument.activeElement;
 
-  if (!isOutsideInput(activeElement)) {
+  if (!isOutsideInput(activeElement as HTMLElement)) {
     element.select();
   }
 }
@@ -1262,7 +1262,7 @@ export function runWithSelectedContendEditableElement(element: HTMLElement, call
  * @param {*} element Element to check.
  * @returns {boolean} `true` if the element is HTMLElement.
  */
-export function isHTMLElement(element: unknown): boolean {
+export function isHTMLElement(element: HTMLElement): boolean {
   const OwnElement = element?.ownerDocument?.defaultView.Element;
 
   return !!(OwnElement && OwnElement !== null && element instanceof OwnElement);

@@ -32,7 +32,7 @@ import { SettingsPure } from './3rdparty/walkontable/src/settings';
 import { IndexMapper } from './translations';
 import { DataMapSettings, PropDescriptor } from './dataMap/types';
 import { CellProperties } from './editors/types';
-import { GridSettings, Handsontable } from './core.types';
+import { GridSettings, HotInstance } from './core.types';
 
 interface MousePosition {
   x: number;
@@ -45,12 +45,12 @@ interface MousePosition {
  */
 class TableView {
   /**
-   * Instance of {@link Handsontable}.
+   * Instance of {@link HotInstance}.
    *
    * @private
-   * @type {Handsontable}
+   * @type {HotInstance}
    */
-  hot: Handsontable;
+  hot: HotInstance;
   /**
    * Instance of {@link EventManager}.
    *
@@ -151,9 +151,9 @@ class TableView {
   #mouseDownLastPos: MousePosition | null = null;
 
   /**
-   * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
+   * @param {Hanstontable} hotInstance Instance of {@link HotInstance}.
    */
-  constructor(hotInstance: Handsontable) {
+  constructor(hotInstance: HotInstance) {
     this.hot = hotInstance;
     this.eventManager = new EventManager(this.hot as any);
     this.settings = this.hot.getSettings();

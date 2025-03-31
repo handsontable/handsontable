@@ -20,27 +20,7 @@ import { TextCellType } from './cellTypes/textType';
 import { BaseEditor } from './editors/baseEditor';
 import CellRange from './3rdparty/walkontable/src/cell/range';
 import { CellCoords } from './3rdparty/walkontable/src/cell/coords';
-
-type HandsontableInstance = {
-  editors: {
-    BaseEditor: typeof BaseEditor;
-  };
-  DefaultSettings: ReturnType<typeof metaSchemaFactory>;
-  hooks: ReturnType<typeof Hooks.getSingleton>;
-  CellCoords: typeof CellCoords;
-  CellRange: typeof CellRange;
-  packageName: string;
-  buildDate: string | undefined;
-  version: string | undefined;
-  languages: {
-    dictionaryKeys: typeof dictionaryKeys;
-    getLanguageDictionary: typeof getLanguageDictionary;
-    getLanguagesDictionaries: typeof getLanguagesDictionaries;
-    registerLanguageDictionary: typeof registerLanguageDictionary;
-    getTranslatedPhrase: typeof getTranslatedPhrase;
-  };
-  Core: (rootElement: HTMLElement, userSettings?: Record<string, any>, rootInstanceSymbol?: boolean) => ReturnType<typeof Core>;
-};
+import { GridSettings, HotInstance } from './core.types';
 
 // register default mandatory cell type for the Base package
 registerCellType(TextCellType);
@@ -55,16 +35,16 @@ Handsontable.editors = {
  * @param {object} userSettings The user defined options.
  * @returns {Core}
  */
-function Handsontable(rootElement: HTMLElement, userSettings?: Record<string, any>): ReturnType<typeof Core> {
-  const instance = new Core(rootElement, userSettings || {}, rootInstanceSymbol);
+function Handsontable(rootElement: HTMLElement, userSettings?: GridSettings): HotInstance {
+  const instance = new Core(rootElement, userSettings || {} as GridSettings, rootInstanceSymbol as unknown as boolean) as unknown as HotInstance;
 
   instance.init();
 
   return instance;
 }
 
-Handsontable.Core = function(rootElement: HTMLElement, userSettings: Record<string, any> = {}) {
-  return new Core(rootElement, userSettings, rootInstanceSymbol);
+Handsontable.Core = function(rootElement: HTMLElement, userSettings: GridSettings = {} as GridSettings) {
+  return new Core(rootElement, userSettings, rootInstanceSymbol as unknown as boolean);
 };
 
 Handsontable.DefaultSettings = metaSchemaFactory();
@@ -87,4 +67,4 @@ export {
   CellCoords,
   CellRange,
 };
-export default Handsontable;
+export default (Handsontable as any);

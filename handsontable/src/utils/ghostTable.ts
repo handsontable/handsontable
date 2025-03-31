@@ -1,6 +1,6 @@
 import { addClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
-import { Handsontable } from '../core.types';
+import { HotInstance } from '../core.types';
 
 /**
  * Represents a single sample in the GhostTable.
@@ -66,7 +66,7 @@ class GhostTable {
    *
    * @type {Core}
    */
-  hot: Handsontable | null = null;
+  hot: HotInstance | null = null;
   /**
    * Container element where every table will be injected.
    *
@@ -113,7 +113,7 @@ class GhostTable {
    */
   table: TableElements | null = null;
 
-  constructor(hotInstance: Handsontable) {
+  constructor(hotInstance: HotInstance) {
     this.hot = hotInstance;
   }
 

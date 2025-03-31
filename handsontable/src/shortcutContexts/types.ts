@@ -1,16 +1,8 @@
-import { Handsontable } from '../core.types';
+import { HotInstance } from '../core.types';
 
 /**
  * Types for shortcut contexts module
  */
-
-/**
- * Interface for shortcut manager
- */
-export interface ShortcutManager {
-  addContext(name: string): ShortcutContext;
-  getContext(name: string): ShortcutContext;
-}
 
 /**
  * Interface for shortcut context
@@ -48,7 +40,7 @@ export interface Shortcut {
  */
 export interface KeyboardShortcutCommand {
   name: string;
-  callback: (hot: Handsontable, ...args: any[]) => void;
+  callback: (hot: HotInstance, ...args: any[]) => void;
 }
 
 /**

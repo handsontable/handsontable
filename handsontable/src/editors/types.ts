@@ -2,7 +2,7 @@
  * This file contains TypeScript types used across the editors module.
  */
 
-import { Handsontable } from '../core.types';
+import { HotInstance } from '../core.types';
 import EventManager from '../eventManager';
 
 /**
@@ -38,7 +38,7 @@ export interface CellOffset {
  * Interface for editor object.
  */
 export interface Editor {
-  hot: Handsontable;
+  hot: HotInstance;
   state: EditorState;
   row: number | null;
   col: number | null;
@@ -95,7 +95,7 @@ export interface TextEditor extends Editor {
  * Interface representing a base editor constructor.
  */
 export interface BaseEditorConstructor {
-  new (hotInstance: Handsontable): Editor;
+  new (hotInstance: HotInstance): Editor;
 }
 
 /**
@@ -114,5 +114,5 @@ export interface StaticRegister {
     registeredEditorClasses: {[key: string]: BaseEditorConstructor};
   };
   registerEditor(editorName: string, editorClass: BaseEditorConstructor): void;
-  getEditor(editorName: string, hotInstance: Handsontable): Editor;
+  getEditor(editorName: string, hotInstance: HotInstance): Editor;
 } 
