@@ -78,19 +78,24 @@
 
         tbody {
           tr {
-            td,
-            th {
+            th,
+            td {
               border-top-width: 0;
+              height: calc(
+                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px
+              );
             }
+          }
+        }
 
-            &:first-of-type {
-              th,
-              td {
-                height: calc(
-                  var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) +
-                    1px
-                );
-              }
+        &.htGhostTableFirstRow tbody {
+          tr {
+            th,
+            td {
+              border-top-width: 1px;
+              height: calc(
+                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
+              );
             }
           }
         }
