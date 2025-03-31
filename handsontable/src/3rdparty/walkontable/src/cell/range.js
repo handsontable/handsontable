@@ -93,6 +93,21 @@ class CellRange {
   }
 
   /**
+   * Normalizes the coordinates in your `CellRange` instance to the nearest valid position.
+   *
+   * Coordinates that point to headers (negative values) are normalized to `0`.
+   *
+   * @returns {CellRange}
+   */
+  normalize() {
+    this.highlight = this.highlight.normalize();
+    this.from = this.from.normalize();
+    this.to = this.to.normalize();
+
+    return this;
+  }
+
+  /**
    * Checks if the coordinates in your `CellRange` instance are valid
    * in the context of given table parameters.
    *
