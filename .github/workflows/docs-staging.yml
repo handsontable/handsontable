@@ -123,7 +123,7 @@ jobs:
           cd netlify  
           ls -la docs
           netlify status
-          netlify deploy --prod --context production
+          netlify deploy --prod --build --context production
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}    
