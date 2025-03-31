@@ -1,5 +1,6 @@
 import { addClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
+import { Handsontable } from '../core.types';
 
 /**
  * Represents a single sample in the GhostTable.
@@ -17,25 +18,6 @@ interface GhostTableSample {
  */
 interface GhostTableSettings {
   useHeaders: boolean;
-}
-
-/**
- * Interface for Handsontable instance.
- */
-interface HotInstance {
-  rootElement: HTMLElement;
-  rootDocument: Document;
-  table: HTMLTableElement;
-  view: {
-    appendColHeader: (column: number, th: HTMLElement, label?: string, renderedColumnIndex?: number) => void;
-    appendRowHeader: (row: number, th: HTMLElement) => void;
-  };
-  getColHeader: (column: number) => any;
-  hasRowHeaders: () => boolean;
-  getCellMeta: (row: number, column: number) => any;
-  getCellRenderer: (cellProperties: any) => (instance: HotInstance, td: HTMLElement, row: number, col: number, prop: string, value: any, cellProperties: any) => void;
-  colToProp: (column: number) => string;
-  getColWidth: (column: number) => number;
 }
 
 /**
@@ -84,7 +66,7 @@ class GhostTable {
    *
    * @type {Core}
    */
-  hot: HotInstance | null = null;
+  hot: Handsontable | null = null;
   /**
    * Container element where every table will be injected.
    *
@@ -131,7 +113,7 @@ class GhostTable {
    */
   table: TableElements | null = null;
 
-  constructor(hotInstance: HotInstance) {
+  constructor(hotInstance: Handsontable) {
     this.hot = hotInstance;
   }
 

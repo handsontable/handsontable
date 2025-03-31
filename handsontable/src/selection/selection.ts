@@ -19,23 +19,9 @@ import {
   FOCUS_TYPE,
 } from './highlight/highlight';
 import LocalHooksMixin from './../mixins/localHooks';
-
-interface GridSettings {
-  currentHeaderClassName: string;
-  activeHeaderClassName: string;
-  currentRowClassName: string;
-  currentColClassName: string;
-  selectionMode: 'single' | 'multiple';
-  navigableHeaders: boolean;
-  fillHandle: boolean;
-  minSpareRows: number;
-  minSpareCols: number;
-  autoWrapRow: boolean;
-  autoWrapCol: boolean;
-  fixedRowsBottom: number;
-}
 import { CellCoords } from '../3rdparty/walkontable/src/cell/coords';
 import { CellRange } from '../3rdparty/walkontable/src/cell/range';
+import { GridSettings } from 'src/core.types';
 
 interface TableProps {
   createCellRange(highlight: CellCoords, from: CellCoords, to: CellCoords): CellRange;

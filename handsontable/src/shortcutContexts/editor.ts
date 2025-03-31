@@ -1,13 +1,13 @@
 import { EDITOR_EDIT_GROUP } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
-import { HotInstance, ShortcutConfig } from './types';
+import { Handsontable, ShortcutConfig } from './types';
 
 /**
  * The context that defines a base shortcut list available for cells editors.
  *
  * @param {Handsontable} hot The Handsontable instance.
  */
-export function shortcutsEditorContext(hot: HotInstance): void {
+export function shortcutsEditorContext(hot: Handsontable): void {
   const context = hot.getShortcutManager().addContext('editor');
   const commandsPool = createKeyboardShortcutCommandsPool(hot);
   const config: ShortcutConfig = { group: EDITOR_EDIT_GROUP };

@@ -17,7 +17,7 @@ import { updateCaretPosition } from './caretPositioner';
 import {
   A11Y_TABINDEX,
 } from '../../helpers/a11y';
-import { HotInstance, CellProperties, TextEditor as TextEditorInterface, CellOffset } from '../types';
+import { Handsontable, CellProperties, TextEditor as TextEditorInterface, CellOffset } from '../types';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
@@ -87,7 +87,7 @@ export class TextEditor extends BaseEditor implements TextEditorInterface {
   /**
    * @param {Core} hotInstance The Handsontable instance.
    */
-  constructor(hotInstance: HotInstance) {
+  constructor(hotInstance: Handsontable) {
     super(hotInstance);
     this.eventManager = new EventManager({} as any);
     this.autoResize = createInputElementResizer(this.hot.rootDocument);

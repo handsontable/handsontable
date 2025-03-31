@@ -3,6 +3,7 @@
  */
 
 import CellCoords from "../cell/coords";
+import CellRange from "../cell/range";
 import { BorderSpecification } from "./border/border";
 
 /**

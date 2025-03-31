@@ -2,6 +2,7 @@ import CellRange from './../3rdparty/walkontable/src/cell/range';
 import { arrayEach, arrayReduce } from './../helpers/array';
 import { isUndefined } from './../helpers/mixed';
 import { CellCoords } from './../3rdparty/walkontable/src/cell/coords';
+import { Handsontable } from 'src/tableView';
 export const SELECTION_TYPE_UNRECOGNIZED = 0;
 export const SELECTION_TYPE_EMPTY = 1;
 export const SELECTION_TYPE_ARRAY = 2;
@@ -18,13 +19,6 @@ const ARRAY_TYPE_PATTERN = [
 ] as const;
 const rootCall = Symbol('root');
 const childCall = Symbol('child');
-
-// Define interface for Hot instance
-interface HotInstance {
-  getSelected(): any[];
-  _createCellCoords: (row: number, col: number) => CellCoords;
-  _createCellRange: (from: CellCoords, from2: CellCoords, to: CellCoords) => CellRange;
-}
 
 // Define interface for normalization options
 interface NormalizationOptions {
@@ -168,7 +162,7 @@ export function normalizeSelectionFactory(type: number, {
  *                   The column distances are always created starting from the left (zero index) to the
  *                   right (the latest column index).
  */
-export function transformSelectionToColumnDistance(hotInstance: HotInstance): Array<[number, number]> {
+export function transformSelectionToColumnDistance(hotInstance: Handsontable): Array<[number, number]> {
   const selectionType = detectSelectionType(hotInstance.getSelected());
 
   if (selectionType === SELECTION_TYPE_UNRECOGNIZED || selectionType === SELECTION_TYPE_EMPTY) {
@@ -225,7 +219,7 @@ export function transformSelectionToColumnDistance(hotInstance: HotInstance): Ar
  *                   The column distances are always created starting from the left (zero index) to the
  *                   right (the latest column index).
  */
-export function transformSelectionToRowDistance(hotInstance: HotInstance): Array<[number, number]> {
+export function transformSelectionToRowDistance(hotInstance: Handsontable): Array<[number, number]> {
   const selectionType = detectSelectionType(hotInstance.getSelected());
 
   if (selectionType === SELECTION_TYPE_UNRECOGNIZED || selectionType === SELECTION_TYPE_EMPTY) {

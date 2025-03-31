@@ -1,10 +1,11 @@
+import { GridSettings } from '../core.types';
 import { isEmpty } from './../helpers/mixed';
 
 interface EscapedHtmlChars {
   [key: string]: string;
 }
 
-// Using previously defined HotInstance interface or creating a minimal version for Core
+// Using previously defined Handsontable interface or creating a minimal version for Core
 interface Core {
   hasColHeaders: () => boolean;
   hasRowHeaders: () => boolean;
@@ -20,17 +21,6 @@ interface CellMeta {
   hidden?: boolean;
   rowspan?: number;
   colspan?: number;
-  [key: string]: any;
-}
-
-interface GridSettings {
-  nestedHeaders?: Array<Array<string | { label: string, colspan: number }>>;
-  colHeaders?: string[];
-  fixedRowsTop?: number;
-  fixedRowsBottom?: number;
-  mergeCells?: Array<{ row: number, col: number, rowspan: number, colspan: number }>;
-  rowHeaders?: string[];
-  data?: any[][];
   [key: string]: any;
 }
 
@@ -194,7 +184,7 @@ export function _dataToHTML(input: any[][]): string {
  */
 // eslint-disable-next-line no-restricted-globals
 export function htmlToGridSettings(element: Element | string, rootDocument: Document = document): GridSettings | undefined {
-  const settingsObj: GridSettings = {};
+  const settingsObj: Partial<GridSettings> = {};
   const fragment = rootDocument.createDocumentFragment();
   const tempElem = rootDocument.createElement('div');
 
@@ -380,5 +370,5 @@ export function htmlToGridSettings(element: Element | string, rootDocument: Docu
     settingsObj.data = dataArr;
   }
 
-  return settingsObj;
+  return settingsObj as GridSettings;
 }

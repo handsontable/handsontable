@@ -14,7 +14,7 @@ import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
 import { objectEach } from '../../../../../helpers/object';
 import { isMobileBrowser } from '../../../../../helpers/browser';
 import { getCornerStyle } from './utils';
-import { BorderOptions, CornerStyle, SelectionHandles } from '../interfaces';
+import { BorderOptions, CornerStyle, SelectionHandles, WalkontableInterface } from '../interfaces';
 
 export interface BorderSpecification {
   width: number;
@@ -258,10 +258,10 @@ class Border {
     const cellMobileHandleBorderColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-color');
 
     this.selectionHandles = {
-      top: rootDocument.createElement('DIV'),
-      topHitArea: rootDocument.createElement('DIV'),
-      bottom: rootDocument.createElement('DIV'),
-      bottomHitArea: rootDocument.createElement('DIV')
+      top: rootDocument.createElement('DIV') as HTMLDivElement,
+      topHitArea: rootDocument.createElement('DIV') as HTMLDivElement,
+      bottom: rootDocument.createElement('DIV') as HTMLDivElement,
+      bottomHitArea: rootDocument.createElement('DIV') as HTMLDivElement
     };
     const width = 10;
     const hitAreaWidth = 40;

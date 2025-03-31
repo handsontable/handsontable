@@ -79,55 +79,6 @@ export interface ReplaceDataConfig {
   firstRun: boolean;
 }
 
-// Temporary interface for Handsontable instance until proper types exist
-export interface Handsontable {
-  dataType: string;
-  runHooks(hookName: string, ...args: any[]): any;
-  render(): void;
-  getSettings(): DataMapSettings;
-  rootElement: HTMLElement;
-  view?: {
-    [key: string]: any;
-  };
-  countCols(): number;
-  countRows(): number;
-  countSourceRows(): number;
-  countSourceCols(): number;
-  countRowHeaders(): number;
-  hasHook(hookName: string): boolean;
-  toPhysicalRow(row: number): number | null;
-  toPhysicalColumn(column: number): number | null;
-  toVisualRow(row: number): number | null;
-  toVisualColumn(column: number): number | null;
-  getInitialColumnCount(): number;
-  getCellMeta(row: number, col: number): any;
-  getDataAtCell(row: number, col: number): any;
-  getDataAtRowProp(row: number, prop: PropDescriptor): any;
-  getDataAtCol(col: number): any[];
-  getSourceDataAtRow(row: number): any[] | Record<string, any>;
-  isColumnModificationAllowed(): boolean;
-  populateFromArray(row: number, col: number, input: any[], sourceStartRow?: number, sourceStartCol?: number, directVector?: string): any;
-  rowIndexMapper: {
-    insertIndexes(row: number, amount: number): void;
-    removeIndexes(rows: number[]): void;
-    setIndexesSequence(indexes: number[]): void;
-    getNotTrimmedIndexesLength(): number;
-  };
-  columnIndexMapper: {
-    insertIndexes(column: number, amount: number): void;
-    removeIndexes(columns: number[]): void;
-    setIndexesSequence(indexes: number[]): void;
-    getNotTrimmedIndexesLength(): number;
-    initToLength(length: number): void;
-  };
-  forceFullRender: boolean;
-  colToProp(column: number): any;
-  getSchema(): any;
-  isRtl(): boolean;
-  getCellRenderer(cellMeta: any): Function;
-  getCellEditor(cellMeta: any): any;
-}
-
 // Interface for DataSource class
 export interface DataSourceObject {
   hot: Handsontable;

@@ -1,4 +1,4 @@
-import { HotInstance, KeyboardShortcutCommand, KeyboardShortcutCommandsPool } from '../types';
+import { Handsontable, KeyboardShortcutCommand, KeyboardShortcutCommandsPool } from '../types';
 
 const allCommands: KeyboardShortcutCommand[] = [
 ];
@@ -9,7 +9,7 @@ const allCommands: KeyboardShortcutCommand[] = [
  * @param {Handsontable} hot The Handsontable instance.
  * @returns {object}
  */
-export function createKeyboardShortcutCommandsPool(hot: HotInstance): KeyboardShortcutCommandsPool {
+export function createKeyboardShortcutCommandsPool(hot: Handsontable): KeyboardShortcutCommandsPool {
   const commands: KeyboardShortcutCommandsPool = {};
 
   allCommands.forEach(({ name, callback }) => {

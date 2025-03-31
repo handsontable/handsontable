@@ -35,7 +35,7 @@ export interface SettingsPure {
   preventWheel?: Option<boolean>;
   renderAllColumns?: Option<boolean>;
   renderAllRows?: Option<boolean>;
-  rowHeaders?: Option<Function[]>;
+  rowHeaders?: Option<string[]>;
   rowHeight?: Option<number | ((index: number) => number) | void>;
   rowHeightByOverlayName?: Option<(name: string, index: number) => number | void>;
   shouldRenderBottomOverlay?: Option<() => boolean>;

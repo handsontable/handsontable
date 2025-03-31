@@ -1,14 +1,15 @@
 import { isDefined } from '../helpers/mixed';
 import { GRID_GROUP, EDITOR_EDIT_GROUP } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
-import { HotInstance, ShortcutConfig } from './types';
+import { ShortcutConfig } from './types';
+import { Handsontable } from '../core.types';
 
 /**
  * The context that defines shortcut list available for selected cell or cells.
  *
  * @param {Handsontable} hot The Handsontable instance.
  */
-export function shortcutsGridContext(hot: HotInstance): void {
+export function shortcutsGridContext(hot: Handsontable): void {
   const context = hot.getShortcutManager().addContext('grid');
   const commandsPool = createKeyboardShortcutCommandsPool(hot);
   const config: ShortcutConfig = {

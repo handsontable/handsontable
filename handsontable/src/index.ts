@@ -78,11 +78,6 @@ interface HandsontableStatic {
   };
 }
 
-// Extend Handsontable with static properties
-declare module './base' {
-  interface Handsontable extends HandsontableStatic {}
-}
-
 registerAllModules();
 jQueryWrapper(Handsontable);
 

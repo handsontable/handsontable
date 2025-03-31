@@ -29,74 +29,14 @@ import {
 import { CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import { CoreAbstract } from './3rdparty/walkontable/src/core/interfaces';
 import { SettingsPure } from './3rdparty/walkontable/src/settings';
+import { IndexMapper } from './translations';
+import { DataMapSettings, PropDescriptor } from './dataMap/types';
+import { CellProperties } from './editors/types';
+import { GridSettings, Handsontable } from './core.types';
 
 interface MousePosition {
   x: number;
   y: number;
-}
-
-interface GridSettings extends SettingsPure {
-  tableClassName?: string;
-  ariaTags?: boolean;
-  fragmentSelection?: boolean | 'cell';
-  outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
-  observeDOMVisibility?: boolean;
-  viewportRowRenderingOffset?: number | 'auto';
-  viewportColumnRenderingOffset?: number | 'auto';
-}
-
-interface Handsontable {
-  rootElement: HTMLElement;
-  rootDocument: Document;
-  rootWindow: Window;
-  container: HTMLElement;
-  table: HTMLTableElement;
-  isRenderSuspended(): boolean;
-  forceFullRender: boolean;
-  renderCall: boolean;
-  isDestroyed: boolean;
-  isRtl(): boolean;
-  countCols(): number;
-  countRows(): number;
-  getSettings(): GridSettings;
-  getDataAtCell(row: number, col: number): any;
-  getDataAtRowProp(row: number, prop: string): any;
-  getColWidth(col: number): number;
-  getRowHeight(row: number): number;
-  getRowHeader(index: number): string;
-  getColHeader(index: number): string;
-  hasRowHeaders(): boolean;
-  hasColHeaders(): boolean;
-  getColumnMeta(col: number): { headerClassName?: string };
-  getCellRenderer(cellProperties: any): Function;
-  getActiveEditor(): { isOpened(): boolean } | null;
-  runHooks(hookName: string, ...args: any[]): any;
-  listen(): void;
-  unlisten(): void;
-  refreshDimensions(): void;
-  destroyEditor(restoreOriginalValue?: boolean, prepare?: boolean): void;
-  deselectCell(): void;
-  getSelectedRangeLast(): { isSingleCell(): boolean } | null;
-  selection: {
-    isInProgress(): boolean;
-    finish(): void;
-    isSelected(): boolean;
-    isSelectedByAnyHeader(): boolean;
-    highlight: any;
-  };
-  rowIndexMapper: {
-    getVisualFromRenderableIndex(index: number): number | null;
-    getRenderableFromVisualIndex(index: number): number | null;
-    getNearestNotHiddenIndex(index: number, incrementBy: number): number | null;
-    getNotTrimmedIndexesLength(): number;
-  };
-  columnIndexMapper: {
-    getVisualFromRenderableIndex(index: number): number | null;
-    getRenderableFromVisualIndex(index: number): number | null;
-    getNearestNotHiddenIndex(index: number, incrementBy: number): number | null;
-    getNotTrimmedIndexesLength(): number;
-  };
-  _createCellCoords(row: number, col: number): CellCoords;
 }
 
 /**

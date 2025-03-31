@@ -2,6 +2,7 @@
  * This file contains TypeScript types used across the editors module.
  */
 
+import { Handsontable } from '../core.types';
 import EventManager from '../eventManager';
 
 /**
@@ -34,68 +35,10 @@ export interface CellOffset {
 }
 
 /**
- * Interface for Handsontable instance.
- */
-export interface HotInstance {
-  rootDocument: Document;
-  rootElement: HTMLElement;
-  guid?: string;
-  container: HTMLElement;
-  countRows(): number;
-  listen(): void;
-  isRtl(): boolean;
-  getSelected(): any;
-  getSelectedLast(): number[];
-  getSettings(): any;
-  getShortcutManager(): any;
-  selectCell(row: number, col: number, endRow?: any, endCol?: any, scrollToCell?: any, changeListener?: boolean): boolean;
-  isEditorOpened(): boolean;
-  getCellValidator(cellProperties: CellProperties | null): any;
-  runHooks(hookName: string, ...args: any[]): any;
-  populateFromArray(row: number, col: number, value: any, endRow: number | null, endCol: number | null, source?: string): void;
-  view: {
-    wt: {
-      wtOverlays: {
-        inlineStartOverlay: {
-          clone: {
-            wtTable: {
-              holder: HTMLElement;
-            };
-          };
-          getScrollableElement(): HTMLElement;
-          removeChild(element: HTMLElement): void;
-          getScrollPosition(): number;
-        };
-        topOverlay: {
-          getScrollPosition(): number;
-        };
-      };
-    };
-    _wt: {
-      wtTable: {
-        holder: HTMLElement;
-      };
-    };
-    maximumVisibleElementWidth(width: number): number;
-    maximumVisibleElementHeight(height: number): number;
-    getCellFragmentData(td: HTMLTableCellElement): any;
-  };
-  toPhysicalRow?(row: number): number;
-  getSourceDataAtCell?(row: number, col: number): any;
-  addHookOnce(hook: string, callback: (result?: any) => void): void;
-  rowIndexMapper: {
-    getRenderableFromVisualIndex(index: number): number | null;
-  };
-  columnIndexMapper: {
-    getRenderableFromVisualIndex(index: number): number | null;
-  };
-}
-
-/**
  * Interface for editor object.
  */
 export interface Editor {
-  hot: HotInstance;
+  hot: Handsontable;
   state: EditorState;
   row: number | null;
   col: number | null;
@@ -152,21 +95,7 @@ export interface TextEditor extends Editor {
  * Interface representing a base editor constructor.
  */
 export interface BaseEditorConstructor {
-  new (hotInstance: HotInstance): Editor;
-}
-
-/**
- * Interface for the BaseEditor class.
- */
-export interface BaseEditor extends Editor {
-  hot: HotInstance;
-  state: EditorState;
-  row: number | null;
-  col: number | null;
-  prop: string | number | null;
-  TD: HTMLTableCellElement | null;
-  originalValue: any;
-  cellProperties: CellProperties;
+  new (hotInstance: Handsontable): Editor;
 }
 
 /**
@@ -185,5 +114,5 @@ export interface StaticRegister {
     registeredEditorClasses: {[key: string]: BaseEditorConstructor};
   };
   registerEditor(editorName: string, editorClass: BaseEditorConstructor): void;
-  getEditor(editorName: string, hotInstance: HotInstance): Editor;
+  getEditor(editorName: string, hotInstance: Handsontable): Editor;
 } 

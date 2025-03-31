@@ -3,7 +3,7 @@ import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
 import Core from './core';
-import type GridSettings from './tableView';
+import { Handsontable } from './tableView';
 import { Selection } from './selection/selection';
 import { BaseEditor } from './editors/baseEditor/baseEditor';
 import { CellProperties } from './editors/types';

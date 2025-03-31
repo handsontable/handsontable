@@ -1,35 +1,8 @@
+import { Handsontable } from '../core.types';
+
 /**
  * Types for shortcut contexts module
  */
-
-/**
- * Interface for Handsontable instance with shortcut manager
- */
-export interface HotInstance {
-  getShortcutManager(): ShortcutManager;
-  getSettings(): {
-    navigableHeaders?: boolean;
-    [key: string]: any;
-  };
-  getSelected(): any;
-  getSelectedRangeLast(): {
-    highlight: {
-      isHeader(): boolean;
-    };
-    getCellsCount(): number;
-  } | null;
-  countRenderedRows(): number;
-  countRenderedCols(): number;
-  selection: {
-    isSelectedByCorner(): boolean;
-    isSelectedByColumnHeader(): boolean;
-    isSelectedByRowHeader(): boolean;
-  };
-  view: {
-    isMainTableNotFullyCoveredByOverlays(): boolean;
-  };
-  [key: string]: any;
-}
 
 /**
  * Interface for shortcut manager
@@ -75,7 +48,7 @@ export interface Shortcut {
  */
 export interface KeyboardShortcutCommand {
   name: string;
-  callback: (hot: HotInstance, ...args: any[]) => void;
+  callback: (hot: Handsontable, ...args: any[]) => void;
 }
 
 /**

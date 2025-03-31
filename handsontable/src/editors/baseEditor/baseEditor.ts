@@ -1,6 +1,5 @@
 import { stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
-import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
   offset,
@@ -10,12 +9,12 @@ import {
   outerHeight,
 } from '../../helpers/dom/element';
 import {
-  HotInstance,
   CellProperties,
   EditorState,
-  BaseEditor as BaseEditorInterface,
   CellOffset
 } from '../types';
+import { HooksRefRegistererMixin } from '../../mixins/hooksRefRegisterer';
+import { Handsontable } from '../../tableView';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -25,10 +24,14 @@ export const EDITOR_STATE = Object.freeze({
   FINISHED: 'STATE_FINISHED'
 });
 
+class IncludingHot {
+  hot: Handsontable;
+}
+
 /**
  * @class BaseEditor
  */
-export class BaseEditor implements BaseEditorInterface {
+export class BaseEditor extends HooksRefRegistererMixin(IncludingHot) {
   static get EDITOR_TYPE(): string {
     return EDITOR_TYPE;
   }
@@ -38,7 +41,7 @@ export class BaseEditor implements BaseEditorInterface {
    *
    * @type {Handsontable}
    */
-  hot: HotInstance;
+  hot: Handsontable;
   /**
    * Editor's state.
    *
@@ -112,7 +115,8 @@ export class BaseEditor implements BaseEditorInterface {
   /**
    * @param {Handsontable} hotInstance A reference to the source instance of the Handsontable.
    */
-  constructor(hotInstance: HotInstance) {
+  constructor(hotInstance: Handsontable) {
+    super();
     this.hot = hotInstance;
     this.init();
   }
@@ -592,5 +596,3 @@ export class BaseEditor implements BaseEditorInterface {
     }
   }
 }
-
-mixin(BaseEditor, hooksRefRegisterer);
