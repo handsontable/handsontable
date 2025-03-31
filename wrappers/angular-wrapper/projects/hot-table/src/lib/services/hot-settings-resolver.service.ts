@@ -43,6 +43,10 @@ export class HotSettingsResolver {
   private updateColumnRendererForGivenCustomRenderer(
     mergedSettings: GridSettingsInternal
   ): void {
+    if (!Array.isArray(mergedSettings?.columns)) {
+      return;
+    }
+
     (mergedSettings?.columns as ColumnSettingsInternal[])
       ?.filter((settings) => settings.componentRenderer)
       ?.forEach((cellSettings) => {
@@ -62,6 +66,10 @@ export class HotSettingsResolver {
   private updateColumnEditorForGivenCustomEditor(
     mergedSettings: GridSettingsInternal
   ): void {
+    if (!Array.isArray(mergedSettings?.columns)) {
+      return;
+    }
+
     (mergedSettings?.columns as ColumnSettings[])
       ?.filter((settings) => settings.customEditor)
       ?.forEach((cellSettings) => {
@@ -83,6 +91,10 @@ export class HotSettingsResolver {
   private updateColumnValidatorForGivenCustomValidator(
     mergedSettings: GridSettingsInternal
   ): void {
+    if (!Array.isArray(mergedSettings?.columns)) {
+      return;
+    }
+
     (mergedSettings?.columns as ColumnSettingsInternal[])
       ?.filter((settings) => settings.customValidator)
       ?.forEach((cellSettings) => {
