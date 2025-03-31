@@ -506,5 +506,30 @@ describe('Selection', () => {
         |   ║   : 0 :   :   :   |
         `).toBeMatchToSelectionPattern();
     });
+
+    it('should disable the selection highlight after call updateData()', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+        navigableHeaders: true,
+        disableVisualSelection: true,
+      });
+
+      selectCell(1, 1);
+      hot.updateData(createSpreadsheetData(5, 5), 'updateSettings');
+
+      expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+    });
   });
 });
