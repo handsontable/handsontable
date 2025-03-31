@@ -100,9 +100,9 @@ class CellRange {
    * @returns {CellRange}
    */
   normalize() {
-    this.highlight = this.highlight.normalize();
-    this.from = this.from.normalize();
-    this.to = this.to.normalize();
+    this.highlight.normalize();
+    this.from.normalize();
+    this.to.normalize();
 
     return this;
   }
