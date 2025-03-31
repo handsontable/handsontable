@@ -42,9 +42,9 @@ export default {
 
       hotThemeManager.switchExamplesTheme(instanceRegister.getAllHotInstances());
 
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         document.documentElement.classList.remove(CLASS_DISABLE_TRANSITION);
-      }, 10);
+      });
     },
   },
   data() {
