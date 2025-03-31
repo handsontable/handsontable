@@ -122,7 +122,7 @@ jobs:
           cd netlify  
           ls -la docs/docs
           netlify link --id ${{ env.NETLIFY_SITE_ID }} 
-          netlify deploy --prod --dir=docs
+          netlify deploy --prod --dir=docs --functions=netlify/functions
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}    
