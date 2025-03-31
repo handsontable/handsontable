@@ -121,6 +121,7 @@ jobs:
       - name: Publish preview to Netlify
         run: |
           cd netlify  
+          ls -la docs
           netlify status
           netlify deploy --prod
         env:
