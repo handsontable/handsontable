@@ -77,6 +77,11 @@ class GhostTable {
     this.table = this.createTable(this.hot.table.className);
     this.table.colGroup.appendChild(this.createColGroupsCol(row));
     this.table.tr.appendChild(this.createRow(row));
+
+    if (row === 0) {
+      addClass(this.table.table, 'htGhostTableFirstRow');
+    }
+
     this.container.container.appendChild(this.table.fragment);
 
     rowObject.table = this.table.table;
