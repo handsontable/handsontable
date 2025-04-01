@@ -35,7 +35,6 @@
 
     <div class="copyright">
       <p>© 2012 - {{ new Date().getFullYear() }} Handsoncode</p>
-      <ThemeSwitcher />
     </div>
   </footer>
 </template>
