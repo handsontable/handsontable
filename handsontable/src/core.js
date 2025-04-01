@@ -21,7 +21,7 @@ import { getPlugin, getPluginsNames } from './plugins/registry';
 import { getRenderer } from './renderers/registry';
 import { getEditor } from './editors/registry';
 import { getValidator } from './validators/registry';
-import { randomString, toUpperCaseFirst } from './helpers/string';
+import { isBooleanValue, randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataMap/dataSource';
@@ -1510,6 +1510,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
         filteredChanges[i][3] = getParsedNumber(newValue);
+      }
+
+      if (cellProperties.type === 'checkbox' && typeof newValue === 'string' && isBooleanValue(newValue)) {
+        filteredChanges[i][3] = JSON.parse(newValue);
       }
     }
 

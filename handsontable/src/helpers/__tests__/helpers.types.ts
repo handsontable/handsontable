@@ -48,6 +48,7 @@ Handsontable.helper.inherit({key: 'foo'}, {key2: 'bar'});
 const testInstanceToString: string = Handsontable.helper
   .instanceToHTML(new Handsontable(document.createElement('div'), {}));
 
+Handsontable.helper.isBooleanValue('true');
 Handsontable.helper.isChrome();
 Handsontable.helper.isCtrlKey(1);
 Handsontable.helper.isDefined(1);

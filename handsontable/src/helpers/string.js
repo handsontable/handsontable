@@ -52,6 +52,16 @@ export function randomString() {
 }
 
 /**
+ * Checks if value is boolean in string format.
+ *
+ * @param {string} value The value to check.
+ * @returns {boolean}
+ */
+export function isBooleanValue(value) {
+  return value === 'true' || value === 'false';
+}
+
+/**
  * Checks if value is valid percent.
  *
  * @param {string} value The value to check.
