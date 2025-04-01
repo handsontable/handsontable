@@ -1834,7 +1834,7 @@ describe('Filters UI', () => {
     expect(countRows()).toBe(1);
   });
 
-  it('should be possible to scroll vertically and horizontally viewport of the by value component', () => {
+  it('should be possible to scroll the viewport of the 'by value' component in both directions', () => {
     const data = getDataForFilters();
 
     data[1].name = 'A very long name that should be visible in the component';
