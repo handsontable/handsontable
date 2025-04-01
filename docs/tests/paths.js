@@ -110,6 +110,8 @@ const jsPaths = [
   // TODO { path: 'guides/optimization/key-concepts/key-concepts' },
   { path: 'guides/optimization/bundle-size/bundle-size' },
   { path: 'guides/security/security/security' },
+  { path: 'guides/styling/themes/themes' },
+  { path: 'guides/styling/design-system/design-system' },
   // TODO { path: 'guides/technical-specification/about-handsontable/about-handsontable' },
   { path: 'guides/technical-specification/supported-browsers/supported-browsers' },
   { path: 'guides/technical-specification/software-license/software-license' },
