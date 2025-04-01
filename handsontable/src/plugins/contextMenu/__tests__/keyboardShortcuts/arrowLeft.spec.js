@@ -10,28 +10,10 @@ describe('ContextMenu keyboard shortcut', () => {
     }
   });
 
-  describe('"ArrowRight"', () => {
-    it('should open subMenu and highlight the first item', async() => {
+  describe('"ArrowLeft"', () => {
+    it('should open subMenu and highlight the first item when configured as `layoutDirection: rtl`', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
-        contextMenu: ['alignment'],
-        height: 100
-      });
-
-      contextMenu();
-      keyDownUp('arrowdown');
-      keyDownUp('arrowright');
-
-      await sleep(300);
-
-      expect(getPlugin('contextMenu').menu.hotSubMenus.alignment.hotMenu.getSelected()).toEqual([
-        [0, 0, 0, 0]
-      ]);
-    });
-
-    it('should hide already opened subMenu when configured as `layoutDirection: rtl`', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
         contextMenu: ['alignment'],
         height: 100,
         layoutDirection: 'rtl',
@@ -43,9 +25,27 @@ describe('ContextMenu keyboard shortcut', () => {
 
       await sleep(300);
 
+      expect(getPlugin('contextMenu').menu.hotSubMenus.alignment.hotMenu.getSelected()).toEqual([
+        [0, 0, 0, 0]
+      ]);
+    });
+
+    it('should hide already opened subMenu', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: ['alignment'],
+        height: 100,
+      });
+
+      contextMenu();
+      keyDownUp('arrowdown');
+      keyDownUp('arrowright');
+
+      await sleep(300);
+
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(true);
 
-      keyDownUp('arrowright');
+      keyDownUp('arrowleft');
 
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(false);
     });

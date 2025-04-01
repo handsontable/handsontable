@@ -37,7 +37,7 @@ export function createDefaultShortcutsList(menu) {
     keys: [['ArrowUp']],
     callback: () => menu.getNavigator().toPreviousItem(),
   }, {
-    keys: [['ArrowRight']],
+    keys: [[hot.isRtl() ? 'ArrowLeft' : 'ArrowRight']],
     callback: () => {
       const selection = hotMenu.getSelectedLast();
 
@@ -50,7 +50,7 @@ export function createDefaultShortcutsList(menu) {
       }
     }
   }, {
-    keys: [['ArrowLeft']],
+    keys: [[hot.isRtl() ? 'ArrowRight' : 'ArrowLeft']],
     callback: () => {
       const selection = hotMenu.getSelectedLast();
 

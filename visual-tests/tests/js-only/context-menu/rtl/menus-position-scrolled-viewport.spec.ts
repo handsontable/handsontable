@@ -24,7 +24,7 @@ test(__filename, async({ goto, tablePage }) => {
   await tablePage.keyboard.press('ArrowUp');
   await tablePage.keyboard.press('ArrowUp');
   await tablePage.keyboard.press('ArrowUp'); // selects "Alignment" submenu option
-  await tablePage.keyboard.press('ArrowRight'); // selects "Left" submenu option
+  await tablePage.keyboard.press('ArrowLeft'); // selects "Left" submenu option
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await closeTheMenu();
@@ -33,7 +33,7 @@ test(__filename, async({ goto, tablePage }) => {
   await tablePage.keyboard.press('ArrowUp');
   await tablePage.keyboard.press('ArrowUp');
   await tablePage.keyboard.press('ArrowUp'); // selects "Alignment" submenu option
-  await tablePage.keyboard.press('ArrowRight'); // selects "Left" submenu option
+  await tablePage.keyboard.press('ArrowLeft'); // selects "Left" submenu option
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await closeTheMenu();
@@ -42,7 +42,7 @@ test(__filename, async({ goto, tablePage }) => {
   await tablePage.keyboard.press('ArrowUp');
   await tablePage.keyboard.press('ArrowUp');
   await tablePage.keyboard.press('ArrowUp'); // selects "Alignment" submenu option
-  await tablePage.keyboard.press('ArrowRight');
+  await tablePage.keyboard.press('ArrowLeft');
   await tablePage.keyboard.press('ArrowUp'); // selects "Left" submenu option
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
@@ -52,7 +52,7 @@ test(__filename, async({ goto, tablePage }) => {
   await tablePage.keyboard.press('ArrowUp');
   await tablePage.keyboard.press('ArrowUp');
   await tablePage.keyboard.press('ArrowUp'); // selects "Alignment" submenu option
-  await tablePage.keyboard.press('ArrowRight');
+  await tablePage.keyboard.press('ArrowLeft');
   await tablePage.keyboard.press('ArrowUp'); // selects "Left" submenu option
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
