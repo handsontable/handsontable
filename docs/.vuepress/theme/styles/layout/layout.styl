@@ -3,7 +3,14 @@ html {
 	line-height: $line-height
 	background: $bgColor
 	color: $textColor
+
+	&.disable-transition {
+		*, :after, :before {
+			transition: none !important
+		}
+	}
 }
+
 body { 
 	font-family: $font
 	background: $bgColor
@@ -104,23 +111,6 @@ a {
 		}
 	}
 }
-
-.decoration-right { 
-	display: block
-	background:  url('{{$basePath}}/img/deco3.svg');
-	background-size: 100%
-	width: 80vh
-	height: 80vh
-	position: fixed
-	pointer-events: none
-	z-index -1
-	opacity: .1
-	zoom: 1.8;
-	filter: blur(30px) hue-rotate(45deg) saturate(4.5);
-	right: -400px;
-	bottom: -350px;
-} 
-
 
 .theme-container {
 	overflow: hidden

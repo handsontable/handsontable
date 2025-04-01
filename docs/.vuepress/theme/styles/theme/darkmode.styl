@@ -94,13 +94,6 @@ html.theme-dark {
         background: $accentColor 
     }
 
-    .decoration-left {
-    
-    }
-    .decoration-right {
-        opacity 0.2
-    }
-
     /* Sidebar 
     ------------------------------- */
     .sidebar { 
@@ -410,6 +403,12 @@ html.theme-dark {
                     }
                 }
             }   
+        }
+
+        .dark-mode { 
+            .inner { 
+                color: $textColor
+            }
         }
     }
 
@@ -779,18 +778,7 @@ html.theme-dark {
                 }
             }
 
-            .dark-mode { 
-                .inner { 
-                    background: $borderColor 
-                    color: $textColor
-
-                    @media (hover: hover) {
-                        &:hover {  
-                            background: $sideColor
-                        }
-                    }
-                }
-            }
+           
         }
 
         button:not(.theme-code-group__nav-tab, .handsontable *), .report {
