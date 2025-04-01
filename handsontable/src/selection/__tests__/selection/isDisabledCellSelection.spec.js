@@ -508,7 +508,7 @@ describe('Selection', () => {
     });
 
     it('should disable the selection highlight after call updateData()', () => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
@@ -519,7 +519,7 @@ describe('Selection', () => {
       });
 
       selectCell(1, 1);
-      hot.updateData(createSpreadsheetData(5, 5), 'updateSettings');
+      updateData(createSpreadsheetData(5, 5), 'updateSettings');
 
       expect(`
         |   ║   :   :   :   :   |
