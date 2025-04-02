@@ -5,6 +5,7 @@ import {
   isUndefined,
   isEmpty,
   isRegExp,
+  isBooleanLikeValue,
 } from '../mixed';
 
 let mockMoment = jest.requireActual('moment')();
@@ -67,6 +68,29 @@ describe('Mixed helper', () => {
       let toConvert;
 
       expect(stringify(toConvert)).toBe('');
+    });
+  });
+
+  describe('isBooleanLikeValue', () => {
+    it('should return true when a variable is boolean', () => {
+      expect(isBooleanLikeValue(true)).toBeTruthy();
+      expect(isBooleanLikeValue(false)).toBeTruthy();
+    });
+
+    it('should return true when a variable is "true" or "false"', () => {
+      expect(isBooleanLikeValue('true')).toBeTruthy();
+      expect(isBooleanLikeValue('false')).toBeTruthy();
+    });
+
+    it('should return false when a variable is not boolean, "true" or "false"', () => {
+      expect(isBooleanLikeValue('')).toBeFalsy();
+      expect(isBooleanLikeValue('test')).toBeFalsy();
+      expect(isBooleanLikeValue(0)).toBeFalsy();
+      expect(isBooleanLikeValue(1)).toBeFalsy();
+      expect(isBooleanLikeValue(null)).toBeFalsy();
+      expect(isBooleanLikeValue(undefined)).toBeFalsy();
+      expect(isBooleanLikeValue({})).toBeFalsy();
+      expect(isBooleanLikeValue([])).toBeFalsy();
     });
   });
 

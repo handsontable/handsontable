@@ -110,56 +110,44 @@ describe('Core.setDataAtCell', () => {
   it('should keep boolean value in the cell after copy and paste checkbox', () => {
     handsontable({
       data: [
-        ['Tagcat', true],
-        ['Zoomzone', false],
-        ['Meeveo', false],
-        ['Buzzdog', true],
-        ['Katz', true],
+        [true],
+        [false],
       ],
-      colHeaders: ['Company name', 'In stock'],
       columns: [
-        { data: 0, type: 'text' },
         {
-          data: 1,
-          type: 'checkbox',
-          className: 'htCenter',
+          data: 0,
+          type: 'checkbox'
         },
       ],
     });
 
-    expect(getDataAtCell(1, 1)).toBe(false);
+    expect(getDataAtCell(1, 0)).toBe(false);
 
-    setDataAtCell(1, 1, true);
+    setDataAtCell(1, 0, true);
 
-    expect(getDataAtCell(1, 1)).toBe(true);
+    expect(getDataAtCell(1, 0)).toBe(true);
   });
 
   it('should keep numeric value in the cell after copy and paste checkbox', () => {
     handsontable({
       data: [
-        ['Tagcat', 0],
-        ['Zoomzone', 1],
-        ['Meeveo', 0],
-        ['Buzzdog', 1],
-        ['Katz', 0],
+        [0],
+        [1],
       ],
-      colHeaders: ['Company name', 'In stock'],
-      checkedTemplate: 0,
-      uncheckedTemplate: 1,
       columns: [
-        { data: 0, type: 'text' },
         {
-          data: 1,
-          type: 'checkbox',
-          className: 'htCenter',
+          data: 0,
+          type: 'checkbox'
         },
       ],
+      checkedTemplate: 0,
+      uncheckedTemplate: 1,
     });
 
-    expect(getDataAtCell(1, 1)).toBe(1);
+    expect(getDataAtCell(1, 0)).toBe(1);
 
-    setDataAtCell(1, 1, 0);
+    setDataAtCell(1, 0, 0);
 
-    expect(getDataAtCell(1, 1)).toBe(0);
+    expect(getDataAtCell(1, 0)).toBe(0);
   });
 });
