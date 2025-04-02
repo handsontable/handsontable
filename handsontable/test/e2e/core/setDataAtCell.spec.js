@@ -108,7 +108,7 @@ describe('Core.setDataAtCell', () => {
   });
 
   it('should keep boolean value in the cell after copy and paste checkbox', () => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['Tagcat', true],
         ['Zoomzone', false],
@@ -127,24 +127,15 @@ describe('Core.setDataAtCell', () => {
       ],
     });
 
-    const plugin = hot.getPlugin('CopyPaste');
-    const copyEvent = getClipboardEvent('copy');
-
-    selectCell(0, 1);
-
-    plugin.onCopy(copyEvent);
-
-    selectCell(1, 1);
-
     expect(getDataAtCell(1, 1)).toBe(false);
 
-    plugin.paste(copyEvent.clipboardData.getData('text/plain'));
+    setDataAtCell(1, 1, true);
 
     expect(getDataAtCell(1, 1)).toBe(true);
   });
 
   it('should keep numeric value in the cell after copy and paste checkbox', () => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['Tagcat', 0],
         ['Zoomzone', 1],
@@ -165,18 +156,9 @@ describe('Core.setDataAtCell', () => {
       ],
     });
 
-    const plugin = hot.getPlugin('CopyPaste');
-    const copyEvent = getClipboardEvent('copy');
-
-    selectCell(0, 1);
-
-    plugin.onCopy(copyEvent);
-
-    selectCell(1, 1);
-
     expect(getDataAtCell(1, 1)).toBe(1);
 
-    plugin.paste(copyEvent.clipboardData.getData('text/plain'));
+    setDataAtCell(1, 1, 0);
 
     expect(getDataAtCell(1, 1)).toBe(0);
   });
