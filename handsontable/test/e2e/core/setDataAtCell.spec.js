@@ -126,6 +126,10 @@ describe('Core.setDataAtCell', () => {
     setDataAtCell(1, 0, true);
 
     expect(getDataAtCell(1, 0)).toBe(true);
+
+    setDataAtCell(1, 0, false);
+
+    expect(getDataAtCell(1, 0)).toBe(false);
   });
 
   it('should keep numeric value in the cell after copy and paste checkbox', () => {
@@ -149,5 +153,9 @@ describe('Core.setDataAtCell', () => {
     setDataAtCell(1, 0, 0);
 
     expect(getDataAtCell(1, 0)).toBe(0);
+
+    setDataAtCell(1, 0, 1);
+
+    expect(getDataAtCell(1, 0)).toBe(1);
   });
 });
