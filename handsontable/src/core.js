@@ -1517,7 +1517,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
       if (cellProperties.type === 'checkbox' && typeof newValue === 'string' && isBooleanLikeValue(newValue)) {
-        filteredChanges[i][3] = Boolean(newValue === 'true');
+        filteredChanges[i][3] = newValue === 'true';
       }
     }
 
