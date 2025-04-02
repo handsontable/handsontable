@@ -57,8 +57,8 @@ export function randomString() {
  * @param {string} value The value to check.
  * @returns {boolean}
  */
-export function isBooleanValue(value) {
-  return value === 'true' || value === 'false';
+export function isBooleanLikeValue(value) {
+  return typeof value === 'boolean' || value === 'true' || value === 'false';
 }
 
 /**
