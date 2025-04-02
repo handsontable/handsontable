@@ -36,7 +36,7 @@ export function stringify(value) {
  * @param {string | boolean} value The value to check.
  * @returns {boolean}
  */
-export function isBooleanLikeValue(value) {
+export function isBoolean(value) {
   return typeof value === 'boolean' || value === 'true' || value === 'false';
 }
 

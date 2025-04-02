@@ -1,6 +1,6 @@
 import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, isBooleanLikeValue } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, isBoolean } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -1516,7 +1516,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         filteredChanges[i][3] = getParsedNumber(newValue);
       }
 
-      if (cellProperties.type === 'checkbox' && typeof newValue === 'string' && isBooleanLikeValue(newValue)) {
+      if (cellProperties.type === 'checkbox' && typeof newValue === 'string' && isBoolean(newValue)) {
         filteredChanges[i][3] = newValue === 'true';
       }
     }
