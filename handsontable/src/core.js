@@ -224,7 +224,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   userSettings.language = getValidLanguageCode(userSettings.language);
 
-  const metaManager = new MetaManager(instance, userSettings, [
+  const settingsWithoutHooks = Object.fromEntries(
+    Object.entries(userSettings).filter(([key]) => {
+      return !(Hooks.getSingleton().isRegistered(key) || Hooks.getSingleton().isDeprecated(key));
+    })
+  );
+
+  const metaManager = new MetaManager(instance, settingsWithoutHooks, [
     DynamicCellMetaMod,
     ExtendMetaPropertiesMod,
   ]);
@@ -1117,7 +1123,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       addClass(instance.rootElement, 'mobile');
     }
 
-    this.updateSettings(tableMeta, true);
+    this.updateSettings(userSettings, true);
 
     this.view = new TableView(this);
 
@@ -2467,12 +2473,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
+    if (settings.language) {
+      setLanguage(settings.language);
+    }
+
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
-      if (i === 'data') {
-        // Do nothing. loadData will be triggered later
-      } else if (i === 'language') {
-        setLanguage(settings.language);
+      if (i === 'data' || i === 'language') {
+        // Do nothing. loadData and language change will be triggered later
 
       } else if (i === 'className') {
         setClassName('className', settings.className);
@@ -2483,12 +2491,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
+        const hook = settings[i];
 
-        if (isFunction(settings[i])) {
-          Hooks.getSingleton().addAsFixed(i, settings[i], instance);
+        if (isFunction(hook)) {
+          Hooks.getSingleton().addAsFixed(i, hook, instance);
+          tableMeta[i] = hook;
 
-        } else if (Array.isArray(settings[i])) {
-          Hooks.getSingleton().add(i, settings[i], instance);
+        } else if (Array.isArray(hook)) {
+          Hooks.getSingleton().add(i, hook, instance);
+          tableMeta[i] = hook;
         }
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
