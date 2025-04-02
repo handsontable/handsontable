@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with data source for non-string values in the `name` property",
+  "type": "fixed",
+  "issueOrPR": 11565,
+  "breaking": false,
+  "framework": "none"
+}
