@@ -1,6 +1,6 @@
 import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, isBooleanLikeValue } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -21,7 +21,7 @@ import { getPlugin, getPluginsNames } from './plugins/registry';
 import { getRenderer } from './renderers/registry';
 import { getEditor } from './editors/registry';
 import { getValidator } from './validators/registry';
-import { isBooleanValue, randomString, toUpperCaseFirst } from './helpers/string';
+import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataMap/dataSource';
@@ -1512,8 +1512,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         filteredChanges[i][3] = getParsedNumber(newValue);
       }
 
-      if (cellProperties.type === 'checkbox' && typeof newValue === 'string' && isBooleanValue(newValue)) {
-        filteredChanges[i][3] = JSON.parse(newValue);
+      if (cellProperties.type === 'checkbox' && typeof newValue === 'number' && isNumericLike(newValue)) {
+        filteredChanges[i][3] = newValue;
+      }
+
+      if (cellProperties.type === 'checkbox' && typeof newValue === 'string' && isBooleanLikeValue(newValue)) {
+        filteredChanges[i][3] = Boolean(newValue === 'true');
       }
     }
 
