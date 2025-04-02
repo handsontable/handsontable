@@ -415,6 +415,16 @@ class Border {
     const firstRenderedColumn = wtTable.getFirstRenderedColumn();
     const lastRenderedColumn = wtTable.getLastRenderedColumn();
 
+    if (
+      firstRenderedColumn < 0 && lastRenderedColumn < 0 ||
+      firstRenderedRow < 0 && lastRenderedRow < 0
+    ) {
+      // ...also when overlays have rendered only headers skip it
+      this.disappear();
+
+      return;
+    }
+
     let fromTD;
 
     if (isMultiple) {

@@ -18,9 +18,9 @@ const stickyRowsTop = {
    * @this Table
    */
   getFirstRenderedRow() {
-    const totalRows = this.wtSettings.getSetting('totalRows');
+    const allStickyRows = this.getRenderedRowsCount();
 
-    if (totalRows === 0) {
+    if (allStickyRows === 0) {
       return -1;
     }
 
@@ -88,9 +88,10 @@ const stickyRowsTop = {
    * @this Table
    */
   getRenderedRowsCount() {
-    const totalRows = this.wtSettings.getSetting('totalRows');
-
-    return Math.min(this.wtSettings.getSetting('fixedRowsTop'), totalRows);
+    return Math.min(
+      this.wtSettings.getSetting('totalRows'),
+      this.wtSettings.getSetting('fixedRowsTop'),
+    );
   },
 
   /**

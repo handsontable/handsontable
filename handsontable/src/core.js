@@ -629,17 +629,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               }
 
               const totalRows = instance.countRows();
-
-              if (totalRows === 0) {
-                selection.deselect();
-
-              } else if (source === 'ContextMenu.removeRow') {
-                selection.refresh();
-
-              } else {
-                selection.shiftRows(groupIndex, -groupAmount);
-              }
-
               const fixedRowsTop = tableMeta.fixedRowsTop;
 
               if (fixedRowsTop >= calcIndex + 1) {
@@ -650,6 +639,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
                 tableMeta.fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
+              }
+
+              if (totalRows === 0) {
+                selection.deselect();
+
+              } else if (source === 'ContextMenu.removeRow') {
+                selection.refresh();
+
+              } else {
+                selection.shiftRows(groupIndex, -groupAmount);
               }
 
               offset += groupAmount;
