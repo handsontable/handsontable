@@ -39,4 +39,19 @@ describe('Vertical scroll', () => {
       horizon.toBe(195);
     });
   });
+
+  it('should not render all rows when the viewport height is set to `0` and the trimming container is scrolled programmatically (#dev-2211)', async() => {
+    spec().$container.css('height', '0').css('overflow', 'hidden');
+
+    const hot = handsontable({
+      data: createSpreadsheetData(100, 5),
+    });
+
+    expect(hot.rootElement.querySelector('.ht_master tbody').childNodes.length).toBe(0);
+
+    await scrollOverlay(topOverlay(), 100);
+
+    expect(hot.rootElement.querySelector('.ht_master tbody').childNodes.length).toBe(0);
+    expect(hot.view.getWorkspaceHeight()).not.toBe(Infinity);
+  });
 });

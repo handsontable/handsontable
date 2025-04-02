@@ -1,5 +1,6 @@
 import {
   getScrollbarWidth,
+  hasZeroHeight,
   offset,
   outerHeight,
   outerWidth,
@@ -78,7 +79,15 @@ class Viewport {
       const elemHeight = outerHeight(trimmingContainer);
 
       // returns height without DIV scrollbar
-      height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : Infinity;
+      if (elemHeight === 0 && hasZeroHeight(trimmingContainer)) {
+        height = 0;
+
+      } else if (elemHeight > 0 && trimmingContainer.clientHeight > 0) {
+        height = trimmingContainer.clientHeight;
+
+      } else {
+        height = Infinity;
+      }
     }
 
     return height;
@@ -94,10 +103,12 @@ class Viewport {
       return containerHeight;
     }
 
-    const columnHeaderHeight = this.getColumnHeaderHeight();
+    if (containerHeight > 0) {
+      const columnHeaderHeight = this.getColumnHeaderHeight();
 
-    if (columnHeaderHeight > 0) {
-      containerHeight -= columnHeaderHeight;
+      if (columnHeaderHeight > 0) {
+        containerHeight -= columnHeaderHeight;
+      }
     }
 
     return containerHeight;

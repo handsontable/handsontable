@@ -1170,6 +1170,11 @@ class TableView {
         }
       },
       viewportRowCalculatorOverride: (calc) => {
+        // If there are no rows rendered, there's no need for an offset.
+        if (calc.calc === 0) {
+          return;
+        }
+
         let viewportOffset = this.settings.viewportRowRenderingOffset;
 
         if (viewportOffset === 'auto' && this.settings.fixedRowsTop) {
@@ -1192,6 +1197,7 @@ class TableView {
             calc.endRow = Math.min(lastRenderedRow + offset, renderableRows - 1);
           }
         }
+
         this.hot.runHooks('afterViewportRowCalculatorOverride', calc);
       },
       viewportColumnCalculatorOverride: (calc) => {
