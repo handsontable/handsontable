@@ -106,4 +106,78 @@ describe('Core.setDataAtCell', () => {
 
     expect(beforeChange).toHaveBeenCalledWith([[0, 1, 'foo', 'foo2']], 'multiple-change');
   });
+
+  it('should keep boolean value in the cell after copy and paste checkbox', () => {
+    const hot = handsontable({
+      data: [
+        ['Tagcat', true],
+        ['Zoomzone', false],
+        ['Meeveo', false],
+        ['Buzzdog', true],
+        ['Katz', true],
+      ],
+      colHeaders: ['Company name', 'In stock'],
+      columns: [
+        { data: 0, type: 'text' },
+        {
+          data: 1,
+          type: 'checkbox',
+          className: 'htCenter',
+        },
+      ],
+    });
+
+    const plugin = hot.getPlugin('CopyPaste');
+    const copyEvent = getClipboardEvent('copy');
+
+    selectCell(0, 1);
+
+    plugin.onCopy(copyEvent);
+
+    selectCell(1, 1);
+
+    expect(getDataAtCell(1, 1)).toBe(false);
+
+    plugin.paste(copyEvent.clipboardData.getData('text/plain'));
+
+    expect(getDataAtCell(1, 1)).toBe(true);
+  });
+
+  it('should keep numeric value in the cell after copy and paste checkbox', () => {
+    const hot = handsontable({
+      data: [
+        ['Tagcat', 0],
+        ['Zoomzone', 1],
+        ['Meeveo', 0],
+        ['Buzzdog', 1],
+        ['Katz', 0],
+      ],
+      colHeaders: ['Company name', 'In stock'],
+      checkedTemplate: 0,
+      uncheckedTemplate: 1,
+      columns: [
+        { data: 0, type: 'text' },
+        {
+          data: 1,
+          type: 'checkbox',
+          className: 'htCenter',
+        },
+      ],
+    });
+
+    const plugin = hot.getPlugin('CopyPaste');
+    const copyEvent = getClipboardEvent('copy');
+
+    selectCell(0, 1);
+
+    plugin.onCopy(copyEvent);
+
+    selectCell(1, 1);
+
+    expect(getDataAtCell(1, 1)).toBe(1);
+
+    plugin.paste(copyEvent.clipboardData.getData('text/plain'));
+
+    expect(getDataAtCell(1, 1)).toBe(0);
+  });
 });

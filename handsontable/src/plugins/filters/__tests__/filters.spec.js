@@ -688,44 +688,6 @@ describe('Filters', () => {
     ]);
   });
 
-  it('should keep only boolean values after copy and paste checkbox', () => {
-    const hot = handsontable({
-      data: [
-        ['Tagcat', true],
-        ['Zoomzone', false],
-        ['Meeveo', false],
-        ['Buzzdog', true],
-        ['Katz', true],
-      ],
-      dropdownMenu: true,
-      filters: true,
-      colHeaders: ['Company name', 'In stock'],
-      columns: [
-        { data: 0, type: 'text' },
-        {
-          data: 1,
-          type: 'checkbox',
-          className: 'htCenter',
-        },
-      ],
-    });
-
-    const plugin = hot.getPlugin('CopyPaste');
-    const copyEvent = getClipboardEvent('copy');
-
-    selectCell(0, 1);
-
-    plugin.onCopy(copyEvent);
-
-    selectCell(1, 1);
-
-    plugin.paste(copyEvent.clipboardData.getData('text/plain'));
-
-    dropdownMenu(1);
-
-    expect($(byValueBoxRootElement()).find('label').length).toBe(2);
-  });
-
   describe('cooperation with alter actions', () => {
     it('should filter proper column after removing column right before the already filtered one', function() {
       handsontable({
