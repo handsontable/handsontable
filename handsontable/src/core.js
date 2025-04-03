@@ -1508,15 +1508,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
       }
 
-      if (
-        (cellProperties.type === 'numeric' || cellProperties.type === 'checkbox') &&
-        typeof newValue === 'string' &&
-        isNumericLike(newValue)
-      ) {
+      const { type } = cellProperties;
+
+      if (type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
         filteredChanges[i][3] = getParsedNumber(newValue);
       }
 
-      if (cellProperties.type === 'checkbox' && typeof newValue === 'string' && isBoolean(newValue)) {
+      if (type === 'checkbox' && typeof newValue === 'string' && isBoolean(newValue)) {
         filteredChanges[i][3] = newValue === 'true';
       }
     }

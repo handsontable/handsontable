@@ -107,18 +107,13 @@ describe('Core.setDataAtCell', () => {
     expect(beforeChange).toHaveBeenCalledWith([[0, 1, 'foo', 'foo2']], 'multiple-change');
   });
 
-  it('should keep boolean value in the cell after copy and paste checkbox', () => {
+  it('should keep boolean value in the cell after set boolean value in the checkbox cell', () => {
     handsontable({
       data: [
         [true],
         [false],
       ],
-      columns: [
-        {
-          data: 0,
-          type: 'checkbox'
-        },
-      ],
+      type: 'checkbox',
     });
 
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -132,30 +127,25 @@ describe('Core.setDataAtCell', () => {
     expect(getDataAtCell(1, 0)).toBe(false);
   });
 
-  it('should keep numeric value in the cell after copy and paste checkbox', () => {
+  it('should keep string value in the cell after set number as a string in the checkbox cell', () => {
     handsontable({
       data: [
-        [0],
-        [1],
+        ['0'],
+        ['1'],
       ],
-      columns: [
-        {
-          data: 0,
-          type: 'checkbox'
-        },
-      ],
-      checkedTemplate: 0,
-      uncheckedTemplate: 1,
+      type: 'checkbox',
+      checkedTemplate: '0',
+      uncheckedTemplate: '1',
     });
 
-    expect(getDataAtCell(1, 0)).toBe(1);
+    expect(getDataAtCell(1, 0)).toBe('1');
 
-    setDataAtCell(1, 0, 0);
+    setDataAtCell(1, 0, '0');
 
-    expect(getDataAtCell(1, 0)).toBe(0);
+    expect(getDataAtCell(1, 0)).toBe('0');
 
-    setDataAtCell(1, 0, 1);
+    setDataAtCell(1, 0, '1');
 
-    expect(getDataAtCell(1, 0)).toBe(1);
+    expect(getDataAtCell(1, 0)).toBe('1');
   });
 });
