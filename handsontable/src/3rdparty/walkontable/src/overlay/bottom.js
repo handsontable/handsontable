@@ -4,7 +4,6 @@ import {
   getScrollTop,
   getWindowScrollLeft,
   hasClass,
-  hasZeroHeight,
   outerHeight,
   removeClass,
 } from '../../../../helpers/dom/element';
@@ -230,10 +229,7 @@ export class BottomOverlay extends Overlay {
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
       this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
-    } else if (
-      total === 0 ||
-      hasZeroHeight(this.trimmingContainer)
-    ) {
+    } else if (total === 0) {
       // can happen if there are 0 rows
       this.spreader.style.top = '0';
 

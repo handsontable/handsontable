@@ -51,22 +51,20 @@ export class PartiallyVisibleRowsCalculationType {
       innerViewportHeight,
     } = viewportCalculator;
 
-    if (innerViewportHeight > 0) {
-      if (totalCalculatedHeight <= zeroBasedScrollOffset) {
+    if (totalCalculatedHeight <= zeroBasedScrollOffset) {
+      this.startRow = row;
+    }
+
+    if (
+      totalCalculatedHeight >= zeroBasedScrollOffset &&
+      totalCalculatedHeight <= innerViewportHeight
+    ) {
+      if (this.startRow === null) {
         this.startRow = row;
       }
-
-      if (
-        totalCalculatedHeight >= zeroBasedScrollOffset &&
-        totalCalculatedHeight <= innerViewportHeight
-      ) {
-        if (this.startRow === null) {
-          this.startRow = row;
-        }
-      }
-
-      this.endRow = row;
     }
+
+    this.endRow = row;
   }
 
   /**

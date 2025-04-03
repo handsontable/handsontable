@@ -123,20 +123,6 @@ describe('WalkontableViewport', () => {
 
       expect(wt.wtViewport.getWorkspaceHeight()).toBe(200);
     });
-
-    it('should return correct viewport height when the table has no defined size and the trimming container has the height set to 0', () => {
-      spec().$wrapper.css('height', '0').css('overflow', 'hidden');
-
-      const wt = walkontable({
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-      });
-
-      wt.draw();
-
-      expect(wt.wtViewport.getWorkspaceHeight()).toBe(0);
-    });
   });
 
   describe('getViewportWidth()', () => {
