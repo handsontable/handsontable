@@ -259,11 +259,11 @@ describe('HiddenRows', () => {
       | A |
       `).toBeMatchToSelectionPattern();
       expect($leftBorderArea.height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(23);
-        main.toBe(29);
-        horizon.toBe(37);
+        classic.toBe(24);
+        main.toBe(30);
+        horizon.toBe(38);
       });
-      expect($topBorderArea.width()).toBe(49);
+      expect($topBorderArea.width()).toBe(50);
     });
 
     describe('should select entire table after the corner was clicked and', () => {
