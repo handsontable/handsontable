@@ -1,6 +1,6 @@
 import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, isBoolean } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, stringify } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -1508,14 +1508,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
       }
 
-      const { type } = cellProperties;
+      const {
+        type,
+        checkedTemplate,
+        uncheckedTemplate,
+      } = cellProperties;
 
-      if (type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
+      if (
+        type === 'numeric' &&
+        typeof newValue === 'string' &&
+        isNumericLike(newValue)
+      ) {
         filteredChanges[i][3] = getParsedNumber(newValue);
       }
 
-      if (type === 'checkbox' && typeof newValue === 'string' && isBoolean(newValue)) {
-        filteredChanges[i][3] = newValue === 'true';
+      if (type === 'checkbox') {
+        const stringifiedValue = stringify(newValue);
+        const isChecked = stringifiedValue === stringify(checkedTemplate);
+        const isUnchecked = stringifiedValue === stringify(uncheckedTemplate);
+
+        if (isChecked || isUnchecked) {
+          filteredChanges[i][3] = isChecked ? checkedTemplate : uncheckedTemplate;
+        }
       }
     }
 
