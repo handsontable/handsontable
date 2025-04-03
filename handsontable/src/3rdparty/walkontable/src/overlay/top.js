@@ -245,6 +245,7 @@ export class TopOverlay extends Overlay {
     } else {
       throw new Error('Incorrect value of the rowsRenderCalculator');
     }
+
     this.spreader.style.bottom = '';
 
     if (this.needFullRender) {
