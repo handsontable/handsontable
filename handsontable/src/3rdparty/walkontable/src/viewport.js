@@ -94,12 +94,10 @@ class Viewport {
       return containerHeight;
     }
 
-    if (containerHeight > 0) {
-      const columnHeaderHeight = this.getColumnHeaderHeight();
+    const columnHeaderHeight = this.getColumnHeaderHeight();
 
-      if (columnHeaderHeight > 0) {
-        containerHeight -= columnHeaderHeight;
-      }
+    if (columnHeaderHeight > 0) {
+      containerHeight -= columnHeaderHeight;
     }
 
     return containerHeight;
