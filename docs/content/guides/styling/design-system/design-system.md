@@ -23,7 +23,9 @@ searchCategory: Guides
 category: Styling
 ---
 
-# Handsontable Design System 
+# Handsontable Design System
+
+Design, prototype, and customize your data grid with the Design System for Figma.
 
 [[toc]]
 
