@@ -64,6 +64,15 @@ class Viewport {
   }
 
   /**
+   * Gets the height of the table's trimming container.
+   *
+   * @returns {number}
+   */
+  getTrimmingContainerHeight() {
+    return this.dataAccessObject.topOverlayTrimmingContainer.clientHeight;
+  }
+
+  /**
    * @returns {number}
    */
   getWorkspaceHeight() {

@@ -124,7 +124,9 @@ export default class CoreAbstract {
   draw(fastDraw = false) {
     this.drawInterrupted = false;
 
-    if (!this.wtTable.isVisible() || hasZeroHeight(this.wtTable.wtRootElement.parentNode)) {
+    if (!this.wtTable.isVisible() ||
+      (this.wtViewport.getTrimmingContainerHeight() === 0 && hasZeroHeight(this.wtTable.wtRootElement.parentNode))
+    ) {
       // draw interrupted because TABLE is not visible or has the height set to 0
       this.drawInterrupted = true;
     } else {
