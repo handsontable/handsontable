@@ -33,7 +33,7 @@ The Handsontable Design System is a complete toolkit for building, prototyping, 
 
 ## Live preview
 
-<iframe class="iframe-responsive" src="https://embed.figma.com/design/H7qfV5G066Qs1kG6AlWkq6/Handsontable-Design-System-(Community)?node-id=4492-11857&embed-host=share" allowfullscreen></iframe>
+<iframe class="iframe-responsive" src="https://embed.figma.com/design/H7qfV5G066Qs1kG6AlWkq6/Handsontable-Design-System-(Community)?node-id=4492-11857&embed-host=share&theme=system" allowfullscreen></iframe>
 
 [Open the Design System in Figma](https://www.figma.com/community/file/1487445656371116081)
 
