@@ -29,21 +29,21 @@ category: Styling
 
 ## Overview
 
-The Design System for Figma is a complete toolkit for building, prototyping, and customizing data grids with Handsontable. It includes grid components and design tokens, making it easy to fit Handsontable into your app’s layout or customize it in ways that wouldn’t be possible without built-in features like auto layout, variables, and more.
+The Handsontable Design System is a complete toolkit for building, prototyping, and customizing data grids with Handsontable. It includes grid components and design tokens, making it easy to fit Handsontable into your app’s layout or customize it in ways that wouldn’t be possible without built-in features like auto layout, variables, and more.
 
-### Live preview
+## Live preview
 
-<iframe class="iframe-responsive" src="https://embed.figma.com/design/H7qfV5G066Qs1kG6AlWkq6/Handsontable-Design-System-(Community)?node-id=4492-11857&embed-host=share" allowfullscreen></iframe>
+<iframe class="iframe-responsive" src="https://embed.figma.com/design/H7qfV5G066Qs1kG6AlWkq6/Handsontable-Design-System-(Community)?node-id=4492-11857&embed-host=share&theme=system" allowfullscreen></iframe>
 
 [Open the Design System in Figma](https://www.figma.com/community/file/1487445656371116081)
 
 ## Use tokens to generate a theme
 
-Inside the Figma file, you’ll find local variables defining all data grid components and their characteristics, such as colors, sizes, spacing, fonts, and icons. Variables are provided for two themes — Main and Horizon — each available in dark and light modes.
+Inside the Figma file, you’ll find local variables that define all parts of the data grid — like colors, spacing, font styles, icon sizes, and more. These variables are organized into two themes: Main and Horizon, each available in both light and dark mode.
 
-Customize any variables as needed, then export them as JSON tokens using a tool of your choice—we recommend the [Design Tokens](https://www.figma.com/community/plugin/888356646278934516/design-tokens) plugin available in the Figma Community.
+You can tweak the variables however you like to match your brand or product style. Once you’re happy with the changes, export them as JSON tokens. We recommend using the [Design Tokens](https://www.figma.com/community/plugin/888356646278934516/design-tokens) plugin from the Figma Community — it’s straightforward and does the job well.
 
-Once you've exported the tokens, you can convert them into a CSS theme file compatible with Handsontable using our official [Theme Generator on GitHub](https://github.com/handsontable/handsontable-figma).
+After exporting, head over to our [Theme Generator on GitHub](https://github.com/handsontable/handsontable-figma) to convert your tokens into a CSS theme file that works with Handsontable.
 
 <span class="img-light">
 
@@ -60,7 +60,7 @@ Once you've exported the tokens, you can convert them into a CSS theme file comp
 
 ## Updates frequency
 
-We consider the design system our main reference when planning new features or redesigns, so it’s always updated first. Occasionally, we update it separately from product releases to improve the design experience.
+The design system is our primary reference when planning new features or redesigns, and it’s always kept up to date. In some cases, we update the design system independently of product releases to enhance consistency and streamline the design workflow.
 
 ## Known limitations
 
