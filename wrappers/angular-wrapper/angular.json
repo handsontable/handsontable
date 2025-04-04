@@ -22,7 +22,7 @@
               "tsConfig": "projects/hot-table/tsconfig.lib.json"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "production"
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
