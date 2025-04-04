@@ -536,11 +536,6 @@ export function isVisible(element) {
  * @returns {boolean} `true` if the element has height set to `0` or `0px` and overflow is set to `hidden`, `false` otherwise.
  */
 export function hasZeroHeight(element) {
-  // If provided with a window-like object, return false.
-  if (element.document) {
-    return false;
-  }
-
   const rootDocument = element.ownerDocument;
   const rootWindow = rootDocument.defaultView;
   let currentElement = element;
