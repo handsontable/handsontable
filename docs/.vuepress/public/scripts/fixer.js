@@ -99,6 +99,9 @@
       else if (key === '@handsontable/angular') {
         ns = 'Handsontable.angular';
 
+      } else if (key === '@handsontable/angular-wrapper') {
+        ns = 'AngularWrapper';
+
       } else if (key === '@handsontable/react-wrapper') {
         ns = 'Handsontable.react';
 

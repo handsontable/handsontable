@@ -50,6 +50,18 @@ Setting the [`colHeaders`](@/api/options.md#colheaders) option to `true` enables
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular-wrapper --ts 1 --html 2 --scss 3
+
+@[code](@/content/guides/columns/column-header/angular/example1.ts)
+@[code](@/content/guides/columns/column-header/angular/example1.html)
+@[code](@/content/guides/columns/column-header/angular/example1.scss)
+
+:::
+
+:::
+
 ## Header labels as an array
 An array of labels can be used to set the [`colHeaders`](@/api/options.md#colheaders) as shown in the example below:
 
@@ -75,6 +87,18 @@ An array of labels can be used to set the [`colHeaders`](@/api/options.md#colhea
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular-wrapper --ts 1 --html 2 --scss 3
+
+@[code](@/content/guides/columns/column-header/angular/example2.ts)
+@[code](@/content/guides/columns/column-header/angular/example2.html)
+@[code](@/content/guides/columns/column-header/angular/example2.scss)
+
+:::
+
+:::
+
 ## Header labels as a function
 The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a function as shown in the example below:
 
@@ -95,6 +119,18 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 @[code](@/content/guides/columns/column-header/react/example3.jsx)
 @[code](@/content/guides/columns/column-header/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular-wrapper --ts 1 --html 2 --scss 3
+
+@[code](@/content/guides/columns/column-header/angular/example3.ts)
+@[code](@/content/guides/columns/column-header/angular/example3.html)
+@[code](@/content/guides/columns/column-header/angular/example3.scss)
 
 :::
 
@@ -128,6 +164,18 @@ You can also set the alignment for a specific column by using the [`columns`](@/
 
 :::
 
+::: only-for angular
+
+::: example #example4 :angular-wrapper --ts 1 --html 2 --scss 3
+
+@[code](@/content/guides/columns/column-header/angular/example4.ts)
+@[code](@/content/guides/columns/column-header/angular/example4.html)
+@[code](@/content/guides/columns/column-header/angular/example4.scss)
+
+:::
+
+:::
+
 If you want to style the header labels, you can pass any number of class names, separated by a space, to the [`headerClassName`](@/api/options.md#headerclassname) option.
 
 ::: only-for javascript
@@ -149,6 +197,18 @@ If you want to style the header labels, you can pass any number of class names, 
 @[code](@/content/guides/columns/column-header/react/example5.css)
 @[code](@/content/guides/columns/column-header/react/example5.jsx)
 @[code](@/content/guides/columns/column-header/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular-wrapper --ts 1 --html 2 --scss 3
+
+@[code](@/content/guides/columns/column-header/angular/example5.ts)
+@[code](@/content/guides/columns/column-header/angular/example5.html)
+@[code](@/content/guides/columns/column-header/angular/example5.scss)
 
 :::
 

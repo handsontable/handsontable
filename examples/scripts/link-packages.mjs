@@ -28,6 +28,8 @@ const isPackageRequired = (packageName, packageLocation) => {
     packageLocation.includes(frameworkName) ||
     // If the required package is @handsontable/angular
     (frameworkName === 'angular' && packageName === '@handsontable/angular' && !isLegacyAngularExample) ||
+    // If the required package is @handsontable/angular-wrapper
+    (frameworkName === 'angular' && packageName === '@handsontable/angular-wrapper' && !isLegacyAngularExample) ||
     // If it's in the framework directory
     packageLocation.split('/').pop().includes(frameworkName) ||
     // If it's deeper in the framework directory

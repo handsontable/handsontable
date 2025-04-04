@@ -33,7 +33,7 @@ el: '#${id}',
 
 platformBrowserDynamic()
   .bootstrapModule(AppModule)
-  .catch(err => { console.error(err) });`;
+  .catch(err => { console.error('KA Load error'); console.error(err) });`;
     }
 
     return '';
