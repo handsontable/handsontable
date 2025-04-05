@@ -262,11 +262,12 @@ describe('CopyPaste', () => {
 
       spec().$container.after(testElement);
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: testElement[0], // native copy event is triggered on the element outside the table
+      });
       const plugin = getPlugin('CopyPaste');
 
       selectCell(1, 1);
-      copyEvent.target = testElement[0]; // native copy event is triggered on the element outside the table
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       // the result is that the clipboard data is not overwritten by the HoT
@@ -280,13 +281,14 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: $('<div id="testElement" data-hot-input="true">Test</div>')[0],
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
 
       selectCell(1, 1);
-      copyEvent.target = $('<div id="testElement" data-hot-input="true">Test</div>')[0];
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       expect(copyEvent.preventDefault).not.toHaveBeenCalled();
@@ -297,13 +299,16 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1);
+
+      const copyEvent = getClipboardEvent({
+        target: getActiveEditor().TEXTAREA,
+      });
 
       spyOn(copyEvent, 'preventDefault');
 
-      selectCell(1, 1);
-      copyEvent.target = getActiveEditor().TEXTAREA;
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
@@ -314,13 +319,14 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: $('<div id="testElement">Test</div>')[0],
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
 
       selectCell(1, 1);
-      copyEvent.target = $('<div id="testElement">Test</div>')[0];
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       expect(copyEvent.preventDefault).not.toHaveBeenCalled();
@@ -331,13 +337,14 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: document.body,
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
 
       selectCell(1, 1);
-      copyEvent.target = document.body;
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
@@ -348,13 +355,14 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: getCell(1, 1),
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
 
       selectCell(1, 1);
-      copyEvent.target = getCell(1, 1);
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
@@ -367,7 +375,6 @@ describe('CopyPaste', () => {
         height: 50,
       });
 
-      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
       const expectedResult = getDataAtRow(0).join('\t');
 
@@ -375,7 +382,10 @@ describe('CopyPaste', () => {
 
       await sleep(10);
 
-      copyEvent.target = document.activeElement;
+      const copyEvent = getClipboardEvent({
+        target: document.activeElement,
+      });
+
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe(expectedResult);
