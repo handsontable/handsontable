@@ -1,15 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  Input,
-  NgZone,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges,
-  ViewChild,
-  ViewEncapsulation,
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, NgZone, OnChanges, OnDestroy, SimpleChanges, ViewChild, ViewEncapsulation } from '@angular/core';
 import Handsontable from 'handsontable/base';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
 import { HotConfigService } from './services/hot-config.service';
@@ -17,9 +6,7 @@ import { GridSettings } from './models/grid-settings';
 import { ColumnSettingsInternal } from './models/column-settings';
 import { Subscription } from 'rxjs';
 
-export const HOT_DESTROYED_WARNING =
-  'The Handsontable instance bound to this component was destroyed and cannot be' +
-  ' used properly.';
+export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' + ' used properly.';
 
 @Component({
   selector: 'hot-table',
@@ -47,21 +34,14 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   private __hotInstance: Handsontable | null = null;
   private configSubscription: Subscription;
 
-  constructor(
-    private _hotSettingsResolver: HotSettingsResolver,
-    private _hotConfig: HotConfigService,
-    public ngZone: NgZone
-  ) {}
+  constructor(private _hotSettingsResolver: HotSettingsResolver, private _hotConfig: HotConfigService, public ngZone: NgZone) {}
 
   /**
    * Gets the Handsontable instance.
    * @returns The Handsontable instance or `null` if it's not yet been created or has been destroyed.
    */
   public get hotInstance(): Handsontable | null {
-    if (
-      !this.__hotInstance ||
-      (this.__hotInstance && !this.__hotInstance.isDestroyed)
-    ) {
+    if (!this.__hotInstance || (this.__hotInstance && !this.__hotInstance.isDestroyed)) {
       // Will return the Handsontable instance or `null` if it's not yet been created.
       return this.__hotInstance;
     } else {
@@ -83,17 +63,13 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * The initial settings of the table are also prepared here
    */
   ngAfterViewInit(): void {
-    let options: Handsontable.GridSettings =
-      this._hotSettingsResolver.applyCustomSettings(this.settings);
+    let options: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(this.settings);
 
     const negotiatedSettings = this.getNegotiatedSettings(options);
-    options = {...options, ...negotiatedSettings};
+    options = { ...options, ...negotiatedSettings };
 
     this.ngZone.runOutsideAngular(() => {
-      this.hotInstance = new Handsontable.Core(
-        this.container.nativeElement,
-        options
-      );
+      this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
 
       // @ts-ignore
       this.hotInstance.init();
@@ -113,10 +89,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     if (changes.settings && !changes.settings.firstChange) {
-      const newOptions: Handsontable.GridSettings =
-        this._hotSettingsResolver.applyCustomSettings(
-          changes.settings.currentValue
-        );
+      const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(changes.settings.currentValue);
 
       this.updateHotTable(newOptions);
     }
@@ -164,9 +137,9 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * @param settings - The grid settings provided by the user or component.
    * @returns The final negotiated grid settings after merging with global defaults.
    */
-  private getNegotiatedSettings(settings: Handsontable.GridSettings): Handsontable.GridSettings {
+  private getNegotiatedSettings(settings: GridSettings): Handsontable.GridSettings {
     const hotConfig = this._hotConfig.getConfig();
-    const negotiatedSettings: Handsontable.GridSettings = {}
+    const negotiatedSettings: Handsontable.GridSettings = {};
 
     negotiatedSettings.licenseKey = settings.licenseKey ?? hotConfig.license;
     negotiatedSettings.themeName = settings.themeName ?? hotConfig.themeName;
