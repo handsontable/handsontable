@@ -232,7 +232,7 @@ That's better.
 
 :::
 
-The final touch is to using the registered aliases, so that users can easily refer to it without the need to now the actual renderer function is.
+The final touch is to use registered aliases. That way users can easily refer to an alias without the need to know the name of the function.
 
 To sum up, a well prepared renderer function should look like this:
 
