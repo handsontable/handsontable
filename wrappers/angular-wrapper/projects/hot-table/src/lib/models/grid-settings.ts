@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 import { ColumnSettings, ColumnSettingsInternal } from './column-settings';
 
-export interface GridSettings extends Handsontable.GridSettings {
+export interface GridSettings extends Omit<Handsontable.GridSettings, 'columns'> {
   columns?: ColumnSettings[] | ((index: number) => ColumnSettings);
 }
 

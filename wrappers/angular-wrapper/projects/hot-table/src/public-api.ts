@@ -10,8 +10,4 @@ export * from './lib/renderer/hot-dynamic-renderer-component.service';
 export * from './lib/renderer/hot-cell-renderer.component';
 export * from './lib/editor/hot-cell-editor.component';
 export { GridSettings } from './lib/models/grid-settings';
-export {
-  ColumnSettings,
-  CustomValidatorFn,
-  CustomColumnProperties,
-} from './lib/models/column-settings';
+export { ColumnSettings, CustomValidatorFn } from './lib/models/column-settings';
