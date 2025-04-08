@@ -1,8 +1,11 @@
 describe('Multiple selection scroll', () => {
   const id = 'testContainer';
+  let scrollIntoViewSpy;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    scrollIntoViewSpy = spyOn(Element.prototype, 'scrollIntoView');
   });
 
   afterEach(function() {
@@ -32,6 +35,12 @@ describe('Multiple selection scroll', () => {
       await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after navigating using ArrowRight key', async() => {
@@ -49,7 +58,15 @@ describe('Multiple selection scroll', () => {
       selectCell(0, 4);
       keyDownUp(['shift', 'arrowright']);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should not scroll the viewport after navigating through the column headers using ArrowRight key', async() => {
@@ -66,9 +83,16 @@ describe('Multiple selection scroll', () => {
       await scrollOverlay(inlineStartOverlay(), 25);
 
       selectCell(-1, 4);
+
+      await sleep(10);
+
+      scrollIntoViewSpy.calls.reset();
       keyDownUp(['shift', 'arrowright']);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(25);
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
     });
 
     it('should scroll the viewport after using API (selecting fully visible column to partially visible column)', async() => {
@@ -85,10 +109,17 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[0, 4, 0, 5]]);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
-    it('should not scroll the viewport after using API (selecting partially visible column to fully visible column)', async() => {
+    it('should scroll the viewport after using API (selecting partially visible column to fully visible column)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 10),
         width: 300,
@@ -102,7 +133,14 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[0, 5, 0, 4]]);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(25);
+      await sleep(10);
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
   });
 
@@ -390,9 +428,9 @@ describe('Multiple selection scroll', () => {
       selectCells([[11, 0, 10, 0]]);
 
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(5);
-        main.toBe(65);
-        horizon.toBe(161);
+        classic.toBe(18);
+        main.toBe(93);
+        horizon.toBe(197);
       });
     });
   });
