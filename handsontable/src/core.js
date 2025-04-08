@@ -4438,7 +4438,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
-  this.scrollViewportTo = function(options) {
+  this.scrollViewportTo = function(options, callback) {
     // Support for backward compatibility arguments: (row, col, snapToBottom, snapToRight, considerHiddenIndexes)
     if (typeof options === 'number') {
       /* eslint-disable prefer-rest-params */
@@ -4455,11 +4455,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const {
       row,
       col,
-      considerHiddenIndexes
+      considerHiddenIndexes,
     } = options ?? {};
 
     let renderableRow = row;
     let renderableColumn = col;
+
+    if (callback) {
+      this.addHookOnce('afterScroll', callback);
+    }
 
     if (considerHiddenIndexes === undefined || considerHiddenIndexes) {
       const isValidRowGrid = Number.isInteger(row) && row >= 0;
@@ -4480,24 +4484,35 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const isRowInteger = Number.isInteger(renderableRow);
     const isColumnInteger = Number.isInteger(renderableColumn);
+    let isScrolled = false;
 
     if (isRowInteger && renderableRow >= 0 && isColumnInteger && renderableColumn >= 0) {
-      return instance.view.scrollViewport(
+      isScrolled = instance.view.scrollViewport(
         instance._createCellCoords(renderableRow, renderableColumn),
         options.horizontalSnap,
         options.verticalSnap,
       );
+
+    } else if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
+      isScrolled = instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
+
+    } else if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
+      isScrolled = instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
     }
 
-    if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
-      return instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
+    if (isScrolled) {
+      this.view.render();
+
+    } else if (callback) {
+      this.removeHook('afterScroll', callback);
+      instance.rootWindow.queueMicrotask(() => {
+        if (!this.isDestroyed) {
+          callback();
+        }
+      });
     }
 
-    if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
-      return instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
-    }
-
-    return false;
+    return isScrolled;
   };
 
   /**
@@ -4508,10 +4523,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterScroll
    * @function scrollToFocusedCell
    * @param {Function} callback The callback function to call after the viewport is scrolled.
+   * @returns {boolean} `true` if the viewport was scrolled, `false` otherwise.
    */
   this.scrollToFocusedCell = function(callback = () => {}) {
     if (!this.selection.isSelected()) {
-      return;
+      return false;
     }
 
     this.addHookOnce('afterScroll', callback);
@@ -4525,6 +4541,43 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       this.removeHook('afterScroll', callback);
       this._registerImmediate(() => callback());
     }
+
+    return isScrolled;
+  };
+
+  /**
+   * Scrolls the window viewport to coordinates specified by the currently focused cell.
+   *
+   * @since 15.3.0
+   * @memberof Core#
+   * @function scrollWindowToFocusedCell
+   * @returns {boolean} `true` if the viewport was scrolled, `false` otherwise.
+   */
+  this.scrollWindowToFocusedCell = function() {
+    return;
+
+    if (!this.selection.isSelected()) {
+      return false;
+    }
+
+    const { row, col } = this.getSelectedRangeLast().highlight;
+    const focusedCell = this.getCell(row, col, true);
+
+    if (!focusedCell) {
+      return false;
+    }
+
+    const { scrollX, scrollY } = this.rootWindow;
+
+    console.log('focusedCell', focusedCell);
+    focusedCell.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+    });
+
+    const { scrollX: newScrollX, scrollY: newScrollY } = this.rootWindow;
+
+    return scrollX !== newScrollX || scrollY !== newScrollY;
   };
 
   /**

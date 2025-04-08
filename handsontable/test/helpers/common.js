@@ -199,6 +199,20 @@ export function getDefaultRowHeight() {
 }
 
 /**
+ * @returns {number} Returns the default row height based on the current theme.
+ */
+export function getDefaultColumnWidth() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 50;
+    case 'horizon':
+      return 51;
+    default:
+      return 50; // classic
+  }
+}
+
+/**
  * @returns {number} Returns the default column header height based on the current theme.
  */
 export function getDefaultColumnHeaderHeight() {
@@ -209,6 +223,20 @@ export function getDefaultColumnHeaderHeight() {
       return 36;
     default:
       return 25; // classic
+  }
+}
+
+/**
+ * @returns {number} Returns the default column header height based on the current theme.
+ */
+export function getDefaultRowHeaderWidth() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 49;
+    case 'horizon':
+      return 49;
+    default:
+      return 50; // classic
   }
 }
 

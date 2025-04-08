@@ -1,8 +1,11 @@
 describe('Vertical scroll', () => {
   const id = 'testContainer';
+  let scrollIntoViewSpy;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    scrollIntoViewSpy = spyOn(Element.prototype, 'scrollIntoView');
   });
 
   afterEach(function() {
@@ -37,6 +40,11 @@ describe('Vertical scroll', () => {
       classic.toBe(184);
       main.toBe(195);
       horizon.toBe(195);
+    });
+    expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(8, 0, true));
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+      block: 'nearest',
+      inline: 'nearest',
     });
   });
 });

@@ -7,5 +7,6 @@
 export function noncontiguousScrollStrategy(hot) {
   return (cellCoords) => {
     hot.scrollViewportTo(cellCoords.toObject());
+    hot.scrollWindowToFocusedCell();
   };
 }

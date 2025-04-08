@@ -1,8 +1,11 @@
 describe('Corner selection scroll', () => {
   const id = 'testContainer';
+  let scrollIntoViewSpy;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    scrollIntoViewSpy = spyOn(Element.prototype, 'scrollIntoView');
   });
 
   afterEach(function() {
@@ -28,5 +31,6 @@ describe('Corner selection scroll', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(25);
     expect(topOverlay().getScrollPosition()).toBe(50);
+    expect(scrollIntoViewSpy).not.toHaveBeenCalled();
   });
 });

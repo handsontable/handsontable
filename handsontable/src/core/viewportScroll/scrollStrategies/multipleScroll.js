@@ -1,3 +1,5 @@
+import { scrollWindowToCell, createScrollTargetCalculator } from '../utils';
+
 /**
  * Scroll strategy for multiple selections.
  *
@@ -6,6 +8,15 @@
  */
 export function multipleScrollStrategy(hot) {
   return (cellCoords) => {
-    hot.scrollViewportTo(cellCoords.toObject());
+    const scrollTargetCalc = createScrollTargetCalculator(hot);
+
+    hot.scrollViewportTo({
+      row: scrollTargetCalc.getComputedRowTarget(cellCoords),
+      col: scrollTargetCalc.getComputedColumnTarget(cellCoords),
+    }, () => {
+      const { row, col } = cellCoords;
+
+      scrollWindowToCell(hot.getCell(row, col, true));
+    });
   };
 }
